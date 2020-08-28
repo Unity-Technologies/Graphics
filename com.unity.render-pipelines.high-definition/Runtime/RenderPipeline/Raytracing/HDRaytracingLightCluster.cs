@@ -506,7 +506,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     continue;
 
                 lightData.lightLayers = additionalLightData.GetLightLayers();
-                LightCategory lightCategory = LightCategory.Count;
+                BoundedEntityCategory lightCategory = BoundedEntityCategory.Count;
                 GPULightType gpuLightType = GPULightType.Point;
                 HDLightType lightType = additionalLightData.type;
                 HDRenderPipeline.EvaluateGPULightType(lightType, additionalLightData.spotLightShape, additionalLightData.areaLightShape, ref lightCategory, ref gpuLightType);

@@ -377,7 +377,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistoryValidity, ShadowHistoryValidityBufferAllocatorFunction, 1);
 
                         // Grab the slot of the directional light (given that it may be a color shadow, we need to use the mask to get the actual slot index)
-                        int dirShadowIndex = m_CurrentSunLightDirectionalLightData.screenSpaceShadowIndex & (int)LightDefinitions.s_ScreenSpaceShadowIndexMask;
+                        int dirShadowIndex = m_CurrentSunLightDirectionalLightData.screenSpaceShadowIndex & (int)TiledLightingConstants.s_ScreenSpaceShadowIndexMask;
                         GetShadowChannelMask(dirShadowIndex, m_CurrentSunLightAdditionalLightData.colorShadow ? ScreenSpaceShadowType.Color : ScreenSpaceShadowType.GrayScale, ref m_ShadowChannelMask0);
 
                         // Apply the simple denoiser (if required)
