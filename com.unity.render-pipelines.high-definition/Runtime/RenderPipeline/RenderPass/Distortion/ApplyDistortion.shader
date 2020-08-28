@@ -60,11 +60,6 @@ Shader "Hidden/HDRP/ApplyDistortion"
             bool distortionIsSourceValid;
             DecodeDistortion(encodedDistortion, distortion, distortionBlur, distortionIsSourceValid);
 
-            if (!distortionIsSourceValid)
-            {
-                return 0;
-            }
-
             int2 distortedEncodedDistortionId = input.positionCS.xy + int2(distortion);
 
             // Reject distortion if we try to fetch a pixel out of the buffer
