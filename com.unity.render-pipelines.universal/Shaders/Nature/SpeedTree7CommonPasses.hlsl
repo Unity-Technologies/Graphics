@@ -3,6 +3,7 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.hlsl"
 
 struct SpeedTreeVertexInput
 {
@@ -110,7 +111,7 @@ void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputD
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
-    inputData.normalizedScreenSpaceUV = input.clipPos.xy;
+    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
 }
 
 #ifdef GBUFFER
