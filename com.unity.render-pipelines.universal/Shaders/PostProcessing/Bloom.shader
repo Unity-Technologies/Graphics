@@ -54,7 +54,35 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
+
+        #if _BLOOM_HQ
+            float texelSize = _SourceTex_TexelSize.x;
+            half4 A = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv + texelSize * float2(-1.0, -1.0));
+            half4 B = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv + texelSize * float2(0.0, -1.0));
+            half4 C = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv + texelSize * float2(1.0, -1.0));
+            half4 D = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv + texelSize * float2(-0.5, -0.5));
+            half4 E = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv + texelSize * float2(0.5, -0.5));
+            half4 F = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv + texelSize * float2(-1.0, 0.0));
+            half4 G = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv);
+            half4 H = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv + texelSize * float2(1.0, 0.0));
+            half4 I = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv + texelSize * float2(-0.5, 0.5));
+            half4 J = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv + texelSize * float2(0.5, 0.5));
+            half4 K = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv + texelSize * float2(-1.0, 1.0));
+            half4 L = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv + texelSize * float2(0.0, 1.0));
+            half4 M = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv + texelSize * float2(1.0, 1.0));
+
+            half2 div = (1.0 / 4.0) * half2(0.5, 0.125);
+
+            half4 o = (D + E + I + J) * div.x;
+            o += (A + B + G + F) * div.y;
+            o += (B + C + H + G) * div.y;
+            o += (F + G + L + K) * div.y;
+            o += (G + H + M + L) * div.y;
+
+            half3 color = o.xyz;
+        #else
             half3 color = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv).xyz;
+        #endif
 
         #if UNITY_COLORSPACE_GAMMA
             color = SRGBToLinear(color);
@@ -152,6 +180,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             HLSLPROGRAM
                 #pragma vertex FullscreenVert
                 #pragma fragment FragPrefilter
+                #pragma multi_compile_local _ _BLOOM_HQ
             ENDHLSL
         }
 

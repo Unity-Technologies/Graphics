@@ -97,7 +97,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000002, guid: bfcaa4f70e3404e0dba2fcaeec366033,
+  m_LightingDataAsset: {fileID: 112000004, guid: bfcaa4f70e3404e0dba2fcaeec366033,
     type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: 236ebc83a0c374b2aaa0b3ec1eba856c,
     type: 2}
@@ -521,7 +521,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &445534504
 Transform:
   m_ObjectHideFlags: 0
@@ -1535,8 +1535,10 @@ MonoBehaviour:
     TargetWidth: 720
     TargetHeight: 480
     PerPixelCorrectnessThreshold: 0
-    AverageCorrectnessThreshold: 0.00002
+    AverageCorrectnessThreshold: 0.00025
     UseHDR: 0
+    UseBackBuffer: 0
+    ImageResolution: 0
   WaitFrames: 0
   XRCompatible: 1
 --- !u!1 &1197103736
