@@ -2,9 +2,9 @@ project:
   name: ShaderGraph
   folder: ShaderGraph
 test_platforms:
-  - Standalone
-  - playmode
-  - editmode
+  - type: Standalone
+  - type: playmode
+  - type: editmode
 platforms:
   - name: Win
     apis:
@@ -13,7 +13,7 @@ platforms:
   - name: OSX
     apis:
       - OpenGLCore
-      - Metal
+#      - Metal
   - name: Linux
     apis: 
       - OpenGLCore

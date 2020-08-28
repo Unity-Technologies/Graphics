@@ -3,7 +3,6 @@ project:
   folder: UniversalGfxTestStereo
 test_platforms:
   - type: Standalone
-    rename: StandaloneC
     extra_utr_flags:
       - compilation-errors-as-warnings
   - type: editmode

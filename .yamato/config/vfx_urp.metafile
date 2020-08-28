@@ -2,9 +2,9 @@ project:
   name: VFX_URP
   folder: VisualEffectGraph_URP
 test_platforms:
-  - Standalone
-  - playmode
-#  - editmode
+  - type: Standalone
+  - type: playmode
+#  - type: editmode
 platforms:
   - name: Win
     apis:
@@ -13,7 +13,7 @@ platforms:
       - Vulkan
   - name: OSX 
     apis:
-      - Metal
+#      - Metal
       - OpenGLCore
   - name: Linux
     apis: 

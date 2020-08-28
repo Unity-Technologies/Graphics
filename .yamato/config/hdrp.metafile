@@ -3,11 +3,17 @@ project:
   folder: HDRP_Tests
   folder_standalone: HDRP_RuntimeTests
 test_platforms:
-  - playmode
-  - playmode_XR
-  - playmode_RenderGraph
-  - editmode
-  - Standalone
+  - type: playmode
+  - type: playmode
+    name: playmode_XR
+    extra_utr_flags:
+      - --extra-editor-arg="-xr-tests" 
+  - type: playmode
+    name: playmode_RenderGraph
+    extra_utr_flags:
+      - --extra-editor-arg="-rendergraph-tests"
+  - type: editmode
+  - type: Standalone
 platforms:
   - name: Win
     apis:
@@ -37,9 +43,9 @@ platforms:
           image: graphics-foundation/win10-dxr:stable
           flavor: b1.xlarge
           model: rtx2080
-  - name: OSX
-    apis:
-      - Metal
+#  - name: OSX
+#    apis:
+#      - Metal
   - name: Linux
     apis:
       - Vulkan

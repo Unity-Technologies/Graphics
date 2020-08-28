@@ -36,8 +36,6 @@ def cmd_standalone(project_folder, platform, api, test_platform_args):
     utr_args.extend(test_platform_args)
 
     base = [f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}/{project_folder}/utr.bat']
-    if project_folder.lower() == 'UniversalGraphicsTest'.lower():
-        base.append('cd Tools && powershell -command ". .\\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"')
     base.append(f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}')
     
     return base

@@ -18,18 +18,18 @@ platforms:
       - DX11
 #      - DX12
       - Vulkan
-#  - name: OSX 
-#    apis:
+  - name: OSX 
+    apis:
 #      - Metal
 #      - OpenGLCore
   - name: Linux
     apis: 
       - Vulkan
       - OpenGLCore
-#  - name: Android
-#    apis:
-#      - OpenGLES3
-#      - Vulkan
+  - name: Android
+    apis:
+      - OpenGLES3
+      - Vulkan
 all:
   dependencies:
     - platform: Win
