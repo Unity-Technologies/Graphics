@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         [SerializeField]
         [Tooltip("Controls the maximal world space radius from which we should get indirect lighting contribution.")]
-        private ClampedFloatParameter m_MaximalRadius = new ClampedFloatParameter(2.0f, 0.01f, 50.0f);
+        private ClampedFloatParameter m_MaximalRadius = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
         /// <summary>
         /// Defines if the effect should be evaluated at full resolution.

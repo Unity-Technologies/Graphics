@@ -350,6 +350,11 @@ namespace UnityEngine.Rendering.HighDefinition
             shadowHistoryUsage[screenSpaceShadowIndex].lightType = lightType;
         }
 
+        internal uint CameraFrameCount()
+        {
+            return cameraFrameCount;
+        }
+
         internal ProfilingSampler profilingSampler => m_AdditionalCameraData?.profilingSampler ?? ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderCamera);
 
         internal HDCamera(Camera cam)

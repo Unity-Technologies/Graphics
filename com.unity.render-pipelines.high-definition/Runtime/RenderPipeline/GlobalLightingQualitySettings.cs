@@ -48,19 +48,19 @@ namespace UnityEngine.Rendering.HighDefinition
             SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.Medium] = 32;
             SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.High] = 64;
 
-            SSGIRadius[(int)ScalableSettingLevelParameter.Level.Low] = 1.5f;
-            SSGIRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 5.0f;
-            SSGIRadius[(int)ScalableSettingLevelParameter.Level.High] = 20.0f;
+            SSGIRadius[(int)ScalableSettingLevelParameter.Level.Low] = 0.25f;
+            SSGIRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 0.5f;
+            SSGIRadius[(int)ScalableSettingLevelParameter.Level.High] = 1.0f;
 
             SSGIFullResolution[(int)ScalableSettingLevelParameter.Level.Low] = false;
             SSGIFullResolution[(int)ScalableSettingLevelParameter.Level.Medium] = true;
             SSGIFullResolution[(int)ScalableSettingLevelParameter.Level.High] = true;
 
-            SSGIClampValue[(int)ScalableSettingLevelParameter.Level.Low] = 0.5f;
-            SSGIClampValue[(int)ScalableSettingLevelParameter.Level.Medium] = 0.8f;
-            SSGIClampValue[(int)ScalableSettingLevelParameter.Level.High] = 1.0f;
+            SSGIClampValue[(int)ScalableSettingLevelParameter.Level.Low] = 0.6f;
+            SSGIClampValue[(int)ScalableSettingLevelParameter.Level.Medium] = 0.9f;
+            SSGIClampValue[(int)ScalableSettingLevelParameter.Level.High] = 1.5f;
 
-            SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.Low] = 2;
+            SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.Low] = 3;
             SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 5;
             SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.High] = 7;
 

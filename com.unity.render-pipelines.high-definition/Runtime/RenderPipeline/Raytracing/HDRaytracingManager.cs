@@ -558,14 +558,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 && hdCamera.historyRTHandleProperties.previousViewportSize.y == hdCamera.actualHeight;
         }
 
-        internal int RayTracingFrameIndex(HDCamera hdCamera)
+        internal int RayTracingFrameIndex(HDCamera hdCamera, int targetFrameCount = 8)
         {
         #if UNITY_HDRP_DXR_TESTS_DEFINE
             if (Application.isPlaying)
                 return 0;
             else
         #endif
-            return hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)m_FrameCount % 8;
+            return (int)hdCamera.CameraFrameCount() % targetFrameCount;
         }
 
         internal bool RayTracingLightClusterRequired(HDCamera hdCamera)

@@ -553,7 +553,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, builtinDataSSGI);
 
 #endif
-        builtinData.bakeDiffuseLighting += builtinDataSSGI.bakeDiffuseLighting;
+        builtinData.bakeDiffuseLighting = lerp(builtinData.bakeDiffuseLighting, builtinDataSSGI.bakeDiffuseLighting, LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, posInput.positionSS).w);
     }
 #endif
 

@@ -80,7 +80,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public void Denoise(CommandBuffer cmd, HDCamera hdCamera, 
-            RTHandle noisyBuffer, RTHandle outputBuffer,
+            RTHandle noisyBuffer0, RTHandle noisyBuffer1,
+            RTHandle outputBuffer0, RTHandle outputBuffer1,
             bool halfResolution = false, float historyValidity = 1.0f)
         {
             // Grab the global illumination volume component
@@ -91,7 +92,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // If the depth textures are not available, we can't denoise
             if (historyDepthBuffer == null || historyDepthBuffer1 == null)
             {
-                HDUtils.BlitCameraTexture(cmd, noisyBuffer, outputBuffer);
                 return;
             }
 
@@ -115,21 +115,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Bind the input buffers
             cmd.SetComputeTextureParam(m_SSGIDenoiserCS, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthTexture());
-            cmd.SetComputeTextureParam(m_SSGIDenoiserCS, m_KernelFilter, HDShaderIDs._InputNoisyBuffer, noisyBuffer);
+            cmd.SetComputeTextureParam(m_SSGIDenoiserCS, m_KernelFilter, HDShaderIDs._InputNoisyBuffer0, noisyBuffer0);
+            cmd.SetComputeTextureParam(m_SSGIDenoiserCS, m_KernelFilter, HDShaderIDs._InputNoisyBuffer1, noisyBuffer1);
 
             // Bind the output buffer
-            cmd.SetComputeTextureParam(m_SSGIDenoiserCS, m_KernelFilter, HDShaderIDs._OutputFilteredBuffer, outputBuffer);
+            cmd.SetComputeTextureParam(m_SSGIDenoiserCS, m_KernelFilter, HDShaderIDs._OutputFilteredBuffer0, outputBuffer0);
+            cmd.SetComputeTextureParam(m_SSGIDenoiserCS, m_KernelFilter, HDShaderIDs._OutputFilteredBuffer1, outputBuffer1);
 
             // Do the spatial pass
             cmd.DispatchCompute(m_SSGIDenoiserCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
 
             // Grab the history buffer
-            RTHandle indirectDiffuseHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF);
-            if(indirectDiffuseHistory == null)
+            RTHandle indirectDiffuseHistory0 = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF);
+            if(indirectDiffuseHistory0 == null)
             {
-                indirectDiffuseHistory = hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF, IndirectDiffuseHistoryBufferAllocatorFunction, 1);
-                // clear it to black if this is the first pass to avoid nans
-                CoreUtils.SetRenderTarget(cmd, indirectDiffuseHistory, ClearFlag.Color, clearColor: Color.black);
+                indirectDiffuseHistory0 = hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF, IndirectDiffuseHistoryBufferAllocatorFunction, 1);
+                CoreUtils.SetRenderTarget(cmd, indirectDiffuseHistory0, ClearFlag.Color, clearColor: Color.black);
+            }
+            RTHandle indirectDiffuseHistory1 = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseLF);
+            if (indirectDiffuseHistory1 == null)
+            {
+                indirectDiffuseHistory1 = hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseLF, IndirectDiffuseHistoryBufferAllocatorFunction, 1);
+                CoreUtils.SetRenderTarget(cmd, indirectDiffuseHistory1, ClearFlag.Color, clearColor: new Color(0.501960784f, 0.501960784f, 0.0f, 0.0f));
             }
 
             // Pick the right kernel to use
@@ -148,18 +155,23 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 cmd.SetComputeTextureParam(m_SSGIDenoiserCS, m_KernelFilter, HDShaderIDs._HistoryDepthTexture, historyDepthBuffer);
             }
-            cmd.SetComputeTextureParam(m_SSGIDenoiserCS, m_KernelFilter, HDShaderIDs._HistoryBuffer, indirectDiffuseHistory);
-            cmd.SetComputeTextureParam(m_SSGIDenoiserCS, m_KernelFilter, HDShaderIDs._InputNoisyBuffer, outputBuffer);
+            cmd.SetComputeTextureParam(m_SSGIDenoiserCS, m_KernelFilter, HDShaderIDs._HistoryBuffer0, indirectDiffuseHistory0);
+            cmd.SetComputeTextureParam(m_SSGIDenoiserCS, m_KernelFilter, HDShaderIDs._HistoryBuffer1, indirectDiffuseHistory1);
+            cmd.SetComputeTextureParam(m_SSGIDenoiserCS, m_KernelFilter, HDShaderIDs._InputNoisyBuffer0, outputBuffer0);
+            cmd.SetComputeTextureParam(m_SSGIDenoiserCS, m_KernelFilter, HDShaderIDs._InputNoisyBuffer1, outputBuffer1);
 
             // Bind the output buffer
-            cmd.SetComputeTextureParam(m_SSGIDenoiserCS, m_KernelFilter, HDShaderIDs._OutputFilteredBuffer, noisyBuffer);
+            cmd.SetComputeTextureParam(m_SSGIDenoiserCS, m_KernelFilter, HDShaderIDs._OutputFilteredBuffer0, noisyBuffer0);
+            cmd.SetComputeTextureParam(m_SSGIDenoiserCS, m_KernelFilter, HDShaderIDs._OutputFilteredBuffer1, noisyBuffer1);
 
             // Do the temporal pass
             cmd.DispatchCompute(m_SSGIDenoiserCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
 
             // Copy the new version into the history buffer
-            cmd.SetComputeTextureParam(m_SSGIDenoiserCS, m_CopyHistory, HDShaderIDs._InputNoisyBuffer, noisyBuffer);
-            cmd.SetComputeTextureParam(m_SSGIDenoiserCS, m_CopyHistory, HDShaderIDs._OutputFilteredBuffer, indirectDiffuseHistory);
+            cmd.SetComputeTextureParam(m_SSGIDenoiserCS, m_CopyHistory, HDShaderIDs._InputNoisyBuffer0, noisyBuffer0);
+            cmd.SetComputeTextureParam(m_SSGIDenoiserCS, m_CopyHistory, HDShaderIDs._InputNoisyBuffer1, noisyBuffer1);
+            cmd.SetComputeTextureParam(m_SSGIDenoiserCS, m_CopyHistory, HDShaderIDs._OutputFilteredBuffer0, indirectDiffuseHistory0);
+            cmd.SetComputeTextureParam(m_SSGIDenoiserCS, m_CopyHistory, HDShaderIDs._OutputFilteredBuffer1, indirectDiffuseHistory1);
             cmd.DispatchCompute(m_SSGIDenoiserCS, m_CopyHistory, numTilesX, numTilesY, hdCamera.viewCount);
         }
     }

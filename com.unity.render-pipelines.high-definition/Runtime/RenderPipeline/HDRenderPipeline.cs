@@ -2675,7 +2675,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         break;
 
                     case IndirectDiffuseMode.ScreenSpace:
-                        RenderSSGI(hdCamera, cmd, renderContext, m_FrameCount);
+                        RenderSSGI(hdCamera, cmd, renderContext, ref m_ShaderVariablesGlobalCB);
                         BindIndirectDiffuseTexture(cmd);
                         break;
 
