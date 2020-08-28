@@ -1,7 +1,7 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ruamel.yaml.scalarstring import PreservedScalarString as pss
 
-from ..shared.namer import editor_job_id, editor_job_id_update, editor_pinning_filepath, editor_job_id_merge_from_target
+from ..shared.namer import editor_job_id, editor_job_id_update, editor_pinning_filepath, editor_job_id_target_to_ci
 from ..shared.constants import VAR_UPM_REGISTRY, PATH_UNITY_REVISION
 from ..shared.yml_job import YMLJob
 
@@ -38,6 +38,6 @@ class Editor_PinningUpdateJob():
         job.set_agent(agent)
         job.add_var_custom('CI', True)
         job.add_commands(commands)
-        job.add_dependencies([f'{editor_pinning_filepath()}#{editor_job_id_merge_from_target()}']) #TODO toggle
+        job.add_dependencies([f'{editor_pinning_filepath()}#{editor_job_id_target_to_ci()}']) #TODO toggle
         #job.add_trigger_recurrent(target_branch, '0 * * ?') # TODO uncomment
         return job

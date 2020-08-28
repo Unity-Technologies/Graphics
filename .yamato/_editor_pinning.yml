@@ -3,7 +3,7 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-editor-pinning-merge-from-target:
+editor-pinning-target-to-ci:
     name: Merge yamato/editor-pin to yamato/editor-pin-ci
     agent:
         type: Unity::VM
@@ -51,8 +51,8 @@ editor-pinning-update:
       -  git config --global user.email "noreply@unity3d.com"
       -  pipenv run python3 .yamato/ruamel/editor_pinning/update_revisions.py --target-branch yamato/editor-pin-ci --force-push
     dependencies:
-      -  .yamato/_editor_pinning.yml#editor-pinning-merge-from-target
-editor-pinning-merge-to-target:
+      -  .yamato/_editor_pinning.yml#editor-pinning-target-to-ci
+editor-pinning-merge-revisions:
     name: Merge editor revisions to yamato/editor-pin
     agent:
         type: Unity::VM
@@ -101,12 +101,12 @@ editor-pinning-update-abv:
       -  git config --global user.email "noreply@unity3d.com"
       -  pipenv run python3 .yamato/ruamel/editor_pinning/update_revisions.py --target-branch yamato/editor-pin-ci --force-push
     dependencies:
-      -  .yamato/_editor_pinning.yml#editor-pinning-merge-from-target
+      -  .yamato/_editor_pinning.yml#editor-pinning-target-to-ci
     triggers:
         recurring:
           -  branch: yamato/editor-pin
              frequency: 0 * * ?
-editor-pinning-merge-to-target-abv:
+editor-pinning-merge-revisions-abv:
     name: Merge editor revisions to yamato/editor-pin ABV
     agent:
         type: Unity::VM

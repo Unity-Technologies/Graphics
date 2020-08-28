@@ -1,8 +1,8 @@
 
 from .editor_priming import Editor_PrimingJob
-from .editor_pinning_merge_to_target import Editor_PinningMergeToTargetJob
-from .editor_pinning_merge_to_target_abv import Editor_PinningMergeToTargetABVJob
-from .editor_pinning_merge_from_target import Editor_PinningMergeFromTargetJob
+from .editor_pinning_merge_revisions import Editor_PinningMergeRevisionsJob
+from .editor_pinning_merge_revisions_abv import Editor_PinningMergeRevisionsABVJob
+from .editor_pinning_target_to_ci import Editor_PinningTargetToCIJob
 from .editor_pinning_update import Editor_PinningUpdateJob
 from .editor_pinning_update_abv import Editor_PinningUpdateABVJob
 from ..shared.namer import editor_priming_filepath, editor_pinning_filepath
@@ -25,14 +25,14 @@ def create_editor_yml(metafile):
     yml = {}
 
     # sync job
-    job = Editor_PinningMergeFromTargetJob(metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"])
+    job = Editor_PinningTargetToCIJob(metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"])
     yml[job.job_id] = job.yml 
 
     # manual 
     job = Editor_PinningUpdateJob(metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"])
     yml[job.job_id] = job.yml
 
-    job = Editor_PinningMergeToTargetJob(metafile["target_editor"], metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"])
+    job = Editor_PinningMergeRevisionsJob(metafile["target_editor"], metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"])
     yml[job.job_id] = job.yml 
     
 
@@ -40,7 +40,7 @@ def create_editor_yml(metafile):
     job = Editor_PinningUpdateABVJob(metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"])
     yml[job.job_id] = job.yml 
 
-    job = Editor_PinningMergeToTargetABVJob(metafile["target_editor"], metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"])
+    job = Editor_PinningMergeRevisionsABVJob(metafile["target_editor"], metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"])
     yml[job.job_id] = job.yml 
 
 

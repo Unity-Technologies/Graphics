@@ -17,14 +17,14 @@ def editor_job_id_update():
 def editor_job_id_update_ABV():
     return 'editor-pinning-update-abv'
 
-def editor_job_id_merge_from_target():
-    return 'editor-pinning-merge-from-target'
+def editor_job_id_target_to_ci():
+    return 'editor-pinning-target-to-ci'
 
-def editor_job_id_merge_to_target():
-    return 'editor-pinning-merge-to-target'
+def editor_job_id_merge_revisions():
+    return 'editor-pinning-merge-revisions'
 
-def editor_job_id_merge_to_target_ABV():
-    return 'editor-pinning-merge-to-target-abv'
+def editor_job_id_merge_revisions_ABV():
+    return 'editor-pinning-merge-revisions-abv'
 
 # package specific
 def packages_filepath():

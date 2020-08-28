@@ -1,7 +1,7 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ruamel.yaml.scalarstring import PreservedScalarString as pss
 
-from ..shared.namer import editor_job_id, editor_job_id_update_ABV, editor_pinning_filepath, editor_job_id_merge_from_target
+from ..shared.namer import editor_job_id, editor_job_id_update_ABV, editor_pinning_filepath
 from ..shared.constants import VAR_UPM_REGISTRY, PATH_UNITY_REVISION
 from ..shared.yml_job import YMLJob
 from .editor_pinning_update import Editor_PinningUpdateJob
