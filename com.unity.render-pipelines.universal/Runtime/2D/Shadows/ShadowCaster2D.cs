@@ -130,7 +130,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         protected void OnDisable()
         {
-            LightUtility.RemoveFromShadowCasterGroup(this, m_ShadowCasterGroup);
+            ShadowCasterGroup2DManager.RemoveFromShadowCasterGroup(this, m_ShadowCasterGroup);
         }
 
         public void Update()
@@ -143,13 +143,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
 
             m_PreviousShadowCasterGroup = m_ShadowCasterGroup;
-            bool addedToNewGroup = LightUtility.AddToShadowCasterGroup(this, ref m_ShadowCasterGroup);
+            bool addedToNewGroup = ShadowCasterGroup2DManager.AddToShadowCasterGroup(this, ref m_ShadowCasterGroup);
             if (addedToNewGroup && m_ShadowCasterGroup != null)
             {
                 if (m_PreviousShadowCasterGroup == this)
                     ShadowCasterGroup2DManager.RemoveGroup(this);
 
-                LightUtility.RemoveFromShadowCasterGroup(this, m_PreviousShadowCasterGroup);
+                ShadowCasterGroup2DManager.RemoveFromShadowCasterGroup(this, m_PreviousShadowCasterGroup);
                 if (m_ShadowCasterGroup == this)
                     ShadowCasterGroup2DManager.AddGroup(this);
             }

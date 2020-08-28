@@ -1,14 +1,15 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ruamel.yaml.scalarstring import PreservedScalarString as pss
-from ..shared.namer import editor_job_id, abv_filepath, abv_job_id_all_project_ci, editor_job_id_merge_to_target
+from ..shared.namer import editor_job_id, abv_filepath, abv_job_id_all_project_ci, editor_job_id_merge_revisions
 from ..shared.constants import VAR_UPM_REGISTRY, PATH_UNITY_REVISION
 from ..shared.yml_job import YMLJob
 
-class Editor_PinningMergeToTargetJob():
+class Editor_PinningMergeRevisionsJob():
     
     def __init__(self, editor, agent, target_branch, target_branch_editor_ci):
-        self.job_id = editor_job_id_merge_to_target()
-        self.yml = self.get_job_definition(editor, agent, target_branch, target_branch_editor_ci).get_yml()
+        self.job_id = editor_job_id_merge_revisions()
+        self.yml_job = self.get_job_definition(editor, agent, target_branch, target_branch_editor_ci)
+        self.yml = self.yml_job.get_yml()
 
 
     def get_job_definition(self, editor, agent, target_branch, target_branch_editor_ci):
@@ -33,11 +34,10 @@ class Editor_PinningMergeToTargetJob():
         
         # construct job
         job = YMLJob()
-        job.set_name(f'Merge editor revisions to {target_branch}')
+        job.set_name(f'Merge editor revisions to {target_branch} [manual]')
         job.set_agent(agent)
         job.add_var_custom('CI', True)
         job.add_commands(commands)
-        #job.add_dependencies([f'{abv_filepath()}#{abv_job_id_all_project_ci(editor)}']) # TODO uncomment
-        job.set_trigger_on_expression(f'push.branch eq "{target_branch_editor_ci}" AND push.changes.any match "**/_latest_editor_versions.metafile"')
-        #job.add_trigger_integration_branch(target_branch_editor_ci)
+        #job.add_dependencies([f'{abv_filepath()}#{abv_job_id_all_project_ci(editor)}'])
+        #job.set_trigger_on_expression(f'push.branch eq "{target_branch_editor_ci}" AND push.changes.any match "**/_latest_editor_versions.metafile"')
         return job

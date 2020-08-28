@@ -117,6 +117,12 @@ namespace UnityEngine.Rendering.Universal
                 cameraHeight = (float)cameraData.cameraTargetDescriptor.height;
             }
 
+            if (camera.allowDynamicResolution)
+            {
+                scaledCameraWidth *= ScalableBufferManager.widthScaleFactor;
+                scaledCameraHeight *= ScalableBufferManager.heightScaleFactor;
+            }
+
             float near = camera.nearClipPlane;
             float far = camera.farClipPlane;
             float invNear = Mathf.Approximately(near, 0.0f) ? 0.0f : 1.0f / near;

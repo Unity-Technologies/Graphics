@@ -1,13 +1,13 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ruamel.yaml.scalarstring import PreservedScalarString as pss
-from ..shared.namer import editor_job_id, abv_filepath, abv_job_id_all_project_ci, editor_job_id_merge_from_target
+from ..shared.namer import editor_job_id, abv_filepath, abv_job_id_all_project_ci, editor_job_id_target_to_ci
 from ..shared.constants import VAR_UPM_REGISTRY, PATH_UNITY_REVISION
 from ..shared.yml_job import YMLJob
 
-class Editor_PinningMergeFromTargetJob():
+class Editor_PinningTargetToCIJob():
     
     def __init__(self, agent, target_branch, target_branch_editor_ci):
-        self.job_id = editor_job_id_merge_from_target()
+        self.job_id = editor_job_id_target_to_ci()
         self.yml = self.get_job_definition(agent, target_branch, target_branch_editor_ci).get_yml()
 
 
