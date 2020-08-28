@@ -297,14 +297,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 #endif
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.hasValidOcclusionMesh)
-            {
-                m_XROcclusionMeshPass.Setup(m_ActiveCameraDepthAttachment);
-                EnqueuePass(m_XROcclusionMeshPass);
-            }
-#endif
+            
             if (requiresDepthPrepass)
             {
                 if (renderPassInputs.requiresNormalsTexture)
