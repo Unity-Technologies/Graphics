@@ -1,14 +1,11 @@
-using UnityEngine.Experimental.GlobalIllumination;
 using Unity.Collections;
 using System;
-using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
-using UnityEditor;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
     /// <summary>
-    /// Computes and submits lighting data to the GPU.
+    /// Computes and submits lighting and reflection probe data to the GPU.
     /// </summary>
     public class ForwardLights
     {
@@ -25,16 +22,17 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             public static int _AdditionalLightOcclusionProbeChannel;
 
-            public static int _ReflectionProbesParams;
+            public static int _ReflectionProbesParams; // #note move out of LightConstantBuffer?
         }
+
         const int k_MaxReflectionProbesPerObject = 2;
         const int k_ReflectionProbesCubeSize = 128;
-        const bool k_useHDR = true; 
 
         int m_AdditionalLightsBufferId;
         int m_AdditionalLightsIndicesId;
 
         int m_ReflectionProbesBufferId;
+        int m_ReflectionProbesIndicesId;
         int m_ReflectionProbeTexturesId;
 
         const string k_SetupLightConstants = "Setup Light Constants";
@@ -62,24 +60,24 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 m_AdditionalLightsBufferId = Shader.PropertyToID("_AdditionalLightsBuffer");
                 m_AdditionalLightsIndicesId = Shader.PropertyToID("_AdditionalLightsIndices");
-
+                m_ReflectionProbesIndicesId = Shader.PropertyToID("_ReflectionProbeIndices");
                 m_ReflectionProbesBufferId = Shader.PropertyToID("_ReflectionProbesBuffer");
                 m_ReflectionProbeTexturesId = Shader.PropertyToID("_ReflectionProbeTextures");
             }
             else
             {
-	            LightConstantBuffer._AdditionalLightsPosition = Shader.PropertyToID("_AdditionalLightsPosition");
-	            LightConstantBuffer._AdditionalLightsColor = Shader.PropertyToID("_AdditionalLightsColor");
-	            LightConstantBuffer._AdditionalLightsAttenuation = Shader.PropertyToID("_AdditionalLightsAttenuation");
-	            LightConstantBuffer._AdditionalLightsSpotDir = Shader.PropertyToID("_AdditionalLightsSpotDir");
-	            LightConstantBuffer._AdditionalLightOcclusionProbeChannel = Shader.PropertyToID("_AdditionalLightsOcclusionProbes");
+                LightConstantBuffer._AdditionalLightsPosition = Shader.PropertyToID("_AdditionalLightsPosition");
+                LightConstantBuffer._AdditionalLightsColor = Shader.PropertyToID("_AdditionalLightsColor");
+                LightConstantBuffer._AdditionalLightsAttenuation = Shader.PropertyToID("_AdditionalLightsAttenuation");
+                LightConstantBuffer._AdditionalLightsSpotDir = Shader.PropertyToID("_AdditionalLightsSpotDir");
+                LightConstantBuffer._AdditionalLightOcclusionProbeChannel = Shader.PropertyToID("_AdditionalLightsOcclusionProbes");
 
                 int maxLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
-	            m_AdditionalLightPositions = new Vector4[maxLights];
-	            m_AdditionalLightColors = new Vector4[maxLights];
-	            m_AdditionalLightAttenuations = new Vector4[maxLights];
-	            m_AdditionalLightSpotDirections = new Vector4[maxLights];
-	            m_AdditionalLightOcclusionProbeChannels = new Vector4[maxLights];
+                m_AdditionalLightPositions = new Vector4[maxLights];
+                m_AdditionalLightColors = new Vector4[maxLights];
+                m_AdditionalLightAttenuations = new Vector4[maxLights];
+                m_AdditionalLightSpotDirections = new Vector4[maxLights];
+                m_AdditionalLightOcclusionProbeChannels = new Vector4[maxLights];
             }
         }
 
@@ -91,6 +89,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 SetupShaderLightConstants(cmd, ref renderingData);
+                // #note can only call this after light constants?
+                SetupReflectionProbeConstants(cmd, ref renderingData);
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsVertex,
                     additionalLightsCount > 0 && additionalLightsPerVertex);
@@ -127,6 +127,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
+        void InitializeProbeConstants(NativeArray<VisibleReflectionProbe> probes, int probeIndex, out Vector4 probePos, out Vector4 probeAABBMin, out Vector4 probeAABBMax, out Vector4 hdrData)
+        {
+            var probeData = probes[probeIndex];
+            probePos = probeData.localToWorldMatrix.MultiplyPoint(Vector3.zero);
+            probePos.w = (probeData.isBoxProjection) ? 1f : 0f;
+            probeAABBMin = probeData.bounds.min;
+            probeAABBMin.w = probeData.blendDistance;
+            probeAABBMax = probeData.bounds.max;
+            hdrData = probeData.hdrData;
+        }
+
         void SetupShaderLightConstants(CommandBuffer cmd, ref RenderingData renderingData)
         {
             m_MixedLightingSetup = MixedLightingSetup.None;
@@ -135,7 +146,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Universal pipeline also supports only a single shadow light, if available it will be the main light.
             SetupMainLightConstants(cmd, ref renderingData.lightData);
             SetupAdditionalLightConstants(cmd, ref renderingData);
-            SetupReflectionProbeConstants(cmd, ref renderingData);
         }
 
         void SetupMainLightConstants(CommandBuffer cmd, ref LightData lightData)
@@ -216,132 +226,109 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        class ReflectionProbeSorter : IComparer<ReflectionProbe>
-        {
-            public int Compare(ReflectionProbe a, ReflectionProbe b)
-            {
-                // probes with larger importance render later (to blend over previous probes)
-                if (a.importance != b.importance)
-                    return b.importance.CompareTo(a.importance);
-                // smaller probes render later (better handles small probes being inside larger probes cases)
-                return a.bounds.extents.sqrMagnitude.CompareTo(b.bounds.extents.sqrMagnitude);
-            }
-        }
-
         void SetupReflectionProbeConstants(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            ReflectionProbe[] reflectionProbes = GameObject.FindObjectsOfType<ReflectionProbe>();//   Resources.FindObjectsOfTypeAll<ReflectionProbe>();
-            if (reflectionProbes.Length > 0)
+            var cullResults = renderingData.cullResults;
+            var probes = cullResults.visibleReflectionProbes;
+            int maxReflectionProbesCount = UniversalRenderPipeline.maxVisibleReflectionProbes;
+            int reflectionProbesCount = SetupPerObjectReflectionProbeIndices(cullResults);
+
+            if (reflectionProbesCount > 0)
             {
-                Array.Sort(reflectionProbes, new ReflectionProbeSorter());
+                UpdateReflectionProbeCubeMapCache(cmd, cullResults);
 
                 if (m_UseStructuredBuffer)
                 {
-                    TextureFormat texFormat = TextureFormat.RGBAHalf;
-                    if (reflectionProbes[0].texture)
+                    var reflectionProbeData = new NativeArray<ShaderInput.ReflectionProbeData>(reflectionProbesCount, Allocator.Temp);
+
+                    for (int i = 0; i < probes.Length && i < maxReflectionProbesCount; ++i)
                     {
-                        switch (reflectionProbes[0].texture.graphicsFormat)
-                        {
-                            case GraphicsFormat.RGB_BC6H_UFloat:
-                                texFormat = TextureFormat.BC6H;
-                                break;
-                            case GraphicsFormat.R16G16B16A16_SFloat:
-                                texFormat = TextureFormat.RGBAHalf;
-                                break;
-                            case GraphicsFormat.RGBA_DXT5_SRGB:
-                                texFormat = TextureFormat.DXT5;
-                                break;
-                            case GraphicsFormat.R8G8B8A8_SRGB:
-                                texFormat = TextureFormat.RGBA32;
-                                break;
-                            default:
-                                Debug.LogError("Unsupported reflection probe texture format.");
-                                break;
-                        }
-
-                        // #note we need to use the same reflection texture size to use texture 2d or use the largest and upscale the others
-                        var textureArray = new Texture2DArray(k_ReflectionProbesCubeSize, k_ReflectionProbesCubeSize,
-                                                                Math.Min(reflectionProbes.Length, k_MaxReflectionProbesPerObject),
-                                                                texFormat, false);
-                        cmd.SetGlobalTexture(m_ReflectionProbeTexturesId, textureArray);
-
-                        var reflectionProbeData = new NativeArray<ShaderInput.ReflectionProbeData>(reflectionProbes.Length, Allocator.Temp);
-                        // #note should we use reflectionProbe.hdr (bool)?
-                        for (int i = 0; i < reflectionProbes.Length && i < k_MaxReflectionProbesPerObject; i++)
-                        {
-                            if (reflectionProbes[i].texture)
-                                Debug.Log(reflectionProbes[i].texture.graphicsFormat);
-                            if (reflectionProbes[i].texture)
-                            {
-                                ShaderInput.ReflectionProbeData data;
-                                data.position = reflectionProbes[i].transform.position;
-                                data.position.w = reflectionProbes[i].boxProjection ? 1 : 0;
-                                data.boxMin = reflectionProbes[i].bounds.min;
-                                data.boxMin.w = reflectionProbes[i].blendDistance;
-                                data.boxMax = reflectionProbes[i].bounds.max;
-                                data.hdr = reflectionProbes[i].textureHDRDecodeValues;
-                                reflectionProbeData[i] = data;
-
-                                Graphics.CopyTexture(reflectionProbes[i].texture, 0, 0, textureArray, i, 0);
-                            }
-
-
-
-                            //Rendering not happening for the reflection probe textures.
-
-                            //Texture2D tex = Texture2D.CreateExternalTexture(
-                            //    k_ReflectionProbesCubeSize,
-                            //    k_ReflectionProbesCubeSize,
-                            //    TextureFormat.BC6H,
-                            //    false, false,
-                            //    reflectionProbes[i].texture.GetNativeTexturePtr());
-                            //Debug.Log(tex.GetPixel(0,0));
-                            //Debug.Log(.GetPixel(0, 0));
-                            //textureArray.SetPixels(.GetPixels(), i);
-                            //
-                            //textureArray.Apply();
-
-
-                        }
-                        //Debug.Log(textureArray.GetPixels(1)[0]);
-
-                        var probeDataBuffer = ShaderData.instance.GetReflectionProbeDataBuffer(reflectionProbes.Length);
-                        probeDataBuffer.SetData(reflectionProbeData);
-                        cmd.SetGlobalBuffer(m_ReflectionProbesBufferId, probeDataBuffer);
-
-                        reflectionProbeData.Dispose();
-
-                        // #note handle CubeMapTextureArray cache here?? See HDRP (TextureCacheCubeMap.cs & ReflectionProbeCache.cs)
-                        // Notes @mortenm:
-                        //  This is an important one too: TransferToSlice() in those files
-                        //  to convert on the fly from cube map to panorama the array requires an uncompressed format. If on the other hand you know the platform supports cube map arrays then you could use a compressed format such as BC6
-                        //  but initially to get it running you could just always set it to RGBm or 4xfp16 or 11_11_10F
-                        //  also an unrelated subtlety I wanted to mention since it is easy to miss is NewFrame() must be called on each texture cache once per frame
-                        //  also have you been able to find the blit shader used in TransferToPanoCache()? It's in ../com.unity.render-pipelines.high-definition/Runtime/Core/CoreResources It is CubeToPano.shader
-                        var yellowImg = new Color[16 * 16];
-                        for (int i = 0; i < 16 * 16; i++)
-                            yellowImg[i] = Color.green;
-                        var redImg = new Color[16 * 16];
-                        for (int i = 0; i < 16 * 16; i++)
-                            redImg[i] = Color.red;
-                        //textureArray.SetPixels(yellowImg, 0, 0);
-                        //textureArray.SetPixels(redImg, 1, 0);
-
-
+                        VisibleReflectionProbe probe = probes[i];
+                        ShaderInput.ReflectionProbeData data;
+                        InitializeProbeConstants(probes, i, out data.position, out data.boxMin, out data.boxMax, out data.hdr);
+                        reflectionProbeData[i] = data;
                     }
+
+                    var probeDataBuffer = ShaderData.instance.GetReflectionProbeDataBuffer(reflectionProbesCount);
+                    probeDataBuffer.SetData(reflectionProbeData);
+
+                    int probeIndices = cullResults.lightAndReflectionProbeIndexCount;
+                    var probeIndicesBuffer = ShaderData.instance.GetReflectionProbeIndicesBuffer(probeIndices);
+
+                    cmd.SetGlobalBuffer(m_ReflectionProbesBufferId, probeDataBuffer);
+                    cmd.SetGlobalBuffer(m_ReflectionProbesIndicesId, probeIndicesBuffer);
+
+                    reflectionProbeData.Dispose();
                 }
                 else
                 {
                     // #note To do implement UBO fall back path...
+                    throw new NotImplementedException();
                 }
 
                 // #note might need to pack more data into this??
-                cmd.SetGlobalVector(LightConstantBuffer._ReflectionProbesParams, new Vector4(Math.Min(reflectionProbes.Length, k_MaxReflectionProbesPerObject),
+                // #note probably does not contain the right stuff
+                cmd.SetGlobalVector(LightConstantBuffer._ReflectionProbesParams, new Vector4(Math.Min(reflectionProbesCount, k_MaxReflectionProbesPerObject),
                     0.0f, 0.0f, 0.0f));
             }
             else
             {
                 cmd.SetGlobalVector(LightConstantBuffer._ReflectionProbesParams, Vector4.zero);
+            }
+        }
+
+        void UpdateReflectionProbeCubeMapCache(CommandBuffer cmd, CullingResults cullResults)
+        {
+            // #note handle CubeMapTextureArray cache here?? See HDRP (TextureCacheCubeMap.cs & ReflectionProbeCache.cs)
+            // Notes @mortenm:
+            //  This is an important one too: TransferToSlice() in those files
+            //  to convert on the fly from cube map to panorama the array requires an uncompressed format. If on the other hand you know the platform supports cube map arrays then you could use a compressed format such as BC6
+            //  but initially to get it running you could just always set it to RGBm or 4xfp16 or 11_11_10F
+            //  also an unrelated subtlety I wanted to mention since it is easy to miss is NewFrame() must be called on each texture cache once per frame
+            //  also have you been able to find the blit shader used in TransferToPanoCache()? It's in ../com.unity.render-pipelines.high-definition/Runtime/Core/CoreResources It is CubeToPano.shader
+
+            var probes = cullResults.visibleReflectionProbes;
+
+            //Array.Sort(reflectionProbes, new ReflectionProbeSorter());
+
+            if (probes.Length == 0 || probes[0].texture == null)
+                return;
+
+            TextureFormat format = TextureFormat.RGBAHalf;
+            switch (probes[0].texture.graphicsFormat)
+            {
+                case GraphicsFormat.RGB_BC6H_UFloat:
+                    format = TextureFormat.BC6H;
+                    break;
+                case GraphicsFormat.R16G16B16A16_SFloat:
+                    format = TextureFormat.RGBAHalf;
+                    break;
+                case GraphicsFormat.RGBA_DXT5_SRGB:
+                    format = TextureFormat.DXT5;
+                    break;
+                case GraphicsFormat.R8G8B8A8_SRGB:
+                    format = TextureFormat.RGBA32;
+                    break;
+                default:
+                    Debug.LogError("Unsupported reflection probe texture format.");
+                    break;
+            }
+
+            var size = Math.Min(probes.Length, UniversalRenderPipeline.maxVisibleReflectionProbes);
+
+            // #note we need to use the same reflection texture size to use texture 2d or use the largest and upscale the others
+            var textureArray = new Texture2DArray(k_ReflectionProbesCubeSize, k_ReflectionProbesCubeSize,
+                                        size,
+                                        format, false);
+            cmd.SetGlobalTexture(m_ReflectionProbeTexturesId, textureArray);
+
+            // #note should we use reflectionProbe.hdr (bool)?
+            for (int i = 0; i < size; ++i)
+            {
+                if (probes[i].texture == null)
+                    continue;
+
+                Graphics.CopyTexture(probes[i].texture, 0, 0, textureArray, i, 0);
             }
         }
 
@@ -391,5 +378,49 @@ namespace UnityEngine.Rendering.Universal.Internal
             perObjectLightIndexMap.Dispose();
             return additionalLightsCount;
         }
+
+        int SetupPerObjectReflectionProbeIndices(CullingResults cullResults)
+        {
+            var visibleProbes = cullResults.visibleReflectionProbes;
+
+            if (visibleProbes.Length == 0) // #note assumption: visibileProbes.Length is equivalent to what lightData.additionalLightsCount does for lights
+                return visibleProbes.Length;
+
+            int maxVisibleReflectionProbes = UniversalRenderPipeline.maxVisibleReflectionProbes;
+            var perObjectReflectionProbeIndexMap = cullResults.GetReflectionProbeIndexMap(Allocator.Temp);
+            var reflectionProbesCount = Mathf.Min(perObjectReflectionProbeIndexMap.Length, maxVisibleReflectionProbes);
+
+            // Disable reflection probes that do not fit into the buffer.
+            for (int i = maxVisibleReflectionProbes; i < perObjectReflectionProbeIndexMap.Length; ++i)
+                perObjectReflectionProbeIndexMap[i] = -1;
+
+            // #note do we still need to do any form of sorting?
+
+            cullResults.SetReflectionProbeIndexMap(perObjectReflectionProbeIndexMap);
+
+            // #note duplicate code & work with SetupPerObjectLightIndices.
+            if (m_UseStructuredBuffer && reflectionProbesCount > 0)
+            {
+                int lightAndReflectionProbeIndices = cullResults.lightAndReflectionProbeIndexCount;
+                Assertions.Assert.IsTrue(lightAndReflectionProbeIndices > 0, "Pipelines configures reflection probes but per-object light and probe indices count is zero.");
+                cullResults.FillLightAndReflectionProbeIndices(ShaderData.instance.GetReflectionProbeIndicesBuffer(lightAndReflectionProbeIndices));
+            }
+
+            perObjectReflectionProbeIndexMap.Dispose();
+            return reflectionProbesCount;
+        }
+
+        //internal class ReflectionProbeSorter : IComparer<ReflectionProbe>
+        //{
+        //    public int Compare(ReflectionProbe a, ReflectionProbe b)
+        //    {
+        //        // probes with larger importance render later (to blend over previous probes)
+        //        if (a.importance != b.importance)
+        //            return b.importance.CompareTo(a.importance);
+
+        //        // smaller probes render later (better handles small probes being inside larger probes cases)
+        //        return a.bounds.extents.sqrMagnitude.CompareTo(b.bounds.extents.sqrMagnitude);
+        //    }
+        //}
     }
 }

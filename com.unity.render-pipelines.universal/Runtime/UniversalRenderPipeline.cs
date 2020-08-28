@@ -75,6 +75,24 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        // These limits have to match same limits in Input.hlsl
+        const int k_MaxVisibleReflectionProbesMobileShaderLevelLessThan45 = 16;
+        const int k_MaxVisibleReflectionProbesMobile = 32;
+        const int k_MaxVisibleReflectionProbesNonMobile = 256;
+        public static int maxVisibleReflectionProbes
+        {
+            get
+            {
+                bool isMobile = Application.isMobilePlatform;
+                if (isMobile && SystemInfo.graphicsShaderLevel < 45)
+                    return k_MaxVisibleReflectionProbesMobileShaderLevelLessThan45;
+
+                // GLES can be selected as platform on Windows (not a mobile platform) but uniform buffer size so we must use a low light count.
+                return (isMobile || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
+                        ? k_MaxVisibleReflectionProbesMobile : k_MaxVisibleReflectionProbesNonMobile;
+            }
+        }
+
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
             SetSupportedRenderingFeatures();
@@ -825,7 +843,7 @@ namespace UnityEngine.Rendering.Universal
 
         static PerObjectData GetPerObjectLightFlags(int additionalLightsCount)
         {
-            var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightData | PerObjectData.OcclusionProbe;// | PerObjectData.ReflectionProbeData;
+            var configuration = PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightData | PerObjectData.OcclusionProbe | PerObjectData.ReflectionProbeData;
 
             if (additionalLightsCount > 0)
             {

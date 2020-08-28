@@ -103,6 +103,10 @@ real4 unity_WorldTransformParams; // w is usually 1.0, or -1.0 for odd-negative 
 // These are set internally by the engine upon request by RendererConfiguration.
 real4 unity_LightData;
 real4 unity_LightIndices[2];
+// #note ReflectionProbeData feature, not yet supported by SRP as far as I can tell, to do! - see ReflectionProbeIndexCache.cpp 
+//   x = currentReflectionProbeIndexOffset
+//   y = currentReflectionProbeIndexCount
+real4 unity_ReflectionProbeData; 
 
 float4 unity_ProbesOcclusion;
 
