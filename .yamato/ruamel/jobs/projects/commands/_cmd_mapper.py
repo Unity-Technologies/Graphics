@@ -8,7 +8,8 @@ cmd_map = {
         'standalone_build' : win.cmd_standalone_build
     },
     'osx_openglcore' :  {
-        'not_standalone': osx_openglcore.cmd_not_standalone,
+        'editmode': osx_openglcore.cmd_editmode,
+        'playmode': osx_openglcore.cmd_playmode,
         'standalone' : osx_openglcore.cmd_standalone,
         'standalone_build' : osx_openglcore.cmd_standalone_build
     },

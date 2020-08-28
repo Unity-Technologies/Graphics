@@ -18,10 +18,10 @@ platforms:
       - DX11
       - DX12
       - Vulkan
-#  - name: OSX 
-#    apis:
+  - name: OSX 
+    apis:
 #      - Metal
-#      - OpenGLCore
+      - OpenGLCore
 #  - name: Linux
 #    apis: 
 #      - Vulkan
