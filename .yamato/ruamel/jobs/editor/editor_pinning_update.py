@@ -34,10 +34,10 @@ class Editor_PinningUpdateJob():
         
         # construct job
         job = YMLJob()
-        job.set_name(f'Update pinned editor versions [manual]')
+        job.set_name(f'Update pinned editor versions')
         job.set_agent(agent)
         job.add_var_custom('CI', True)
         job.add_commands(commands)
         job.add_dependencies([f'{editor_pinning_filepath()}#{editor_job_id_target_to_ci()}']) #TODO toggle
-        #job.add_trigger_recurrent(target_branch, '0 * * ?') # TODO uncomment
+        job.add_trigger_recurrent(target_branch, '0 * * ?') # TODO uncomment
         return job

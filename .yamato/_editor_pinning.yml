@@ -27,57 +27,7 @@ editor-pinning-target-to-ci:
       -  git merge yamato/editor-pin --ff
       -  git push
 editor-pinning-update:
-    name: Update pinned editor versions [manual]
-    agent:
-        type: Unity::VM
-        image: package-ci/ubuntu:stable
-        flavor: b1.small
-    variables:
-        CI: true
-    commands:
-      -  sudo pip3 install pipenv --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
-      -  python3 -m pipenv install --dev
-      -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
-      -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
-      -  sudo apt-get update
-      -  sudo apt-get install yamato-parser -y
-      -  |5-
-
-                     if [[ "$GIT_BRANCH" != "yamato/editor-pin" ]]; then
-                         echo "Should run on 'yamato/editor-pin' but is running on '$GIT_BRANCH'"
-                         exit 1
-                     fi
-      -  git config --global user.name "noreply@unity3d.com"
-      -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/ruamel/editor_pinning/update_revisions.py --target-branch yamato/editor-pin-ci --force-push
-    dependencies:
-      -  .yamato/_editor_pinning.yml#editor-pinning-target-to-ci
-editor-pinning-merge-revisions:
-    name: Merge editor revisions to yamato/editor-pin [manual]
-    agent:
-        type: Unity::VM
-        image: package-ci/ubuntu:stable
-        flavor: b1.small
-    variables:
-        CI: true
-    commands:
-      -  sudo pip3 install pipenv --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
-      -  python3 -m pipenv install --dev
-      -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
-      -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
-      -  sudo apt-get update
-      -  sudo apt-get install yamato-parser -y
-      -  |5-
-
-                     if [[ "$GIT_BRANCH" != "yamato/editor-pin-ci" ]]; then
-                         echo "Should run on 'yamato/editor-pin-ci' but is running on '$GIT_BRANCH'"
-                         exit 1
-                     fi
-      -  git config --global user.name "noreply@unity3d.com"
-      -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch yamato/editor-pin
-editor-pinning-update-abv:
-    name: Update pinned editor versions [ABV]
+    name: Update pinned editor versions
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -106,6 +56,30 @@ editor-pinning-update-abv:
         recurring:
           -  branch: yamato/editor-pin
              frequency: 0 * * ?
+editor-pinning-merge-revisions:
+    name: Merge editor revisions to yamato/editor-pin [manual]
+    agent:
+        type: Unity::VM
+        image: package-ci/ubuntu:stable
+        flavor: b1.small
+    variables:
+        CI: true
+    commands:
+      -  sudo pip3 install pipenv --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+      -  python3 -m pipenv install --dev
+      -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
+      -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
+      -  sudo apt-get update
+      -  sudo apt-get install yamato-parser -y
+      -  |5-
+
+                     if [[ "$GIT_BRANCH" != "yamato/editor-pin-ci" ]]; then
+                         echo "Should run on 'yamato/editor-pin-ci' but is running on '$GIT_BRANCH'"
+                         exit 1
+                     fi
+      -  git config --global user.name "noreply@unity3d.com"
+      -  git config --global user.email "noreply@unity3d.com"
+      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch yamato/editor-pin
 editor-pinning-merge-revisions-abv:
     name: Merge editor revisions to yamato/editor-pin [ABV]
     agent:
