@@ -6,7 +6,6 @@ from ...shared.utr_utils import utr_editmode_flags, utr_playmode_flags, utr_stan
 def _cmd_base(project_folder, components):
     return []
 
-
 def cmd_editmode(project_folder, platform, api, test_platform_args):
     raise Exception('iPhone [editmode]: only standalone available')
 

@@ -17,7 +17,8 @@ class Project_StandaloneJob():
     def get_StandaloneBuildJob(self, project, editor, platform, api, test_platform):
         try:
             return Project_StandaloneBuildJob(project, editor, platform, api, test_platform)
-        except:
+        except Exception as e:
+            #print(e)
             return None
     
     

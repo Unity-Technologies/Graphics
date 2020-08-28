@@ -44,4 +44,4 @@ def cmd_standalone(project_folder, platform, api, test_platform_args):
 
 
 def cmd_standalone_build(project_folder, platform, api, test_platform_args):
-    raise Exception('linux: standalone_split set to true but build commands not specified')
+    raise Exception('linux: split build not specified')

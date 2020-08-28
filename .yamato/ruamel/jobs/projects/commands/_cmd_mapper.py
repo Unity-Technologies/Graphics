@@ -25,7 +25,8 @@ cmd_map = {
         'standalone_build' : linux.cmd_standalone_build
     },
     'android' : {
-        'not_standalone': android.cmd_not_standalone,
+        'editmode': android.cmd_editmode,
+        'playmode': android.cmd_playmode,
         'standalone' : android.cmd_standalone,
         'standalone_build' : android.cmd_standalone_build
     },
