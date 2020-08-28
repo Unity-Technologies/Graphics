@@ -22,8 +22,6 @@
     #endif
 #endif
 
-#define REQUIRES_WORLD_SPACE_POS_INTERPOLATOR
-
 #if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
     #define SAMPLE_SHADOWMASK(uv) SAMPLE_TEXTURE2D(unity_ShadowMask, samplerunity_ShadowMask, uv);
 #elif !defined (LIGHTMAP_ON)
@@ -31,6 +29,8 @@
 #else
     #define SAMPLE_SHADOWMASK(uv) half4(1, 1, 1, 1);
 #endif
+
+#define REQUIRES_WORLD_SPACE_POS_INTERPOLATOR
 
 SCREENSPACE_TEXTURE(_ScreenSpaceShadowmapTexture);
 SAMPLER(sampler_ScreenSpaceShadowmapTexture);
@@ -306,6 +306,15 @@ float ApplyShadowFade(float shadowAttenuation, float bakedShadowAttenuation, flo
 float ApplyShadowFade(float shadowAttenuation, float3 positionWS)
 {
     return ApplyShadowFade(shadowAttenuation, 1, positionWS);
+}
+
+float ApplyShadowFade(float shadowAttenuation, float3 positionWS)
+{
+    float3 camToPixel = positionWS - _WorldSpaceCameraPos;
+    float distanceCamToPixel2 = dot(camToPixel, camToPixel);
+
+    float fade = saturate(distanceCamToPixel2 * _MainLightShadowParams.z + _MainLightShadowParams.w);
+    return shadowAttenuation + (1 - shadowAttenuation) * fade * fade;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

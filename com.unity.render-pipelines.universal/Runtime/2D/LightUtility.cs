@@ -1,6 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine.Experimental.Rendering.Universal.LibTessDotNet;
+using UnityEngine.Rendering;
+using UnityEngine.U2D;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
@@ -8,70 +12,54 @@ namespace UnityEngine.Experimental.Rendering.Universal
     {
         public static bool CheckForChange(int a, ref int b)
         {
-            bool changed = a != b;
+            var changed = a != b;
             b = a;
             return changed;
         }
 
         public static bool CheckForChange(float a, ref float b)
         {
-            bool changed = a != b;
+            var changed = a != b;
             b = a;
             return changed;
         }
 
         public static bool CheckForChange(bool a, ref bool b)
         {
-            bool changed = a != b;
+            var changed = a != b;
             b = a;
             return changed;
         }
 
-        public static bool CheckForChange(Vector2 a, ref Vector2 b)
+        private struct ParametricLightMeshVertex
         {
-            bool changed = a != b;
-            b = a;
-            return changed;
-        }
+            public float3 position;
+            public Color color;
 
-        public static bool CheckForChange(Sprite a, ref Sprite b)
-        {
-            bool changed = !Equals(a, b);
-            b = a;
-            return changed;
-        }
-
-        public static Bounds CalculateBoundingSphere(ref Vector3[] vertices, ref Color[] colors, float falloffDistance)
-        {
-            Bounds localBounds = new Bounds();
-
-            Vector3 minimum = new Vector3(float.MaxValue, float.MaxValue);
-            Vector3 maximum = new Vector3(float.MinValue, float.MinValue);
-            for (int i = 0; i < vertices.Length; i++)
+            public static readonly VertexAttributeDescriptor[] VertexLayout = new[]
             {
-                Vector3 vertex = vertices[i];
-                vertex.x += falloffDistance * colors[i].r;
-                vertex.y += falloffDistance * colors[i].g;
-
-                minimum.x = vertex.x < minimum.x ? vertex.x : minimum.x;
-                minimum.y = vertex.y < minimum.y ? vertex.y : minimum.y;
-                maximum.x = vertex.x > maximum.x ? vertex.x : maximum.x;
-                maximum.y = vertex.y > maximum.y ? vertex.y : maximum.y;
-            }
-
-            localBounds.max = maximum;
-            localBounds.min = minimum;
-
-            return localBounds;
+                new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
+                new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.Float32, 4),
+            };
         }
 
-        // Takes in a mesh that
-        public static Bounds GenerateParametricMesh(ref Mesh mesh, float radius, float falloffDistance, float angle, int sides)
+        private struct SpriteLightMeshVertex
         {
-            if (mesh == null)
-                mesh = new Mesh();
+            public Vector3 position;
+            public Color color;
+            public Vector2 uv;
 
-            float angleOffset = Mathf.PI / 2.0f + Mathf.Deg2Rad * angle;
+            public static readonly VertexAttributeDescriptor[] VertexLayout = new[]
+            {
+                new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
+                new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.Float32, 4),
+                new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2),
+            };
+        }
+
+        public static Bounds GenerateParametricMesh(Mesh mesh, float radius, float falloffDistance, float angle, int sides)
+        {
+            var angleOffset = Mathf.PI / 2.0f + Mathf.Deg2Rad * angle;
             if (sides < 3)
             {
                 radius = 0.70710678118654752440084436210485f * radius;
@@ -83,287 +71,226 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 angleOffset = Mathf.PI / 4.0f + Mathf.Deg2Rad * angle;
             }
 
-            // Return a shape with radius = 1
-            Vector3[] vertices;
-            int[] triangles;
-            Color[] colors;
-
-            int centerIndex;
-            vertices = new Vector3[1 + 2 * sides];
-            colors = new Color[1 + 2 * sides];
-            triangles = new int[3 * 3 * sides];
-            centerIndex = 2 * sides;
+            var vertexCount = 1 + 2 * sides;
+            var indexCount = 3 * 3 * sides;
+            var vertices = new NativeArray<ParametricLightMeshVertex>(vertexCount, Allocator.Temp);
+            var triangles = new NativeArray<ushort>(indexCount, Allocator.Temp);
+            var centerIndex = (ushort)(2 * sides);
 
             // Color will contain r,g = x,y extrusion direction, a = alpha. b is unused at the moment. The inner shape should not be extruded
-            Color color = new Color(0, 0, 0, 1);
-            vertices[centerIndex] = Vector3.zero;
-            colors[centerIndex] = color;
-            float radiansPerSide = 2 * Mathf.PI / sides;
-            
-            for (int i = 0; i < sides; i++)
+            var color = new Color(0, 0, 0, 1);
+            vertices[centerIndex] = new ParametricLightMeshVertex
             {
-                float endAngle = (i + 1) * radiansPerSide;
+                position = float3.zero,
+                color = color
+            };
 
-                Vector3 extrudeDir = new Vector3(Mathf.Cos(endAngle + angleOffset), Mathf.Sin(endAngle + angleOffset), 0);
-                Vector3 endPoint = radius * extrudeDir;
+            var radiansPerSide = 2 * Mathf.PI / sides;
+            var min = new float3(float.MaxValue, float.MaxValue, 0);
+            var max = new float3(float.MinValue, float.MinValue, 0);
 
-                int vertexIndex;
-                vertexIndex = (2 * i + 2) % (2 * sides);
+            for (var i = 0; i < sides; i++)
+            {
+                var endAngle = (i + 1) * radiansPerSide;
+                var extrudeDir = new float3(math.cos(endAngle + angleOffset), math.sin(endAngle + angleOffset), 0);
+                var endPoint = radius * extrudeDir;
 
-                vertices[vertexIndex] = endPoint; // This is the extruded endpoint
-                vertices[vertexIndex + 1] = endPoint;
-
-                colors[vertexIndex] = new Color(extrudeDir.x, extrudeDir.y, 0, 0);
-                colors[vertexIndex + 1] = color;
+                var vertexIndex = (2 * i + 2) % (2 * sides);
+                vertices[vertexIndex] = new ParametricLightMeshVertex
+                {
+                    position = endPoint,
+                    color = new Color(extrudeDir.x, extrudeDir.y, 0, 0)
+                };
+                vertices[vertexIndex + 1] = new ParametricLightMeshVertex
+                {
+                    position = endPoint,
+                    color = color
+                };
 
                 // Triangle 1 (Tip)
-                int triangleIndex = 9 * i;
-                triangles[triangleIndex] = vertexIndex + 1;
-                triangles[triangleIndex + 1] = 2 * i + 1;
+                var triangleIndex = 9 * i;
+                triangles[triangleIndex] = (ushort)(vertexIndex + 1);
+                triangles[triangleIndex + 1] = (ushort)(2 * i + 1);
                 triangles[triangleIndex + 2] = centerIndex;
 
                 // Triangle 2 (Upper Top Left)
-                triangles[triangleIndex + 3] = vertexIndex;
-                triangles[triangleIndex + 4] = 2 * i;
-                triangles[triangleIndex + 5] = 2 * i + 1;
+                triangles[triangleIndex + 3] = (ushort)(vertexIndex);
+                triangles[triangleIndex + 4] = (ushort)(2 * i);
+                triangles[triangleIndex + 5] = (ushort)(2 * i + 1);
 
                 // Triangle 2 (Bottom Top Left)
-                triangles[triangleIndex + 6] = vertexIndex + 1;
-                triangles[triangleIndex + 7] = vertexIndex;
-                triangles[triangleIndex + 8] = 2 * i + 1;
+                triangles[triangleIndex + 6] = (ushort)(vertexIndex + 1);
+                triangles[triangleIndex + 7] = (ushort)(vertexIndex);
+                triangles[triangleIndex + 8] = (ushort)(2 * i + 1);
+
+                min = math.min(min, endPoint + extrudeDir * falloffDistance);
+                max = math.max(max, endPoint + extrudeDir * falloffDistance);
             }
 
-            mesh.Clear();
-            mesh.vertices = vertices;
-            mesh.colors = colors;
-            mesh.triangles = triangles;
+            mesh.SetVertexBufferParams(vertexCount, ParametricLightMeshVertex.VertexLayout);
+            mesh.SetVertexBufferData(vertices, 0, 0, vertexCount);
+            mesh.SetIndices(triangles, MeshTopology.Triangles, 0, false);
 
-            return CalculateBoundingSphere(ref vertices, ref colors, falloffDistance);
+            return new Bounds
+            {
+                min = min,
+                max = max
+            };
         }
 
-        public static Bounds GenerateSpriteMesh(ref Mesh mesh, Sprite sprite, float scale)
+        public static Bounds GenerateSpriteMesh(Mesh mesh, Sprite sprite)
         {
-            if (mesh == null)
-                mesh = new Mesh();
-
-            if (sprite != null)
+            if(sprite == null)
             {
-                Vector2[] vertices2d = sprite.vertices;
-                Vector3[] vertices3d = new Vector3[vertices2d.Length];
-                Color[] colors = new Color[vertices2d.Length];
-                Vector4[] volumeColor = new Vector4[vertices2d.Length];
-
-                ushort[] triangles2d = sprite.triangles;
-                int[] triangles3d = new int[triangles2d.Length];
-
-
-                Vector3 center = 0.5f * scale * (sprite.bounds.min + sprite.bounds.max);
-                for (int vertexIdx = 0; vertexIdx < vertices2d.Length; vertexIdx++)
-                {
-                    Vector3 pos = new Vector3(vertices2d[vertexIdx].x, vertices2d[vertexIdx].y) - center;
-                    vertices3d[vertexIdx] = scale * pos;
-                    colors[vertexIdx] = new Color(0,0,0,1);  // This will not have any extrusion available. Alpha will be 1 * the pixel alpha
-                }
-
-                for (int triangleIdx = 0; triangleIdx < triangles2d.Length; triangleIdx++)
-                {
-                    triangles3d[triangleIdx] = (int)triangles2d[triangleIdx];
-                }
-
                 mesh.Clear();
-                mesh.vertices = vertices3d;
-                mesh.uv = sprite.uv;
-                mesh.triangles = triangles3d;
-                mesh.colors = colors;
-
-                return CalculateBoundingSphere(ref vertices3d, ref colors, 0);
+                return new Bounds(Vector3.zero, Vector3.zero);
             }
 
-            return new Bounds(Vector3.zero, Vector3.zero);
+            // this needs to be called before getting UV at the line below.
+            // Venky fixed it, enroute to trunk
+            var uvs = sprite.uv;
+
+            var srcVertices = sprite.GetVertexAttribute<Vector3>(VertexAttribute.Position);
+            var srcUVs = sprite.GetVertexAttribute<Vector2>(VertexAttribute.TexCoord0);
+            var srcIndices = sprite.GetIndices();
+
+            var center = 0.5f * (sprite.bounds.min + sprite.bounds.max);
+            var vertices = new NativeArray<SpriteLightMeshVertex>(srcIndices.Length, Allocator.Temp);
+            var color = new Color(0,0,0, 1);
+
+            for (var i = 0; i < srcVertices.Length; i++)
+            {
+                vertices[i] = new SpriteLightMeshVertex
+                {
+                    position = new Vector3(srcVertices[i].x, srcVertices[i].y, 0) - center,
+                    color = color,
+                    uv = srcUVs[i]
+                };
+            }
+            mesh.SetVertexBufferParams(vertices.Length, SpriteLightMeshVertex.VertexLayout);
+            mesh.SetVertexBufferData(vertices, 0, 0, vertices.Length);
+            mesh.SetIndices(srcIndices, MeshTopology.Triangles, 0, true);
+            return mesh.GetSubMesh(0).bounds;
         }
 
-        static void GetFalloffExtrusion(ContourVertex[] contourPoints, int contourPointCount, ref List<Vector2> extrusionDir)
+        public static List<Vector2> GetFalloffShape(Vector3[] shapePath)
         {
-            for (int i = 0; i < contourPointCount; ++i)
+            var extrusionDir = new List<Vector2>();
+            for (var i = 0; i < shapePath.Length; ++i)
             {
-                int h = (i == 0) ? (contourPointCount - 1) : (i - 1);
-                int j = (i + 1) % contourPointCount;
+                var h = (i == 0) ? (shapePath.Length - 1) : (i - 1);
+                var j = (i + 1) % shapePath.Length;
 
-                Vector2 pp = new Vector2(contourPoints[h].Position.X, contourPoints[h].Position.Y);
-                Vector2 cp = new Vector2(contourPoints[i].Position.X, contourPoints[i].Position.Y);
-                Vector2 np = new Vector2(contourPoints[j].Position.X, contourPoints[j].Position.Y);
+                var pp = shapePath[h];
+                var cp = shapePath[i];
+                var np = shapePath[j];
 
-                Vector2 cpd = cp - pp;
-                Vector2 npd = np - cp;
+                var cpd = cp - pp;
+                var npd = np - cp;
                 if (cpd.magnitude < 0.001f || npd.magnitude < 0.001f)
                     continue;
 
-                Vector2 vl = cpd.normalized;
-                Vector2 vr = npd.normalized;
+                var vl = cpd.normalized;
+                var vr = npd.normalized;
 
                 vl = new Vector2(-vl.y, vl.x);
                 vr = new Vector2(-vr.y, vr.x);
 
-                Vector2 va = vl.normalized + vr.normalized;
-                Vector2 vn = -va.normalized;
+                var va = vl.normalized + vr.normalized;
+                var vn = -va.normalized;
 
                 if (va.magnitude > 0 && vn.magnitude > 0)
                 {
-                    Vector2 dir = new Vector2(vn.x, vn.y);
+                    var dir = new Vector2(vn.x, vn.y);
                     extrusionDir.Add(dir);
                 }
             }
+            return extrusionDir;
         }
 
-        static object InterpCustomVertexData(Vec3 position, object[] data, float[] weights)
+        public static Bounds GenerateShapeMesh(Mesh mesh, Vector3[] shapePath, float falloffDistance)
         {
-            return data[0];
-        }
-
-
-        public static void GetFalloffShape(Vector3[] shapePath, ref List<Vector2> extrusionDir)
-        {
-            int pointCount = shapePath.Length;
-            var inputs = new ContourVertex[pointCount];
-            for (int i = 0; i < pointCount; ++i)
-                inputs[i] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y }, Data = null };
-
-            GetFalloffExtrusion(inputs, pointCount, ref extrusionDir);
-        }
-
-        public static Bounds GenerateShapeMesh(ref Mesh mesh, Vector3[] shapePath, float falloffDistance)
-        {
-            Bounds localBounds;
-            Color meshInteriorColor = new Color(0,0,0,1);
-            List<Vector3> finalVertices = new List<Vector3>();
-            List<int> finalIndices = new List<int>();
-            List<Color> finalColors = new List<Color>();
+            var meshInteriorColor = new Color(0,0,0,1);
+            var min = new float3(float.MaxValue, float.MaxValue, 0);
+            var max = new float3(float.MinValue, float.MinValue, 0);
 
             // Create interior geometry
-            int pointCount = shapePath.Length;
+            var pointCount = shapePath.Length;
             var inputs = new ContourVertex[pointCount];
-            for (int i = 0; i < pointCount; ++i)
-                inputs[i] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y }, Data = meshInteriorColor };
+            for (var i = 0; i < pointCount; ++i)
+                inputs[i] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y }};
 
-            Tess tessI = new Tess();
+            var tessI = new Tess();
             tessI.AddContour(inputs, ContourOrientation.Original);
-            tessI.Tessellate(WindingRule.EvenOdd, ElementType.Polygons, 3, InterpCustomVertexData);
+            tessI.Tessellate(WindingRule.EvenOdd, ElementType.Polygons, 3);
 
-            var indicesI = tessI.Elements.Select(i => i).ToArray();
-            var verticesI = tessI.Vertices.Select(v => new Vector3(v.Position.X, v.Position.Y, 0)).ToArray();
-            var colorsI = tessI.Vertices.Select(v => new Color(((Color)v.Data).r, ((Color)v.Data).g, ((Color)v.Data).b, ((Color)v.Data).a)).ToArray();
+            var indicesI = tessI.Elements.Select(i => i);
+            var verticesI = tessI.Vertices.Select(v => new float3(v.Position.X, v.Position.Y, 0));
 
-            finalVertices.AddRange(verticesI);
-            finalIndices.AddRange(indicesI);
-            finalColors.AddRange(colorsI);
+            var finalVertices = new NativeArray<ParametricLightMeshVertex>(verticesI.Count() + 2 * shapePath.Length, Allocator.Temp);
+            var finalIndices = new NativeArray<ushort>(indicesI.Count() + 6 * shapePath.Length, Allocator.Temp);
+
+            var vertexOffset = 0;
+            foreach(var v in verticesI)
+            {
+                finalVertices[vertexOffset++] = new ParametricLightMeshVertex
+                {
+                    position = v,
+                    color = meshInteriorColor
+                };
+            }
+
+            var indexOffset = 0;
+            foreach (var v in indicesI)
+            {
+                finalIndices[indexOffset++] = (ushort)v;
+            }
 
             // Create falloff geometry
-            List<Vector2> extrusionDirs = new List<Vector2>();
-            GetFalloffShape(shapePath, ref extrusionDirs);
-
-            pointCount = finalVertices.Count;
-            int falloffPointCount = 2 * shapePath.Length;
-            for (int i = 0; i < shapePath.Length; i++)
+            var extrusionDirs = GetFalloffShape(shapePath);
+            var falloffPointCount = 2 * shapePath.Length;
+            for (var i = 0; i < shapePath.Length; i++)
             {
                 // Making triangles ABD and DCA
-                int triangleIndex = 2 * i;
-                int aIndex = pointCount + triangleIndex;
-                int bIndex = pointCount + triangleIndex + 1;
-                int cIndex = pointCount + (triangleIndex + 2) % falloffPointCount;
-                int dIndex = pointCount + (triangleIndex + 3) % falloffPointCount;
-
-                Vector3 point = shapePath[i];
+                var triangleIndex = 2 * i;
+                var aIndex = vertexOffset + triangleIndex;
+                var bIndex = vertexOffset + triangleIndex + 1;
+                var cIndex = vertexOffset + (triangleIndex + 2) % falloffPointCount;
+                var dIndex = vertexOffset + (triangleIndex + 3) % falloffPointCount;
 
                 // We are making degenerate triangles which will be extruded by the shader
-                finalVertices.Add(point);        
-                finalVertices.Add(point);        
+                var point = new ParametricLightMeshVertex
+                {
+                    position = shapePath[i],
+                    color = new Color(0, 0, 0, 1)
+                };
+                finalVertices[vertexOffset + i * 2] = point;
 
-                finalIndices.Add(aIndex);  
-                finalIndices.Add(bIndex);  
-                finalIndices.Add(dIndex);  
+                point.color = new Color(extrusionDirs[i].x, extrusionDirs[i].y, 0, 0);
+                finalVertices[vertexOffset + i * 2 + 1] =  point;
 
-                finalIndices.Add(dIndex);
-                finalIndices.Add(cIndex);
-                finalIndices.Add(aIndex);
-                
-                Color aColor = new Color(0, 0, 0, 1);
-                Color bColor = new Color(extrusionDirs[i].x, extrusionDirs[i].y, 0, 0);
+                finalIndices[indexOffset + i*6 + 0] = (ushort)aIndex;
+                finalIndices[indexOffset + i*6 + 1] = (ushort)bIndex;
+                finalIndices[indexOffset + i*6 + 2] = (ushort)dIndex;
 
-                finalColors.Add(aColor);
-                finalColors.Add(bColor);
+                finalIndices[indexOffset + i*6 + 3] = (ushort)dIndex;
+                finalIndices[indexOffset + i*6 + 4] = (ushort)cIndex;
+                finalIndices[indexOffset + i*6 + 5] = (ushort)aIndex;
+
+                var extrudeDir = new float3(extrusionDirs[i].x, extrusionDirs[i].y, 0);
+                min = math.min(min, point.position + extrudeDir * falloffDistance);
+                max = math.max(max, point.position + extrudeDir * falloffDistance);
             }
 
-            Color[] colors = finalColors.ToArray();
-            Vector3[] vertices = finalVertices.ToArray();
-            mesh.Clear();
-            mesh.vertices = vertices;
-            mesh.colors = colors;
-            mesh.SetIndices(finalIndices.ToArray(), MeshTopology.Triangles, 0);
+            mesh.SetVertexBufferParams(finalVertices.Length, ParametricLightMeshVertex.VertexLayout);
+            mesh.SetVertexBufferData(finalVertices, 0, 0, finalVertices.Length);
+            mesh.SetIndices(finalIndices, MeshTopology.Triangles, 0, false);
 
-            localBounds = CalculateBoundingSphere(ref vertices, ref colors, falloffDistance);
-
-            return localBounds;
-        }
-
-
-        public static void AddShadowCasterGroupToList(ShadowCasterGroup2D shadowCaster, List<ShadowCasterGroup2D> list)
-        {
-            int positionToInsert = 0;
-            for (positionToInsert = 0; positionToInsert < list.Count; positionToInsert++)
+            return new Bounds
             {
-                if (shadowCaster.GetShadowGroup() == list[positionToInsert].GetShadowGroup())
-                    break;
-            }
-
-            list.Insert(positionToInsert, shadowCaster);
-        }
-
-
-        public static void RemoveShadowCasterGroupFromList(ShadowCasterGroup2D shadowCaster, List<ShadowCasterGroup2D> list)
-        {
-            list.Remove(shadowCaster);
-        }
-
-
-        static CompositeShadowCaster2D FindTopMostCompositeShadowCaster(ShadowCaster2D shadowCaster)
-        {
-            CompositeShadowCaster2D retGroup = null;
-
-            Transform transformToCheck = shadowCaster.transform.parent;
-            while(transformToCheck != null)
-            {
-                CompositeShadowCaster2D currentGroup = transformToCheck.GetComponent<CompositeShadowCaster2D>();
-                if (currentGroup != null)
-                    retGroup = currentGroup;
-
-                transformToCheck = transformToCheck.parent;
-            }
-
-            return retGroup;
-        }
-
-
-        public static bool AddToShadowCasterGroup(ShadowCaster2D shadowCaster, ref ShadowCasterGroup2D shadowCasterGroup)
-        {
-            ShadowCasterGroup2D newShadowCasterGroup = FindTopMostCompositeShadowCaster(shadowCaster) as ShadowCasterGroup2D;
-
-            if (newShadowCasterGroup == null)
-                newShadowCasterGroup = shadowCaster.GetComponent<ShadowCaster2D>();
-
-            if (newShadowCasterGroup != null && shadowCasterGroup != newShadowCasterGroup)
-            {
-                newShadowCasterGroup.RegisterShadowCaster2D(shadowCaster);
-                shadowCasterGroup = newShadowCasterGroup;
-                return true;
-            }
-
-            return false;
-        }
-
-        public static void RemoveFromShadowCasterGroup(ShadowCaster2D shadowCaster, ShadowCasterGroup2D shadowCasterGroup)
-        {
-            if(shadowCasterGroup != null)
-                shadowCasterGroup.UnregisterShadowCaster2D(shadowCaster);
+                min = min,
+                max = max
+            };
         }
 
 #if UNITY_EDITOR
