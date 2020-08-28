@@ -18,7 +18,7 @@ URPUpdate_BoatAttack_Win_DX11_playmode_trunk:
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.shadergraph" /Y
-      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && unity-downloader-cli -u 4ae7c5e87f33525aa3c51e804b161e43d1c016d6 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && unity-downloader-cli -u aae563f184dd260aba3ba2dbd3ee41ef41efe972 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
@@ -39,7 +39,7 @@ URPUpdate_BoatAttack_Win_DX11_editmode_trunk:
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.shadergraph" /Y
-      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && unity-downloader-cli -u 4ae7c5e87f33525aa3c51e804b161e43d1c016d6 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && unity-downloader-cli -u aae563f184dd260aba3ba2dbd3ee41ef41efe972 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:

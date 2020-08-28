@@ -265,7 +265,7 @@ test_all_project_windows_trunk:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 4ae7c5e87f33525aa3c51e804b161e43d1c016d6 -c editor --wait --published-only
+      -  unity-downloader-cli -u aae563f184dd260aba3ba2dbd3ee41ef41efe972 -c editor --wait --published-only
       -  upm-ci project test -u .\.Editor --project-path TestProjects/SRP_SmokeTest --type vetting-tests
     artifacts:
         logs:
@@ -282,7 +282,7 @@ test_all_project_macos_trunk:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 4ae7c5e87f33525aa3c51e804b161e43d1c016d6 -c editor --wait --published-only
+      -  unity-downloader-cli -u aae563f184dd260aba3ba2dbd3ee41ef41efe972 -c editor --wait --published-only
       -  upm-ci project test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path TestProjects/SRP_SmokeTest --type vetting-tests
     artifacts:
         logs:

@@ -14,7 +14,7 @@ smoke_test_Standalone_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli -u 4ae7c5e87f33525aa3c51e804b161e43d1c016d6 -c editor --wait --published-only
+      -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli -u aae563f184dd260aba3ba2dbd3ee41ef41efe972 -c editor --wait --published-only
       -  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200
     artifacts:
         logs:
@@ -31,7 +31,7 @@ smoke_test_playmode_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli -u 4ae7c5e87f33525aa3c51e804b161e43d1c016d6 -c editor --wait --published-only
+      -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli -u aae563f184dd260aba3ba2dbd3ee41ef41efe972 -c editor --wait --published-only
       -  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
         logs:
@@ -48,7 +48,7 @@ smoke_test_editmode_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli -u 4ae7c5e87f33525aa3c51e804b161e43d1c016d6 -c editor --wait --published-only
+      -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli -u aae563f184dd260aba3ba2dbd3ee41ef41efe972 -c editor --wait --published-only
       -  cd TestProjects/SRP_SmokeTest && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
         logs:

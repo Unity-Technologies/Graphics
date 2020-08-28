@@ -18,7 +18,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_trunk:
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.shadergraph" /Y
-      -  cd TestProjects/URP-Update-testing/Top-URP-Assets && unity-downloader-cli -u 4ae7c5e87f33525aa3c51e804b161e43d1c016d6 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/URP-Update-testing/Top-URP-Assets && unity-downloader-cli -u aae563f184dd260aba3ba2dbd3ee41ef41efe972 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/URP-Update-testing/Top-URP-Assets && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
@@ -39,7 +39,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_trunk:
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.shadergraph" /Y
-      -  cd TestProjects/URP-Update-testing/Top-URP-Assets && unity-downloader-cli -u 4ae7c5e87f33525aa3c51e804b161e43d1c016d6 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/URP-Update-testing/Top-URP-Assets && unity-downloader-cli -u aae563f184dd260aba3ba2dbd3ee41ef41efe972 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/URP-Update-testing/Top-URP-Assets && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:

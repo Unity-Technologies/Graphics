@@ -14,7 +14,7 @@ HDRP_Hybrid_Win_DX12_playmode_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 4ae7c5e87f33525aa3c51e804b161e43d1c016d6 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u aae563f184dd260aba3ba2dbd3ee41ef41efe972 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --compilation-errors-as-warnings --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
@@ -31,7 +31,7 @@ HDRP_Hybrid_Win_DX12_playmode_XR_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 4ae7c5e87f33525aa3c51e804b161e43d1c016d6 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u aae563f184dd260aba3ba2dbd3ee41ef41efe972 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --compilation-errors-as-warnings --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
@@ -67,7 +67,7 @@ Build_HDRP_Hybrid_Win_DX12_Player_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 4ae7c5e87f33525aa3c51e804b161e43d1c016d6 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u aae563f184dd260aba3ba2dbd3ee41ef41efe972 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only --compilation-errors-as-warnings
     artifacts:
         logs:

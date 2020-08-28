@@ -16,7 +16,7 @@ ShaderGraph_Linux_Vulkan_Standalone_trunk:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
-      -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli -u 4ae7c5e87f33525aa3c51e804b161e43d1c016d6 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli -u aae563f184dd260aba3ba2dbd3ee41ef41efe972 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
         logs:
@@ -35,7 +35,7 @@ ShaderGraph_Linux_Vulkan_playmode_trunk:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
-      -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli -u 4ae7c5e87f33525aa3c51e804b161e43d1c016d6 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli -u aae563f184dd260aba3ba2dbd3ee41ef41efe972 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
@@ -54,7 +54,7 @@ ShaderGraph_Linux_Vulkan_editmode_trunk:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
-      -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli -u 4ae7c5e87f33525aa3c51e804b161e43d1c016d6 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli -u aae563f184dd260aba3ba2dbd3ee41ef41efe972 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
