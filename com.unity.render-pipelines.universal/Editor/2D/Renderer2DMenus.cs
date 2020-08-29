@@ -9,9 +9,10 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.Universal
 {
-
     static class Renderer2DMenus
     {
+        const int k_MenuPriority = 50;
+
         static void Create2DRendererData(Action<Renderer2DData> onCreatedCallback)
         {
             var instance = ScriptableObject.CreateInstance<Create2DRendererDataAsset>();
@@ -78,11 +79,14 @@ namespace UnityEditor.Experimental.Rendering.Universal
             Selection.activeGameObject = go;
         }
 
-        static void CreateLight(MenuCommand menuCommand, string name, Light2D.LightType type)
+        static void CreateLight(MenuCommand menuCommand, Light2D.LightType type, Vector3[] shapePath = null)
         {
-            GameObject go = ObjectFactory.CreateGameObject(name, typeof(Light2D));
+            GameObject go = ObjectFactory.CreateGameObject("Light 2D", typeof(Light2D));
             Light2D light2D = go.GetComponent<Light2D>();
             light2D.lightType = type;
+
+            if(shapePath != null && shapePath.Length > 0)
+                light2D.shapePath = shapePath;
 
             var parent = menuCommand.context as GameObject;
             Place(go, parent);
@@ -99,59 +103,65 @@ namespace UnityEditor.Experimental.Rendering.Universal
             return Light2DEditorUtility.IsUsing2DRenderer();
         }
 
-        [MenuItem("GameObject/Light/2D/Freeform Light 2D (Experimental)", false, -100)]
-        static void CreateFreeformLight2D(MenuCommand menuCommand)
+        [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)", false, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)/Square", false, k_MenuPriority)]
+        static void CreateSquareFreeformLight2D(MenuCommand menuCommand)
         {
-            CreateLight(menuCommand, "Freeform Light 2D", Light2D.LightType.Freeform);
+            CreateLight(menuCommand, Light2D.LightType.Freeform, FreeformPathPresets.CreateSquare());
         }
 
-        [MenuItem("GameObject/Light/2D/Freeform Light 2D (Experimental)", true, -100)]
-        static bool CreateFreeformLight2DValidation()
+        [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)/Circle", false, k_MenuPriority)]
+        static void CreateCircleFreeformLight2D(MenuCommand menuCommand)
         {
-            return CreateLightValidation();
+            CreateLight(menuCommand, Light2D.LightType.Freeform, FreeformPathPresets.CreateCircle());
         }
 
-        [MenuItem("GameObject/Light/2D/Sprite Light 2D (Experimental)", false, -100)]
+        [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)/Isometric Diamond", false, k_MenuPriority)]
+        static void CreateIsometricDiamondFreeformLight2D(MenuCommand menuCommand)
+        {
+            CreateLight(menuCommand, Light2D.LightType.Freeform, FreeformPathPresets.CreateIsometricDiamond());
+        }
+
+        [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)/Hexagon Flat Top", false, k_MenuPriority)]
+        static void CreateHexagonFlatTopFreeformLight2D(MenuCommand menuCommand)
+        {
+            CreateLight(menuCommand, Light2D.LightType.Freeform, FreeformPathPresets.CreateHexagonFlatTop());
+        }
+
+        [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)/Hexagon Pointed Top", false, k_MenuPriority)]
+        static void CreateHexagonPointedTopFreeformLight2D(MenuCommand menuCommand)
+        {
+            CreateLight(menuCommand, Light2D.LightType.Freeform, FreeformPathPresets.CreateHexagonPointedTop());
+        }
+
+        [MenuItem("GameObject/Light/Sprite Light 2D (Experimental)", false, k_MenuPriority)]
         static void CreateSpriteLight2D(MenuCommand menuCommand)
         {
-            CreateLight(menuCommand, "Sprite Light 2D", Light2D.LightType.Sprite);
-        }
-        [MenuItem("GameObject/Light/2D/Sprite Light 2D (Experimental)", true, -100)]
-        static bool CreateSpriteLight2DValidation()
-        {
-            return CreateLightValidation();
+            CreateLight(menuCommand, Light2D.LightType.Sprite);
         }
 
-        //[MenuItem("GameObject/Light/2D/Parametric Light 2D (Experimental)", false, -100)]
-        //static void CreateParametricLight2D(MenuCommand menuCommand)
-        //{
-        //    CreateLight(menuCommand, "Parametric Light 2D", Light2D.LightType.Parametric);
-        //}
-        //[MenuItem("GameObject/Light/2D/Parametric Light 2D (Experimental)", true, -100)]
-        //static bool CreateParametricLight2DValidation()
-        //{
-        //    return CreateLightValidation();
-        //}
-
-        [MenuItem("GameObject/Light/2D/Point Light 2D (Experimental)", false, -100)]
+        [MenuItem("GameObject/Light/Point Light 2D (Experimental)", false, k_MenuPriority)]
         static void CreatePointLight2D(MenuCommand menuCommand)
         {
-            CreateLight(menuCommand, "Point Light 2D", Light2D.LightType.Point);
+            CreateLight(menuCommand, Light2D.LightType.Point);
         }
 
-        [MenuItem("GameObject/Light/2D/Point Light 2D (Experimental)", true, -100)]
-        static bool CreatePointLight2DValidation()
-        {
-            return CreateLightValidation();
-        }
-
-        [MenuItem("GameObject/Light/2D/Global Light 2D (Experimental)", false, -100)]
+        [MenuItem("GameObject/Light/Global Light 2D (Experimental)", false, k_MenuPriority)]
         static void CreateGlobalLight2D(MenuCommand menuCommand)
         {
-            CreateLight(menuCommand, "Global Light 2D", Light2D.LightType.Global);
+            CreateLight(menuCommand, Light2D.LightType.Global);
         }
-        [MenuItem("GameObject/Light/2D/Global Light 2D (Experimental)", true, -100)]
-        static bool CreateGlobalLight2DValidation()
+
+        [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)", true, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)/Square", true, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)/Circle", true, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)/Hexagon Flat Top", true, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)/Hexagon Pointed Top", true, k_MenuPriority)]
+        [MenuItem("GameObject/Light/2D/Freeform Light 2D (Experimental)", true, k_MenuPriority)]
+        [MenuItem("GameObject/Light/2D/Sprite Light 2D (Experimental)", true, k_MenuPriority)]
+        [MenuItem("GameObject/Light/2D/Point Light 2D (Experimental)", true, k_MenuPriority)]
+        [MenuItem("GameObject/Light/2D/Global Light 2D (Experimental)", true, k_MenuPriority)]
+        static bool CreateLight2DValidation()
         {
             return CreateLightValidation();
         }
