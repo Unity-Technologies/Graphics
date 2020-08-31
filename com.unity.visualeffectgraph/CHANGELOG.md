@@ -151,6 +151,7 @@ The version number for this package has increased due to a version update of a r
 - No more NullReference on sub-outputs after domain reload
 - Fix typo in strip tangent computation
 - Handle correctly disabled alphaTreshold material slot in shaderGraph.
+- Allow world position usage in shaderGraph plugged into an alpha/opacity output [Case 1259511](https://issuetracker.unity3d.com/product/unity/issues/guid/1259511/)
 
 ## [7.1.1] - 2019-09-05
 ### Added
