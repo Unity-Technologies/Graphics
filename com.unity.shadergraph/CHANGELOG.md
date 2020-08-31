@@ -16,6 +16,9 @@ The version number for this package has increased due to a version update of a r
 ### Changed
 - Added method chaining support to shadergraph collection API.
 
+### Fixed
+- Fixed an issue with the SampleVirtualTexture node in ShaderGraph, where toggling Automatic Streaming would cause the node to incorrectly display four output slots [1271618]
+
 ## [10.0.0] - 2019-06-10
 ### Added
 - Added the Internal Inspector which allows the user to view data contained in selected nodes and properties in a new floating graph sub-window. Also added support for custom property drawers to let you visualize any data type you like and expose it to the inspector.  
