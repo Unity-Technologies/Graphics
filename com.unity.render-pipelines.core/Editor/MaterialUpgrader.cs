@@ -364,8 +364,31 @@ namespace UnityEditor.Rendering
             // Upgrade terrain specifically since it is a builtin material
             if (Terrain.activeTerrains.Length > 0)
             {
-                Material terrainMat = Terrain.activeTerrain.materialTemplate;
-                Upgrade(terrainMat, upgraders, flags);
+                for (int i = 0; i < Terrain.activeTerrains.Length; i++)
+                {
+                    Material currMat = Terrain.activeTerrains[i].materialTemplate;
+                    if (ShouldUpgradeShader(currMat, shaderNamesToIgnore))
+                    {
+                        string guid;
+                        long localid;
+                        AssetDatabase.TryGetGUIDAndLocalFileIdentifier(currMat, out guid, out localid);
+                        string newPath = String.Format("Assets/{0}.mat", guid);
+
+                        Material newMat;
+
+                        if (System.IO.File.Exists(newPath))
+                            newMat = AssetDatabase.LoadAssetAtPath<Material>(newPath);
+                        else
+                        {
+                            newMat = new Material(currMat);
+                            AssetDatabase.CreateAsset(newMat, newPath);
+                            Upgrade(newMat, upgraders, flags);
+                        }
+
+                        Terrain.activeTerrains[i].materialTemplate = newMat;
+                        EditorUtility.SetDirty(Terrain.activeTerrains[i]);
+                    }
+                }
             }
 
             UnityEditor.EditorUtility.ClearProgressBar();
