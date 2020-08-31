@@ -7,7 +7,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 {
     internal static class RendererLighting
     {
-        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Clear Normals");
+        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Draw Normals");
         private static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
         private static readonly Color k_NormalClearColor = new Color(0.5f, 0.5f, 1.0f, 1.0f);
         private static readonly string k_SpriteLightKeyword = "SPRITE_LIGHT";
@@ -353,17 +353,21 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public static void RenderNormals(this IRenderPass2D pass, ScriptableRenderContext context, CullingResults cullResults, DrawingSettings drawSettings, FilteringSettings filterSettings, RenderTargetIdentifier depthTarget)
         {
+
             var cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 cmd.SetRenderTarget(pass.rendererData.normalsRenderTarget.Identifier(), depthTarget);
                 cmd.ClearRenderTarget(true, true, k_NormalClearColor);
+
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+
+                drawSettings.SetShaderPassName(0, k_NormalsRenderingPassName);
+                context.DrawRenderers(cullResults, ref drawSettings, ref filterSettings);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-
-            drawSettings.SetShaderPassName(0, k_NormalsRenderingPassName);
-            context.DrawRenderers(cullResults, ref drawSettings, ref filterSettings);
         }
 
         public static void RenderLights(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, LayerBatch layerBatch)

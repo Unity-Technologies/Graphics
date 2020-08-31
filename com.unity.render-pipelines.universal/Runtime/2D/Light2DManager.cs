@@ -147,7 +147,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
 #if UNITY_EDITOR
             // we should fix. Make a non allocating version of this
-            if(!Application.isPlaying)
+            if(!Application.isPlaying && s_LayerBatches.Length != count)
             {
                 s_LayerBatches = new LayerBatch[count];
                 needInit = true;
