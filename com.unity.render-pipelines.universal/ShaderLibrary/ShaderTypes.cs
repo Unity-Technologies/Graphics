@@ -1,6 +1,6 @@
 namespace UnityEngine.Rendering.Universal
 {
-    public static class ShaderInput
+    public static partial class ShaderInput
     {
         [GenerateHLSL(PackingRules.Exact, false)]
         public struct LightData

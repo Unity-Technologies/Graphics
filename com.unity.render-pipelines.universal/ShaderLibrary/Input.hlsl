@@ -8,6 +8,7 @@
 #define USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA 0
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderTypes.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl"
 
 #if defined(SHADER_API_MOBILE) && (SHADER_TARGET < 45)
 #define MAX_VISIBLE_LIGHTS 16
