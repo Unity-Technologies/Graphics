@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Should probably be inside the AO render function but since it's a separate class it's currently not super clean to do.
                 PushFullScreenDebugTexture(m_RenderGraph, lightingBuffers.ambientOcclusionBuffer, FullScreenDebugMode.ScreenSpaceAmbientOcclusion);
 
-                
+
 
                 lightingBuffers.contactShadowsBuffer = RenderContactShadows(m_RenderGraph, hdCamera, msaa ? prepassOutput.depthValuesMSAA : prepassOutput.depthPyramidTexture, gpuLightListOutput, GetDepthBufferMipChainInfo().mipLevelOffsets[1].y);
 
@@ -202,8 +202,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Send all the geometry graphics buffer to client systems if required (must be done after the pyramid and before the transparent depth pre-pass)
                 SendGeometryGraphicsBuffers(m_RenderGraph, prepassOutput.normalBuffer, prepassOutput.depthPyramidTexture, hdCamera);
 
-                // TODO RENDERGRAPH
-                //m_PostProcessSystem.DoUserAfterOpaqueAndSky(cmd, hdCamera, m_CameraColorBuffer);
+                m_PostProcessSystem.DoUserAfterOpaqueAndSky(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, prepassOutput.resolvedNormalBuffer);
 
                 // No need for old stencil values here since from transparent on different features are tagged
                 ClearStencilBuffer(m_RenderGraph, colorBuffer, prepassOutput.depthBuffer);
@@ -261,13 +260,13 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 GenerateDebugImageHistogram(m_RenderGraph, hdCamera, postProcessDest);
             }
-            //PushFullScreenExposureDebugTexture(cmd, m_IntermediateAfterPostProcessBuffer);
+            PushFullScreenExposureDebugTexture(m_RenderGraph, postProcessDest);
 
             RenderCustomPass(m_RenderGraph, hdCamera, postProcessDest, prepassOutput.depthBuffer, prepassOutput.normalBuffer, customPassCullingResults, CustomPassInjectionPoint.AfterPostProcess, aovRequest, aovBuffers);
 
             CopyXRDepth(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, backBuffer);
 
-            // In developer build, we always render post process in m_AfterPostProcessBuffer at (0,0) in which we will then render debug.
+            // In developer build, we always render post process in an intermediate buffer at (0,0) in which we will then render debug.
             // Because of this, we need another blit here to the final render target at the right viewport.
             if (!HDUtils.PostProcessIsFinalPass(hdCamera) || aovRequest.isValid)
             {
@@ -278,7 +277,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                                 postProcessDest,
                                                 prepassOutput.resolvedDepthBuffer,
                                                 prepassOutput.depthPyramidTexture,
-                                                m_DebugFullScreenTexture,
                                                 colorPickerTexture,
                                                 gpuLightListOutput,
                                                 shadowResult,
