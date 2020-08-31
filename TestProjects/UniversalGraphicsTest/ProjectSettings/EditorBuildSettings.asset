@@ -222,6 +222,9 @@ EditorBuildSettings:
     path: Assets/Scenes/109_URPShadersAlphaOutput.unity
     guid: 0a89803a0d2352245a452c202f9a67d1
   - enabled: 1
+    path: Assets/Scenes/110_URPShadersAlphaOutputRendererFeature.unity
+    guid: 73a6a02c48ea444fba7dec75de3c4156
+  - enabled: 1
     path: Assets/Scenes/111_CameraStackMSAA.unity
     guid: 83adeebeb3ba74a13816f2b8636588aa
   - enabled: 1
