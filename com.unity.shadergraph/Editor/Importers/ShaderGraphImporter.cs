@@ -115,7 +115,11 @@ Shader ""Hidden/GraphErrorShader2""
 #endif
             {
                 var text = GetShaderText(path, out configuredTextures, sourceAssetDependencyPaths, graph);
+#if UNITY_2020_2_OR_NEWER
+                shader = ShaderUtil.CreateShaderAsset(ctx, text, false);
+#else
                 shader = ShaderUtil.CreateShaderAsset(text, false);
+#endif
                 if (graph.messageManager.nodeMessagesChanged)
                 {
                     foreach (var pair in graph.messageManager.GetNodeMessages())
