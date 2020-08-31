@@ -1,13 +1,41 @@
-# Changelog
+﻿# Changelog
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.5.0] - 2020-07-02
+## [7.5.1] - 2020-07-02
 
 ### Fixed
 - Fixed a bug where connections to the `Normal` slot on *Stack Lit Master* node would be lost when changing normal space. 
+- Fixed an issue where manipulating the color wheels in a volume component would reset the cursor every time.
+- Fixed an issue where static sky lighting would not be updated for a new scene until it's reloaded at least once.
+- Fixed missing include guards in shadow hlsl files.
+- Fixed issue with light layers bigger than 8 (and above the supported range).
+- Fixed issues with scene view and transparent motion vectors.
+- Fix reflection probe frame settings override
+- Workaround an issue caused by GetKernelThreadGroupSizes  failing to retrieve correct group size. 
+- Fixed transparent motion vector framesetting not sanitized.
+- Fix issue causing blocky artifacts when decals affect metallic and are applied on material with specular color workflow.
+- Fixed wrong order of post process frame settings.
+- Fixed warning in HDAdditionalLightData OnValidate (cases 1250864, 1244578)
+- Fixed issue with blue line in prefabs for volume mode.
+- Fix issue that caused sky to incorrectly render when using a custom projection matrix.
+- Fixed issue with completely black AO on double sided materials when normal mode is set to None.
+- Fixed issue with culling layer mask of area light's emissive mesh 
+- Fixed for area light not updating baked light result when modifying with gizmo.
+- Fixed errors when switching area light to disk shape while an area emissive mesh was displayed.
+- PBR Sky now doesn't go black when going below sea level, but it instead freezes calculation as if on the horizon.
+- Fixed XR single-pass macros in tessellation shaders.
+- Fixed XR Display providers not getting zNear and zFar plane distances passed to them when in HDRP.
+- Fixed issue with white flash when enabling SSR.
+- Fixed issue with depth pyramid generation and dynamic resolution.
+- Fixed an issue where opening the look dev window with the light theme would make the window blink and eventually crash unity.
+- Fixed a serialization issue, preventing quality level parameters to undo/redo and update scene view on change.
+- Fixed an issue where look dev lighting would go black when a new scene is loaded.
+
+### Changed
+- Changed extensions of shader CAS include files.
 
 ## [7.4.1] - 2020-06-03
 

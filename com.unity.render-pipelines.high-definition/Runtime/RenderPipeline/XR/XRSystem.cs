@@ -150,6 +150,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         Debug.LogWarning("RenderViewportScale has no effect with this render pipeline. Use dynamic resolution instead.");
                     }
 
+                    if(display != null)
+                    {
+                        display.zNear = camera.nearClipPlane;
+                        display.zFar = camera.farClipPlane;
+                    }
+					
                     if (xrSdkActive)
                     {
                         CreateLayoutFromXrSdk(camera, singlePassAllowed);
