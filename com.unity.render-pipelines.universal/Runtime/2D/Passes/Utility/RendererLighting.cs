@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -95,7 +96,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cmd.GetTemporaryRT(pass.rendererData.normalsRenderTarget.id, descriptor, FilterMode.Bilinear);
         }
 
-        public static void CreateBlendStyleRenderTexture(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int blendStyleIndex)
+        public static void CreateBlendStyleRenderTexture(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int blendStyleIndex, int rtid)
         {
             var renderTextureScale = Mathf.Clamp(pass.rendererData.lightBlendStyles[blendStyleIndex].renderTextureScale, 0.01f, 1.0f);
             var width = (int)(renderingData.cameraData.cameraTargetDescriptor.width * renderTextureScale);
@@ -109,10 +110,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             descriptor.msaaSamples = 1;
             descriptor.dimension = TextureDimension.Tex2D;
 
-            ref var blendStyle = ref pass.rendererData.lightBlendStyles[blendStyleIndex];
-            cmd.GetTemporaryRT(blendStyle.renderTargetHandle.id, descriptor, FilterMode.Bilinear);
-            blendStyle.hasRenderTarget = true;
-            blendStyle.isDirty = true;
+            //ref var blendStyle = ref pass.rendererData.lightBlendStyles[blendStyleIndex];
+            cmd.GetTemporaryRT(rtid, descriptor, FilterMode.Bilinear);
+            // blendStyle.hasRenderTarget = true;
+            // blendStyle.isDirty = true;
         }
 
         public static void EnableBlendStyle(CommandBuffer cmd, int blendStyleIndex, bool enabled)
@@ -125,15 +126,24 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmd.DisableShaderKeyword(keyword);
         }
 
-        public static void ReleaseRenderTextures(this IRenderPass2D pass, CommandBuffer cmd)
+        public static void ReleaseRenderTextures(this IRenderPass2D pass, CommandBuffer cmd, LayerBatch[] layerBatches)
         {
-            for (var i = 0; i < pass.rendererData.lightBlendStyles.Length; i++)
+            for (var l = 0; l < layerBatches.Length; l++)
             {
-                if (!pass.rendererData.lightBlendStyles[i].hasRenderTarget)
-                    continue;
+                unsafe
+                {
+                    var layerBatch = layerBatches[l];
+                    if (!layerBatch.enabled)
+                        continue;
 
-                pass.rendererData.lightBlendStyles[i].hasRenderTarget = false;
-                cmd.ReleaseTemporaryRT(pass.rendererData.lightBlendStyles[i].renderTargetHandle.id);
+                    for (var i = 0; i < pass.rendererData.lightBlendStyles.Length; i++)
+                    {
+                        if (layerBatch.renderTargetIds[i] == 0)
+                            continue;
+
+                        cmd.ReleaseTemporaryRT(layerBatch.renderTargetIds[i]);
+                    }
+                }
             }
 
             cmd.ReleaseTemporaryRT(pass.rendererData.normalsRenderTarget.id);
@@ -356,41 +366,43 @@ namespace UnityEngine.Experimental.Rendering.Universal
             context.DrawRenderers(cullResults, ref drawSettings, ref filterSettings);
         }
 
-        public static void RenderLights(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, uint blendStylesUsed)
+        public static void RenderLights(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, LayerBatch layerBatch)
         {
             var blendStyles = pass.rendererData.lightBlendStyles;
 
             for (var i = 0; i < blendStyles.Length; ++i)
             {
-                if ((blendStylesUsed & (uint)(1 << i)) == 0)
-                    continue;
+                unsafe
+                {
+                    if ((layerBatch.lightStats.blendStylesUsed & (uint)(1 << i)) == 0)
+                        continue;
 
-                var sampleName = blendStyles[i].name;
-                cmd.BeginSample(sampleName);
+                    var sampleName = blendStyles[i].name;//$"{blendStyles[i].name}: Lights {layerBatch.layerToRender}_{i}";
+                    cmd.BeginSample(sampleName);
 
-                var rtID = pass.rendererData.lightBlendStyles[i].renderTargetHandle.Identifier();
-                cmd.SetRenderTarget(rtID);
+                    // var rtID = pass.rendererData.lightBlendStyles[i].renderTargetHandle.Identifier();
+                    var rtID = new RenderTargetIdentifier(layerBatch.renderTargetIds[i]);
+                    cmd.SetRenderTarget(rtID);
 
-                var rtDirty = false;
-                if (!Light2DManager.GetGlobalColor(layerToRender, i, out var clearColor))
-                    clearColor = Color.black;
-                else
-                    rtDirty = true;
+                    // var rtDirty = false;
+                    if (!Light2DManager.GetGlobalColor(layerToRender, i, out var clearColor))
+                        clearColor = Color.black;
+                    // else
+                    //     rtDirty = true;
 
-                rtDirty |= RenderLightSet(
-                    pass, renderingData,
-                    i,
-                    cmd,
-                    layerToRender,
-                    rtID,
-                    (pass.rendererData.lightBlendStyles[i].isDirty || rtDirty),
-                    clearColor,
-                    pass.rendererData.lightCullResult.visibleLights
-                );
+                    RenderLightSet(
+                        pass, renderingData,
+                        i,
+                        cmd,
+                        layerToRender,
+                        rtID,
+                        true,
+                        clearColor,
+                        pass.rendererData.lightCullResult.visibleLights
+                    );
 
-                pass.rendererData.lightBlendStyles[i].isDirty = rtDirty;
-
-                cmd.EndSample(sampleName);
+                    cmd.EndSample(sampleName);
+                }
             }
         }
 
@@ -403,7 +415,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 if ((blendStylesUsed & (uint)(1 << i)) == 0)
                     continue;
 
-                string sampleName = blendStyles[i].name;
+                var sampleName = blendStyles[i].name;
                 cmd.BeginSample(sampleName);
 
                 RenderLightVolumeSet(
