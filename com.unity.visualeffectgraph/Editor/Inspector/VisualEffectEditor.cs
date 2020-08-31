@@ -976,7 +976,13 @@ namespace UnityEditor.VFX
                                             }
 
                                             if (otherSourceProperty != null)
-                                                valueMixed = valueMixed || !GetObjectValue(otherSourceProperty.FindPropertyRelative("m_Value")).Equals(GetObjectValue(actualDisplayedPropertyValue));
+                                            {
+                                                var otherValue = GetObjectValue(otherSourceProperty.FindPropertyRelative("m_Value"));
+                                                if (otherValue == null)
+                                                    valueMixed = valueMixed || GetObjectValue(actualDisplayedPropertyValue) != null;
+                                                else
+                                                    valueMixed = valueMixed || !otherValue.Equals(GetObjectValue(actualDisplayedPropertyValue));
+                                            }
 
                                             if (valueMixed)
                                                 break;
