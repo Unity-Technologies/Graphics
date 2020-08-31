@@ -13,6 +13,14 @@ MaterialNodeView.master {
     min-width: 200px;
 }
 
+MaterialNodeView.blockData {
+    width: 200px;
+}
+
+MaterialNodeView.blockData > #portInputContainer {
+    top: 6px;
+}
+
 MaterialNodeView #collapsible-area {
     width: 0;
     height: 0;
@@ -171,4 +179,26 @@ MaterialNodeView.hovered #selection-border{
 
 .node.expanded > #node-border > #title > #button-container > #collapse-button > #icon {
     background-image : resource("GraphView/Nodes/NodeChevronDown.png");
+}
+
+MaterialNodeView > #disabledOverlay {
+    border-radius: 4;
+    position: absolute;
+    left: 4;
+    right: 4;
+    top: 4;
+    bottom: 4;
+    background-color: rgba(32, 32, 32, 0);
+}
+
+MaterialNodeView.disabled #disabledOverlay {
+    background-color: rgba(32, 32, 32, 0.5);
+}
+
+MaterialNodeView.disabled:hover #disabledOverlay {
+    background-color: rgba(32, 32, 32, 0.25);
+}
+
+MaterialNodeView.disabled:checked #disabledOverlay {
+    background-color: rgba(32, 32, 32, 0.25);
 }

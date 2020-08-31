@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.VFX;
 using UnityEngine.Profiling;
 
 using Object = UnityEngine.Object;
@@ -38,16 +39,15 @@ namespace UnityEditor.VFX
             }
         }
 
-        private void CompileExpressionContext(IEnumerable<VFXContext> contexts, VFXExpressionContextOption options, VFXDeviceTarget target)
+        private void CompileExpressionContext(IEnumerable<VFXContext> contexts,
+            VFXExpressionContextOption options,
+            VFXDeviceTarget target,
+            VFXExpression.Flags forbiddenFlags = VFXExpression.Flags.None)
         {
-            HashSet<VFXExpression> expressions = new HashSet<VFXExpression>();
-            var expressionContext = new VFXExpression.Context(options);
+            var expressionContext = new VFXExpression.Context(options, m_GlobalEventAttributes);
 
             var contextsToExpressions = target == VFXDeviceTarget.GPU ? m_ContextsToGPUExpressions : m_ContextsToCPUExpressions;
             var expressionsToReduced = target == VFXDeviceTarget.GPU ? m_GPUExpressionsToReduced : m_CPUExpressionsToReduced;
-
-            contextsToExpressions.Clear();
-            expressionsToReduced.Clear();
 
             foreach (var context in contexts)
             {
@@ -56,7 +56,6 @@ namespace UnityEditor.VFX
                 {
                     foreach (var exp in mapper.expressions)
                         expressionContext.RegisterExpression(exp);
-                    expressions.UnionWith(mapper.expressions);
                     contextsToExpressions.Add(context, mapper);
                 }
             }
@@ -64,9 +63,29 @@ namespace UnityEditor.VFX
             expressionContext.Compile();
 
             foreach (var exp in expressionContext.RegisteredExpressions)
-                expressionsToReduced.Add(exp, expressionContext.GetReduced(exp));
+            {
+                var reduced = expressionContext.GetReduced(exp);
+                if (expressionsToReduced.ContainsKey(exp))
+                {
+                    if (reduced != expressionsToReduced[exp])
+                        throw new InvalidOperationException("Unexpected diverging expression reduction");
+                    continue;
+                }
+                expressionsToReduced.Add(exp, reduced);
+            }
 
-            m_Expressions.UnionWith(expressionContext.BuildAllReduced());
+            var allReduced = expressionContext.BuildAllReduced();
+            if (forbiddenFlags != VFXExpression.Flags.None)
+            {
+                var check = allReduced.Any(e => e.IsAny(forbiddenFlags));
+                if (check)
+                {
+                    //TODO: Provide an error in GUI when feedback is possible
+                    throw new InvalidOperationException("Invalid expression usage while compiling");
+                }
+            }
+
+            m_Expressions.UnionWith(allReduced);
 
             foreach (var exp in expressionsToReduced.Values)
                 AddExpressionDataRecursively(m_ExpressionsData, exp);
@@ -83,28 +102,98 @@ namespace UnityEditor.VFX
             CompileExpressions(contexts, options);
         }
 
+        private static void ComputeEventAttributeDescs(List<VFXLayoutElementDesc> globalEventAttributes, IEnumerable<VFXContext> contexts)
+        {
+            globalEventAttributes.Clear();
+            globalEventAttributes.Add(new VFXLayoutElementDesc() { name = "spawnCount", type = VFXValueType.Float });
+
+            IEnumerable<VFXLayoutElementDesc> globalAttribute = Enumerable.Empty<VFXLayoutElementDesc>();
+            foreach (var context in contexts.Where(o => o.contextType == VFXContextType.Spawner))
+            {
+                var attributesToStoreFromOutputContext = context.outputContexts.Select(o => o.GetData()).Where(o => o != null)
+                    .SelectMany(o => o.GetAttributes().Where(a => (a.mode & VFXAttributeMode.ReadSource) != 0));
+                var attributesReadInSpawnContext = context.GetData().GetAttributes().Where(a => (a.mode & VFXAttributeMode.Read) != 0);
+                var attributesInGlobal = attributesToStoreFromOutputContext.Concat(attributesReadInSpawnContext).GroupBy(o => o.attrib.name);
+
+                foreach (var attribute in attributesInGlobal.Select(o => o.First()))
+                {
+                    if (!globalEventAttributes.Any(o => o.name == attribute.attrib.name))
+                    {
+                        globalEventAttributes.Add(new VFXLayoutElementDesc()
+                        {
+                            name = attribute.attrib.name,
+                            type = attribute.attrib.type
+                        });
+                    }
+                }
+            }
+
+            var structureLayoutTotalSize = (uint)globalEventAttributes.Sum(e => (long)VFXExpression.TypeToSize(e.type));
+            var currentLayoutSize = 0u;
+            var listWithOffset = new List<VFXLayoutElementDesc>();
+            globalEventAttributes.ForEach(e =>
+            {
+                e.offset.element = currentLayoutSize;
+                e.offset.structure = structureLayoutTotalSize;
+                currentLayoutSize += (uint)VFXExpression.TypeToSize(e.type);
+                listWithOffset.Add(e);
+            });
+
+            globalEventAttributes.Clear();
+            globalEventAttributes.AddRange(listWithOffset);
+        }
+
         public void CompileExpressions(IEnumerable<VFXContext> contexts, VFXExpressionContextOption options)
         {
             Profiler.BeginSample("VFXEditor.CompileExpressionGraph");
 
             try
             {
+                ComputeEventAttributeDescs(m_GlobalEventAttributes, contexts);
+
                 m_Expressions.Clear();
                 m_FlattenedExpressions.Clear();
                 m_ExpressionsData.Clear();
 
-                CompileExpressionContext(contexts, options, VFXDeviceTarget.CPU);
-                CompileExpressionContext(contexts, options | VFXExpressionContextOption.GPUDataTransformation, VFXDeviceTarget.GPU);
+                m_ContextsToGPUExpressions.Clear();
+                m_ContextsToCPUExpressions.Clear();
+                m_GPUExpressionsToReduced.Clear();
+                m_CPUExpressionsToReduced.Clear();
+
+                var spawnerContexts = contexts.Where(o => o.contextType == VFXContextType.Spawner);
+                var otherContexts = contexts.Where(o => o.contextType != VFXContextType.Spawner);
+                CompileExpressionContext(spawnerContexts,
+                    options | VFXExpressionContextOption.PatchReadToEventAttribute,
+                    VFXDeviceTarget.CPU,
+                    VFXExpression.Flags.NotCompilableOnCPU);
+
+                CompileExpressionContext(otherContexts,
+                    options,
+                    VFXDeviceTarget.CPU,
+                    VFXExpression.Flags.NotCompilableOnCPU | VFXExpression.Flags.PerSpawn);
+
+                CompileExpressionContext(contexts,
+                    options | VFXExpressionContextOption.GPUDataTransformation,
+                    VFXDeviceTarget.GPU,
+                    VFXExpression.Flags.PerSpawn);
 
                 var sortedList = m_ExpressionsData.Where(kvp =>
                 {
                     var exp = kvp.Key;
-                    return !exp.IsAny(VFXExpression.Flags.NotCompilableOnCPU);
-                }).ToList();     // remove per element expression from flattened data // TODO Remove uniform constants too
+                    return !exp.IsAny(VFXExpression.Flags.NotCompilableOnCPU); // remove per element expression from flattened data // TODO Remove uniform constants too
+                });
 
-                sortedList.Sort((kvpA, kvpB) => kvpB.Value.depth.CompareTo(kvpA.Value.depth));
-                m_FlattenedExpressions = sortedList.Select(kvp => kvp.Key).ToList();
+                var expressionPerSpawn = sortedList.Where(o => o.Key.Is(VFXExpression.Flags.PerSpawn));
+                var expressionNotPerSpawn = sortedList.Where(o => !o.Key.Is(VFXExpression.Flags.PerSpawn));
 
+                //m_FlattenedExpressions is a concatenation of [sorted all expression !PerSpawn] & [sorted all expression Per Spawn]
+                //It's more convenient for two reasons :
+                // - Reduces process chunk for ComputePreProcessExpressionForSpawn
+                // - Allows to determine the maximum index of expression while processing main expression evaluation
+                sortedList = expressionNotPerSpawn.OrderByDescending(o => o.Value.depth);
+                sortedList = sortedList.Concat(expressionPerSpawn.OrderByDescending(o => o.Value.depth));
+
+                m_FlattenedExpressions = sortedList.Select(o => o.Key).ToList();
                 // update index in expression data
                 for (int i = 0; i < m_FlattenedExpressions.Count; ++i)
                 {
@@ -214,6 +303,14 @@ namespace UnityEditor.VFX
             }
         }
 
+        public IEnumerable<VFXLayoutElementDesc> GlobalEventAttributes
+        {
+            get
+            {
+                return m_GlobalEventAttributes;
+            }
+        }
+
         private HashSet<VFXExpression> m_Expressions = new HashSet<VFXExpression>();
         private Dictionary<VFXExpression, VFXExpression> m_CPUExpressionsToReduced = new Dictionary<VFXExpression, VFXExpression>();
         private Dictionary<VFXExpression, VFXExpression> m_GPUExpressionsToReduced = new Dictionary<VFXExpression, VFXExpression>();
@@ -221,5 +318,6 @@ namespace UnityEditor.VFX
         private Dictionary<VFXExpression, ExpressionData> m_ExpressionsData = new Dictionary<VFXExpression, ExpressionData>();
         private Dictionary<VFXContext, VFXExpressionMapper> m_ContextsToCPUExpressions = new Dictionary<VFXContext, VFXExpressionMapper>();
         private Dictionary<VFXContext, VFXExpressionMapper> m_ContextsToGPUExpressions = new Dictionary<VFXContext, VFXExpressionMapper>();
+        private List<VFXLayoutElementDesc> m_GlobalEventAttributes = new List<VFXLayoutElementDesc>();
     }
 }

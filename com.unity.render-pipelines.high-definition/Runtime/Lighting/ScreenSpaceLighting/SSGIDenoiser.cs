@@ -129,7 +129,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 indirectDiffuseHistory = hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF, IndirectDiffuseHistoryBufferAllocatorFunction, 1);
                 // clear it to black if this is the first pass to avoid nans
-                CoreUtils.SetRenderTarget(cmd, indirectDiffuseHistory, m_SharedRTManager.GetDepthStencilBuffer(), ClearFlag.Color, clearColor: Color.black);
+                CoreUtils.SetRenderTarget(cmd, indirectDiffuseHistory, ClearFlag.Color, clearColor: Color.black);
             }
 
             // Pick the right kernel to use

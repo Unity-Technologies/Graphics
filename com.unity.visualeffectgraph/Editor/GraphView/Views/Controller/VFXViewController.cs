@@ -10,7 +10,6 @@ using UnityEngine;
 using UnityEngine.Profiling;
 
 using UnityObject = UnityEngine.Object;
-using Branch = UnityEditor.VFX.Operator.VFXOperatorDynamicBranch;
 
 namespace UnityEditor.VFX.UI
 {
@@ -1617,7 +1616,7 @@ namespace UnityEditor.VFX.UI
         public void SetParametersOrder(VFXParameterController controller, int index, bool input)
         {
             controller.model.category = string.Empty;
-            var orderedParameters = m_ParameterControllers.Where(t => t.Value.isOutput == !input).OrderBy(t => t.Value.order).Select(t => t.Value).ToList();
+            var orderedParameters = m_ParameterControllers.Where(t => t.Value.isOutput == !input && t.Value.model.category == "").OrderBy(t => t.Value.order).Select(t => t.Value).ToList();
 
             int oldIndex = orderedParameters.IndexOf(controller);
 
@@ -1713,9 +1712,9 @@ namespace UnityEditor.VFX.UI
                     else
                         newControllers.Add(new VFXUnifiedOperatorController(model as VFXOperator, this));
                 }
-                else if (model is Branch)
+                else if (model is VFXOperatorDynamicType)
                 {
-                    newControllers.Add(new VFXBranchOperatorController(model as VFXOperator, this));
+                    newControllers.Add(new VFXDynamicTypeOperatorController(model as VFXOperator, this));
                 }
                 else
                     newControllers.Add(new VFXOperatorController(model as VFXOperator, this));

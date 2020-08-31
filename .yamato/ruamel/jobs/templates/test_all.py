@@ -16,8 +16,8 @@ class Template_AllTemplateCiJob():
         dependencies = []
         for platform in platforms:
             for template in templates:
-                dependencies.append(f'{templates_filepath()}#{template_job_id_test(template["id"],platform["name"],editor["version"])}')
-                dependencies.append(f'{templates_filepath()}#{template_job_id_test_dependencies(template["id"],platform["name"],editor["version"])}')
+                dependencies.append(f'{templates_filepath()}#{template_job_id_test(template["id"],platform["os"],editor["version"])}')
+                dependencies.append(f'{templates_filepath()}#{template_job_id_test_dependencies(template["id"],platform["os"],editor["version"])}')
         
         # construct job
         job = YMLJob()

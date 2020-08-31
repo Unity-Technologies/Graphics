@@ -35,7 +35,21 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 PackedVaryingsType Vert(AttributesMesh inputMesh)
 {
     VaryingsType varyingsType;
-    varyingsType.vmesh = VertMesh(inputMesh);
+
+#if defined(HAVE_RECURSIVE_RENDERING)
+    // If we have a recursive raytrace object, we will not render it.
+    // As we don't want to rely on renderqueue to exclude the object from the list,
+    // we cull it by settings position to NaN value.
+    // TODO: provide a solution to filter dyanmically recursive raytrace object in the DrawRenderer
+    if (_EnableRecursiveRayTracing && _RayTracing > 0.0)
+    {
+        ZERO_INITIALIZE(VaryingsType, varyingsType); // Divide by 0 should produce a NaN and thus cull the primitive.
+    }
+    else
+#endif
+    {
+        varyingsType.vmesh = VertMesh(inputMesh);
+    }
 
     return PackVaryingsType(varyingsType);
 }
@@ -199,10 +213,12 @@ void Frag(PackedVaryingsToPS packedInput,
 #else
             uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE;
 #endif
-            float3 diffuseLighting;
-            float3 specularLighting;
+            LightLoopOutput lightLoopOutput;
+            LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
 
-            LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
+            // Alias
+            float3 diffuseLighting = lightLoopOutput.diffuseLighting;
+            float3 specularLighting = lightLoopOutput.specularLighting;
 
             diffuseLighting *= GetCurrentExposureMultiplier();
             specularLighting *= GetCurrentExposureMultiplier();

@@ -48,6 +48,8 @@ namespace UnityEditor.ShaderGraph
             set { m_Value = value; }
         }
 
+        public override bool isDefaultValue => value.Equals(defaultValue);
+
         public override VisualElement InstantiateControl()
         {
             return new MultiFloatSlotControlView(owner, m_Labels, () => value, (newValue) => value = newValue);

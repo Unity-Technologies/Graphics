@@ -39,11 +39,11 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent colorFilter = new GUIContent("Filter", "Specifies a color which tints the Light source.");
             public readonly GUIContent colorTemperature = new GUIContent("Temperature", "Specifies a temperature (in Kelvin) HDRP uses to correlate a color for the Light. For reference, White is 6500K.");
             public readonly GUIContent areaLightCookie = new GUIContent("Cookie", "Cookie mask currently assigned to the area light.");
+            public readonly GUIContent iesTexture = new GUIContent("IES Profile", "IES Profile (Support: Point, Spot, Rectangular-Area Lights).");
             public readonly GUIContent cookieTextureTypeError = new GUIContent("HDRP does not support the Cookie Texture type, only Default is supported.", EditorGUIUtility.IconContent("console.warnicon").image);
             public readonly string cookieNonPOT = "HDRP does not support non power of two cookie textures.";
             public readonly string cookieTooSmall = "Min texture size for cookies is 2x2 pixels.";
             public readonly string cookieBaking = "Light Baking for cookies disabled on the Project Settings.";
-
 
             // Additional light data
             public readonly GUIContent directionalIntensity = new GUIContent("Intensity (Lux)", "Illuminance of the Directional Light, at ground level, in lux.");
@@ -61,6 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent lightDimmer = new GUIContent("Intensity Multiplier", "Multiplies the intensity of the Light by the given number. This is useful for modifying the intensity of multiple Lights simultaneously without needing know the intensity of each Light.");
             public readonly GUIContent fadeDistance = new GUIContent("Fade Distance", "The distance at which light smoothly fades out before HDRP culls it completely. This minimizes popping.");
             public readonly GUIContent spotInnerPercent = new GUIContent("Inner Angle (%)", "Controls size of the angular attenuation, in percent, of the base angle of the Spot Light's cone.");
+            public readonly GUIContent spotIESCutoffPercent = new GUIContent("IES Cutoff Angle (%)", "Cutoff the IES Light in percent, of the base angle of the Spot Light's cone.");
             public readonly GUIContent spotLightShape = new GUIContent("Shape", "The shape of the Spot Light. Impacts the the cookie transformation and the Light's angular attenuation.");
             public readonly GUIContent areaLightShape = new GUIContent("Shape", "The shape of the Area Light. Note that some are Realtime only and some Baked only.");
             public readonly GUIContent[] areaShapeNames =
@@ -113,7 +114,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent shadowTint = new GUIContent("Tint", "Specifies the color and transparency that HDRP tints this Light's shadows to. The tint affects dynamic shadows, Contact Shadows, and ShadowMask. It does not affect baked shadows.");
             public readonly GUIContent penumbraTint = new GUIContent("Penumbra Tint", "When enabled, the tint only affects the shadow's penumbra.");
             public readonly GUIContent contactShadows = new GUIContent("Enable", "Enable support for Contact Shadows on this Light. This is better for lights with a lot of visible shadows.");
-            public readonly GUIContent rayTracedContactShadow = new GUIContent("Ray Tracing", "Uses ray tracing to compute the contact shadow for a light.");
+            public readonly GUIContent rayTracedContactShadow = new GUIContent("Ray Tracing (Preview)", "Uses ray tracing to compute the contact shadow for a light.");
             public readonly GUIContent shadowUpdateMode = new GUIContent("Update Mode", "Specifies when HDRP updates the shadow map.");
             public readonly GUIContent useCustomSpotLightShadowCone = new GUIContent("Custom Spot Angle", "When enabled, this Spot Light uses the custom angle for shadow map rendering.");
             public readonly GUIContent customSpotLightShadowCone = new GUIContent("Shadow Angle", "Controls the custom angle this Spot Light uses for shadow map rendering.");
@@ -131,7 +132,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent diameterScaleForSoftness = new GUIContent("Angular Diameter Scale for Softness", "Scale the angular diameter for the sake of softness calculation. Higher scales will result in higher softness.");
             public readonly GUIContent areaLightShadowCone = new GUIContent("Shadow Cone", "Aperture of the cone used for shadowing the area light.");
             public readonly GUIContent useScreenSpaceShadows = new GUIContent("Screen Space Shadows", "Render screen space shadow.");
-            public readonly GUIContent useRayTracedShadows = new GUIContent("Ray Traced Shadows", "If selected, ray traced shadows are used in place of rasterized ones.");
+            public readonly GUIContent useRayTracedShadows = new GUIContent("Ray Traced Shadows (Preview)", "If selected, ray traced shadows are used in place of rasterized ones.");
             public readonly GUIContent numRayTracingSamples = new GUIContent("Sample Count", "This defines the number of samples that will be used to evaluate this shadow.");
             public readonly GUIContent denoiseTracedShadow = new GUIContent("Denoise", "This defines if the ray traced shadow should be filtered.");
             public readonly GUIContent denoiserRadius = new GUIContent("Denoiser Radius", "This defines the denoiser's radius used for filtering ray traced shadows.");

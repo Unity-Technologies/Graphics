@@ -33,6 +33,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         }
 
+        internal static int GetScalableSettingLevelParameterValue(int level, bool useOverride)
+        {
+            return useOverride ? LevelCount : (int)level;
+        }
+
         /// <summary>
         /// Level and Override.
         /// </summary>
@@ -42,7 +47,7 @@ namespace UnityEngine.Rendering.HighDefinition
             set
             {
                 var (level, useOverride) = value;
-                this.value = useOverride ? LevelCount : (int)level;
+                this.value = GetScalableSettingLevelParameterValue(level, useOverride);
             }
         }
     }
@@ -117,6 +122,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public DepthOfFieldResolution[] DoFResolution   = new DepthOfFieldResolution[s_QualitySettingCount];
         /// <summary>Use Depth of field high quality filtering for each quality level.</summary>
         public bool[] DoFHighQualityFiltering           = new bool[s_QualitySettingCount];
+        /// <summary>Use Depth of field high physically based setting for each quality level.</summary>
+        public bool[] DoFPhysicallyBased                = new bool[s_QualitySettingCount];
 
         /* Motion Blur */
         /// <summary>Motion Blur sample count for each quality level.</summary>

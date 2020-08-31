@@ -167,7 +167,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     debug.SetFullScreenDebugMode(FullScreenDebugMode.DepthPyramid);
                     break;
                 case DebugFullScreen.ScreenSpaceAmbientOcclusion:
-                    debug.SetFullScreenDebugMode(FullScreenDebugMode.SSAO);
+                    debug.SetFullScreenDebugMode(FullScreenDebugMode.ScreenSpaceAmbientOcclusion);
                     break;
                 case DebugFullScreen.MotionVectors:
                     debug.SetFullScreenDebugMode(FullScreenDebugMode.MotionVectors);

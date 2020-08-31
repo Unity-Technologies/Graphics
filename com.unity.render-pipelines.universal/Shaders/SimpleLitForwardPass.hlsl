@@ -69,6 +69,7 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
+    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -127,9 +128,10 @@ half4 LitPassFragmentSimple(Varyings input) : SV_Target
 
     half alpha = diffuseAlpha.a * _BaseColor.a;
     AlphaDiscard(alpha, _Cutoff);
-#ifdef _ALPHAPREMULTIPLY_ON
-    diffuse *= alpha;
-#endif
+
+    #ifdef _ALPHAPREMULTIPLY_ON
+        diffuse *= alpha;
+    #endif
 
     half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
     half3 emission = SampleEmission(uv, _EmissionColor.rgb, TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap));
@@ -141,7 +143,7 @@ half4 LitPassFragmentSimple(Varyings input) : SV_Target
 
     half4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specular, smoothness, emission, alpha);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
-    color.a = OutputAlpha(color.a);
+    color.a = OutputAlpha(color.a, _Surface);
 
     return color;
 };

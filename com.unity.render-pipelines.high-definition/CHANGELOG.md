@@ -4,7 +4,19 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [10.1.0] - 2019-08-04
+
+### Added
+- Added an option to have only the metering mask displayed in the debug mode.
+
+### Fixed
+- Fix several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
+- Fixed GPU hang on D3D12 on xbox. 
+
+### Changed
+- Preparation pass for RTSSShadows to be supported by render graph.
+
+## [10.0.0] - 2019-06-10
 
 ### Added
 - Ray tracing support for VR single-pass
@@ -126,11 +138,44 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Implemented ray traced reflections for transparent objects.
 - Add a new parameter to control reflections in recursive rendering.
 - Added an initial version of SSGI.
+- Added Virtual Texturing cache settings to control the size of the Streaming Virtual Texturing caches.
 - Added back-compatibility with builtin stereo matrices.
 - Added CustomPassUtils API to simplify Blur, Copy and DrawRenderers custom passes.
 - Added Histogram guided automatic exposure.
 - Added few exposure debug modes.
 - Added support for multiple path-traced views at once (e.g., scene and game views).
+- Added support for 3DsMax's 2021 Simplified Physical Material from FBX files in the Model Importer.
+- Added custom target mid grey for auto exposure.
+- Added CustomPassUtils API to simplify Blur, Copy and DrawRenderers custom passes.
+- Added an API in HDRP to override the camera within the rendering of a frame (mainly for custom pass).
+- Added more custom pass API functions, mainly to render objects from another camera.
+- Added support for transparent Unlit in path tracing.
+- Added a minimal lit used for RTGI in peformance mode.
+- Added procedural metering mask that can follow an object
+- Added presets quality settings for RTAO and RTGI.
+- Added an override for the shadow culling that allows better directional shadow maps in ray tracing effects (RTR, RTGI, RTSSS and RR).
+- Added a Cloud Layer volume override.
+- Added Fast Memory support for platform that support it.
+- Added CPU and GPU timings for ray tracing effects.
+- Added support to combine RTSSS and RTGI (1248733).
+- Added IES Profile support for Point, Spot and Rectangular-Area lights
+- Added support for multiple mapping modes in AxF.
+- Add support of lightlayers on indirect lighting controller
+- Added compute shader stripping.
+- Added Cull Mode option for opaque materials and ShaderGraphs. 
+- Added scene view exposure override.
+- Added support for exposure curve remapping for min/max limits.
+- Added presets for ray traced reflections.
+- Added final image histogram debug view (both luminance and RGB).
+- Added an example texture and rotation to the Cloud Layer volume override.
+- Added an option to extend the camera culling for skinned mesh animation in ray tracing effects (1258547).
+- Added decal layer system similar to light layer. Mesh will receive a decal when both decal layer mask matches.
+- Added shader graph nodes for rendering a complex eye shader.
+- Added more controls to contact shadows and increased quality in some parts. 
+- Added a physically based option in DoF volume.
+- Added API to check if a Camera, Light or ReflectionProbe is compatible with HDRP.
+- Added path tracing test scene for normal mapping.
+- Added missing API documentation.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -629,6 +674,98 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where the light list is not cleared but still used when resizing the RT.
 - Fixed exposure debug shader with XR single-pass rendering.
 - Fixed issues with scene view and transparent motion vectors.
+- Fixed black screens for linux/HDRP (1246407)
+- Fixed a vulkan and metal warning in the SSGI compute shader.
+- Fixed an exception due to the color pyramid not allocated when SSGI is enabled.
+- Fixed an issue with the first Depth history was incorrectly copied.
+- Fixed path traced DoF focusing issue
+- Fix an issue with the half resolution Mode (performance)
+- Fix an issue with the color intensity of emissive for performance rtgi
+- Fixed issue with rendering being mostly broken when target platform disables VR. 
+- Workaround an issue caused by GetKernelThreadGroupSizes  failing to retrieve correct group size. 
+- Fix issue with fast memory and rendergraph. 
+- Fixed transparent motion vector framesetting not sanitized.
+- Fixed wrong order of post process frame settings.
+- Fixed white flash when enabling SSR or SSGI.
+- The ray traced indrect diffuse and RTGI were combined wrongly with the rest of the lighting (1254318).
+- Fixed an exception happening when using RTSSS without using RTShadows.
+- Fix inconsistencies with transparent motion vectors and opaque by allowing camera only transparent motion vectors.
+- Fix reflection probe frame settings override
+- Fixed certain shadow bias artifacts present in volumetric lighting (case 1231885).
+- Fixed area light cookie not updated when switch the light type from a spot that had a cookie.
+- Fixed issue with dynamic resolution updating when not in play mode.
+- Fixed issue with Contrast Adaptive Sharpening upsample mode and preview camera.
+- Fix issue causing blocky artifacts when decals affect metallic and are applied on material with specular color workflow.
+- Fixed issue with depth pyramid generation and dynamic resolution.
+- Fixed an issue where decals were duplicated in prefab isolation mode.
+- Fixed an issue where rendering preview with MSAA might generate render graph errors.
+- Fixed compile error in PS4 for planar reflection filtering.
+- Fixed issue with blue line in prefabs for volume mode.
+- Fixing the internsity being applied to RTAO too early leading to unexpected results (1254626).
+- Fix issue that caused sky to incorrectly render when using a custom projection matrix.
+- Fixed null reference exception when using depth pre/post pass in shadergraph with alpha clip in the material.
+- Appropriately constraint blend distance of reflection probe while editing with the inspector (case 1248931)
+- Fixed AxF handling of roughness for Blinn-Phong type materials
+- Fixed AxF UI errors when surface type is switched to transparent
+- Fixed a serialization issue, preventing quality level parameters to undo/redo and update scene view on change.
+- Fixed an exception occuring when a camera doesn't have an HDAdditionalCameraData (1254383).
+- Fixed ray tracing with XR single-pass.
+- Fixed warning in HDAdditionalLightData OnValidate (cases 1250864, 1244578)
+- Fixed a bug related to denoising ray traced reflections.
+- Fixed nullref in the layered lit material inspector.
+- Fixed an issue where manipulating the color wheels in a volume component would reset the cursor every time.
+- Fixed an issue where static sky lighting would not be updated for a new scene until it's reloaded at least once.
+- Fixed culling for decals when used in prefabs and edited in context.
+- Force to rebake probe with missing baked texture. (1253367)
+- Fix supported Mac platform detection to handle new major version (11.0) properly
+- Fixed typo in the Render Pipeline Wizard under HDRP+VR
+- Change transparent SSR name in frame settings to avoid clipping. 
+- Fixed missing include guards in shadow hlsl files.
+- Repaint the scene view whenever the scene exposure override is changed.
+- Fixed an error when clearing the SSGI history texture at creation time (1259930).
+- Fixed alpha to mask reset when toggling alpha test in the material UI.
+- Fixed an issue where opening the look dev window with the light theme would make the window blink and eventually crash unity.
+- Fixed fallback for ray tracing and light layers (1258837).
+- Fixed Sorting Priority not displayed correctly in the DrawRenderers custom pass UI.
+- Fixed glitch in Project settings window when selecting diffusion profiles in material section (case 1253090)
+- Fixed issue with light layers bigger than 8 (and above the supported range). 
+- Fixed issue with culling layer mask of area light's emissive mesh 
+- Fixed errors when switching area light to disk shape while an area emissive mesh was displayed.
+- Fixed default frame settings MSAA toggle for reflection probes (case 1247631)
+- Fixed the transparent SSR dependency not being properly disabled according to the asset dependencies (1260271).
+- Fixed issue with completely black AO on double sided materials when normal mode is set to None.
+- Fixed UI drawing of the quaternion (1251235)
+- Fix an issue with the quality mode and perf mode on RTR and RTGI and getting rid of unwanted nans (1256923).
+- Fixed unitialized ray tracing resources when using non-default HDRP asset (case 1259467).
+- Fixed overused the atlas for Animated/Render Target Cookies (1259930).
+- Fixed sky asserts with XR multipass
+- Fixed for area light not updating baked light result when modifying with gizmo.
+- Fixed robustness issue with GetOddNegativeScale() in ray tracing, which was impacting normal mapping (1261160).
+- Fixed regression where moving face of the probe gizmo was not moving its position anymore.
+- Fixed XR single-pass macros in tessellation shaders.
+- Fixed path-traced subsurface scattering mixing with diffuse and specular BRDFs (1250601).
+- Fixed custom pass re-ordering issues.
+- Improved robustness of normal mapping when scale is 0, and mapping is extreme (normals in or below the tangent plane).
+- Fixed XR Display providers not getting zNear and zFar plane distances passed to them when in HDRP.
+- Fixed rendering breaking when disabling tonemapping in the frame settings.
+- Fixed issue with serialization of exposure modes in volume profiles not being consistent between HDRP versions (case 1261385).
+- Fixed issue with duplicate names in newly created sub-layers in the graphics compositor (case 1263093).
+- Remove MSAA debug mode when renderpipeline asset has no MSAA
+- Fixed some post processing using motion vectors when they are disabled
+- Fixed the multiplier of the environement lights being overriden with a wrong value for ray tracing (1260311).
+- Fixed a series of exceptions happening when trying to load an asset during wizard execution (1262171).
+- Fixed an issue with Stacklit shader not compiling correctly in player with debug display on (1260579)
+- Fixed couple issues in the dependence of building the ray tracing acceleration structure.
+- Fix sun disk intensity
+- Fixed unwanted ghosting for smooth surfaces.
+- Fixing an issue in the recursive rendering flag texture usage.
+- Fixed a missing dependecy for choosing to evaluate transparent SSR.
+- Fixed issue that failed compilation when XR is disabled.
+- Fixed a compilation error in the IES code.
+- Fixed issue with dynamic resolution handler when no OnResolutionChange callback is specified. 
+- Fixed multiple volumes, planar reflection, and decal projector position when creating them from the menu.
+- Reduced the number of global keyword used in deferredTile.shader
+- Fixed incorrect processing of Ambient occlusion probe (9% error was introduced)
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -763,6 +900,48 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Refactored shadow caching system.
 - Removed experimental namespace for ray tracing code.
 - Increase limit for max numbers of lights in UX
+- Removed direct use of BSDFData in the path tracing pass, delegated to the material instead.
+- Pre-warm the RTHandle system to reduce the amount of memory allocations and the total memory needed at all points. 
+- DXR: Only read the geometric attributes that are required using the share pass info and shader graph defines.
+- DXR: Dispatch binned rays in 1D instead of 2D.
+- Lit and LayeredLit tessellation cross lod fade don't used dithering anymore between LOD but fade the tessellation height instead. Allow a smoother transition
+- Changed the way planar reflections are filtered in order to be a bit more "physically based".
+- Increased path tracing BSDFs roughness range from [0.001, 0.999] to [0.00001, 0.99999].
+- Changing the default SSGI radius for the all configurations.
+- Changed the default parameters for quality RTGI to match expected behavior.
+- Add color clear pass while rendering XR occlusion mesh to avoid leaks.
+- Only use one texture for ray traced reflection upscaling.
+- Adjust the upscale radius based on the roughness value.
+- DXR: Changed the way the filter size is decided for directional, point and spot shadows.
+- Changed the default exposure mode to "Automatic (Histogram)", along with "Limit Min" to -4 and "Limit Max" to 16.
+- Replaced the default scene system with the builtin Scene Template feature.
+- Changed extensions of shader CAS include files.
+- Making the planar probe atlas's format match the color buffer's format.
+- Removing the planarReflectionCacheCompressed setting from asset.
+- SHADERPASS for TransparentDepthPrepass and TransparentDepthPostpass identification is using respectively SHADERPASS_TRANSPARENT_DEPTH_PREPASS and SHADERPASS_TRANSPARENT_DEPTH_POSTPASS
+- Moved the Parallax Occlusion Mapping node into Shader Graph.
+- Renamed the debug name from SSAO to ScreenSpaceAmbientOcclusion (1254974).
+- Added missing tooltips and improved the UI of the aperture control (case 1254916).
+- Fixed wrong tooltips in the Dof Volume (case 1256641).
+- The `CustomPassLoadCameraColor` and `CustomPassSampleCameraColor` functions now returns the correct color buffer when used in after post process instead of the color pyramid (which didn't had post processes).
+- PBR Sky now doesn't go black when going below sea level, but it instead freezes calculation as if on the horizon. 
+- Fixed an issue with quality setting foldouts not opening when clicking on them (1253088).
+- Shutter speed can now be changed by dragging the mouse over the UI label (case 1245007).
+- Remove the 'Point Cube Size' for cookie, use the Cubemap size directly.
+- VFXTarget with Unlit now allows EmissiveColor output to be consistent with HDRP unlit.
+- Only building the RTAS if there is an effect that will require it (1262217).
+- Fixed the first ray tracing frame not having the light cluster being set up properly (1260311).
+- Render graph pre-setup for ray traced ambient occlusion.
+- Avoid casting multiple rays and denoising for hard directional, point and spot ray traced shadows (1261040).
+- Making sure the preview cameras do not use ray tracing effects due to a by design issue to build ray tracing acceleration structures (1262166).
+- Preparing ray traced reflections for the render graph support (performance and quality).
+- Preparing recursive rendering for the render graph port.
+- Preparation pass for RTGI, temporal filter and diffuse denoiser for render graph.
+- Updated the documentation for the DXR implementation.
+- Changed the DXR wizard to support optional checks.
+- Changed the DXR wizard steps.
+- Preparation pass for RTSSS to be supported by render graph.
+- Changed the color space of EmissiveColorLDR property on all shader. Was linear but should have been sRGB. Auto upgrade script handle the conversion.
 
 ## [7.1.1] - 2019-09-05
 

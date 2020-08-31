@@ -23,6 +23,7 @@ public class HDRP_TestSettings : GraphicsTestSettings
 
     [UnityEngine.Range(1.0f, 10.0f)]
     public float xrThresholdMultiplier = 1.0f;
+    public bool renderGraphCompatible = true;
 
     public bool checkMemoryAllocation = true;
 

@@ -90,6 +90,15 @@ namespace UnityEngine.Rendering.HighDefinition
             customBufferFormat = CustomBufferFormat.R8G8B8A8,
             supportedLitShaderMode = SupportedLitShaderMode.DeferredOnly,
             supportDecals = true,
+            supportDecalLayers = false,
+            decalLayerName0 = "Decal Layer default",
+            decalLayerName1 = "Decal Layer 1",
+            decalLayerName2 = "Decal Layer 2",
+            decalLayerName3 = "Decal Layer 3",
+            decalLayerName4 = "Decal Layer 4",
+            decalLayerName5 = "Decal Layer 5",
+            decalLayerName6 = "Decal Layer 6",
+            decalLayerName7 = "Decal Layer 7",
             msaaSampleCount = MSAASamples.None,
             supportMotionVectors = true,
             supportRuntimeDebugDisplay = true,
@@ -187,6 +196,24 @@ namespace UnityEngine.Rendering.HighDefinition
         // Engine
         /// <summary>Support decals.</summary>
         public bool supportDecals;
+        /// <summary>Support decal Layers.</summary>
+        public bool supportDecalLayers;
+        /// <summary>Name for decal layer 0.</summary>
+        public string decalLayerName0;
+        /// <summary>Name for decal layer 1.</summary>
+        public string decalLayerName1;
+        /// <summary>Name for decal layer 2.</summary>
+        public string decalLayerName2;
+        /// <summary>Name for decal layer 3.</summary>
+        public string decalLayerName3;
+        /// <summary>Name for decal layer 4.</summary>
+        public string decalLayerName4;
+        /// <summary>Name for decal layer 5.</summary>
+        public string decalLayerName5;
+        /// <summary>Name for decal layer 6.</summary>
+        public string decalLayerName6;
+        /// <summary>Name for decal layer 7.</summary>
+        public string decalLayerName7;
 
         /// <summary>Number of samples when using MSAA.</summary>
         public MSAASamples msaaSampleCount;

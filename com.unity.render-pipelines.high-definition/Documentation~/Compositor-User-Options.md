@@ -1,18 +1,18 @@
-# Compositor window
-This page provides an outline of the options available in the Compositor window.
+# Graphics Compositor window
+This page provides an outline of the options available in the Graphics Compositor window.
 
 ## Output Options
-This section allows you to change where and how the Compositor outputs the final frame.
+This section allows you to change where and how the Graphics Compositor outputs the final frame.
 
-The Compositor can only output to the Game View. To preview the output while you edit the Scene, enable the **Enable Preview** property. **Tip**: To get the best live preview, undock the Game view window into a separate maximized window. If you have two monitors, you can drag the window to a second screen.
+The Graphics Compositor can only output to the Game View. To preview the output while you edit the Scene, enable the **Enable Preview** property. **Tip**: To get the best live preview, undock the Game view window into a separate maximized window. If you have two monitors, you can drag the window to a second screen.
 
 | **Property**           | **Description** |
 | ----------------------  | --------------- |
-| **Enable Compositor** | Specifies whether your Unity Project uses the Compositor. If you disable this property and the Scene did not previously use the Compositor, this is the only property visible in the window. If you disable this property and the Scene did previously use the Compositor, the rest of the properties appear in the window, but you can not edit them. |
-| **Enable Preview**   | Specifies whether the Compositor always outputs to the Game view, even when you are not in Play Mode. If you disable this property, performance increases while you edit a Scene, but the Compositor output is only available in Play Mode. |
-| **Output Camera**      | Specifies the Camera that the Compositor outputs to. You should use a dedicated Camera rather than re-use another Camera from your Scene. Also, make sure the Compositor's Camera targets a different Display to all other Cameras. This is important because, if the Compositor Camera uses the same display as another Camera, the Display output depends on which Camera Unity rendered last. |
-| **Composition Graph** | Specifies the Shader that the Compositor uses to create the final output. When you first enable the Compositor for a Scene, this is a pass-through Shader Graph that passes a copy of the input to the output. To set up Camera stacking behavior, this kind of Shader is sufficient, but, for more complex compositing operations, define your own graph. For more details, see [Using the Compositor](Compositor-User-Guide.md). |
-| **Display Output**    | Specifies the display that the Compositor renders to. Unity supports up to eight displays. To see the compositor output, click the **Display** drop-down in the upper left corner of the Game view and select the display number you specified here. |
+| **Enable Compositor** | Specifies whether your Unity Project uses the Graphics Compositor. If you disable this property and the Scene did not previously use the Graphics Compositor, this is the only property visible in the window. If you disable this property and the Scene did previously use the Graphics Compositor, the rest of the properties appear in the window, but you can not edit them. |
+| **Enable Preview**   | Specifies whether the Graphics Compositor always outputs to the Game view, even when you are not in Play Mode. If you disable this property, performance increases while you edit a Scene, but the Graphics Compositor output is only available in Play Mode. |
+| **Output Camera**      | Specifies the Camera that the Graphics Compositor outputs to. You should use a dedicated Camera rather than re-use another Camera from your Scene. Also, make sure the Compositor's Camera targets a different Display to all other Cameras. This is important because, if the Compositor Camera uses the same display as another Camera, the Display output depends on which Camera Unity rendered last. |
+| **Composition Graph** | Specifies the Shader that the Graphics Compositor uses to create the final output. When you first enable the Graphics Compositor for a Scene, this is a pass-through Shader Graph that passes a copy of the input to the output. To set up Camera stacking behavior, this kind of Shader is sufficient, but, for more complex compositing operations, define your own graph. For more details, see [Using the Compositor](Compositor-User-Guide.md). |
+| **Display Output**    | Specifies the display that the Graphics Compositor renders to. Unity supports up to eight displays. To see the compositor output, click the **Display** drop-down in the upper left corner of the Game view and select the display number you specified here. |
 
 ## Composition Layer Properties
 
@@ -33,7 +33,7 @@ To expose these properties, select a Sub-layer in the **Render Schedule**.
 | ------------ | --------------- |
 | **Name** |Sets the name of the Sub-layer. |
 | **Source Image** |Specifies a static image/Texture to use as the background for this Sub-layer.<br />This property is only available for **Image** Sub-layers.|
-| **Background Fit** |Specifies the method the Compositor uses to fit the **Source Image** to the screen. The options are:<br />&#8226; **Stretch**: Stretches the image that it completely fills the screen. This method does not maintain the image's original aspect ratio.<br />&#8226; **Fit Horizontally**: Resizes the image so that it fits the screen horizontally. For the vertical axis, Unity either expands the image off the bounds of the screen or uses black bars depending on how tall the image is.<br />&#8226; **Fit Vertically**: Resizes the image so that it fits the screen vertically. For the horizontal axis, Unity either expands the image off the bounds of the screen or uses black bars depending on how wide the image is.<br />This property is only available for **Image** Sub-layers.|
+| **Background Fit** |Specifies the method the Graphics Compositor uses to fit the **Source Image** to the screen. The options are:<br />&#8226; **Stretch**: Stretches the image that it completely fills the screen. This method does not maintain the image's original aspect ratio.<br />&#8226; **Fit Horizontally**: Resizes the image so that it fits the screen horizontally. For the vertical axis, Unity either expands the image off the bounds of the screen or uses black bars depending on how tall the image is.<br />&#8226; **Fit Vertically**: Resizes the image so that it fits the screen vertically. For the horizontal axis, Unity either expands the image off the bounds of the screen or uses black bars depending on how wide the image is.<br />This property is only available for **Image** Sub-layers.|
 | **Source Video**| Specifies the [Video Player](https://docs.unity3d.com/ScriptReference/Video.VideoPlayer.html) to use for this Sub-layer.<br />This property is only available for **Video** Sub-layers. |
 | **Source Camera** |Specifies the Camera to use for this Sub-layer. By default, this is set to the main Camera in the Scene.<br />This property is only available for **Camera** Sub-layers.|
 | **Clear Depth**| Specifies whether Unity clears the depth buffer before it draws the contents of this Sub-layer. |

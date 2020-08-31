@@ -523,7 +523,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             }
 
             float scale = EnumToScale(m_ResolutionScale);
-            return ((m_RenderTarget.width == referenceWidth * scale) && (m_RenderTarget.height == referenceHeight * scale));
+            return ((m_RenderTarget.width == Mathf.FloorToInt(referenceWidth * scale)) && (m_RenderTarget.height == Mathf.FloorToInt(referenceHeight * scale)));
         }
 
         public void SetupClearColor()

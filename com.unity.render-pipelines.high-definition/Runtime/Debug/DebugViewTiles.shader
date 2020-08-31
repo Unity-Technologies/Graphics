@@ -202,7 +202,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
                             // the count should be zero.
                             uint start;
                             uint count;
-                            ProbeVolumeGetCountAndStart(posInput, category, start, count);
+                            ProbeVolumeGetCountAndStart(posInput, start, count);
                             n += count;
                         #endif
                         }
@@ -254,7 +254,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     if (category == LIGHTCATEGORY_PROBE_VOLUME)
                     {
                     #if defined(USE_CLUSTERED_LIGHTLIST)
-                        ProbeVolumeGetCountAndStart(mousePosInput, category, start, count);
+                        ProbeVolumeGetCountAndStart(mousePosInput, start, count);
                         n += count;
                     #endif
                     }

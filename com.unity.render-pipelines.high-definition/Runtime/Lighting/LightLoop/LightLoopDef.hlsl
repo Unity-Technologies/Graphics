@@ -1,12 +1,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/CookieSampling.hlsl"
 
-// SCREEN_SPACE_SHADOWS needs to be defined in all cases in which they need to run. IMPORTANT: If this is activated, the light loop function WillRenderScreenSpaceShadows on C# MUST return true.
-#if RAYTRACING_ENABLED && (SHADERPASS != SHADERPASS_RAYTRACING_INDIRECT)
-// TODO: This will need to be a multi_compile when we'll have them on compute shaders.
-#define SCREEN_SPACE_SHADOWS 1
-#endif
-
 #define DWORD_PER_TILE 16 // See dwordsPerTile in LightLoop.cs, we have roomm for 31 lights and a number of light value all store on 16 bit (ushort)
 
 // Some file may not required HD shadow context at all. In this case provide an empty one
@@ -24,8 +18,16 @@ struct LightLoopContext
     HDShadowContext shadowContext;
 
     uint contactShadow;         // a bit mask of 24 bits that tell if the pixel is in a contact shadow or not
-    real contactShadowFade;    // combined fade factor of all contact shadows
-    DirectionalShadowType shadowValue;         // Stores the value of the cascade shadow map
+    real contactShadowFade;     // combined fade factor of all contact shadows
+    SHADOW_TYPE shadowValue;    // Stores the value of the cascade shadow map
+};
+
+// LightLoopOutput is the output of the LightLoop fuction call.
+// It allow to retrieve the data output by the LightLoop
+struct LightLoopOutput
+{
+    float3 diffuseLighting;
+    float3 specularLighting;
 };
 
 //-----------------------------------------------------------------------------

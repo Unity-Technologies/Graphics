@@ -1,0 +1,29 @@
+project:
+  name: VFX_HDRP
+  folder: VisualEffectGraph_HDRP
+test_platforms:
+  - Standalone
+  - playmode
+  - playmode_XR
+  - editmode
+platforms:
+  - name: Win
+    apis:
+      - DX11
+  #    - DX12
+      - Vulkan
+  - name: OSX 
+    apis:
+      - Metal
+  - name: Linux
+    apis: 
+      - Vulkan
+all:
+  dependencies:
+    - platform: Win
+      api: DX11
+      test_platforms:
+        - Standalone
+        - editmode
+        - playmode
+        - playmode_XR

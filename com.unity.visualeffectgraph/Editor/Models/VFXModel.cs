@@ -11,6 +11,19 @@ namespace UnityEditor.VFX
 {
     class VFXObject : ScriptableObject
     {
+        //Explicitly disable the Reset option on all VFXObject
+        //Internal Reset() behavior leads to a dandling state in graph object
+        [MenuItem("CONTEXT/VFXObject/Reset", false)]
+        public static void DummyReset()
+        {
+        }
+
+        [MenuItem("CONTEXT/VFXObject/Reset", true)]
+        static bool ValidateDummyReset()
+        {
+            return false;
+        }
+
         public Action<VFXObject> onModified;
         void OnValidate()
         {
@@ -37,6 +50,7 @@ namespace UnityEditor.VFX
             kExpressionInvalidated, // No direct change to the model but a change in connection was propagated from the parents
             kExpressionGraphChanged,// Expression graph must be recomputed
             kUIChanged,             // UI stuff has changed
+            kUIChangedTransient,    // UI stuff has been changed be does not require serialization 
         }
 
         public new virtual string name  { get { return string.Empty; } }
@@ -64,6 +78,8 @@ namespace UnityEditor.VFX
         }
 
         public virtual void Sanitize(int version) {}
+
+        public virtual void CheckGraphBeforeImport() {}
 
         public virtual void OnUnknownChange()
         {

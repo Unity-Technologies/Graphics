@@ -42,13 +42,13 @@ Shader "Universal Render Pipeline/Terrain/Lit"
 
 	HLSLINCLUDE
 
-	#pragma multi_compile __ _ALPHATEST_ON
+	#pragma multi_compile_fragment __ _ALPHATEST_ON
 
 	ENDHLSL
 
     SubShader
     {
-        Tags { "Queue" = "Geometry-100" "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "False"}
+        Tags { "Queue" = "Geometry-100" "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "UniversalMaterialType" = "Lit" "IgnoreProjector" = "False"}
 
         Pass
         {
@@ -71,9 +71,10 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
-            #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
-            #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             // -------------------------------------
             // Unity defined keywords
@@ -83,9 +84,9 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             #pragma multi_compile_instancing
             #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
-            #pragma shader_feature_local _TERRAIN_BLEND_HEIGHT
+            #pragma shader_feature_local_fragment _TERRAIN_BLEND_HEIGHT
             #pragma shader_feature_local _NORMALMAP
-            #pragma shader_feature_local _MASKMAP
+            #pragma shader_feature_local_fragment _MASKMAP            
             // Sample normal in pixel shader when doing instancing
             #pragma shader_feature_local _TERRAIN_INSTANCED_PERPIXEL_NORMAL
 
@@ -123,21 +124,8 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             Name "GBuffer"
             Tags{"LightMode" = "UniversalGBuffer"}
 
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
-            // This is a Lit material.
-            Stencil {
-                Ref 32       // 0b00100000
-                WriteMask 96 // 0b01100000
-                Comp Always
-                Pass Replace
-                Fail Keep
-                ZFail Keep
-            }
-
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
+            #pragma exclude_renderers d3d11_9x gles
             #pragma target 3.0
 
             #pragma vertex SplatmapVert
@@ -166,7 +154,7 @@ Shader "Universal Render Pipeline/Terrain/Lit"
 
             #pragma shader_feature_local _TERRAIN_BLEND_HEIGHT
             #pragma shader_feature_local _NORMALMAP
-            #pragma shader_feature_local _MASKMAP            
+            #pragma shader_feature_local _MASKMAP
             // Sample normal in pixel shader when doing instancing
             #pragma shader_feature_local _TERRAIN_INSTANCED_PERPIXEL_NORMAL
             #define TERRAIN_GBUFFER 1
@@ -193,6 +181,30 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             #pragma vertex DepthOnlyVertex
             #pragma fragment DepthOnlyFragment
 
+            #pragma multi_compile_instancing
+            #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitPasses.hlsl"
+            ENDHLSL
+        }
+
+        // This pass is used when drawing to a _CameraNormalsTexture texture
+        Pass
+        {
+            Name "DepthNormals"
+            Tags{"LightMode" = "DepthNormals"}
+
+            ZWrite On
+
+            HLSLPROGRAM
+            #pragma exclude_renderers d3d11_9x
+            #pragma target 2.0
+
+            #pragma vertex DepthNormalOnlyVertex
+            #pragma fragment DepthNormalOnlyFragment
+
+            #pragma shader_feature_local _NORMALMAP
             #pragma multi_compile_instancing
             #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 

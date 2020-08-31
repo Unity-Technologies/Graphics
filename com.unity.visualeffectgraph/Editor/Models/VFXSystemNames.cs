@@ -105,7 +105,7 @@ namespace UnityEditor.VFX
                 return newName;
             }
             if (!(model is VFXSubgraphContext))
-                Debug.LogError("model not registered.");
+                throw new InvalidOperationException("SystemNames : Model is not registered " + model);
             return GetSystemName(model);
         }
 

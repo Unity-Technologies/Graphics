@@ -258,7 +258,7 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
             float3 gN = normalize(gP);
 
             // Shade the ground.
-            const float3 gBrdf = INV_PI * _GroundAlbedo;
+            const float3 gBrdf = INV_PI * _GroundAlbedo.rgb;
 
             // TODO: we compute the same thing for many voxels,
             // the only real difference is the phase function...

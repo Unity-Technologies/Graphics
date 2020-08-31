@@ -6,8 +6,8 @@ Shader "HDRP/LitTessellation"
         // They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
 
         // Reminder. Color here are in linear but the UI (color picker) do the conversion sRGB to linear
-        _BaseColor("BaseColor", Color) = (1,1,1,1)
-        _BaseColorMap("BaseColorMap", 2D) = "white" {}
+        [MainColor] _BaseColor("BaseColor", Color) = (1,1,1,1)
+        [MainTexture] _BaseColorMap("BaseColorMap", 2D) = "white" {}
         [HideInInspector] _BaseColorMap_MipInfo("_BaseColorMap_MipInfo", Vector) = (0, 0, 0, 0)
 
         _Metallic("_Metallic", Range(0.0, 1.0)) = 0
@@ -152,12 +152,14 @@ Shader "HDRP/LitTessellation"
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
         [HideInInspector] _AlphaSrcBlend("__alphaSrc", Float) = 1.0
         [HideInInspector] _AlphaDstBlend("__alphaDst", Float) = 0.0
+        [HideInInspector][ToggleUI]_AlphaToMaskInspectorValue("_AlphaToMaskInspectorValue", Float) = 0 // Property used to save the alpha to mask state in the inspector
         [HideInInspector][ToggleUI]_AlphaToMask("__alphaToMask", Float) = 0
         [HideInInspector][ToggleUI] _ZWrite("__zw", Float) = 1.0
         [HideInInspector][ToggleUI] _TransparentZWrite("_TransparentZWrite", Float) = 0.0
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
         [HideInInspector] _CullModeForward("__cullmodeForward", Float) = 2.0 // This mode is dedicated to Forward to correctly handle backface then front face rendering thin transparent
         [Enum(UnityEditor.Rendering.HighDefinition.TransparentCullMode)] _TransparentCullMode("_TransparentCullMode", Int) = 2 // Back culling by default
+        [Enum(UnityEditor.Rendering.HighDefinition.OpaqueCullMode)] _OpaqueCullMode("_OpaqueCullMode", Int) = 2 // Back culling by default
         [HideInInspector] _ZTestDepthEqualForOpaque("_ZTestDepthEqualForOpaque", Int) = 4 // Less equal
         [HideInInspector] _ZTestModeDistortion("_ZTestModeDistortion", Int) = 8
         [HideInInspector] _ZTestGBuffer("_ZTestGBuffer", Int) = 4
@@ -522,6 +524,7 @@ Shader "HDRP/LitTessellation"
             // In deferred, depth only pass don't output anything.
             // In forward it output the normal buffer
             #pragma multi_compile _ WRITE_NORMAL_BUFFER
+            #pragma multi_compile _ WRITE_DECAL_BUFFER
             #pragma multi_compile _ WRITE_MSAA_DEPTH
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
@@ -565,6 +568,7 @@ Shader "HDRP/LitTessellation"
 
             HLSLPROGRAM
             #pragma multi_compile _ WRITE_NORMAL_BUFFER
+            #pragma multi_compile _ WRITE_DECAL_BUFFER
             #pragma multi_compile _ WRITE_MSAA_DEPTH
 
             #define SHADERPASS SHADERPASS_MOTION_VECTORS
@@ -632,8 +636,7 @@ Shader "HDRP/LitTessellation"
 
             HLSLPROGRAM
 
-            #define SHADERPASS SHADERPASS_DEPTH_ONLY
-            #define CUTOFF_TRANSPARENT_DEPTH_PREPASS
+            #define SHADERPASS SHADERPASS_TRANSPARENT_DEPTH_PREPASS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
@@ -664,6 +667,7 @@ Shader "HDRP/LitTessellation"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
+            #pragma multi_compile SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
 
@@ -730,6 +734,7 @@ Shader "HDRP/LitTessellation"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
+            #pragma multi_compile SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
 
@@ -786,8 +791,7 @@ Shader "HDRP/LitTessellation"
 
             HLSLPROGRAM
 
-            #define SHADERPASS SHADERPASS_DEPTH_ONLY
-            #define CUTOFF_TRANSPARENT_DEPTH_POSTPASS
+            #define SHADERPASS SHADERPASS_TRANSPARENT_DEPTH_POSTPASS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"

@@ -31,12 +31,6 @@
 // #define STACK_LIT_DISPLAY_REFERENCE_IBL
 #endif
 
-#ifndef SKIP_RASTERIZED_SHADOWS
-#define RASTERIZED_AREA_LIGHT_SHADOWS 1
-#else
-#define RASTERIZED_AREA_LIGHT_SHADOWS 0
-#endif
-
 //-----------------------------------------------------------------------------
 // Texture and constant buffer declaration
 //-----------------------------------------------------------------------------
@@ -4111,7 +4105,9 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                 }
             }
             lighting.specular *= lightData.specularDimmer;
-    
+
+            SHADOW_TYPE shadow = EvaluateShadow_RectArea(lightLoopContext, posInput, lightData, builtinData, bsdfData.normalWS, normalize(lightData.positionRWS), length(lightData.positionRWS));
+            lightData.color.rgb *= ComputeShadowColor(shadow, lightData.shadowTint, lightData.penumbraTint);
     
             // Save ALU by applying 'lightData.color' only once.
             lighting.diffuse *= lightData.color;
@@ -4139,41 +4135,6 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
         } // if light not too far
 
     } // if light not back-facing
-
-    float  shadow = 1.0;
-    float  shadowMask = 1.0;
-#ifdef SHADOWS_SHADOWMASK
-    // shadowMaskSelector.x is -1 if there is no shadow mask
-    // Note that we override shadow value (in case we don't have any dynamic shadow)
-    shadow = shadowMask = (lightData.shadowMaskSelector.x >= 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, lightData.shadowMaskSelector) : 1.0;
-#endif
-
-#if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT)
-    if ((lightData.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
-    {
-        shadow = GetScreenSpaceShadow(posInput, lightData.screenSpaceShadowIndex);
-    }
-    else
-#endif // ENABLE_RAYTRACING
-    if (lightData.shadowIndex != -1)
-    {
-#if RASTERIZED_AREA_LIGHT_SHADOWS
-            // lightData.positionRWS now contains the Light vector.
-            shadow = GetAreaLightAttenuation(lightLoopContext.shadowContext, posInput.positionSS, posInput.positionWS, bsdfData.normalWS, lightData.shadowIndex, normalize(lightData.positionRWS), length(lightData.positionRWS));
-#ifdef SHADOWS_SHADOWMASK
-            // See comment for punctual light shadow mask
-            shadow = lightData.nonLightMappedOnly ? min(shadowMask, shadow) : shadow;
-#endif
-            shadow = lerp(shadowMask, shadow, lightData.shadowDimmer);
-
-#endif
-    }
-
-#if RASTERIZED_AREA_LIGHT_SHADOWS || SUPPORTS_RAYTRACED_AREA_SHADOWS
-    float3 shadowColor = ComputeShadowColor(shadow, lightData.shadowTint, lightData.penumbraTint);
-    lighting.diffuse *= shadowColor;
-    lighting.specular *= shadowColor;
-#endif
 
 #endif // STACK_LIT_DISPLAY_REFERENCE_AREA
 
@@ -4377,20 +4338,8 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
         EvaluateLight_EnvIntersection(positionWS, normal, lightData, influenceShapeType, R[i], tempWeight[i]);
 
-        float iblMipLevel;
-        // TODO: We need to match the PerceptualRoughnessToMipmapLevel formula for planar, so we don't do this test (which is specific to our current lightloop)
-        // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one - So we use another roughness mip mapping.
-        if (IsEnvIndexTexture2D(lightData.envIndex))
-        {
-            // Empirical remapping
-            iblMipLevel = PlanarPerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness[i], _ColorPyramidLodCount);
-        }
-        else
-        {
-            iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness[i]);
-        }
+        float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R[i], PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness[i]), lightData.rangeCompressionFactorCompensation);
 
-        float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R[i], iblMipLevel, lightData.rangeCompressionFactorCompensation);
         // Used by planar reflection to discard pixel:
         tempWeight[i] *= preLD.a;
 
@@ -4431,7 +4380,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         float3 V, PositionInputs posInput,
                         PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, AggregateLighting lighting,
-                        out float3 diffuseLighting, out float3 specularLighting)
+                        out LightLoopOutput lightLoopOutput)
 {
     // Specular occlusion has been pre-computed in GetPreLightData() and applied on indirect specular light
     // while screenSpaceAmbientOcclusion has also been cached in preLightData.
@@ -4459,9 +4408,9 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     // on it. Specular occlusion has been applied per lobe during specular lighting evaluations before.
     // We also add emissive since it is not merged with bakeDiffuseLighting in ModifyBakedDiffuseLighting.
     // (also cf lit deferred EncodeToGBuffer function).
-    diffuseLighting = (modifiedDiffuseColor * lighting.direct.diffuse) + (builtinData.bakeDiffuseLighting * diffuseOcclusion) + builtinData.emissiveColor;
+    lightLoopOutput.diffuseLighting = (modifiedDiffuseColor * lighting.direct.diffuse) + (builtinData.bakeDiffuseLighting * diffuseOcclusion) + builtinData.emissiveColor;
 
-    specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
+    lightLoopOutput.specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
 
 #ifdef DEBUG_DISPLAY
     // For specularOcclusion we display red to indicate there's not one value possible here.
@@ -4478,7 +4427,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 
     GetAmbientOcclusionFactor(diffuseOcclusion, specularOcclusion, directAmbientOcclusion /* not used for now in PostEvaluateBSDFDebugDisplay */ , aoFactor);
 
-    PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, diffuseLighting, specularLighting);
+    PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, lightLoopOutput);
 #endif
 }
 

@@ -19,6 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_AffectsTransparencyProperty;
         SerializedProperty m_Size;
         SerializedProperty m_FadeFactor;
+        SerializedProperty m_DecalLayerMask;
 
         int layerMask => (target as Component).gameObject.layer;
         bool layerMaskHasMultipleValue
@@ -121,6 +122,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_AffectsTransparencyProperty = serializedObject.FindProperty("m_AffectsTransparency");
             m_Size = serializedObject.FindProperty("m_Size");
             m_FadeFactor = serializedObject.FindProperty("m_FadeFactor");
+            m_DecalLayerMask = serializedObject.FindProperty("m_DecalLayerMask");
         }
 
         private void OnDisable()
@@ -259,7 +261,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         // Smoothly update the decal image projected
                         Matrix4x4 sizeOffset = Matrix4x4.Translate(decalProjector.decalOffset) * Matrix4x4.Scale(decalProjector.decalSize);
-                        DecalSystem.instance.UpdateCachedData(decalProjector.position, decalProjector.rotation, sizeOffset, decalProjector.drawDistance, decalProjector.fadeScale, decalProjector.uvScaleBias, decalProjector.affectsTransparency, decalProjector.Handle, decalProjector.gameObject.layer, decalProjector.fadeFactor);
+                        DecalSystem.instance.UpdateCachedData(decalProjector.position, decalProjector.rotation, sizeOffset, decalProjector.drawDistance, decalProjector.fadeScale, decalProjector.uvScaleBias, decalProjector.affectsTransparency, decalProjector.Handle, decalProjector.gameObject.layer, decalProjector.gameObject.sceneCullingMask, decalProjector.fadeFactor, decalProjector.decalLayerMask);
                     }
                 }
             }
@@ -346,6 +348,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(m_Size, k_SizeContent);
                 EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
 
+                HDRenderPipelineAsset hdrp = HDRenderPipeline.currentAsset;
+                if (hdrp != null)
+                {
+                    using (new EditorGUI.DisabledScope(!(hdrp.currentPlatformRenderPipelineSettings.supportDecals && hdrp.currentPlatformRenderPipelineSettings.supportDecalLayers)))
+                    {
+                        EditorGUILayout.PropertyField(m_DecalLayerMask, k_DecalLayerMaskContent);
+                    }
+                }
+
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(m_DrawDistanceProperty, k_DistanceContent);
                 if (EditorGUI.EndChangeCheck() && m_DrawDistanceProperty.floatValue < 0f)
@@ -378,25 +389,38 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (m_MaterialEditor != null)
             {
-                // Draw the material's foldout and the material shader field
-                // Required to call m_MaterialEditor.OnInspectorGUI ();
-                m_MaterialEditor.DrawHeader();
-
                 // We need to prevent the user to edit default decal materials
                 bool isDefaultMaterial = false;
+                bool isValidDecalMaterial = true;
                 var hdrp = HDRenderPipeline.currentAsset;
                 if (hdrp != null)
                 {
                     foreach(var decalProjector in targets)
                     {
-                        isDefaultMaterial |= (decalProjector as DecalProjector).material == hdrp.GetDefaultDecalMaterial();
+                        var mat = (decalProjector as DecalProjector).material;
+
+                        isDefaultMaterial |= mat == hdrp.GetDefaultDecalMaterial();
+                        isValidDecalMaterial = isValidDecalMaterial && DecalSystem.IsDecalMaterial(mat);
                     }
                 }
-                using (new EditorGUI.DisabledGroupScope(isDefaultMaterial))
+
+                if (isValidDecalMaterial)
                 {
-                    // Draw the material properties
-                    // Works only if the foldout of m_MaterialEditor.DrawHeader () is open
-                    m_MaterialEditor.OnInspectorGUI();
+                    // Draw the material's foldout and the material shader field
+                    // Required to call m_MaterialEditor.OnInspectorGUI ();
+                    m_MaterialEditor.DrawHeader();
+
+                    using (new EditorGUI.DisabledGroupScope(isDefaultMaterial))
+                    {
+                        // Draw the material properties
+                        // Works only if the foldout of m_MaterialEditor.DrawHeader () is open
+                        m_MaterialEditor.OnInspectorGUI();
+                    }
+                }
+                else
+                {
+                    EditorGUILayout.HelpBox("Decal only work with Decal Material. Decal Material can be selected in the shader list HDRP/Decal or can be created from a Decal Master Node.",
+                        MessageType.Error);
                 }
             }
         }

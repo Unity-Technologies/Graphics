@@ -275,7 +275,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             NativeArray<VisibleLight> visibleLights = lightData.visibleLights;
 
             bool additionalLightHasSoftShadows = false;
-            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
+            // NOTE: Do NOT mix ProfilingScope with named CommandBuffers i.e. CommandBufferPool.Get("name").
+            // Currently there's an issue which results in mismatched markers.
+            CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 bool anyShadowSliceRenderer = false;

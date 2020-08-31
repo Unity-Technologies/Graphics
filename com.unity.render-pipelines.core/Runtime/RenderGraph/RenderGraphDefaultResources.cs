@@ -23,6 +23,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle magentaTextureXR { get; private set; }
         /// <summary>Default black XR 2D texture.</summary>
         public TextureHandle blackTextureXR { get; private set; }
+        /// <summary>Default black XR 2D Array texture.</summary>
+        public TextureHandle blackTextureArrayXR { get; private set; }
         /// <summary>Default black (UInt) XR 2D texture.</summary>
         public TextureHandle blackUIntTextureXR { get; private set; }
         /// <summary>Default black XR 3D texture.</summary>
@@ -52,6 +54,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 clearTextureXR = renderGraph.ImportTexture(TextureXR.GetClearTexture());
                 magentaTextureXR = renderGraph.ImportTexture(TextureXR.GetMagentaTexture());
                 blackTextureXR = renderGraph.ImportTexture(TextureXR.GetBlackTexture());
+                blackTextureArrayXR = renderGraph.ImportTexture(TextureXR.GetBlackTextureArray());
                 blackUIntTextureXR = renderGraph.ImportTexture(TextureXR.GetBlackUIntTexture());
                 blackTexture3DXR = renderGraph.ImportTexture(TextureXR.GetBlackTexture3D());
                 whiteTextureXR = renderGraph.ImportTexture(TextureXR.GetWhiteTexture());

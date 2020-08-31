@@ -11,11 +11,14 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             base.OnInspectorGUI();
 
-            if (!(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset)
-                ?.currentPlatformRenderPipelineSettings.supportProbeVolume ?? false)
+            if (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled)
             {
-                EditorGUILayout.Space();
-                EditorGUILayout.HelpBox("The current HDRP Asset does not support Probe Volume Global Illumination.", MessageType.Error, wide: true);
+                if (!(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset)
+                        ?.currentPlatformRenderPipelineSettings.supportProbeVolume ?? false)
+                {
+                    EditorGUILayout.Space();
+                    EditorGUILayout.HelpBox("The current HDRP Asset does not support Probe Volume Global Illumination.", MessageType.Error, wide: true);
+                }
             }
         }
     }

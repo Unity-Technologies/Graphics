@@ -647,7 +647,7 @@ CTYPE DirectClipToAABB(CTYPE history, CTYPE minimum, CTYPE maximum)
 
     // This is actually `distance`, however the keyword is reserved
     CTYPE offset = history - center;
-    float3 v_unit = offset.xyz / extents;
+    float3 v_unit = offset.xyz / extents.xyz;
     float3 absUnit = abs(v_unit);
     float maxUnit = Max3(absUnit.x, absUnit.y, absUnit.z);
 

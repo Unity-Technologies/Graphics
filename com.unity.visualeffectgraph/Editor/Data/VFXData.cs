@@ -64,6 +64,12 @@ namespace UnityEditor.VFX
                 case VFXDataType.Mesh:
                     newVFXData = ScriptableObject.CreateInstance<VFXDataMesh>();
                     break;
+                case VFXDataType.SpawnEvent:
+                    newVFXData = ScriptableObject.CreateInstance<VFXDataSpawner>();
+                    break;
+                case VFXDataType.OutputEvent:
+                    newVFXData = ScriptableObject.CreateInstance<VFXDataOutputEvent>();
+                    break;
                 default:                        return null;
             }
             newVFXData.m_Parent = graph;
@@ -378,7 +384,9 @@ namespace UnityEditor.VFX
 
         protected bool HasImplicitInit(VFXAttribute attrib)
         {
-            return (attrib.Equals(VFXAttribute.Seed) || attrib.Equals(VFXAttribute.ParticleId));
+            return attrib.Equals(VFXAttribute.Seed)
+                || attrib.Equals(VFXAttribute.ParticleId)
+                || attrib.Equals(VFXAttribute.SpawnIndex);
         }
 
         private void ProcessAttributes()
@@ -430,7 +438,7 @@ namespace UnityEditor.VFX
 
                     if (context.contextType != VFXContextType.Init)
                         onlyInit = false;
-                    if (context.contextType != VFXContextType.Output)
+                    if (context.contextType != VFXContextType.Output && context.contextType != VFXContextType.Filter)
                         onlyOutput = false;
                     if (context.contextType != VFXContextType.Update)
                     {

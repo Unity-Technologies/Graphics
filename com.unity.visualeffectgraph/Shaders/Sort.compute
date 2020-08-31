@@ -5,6 +5,8 @@
 #pragma kernel MergePass MERGE_PASS=MergePass FINAL_PASS=0
 #pragma kernel MergeFinalPass MERGE_PASS=MergeFinalPass FINAL_PASS=1
 
+#pragma multi_compile __ VFX_SORT_USE_ELEMENT_COUNT_BUFFER
+
 #include "HLSLSupport.cginc"
 
 #define DECREASING_ORDER 1
@@ -62,6 +64,9 @@ RWStructuredBuffer<KVP> sortedSequence;
 #endif
 
 ByteAddressBuffer deadElementCount;
+#ifdef VFX_SORT_USE_ELEMENT_COUNT_BUFFER
+#define elementCountBuffer deadElementCount
+#endif
 
 // Layout of the scratch memory is as follows:
 // First all keys
@@ -70,11 +75,16 @@ groupshared float scratch[SCRATCH_SIZE];
 
 CBUFFER_START(SortConstants)
 uint elementCount;
+uint elementCountOffset;
 CBUFFER_END
 
 uint GetElementCount()
 {
-    return elementCount - deadElementCount.Load(0);
+#ifdef VFX_SORT_USE_ELEMENT_COUNT_BUFFER
+    return elementCountBuffer.Load(elementCountOffset);
+#else
+    return elementCount - deadElementCount.Load(elementCountOffset);
+#endif
 }
 
 bool CompareKeys(float key0, float key1)
