@@ -93,6 +93,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - fix colorfield height.
 - fix for capacity change for locked asset.
 - fix null value not beeing assignable to slot.
+- Allow world position usage in shaderGraph plugged into an alpha/opacity output [Case 1259511](https://issuetracker.unity3d.com/product/unity/issues/guid/1259511/)
 
 ## [7.1.1] - 2019-09-05
 ### Added

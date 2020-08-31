@@ -132,7 +132,11 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
-                    if (!shaderGraph.HasOutput(ShaderGraphVfxAsset.AlphaThresholdSlotId)) //alpha threshold isn't controlled by shadergraph
+                    if (shaderGraph.alphaClipping)
+                        return true;
+
+                    //alpha clipping isn't enabled in shaderGraph, we implicitly still allows clipping for shadow & motion vector passes.
+                    if (!isBlendModeOpaque && (hasMotionVector || hasShadowCasting))
                         return true;
                 }
                 return false;
