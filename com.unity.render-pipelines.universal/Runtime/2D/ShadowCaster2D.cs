@@ -93,12 +93,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 bounds = renderer.bounds;
             }
+#if USING_PHYSICS2D_MODULE
             else
             {
                 Collider2D collider = GetComponent<Collider2D>();
                 if (collider != null)
                     bounds = collider.bounds;
             }
+#endif
 
             Vector3 relOffset = bounds.center - transform.position;
 
