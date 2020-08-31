@@ -250,8 +250,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_SearchWindowProvider.Initialize(editorWindow, m_Graph, m_GraphView);
             m_GraphView.nodeCreationRequest = (c) =>
                 {
-                    m_SearchWindowProvider.connectedPort = null;
-                    SearchWindow.Open(new SearchWindowContext(c.screenMousePosition), m_SearchWindowProvider);
+                    if(EditorWindow.focusedWindow == editorWindow)
+                    {
+                        m_SearchWindowProvider.connectedPort = null;
+                        SearchWindow.Open(new SearchWindowContext(c.screenMousePosition), m_SearchWindowProvider);
+                    }
                 };
 
             m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph, m_SearchWindowProvider);

@@ -14,6 +14,12 @@ To differentiate between exposed properties and constants, the Blackboard displa
 
 To open the Blackboard, click the **Blackboard** button in the Visual Effect Graph window [Toolbar](VisualEffectGraphWindow.md#Toolbar). To resize the Blackboard, click on any edge or corner and drag. To reposition the Blackboard, click on the header and drag.
 
+### Menu Category
+
+In order to set the Menu path of the currently edited Subgraph, you can double-click the sub-title of the blackboard and enter the desired Category Name, then validate using the Return Key
+
+![Blackboard-Category](Images/Blackboard-Category.gif)
+
 ### Creating properties
 
 To create a property, click the plus (**+**) button in the top-right of the Blackboard then select a property type from the menu.
