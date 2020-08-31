@@ -368,7 +368,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     var integerPropertyDrawer = new IntegerPropertyDrawer();
                     // Default field
                     propertySheet.Add(integerPropertyDrawer.CreateGUI(
-                        newValue => this._changeValueCallback(newValue),
+                        newValue => this._changeValueCallback((float) newValue),
                         (int)vector1ShaderProperty.value,
                         "Default",
                         out var integerPropertyField));
