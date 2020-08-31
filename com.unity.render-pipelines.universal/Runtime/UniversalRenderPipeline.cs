@@ -119,7 +119,7 @@ namespace UnityEngine.Rendering.Universal
 
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
-#if UNITY_2020_2
+#if UNITY_2020_2_OR_NEWER
             // C#8 feature, only in >= 2020.2
             using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.UniversalRenderTotal));
 #endif
@@ -269,7 +269,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="camera">Camera to render.</param>
         static void RenderCameraStack(ScriptableRenderContext context, Camera baseCamera)
         {
-#if UNITY_2020_2
+#if UNITY_2020_2_OR_NEWER
             using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.RenderCameraStack));
 #endif
 
@@ -435,7 +435,7 @@ namespace UnityEngine.Rendering.Universal
 
         static void UpdateVolumeFramework(Camera camera, UniversalAdditionalCameraData additionalCameraData)
         {
-#if UNITY_2020_2
+#if UNITY_2020_2_OR_NEWER
             using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.UpdateVolumeFramework));
 #endif
 
