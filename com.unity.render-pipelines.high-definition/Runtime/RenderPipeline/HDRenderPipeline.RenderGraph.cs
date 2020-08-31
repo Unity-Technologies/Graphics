@@ -59,9 +59,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 colorBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, colorBuffer);
             }
             else if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
-                     hdCamera.volumeStack.GetComponent<PathTracing>().enable.value)
+                     hdCamera.volumeStack.GetComponent<PathTracing>().enable.value &&
+                     hdCamera.camera.cameraType != CameraType.Preview)
             {
-                // TODO RENDERGRAPH
                 //// We only request the light cluster if we are gonna use it for debug mode
                 //if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode && GetRayTracingClusterState())
                 //{
@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 //    lightCluster.EvaluateClusterDebugView(cmd, hdCamera);
                 //}
 
-                //RenderPathTracing(hdCamera, cmd, m_CameraColorBuffer);
+                colorBuffer = RenderPathTracing(m_RenderGraph, hdCamera);
             }
             else
             {
@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Should probably be inside the AO render function but since it's a separate class it's currently not super clean to do.
                 PushFullScreenDebugTexture(m_RenderGraph, lightingBuffers.ambientOcclusionBuffer, FullScreenDebugMode.ScreenSpaceAmbientOcclusion);
 
-                
+
 
                 lightingBuffers.contactShadowsBuffer = RenderContactShadows(m_RenderGraph, hdCamera, msaa ? prepassOutput.depthValuesMSAA : prepassOutput.depthPyramidTexture, gpuLightListOutput, GetDepthBufferMipChainInfo().mipLevelOffsets[1].y);
 
@@ -1411,10 +1411,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 TextureHandle history = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing)
                     ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.PathTracing, PathTracingHistoryBufferAllocatorFunction, 1));
 
-
                 passData.parameters = PrepareRenderAccumulationParameters(hdCamera, needExposure);
                 passData.input = builder.ReadTexture(inputTexture);
-                passData.output = builder.WriteTexture(inputTexture);
+                passData.output = builder.WriteTexture(outputTexture);
                 passData.history = builder.WriteTexture(history);
 
                 builder.SetRenderFunc(
