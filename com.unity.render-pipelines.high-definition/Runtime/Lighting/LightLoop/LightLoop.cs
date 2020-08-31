@@ -3778,7 +3778,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.params2 = new Vector4(firstMipOffsetY, contactShadowMinDist, contactShadowFadeIn, m_ContactShadows.rayBias.value * 0.01f);
             parameters.params3 = new Vector4(m_ContactShadows.sampleCount, m_ContactShadows.thicknessScale.value * 10.0f , 0.0f, 0.0f);
 
-            int deferredShadowTileSize = 16; // Must match DeferreDirectionalShadow.compute
+            int deferredShadowTileSize = 8; // Must match DeferreDirectionalShadow.compute
             parameters.numTilesX = (hdCamera.actualWidth + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
             parameters.numTilesY = (hdCamera.actualHeight + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
             parameters.viewCount = hdCamera.viewCount;
