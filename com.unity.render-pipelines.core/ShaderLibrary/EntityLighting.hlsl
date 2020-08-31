@@ -338,7 +338,8 @@ void SampleDirectionalLightmap(TEXTURE2D_PARAM(lightmapTex, lightmapSampler), TE
 }
 
 // Just a shortcut that call function above
-real3 SampleDirectionalLightmap(TEXTURE2D_PARAM(lightmapTex, lightmapSampler), TEXTURE2D_PARAM(lightmapDirTex, lightmapDirSampler), float2 uv, float4 transform, float3 normalWS, bool encodedLightmap, real4 decodeInstructions)
+real3 SampleDirectionalLightmap(TEXTURE2D_PARAM(lightmapTex, lightmapSampler), TEXTURE2D_PARAM(lightmapDirTex, lightmapDirSampler), float2 uv, float4 transform,
+    float3 normalWS, bool encodedLightmap, real4 decodeInstructions)
 {
     float3 backNormalWSUnused = 0.0;
     real3 bakeDiffuseLighting = 0.0;
@@ -349,9 +350,10 @@ real3 SampleDirectionalLightmap(TEXTURE2D_PARAM(lightmapTex, lightmapSampler), T
     return bakeDiffuseLighting;
 }
 
-real3 SampleDirectionalLightmap(TEXTURE2D_ARRAY_PARAM(lightmapTex, lightmapSampler), TEXTURE2D_ARRAY_PARAM(lightmapDirTex, lightmapDirSampler), float2 uv, float slice, float4 transform, float3 normalWS, bool encodedLightmap, real4 decodeInstructions)
+real3 SampleDirectionalLightmap(TEXTURE2D_ARRAY_PARAM(lightmapTex, lightmapSampler), TEXTURE2D_ARRAY_PARAM(lightmapDirTex, lightmapDirSampler), float2 uv, float slice, float4 transform,
+    float3 normalWS, float3 backNormalWS, bool encodedLightmap, real4 decodeInstructions, inout real3 bakeDiffuseLighting, inout real3 backBakeDiffuseLighting)
 {
-    // In directional mode Enlighten bakes dominant light direction
+     // In directional mode Enlighten bakes dominant light direction
     // in a way, that using it for half Lambert and then dividing by a "rebalancing coefficient"
     // gives a result close to plain diffuse response lightmaps, but normalmapped.
 
@@ -373,17 +375,22 @@ real3 SampleDirectionalLightmap(TEXTURE2D_ARRAY_PARAM(lightmapTex, lightmapSampl
     {
         illuminance = SAMPLE_TEXTURE2D_ARRAY(lightmapTex, lightmapSampler, uv, slice).rgb;
     }
+
     real halfLambert = dot(normalWS, direction.xyz - 0.5) + 0.5;
-    return illuminance * halfLambert / max(1e-4, direction.w);
+    bakeDiffuseLighting += illuminance * halfLambert / max(1e-4, direction.w);
+
+    real backHalfLambert = dot(backNormalWS, direction.xyz - 0.5) + 0.5;
+    backBakeDiffuseLighting += illuminance * backHalfLambert / max(1e-4, direction.w);
 }
 
 // Just a shortcut that call function above
-real3 SampleDirectionalLightmap(TEXTURE2D_ARRAY_PARAM(lightmapTex, lightmapSampler), TEXTURE2D_ARRAY_PARAM(lightmapDirTex, lightmapDirSampler), float2 uv, float slice, float4 transform, float3 normalWS, bool encodedLightmap, real4 decodeInstructions)
+real3 SampleDirectionalLightmap(TEXTURE2D_ARRAY_PARAM(lightmapTex, lightmapSampler), TEXTURE2D_ARRAY_PARAM(lightmapDirTex, lightmapDirSampler), float2 uv, float slice, float4 transform,
+    float3 normalWS, bool encodedLightmap, real4 decodeInstructions)
 {
     float3 backNormalWSUnused = 0.0;
     real3 bakeDiffuseLighting = 0.0;
     real3 backBakeDiffuseLightingUnused = 0.0;
-    SampleDirectionalLightmap(TEXTURE2D_ARRAY_ARGS(lightmapTex, lightmapSampler), TEXTURE2D_ARRAY_ARGS(lightmapDirTex, lightmapDirSampler), uv, slize, transform,
+    SampleDirectionalLightmap(TEXTURE2D_ARRAY_ARGS(lightmapTex, lightmapSampler), TEXTURE2D_ARRAY_ARGS(lightmapDirTex, lightmapDirSampler), uv, slice, transform,
                                 normalWS, backNormalWSUnused, encodedLightmap, decodeInstructions, bakeDiffuseLighting, backBakeDiffuseLightingUnused);
 
     return bakeDiffuseLighting;
