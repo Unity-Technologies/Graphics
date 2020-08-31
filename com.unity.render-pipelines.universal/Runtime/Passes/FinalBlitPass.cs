@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         ClearFlag.None,
                         Color.black);
 
-                    cmd.SetViewport(cameraData.xr.GetViewport());
+                    cmd.SetViewport(cameraData.pixelRect);
 
                     // We y-flip if
                     // 1) we are bliting from render texture to back buffer(UV starts at bottom) and

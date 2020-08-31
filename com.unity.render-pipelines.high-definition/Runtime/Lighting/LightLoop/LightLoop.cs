@@ -3743,7 +3743,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.contactShadowsCS.EnableKeyword("ENABLE_MSAA");
             }
 
-            parameters.rayTracingEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing);
+            parameters.rayTracingEnabled = RayTracedContactShadowsRequired();
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
             {
                 parameters.contactShadowsRTS = m_Asset.renderPipelineRayTracingResources.contactShadowRayTracingRT;

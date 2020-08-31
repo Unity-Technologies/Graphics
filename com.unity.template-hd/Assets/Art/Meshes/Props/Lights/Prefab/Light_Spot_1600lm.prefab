@@ -85,14 +85,14 @@ Light:
   m_RenderingLayerMask: 7
   m_Lightmapping: 1
   m_LightShadowCasterMode: 2
-  m_AreaSize: {x: 1, y: 1}
+  m_AreaSize: {x: 0.5, y: 0.5}
   m_BounceIntensity: 1
   m_ColorTemperature: 3500
   m_UseColorTemperature: 1
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
-  m_ShadowRadius: 0
+  m_ShadowRadius: 0.02
   m_ShadowAngle: 0
 --- !u!114 &7800918859396210309
 MonoBehaviour:
@@ -129,7 +129,7 @@ MonoBehaviour:
   m_ShapeWidth: 0.5
   m_ShapeHeight: 0.5
   m_AspectRatio: 1
-  m_ShapeRadius: 0
+  m_ShapeRadius: 0.02
   m_SoftnessScale: 1
   m_UseCustomSpotLightShadowCone: 0
   m_CustomSpotLightShadowCone: 1
@@ -165,7 +165,7 @@ MonoBehaviour:
   m_LightlayersMask: 7
   m_LinkShadowLayers: 1
   m_ShadowNearPlane: 0.1
-  m_BlockerSampleCount: 4
+  m_BlockerSampleCount: 24
   m_FilterSampleCount: 16
   m_MinFilterSize: 0.5
   m_KernelSize: 5

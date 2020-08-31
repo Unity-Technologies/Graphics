@@ -26,8 +26,26 @@ nightly:
       api: Metal
       test_platforms:
         - Standalone
-    - project: Universal_Split
-      all: true
+    - project: Universal
+      platform: Win
+      api: DX12
+      test_platforms:
+        - Standalone
+        - editmode
+        - playmode
+        # - playmode_XR # uncomment once bug fixed on XR side 
+    - project: URPUpdate
+      platform: Win
+      api: DX11
+      test_platforms:
+        - editmode
+        - playmode
+    - project: URPUpdate_Top_Asset_Store
+      platform: Win
+      api: DX11
+      test_platforms:
+        - editmode
+        - playmode
 smoke_test: # specifications for smoke tests
   folder: SRP_SmokeTest
   agent: sdet_win_large # used for editmode

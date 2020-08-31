@@ -4,6 +4,18 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.1.0] - 2019-08-04
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+### Added
+- Added parallax mapping node and parallax occlusion mapping node.
+- Added the possibility to have multiple POM node in a single graph.
+
+### Changed
+- Added method chaining support to shadergraph collection API.
+
 ## [10.0.0] - 2019-06-10
 ### Added
 - Added the Internal Inspector which allows the user to view data contained in selected nodes and properties in a new floating graph sub-window. Also added support for custom property drawers to let you visualize any data type you like and expose it to the inspector.  
@@ -42,6 +54,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for `Linear Blend Skinning` Node to Universal Render Pipeline.
 - Moved all code to be under Unity specific namespaces.
 - Changed ShaderGraphImporter and ShaderSubgraphImporter so that graphs are imported before Models.
+- Remove VFXTarget if VisualEffect Graph package isn't included.
+- VFXTarget doesn't overwrite the shader export anymore, VFXTarget can be active with another target.
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
@@ -141,6 +155,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Replace toggle by an enumField for lit/unlit with VFXTarget
 - Alpha Clipping option in Graph inspector now correctly hides and indents dependent options. (https://fogbugz.unity3d.com/f/cases/1257041/)
 - Fixed a bug where changing the name of a property did not update nodes on the graph. [1249164](https://issuetracker.unity3d.com/product/unity/issues/guid/1249164/)
+- Fixed a crash issue when ShaderGraph included in a project along with DOTS assemblies
+- Added missing SampleVirtualTextureNode address mode control in ShaderGraph
+- Fixed a badly named control on SampleVirtualTextureNode in ShaderGraph
+- Fixed an issue where multiple SampleVirtualTextureNodes created functions with names that may collide in ShaderGraph
+- Made sub graph importer deterministic to avoid cascading shader recompiles when no change was present.
+- Adjusted style sheet for Blackboard to prevent ui conflicts.
+- Fixed a bug where the SampleVirtualTexture node would delete slots when changing its LOD mode
+- Use preview of the other target if VFXTarget is active.
 
 ## [7.1.1] - 2019-09-05
 ### Added
