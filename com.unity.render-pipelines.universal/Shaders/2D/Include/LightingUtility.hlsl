@@ -26,10 +26,12 @@
             output.screenUV = ComputeScreenPos(clipVertex).xy; \
             output.positionWS = worldSpacePos;
 
+//half3 normalUnpacked = UnpackNormal(normal);
         #define APPLY_NORMALS_LIGHTING(input, lightColor)\
             half4 normal = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.screenUV);\
-            half3 normalUnpacked = UnpackNormal(normal);\
+            half3 normalUnpacked;\
             half3 dirToLight;\
+            normalUnpacked.xyz = 2 * normal.rgb - 1;\
             dirToLight.xy = _LightPosition.xy - input.positionWS.xy;\
             dirToLight.z =  _LightZDistance;\
             dirToLight = normalize(dirToLight);\
