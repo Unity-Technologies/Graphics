@@ -32,7 +32,7 @@ auto-version:
                                  echo "Did not find any dependency to bump. Will not commit and push anything."
                              fi
     triggers:
-        expression: push.branch eq "9.x.x/release" AND NOT push.changes.all match ["*template*/**/*.json"]
+        expression: push.branch eq "9.x.x/release" AND NOT push.changes.all match ["com.unity.template-*/**/*.json"] AND NOT push.changes.all match ["com.unity.*/package.json"]
     artifacts:
         packages:
             paths:
