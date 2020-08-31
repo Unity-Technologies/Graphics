@@ -269,7 +269,7 @@ namespace UnityEditor.VFX
         static public VFXExpression SafeNormalize(VFXExpression v)
         {
             var sqrDist = Dot(v,v);
-            var condition = new VFXExpressionCondition(VFXCondition.Equal, VFXOperatorUtility.ZeroExpression[VFXValueType.Float], sqrDist);
+            var condition = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Equal, VFXOperatorUtility.ZeroExpression[VFXValueType.Float], sqrDist);
             return new VFXExpressionBranch(condition, VFXOperatorUtility.ZeroExpression[v.valueType], Normalize(v));
         }
 
@@ -586,8 +586,8 @@ namespace UnityEditor.VFX
                 var cycle = count * two - two;
                 cycle = new VFXExpressionMax(cycle, OneExpression[VFXValueType.Uint32]);
                 var modulo = Modulo(index, cycle);
-                //TODO: Remove float casting for 10.x.x
-                var compare = new VFXExpressionCondition(VFXCondition.Less, new VFXExpressionCastUintToFloat(modulo), new VFXExpressionCastUintToFloat(count));
+                //var compare = new VFXExpressionCondition(VFXCondition.Less, new VFXExpressionCastUintToFloat(modulo), new VFXExpressionCastUintToFloat(count)); <= Use this line for 7.x.x/8.x.x/9.x.x backport
+                var compare = new VFXExpressionCondition(VFXValueType.Uint32, VFXCondition.Less, modulo, count);
                 r = new VFXExpressionBranch(compare, modulo, cycle - modulo);
             }
             return r;
