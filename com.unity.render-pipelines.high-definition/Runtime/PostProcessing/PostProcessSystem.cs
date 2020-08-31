@@ -1950,6 +1950,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.dofPrecombineFarCS.shaderKeywords = null;
             parameters.dofCombineCS.shaderKeywords = null;
             parameters.pbDoFGatherCS.shaderKeywords = null;
+            parameters.dofCoCReprojectCS.shaderKeywords = null;
 
             bool nearLayerActive = parameters.nearLayerActive;
             bool farLayerActive = parameters.farLayerActive;
@@ -1996,6 +1997,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (parameters.useTiles)
             {
                 parameters.dofGatherCS.EnableKeyword("USE_TILES");
+            }
+
+            if (m_DepthOfField.physicallyBased)
+            {
+                parameters.dofCoCReprojectCS.EnableKeyword("ENABLE_MAX_BLENDING");
             }
 
             parameters.useMipSafePath = m_UseSafePath;
@@ -2519,7 +2525,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Map the old "max radius" parameters to a bigger range, so we can work on more challenging scenes
             float maxRadius = Mathf.Max(dofParameters.farMaxBlur, dofParameters.nearMaxBlur);
-            float cocLimit = Mathf.Clamp(4 * maxRadius, 1, 32);
+            float cocLimit = Mathf.Clamp(4 * maxRadius, 1, 64);
 
             ComputeShader cs;
             int kernel;
@@ -2594,7 +2600,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 float sampleCount = Mathf.Max(dofParameters.nearSampleCount, dofParameters.farSampleCount);
 
                 // We only have up to 6 mip levels
-                float mipLevel = Mathf.Min(6, Mathf.Ceil(Mathf.Log(cocLimit, 2)));
+                float mipLevel = Mathf.Min(6, 1 + Mathf.Ceil(Mathf.Log(cocLimit, 2)));
                 GetMipMapDimensions(fullresCoC, (int)mipLevel, out var mipMapWidth, out var mipMapHeight);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, cocLimit, 0.0f, 0.0f));
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(mipLevel, mipMapWidth, mipMapHeight, 0.0f));

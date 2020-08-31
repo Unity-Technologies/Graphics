@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else
 #endif
                 // We need to check if something invalidated the history buffers
-                rtAOParameters.historyValidity = m_RenderPipeline.ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
+                rtAOParameters.historyValidity = HDRenderPipeline.ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
             rtAOParameters.actualWidth = hdCamera.actualWidth;
             rtAOParameters.actualHeight = hdCamera.actualHeight;
             rtAOParameters.viewCount = hdCamera.viewCount;

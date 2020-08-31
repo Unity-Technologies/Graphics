@@ -44,14 +44,16 @@ namespace UnityEditor.Rendering.Universal
             m_RendererFeatures = serializedObject.FindProperty(nameof(ScriptableRendererData.m_RendererFeatures));
             m_RendererFeaturesMap = serializedObject.FindProperty(nameof(ScriptableRendererData.m_RendererFeatureMap));
             var editorObj = new SerializedObject(this);
-            m_FalseBool =  editorObj.FindProperty(nameof(falseBool));
+            m_FalseBool = editorObj.FindProperty(nameof(falseBool));
             UpdateEditorList();
         }
 
         public override void OnInspectorGUI()
         {
-            if(m_RendererFeatures == null)
+            if (m_RendererFeatures == null)
                 OnEnable();
+            else if (m_RendererFeatures.arraySize != m_Editors.Count)
+                UpdateEditorList();
 
             serializedObject.Update();
             DrawRendererFeatureList();

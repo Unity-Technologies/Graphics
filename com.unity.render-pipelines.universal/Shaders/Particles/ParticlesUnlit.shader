@@ -9,7 +9,7 @@ Shader "Universal Render Pipeline/Particles/Unlit"
 
         _BumpMap("Normal Map", 2D) = "bump" {}
 
-        _EmissionColor("Color", Color) = (0,0,0)
+        [HDR] _EmissionColor("Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
 
         // -------------------------------------

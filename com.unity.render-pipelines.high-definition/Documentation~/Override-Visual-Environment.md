@@ -15,6 +15,8 @@ The **Visual Environment** override comes as default when you create a **Scene S
 
 ![](Images/Override-VisualEnvironment1.png)
 
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
+
 ### Sky
 
 | **Property**     | **Description**                                              |

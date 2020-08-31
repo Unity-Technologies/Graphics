@@ -15,6 +15,8 @@ The **Shadows** override comes as default when you create a **Scene Settings** G
 
 ![](Images/Override-Shadows1.png)
 
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
+
 | **Property**     | **Description**                                              |
 | ---------------- | ------------------------------------------------------------ |
 | **Working Unit** | Use the drop-down to select the unit that you want to use to define the cascade splits.<br />&#8226; **Metric**: Defines cascade splits and borders in meters.<br />&#8226; **Percent**: Defines cascade splits and borders as a percentage of **Max Distance**. |

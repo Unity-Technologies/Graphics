@@ -95,6 +95,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: 2c14474f84cbaee46a02b4501a1c41b4, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_2113f43eb6834771824985b4a463d8f6_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 2c14474f84cbaee46a02b4501a1c41b4, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_22cdec834f6a4ad28c5a7cb93fbe2292_Texture_1:
         m_Texture: {fileID: 2800000, guid: 2c14474f84cbaee46a02b4501a1c41b4, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -299,4 +303,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 8
+  version: 9

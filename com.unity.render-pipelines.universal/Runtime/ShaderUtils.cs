@@ -17,7 +17,6 @@ namespace UnityEngine.Rendering.Universal
         SpeedTree7,
         SpeedTree7Billboard,
         SpeedTree8,
-        Count
     }
 
     [MovedFrom("UnityEngine.Rendering.LWRP")] public static class ShaderUtils
@@ -40,13 +39,12 @@ namespace UnityEngine.Rendering.Universal
         public static string GetShaderPath(ShaderPathID id)
         {
             int index = (int)id;
-            if (index < 0 && index >= (int)ShaderPathID.Count)
-            {
-                Debug.LogError("Trying to access universal shader path out of bounds");
-                return "";
-            }
+            int arrayLength = s_ShaderPaths.Length;
+            if (arrayLength > 0 && index >= 0 && index < arrayLength)
+                return s_ShaderPaths[index];
 
-            return s_ShaderPaths[index];
+            Debug.LogError("Trying to access universal shader path out of bounds: (" + id + ": " + index + ")");
+            return "";
         }
 
         public static ShaderPathID GetEnumFromPath(string path)
@@ -79,13 +77,12 @@ namespace UnityEngine.Rendering.Universal
         internal static string GetShaderGUID(ShaderPathID id)
         {
             int index = (int)id;
-            if (index < 0 && index >= (int)ShaderPathID.Count)
-            {
-                Debug.LogError("Trying to access universal shader path out of bounds");
-                return "";
-            }
+            int arrayLength = s_ShaderGUIDs.Length;
+            if (arrayLength > 0 && index >= 0 && index < arrayLength)
+                return s_ShaderGUIDs[index];
 
-            return s_ShaderGUIDs[index];
+            Debug.LogError("Trying to access universal shader GUID out of bounds: (" + id + ": " + index + ")");
+            return "";
         }
 #endif
     }

@@ -200,8 +200,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Distortion) || hdCamera.IsSSREnabled())
                     GenerateColorPyramid(m_RenderGraph, hdCamera, colorBuffer, currentColorPyramid, false);
 
-                var distortionBuffer = AccumulateDistortion(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, cullingResults);
-                RenderDistortion(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, currentColorPyramid, distortionBuffer);
+                using (new RenderGraphProfilingScope(m_RenderGraph, ProfilingSampler.Get(HDProfileId.Distortion)))
+                {
+                    var distortionBuffer = AccumulateDistortion(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, cullingResults);
+                    RenderDistortion(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, currentColorPyramid, distortionBuffer);
+                }
 
                 PushFullScreenDebugTexture(m_RenderGraph, colorBuffer, FullScreenDebugMode.NanTracker);
                 PushFullScreenLightingDebugTexture(m_RenderGraph, colorBuffer);
@@ -1124,7 +1127,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                             TextureHandle   depthStencilBuffer,
                                             CullingResults  cullResults)
         {
-            using (var builder = renderGraph.AddRenderPass<AccumulateDistortionPassData>("Accumulate Distortion", out var passData, ProfilingSampler.Get(HDProfileId.Distortion)))
+            using (var builder = renderGraph.AddRenderPass<AccumulateDistortionPassData>("Accumulate Distortion", out var passData, ProfilingSampler.Get(HDProfileId.AccumulateDistortion)))
             {
                 passData.frameSettings = hdCamera.frameSettings;
                 passData.distortionBuffer = builder.UseColorBuffer(renderGraph.CreateTexture(
