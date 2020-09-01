@@ -789,6 +789,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with cookie texture atlas that would cause realtime textures to always update in the atlas even when the content did not change.
 - Fixed an issue where only one of the two lookdev views would update when changing the default lookdev volume profile.
 - Fixed a bug related to light cluster invalidation.
+- Fixed shader warning in DofGather (case 1272931)
 
 ### Changed
 - Improve MIP selection for decals on Transparents
