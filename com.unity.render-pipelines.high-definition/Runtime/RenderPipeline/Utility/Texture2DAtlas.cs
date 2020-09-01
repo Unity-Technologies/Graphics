@@ -360,9 +360,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 int updateCount;
                 if (m_IsGPUTextureUpToDate.TryGetValue(key, out updateCount))
                 {
-                    m_IsGPUTextureUpToDate[key] = updateCount;
                     if (rt.updateCount != updateCount)
+                    {
+                        m_IsGPUTextureUpToDate[key] = (int)rt.updateCount;
                         return true;
+                    }
                 }
                 else
                 {
@@ -397,13 +399,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 int updateCount;
                 if (m_IsGPUTextureUpToDate.TryGetValue(key, out updateCount))
                 {
-                    m_IsGPUTextureUpToDate[key] = updateCount;
                     if (rtA != null && rtB != null && Math.Min(rtA.updateCount, rtB.updateCount) != updateCount)
+                    {
+                        m_IsGPUTextureUpToDate[key] = (int)Math.Min(rtA.updateCount, rtB.updateCount);
                         return true;
+                    }
                     else if (rtA != null && rtA.updateCount != updateCount)
+                    {
+                        m_IsGPUTextureUpToDate[key] = (int)rtA.updateCount;
                         return true;
+                    }
                     else if (rtB.updateCount != updateCount) // implicitly rtB != null
+                    {
+                        m_IsGPUTextureUpToDate[key] = (int)rtB.updateCount;
                         return true;
+                    }
                 }
                 else
                 {
