@@ -329,7 +329,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 //#note handle mip lvl like in hdrp
                 cmd.SetGlobalInt(_cubeToPanoMipLvl, 0);
-                cmd.SetGlobalTexture(_cubeToPanoTexture, reflectionProbes[i].texture);
+                cmd.SetGlobalTexture(_cubeToPanoTexture, probes[i].texture);
                 RenderTexture rt = new RenderTexture(k_PanoWidth, k_PanoHeight, 0, GraphicsFormat.R16G16B16A16_SFloat)
                 {
                     hideFlags = HideFlags.HideAndDontSave,
