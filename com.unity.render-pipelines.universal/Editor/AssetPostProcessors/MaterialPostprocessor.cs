@@ -124,8 +124,10 @@ namespace UnityEditor.Rendering.Universal
 
             foreach (var asset in importedAssets)
             {
-                if (!asset.ToLowerInvariant().EndsWith(".mat"))
+                if (!asset.EndsWith(".mat", StringComparison.InvariantCultureIgnoreCase))
                     continue;
+
+
 
                 var material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
                 if (!ShaderUtils.IsLWShader(material.shader))
@@ -133,13 +135,9 @@ namespace UnityEditor.Rendering.Universal
 
                 ShaderPathID id = ShaderUtils.GetEnumFromPath(material.shader.name);
                 var wasUpgraded = false;
-                var assetVersions = AssetDatabase.LoadAllAssetsAtPath(asset);
-                AssetVersion assetVersion = null;
-                foreach (var subAsset in assetVersions)
-                {
-                    if(subAsset.GetType() == typeof(AssetVersion))
-                        assetVersion = subAsset as AssetVersion;
-                }
+
+                var assetVersion = AssetDatabase.LoadAssetAtPath<AssetVersion>(asset);
+
                 var debug = "\n" + material.name;
 
                 if (!assetVersion)
