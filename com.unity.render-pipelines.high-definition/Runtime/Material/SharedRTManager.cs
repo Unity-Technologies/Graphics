@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_MotionVectorsRT = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: Builtin.GetMotionVectorFormat(), dimension: TextureXR.dimension, useDynamicScale: true, name: "MotionVectors");
                 if (m_MSAASupported)
                 {
-                    m_MotionVectorsMSAART = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: Builtin.GetMotionVectorFormat(), dimension: TextureXR.dimension, enableMSAA: true, bindTextureMS: true, useDynamicScale: true, name: "MotionVectorsMSAA");
+                    m_MotionVectorsMSAART = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: Builtin.GetMotionVectorFormat(), dimension: TextureXR.dimensionMSAA, enableMSAA: true, bindTextureMS: true, useDynamicScale: true, name: "MotionVectorsMSAA");
                 }
             }
 
@@ -94,16 +94,16 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_MSAASupported)
             {
                 // Let's create the MSAA textures
-                m_CameraDepthStencilMSAABuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, DepthBits.Depth24, dimension: TextureXR.dimension, bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "CameraDepthStencilMSAA");
+                m_CameraDepthStencilMSAABuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, DepthBits.Depth24, dimension: TextureXR.dimensionMSAA, bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "CameraDepthStencilMSAA");
                 m_CameraDepthValuesBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, dimension: TextureXR.dimension, useDynamicScale: true, name: "DepthValuesBuffer");
                 GraphicsFormat depthAsColorMSAAFormat = GraphicsFormat.R32_SFloat;
                 if (!SystemInfo.IsFormatSupported(depthAsColorMSAAFormat, m_MSAASamples.AsFormatUsage()))
                     depthAsColorMSAAFormat = GraphicsFormat.R16_SFloat;
-                m_DepthAsColorMSAART = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: depthAsColorMSAAFormat, dimension: TextureXR.dimension, bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "DepthAsColorMSAA");
+                m_DepthAsColorMSAART = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: depthAsColorMSAAFormat, dimension: TextureXR.dimensionMSAA, bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "DepthAsColorMSAA");
                 m_StencilBufferResolved = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8G8_UInt, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, name: "StencilBufferResolved");
 
                 // We need to allocate this texture as long as msaa is supported because on both mode, one of the cameras can be forward only using the framesettings
-                m_NormalMSAART = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, dimension: TextureXR.dimension, enableMSAA: true, bindTextureMS: true, useDynamicScale: true, name: "NormalBufferMSAA");
+                m_NormalMSAART = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, dimension: TextureXR.dimensionMSAA, enableMSAA: true, bindTextureMS: true, useDynamicScale: true, name: "NormalBufferMSAA");
 
                 // Create the required resolve materials
                 m_DepthResolveMaterial = CoreUtils.CreateEngineMaterial(resources.shaders.depthValuesPS);
@@ -111,7 +111,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_MotionVectorResolve = CoreUtils.CreateEngineMaterial(resources.shaders.resolveMotionVecPS);
 
                 if (m_DecalLayersSupported)
-                    m_DecalPrePassBufferMSAA = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableMSAA: true, useDynamicScale: true, name: "Decal PrePass Buffer MSAA");
+                    m_DecalPrePassBufferMSAA = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimensionMSAA, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableMSAA: true, useDynamicScale: true, name: "Decal PrePass Buffer MSAA");
 
                 CoreUtils.SetKeyword(m_DepthResolveMaterial, "_HAS_MOTION_VECTORS", m_MotionVectorsSupport);
             }

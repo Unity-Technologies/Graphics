@@ -42,8 +42,33 @@ namespace UnityEngine.Rendering
                     case GraphicsDeviceType.Vulkan:
                         return true;
 
+                    // VFX basically depends on texture arrays, so TextureXR should be enabled even on platforms without SPI support
+                    // SPI technically available on Metal, but due to fragmented OS/GPU matrix, let's not enable it yet
+                    case GraphicsDeviceType.Metal:
+                        return true;
+
                     default:
                         return false;
+                }
+            }
+        }
+
+        // Must be in sync with shader define in TextureXR.hlsl
+        /// <summary>
+        /// Returns true if the XR system uses texture arrays for MSAA.
+        /// </summary>
+        public static bool useTexArrayMSAA
+        {
+            get
+            {
+                switch (SystemInfo.graphicsDeviceType)
+                {
+                    // Metal supports texture arrays with MSAA, but due to fragmented OS/GPU matrix, let's not enable it yet
+                    case GraphicsDeviceType.Metal:
+                        return false;
+
+                    default:
+                        return useTexArray;
                 }
             }
         }
@@ -57,6 +82,18 @@ namespace UnityEngine.Rendering
             {
                 // TEXTURE2D_X macros will now expand to TEXTURE2D or TEXTURE2D_ARRAY
                 return useTexArray ? TextureDimension.Tex2DArray : TextureDimension.Tex2D;
+            }
+        }
+
+        /// <summary>
+        /// Dimension of XR MSAA textures.
+        /// </summary>
+        public static TextureDimension dimensionMSAA
+        {
+            get
+            {
+                // TEXTURE2D_X_MSAA/LOAD_TEXTURE2D_X_MSAA macros will now expand to TEXTURE2D or TEXTURE2D_ARRAY
+                return useTexArrayMSAA ? TextureDimension.Tex2DArray : TextureDimension.Tex2D;
             }
         }
 
