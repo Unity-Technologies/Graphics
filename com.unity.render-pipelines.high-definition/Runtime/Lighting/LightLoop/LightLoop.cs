@@ -615,7 +615,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // internal LightList m_lightList;
 
         internal BoundedEntityCollection    m_BoundedEntityCollection; // Per-tile light lists
+
         internal List<DirectionalLightData> m_DirectionalLightData;    // Global light list
+        internal List<int>                  m_DirectionalLightIndices;
         internal int                        m_DirectionalLightCount;
 
         // int m_TotalLightCount = 0;
@@ -1154,26 +1156,26 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector2 Z = R * rcpH;
 
             float cosHoriz = ComputeCosineOfHorizonAngle(r, R);
-	        float sinTheta = Mathf.Sqrt(Saturate(1 - cosTheta * cosTheta));
+            float sinTheta = Mathf.Sqrt(Saturate(1 - cosTheta * cosTheta));
 
             Vector2 ch;
             ch.x = ChapmanUpperApprox(z.x, Mathf.Abs(cosTheta)) * Mathf.Exp(Z.x - z.x); // Rescaling adds 'exp'
             ch.y = ChapmanUpperApprox(z.y, Mathf.Abs(cosTheta)) * Mathf.Exp(Z.y - z.y); // Rescaling adds 'exp'
 
             if ((!alwaysAboveHorizon) && (cosTheta < cosHoriz)) // Below horizon, intersect sphere
-	        {
-		        float sinGamma = (r / R) * sinTheta;
-		        float cosGamma = Mathf.Sqrt(Saturate(1 - sinGamma * sinGamma));
+            {
+                float sinGamma = (r / R) * sinTheta;
+                float cosGamma = Mathf.Sqrt(Saturate(1 - sinGamma * sinGamma));
 
-		        Vector2 ch_2;
+                Vector2 ch_2;
                 ch_2.x = ChapmanUpperApprox(Z.x, cosGamma); // No need to rescale
                 ch_2.y = ChapmanUpperApprox(Z.y, cosGamma); // No need to rescale
 
-		        ch = ch_2 - ch;
+                ch = ch_2 - ch;
             }
             else if (cosTheta < 0)   // Above horizon, lower hemisphere
             {
-    	        // z_0 = n * r_0 = (n * r) * sin(theta) = z * sin(theta).
+                // z_0 = n * r_0 = (n * r) * sin(theta) = z * sin(theta).
                 // Ch(z, theta) = 2 * exp(z - z_0) * Ch(z_0, Pi/2) - Ch(z, Pi - theta).
                 Vector2 z_0  = z * sinTheta;
                 Vector2 b    = new Vector2(Mathf.Exp(Z.x - z_0.x), Mathf.Exp(Z.x - z_0.x)); // Rescaling cancels out 'z' and adds 'Z'
@@ -1222,7 +1224,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void GetDirectionalLightData(CommandBuffer cmd, HDCamera hdCamera, VisibleLight light, Light lightComponent, int lightIndex, int shadowIndex,
+        internal DirectionalLightData GetDirectionalLightData(CommandBuffer cmd, HDCamera hdCamera, VisibleLight light, Light lightComponent, int lightIndex, int shadowIndex,
             int sortedIndex, bool isPhysicallyBasedSkyActive, ref int screenSpaceShadowIndex, ref int screenSpaceShadowslot)
         {
             var processedData = m_ProcessedLightData[lightIndex];
@@ -1358,7 +1360,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Fallback to the first non shadow casting directional light.
             m_CurrentSunLight = m_CurrentSunLight == null ? lightComponent : m_CurrentSunLight;
 
-            m_DirectionalLightData.Add(lightData);
+            return lightData;
         }
 
         // This function evaluates if there is currently enough screen space sahdow slots of a given light based on its light type
@@ -1375,7 +1377,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void GetLightData(CommandBuffer cmd, HDCamera hdCamera, HDShadowSettings shadowSettings, VisibleLight light, Light lightComponent,
+        internal LightData GetLightData(CommandBuffer cmd, HDCamera hdCamera, HDShadowSettings shadowSettings, VisibleLight light, Light lightComponent,
             int lightIndex, int shadowIndex, BoolScalableSetting contactShadowsScalableSetting, ref Vector3 lightDimensions, ref int screenSpaceShadowIndex, ref int screenSpaceChannelSlot)
         {
             var processedData = m_ProcessedLightData[lightIndex];
@@ -1585,9 +1587,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Bind the next available slot to the light
                 lightData.screenSpaceShadowIndex = screenSpaceChannelSlot;
 
+                int lightDataIndex = -1;
+
+                switch (lightCategory)
+                {
+                    case BoundedEntityCategory.PunctualLight:
+                        lightDataIndex = m_BoundedEntityCollection.punctualLightData.Count; // Dangerous and error-prone
+                        break;
+                    case BoundedEntityCategory.AreaLight:
+                        lightDataIndex = m_BoundedEntityCollection.areaLightData.Count; // Dangerous and error-prone
+                        break;
+                    default:
+                        Debug.Assert(false, "Encountered an unhandled case of a switch statement.");
+                        break;
+                }
+
                 // Keep track of the screen space shadow data
                 m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].additionalLightData = additionalLightData;
-                m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].lightDataIndex = m_lightList.lights.Count;
+                m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].lightDataIndex = lightDataIndex; /* FIX: THIS IS A BREAKING CHANGE FOR SHADOWS */
                 m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].valid = true;
                 m_ScreenSpaceShadowsUnion.Add(additionalLightData);
 
@@ -1624,7 +1641,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.nonLightMappedOnly = 0;
             }
 
-            m_lightList.lights.Add(lightData);
+            return lightData;
         }
 
         // TODO: we should be able to do this calculation only with LightData without VisibleLight light, but for now pass both
@@ -2343,6 +2360,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 switch (processedData.lightCategory)
                 {
                     case BoundedEntityCategory.None: // Unbounded
+                        Debug.Assert(processedData.gpuLightType == GPULightType.Directional);
                         if (!debugDisplaySettings.data.lightingDebugSettings.showDirectionalLight || m_DirectionalLightCount >= m_MaxDirectionalLightsOnScreen) continue;
                         m_DirectionalLightCount++;
                         break;
@@ -2374,7 +2392,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     && !debugLightFilter.IsEnabledFor(processedData.gpuLightType, additionalData.spotLightShape))
                     continue;
 
-                if (processedData.lightCategory != BoundedEntityCategory.None)
+                if (processedData.gpuLightType == GPULightType.Directional)
+                {
+                    m_DirectionalLightIndices.Add(lightIndex);
+                }
+                else
                 {
                     m_BoundedEntityCollection.entitySortKeys[m_BoundedEntityCollection.totalEntityCount++] = GenerateBoundedEntitySortingKey(lightIndex, processedData.lightCategory, processedData.fixedPointLogDepth, (int)processedData.gpuLightType);
                 }
@@ -2385,13 +2407,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return includedLightCount;
         }
 
-        void PrepareGPULightdata(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults, int processedLightCount)
+        void PrepareGPULightdata(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults)
         {
             Vector3 camPosWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
-
-            int directionalLightcount = 0;
-            int punctualLightcount = 0;
-            int areaLightCount = 0;
 
             // Now that all the lights have requested a shadow resolution, we can layout them in the atlas
             // And if needed rescale the whole atlas
@@ -2420,18 +2438,11 @@ namespace UnityEngine.Rendering.HighDefinition
             BoolScalableSetting contactShadowScalableSetting = HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset);
 
             // 2. Go through all lights, convert them to GPU format.
-            // Simultaneously create data for culling (LightVolumeData and SFiniteLightBound)
+            // Simultaneously create data for culling (LightVolumeData and FiniteLightBound)
 
-            for (int sortIndex = 0; sortIndex < processedLightCount; ++sortIndex)
+            for (int sortIndex = 0; sortIndex < m_DirectionalLightCount; sortIndex++)
             {
-                BoundedEntitySortingKeyLayout layout = GeBoundedEntitySortingKeyLayoutLayout();
-
-                // In 1. we have already classify and sorted the light, we need to use this sorted order here
-                ulong sortKey = m_BoundedEntitySortKeys[sortIndex];
-
-                BoundedEntityCategory lightCategory = (BoundedEntityCategory)((sortKey >> layout.categoryOffset)  & ((1ul << layout.categoryBitCount)  - 1));
-                GPULightType  gpuLightType  = (GPULightType) ((sortKey >> layout.lightTypeOffset) & ((1ul << layout.lightTypeBitCount) - 1));
-                int           lightIndex    = (int)          ((sortKey >> layout.indexOffset)     & ((1ul << layout.indexBitCount)     - 1));
+                int lightIndex = m_DirectionalLightIndices[sortIndex];
 
                 var light = cullResults.visibleLights[lightIndex];
                 var lightComponent = light.light;
@@ -2461,69 +2472,103 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
                 }
 
-                // Directional rendering side, it is separated as it is always visible so no volume to handle here
-                if (gpuLightType == GPULightType.Directional)
+                var lightData = GetDirectionalLightData(cmd, hdCamera, light, lightComponent, lightIndex, shadowIndex, sortIndex, isPbrSkyActive, ref m_ScreenSpaceShadowIndex, ref m_ScreenSpaceShadowChannelSlot);
+
+                // We make the light position camera-relative as late as possible in order
+                // to allow the preceding code to work with the absolute world space coordinates.
+                if (ShaderConfig.s_CameraRelativeRendering != 0)
                 {
-                    GetDirectionalLightData(cmd, hdCamera, light, lightComponent, lightIndex, shadowIndex, directionalLightcount, isPbrSkyActive, ref m_ScreenSpaceShadowIndex, ref m_ScreenSpaceShadowChannelSlot);
-
-                    directionalLightcount++;
-
-                    // We make the light position camera-relative as late as possible in order
-                    // to allow the preceding code to work with the absolute world space coordinates.
-                    if (ShaderConfig.s_CameraRelativeRendering != 0)
-                    {
-                        // Caution: 'DirectionalLightData.positionWS' is camera-relative after this point.
-                        int last = m_lightList.directionalLights.Count - 1;
-                        DirectionalLightData lightData = m_lightList.directionalLights[last];
-                        lightData.positionRWS -= camPosWS;
-                        m_lightList.directionalLights[last] = lightData;
-                    }
+                    // Caution: 'DirectionalLightData.positionWS' is camera-relative after this point.
+                    lightData.positionRWS -= camPosWS;
                 }
-                else
+
+                m_DirectionalLightData.Add(lightData);
+            }
+
+            // Sanity check
+            Debug.Assert(m_DirectionalLightData.Count == m_DirectionalLightCount);
+
+            // Go through both categories together (to make the existing code work).
+            int punctualAndAreaLightCount = m_BoundedEntityCollection.punctualLightCount
+                                          + m_BoundedEntityCollection.areaLightCount;
+
+            // We start with 0 because the of the order of items within the 'BoundedEntityCategory' enum.
+            // Rearranging the order of the categories will break this code!
+            for (int sortIndex = 0; sortIndex < punctualAndAreaLightCount; ++sortIndex)
+            {
+                BoundedEntitySortingKeyLayout layout = GeBoundedEntitySortingKeyLayoutLayout();
+
+                // In 1. we have already classify and sorted the light, we need to use this sorted order here
+                ulong sortKey = m_BoundedEntityCollection.entitySortKeys[sortIndex];
+
+                BoundedEntityCategory category     = (BoundedEntityCategory)((sortKey >> layout.categoryOffset)  & ((1ul << layout.categoryBitCount)  - 1));
+                GPULightType          gpuLightType = (GPULightType)         ((sortKey >> layout.lightTypeOffset) & ((1ul << layout.lightTypeBitCount) - 1));
+                int                   lightIndex   = (int)                  ((sortKey >> layout.indexOffset)     & ((1ul << layout.indexBitCount)     - 1));
+
+                var light = cullResults.visibleLights[lightIndex];
+                var lightComponent = light.light;
+                ProcessedLightData processedData = m_ProcessedLightData[lightIndex];
+
+                m_enableBakeShadowMask = m_enableBakeShadowMask || processedData.isBakedShadowMask;
+
+                // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning HDUtils.s_DefaultHDAdditionalLightData
+                var additionalLightData = processedData.additionalLightData;
+
+                int shadowIndex = -1;
+
+                // Manage shadow requests
+                if (additionalLightData.WillRenderShadowMap())
                 {
-                    Vector3 lightDimensions = new Vector3(); // X = length or width, Y = height, Z = range (depth)
+                    int shadowRequestCount;
+                    shadowIndex = additionalLightData.UpdateShadowRequest(hdCamera, m_ShadowManager, hdShadowSettings, light, cullResults, lightIndex, m_CurrentDebugDisplaySettings.data.lightingDebugSettings, out shadowRequestCount);
 
-                    // Punctual, area, projector lights - the rendering side.
-                    GetLightData(cmd, hdCamera, hdShadowSettings, light, lightComponent, lightIndex, shadowIndex, contactShadowScalableSetting, ref lightDimensions, ref m_ScreenSpaceShadowIndex, ref m_ScreenSpaceShadowChannelSlot);
-
-                    switch (lightCategory)
+#if UNITY_EDITOR
+                    if ((m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowDebugUseSelection
+                            || m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow)
+                        && UnityEditor.Selection.activeGameObject == lightComponent.gameObject)
                     {
-                        case BoundedEntityCategory.PunctualLight:
-                            punctualLightcount++;
-                            break;
-                        case BoundedEntityCategory.AreaLight:
-                            areaLightCount++;
-                            break;
-                        default:
-                            Debug.Assert(false, "TODO: encountered an unknown LightCategory.");
-                            break;
+                        m_DebugSelectedLightShadowIndex = shadowIndex;
+                        m_DebugSelectedLightShadowCount = shadowRequestCount;
                     }
+#endif
+                }
 
-                    // Then culling side. Must be call in this order as we pass the created Light data to the function
-                    for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
-                    {
-                        GetLightVolumeDataAndBound(lightCategory, gpuLightType, light, m_lightList.lights[m_lightList.lights.Count - 1], lightDimensions, m_WorldToViewMatrices[viewIndex], viewIndex);
-                    }
+                Vector3 lightDimensions = new Vector3(); // X = length or width, Y = height, Z = range (depth)
 
-                    // We make the light position camera-relative as late as possible in order
-                    // to allow the preceding code to work with the absolute world space coordinates.
-                    if (ShaderConfig.s_CameraRelativeRendering != 0)
-                    {
-                        // Caution: 'LightData.positionWS' is camera-relative after this point.
-                        int last = m_lightList.lights.Count - 1;
-                        LightData lightData = m_lightList.lights[last];
-                        lightData.positionRWS -= camPosWS;
-                        m_lightList.lights[last] = lightData;
-                    }
+                // Punctual, area, projector lights - the rendering side.
+                var lightData = GetLightData(cmd, hdCamera, hdShadowSettings, light, lightComponent, lightIndex, shadowIndex, contactShadowScalableSetting, ref lightDimensions, ref m_ScreenSpaceShadowIndex, ref m_ScreenSpaceShadowChannelSlot);
+
+                // Then culling side. Must be call in this order as we pass the created Light data to the function
+                for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
+                {
+                    GetLightVolumeDataAndBound(category, gpuLightType, light, lightData, lightDimensions, m_WorldToViewMatrices[viewIndex], viewIndex);
+                }
+
+                // We make the light position camera-relative as late as possible in order
+                // to allow the preceding code to work with the absolute world space coordinates.
+                if (ShaderConfig.s_CameraRelativeRendering != 0)
+                {
+                    // Caution: 'LightData.positionWS' is camera-relative after this point.
+                    lightData.positionRWS -= camPosWS;
+                }
+
+                switch (category)
+                {
+                    case BoundedEntityCategory.PunctualLight:
+                        m_BoundedEntityCollection.punctualLightData.Add(lightData);
+                        break;
+                    case BoundedEntityCategory.AreaLight:
+                        m_BoundedEntityCollection.areaLightData.Add(lightData);
+                        break;
+                    default:
+                        Debug.Assert(false, "Encountered an unhandled case of a switch statement.");
+                        break;
                 }
             }
 
             // Sanity check
-            Debug.Assert(m_lightList.directionalLights.Count == directionalLightcount);
-            Debug.Assert(m_lightList.lights.Count == areaLightCount + punctualLightcount);
-
-            m_lightList.punctualLightCount = punctualLightcount;
-            m_lightList.areaLightCount = areaLightCount;
+            Debug.Assert(m_BoundedEntityCollection.punctualLightData.Count == m_BoundedEntityCollection.punctualLightCount);
+            Debug.Assert(m_BoundedEntityCollection.areaLightData.Count     == m_BoundedEntityCollection.areaLightCount);
         }
 
         bool TrivialRejectProbe(in ProcessedProbeData processedProbe, HDCamera hdCamera)
