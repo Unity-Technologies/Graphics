@@ -1,7 +1,7 @@
 
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Rendering.LWRP;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering
 {
@@ -182,7 +182,7 @@ namespace UnityEditor.Rendering
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
             public override string PanelName => "Validation";
-            
+
             public SettingsPanel(DebugDisplaySettingsValidation data)
             {
                 AddWidget(new DebugUI.EnumField { displayName = "Validation Mode", autoEnum = typeof(DebugValidationMode), getter = () => (int)data.validationMode, setter = (value) => {}, getIndex = () => (int)data.validationMode, setIndex = (value) => data.validationMode = (DebugValidationMode)value});

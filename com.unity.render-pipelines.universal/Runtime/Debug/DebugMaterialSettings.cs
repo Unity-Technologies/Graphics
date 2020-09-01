@@ -1,6 +1,6 @@
 
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Rendering.LWRP;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering
 {

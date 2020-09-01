@@ -1,8 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
@@ -10,13 +9,13 @@ namespace UnityEditor.Rendering
     {
         private IEnumerable<IDebugDisplaySettingsPanelDisposable> m_DisposablePanels;
         private DebugDisplaySettings m_Settings;
-        
+
         private void Reset()
         {
             if(m_Settings != null)
             {
                 m_Settings.Reset();
-                
+
                 // TODO: Tear the UI down and re-create it for now - this is horrible, so reset it instead.
                 UnregisterDebug();
                 RegisterDebug(m_Settings);
@@ -27,7 +26,7 @@ namespace UnityEditor.Rendering
         {
             DebugManager debugManager = DebugManager.instance;
             List<IDebugDisplaySettingsPanelDisposable> panels = new List<IDebugDisplaySettingsPanelDisposable>();
-            
+
             debugManager.RegisterData(this);
 
             m_Settings = settings;
@@ -44,7 +43,7 @@ namespace UnityEditor.Rendering
                 panels.Add(disposableSettingsPanel);
                 panelChildren.Add(panelWidgets);
             };
-            
+
             m_Settings.ForEach(onExecute);
         }
 

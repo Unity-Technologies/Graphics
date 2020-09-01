@@ -280,19 +280,11 @@ namespace UnityEngine.Rendering.UI
             if (DebugManager.instance.GetAction(DebugAction.PreviousDebugPanel) != 0f)
             {
                 SelectPreviousPanel();
-                if (index < 0)
-                    index = m_UIPanels.Count - 1;
-                index = Mathf.Clamp(index, 0, m_UIPanels.Count - 1);
-                ActivatePanel(index);
             }
 
             if (DebugManager.instance.GetAction(DebugAction.NextDebugPanel) != 0f)
             {
                 SelectNextPanel();
-                if (index >= m_UIPanels.Count)
-                    index = 0;
-                index = Mathf.Clamp(index, 0, m_UIPanels.Count - 1);
-                ActivatePanel(index);
             }
 
             if (DebugManager.instance.GetAction(DebugAction.Action) != 0f)

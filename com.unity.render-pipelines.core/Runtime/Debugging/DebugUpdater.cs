@@ -1,3 +1,6 @@
+
+using UnityEngine.EventSystems;
+
 namespace UnityEngine.Rendering
 {
     class DebugUpdater : MonoBehaviour
@@ -41,7 +44,7 @@ namespace UnityEngine.Rendering
                     }
                 }
             }
-            
+
             if (debugManager.displayRuntimeUI && debugManager.GetAction(DebugAction.ResetAll) != 0.0f)
             {
                 debugManager.Reset();

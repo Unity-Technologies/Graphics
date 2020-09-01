@@ -1,4 +1,4 @@
-namespace UnityEngine.Rendering.LWRP
+namespace UnityEngine.Rendering.Universal.Internal
 {
     /// <summary>
     /// Copy the given color target to the current camera target
@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.LWRP
         bool m_IsMobileOrSwitch;
         Rect m_PixelRect;
         int m_DebugMode;
-        float m_NearPlane; 
+        float m_NearPlane;
         float m_FarPlane;
 
         public DebugPass(RenderPassEvent evt, Material blitMaterial)
@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.LWRP
         /// <param name="colorHandle"></param>
         /// <param name="clearBlitTarget"></param>
         /// <param name="pixelRect"></param>
-        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetIdentifier colorIdentifier, int debugMode, 
+        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetIdentifier colorIdentifier, int debugMode,
             float nearPlane, float farPlane, bool clearBlitTarget = false, Rect pixelRect = new Rect())
         {
             m_Source = colorIdentifier;
@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.LWRP
             //    // Clearing render target is cost free on mobile and it avoid tile loading
             //    if (m_IsMobileOrSwitch)
             //        cmd.ClearRenderTarget(true, true, Color.black);
-                
+
             //    cmd.Blit(m_Source.Identifier(), BuiltinRenderTextureType.CameraTarget);
             //}
             //else

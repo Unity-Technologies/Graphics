@@ -1,6 +1,6 @@
 
 using System;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering
         /// The name used when displaying this panel.
         /// </summary>
         string PanelName { get; }
-        
+
         /// <summary>
         /// Widgets used by this panel.
         /// </summary>

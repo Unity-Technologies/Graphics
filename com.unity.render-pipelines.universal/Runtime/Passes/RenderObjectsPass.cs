@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditor.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
 using UnityEngine.Scripting.APIUpdating;
@@ -117,7 +118,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 var sceneOverrideMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
                 bool isMaterialDebugActive = lightingDebugMode != LightingDebugMode.None ||
-                                             debugMaterialIndex != DebugMaterialIndex.None || 
+                                             debugMaterialIndex != DebugMaterialIndex.None ||
                                              pbrLightingDebugModeMask != (int)PBRLightingDebugMode.None;
                 bool isSceneOverrideActive = sceneOverrideMode != SceneOverrides.None;
                 if (isMaterialDebugActive || isSceneOverrideActive)
@@ -131,7 +132,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     cmd.Clear();
 
                     bool overrideMaterial = isSceneOverrideActive;
-                        
+
                     RenderingUtils.RenderObjectWithDebug(context, ref renderingData,
                         m_FilteringSettings, sortingCriteria, overrideMaterial);
                 }

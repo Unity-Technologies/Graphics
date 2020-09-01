@@ -1,3 +1,5 @@
+using UnityEditor.Rendering;
+
 namespace UnityEngine.Rendering.Universal.Internal
 {
     /// <summary>

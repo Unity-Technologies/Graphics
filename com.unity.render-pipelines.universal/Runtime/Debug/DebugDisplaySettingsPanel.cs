@@ -1,13 +1,13 @@
 
 using System.Collections.Generic;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
     public abstract class DebugDisplaySettingsPanel : IDebugDisplaySettingsPanelDisposable
     {
         private readonly List<DebugUI.Widget> m_Widgets = new List<DebugUI.Widget>();
-        
+
         public abstract string PanelName { get; }
         public DebugUI.Widget[] Widgets => m_Widgets.ToArray();
 

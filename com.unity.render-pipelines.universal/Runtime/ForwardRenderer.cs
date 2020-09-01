@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using UnityEditor.Rendering;
 using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
@@ -180,7 +182,6 @@ namespace UnityEngine.Rendering.Universal
             // Special path for depth only offscreen cameras. Only write opaques + transparents.
             SceneOverrides sceneOverride = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
             bool isOffscreenDepthTexture = cameraData.targetTexture != null && cameraData.targetTexture.format == RenderTextureFormat.Depth;
-            bool isOffscreenDepthTexture = camera.targetTexture != null && camera.targetTexture.format == RenderTextureFormat.Depth;
             bool sceneOverrideEnabled = sceneOverride != SceneOverrides.None;
             if (isOffscreenDepthTexture || sceneOverrideEnabled)
             {
