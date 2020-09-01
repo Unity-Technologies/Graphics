@@ -1,6 +1,6 @@
-﻿using System;
+#if VFX_GRAPH_10_0_0_OR_NEWER
+using System;
 using UnityEditor.ShaderGraph;
-
 namespace UnityEditor.ShaderGraph
 {
     static class CreateVFXShaderGraph
@@ -20,3 +20,4 @@ namespace UnityEditor.ShaderGraph
         }
     }
 }
+#endif
