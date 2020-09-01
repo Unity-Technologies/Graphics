@@ -293,8 +293,9 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
+            bool isOverlayCamera = cameraData.renderType == CameraRenderType.Overlay;
             bool hasVisualSky = cameraData.visualSky != null && cameraData.visualSky.IsValid();
-            if (requiresDepthPrepass && hasVisualSky && camera.clearFlags == CameraClearFlags.Skybox)
+            if (requiresDepthPrepass && hasVisualSky && camera.clearFlags == CameraClearFlags.Skybox && !isOverlayCamera)
             {
                 m_SkyPrerenderPass.Setup(cameraTargetDescriptor, m_DepthTexture);
                 EnqueuePass(m_SkyPrerenderPass);
@@ -314,7 +315,6 @@ namespace UnityEngine.Rendering.Universal
 
             EnqueuePass(m_RenderOpaqueForwardPass);
 
-            bool isOverlayCamera = cameraData.renderType == CameraRenderType.Overlay;
             if (camera.clearFlags == CameraClearFlags.Skybox && !isOverlayCamera)
             {
                 if (hasVisualSky)
