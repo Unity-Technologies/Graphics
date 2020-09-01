@@ -17,6 +17,7 @@ The version number for this package has increased due to a version update of a r
 - Added method chaining support to shadergraph collection API.
 
 ### Fixed
+- Fixed a bug where ShaderGraph subgraph nodes would not update their slot names or order
 - Fixed an issue where very old ShaderGraphs would fail to load because of uninitialized data [1269616](https://issuetracker.unity3d.com/issues/shadergraph-matrix-split-and-matrix-combine-shadergraphs-in-shadergraph-automated-tests-dont-open-throw-error)
 
 ## [10.0.0] - 2019-06-10
@@ -57,6 +58,8 @@ The version number for this package has increased due to a version update of a r
 - Added support for `Linear Blend Skinning` Node to Universal Render Pipeline.
 - Moved all code to be under Unity specific namespaces.
 - Changed ShaderGraphImporter and ShaderSubgraphImporter so that graphs are imported before Models.
+- Remove VFXTarget if VisualEffect Graph package isn't included.
+- VFXTarget doesn't overwrite the shader export anymore, VFXTarget can be active with another target.
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
@@ -163,6 +166,7 @@ The version number for this package has increased due to a version update of a r
 - Made sub graph importer deterministic to avoid cascading shader recompiles when no change was present.
 - Adjusted style sheet for Blackboard to prevent ui conflicts.
 - Fixed a bug where the SampleVirtualTexture node would delete slots when changing its LOD mode
+- Use preview of the other target if VFXTarget is active.
 
 ## [7.1.1] - 2019-09-05
 ### Added
