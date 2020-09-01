@@ -200,9 +200,10 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 // == 4. ==
                 var cubemapSize = (int)hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize;
-                var cubemapFormat = hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
+                // We force RGBAHalf as we don't support 11-11-10 textures (only RT)
+                var probeFormat = GraphicsFormat.R16G16B16A16_SFloat;
 
-                var cubeRT = HDRenderUtilities.CreateReflectionProbeRenderTarget(cubemapSize, (GraphicsFormat)cubemapFormat);
+                var cubeRT = HDRenderUtilities.CreateReflectionProbeRenderTarget(cubemapSize, probeFormat);
 
                 handle.EnterStage(
                     (int)BakingStages.ReflectionProbes,
@@ -259,7 +260,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     // Get from cache or render the probe
                     if (!File.Exists(cacheFile))
                     {
-                        var planarRT = HDRenderUtilities.CreatePlanarProbeRenderTarget((int)probe.resolution, (GraphicsFormat)hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat);
+                        var planarRT = HDRenderUtilities.CreatePlanarProbeRenderTarget((int)probe.resolution, probeFormat);
                         RenderAndWriteToFile(probe, cacheFile, cubeRT, planarRT);
                         planarRT.Release();
                     }
@@ -381,7 +382,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             var cubemapSize = (int)hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize;
-            var probeFormat = (GraphicsFormat)hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
+            // We force RGBAHalf as we don't support 11-11-10 textures (only RT)
+            var probeFormat = GraphicsFormat.R16G16B16A16_SFloat;
 
             var cubeRT = HDRenderUtilities.CreateReflectionProbeRenderTarget(cubemapSize, probeFormat);
 
