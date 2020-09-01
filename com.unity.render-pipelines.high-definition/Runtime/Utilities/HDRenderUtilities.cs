@@ -356,9 +356,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="cubemapSize">The cubemap size.</param>
         /// <param name="format">The cubemap format. It must match the format set in the asset.</param>
         /// <returns>The texture to use as reflection probe target.</returns>
-        public static RenderTexture CreateReflectionProbeRenderTarget(int cubemapSize, CubeReflectionProbeFormat format)
+        public static RenderTexture CreateReflectionProbeRenderTarget(int cubemapSize, GraphicsFormat format)
         {
-            return new RenderTexture(cubemapSize, cubemapSize, 1, (GraphicsFormat)format)
+            return new RenderTexture(cubemapSize, cubemapSize, 1, format)
             {
                 dimension = TextureDimension.Cube,
                 enableRandomWrite = true,

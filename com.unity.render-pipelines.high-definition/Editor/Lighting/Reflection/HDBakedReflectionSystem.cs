@@ -200,9 +200,9 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 // == 4. ==
                 var cubemapSize = (int)hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize;
-                var cubemapFormat = hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapFormat;
+                var cubemapFormat = hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
 
-                var cubeRT = HDRenderUtilities.CreateReflectionProbeRenderTarget(cubemapSize, cubemapFormat);
+                var cubeRT = HDRenderUtilities.CreateReflectionProbeRenderTarget(cubemapSize, (GraphicsFormat)cubemapFormat);
 
                 handle.EnterStage(
                     (int)BakingStages.ReflectionProbes,
@@ -259,7 +259,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     // Get from cache or render the probe
                     if (!File.Exists(cacheFile))
                     {
-                        var planarRT = HDRenderUtilities.CreatePlanarProbeRenderTarget((int)probe.resolution, (GraphicsFormat)hdPipeline.currentPlatformRenderPipelineSettings.colorBufferFormat);
+                        var planarRT = HDRenderUtilities.CreatePlanarProbeRenderTarget((int)probe.resolution, (GraphicsFormat)hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat);
                         RenderAndWriteToFile(probe, cacheFile, cubeRT, planarRT);
                         planarRT.Release();
                     }
@@ -381,15 +381,15 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             var cubemapSize = (int)hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize;
-            var cubemapFormat = hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapFormat;
+            var probeFormat = (GraphicsFormat)hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
 
-            var cubeRT = HDRenderUtilities.CreateReflectionProbeRenderTarget(cubemapSize, cubemapFormat);
+            var cubeRT = HDRenderUtilities.CreateReflectionProbeRenderTarget(cubemapSize, probeFormat);
 
             // Render and write the result to disk
             foreach (var probe in bakedProbes)
             {
                 var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
-                var planarRT = HDRenderUtilities.CreatePlanarProbeRenderTarget((int)probe.resolution, (GraphicsFormat)hdPipeline.currentPlatformRenderPipelineSettings.colorBufferFormat);
+                var planarRT = HDRenderUtilities.CreatePlanarProbeRenderTarget((int)probe.resolution, probeFormat);
                 RenderAndWriteToFile(probe, bakedTexturePath, cubeRT, planarRT);
                 planarRT.Release();
             }
