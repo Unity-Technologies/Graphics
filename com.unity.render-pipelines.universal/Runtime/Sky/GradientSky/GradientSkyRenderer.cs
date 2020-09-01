@@ -13,9 +13,13 @@ namespace UnityEngine.Rendering.Universal
         public override void Build()
         {
             var urpRendererData = UniversalRenderPipeline.asset.scriptableRendererData;
-            if (urpRendererData is ForwardRendererData)
+            if (urpRendererData is ForwardRendererData forwardRendererData)
             {
-                m_GradientSkyMaterial = CoreUtils.CreateEngineMaterial((urpRendererData as ForwardRendererData).shaders.skyGradientSkyPS);
+                m_GradientSkyMaterial = CoreUtils.CreateEngineMaterial(forwardRendererData.shaders.skyGradientSkyPS);
+            }
+            else if (urpRendererData is DeferredRendererData deferredRendererData)
+            {
+                m_GradientSkyMaterial = CoreUtils.CreateEngineMaterial(deferredRendererData.shaders.skyGradientSkyPS);
             }
         }
 
