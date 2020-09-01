@@ -1589,7 +1589,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 int lightDataIndex = -1;
 
-                switch (lightCategory)
+                switch (processedData.lightCategory)
                 {
                     case BoundedEntityCategory.PunctualLight:
                         lightDataIndex = m_BoundedEntityCollection.punctualLightData.Count; // Dangerous and error-prone
@@ -1604,7 +1604,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Keep track of the screen space shadow data
                 m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].additionalLightData = additionalLightData;
-                m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].lightDataIndex = lightDataIndex; /* FIX: THIS IS A BREAKING CHANGE FOR SHADOWS */
+                m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].lightDataIndex = lightDataIndex;
                 m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].valid = true;
                 m_ScreenSpaceShadowsUnion.Add(additionalLightData);
 
@@ -2246,10 +2246,10 @@ namespace UnityEngine.Rendering.HighDefinition
             processedData.lightType = additionalLightData.ComputeLightType(lightComponent);
             processedData.distanceToCamera = (additionalLightData.transform.position - hdCamera.camera.transform.position).magnitude;
 
-            // Evaluate the types that define the current light
             processedData.lightCategory = BoundedEntityCategory.Count;
-            processedData.gpuLightType = GPULightType.Point;
-            EvaluateGPULightType(processedData.lightType, processedData.additionalLightData.spotLightShape, processedData.additionalLightData.areaLightShape,
+            processedData.gpuLightType  = GPULightType.Point;
+
+            EvaluateGPULightType(processedData.additionalLightData.type, processedData.additionalLightData.spotLightShape, processedData.additionalLightData.areaLightShape,
                                  ref processedData.lightCategory, ref processedData.gpuLightType);
 
             if (processedData.lightCategory != BoundedEntityCategory.None)

@@ -450,22 +450,29 @@ namespace UnityEngine.Rendering.HighDefinition
                         // This matches the directional light
                         if (!m_CurrentScreenSpaceShadowData[lightIdx].valid) continue;
 
-                        // Fetch the light data and additional light data
-                        LightData currentLight = m_lightList.lights[m_CurrentScreenSpaceShadowData[lightIdx].lightDataIndex];
-                        HDAdditionalLightData currentAdditionalLightData = m_CurrentScreenSpaceShadowData[lightIdx].additionalLightData;
+                        HDAdditionalLightData extraLightData = m_CurrentScreenSpaceShadowData[lightIdx].additionalLightData;
+                        int lightDataIndex = m_CurrentScreenSpaceShadowData[lightIdx].lightDataIndex;
+
+                        BoundedEntityCategory category  = BoundedEntityCategory.Count;
+                        GPULightType          lightType = GPULightType.Point;
+
+                        EvaluateGPULightType(extraLightData.type, extraLightData.spotLightShape, extraLightData.areaLightShape,
+                                             ref category, ref lightType);
 
                         // Trigger the right algorithm based on the light type
-                        switch (currentLight.lightType)
+                        switch (lightType)
                         {
                             case GPULightType.Rectangle:
                             {
-                                RenderAreaScreenSpaceShadow(cmd, hdCamera, currentLight, currentAdditionalLightData, m_CurrentScreenSpaceShadowData[lightIdx].lightDataIndex, shadowHistoryArray, shadowHistoryValidityArray);
+                                LightData lightData = m_BoundedEntityCollection.areaLightData[lightDataIndex];
+                                RenderAreaScreenSpaceShadow(cmd, hdCamera, lightData, extraLightData, lightDataIndex, shadowHistoryArray, shadowHistoryValidityArray);
                             }
                             break;
                             case GPULightType.Point:
                             case GPULightType.Spot:
                             {
-                                RenderPunctualScreenSpaceShadow(cmd, hdCamera, currentLight, currentAdditionalLightData, m_CurrentScreenSpaceShadowData[lightIdx].lightDataIndex, shadowHistoryArray, shadowHistoryValidityArray);
+                                LightData lightData = m_BoundedEntityCollection.punctualLightData[lightDataIndex];
+                                RenderPunctualScreenSpaceShadow(cmd, hdCamera, lightData, extraLightData, lightDataIndex, shadowHistoryArray, shadowHistoryValidityArray);
                             }
                             break;
                         }
