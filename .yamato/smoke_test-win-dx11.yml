@@ -49,7 +49,6 @@ Smoke_Test_Win_DX11_Standalone_trunk:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
-        model: gtx1080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
@@ -71,7 +70,6 @@ Build_Smoke_Test_Win_DX11_Player_trunk:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
-        model: gtx1080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
@@ -135,7 +133,6 @@ Smoke_Test_Win_DX11_Standalone_fast-trunk:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
-        model: gtx1080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
@@ -157,7 +154,6 @@ Build_Smoke_Test_Win_DX11_Player_fast-trunk:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
-        model: gtx1080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
@@ -223,7 +219,6 @@ Smoke_Test_Win_DX11_Standalone_CUSTOM-REVISION:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
-        model: gtx1080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -246,7 +241,6 @@ Build_Smoke_Test_Win_DX11_Player_CUSTOM-REVISION:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
-        model: gtx1080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
