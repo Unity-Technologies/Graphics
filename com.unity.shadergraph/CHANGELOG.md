@@ -19,6 +19,7 @@ The version number for this package has increased due to a version update of a r
 ### Fixed
 - Fixed a bug where ShaderGraph subgraph nodes would not update their slot names or order
 - Fixed an issue where very old ShaderGraphs would fail to load because of uninitialized data [1269616](https://issuetracker.unity3d.com/issues/shadergraph-matrix-split-and-matrix-combine-shadergraphs-in-shadergraph-automated-tests-dont-open-throw-error)
+- Fixed an issue where ShaderGraph previews didn't display correctly when setting a texture to "None" [1264932]
 
 ## [10.0.0] - 2019-06-10
 ### Added
