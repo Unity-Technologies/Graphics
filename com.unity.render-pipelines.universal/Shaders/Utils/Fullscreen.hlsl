@@ -4,8 +4,6 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
 #if _USE_DRAW_PROCEDURAL
-float4 _ScaleBias;
-
 void GetProceduralQuad(in uint vertexID, out float4 positionCS, out float2 uv)
 {
     positionCS = GetQuadVertexPosition(vertexID);
