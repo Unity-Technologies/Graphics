@@ -110,6 +110,15 @@ void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputD
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = half3(0, 0, 0); // No GI currently.
     inputData.normalizedScreenSpaceUV = input.clipPos.xy;
+    inputData.normalTS = normalTS;
+    #if defined(LIGHTMAP_ON)
+    inputData.lightmapUV = input.lightmapUV;
+    #else
+    inputData.vertexSH = 0;
+    #endif
+    #if defined(_NORMALMAP)
+    inputData.tangentMatrixWS = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
+    #endif 
 }
 
 #ifdef GBUFFER

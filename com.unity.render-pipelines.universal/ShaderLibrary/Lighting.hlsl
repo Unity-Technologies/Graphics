@@ -363,6 +363,14 @@ inline void InitializeBRDFDataClearCoat(half clearCoatMask, half clearCoatSmooth
     // TODO: what about diffuse? at least in specular workflow diffuse should be recalculated as it directly depends on it.
 }
 
+inline BRDFData CreateBRDFData(SurfaceData surfaceData)
+{
+    BRDFData brdfData;
+
+    InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
+    return brdfData;
+}
+
 // Computes the specular term for EnvironmentBRDF
 half3 EnvironmentBRDFSpecular(BRDFData brdfData, half fresnelTerm)
 {
@@ -783,9 +791,73 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+//                         Debug Functions                                   //
+///////////////////////////////////////////////////////////////////////////////
+
+#if defined(_DEBUG_SHADER)
+
+half4 CalculateDebugShadowCascadeColor(InputData inputData)
+{
+    float4 shadowCoord = inputData.shadowCoord;
+    float3 positionWS = inputData.positionWS;
+    Light mainLight = GetMainLight(shadowCoord);
+    half cascadeIndex = ComputeCascadeIndex(positionWS);
+
+    float4 cascadeColors[] =
+    {
+        kBlueColor,
+        kGreenColor,
+        kYellowGreenColor,
+        kRedColor,
+    };
+
+    return (half4)(cascadeColors[cascadeIndex]);
+}
+
+half4 CalculateDebugLightingComplexityColor(InputData inputData)
+{
+    float4 lut[5] = {
+            float4(0, 1, 0, 0),
+            float4(0.25, 0.75, 0, 0),
+            float4(0.498, 0.5019, 0.0039, 0),
+            float4(0.749, 0.247, 0, 0),
+            float4(1, 0, 0, 0)
+    };
+
+    // Assume a main light and add 1 to the additional lights.
+    unsigned int numLights = clamp(GetAdditionalLightsCount()+1, 0, 4);
+    half4 fc = (half4)(lut[numLights]);
+
+    float4 clipPos = TransformWorldToHClip(inputData.positionWS);
+    float2 ndc = saturate((clipPos.xy / clipPos.w) * 0.5 + 0.5);
+
+#if UNITY_UV_STARTS_AT_TOP
+    if(_ProjectionParams.x < 0)
+        ndc.y = 1.0 - ndc.y;
+#endif
+
+    const float invNumChar = 1.0 / 10.0f;
+    ndc.x *= 5.0;
+    ndc.y *= 15.0;
+    ndc.x = fmod(ndc.x, invNumChar) + (numLights * invNumChar);
+
+    fc *= tex2D(_DebugNumberTexture, ndc.xy);
+
+    return fc;
+}
+
+bool IsLightingFeatureEnabled(uint bitIndex)
+{
+    return (_DebugPBRLightingMask == 0) || IsBitSet(_DebugPBRLightingMask, bitIndex);
+}
+
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
 //                      Fragment Functions                                   //
 //       Used by ShaderGraph and others builtin renderers                    //
 ///////////////////////////////////////////////////////////////////////////////
+#if defined(_DEBUG_SHADER)
 half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
 {
 #ifdef _SPECULARHIGHLIGHTS_OFF
@@ -794,10 +866,109 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     bool specularHighlightsOff = false;
 #endif
 
-    BRDFData brdfData;
-
     // NOTE: can modify alpha
-    InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
+    BRDFData brdfData = CreateBRDFData(surfaceData);
+    DebugData debugData = CreateDebugData(brdfData.diffuse, brdfData.specular, inputData.uv);
+    half4 debugColor;
+    half3 color = 0;
+
+    if(_DebugMaterialIndex == DEBUG_LIGHTING_COMPLEXITY)
+    {
+        return CalculateDebugLightingComplexityColor(inputData);
+    }
+    else if(_DebugLightingIndex == DEBUG_LIGHTING_SHADOW_CASCADES)
+    {
+        surfaceData.albedo = CalculateDebugShadowCascadeColor(inputData);
+    }
+    else if (CalculateColorForDebug(inputData, surfaceData, debugData, debugColor) && _DebugMaterialIndex == DEBUG_LOD)
+    {
+        surfaceData.albedo = debugColor;
+    }
+    else
+    {
+        if(UpdateSurfaceAndInputDataForDebug(surfaceData, inputData))
+        {
+            //inputData.bakedGI = SAMPLE_GI(inputData.lightmapUV, inputData.vertexSH, inputData.normalWS);
+        }
+    }
+    brdfData = CreateBRDFData(surfaceData);
+
+    if (CalculateColorForDebug(inputData, surfaceData, debugData, debugColor) && _DebugMaterialIndex != DEBUG_LOD)
+    {
+        return debugColor;
+    }
+
+
+    BRDFData brdfDataClearCoat = (BRDFData)0;
+#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
+    // base brdfData is modified here, rely on the compiler to eliminate dead computation by InitializeBRDFData()
+    InitializeBRDFDataClearCoat(surfaceData.clearCoatMask, surfaceData.clearCoatSmoothness, brdfData, brdfDataClearCoat);
+#endif
+
+    Light mainLight = GetMainLight(inputData.shadowCoord);
+
+    #if defined(_SCREEN_SPACE_OCCLUSION)
+        AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(inputData.normalizedScreenSpaceUV);
+        mainLight.color *= aoFactor.directAmbientOcclusion;
+        surfaceData.occlusion = min(surfaceData.occlusion, aoFactor.indirectAmbientOcclusion);
+    #endif
+
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
+    if(IsLightingFeatureEnabled(DEBUG_PBR_LIGHTING_ENABLE_GI))
+	{
+    	color += GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
+        	                        inputData.bakedGI, surfaceData.occlusion,
+            	                    inputData.normalWS, inputData.viewDirectionWS);
+	}
+
+    if(IsLightingFeatureEnabled(DEBUG_PBR_LIGHTING_ENABLE_PBR_LIGHTING))
+	{
+    	color += LightingPhysicallyBased(brdfData, brdfDataClearCoat,
+        	                             mainLight,
+           		                         inputData.normalWS, inputData.viewDirectionWS,
+                		                 surfaceData.clearCoatMask, specularHighlightsOff);
+	}
+
+#ifdef _ADDITIONAL_LIGHTS
+    if(IsLightingFeatureEnabled(DEBUG_PBR_LIGHTING_ENABLE_ADDITIONAL_LIGHTS))
+	{
+	    uint pixelLightCount = GetAdditionalLightsCount();
+	    for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
+    	{
+        	Light light = GetAdditionalLight(lightIndex, inputData.positionWS);
+	        #if defined(_SCREEN_SPACE_OCCLUSION)
+    	        light.color *= aoFactor.directAmbientOcclusion;
+        	#endif
+	        color += LightingPhysicallyBased(brdfData, brdfDataClearCoat,
+    	                                     light,
+        	                                 inputData.normalWS, inputData.viewDirectionWS,
+            	                             surfaceData.clearCoatMask, specularHighlightsOff);
+		}
+    }
+#endif
+
+#ifdef _ADDITIONAL_LIGHTS_VERTEX
+    if(IsLightingFeatureEnabled(DEBUG_PBR_LIGHTING_ENABLE_VERTEX_LIGHTING))
+	{
+    	color += inputData.vertexLighting * brdfData.diffuse;
+	}
+#endif
+
+    if(IsLightingFeatureEnabled(DEBUG_PBR_LIGHTING_ENABLE_EMISSION))
+	{
+    	color += surfaceData.emission;
+	}
+
+    return half4(color, surfaceData.alpha);
+}
+#else
+half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
+{
+#ifdef _SPECULARHIGHLIGHTS_OFF
+    bool specularHighlightsOff = true;
+#else
+    bool specularHighlightsOff = false;
+#endif
 
     BRDFData brdfDataClearCoat = (BRDFData)0;
 #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
@@ -845,6 +1016,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
 
     return half4(color, surfaceData.alpha);
 }
+#endif
 
 half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
     half smoothness, half occlusion, half3 emission, half alpha)

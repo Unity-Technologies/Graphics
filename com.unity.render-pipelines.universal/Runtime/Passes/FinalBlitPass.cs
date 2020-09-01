@@ -14,10 +14,16 @@ namespace UnityEngine.Rendering.Universal.Internal
         RenderTargetHandle m_Source;
         Material m_BlitMaterial;
 
+        int m_RangeMinId;
+        int m_InverseRangeSizeId;
+
         public FinalBlitPass(RenderPassEvent evt, Material blitMaterial)
         {
             m_BlitMaterial = blitMaterial;
             renderPassEvent = evt;
+
+            m_RangeMinId = Shader.PropertyToID("_RangeMinimum");
+            m_InverseRangeSizeId = Shader.PropertyToID("_RangeMaximum");
         }
 
         /// <summary>
@@ -48,6 +54,26 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
+	            if (DebugDisplaySettings.Instance.Validation.validationMode==DebugValidationMode.HiglightNanInfNegative)
+    	            cmd.EnableShaderKeyword("_DEBUG_HIGHLIGHT_NAN_INF_NEGATIVE_PIXELS");
+        	    else
+            	    cmd.DisableShaderKeyword("_DEBUG_HIGHLIGHT_NAN_INF_NEGATIVE_PIXELS");
+
+	            if (DebugDisplaySettings.Instance.Validation.validationMode == DebugValidationMode.HighlightOutsideOfRange)
+    	        {
+        	        cmd.EnableShaderKeyword("_DEBUG_HIGHLIGHT_PIXELS_OUTSIDE_RANGE");
+            	    cmd.SetGlobalFloat(m_RangeMinId, DebugDisplaySettings.Instance.Validation.RangeMin);
+                	cmd.SetGlobalFloat(m_InverseRangeSizeId, DebugDisplaySettings.Instance.Validation.RangeMax);
+
+	                if(DebugDisplaySettings.Instance.Validation.AlsoHighlightAlphaOutsideRange)
+    	                cmd.EnableShaderKeyword("_DEBUG_HIGHLIGHT_ALPHA_OUTSIDE_RANGE");
+        	        else
+            	        cmd.DisableShaderKeyword("_DEBUG_HIGHLIGHT_ALPHA_OUTSIDE_RANGE");
+	            }
+    	        else
+        	    {
+                	cmd.DisableShaderKeyword("_DEBUG_HIGHLIGHT_PIXELS_OUTSIDE_RANGE");
+            	}
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LinearToSRGBConversion,
                     cameraData.requireSrgbConversion);
@@ -82,7 +108,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
                 else
 #endif
-                if (isSceneViewCamera || cameraData.isDefaultViewport)
+                if ((isSceneViewCamera || cameraData.isDefaultViewport) && (DebugDisplaySettings.Instance.Validation.validationMode==DebugValidationMode.None))
                 {
                     // This set render target is necessary so we change the LOAD state to DontCare.
                     cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,

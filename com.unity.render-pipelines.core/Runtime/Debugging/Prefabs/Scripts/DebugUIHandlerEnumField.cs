@@ -8,7 +8,8 @@ namespace UnityEngine.Rendering.UI
     /// </summary>
     public class DebugUIHandlerEnumField : DebugUIHandlerWidget
     {
-        /// <summary>Name of the enum field.</summary>
+        public Text nextButtonText;
+        public Text previousButtonText;
         public Text nameLabel;
         /// <summary>Value of the enum field.</summary>
         public Text valueLabel;
@@ -30,6 +31,8 @@ namespace UnityEngine.Rendering.UI
         /// <returns>State of the widget.</returns>
         public override bool OnSelection(bool fromNext, DebugUIHandlerWidget previous)
         {
+            nextButtonText.color = colorSelected;
+            previousButtonText.color = colorSelected;
             nameLabel.color = colorSelected;
             valueLabel.color = colorSelected;
             return true;
@@ -40,6 +43,8 @@ namespace UnityEngine.Rendering.UI
         /// </summary>
         public override void OnDeselection()
         {
+            nextButtonText.color = colorDefault;
+            previousButtonText.color = colorDefault;
             nameLabel.color = colorDefault;
             valueLabel.color = colorDefault;
         }

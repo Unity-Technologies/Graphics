@@ -6,6 +6,83 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
+    public enum DebugMaterialIndex
+    {
+        None,
+        Unlit,
+        Diffuse,
+        Specular,
+        Alpha,
+        Smoothness,
+        AmbientOcclusion,
+        Emission,
+        NormalWorldSpace,
+        NormalTangentSpace,
+        LightingComplexity,
+		LOD,
+        Metallic,
+    }
+
+    public enum DebugReplacementPassType
+    {
+        None,
+        Overdraw,
+        Wireframe,
+        SolidWireframe,
+        Attributes,
+    }
+
+    public enum LightingDebugMode
+    {
+        None,
+        ShadowCascades,
+        LightOnly,
+        LightDetail,
+        Reflections,
+        ReflectionsWithSmoothness,
+    }
+
+	public enum VertexAttributeDebugMode
+	{
+        None,
+		Texcoord0,
+		Texcoord1,
+		Texcoord2,
+		Texcoord3,
+        Color,
+		Tangent,
+		Normal,
+	}
+
+    [Flags]
+    public enum PBRLightingDebugMode
+    {
+        None,
+        GI = 0x1,
+        PBRLight = 0x2,
+        AdditionalLights = 0x4,
+        VertexLighting = 0x8,
+        Emission = 0x10,
+    }
+
+    public enum DebugValidationMode
+    {
+        None,
+        HiglightNanInfNegative,
+        HighlightOutsideOfRange,
+        ValidateAlbedo,
+    }
+
+    public enum DebugMipInfo
+    {
+        None,
+        Level,
+        Count,
+        //CountReduction,
+        //StreamingMipBudget,
+        //StreamingMip,
+    }
+
     /// <summary>
     /// Contains properties and helper functions that you can use when rendering.
     /// </summary>
@@ -20,6 +97,25 @@ namespace UnityEngine.Rendering.Universal
             new ShaderTagId("VertexLMRGBM"),
             new ShaderTagId("VertexLM"),
         };
+
+        static List<ShaderTagId> m_DebugShaderPassNames = new List<ShaderTagId>()
+        {
+            new ShaderTagId("DebugMaterial"),
+            new ShaderTagId("LightweightForward"),
+        };
+
+        static Material m_ReplacementMaterial;
+
+        internal static Material replacementMaterial
+        {
+            get
+            {
+                if (m_ReplacementMaterial == null)
+                    m_ReplacementMaterial = new Material(Shader.Find("Hidden/Lightweight Render Pipeline/Debug/Replacement"));
+
+                return m_ReplacementMaterial;
+            }
+        }
 
         static Mesh s_FullscreenMesh = null;
 
@@ -242,6 +338,72 @@ namespace UnityEngine.Rendering.Universal
                 errorSettings.SetShaderPassName(i, m_LegacyShaderPassNames[i]);
 
             context.DrawRenderers(cullResults, ref errorSettings, ref filterSettings);
+        }
+
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        internal static void RenderObjectWithDebug(ScriptableRenderContext context, ref RenderingData renderingData,
+            FilteringSettings filterSettings, SortingCriteria sortingCriteria, bool overrideMaterial)
+        {
+            SortingSettings sortingSettings = new SortingSettings(renderingData.cameraData.camera) { criteria = sortingCriteria };
+
+            DrawingSettings debugSettings = new DrawingSettings(m_DebugShaderPassNames[
+                (overrideMaterial) ? 1 : 0], sortingSettings)
+            {
+                perObjectData = renderingData.perObjectData,
+                enableInstancing = true,
+                mainLightIndex = renderingData.lightData.mainLightIndex,
+                enableDynamicBatching = renderingData.supportsDynamicBatching,
+            };
+
+            if (overrideMaterial)
+            {
+                debugSettings.overrideMaterial = replacementMaterial;
+                var sceneOverrideMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
+                switch (sceneOverrideMode)
+                {
+                    case SceneOverrides.Overdraw:
+                        debugSettings.overrideMaterialPassIndex = 0;
+                        break;
+                    case SceneOverrides.Wireframe:
+                    case SceneOverrides.SolidWireframe:
+                        debugSettings.overrideMaterialPassIndex = 1;
+                        break;
+                }
+
+                if (DebugDisplaySettings.Instance.materialSettings.VertexAttributeDebugIndexData != VertexAttributeDebugMode.None)
+                {
+                    debugSettings.overrideMaterialPassIndex = 2;
+                }
+
+                    RenderStateBlock rsBlock = new RenderStateBlock();
+                bool wireframe = sceneOverrideMode == SceneOverrides.Wireframe || sceneOverrideMode == SceneOverrides.SolidWireframe;
+                if (wireframe)
+                {
+                    if (sceneOverrideMode == SceneOverrides.SolidWireframe)
+                    {
+                        replacementMaterial.SetColor("_DebugColor", Color.white);
+                        context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
+
+                        rsBlock.rasterState = new RasterState(CullMode.Back, -1, -1, true);
+                        rsBlock.mask = RenderStateMask.Raster;
+                    }
+
+                    context.Submit();
+                    GL.wireframe = true;
+                    replacementMaterial.SetColor("_DebugColor", Color.black);
+                }
+                context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings, ref rsBlock);
+
+                if (wireframe)
+                {
+                    context.Submit();
+                    GL.wireframe = false;
+                }
+            }
+            else
+            {
+                context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
+            }
         }
 
         // Caches render texture format support. SystemInfo.SupportsRenderTextureFormat and IsFormatSupported allocate memory due to boxing.

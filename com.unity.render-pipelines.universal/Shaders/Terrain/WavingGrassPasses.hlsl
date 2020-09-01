@@ -62,6 +62,12 @@ void InitializeInputData(GrassVertexOutput input, out InputData inputData)
 
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = input.clipPos.xy;
+    inputData.normalTS = input.normal;
+    #if defined(LIGHTMAP_ON)
+    inputData.lightmapUV = input.lightmapUV;
+    #else
+    inputData.vertexSH = input.vertexSH;
+    #endif
 }
 
 

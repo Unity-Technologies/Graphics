@@ -25,6 +25,19 @@ struct InputData
     half3   vertexLighting;
     half3   bakedGI;
     float2  normalizedScreenSpaceUV;
+
+    half3   normalTS;
+    #if defined(LIGHTMAP_ON)
+    half2   lightmapUV;
+    #else
+    float3  vertexSH;
+    #endif
+    #if defined(_NORMALMAP)
+    half3x3 tangentMatrixWS;
+    #endif
+
+    #if defined(_DEBUG_SHADER)
+    float2 uv;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

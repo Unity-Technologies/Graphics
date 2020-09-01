@@ -20,7 +20,7 @@ struct Varyings
     float2 uv                       : TEXCOORD0;
     DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
 
-#if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)
+#if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR) || defined(_DEBUG_SHOW_SHADOW_CASCADES)
     float3 positionWS               : TEXCOORD2;
 #endif
 
@@ -45,15 +45,14 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 {
     inputData = (InputData)0;
 
-#if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)
+#if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR) || defined(_DEBUG_SHOW_SHADOW_CASCADES)
     inputData.positionWS = input.positionWS;
 #endif
 
     half3 viewDirWS = SafeNormalize(input.viewDirWS);
 #ifdef _NORMALMAP
-    float sgn = input.tangentWS.w;      // should be either +1 or -1
-    float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
-    inputData.normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz));
+    inputData.tangentMatrixWS = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
+    inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentMatrixWS);
 #else
     inputData.normalWS = input.normalWS;
 #endif
@@ -73,6 +72,12 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = input.positionCS.xy;
+    inputData.normalTS = normalTS;
+    #if defined(LIGHTMAP_ON)
+    inputData.lightmapUV = input.lightmapUV;
+    #else
+    inputData.vertexSH = input.vertexSH;
+    #endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -114,7 +119,7 @@ Varyings LitPassVertex(Attributes input)
 
     output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
-#if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)
+#if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR) || defined(_DEBUG_SHOW_SHADOW_CASCADES)
     output.positionWS = vertexInput.positionWS;
 #endif
 
@@ -139,6 +144,9 @@ half4 LitPassFragment(Varyings input) : SV_Target
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
 
+#if defined(_DEBUG_SHADER)
+    inputData.uv = input.uv;
+#endif
     half4 color = UniversalFragmentPBR(inputData, surfaceData);
 
     color.rgb = MixFog(color.rgb, inputData.fogCoord);

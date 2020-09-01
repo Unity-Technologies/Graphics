@@ -37,7 +37,13 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Utils/Blit.shader")]
             public Shader blitPS;
 
-            [Reload("Shaders/Utils/CopyDepth.shader")]
+            [SerializeField, Reload("Shaders/Utils/FullScreenDebug.shader")]
+            public Shader fullScreenDebugPS;
+
+            [SerializeField, Reload("Shaders/DebugReplacement.shader")]
+            public Shader debugReplacementPS;
+
+            [SerializeField, Reload("Shaders/Utils/CopyDepth.shader")]
             public Shader copyDepthPS;
 
             [Reload("Shaders/Utils/ScreenSpaceShadows.shader")]
@@ -50,6 +56,17 @@ namespace UnityEngine.Rendering.Universal
             public Shader fallbackErrorPS;
         }
 
+        public ShaderResources shaders = null;
+
+        [Serializable, ReloadGroup]
+        public sealed class TextureResources
+        {
+            [SerializeField, Reload("Textures/numberFont.png")]
+            public Texture2D NumberFont;
+        }
+
+        public TextureResources textures = null;
+
         [Reload("Runtime/Data/PostProcessData.asset")]
         public PostProcessData postProcessData = null;
 
@@ -57,8 +74,6 @@ namespace UnityEngine.Rendering.Universal
         [Reload("Runtime/Data/XRSystemData.asset")]
         public XRSystemData xrSystemData = null;
 #endif
-
-        public ShaderResources shaders = null;
 
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;

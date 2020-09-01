@@ -13,6 +13,18 @@ namespace UnityEngine.Rendering.Universal
         const string k_CreateCameraTextures = "Create Camera Texture";
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_CreateCameraTextures);
 
+        int m_DebugMaterialIndexId;
+        int m_DebugLightingIndexId;
+        int m_DebugVertexAttributesIndexId;
+        int m_DebugPBRLightingMask;
+        int m_DebugValidationIndexId;
+        int m_DebugAlbedoMinLuminance;
+        int m_DebugAlbedoMaxLuminance;
+        int m_DebugAlbedoSaturationTolerance;
+        int m_DebugAlbedoHueTolerance;
+        int m_DebugAlbedoCompareColor;
+        int m_DebugMipIndexId;
+
         ColorGradingLutPass m_ColorGradingLutPass;
         DepthOnlyPass m_DepthPrepass;
         DepthNormalOnlyPass m_DepthNormalPrepass;
@@ -29,6 +41,7 @@ namespace UnityEngine.Rendering.Universal
         PostProcessPass m_FinalPostProcessPass;
         FinalBlitPass m_FinalBlitPass;
         CapturePass m_CapturePass;
+        DebugPass m_DebugPass;
 #if ENABLE_VR && ENABLE_XR_MODULE
         XROcclusionMeshPass m_XROcclusionMeshPass;
 #endif
@@ -54,11 +67,28 @@ namespace UnityEngine.Rendering.Universal
         Material m_SamplingMaterial;
         Material m_ScreenspaceShadowsMaterial;
 
+        Texture2D m_NumberFontTexture;
+
         public ForwardRenderer(ForwardRendererData data) : base(data)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             UniversalRenderPipeline.m_XRSystem.InitializeXRSystemData(data.xrSystemData);
 #endif
+
+            m_DebugMaterialIndexId = Shader.PropertyToID("_DebugMaterialIndex");
+            m_DebugLightingIndexId = Shader.PropertyToID("_DebugLightingIndex");
+            m_DebugVertexAttributesIndexId = Shader.PropertyToID("_DebugAttributesIndex");
+            m_DebugPBRLightingMask = Shader.PropertyToID("_DebugPBRLightingMask");
+            m_DebugValidationIndexId = Shader.PropertyToID("_DebugValidationIndex");
+            m_DebugAlbedoMinLuminance = Shader.PropertyToID("_AlbedoMinLuminance");
+            m_DebugAlbedoMaxLuminance = Shader.PropertyToID("_AlbedoMaxLuminance");
+            m_DebugAlbedoSaturationTolerance = Shader.PropertyToID("_AlbedoSaturationTolerance");
+            m_DebugAlbedoHueTolerance = Shader.PropertyToID("_AlbedoHueTolerance");
+            m_DebugAlbedoCompareColor = Shader.PropertyToID("_AlbedoCompareColor");
+            m_DebugMipIndexId = Shader.PropertyToID("_DebugMipIndex");
+
+            m_NumberFontTexture = data.textures.NumberFont;
+            Material fullScreenDebugMaterial = CoreUtils.CreateEngineMaterial(data.shaders.fullScreenDebugPS);
 
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
@@ -94,6 +124,7 @@ namespace UnityEngine.Rendering.Universal
             m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRendering + 1, data.postProcessData, m_BlitMaterial);
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
+            m_DebugPass = new DebugPass(RenderPassEvent.AfterRendering, fullScreenDebugMaterial);
 
 #if UNITY_EDITOR
             m_SceneViewDepthCopyPass = new SceneViewDepthCopyPass(RenderPassEvent.AfterRendering + 9, m_CopyDepthMaterial);
@@ -134,15 +165,66 @@ namespace UnityEngine.Rendering.Universal
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 
-            // Special path for depth only offscreen cameras. Only write opaques + transparents.
-            bool isOffscreenDepthTexture = cameraData.targetTexture != null && cameraData.targetTexture.format == RenderTextureFormat.Depth;
-            if (isOffscreenDepthTexture)
+            for (int i = 0; i < rendererFeatures.Count; ++i)
             {
-                ConfigureCameraTarget(BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
-                AddRenderPasses(ref renderingData);
+                rendererFeatures[i].AddRenderPasses(this, ref renderingData);
+            }
+
+            int count = activeRenderPassQueue.Count;
+            for (int i = count - 1; i >= 0; i--)
+            {
+                if(activeRenderPassQueue[i] == null)
+                    activeRenderPassQueue.RemoveAt(i);
+            }
+
+            // Special path for depth only offscreen cameras. Only write opaques + transparents.
+            SceneOverrides sceneOverride = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
+            bool isOffscreenDepthTexture = cameraData.targetTexture != null && cameraData.targetTexture.format == RenderTextureFormat.Depth;
+            bool isOffscreenDepthTexture = camera.targetTexture != null && camera.targetTexture.format == RenderTextureFormat.Depth;
+            bool sceneOverrideEnabled = sceneOverride != SceneOverrides.None;
+            if (isOffscreenDepthTexture || sceneOverrideEnabled)
+            {
+                m_ActiveCameraColorAttachment = RenderTargetHandle.CameraTarget;
+                m_ActiveCameraDepthAttachment = RenderTargetHandle.CameraTarget;
+                if (sceneOverride == SceneOverrides.Overdraw)
+                {
+                    m_ActiveCameraColorAttachment = m_CameraColorAttachment;
+                    m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
+
+                    CreateCameraRenderTarget(context, ref renderingData.cameraData);
+                    ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(),
+                        BuiltinRenderTextureType.CameraTarget);
+                }
+
+                if (renderingData.cameraData.isSceneViewCamera)
+                {
+                    m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
+                    EnqueuePass(m_DepthPrepass);
+                }
+
                 EnqueuePass(m_RenderOpaqueForwardPass);
-                EnqueuePass(m_DrawSkyboxPass);
+
+                if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null)
+                {
+                    EnqueuePass(m_DrawSkyboxPass);
+                }
+
                 EnqueuePass(m_RenderTransparentForwardPass);
+
+                if (m_CameraColorAttachment != RenderTargetHandle.CameraTarget)
+                {
+                    m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
+                    EnqueuePass(m_FinalBlitPass);
+                }
+
+#if UNITY_EDITOR
+                if (renderingData.cameraData.isSceneViewCamera)
+                {
+                    m_SceneViewDepthCopyPass.Setup(m_DepthTexture);
+                    EnqueuePass(m_SceneViewDepthCopyPass);
+                }
+#endif
+
                 return;
             }
 
@@ -249,6 +331,7 @@ namespace UnityEngine.Rendering.Universal
                 ConfigureCameraTarget(activeColorRenderTargetId, activeDepthRenderTargetId);
             }
 
+			// TODO: We removed this removal (and adding) of render-features on the Hackweek Debug Views project but I don't know why!!!
             int count = activeRenderPassQueue.Count;
             for (int i = count - 1; i >= 0; i--)
             {
@@ -381,6 +464,38 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_AfterPostProcessColor, m_ActiveCameraDepthAttachment, m_ColorGradingLut, false, false);
                 EnqueuePass(m_PostProcessPass);
+            }
+
+            var fullScreenDebugMode = DebugDisplaySettings.Instance.renderingSettings.fullScreenDebugMode;
+            if (fullScreenDebugMode != FullScreenDebugMode.None )
+            {
+                RenderTargetIdentifier debugBuffer;
+                Rect pixelRect = new Rect();
+
+                switch (fullScreenDebugMode)
+                {
+                    case FullScreenDebugMode.Depth:
+                        debugBuffer = m_DepthTexture.Identifier();
+                        break;
+                    case FullScreenDebugMode.MainLightShadowsOnly:
+                        debugBuffer = new RenderTargetIdentifier("_ScreenSpaceShadowmapTexture");
+                        break;
+                    case FullScreenDebugMode.AdditionalLightsShadowMap:
+                        debugBuffer = m_AdditionalLightsShadowCasterPass.m_AdditionalLightsShadowmapTexture;
+                        pixelRect = new Rect(0, 0.5f * camera.pixelHeight, 0.5f * camera.pixelHeight, 0.5f * camera.pixelHeight);
+                        break;
+                    case FullScreenDebugMode.MainLightShadowMap:
+                        debugBuffer = m_MainLightShadowCasterPass.m_MainLightShadowmapTexture;
+                        pixelRect = new Rect(0, 0.5f * camera.pixelHeight, 0.5f * camera.pixelHeight, 0.5f * camera.pixelHeight);
+                        break;
+                    default:
+                        debugBuffer = m_OpaqueColor.Identifier();
+                        break;
+                }
+
+                m_DebugPass.Setup(cameraTargetDescriptor, debugBuffer, (int)fullScreenDebugMode,
+                    renderingData.cameraData.camera.nearClipPlane, renderingData.cameraData.camera.farClipPlane, false, pixelRect);
+                EnqueuePass(m_DebugPass);
             }
 
 #if UNITY_EDITOR
@@ -561,6 +676,35 @@ namespace UnityEngine.Rendering.Universal
             //bool msaaDepthResolve = msaaEnabledForCamera && SystemInfo.supportsMultisampledTextures != 0;
             bool msaaDepthResolve = false;
             return supportsDepthCopy || msaaDepthResolve;
+        }
+
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        void SetupDebugRendering(ScriptableRenderContext context)
+        {
+            debugMaterialIndex = DebugDisplaySettings.Instance.materialSettings.DebugMaterialIndexData;
+            lightingDebugMode = DebugDisplaySettings.Instance.Lighting.m_LightingDebugMode;
+            attributeDebugIndex = DebugDisplaySettings.Instance.materialSettings.VertexAttributeDebugIndexData;
+            PBRLightingDebugMode pbrLightingDebugMode = DebugDisplaySettings.Instance.Lighting.m_PBRLightingDebugMode;
+            pbrLightingDebugModeMask = (int) pbrLightingDebugMode;
+            debugMipInfo = DebugDisplaySettings.Instance.renderingSettings.mipInfoDebugMode;
+
+            var cmd = CommandBufferPool.Get("");
+            cmd.SetGlobalFloat(m_DebugMaterialIndexId, (int)debugMaterialIndex);
+            cmd.SetGlobalFloat(m_DebugLightingIndexId, (int)lightingDebugMode);
+			cmd.SetGlobalFloat(m_DebugVertexAttributesIndexId, (int)attributeDebugIndex);
+            cmd.SetGlobalInt(m_DebugPBRLightingMask, (int)pbrLightingDebugModeMask);
+            cmd.SetGlobalInt(m_DebugMipIndexId, (int)debugMipInfo);
+            cmd.SetGlobalInt(m_DebugValidationIndexId, (int)DebugDisplaySettings.Instance.Validation.validationMode);
+
+            cmd.SetGlobalFloat(m_DebugAlbedoMinLuminance, DebugDisplaySettings.Instance.Validation.AlbedoMinLuminance);
+            cmd.SetGlobalFloat(m_DebugAlbedoMaxLuminance, DebugDisplaySettings.Instance.Validation.AlbedoMaxLuminance);
+            cmd.SetGlobalFloat(m_DebugAlbedoSaturationTolerance, DebugDisplaySettings.Instance.Validation.AlbedoSaturationTolerance);
+            cmd.SetGlobalFloat(m_DebugAlbedoHueTolerance, DebugDisplaySettings.Instance.Validation.AlbedoHueTolerance);
+            cmd.SetGlobalColor(m_DebugAlbedoCompareColor, DebugDisplaySettings.Instance.Validation.AlbedoCompareColor.linear);
+
+            cmd.SetGlobalTexture("_DebugNumberTexture", m_NumberFontTexture);
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
         }
     }
 }

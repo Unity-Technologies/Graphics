@@ -55,7 +55,20 @@ namespace UnityEngine.Rendering.Universal
             else
 #endif
             {
-                context.DrawSkybox(renderingData.cameraData.camera);
+	            var sceneOverrideMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
+    	        if (sceneOverrideMode == SceneOverrides.Overdraw)
+        	    {
+            	    Material skyboxMaterial = RenderSettings.skybox;
+                	RenderSettings.skybox = RenderingUtils.replacementMaterial;
+	                context.Submit();
+    	            context.DrawSkybox(renderingData.cameraData.camera);
+        	        context.Submit();
+            	    RenderSettings.skybox = skyboxMaterial;
+	            }
+    	        else
+        	    {
+                	context.DrawSkybox(renderingData.cameraData.camera);
+            	}
             }
         }
     }

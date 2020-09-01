@@ -540,6 +540,53 @@ Shader "Universal Render Pipeline/Lit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Universal2D.hlsl"
             ENDHLSL
         }
+
+        Pass
+        {
+            Name "DebugMaterial"
+            Tags { "LightMode" = "DebugMaterial" }
+            
+            Blend[_SrcBlend][_DstBlend]
+            ZWrite[_ZWrite]
+            Cull[_Cull]
+
+            HLSLPROGRAM
+            // Required to compile gles 2.0 with standard SRP library
+            // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
+            #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
+            #pragma target 2.0
+            
+            #pragma shader_feature _NORMALMAP
+            #pragma shader_feature _ALPHATEST_ON
+            #pragma shader_feature _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature _EMISSION
+            #pragma shader_feature _METALLICSPECGLOSSMAP
+            #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+            #pragma shader_feature _OCCLUSIONMAP
+            
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ LIGHTMAP_ON
+
+            // defines for shadow cascades mode
+            #define _DEBUG_SHADER
+            #define _ADDITIONAL_LIGHTS
+            #define _MAIN_LIGHT_SHADOWS
+            #define _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _DEBUG_ENVIRONMENTREFLECTIONS_OFF
+            #ifdef _DEBUG_ENVIRONMENTREFLECTIONS_OFF
+                #define _ENVIRONMENTREFLECTIONS_OFF
+            #endif
+
+            #pragma vertex LitPassVertex
+            #pragma fragment LitPassFragment
+
+            #include "LitInput.hlsl"
+            #include "LitForwardPass.hlsl"
+            ENDHLSL
+        }
     }
 
     FallBack "Hidden/Universal Render Pipeline/FallbackError"
