@@ -25,6 +25,12 @@ public class UniversalGraphicsTests
 
     public IEnumerator Run(GraphicsTestCase testCase)
     {
+        //Ignore this test if test scene is NOT in the deferred test scene list
+        if ( !System.Array.Exists(IncludeTheseTestsForDeferred, x => testCase.ScenePath.ToString().Contains(x)) )
+        {
+            Assert.Ignore("This test is ignored for Deferred Rendering Path."); 
+        }
+
 #if ENABLE_VR
         // XRTODO: Fix XR tests on macOS or disable them from Yamato directly
         if (XRGraphicsAutomatedTests.enabled && (Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer))
@@ -38,12 +44,6 @@ public class UniversalGraphicsTests
         var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x=>x.GetComponent<Camera>());
         var settings = Object.FindObjectOfType<UniversalGraphicsTestSettings>();
         Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
-
-        //Ignore this test if test scene is NOT in the deferred test scene list
-        if ( !System.Array.Exists(IncludeTheseTestsForDeferred, x => testCase.ScenePath.ToString().Contains(x)) )
-        {
-            Assert.Ignore("This test is ignored for Deferred Rendering Path."); 
-        }
 
 #if ENABLE_VR
         if (XRGraphicsAutomatedTests.enabled)
