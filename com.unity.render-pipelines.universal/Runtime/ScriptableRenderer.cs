@@ -596,8 +596,9 @@ namespace UnityEngine.Rendering.Universal
         void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass, ref RenderingData renderingData)
         {
             // TODO: pass cmd here?
-
+#if UNITY_2020_2_OR_NEWER
             using var profScope = new ProfilingScope(null, renderPass.profilingSampler);
+#endif
             ref CameraData cameraData = ref renderingData.cameraData;
 
             CommandBuffer cmd = CommandBufferPool.Get();

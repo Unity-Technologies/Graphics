@@ -55,11 +55,39 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // Creates a ProfilingScope for GPU and CPU profiling into a command buffer.
-        // Shows as the GPU and CPU time for executing the command buffer.
-        // "Inl_" CPU time creating the command buffer. (time outside of the command buffer)
+        // Which show the GPU and the CPU time for executing the command buffer.
+        // Also creates "Inl_" CPU time scope outside of the command buffer.
         public static ProfilingScope GetGPUScope(CommandBuffer cmd, string scopeName)
         {
             return new ProfilingScope(cmd, TryGetOrAddSampler(scopeName));
+        }
+
+        // Creates an "immediate" CPU scope named by an enum.
+        // Use 'URPProfileId' enum type to track the scope in the performance test framework.
+        public static ProfilingScope GetCPUScope<TEnum>(TEnum scopeId)
+            where TEnum : Enum
+        {
+            return new ProfilingScope(null, ProfilingSampler.Get(scopeId));
+        }
+
+        // Creates a GPU + CPU scope named by an enum into a command buffer.
+        // Use 'URPProfileId' enum type to track the scope in the performance test framework.
+        public static ProfilingScope GetGPUScope<TEnum>(CommandBuffer cmd, TEnum scopeId)
+            where TEnum : Enum
+        {
+            return new ProfilingScope(cmd, ProfilingSampler.Get(scopeId));
+        }
+
+        // Creates an "immediate" CPU scope using a existing sampler
+        public static ProfilingScope GetCPUScope(ProfilingSampler scopeSampler)
+        {
+            return new ProfilingScope(null, scopeSampler);
+        }
+
+        // Creates a GPU + CPU scope into a command buffer using existing sampler
+        public static ProfilingScope GetGPUScope(CommandBuffer cmd, ProfilingSampler scopeSampler)
+        {
+            return new ProfilingScope(cmd, scopeSampler);
         }
 
         // CPU "immediate" scope using a separate key (any object hash) and two-part dynamic name of form "categoryName + detailName".
@@ -72,18 +100,6 @@ namespace UnityEngine.Rendering.Universal
         public static ProfilingScope GetGPUScope(CommandBuffer cmd, int hashKey, string categoryName, string detailName)
         {
             return new ProfilingScope(cmd, TryGetOrAddSampler(hashKey, categoryName, detailName));
-        }
-
-        // Convenience overload for switching between cached and static sampler
-        public static ProfilingScope GetCPUScope(ProfilingSampler scopeSampler)
-        {
-            return new ProfilingScope(null, scopeSampler);
-        }
-
-        // Convenience overload for switching between cached and static sampler
-        public static ProfilingScope GetGPUScope(CommandBuffer cmd, ProfilingSampler scopeSampler)
-        {
-            return new ProfilingScope(cmd, scopeSampler);
         }
 
         // Get a cached ProfilingSampler or add into the cache if not found.
@@ -290,7 +306,9 @@ namespace UnityEngine.Rendering.Universal
             // TODO: Would be better to add Profiling name hooks into RenderPipelineManager.
             // TODO: This is a C# 8.0 feature, supported in Unity 2020.2, but are much cleaner. Perhaps ifdef these out from previous versions,
             // TODO: all the previous and some of the new scopes would still be present.
+#if UNITY_2020_2_OR_NEWER
             using var profScope = new ProfilingScope(null, UniversalProfilingCache.Pipeline.universalRenderPipelineRender);
+#endif
 
             // TODO: Would be better to add Profiling name hooks into RenderPipeline.cs
             using(new ProfilingScope(null, UniversalProfilingCache.Pipeline.beginFrameRendering))
@@ -469,7 +487,9 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="camera">Camera to render.</param>
         static void RenderCameraStack(ScriptableRenderContext context, Camera baseCamera)
         {
+#if UNITY_2020_2_OR_NEWER
             using var profScope = new ProfilingScope(null, UniversalProfilingCache.Pipeline.renderCameraStack);
+#endif
 
             baseCamera.TryGetComponent<UniversalAdditionalCameraData>(out var baseCameraAdditionalData);
 
@@ -647,7 +667,9 @@ namespace UnityEngine.Rendering.Universal
 
         static void UpdateVolumeFramework(Camera camera, UniversalAdditionalCameraData additionalCameraData)
         {
+#if UNITY_2020_2_OR_NEWER
             using var profScope = new ProfilingScope(null, UniversalProfilingCache.Pipeline.updateVolumeFramework);
+#endif
 
             // Default values when there's no additional camera data available
             LayerMask layerMask = 1; // "Default"
@@ -716,9 +738,9 @@ namespace UnityEngine.Rendering.Universal
 
         static void InitializeCameraData(Camera camera, UniversalAdditionalCameraData additionalCameraData, bool resolveFinalTarget, out CameraData cameraData)
         {
+#if UNITY_2020_2_OR_NEWER
             using var profScope = UniversalProfilingCache.GetCPUScope("InitializeCameraData");
-
-
+#endif
             cameraData = new CameraData();
             InitializeStackedCameraData(camera, additionalCameraData, ref cameraData);
             InitializeAdditionalCameraData(camera, additionalCameraData, resolveFinalTarget, ref cameraData);
@@ -733,7 +755,9 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cameraData">Camera data to initialize setttings.</param>
         static void InitializeStackedCameraData(Camera baseCamera, UniversalAdditionalCameraData baseAdditionalCameraData, ref CameraData cameraData)
         {
+#if UNITY_2020_2_OR_NEWER
             using var profScope = UniversalProfilingCache.GetCPUScope("InitializeStackedCameraData");
+#endif
 
             var settings = asset;
             cameraData.targetTexture = baseCamera.targetTexture;
@@ -827,7 +851,9 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cameraData">Settings to be initilized.</param>
         static void InitializeAdditionalCameraData(Camera camera, UniversalAdditionalCameraData additionalCameraData, bool resolveFinalTarget, ref CameraData cameraData)
         {
+#if UNITY_2020_2_OR_NEWER
             using var profScope = UniversalProfilingCache.GetCPUScope("InitializeAdditionalCameraData");
+#endif
 
             var settings = asset;
             cameraData.camera = camera;
@@ -911,7 +937,9 @@ namespace UnityEngine.Rendering.Universal
         static void InitializeRenderingData(UniversalRenderPipelineAsset settings, ref CameraData cameraData, ref CullingResults cullResults,
             bool anyPostProcessingEnabled, out RenderingData renderingData)
         {
+#if UNITY_2020_2_OR_NEWER
             using var profScope = UniversalProfilingCache.GetCPUScope("InitializeRenderingData");
+#endif
 
             var visibleLights = cullResults.visibleLights;
 
@@ -956,7 +984,9 @@ namespace UnityEngine.Rendering.Universal
 
         static void InitializeShadowData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, bool mainLightCastShadows, bool additionalLightsCastShadows, out ShadowData shadowData)
         {
+#if UNITY_2020_2_OR_NEWER
             using var profScope = UniversalProfilingCache.GetCPUScope("InitializeShadowData");
+#endif
 
             m_ShadowBiasData.Clear();
 
@@ -1034,7 +1064,9 @@ namespace UnityEngine.Rendering.Universal
 
         static void InitializeLightData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, int mainLightIndex, out LightData lightData)
         {
+#if UNITY_2020_2_OR_NEWER
             using var profScope = UniversalProfilingCache.GetCPUScope("InitializeLightData");
+#endif
 
             int maxPerObjectAdditionalLights = UniversalRenderPipeline.maxPerObjectLights;
             int maxVisibleAdditionalLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
@@ -1113,7 +1145,9 @@ namespace UnityEngine.Rendering.Universal
 
         static void SetupPerFrameShaderConstants()
         {
+#if UNITY_2020_2_OR_NEWER
             using var profScope = UniversalProfilingCache.GetCPUScope("SetupPerFrameShaderConstants");
+#endif
 
             // When glossy reflections are OFF in the shader we set a constant color to use as indirect specular
             SphericalHarmonicsL2 ambientSH = RenderSettings.ambientProbe;
