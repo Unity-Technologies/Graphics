@@ -12,7 +12,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public VisualEnvironment visualEnvironment;
             public HDRISky sky;
             public Volume volume;
+#if UNITY_EDITOR
             public int currentVolumeProfileHash;
+#endif
         }
 
 #if UNITY_EDITOR
