@@ -1,5 +1,9 @@
 #if (SHADERPASS == SHADERPASS_SHADOWCASTER)
+    // Shadow Casting Light geometric parameters. These variables are used when applying the shadow Normal Bias and are set by UnityEngine.Rendering.Universal.ShadowUtils.SetupShadowCasterConstantBuffer in com.unity.render-pipelines.universal/Runtime/ShadowUtils.cs 
+    // For Directional lights, _LightDirection is used when applying shadow Normal Bias.
+    // For Spot lights and Point lights, _LightPosition is used to compute the actual light direction because it is different at each shadow caster geometry vertex.
     float3 _LightDirection;
+    float3 _LightPosition;
 #endif
 
 Varyings BuildVaryings(Attributes input)
@@ -62,7 +66,12 @@ Varyings BuildVaryings(Attributes input)
 
 #if (SHADERPASS == SHADERPASS_SHADOWCASTER)
     // Define shadow pass specific clip position for Universal
-    output.positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, _LightDirection));
+    #if _CASTING_PUNCTUAL_LIGHT_SHADOW
+        float3 lightDirectionWS = normalize(_LightPosition - positionWS);
+    #else
+        float3 lightDirectionWS = _LightDirection;
+    #endif
+    output.positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, lightDirectionWS));
     #if UNITY_REVERSED_Z
         output.positionCS.z = min(output.positionCS.z, output.positionCS.w * UNITY_NEAR_CLIP_VALUE);
     #else
