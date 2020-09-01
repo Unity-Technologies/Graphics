@@ -7,7 +7,7 @@ Universal_OSX_OpenGLCore_playmode_trunk:
     name: Universal on OSX_OpenGLCore_playmode on version trunk
     agent:
         type: Unity::VM::osx
-        image: buildfarm/mac:stable
+        image: package-ci/mac:stable
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -25,7 +25,7 @@ Universal_OSX_OpenGLCore_editmode_trunk:
     name: Universal on OSX_OpenGLCore_editmode on version trunk
     agent:
         type: Unity::VM::osx
-        image: buildfarm/mac:stable
+        image: package-ci/mac:stable
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -43,7 +43,7 @@ Universal_OSX_OpenGLCore_playmode_XR_trunk:
     name: Universal on OSX_OpenGLCore_playmode_XR on version trunk
     agent:
         type: Unity::VM::osx
-        image: buildfarm/mac:stable
+        image: package-ci/mac:stable
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -61,7 +61,7 @@ Universal_OSX_OpenGLCore_playmode_CUSTOM-REVISION:
     name: Universal on OSX_OpenGLCore_playmode on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
-        image: buildfarm/mac:stable
+        image: package-ci/mac:stable
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -82,7 +82,7 @@ Universal_OSX_OpenGLCore_editmode_CUSTOM-REVISION:
     name: Universal on OSX_OpenGLCore_editmode on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
-        image: buildfarm/mac:stable
+        image: package-ci/mac:stable
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -103,7 +103,7 @@ Universal_OSX_OpenGLCore_playmode_XR_CUSTOM-REVISION:
     name: Universal on OSX_OpenGLCore_playmode_XR on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
-        image: buildfarm/mac:stable
+        image: package-ci/mac:stable
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
