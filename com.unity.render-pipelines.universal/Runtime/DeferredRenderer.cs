@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.Universal
         // renderer has a forward-only pass. Geometry in the forward-only pass are rendered during the depth-prepass, but not rendered
         // into the gbuffer pass. As such, fill-rate in the gbuffer pass and deferred pass is improved.
         DepthOnlyPass m_DepthPrepass;
+        SkyPrerenderPass m_SkyPrerenderPass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
         ScreenSpaceShadowResolvePass m_ScreenSpaceShadowResolvePass;
@@ -30,6 +31,7 @@ namespace UnityEngine.Rendering.Universal
         TileDepthRangePass m_TileDepthRangeExtraPass; // TODO use subpass API to hide this pass
         DeferredPass m_DeferredPass;
         DrawObjectsPass m_RenderOpaqueForwardOnlyPass;
+        SkyRenderPass m_SkyRenderPass;
         DrawSkyboxPass m_DrawSkyboxPass;
         CopyDepthPass m_CopyDepthPass0; // first copy for deferred shading pass
         CopyDepthPass m_CopyDepthPass1; // second copy after forward-only pass
@@ -111,6 +113,7 @@ namespace UnityEngine.Rendering.Universal
             // Note: Since all custom render passes inject first and we have stable sort,
             // we inject the builtin passes in the before events.
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
+            m_SkyPrerenderPass = new SkyPrerenderPass(RenderPassEvent.BeforeRenderingPrepasses);
             m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -130,6 +133,7 @@ namespace UnityEngine.Rendering.Universal
             // TO declare a material with unnamed pass and UniversalForward/UniversalForwardOnly pass is an ERROR, as the material will be rendered twice.
             m_RenderOpaqueForwardOnlyPass = new DrawObjectsPass("Render Opaques Forward Only", new ShaderTagId[] { new ShaderTagId("SRPDefaultUnlit"), new ShaderTagId("UniversalForwardOnly") }, true, RenderPassEvent.BeforeRenderingOpaques + 5, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_CopyDepthPass1 = new CopyDepthPass(RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial);
+            m_SkyRenderPass = new SkyRenderPass(RenderPassEvent.BeforeRenderingSkybox);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.BeforeRenderingTransparents, m_SamplingMaterial, m_BlitMaterial);
             m_TransparentSettingsPass = new TransparentSettingsPass(RenderPassEvent.BeforeRenderingTransparents, data.shadowTransparentReceive);
@@ -226,7 +230,7 @@ namespace UnityEngine.Rendering.Universal
                 // (m_MainLightShadowCasterPass and m_AdditionalLightsShadowCasterPass are not queued).
                 EnqueueDeferred(ref renderingData, requiresDepthPrepass, false, false);
 
-                EnqueuePass(m_DrawSkyboxPass);
+                EnqueuePass(m_DrawSkyboxPass); // TODO Use Sky system here too?
                 EnqueuePass(m_RenderTransparentForwardPass);
                 return;
             }
@@ -304,6 +308,14 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_DepthPrepass);
             }
 
+            bool isOverlayCamera = cameraData.renderType == CameraRenderType.Overlay;
+            bool hasVisualSky = cameraData.visualSky != null && cameraData.visualSky.IsValid();
+            if (requiresDepthPrepass && hasVisualSky && camera.clearFlags == CameraClearFlags.Skybox && !isOverlayCamera)
+            {
+                m_SkyPrerenderPass.Setup(cameraTargetDescriptor, m_CameraDepthAttachment);
+                EnqueuePass(m_SkyPrerenderPass);
+            }
+
             if (generateColorGradingLUT)
             {
                 m_ColorGradingLutPass.Setup(m_ColorGradingLut);
@@ -317,9 +329,17 @@ namespace UnityEngine.Rendering.Universal
 
             EnqueueDeferred(ref renderingData, requiresDepthPrepass, mainLightShadows, additionalLightShadows);
 
-			bool isOverlayCamera = cameraData.renderType == CameraRenderType.Overlay;
-            if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null && !isOverlayCamera)
-                EnqueuePass(m_DrawSkyboxPass);
+            if (camera.clearFlags == CameraClearFlags.Skybox && !isOverlayCamera)
+            {
+                if (hasVisualSky)
+                {
+                    EnqueuePass(m_SkyRenderPass);
+                }
+                else if (RenderSettings.skybox != null)
+                {
+                    EnqueuePass(m_DrawSkyboxPass);
+                }
+            }
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
             if (!requiresDepthPrepass && renderingData.cameraData.requiresDepthTexture)

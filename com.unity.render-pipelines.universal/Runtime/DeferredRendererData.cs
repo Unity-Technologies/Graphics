@@ -34,6 +34,8 @@ namespace UnityEngine.Rendering.Universal
         [Serializable, ReloadGroup]
         public sealed class ShaderResources
         {
+            // TODO This is the same as in ForwardRendererData :| Couldn't we have a CommonRendererData?
+
             [Reload("Shaders/Utils/Blit.shader")]
             public Shader blitPS;
 
@@ -57,6 +59,17 @@ namespace UnityEngine.Rendering.Universal
 
             [Reload("Shaders/Utils/FallbackError.shader")]
             public Shader fallbackErrorPS;
+
+            // Sky
+            [Reload("Skybox/Cubemap", ReloadAttribute.Package.Builtin)]
+            public Shader skyboxCubemapPS;
+
+            [Reload("Runtime/Sky/GradientSky/GradientSky.shader")]
+            public Shader skyGradientSkyPS;
+
+            // TODO HDRI sky
+            // TODO Physically based sky
+            // TODO Ambient probes
         }
 
         [Reload("Runtime/Data/PostProcessData.asset")]

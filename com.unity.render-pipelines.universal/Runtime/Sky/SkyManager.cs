@@ -86,6 +86,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(forwardRendererData.shaders.skyboxCubemapPS);
             }
+            else if (urpRendererData is DeferredRendererData deferredRendererData)
+            {
+                m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(deferredRendererData.shaders.skyboxCubemapPS);
+            }
 
             for (int i = 0; i < 6; ++i)
             {
