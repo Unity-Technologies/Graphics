@@ -87,10 +87,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle        flagMaskBuffer;
         }
 
-        TextureHandle CreateDepthBuffer(RenderGraph renderGraph, bool msaa)
+        TextureHandle CreateDepthBuffer(RenderGraph renderGraph, bool clear, bool msaa)
         {
             TextureDesc depthDesc = new TextureDesc(Vector2.one, true, true)
-                { depthBufferBits = DepthBits.Depth32, bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = true, name = msaa ? "CameraDepthStencilMSAA" : "CameraDepthStencil" };
+                { depthBufferBits = DepthBits.Depth32, bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = clear, name = msaa ? "CameraDepthStencilMSAA" : "CameraDepthStencil" };
 
             return renderGraph.CreateTexture(depthDesc);
         }
@@ -168,7 +168,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // TODO: See how to clean this. Some buffers are created outside, some inside functions...
             result.motionVectorsBuffer = CreateMotionVectorBuffer(renderGraph, msaa, clearMotionVectors);
-            result.depthBuffer = CreateDepthBuffer(renderGraph, msaa);
+            result.depthBuffer = CreateDepthBuffer(renderGraph, hdCamera.clearDepth, msaa);
             result.flagMaskBuffer = CreateFlagMaskTexture(renderGraph);
 
             RenderXROcclusionMeshes(renderGraph, hdCamera, colorBuffer, result.depthBuffer);
@@ -562,7 +562,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthResolveMaterial = m_DepthResolveMaterial;
                 passData.depthResolvePassIndex = SampleCountToPassIndex(m_MSAASamples);
 
-                passData.depthBuffer = builder.UseDepthBuffer(CreateDepthBuffer(renderGraph, false), DepthAccess.Write);
+                passData.depthBuffer = builder.UseDepthBuffer(CreateDepthBuffer(renderGraph, true, false), DepthAccess.Write);
                 passData.depthValuesBuffer = builder.UseColorBuffer(depthValuesBuffer, 0);
                 passData.normalBuffer = builder.UseColorBuffer(CreateNormalBuffer(renderGraph, false), 1);
                 if (passData.needMotionVectors)
@@ -746,8 +746,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
-            // We need to copy depth buffer texture if we want to bind it at this stage
-            CopyDepthBufferIfNeeded(renderGraph, hdCamera, ref output);
+            bool canReadBoundDepthBuffer = SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
+                                            SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
+                                            SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12;
+
+            if (!canReadBoundDepthBuffer)
+            {
+                // We need to copy depth buffer texture if we want to bind it at this stage
+                CopyDepthBufferIfNeeded(renderGraph, hdCamera, ref output);
+            }
 
             // If we have an incomplete depth buffer use for decal we will need to do another copy
             // after the rendering of the GBuffer
@@ -761,7 +768,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.meshDecalsRendererList = builder.UseRendererList(renderGraph.CreateRendererList(PrepareMeshDecalsRendererList(cullingResults, hdCamera, use4RTs)));
                 SetupDBufferTargets(renderGraph, passData, use4RTs, ref output, builder);
                 passData.decalBuffer = builder.ReadTexture(decalBuffer);
-                passData.depthTexture = builder.ReadTexture(output.depthPyramidTexture);
+                passData.depthTexture = canReadBoundDepthBuffer ? builder.ReadTexture(output.resolvedDepthBuffer) : builder.ReadTexture(output.depthPyramidTexture);
 
                 builder.SetRenderFunc(
                 (RenderDBufferPassData data, RenderGraphContext context) =>
