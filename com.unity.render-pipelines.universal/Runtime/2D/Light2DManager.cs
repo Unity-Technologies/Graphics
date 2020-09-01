@@ -160,6 +160,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     s_LayerBatches[i].Init(i);
             }
 
+            // reset them
+            for (var i = 0; i < s_LayerBatches.Length; i++)
+                s_LayerBatches[i].enabled = false;
+
             return s_LayerBatches;
         }
 

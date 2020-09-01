@@ -85,15 +85,18 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public static void CreateNormalMapRenderTexture(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd)
         {
-            var descriptor = new RenderTextureDescriptor(renderingData.cameraData.cameraTargetDescriptor.width, renderingData.cameraData.cameraTargetDescriptor.height);
-            descriptor.graphicsFormat = GetRenderTextureFormat();
-            descriptor.useMipMap = false;
-            descriptor.autoGenerateMips = false;
-            descriptor.depthBufferBits = 0;
-            descriptor.msaaSamples = renderingData.cameraData.cameraTargetDescriptor.msaaSamples;
-            descriptor.dimension = TextureDimension.Tex2D;
-
-            cmd.GetTemporaryRT(pass.rendererData.normalsRenderTarget.id, descriptor, FilterMode.Bilinear);
+            if (!pass.rendererData.isNormalsRenderTargetValid)
+            {
+                pass.rendererData.isNormalsRenderTargetValid = true;
+                var descriptor = new RenderTextureDescriptor(renderingData.cameraData.cameraTargetDescriptor.width, renderingData.cameraData.cameraTargetDescriptor.height);
+                descriptor.graphicsFormat = GetRenderTextureFormat();
+                descriptor.useMipMap = false;
+                descriptor.autoGenerateMips = false;
+                descriptor.depthBufferBits = 0;
+                descriptor.msaaSamples = renderingData.cameraData.cameraTargetDescriptor.msaaSamples;
+                descriptor.dimension = TextureDimension.Tex2D;
+                cmd.GetTemporaryRT(pass.rendererData.normalsRenderTarget.id, descriptor, FilterMode.Bilinear);
+            }
         }
 
         public static void CreateBlendStyleRenderTexture(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int blendStyleIndex, int rtid)
@@ -146,12 +149,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 }
             }
 
+            pass.rendererData.isNormalsRenderTargetValid = false;
             cmd.ReleaseTemporaryRT(pass.rendererData.normalsRenderTarget.id);
             cmd.ReleaseTemporaryRT(pass.rendererData.shadowsRenderTarget.id);
         }
 
 
-        private static bool RenderLightSet(IRenderPass2D pass, RenderingData renderingData, int blendStyleIndex, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTexture, bool rtNeedsClear, Color clearColor, List<Light2D> lights)
+        private static bool RenderLightSet(IRenderPass2D pass, RenderingData renderingData, int blendStyleIndex, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights)
         {
             var renderedAnyLight = false;
 
@@ -172,12 +176,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         continue;
 
                     ShadowRendering.RenderShadows(pass, renderingData, cmd, layerToRender, light, light.shadowIntensity, renderTexture, renderTexture);
-
-                    if (!renderedAnyLight && rtNeedsClear)
-                    {
-                        cmd.ClearRenderTarget(false, true, clearColor);
-                    }
-
                     renderedAnyLight = true;
 
                     if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
@@ -204,12 +202,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         cmd.DrawMesh(lightMesh, matrix, lightMaterial);
                     }
                 }
-            }
-
-            // If no lights were rendered, just clear the RenderTarget if needed
-            if (!renderedAnyLight && rtNeedsClear)
-            {
-                cmd.ClearRenderTarget(false, true, clearColor);
             }
 
             return renderedAnyLight;
@@ -351,23 +343,26 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        public static void RenderNormals(this IRenderPass2D pass, ScriptableRenderContext context, CullingResults cullResults, DrawingSettings drawSettings, FilteringSettings filterSettings, RenderTargetIdentifier depthTarget)
+        public static void RenderNormals(this IRenderPass2D pass, ScriptableRenderContext context, RenderingData renderingData, DrawingSettings drawSettings, FilteringSettings filterSettings, RenderTargetIdentifier depthTarget, CommandBuffer cmd)
         {
-
-            var cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
-                cmd.SetRenderTarget(pass.rendererData.normalsRenderTarget.Identifier(), depthTarget);
+                pass.CreateNormalMapRenderTexture(renderingData, cmd);
+                cmd.SetRenderTarget(
+                    pass.rendererData.normalsRenderTarget.Identifier(),
+                    RenderBufferLoadAction.DontCare,
+                    RenderBufferStoreAction.Store,
+                    depthTarget,
+                    RenderBufferLoadAction.Load,
+                    RenderBufferStoreAction.DontCare);
                 cmd.ClearRenderTarget(true, true, k_NormalClearColor);
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
                 drawSettings.SetShaderPassName(0, k_NormalsRenderingPassName);
-                context.DrawRenderers(cullResults, ref drawSettings, ref filterSettings);
+                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
             }
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
 
         public static void RenderLights(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, LayerBatch layerBatch)
@@ -381,18 +376,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     if ((layerBatch.lightStats.blendStylesUsed & (uint)(1 << i)) == 0)
                         continue;
 
-                    var sampleName = blendStyles[i].name;//$"{blendStyles[i].name}: Lights {layerBatch.layerToRender}_{i}";
+                    var sampleName = blendStyles[i].name;
                     cmd.BeginSample(sampleName);
 
-                    // var rtID = pass.rendererData.lightBlendStyles[i].renderTargetHandle.Identifier();
-                    var rtID = new RenderTargetIdentifier(layerBatch.renderTargetIds[i]);
-                    cmd.SetRenderTarget(rtID);
-
-                    // var rtDirty = false;
                     if (!Light2DManager.GetGlobalColor(layerToRender, i, out var clearColor))
                         clearColor = Color.black;
-                    // else
-                    //     rtDirty = true;
+
+                    var rtID = new RenderTargetIdentifier(layerBatch.renderTargetIds[i]);
+                    cmd.SetRenderTarget(rtID,
+                        RenderBufferLoadAction.DontCare,
+                        RenderBufferStoreAction.Store,
+                        RenderBufferLoadAction.DontCare,
+                        RenderBufferStoreAction.DontCare);
+                    cmd.ClearRenderTarget(false, true, clearColor);
 
                     RenderLightSet(
                         pass, renderingData,
@@ -400,8 +396,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         cmd,
                         layerToRender,
                         rtID,
-                        true,
-                        clearColor,
                         pass.rendererData.lightCullResult.visibleLights
                     );
 
