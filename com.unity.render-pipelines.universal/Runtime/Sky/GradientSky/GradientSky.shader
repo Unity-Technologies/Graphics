@@ -1,4 +1,4 @@
-Shader "Hidden/Universal Render Pipeline/SkyPrerender"
+Shader "Hidden/Universal Render Pipeline/Sky/GradientSky"
 {
     SubShader
     {
