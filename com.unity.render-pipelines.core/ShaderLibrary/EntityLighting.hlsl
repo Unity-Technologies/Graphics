@@ -350,7 +350,7 @@ real3 SampleDirectionalLightmap(TEXTURE2D_PARAM(lightmapTex, lightmapSampler), T
     return bakeDiffuseLighting;
 }
 
-real3 SampleDirectionalLightmap(TEXTURE2D_ARRAY_PARAM(lightmapTex, lightmapSampler), TEXTURE2D_ARRAY_PARAM(lightmapDirTex, lightmapDirSampler), float2 uv, float slice, float4 transform,
+void SampleDirectionalLightmap(TEXTURE2D_ARRAY_PARAM(lightmapTex, lightmapSampler), TEXTURE2D_ARRAY_PARAM(lightmapDirTex, lightmapDirSampler), float2 uv, float slice, float4 transform,
     float3 normalWS, float3 backNormalWS, bool encodedLightmap, real4 decodeInstructions, inout real3 bakeDiffuseLighting, inout real3 backBakeDiffuseLighting)
 {
      // In directional mode Enlighten bakes dominant light direction
