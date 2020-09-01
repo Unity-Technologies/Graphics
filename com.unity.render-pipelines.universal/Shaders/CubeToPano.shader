@@ -46,12 +46,8 @@ Shader "Hidden/CubeToPano"
         {
             half3 dir = normalize(dir_in);
             // coordinate frame is (-Z,X) meaning negative Z is primary axis and X is secondary axis.
-            float theta = acos(dir.z);
-            float phi = atan(dir.y / dir.x);
-
-            float pi = 3.1415926535897932384626433832795;
-            return half2(-theta/(2*pi)-1, phi/pi-0.5);
-            //return half2(1.0 - 0.5 * recipPi * atan2(dir.x, -dir.z), asin(dir.y) * recipPi + 0.5);
+            float recipPi = 1 / 3.1415926535897932384626433832795;
+            return half2(1.0 - 0.5 * recipPi * atan2(dir.x, -dir.z), asin(dir.y) * recipPi + 0.5);
         }
 
         half3 SphericalTexCoordinateToDirection(half2 sphTexCoord)
@@ -65,7 +61,6 @@ Shader "Hidden/CubeToPano"
             sincos(phi, siPh, csPh);
 
             // theta is 0 at negative Z (backwards). Coordinate frame is (-Z,X) meaning negative Z is primary axis and X is secondary axis.
-            return float3(sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta));
             return float3(siTh * csPh, siPh, -csTh * csPh);
         }
 
