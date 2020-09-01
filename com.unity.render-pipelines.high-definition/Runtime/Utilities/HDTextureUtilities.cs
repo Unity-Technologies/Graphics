@@ -56,6 +56,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 case RenderTextureFormat.ARGBFloat: format = TextureFormat.RGBAFloat; break;
                 case RenderTextureFormat.ARGBHalf: format = TextureFormat.RGBAHalf; break;
+                case RenderTextureFormat.RGB111110Float: format = TextureFormat.RGBAHalf; break;
                 default:
                     Assert.IsFalse(true, "Unmanaged format");
                     break;
