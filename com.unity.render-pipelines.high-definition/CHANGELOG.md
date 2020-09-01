@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
+- Improved performance to avoid generating coarse stencil buffer when not needed.
 
 ## [10.0.0] - 2019-06-10
 
