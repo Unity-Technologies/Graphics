@@ -24,7 +24,7 @@ class Project_StandaloneJob():
     def get_job_definition(self, project, editor, platform, api, test_platform, build_job):
 
         project_folder = project.get("folder_standalone", project["folder"])
-        cmd = get_cmd(platform["name"], api, 'standalone') 
+        cmd = get_cmd(platform["name"], api, 'standalone', "") 
         job = _job(project["name"], test_platform["name"], editor, platform, api, cmd(project_folder, platform, api, test_platform["args"]))
 
         if build_job is not None:
@@ -38,9 +38,3 @@ class Project_StandaloneJob():
                 job.set_skip_checkout(True)
             
         return job
-
-
-
-    
-    
-    

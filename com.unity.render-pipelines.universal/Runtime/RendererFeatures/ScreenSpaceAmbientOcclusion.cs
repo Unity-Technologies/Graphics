@@ -254,7 +254,7 @@ namespace UnityEngine.Rendering.Universal
                     return;
                 }
 
-                CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
+                CommandBuffer cmd = CommandBufferPool.Get();
                 using (new ProfilingScope(cmd, m_ProfilingSampler))
                 {
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, true);
@@ -270,6 +270,8 @@ namespace UnityEngine.Rendering.Universal
                     float flipSign = (renderingData.cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
                     Vector4 scaleBias = (flipSign < 0.0f) ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f) : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
                     cmd.SetGlobalVector(s_ScaleBiasID, scaleBias);
+
+                    PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
 
                     // Execute the SSAO
                     Render(cmd, m_SSAOTexture1Target, ShaderPasses.AO);

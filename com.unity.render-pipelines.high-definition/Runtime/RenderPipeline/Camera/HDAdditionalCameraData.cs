@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// The minimum allowed aperture.
         /// </summary>
-        public const float kMinAperture = 1f;
+        public const float kMinAperture = 0.7f;
 
         /// <summary>
         /// The maximum allowed aperture.
@@ -132,6 +132,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Additional component that holds HDRP specific parameters for Cameras.
     /// </summary>
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Camera" + Documentation.endURL)]
+    [AddComponentMenu("")] // Hide in menu
     [DisallowMultipleComponent, ExecuteAlways]
     [RequireComponent(typeof(Camera))]
     public partial class HDAdditionalCameraData : MonoBehaviour, IFrameSettingsHistoryContainer

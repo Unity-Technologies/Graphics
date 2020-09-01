@@ -147,9 +147,33 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                     (RenderOcclusionMeshesPassData data, RenderGraphContext ctx) =>
                     {
-                        data.hdCamera.xr.RenderOcclusionMeshes(ctx.cmd, data.clearColor, ctx.resources.GetTexture(data.colorBuffer), ctx.resources.GetTexture(data.depthBuffer));
+                        data.hdCamera.xr.RenderOcclusionMeshes(ctx.cmd, data.clearColor, data.colorBuffer, data.depthBuffer);
                     });
                 }
+            }
+        }
+
+        class BlitCameraTextureData
+        {
+            public TextureHandle source;
+            public TextureHandle destination;
+            public float mipLevel;
+            public bool bilinear;
+        }
+
+        static internal void BlitCameraTexture(RenderGraph renderGraph, TextureHandle source, TextureHandle destination, float mipLevel = 0.0f, bool bilinear = false)
+        {
+            using (var builder = renderGraph.AddRenderPass<BlitCameraTextureData>("Blit Camera Texture", out var passData))
+            {
+                passData.source = builder.ReadTexture(source);
+                passData.destination = builder.WriteTexture(destination);
+                passData.mipLevel = mipLevel;
+                passData.bilinear = bilinear;
+                builder.SetRenderFunc(
+                (BlitCameraTextureData data, RenderGraphContext ctx) =>
+                {
+                    HDUtils.BlitCameraTexture(ctx.cmd, data.source, data.destination, data.mipLevel, data.bilinear);
+                });
             }
         }
     }

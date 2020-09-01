@@ -59,6 +59,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(Eye,                                  eyeData.materialType == EyeData.MaterialType.Eye);
             context.AddField(EyeCinematic,                         eyeData.materialType == EyeData.MaterialType.EyeCinematic);
             context.AddField(SubsurfaceScattering,                 eyeData.subsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
+
+            context.AddField(SpecularAA, lightingData.specularAA &&
+                                context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold) &&
+                                context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance));
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)

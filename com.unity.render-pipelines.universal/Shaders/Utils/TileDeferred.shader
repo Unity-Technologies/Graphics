@@ -1,12 +1,21 @@
 Shader "Hidden/Universal Render Pipeline/TileDeferred"
 {
+    Properties {
+        _StencilRef ("StencilRef", Int) = 0
+
+        _LitStencilRef ("LitStencilWriteMask", Int) = 0
+        _LitStencilReadMask ("LitStencilReadMask", Int) = 0
+        _LitStencilWriteMask ("LitStencilWriteMask", Int) = 0
+
+        _SimpleLitStencilRef ("SimpleLitStencilWriteMask", Int) = 0
+        _SimpleLitStencilReadMask ("SimpleLitStencilReadMask", Int) = 0
+        _SimpleLitStencilWriteMask ("SimpleLitStencilWriteMask", Int) = 0
+    }
+
     HLSLINCLUDE
 
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Deferred.hlsl"
-
-    // XR not supported in 2020.1 preview
-    #define XR_MODE 0
 
     struct TileData
     {
@@ -187,7 +196,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
     TEXTURE2D_X_HALF(_GBuffer0);
     TEXTURE2D_X_HALF(_GBuffer1);
     TEXTURE2D_X_HALF(_GBuffer2);
-    float4x4 _ScreenToWorld;
+    float4x4 _ScreenToWorld[2];
 
     half4 PunctualLightShading(Varyings input) : SV_Target
     {
@@ -196,20 +205,13 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
         half4 gbuffer1 = LOAD_TEXTURE2D_X(_GBuffer1, input.positionCS.xy);
         half4 gbuffer2 = LOAD_TEXTURE2D_X(_GBuffer2, input.positionCS.xy);
 
-        #if XR_MODE
-            #if UNITY_REVERSED_Z
-            d = 1.0 - d;
-            #endif
-            d = d * 2.0 - 1.0;
-            float4 posCS = float4(input.posCS.xy, d, 1.0);
-            #if UNITY_UV_STARTS_AT_TOP
-            posCS.y = -posCS.y;
-            #endif
-            float3 posWS = ComputeWorldSpacePosition(posCS, UNITY_MATRIX_I_VP);
+        #if defined(USING_STEREO_MATRICES)
+        int eyeIndex = unity_StereoEyeIndex;
         #else
-            float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
-            posWS.xyz *= rcp(posWS.w);
+        int eyeIndex = 0;
         #endif
+        float4 posWS = mul(_ScreenToWorld[eyeIndex], float4(input.positionCS.xy, d, 1.0));
+        posWS.xyz *= rcp(posWS.w);
 
         InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
         uint materialFlags = UnpackMaterialFlags(gbuffer0.a);
@@ -292,9 +294,9 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
             // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             Stencil {
-                Ref 32      // 0b00100000
-                WriteMask 0 // 0b00000000
-                ReadMask 96 // 0b01100000
+                Ref [_LitStencilRef]
+                ReadMask [_LitReadMask]
+                WriteMask [_LitWriteMask]
                 Comp Equal
                 Pass Zero
                 Fail Zero
@@ -324,11 +326,10 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             Blend One One, Zero One
             BlendOp Add, Add
 
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             Stencil {
-                Ref 64      // 0b01000000
-                WriteMask 0 // 0b00000000
-                ReadMask 96 // 0b01100000
+                Ref [_SimpleLitStencilRef]
+                ReadMask [_SimpleLitReadMask]
+                WriteMask [_SimpleLitWriteMask]
                 Comp Equal
                 Pass Keep
                 Fail Keep

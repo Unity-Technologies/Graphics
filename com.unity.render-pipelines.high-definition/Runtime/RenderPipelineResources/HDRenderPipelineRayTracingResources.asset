@@ -36,7 +36,7 @@ MonoBehaviour:
   aoRaytracingRT: {fileID: 4807578003741378534, guid: 82dc8cd069971d2488c502b0f32b94fb,
     type: 3}
   aoRaytracingCS: {fileID: 7200000, guid: 10c05366baf9b0a44a827f3ef890b9e6, type: 3}
-  subSurfaceRayTracing: {fileID: 4807578003741378534, guid: b29a18f967c92364492508dddf78cff7,
+  subSurfaceRayTracingRT: {fileID: 4807578003741378534, guid: b29a18f967c92364492508dddf78cff7,
     type: 3}
   subSurfaceRayTracingCS: {fileID: 7200000, guid: 4e5684a8dba46fe42a47642f9b0a6b89,
     type: 3}

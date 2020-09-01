@@ -640,9 +640,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 else
                     EditorGUILayout.PropertyField(serialized.settings.color, s_Styles.color);
-
-                if (changes.changed && HDRenderPipelinePreferences.lightColorNormalization)
-                    serialized.settings.color.colorValue = HDUtils.NormalizeColor(serialized.settings.color.colorValue);
             }
 
             EditorGUI.BeginChangeCheck();

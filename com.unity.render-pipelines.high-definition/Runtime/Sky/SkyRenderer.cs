@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Determines if the sky should be rendered when the sun light changes.</summary>
         public bool SupportDynamicSunLight = true;
         /// <summary>Determines if the sky should be rendered when the cloud layer changes.</summary>
-        public bool SupportCloudLayer = true;
+        public bool SupportDynamicCloudLayer = true;
 
         /// <summary>
         /// Called on startup. Create resources used by the renderer (shaders, materials, etc).

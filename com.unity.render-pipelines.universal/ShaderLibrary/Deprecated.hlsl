@@ -10,4 +10,10 @@
 #define kDieletricSpec kDielectricSpec
 #define DirectBDRF     DirectBRDF
 
+// Deprecated: not using consistent naming convention
+#if defined(USING_STEREO_MATRICES)
+#define unity_StereoMatrixIP unity_StereoMatrixInvP
+#define unity_StereoMatrixIVP unity_StereoMatrixInvVP
+#endif
+
 #endif // UNIVERSAL_DEPRECATED_INCLUDED

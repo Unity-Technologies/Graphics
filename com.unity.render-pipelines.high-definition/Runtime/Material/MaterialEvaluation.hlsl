@@ -116,7 +116,7 @@ void ApplyAmbientOcclusionFactor(AmbientOcclusionFactor aoFactor, inout BuiltinD
     lighting.direct.specular *= aoFactor.directSpecularOcclusion;
 }
 
-#ifdef DEBUG_DISPLAY
+#if defined(DEBUG_DISPLAY) && defined(HAS_LIGHTLOOP)
 // mipmapColor is color use to store texture streaming information in XXXData.hlsl (look for DEBUGMIPMAPMODE_NONE)
 void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData builtinData, AggregateLighting lighting, float3 mipmapColor,
                                     inout LightLoopOutput lightLoopOutput)

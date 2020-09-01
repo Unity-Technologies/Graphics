@@ -43,11 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                     (AfterPostProcessPassData data, RenderGraphContext ctx) =>
                     {
-                        RenderAfterPostProcess(data.parameters
-                                                , ctx.resources.GetRendererList(data.opaqueAfterPostprocessRL)
-                                                , ctx.resources.GetRendererList(data.transparentAfterPostprocessRL)
-                                                , ctx.renderContext, ctx.cmd);
-
+                        RenderAfterPostProcess(data.parameters, data.opaqueAfterPostprocessRL, data.transparentAfterPostprocessRL, ctx.renderContext, ctx.cmd);
                     });
 
                     afterPostProcessBuffer = passData.afterPostProcessBuffer;
@@ -62,6 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 afterPostProcessBuffer,
                 prepassOutput.resolvedDepthBuffer,
                 prepassOutput.depthPyramidTexture,
+                prepassOutput.resolvedNormalBuffer,
                 prepassOutput.resolvedMotionVectorsBuffer,
                 dest,
                 parameters.flipYInPostProcess

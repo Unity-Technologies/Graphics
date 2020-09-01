@@ -49,6 +49,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Defines the maximum intensity value computed for a path segment.")]
         public ClampedFloatParameter maximumIntensity = new ClampedFloatParameter(10f, 0f, 100f);
 
+        /// <summary>
+        /// Default constructor for the path tracing volume component.
+        /// </summary>
         public PathTracing()
         {
             displayName = "Path Tracing (Preview)";

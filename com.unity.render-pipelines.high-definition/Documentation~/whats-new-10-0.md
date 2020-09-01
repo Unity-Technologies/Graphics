@@ -107,6 +107,11 @@ HDRP now includes a new [light layer](Light-Layers.md) debug mode which can disp
 
 For more information, see the Lighting panel section in the [HDRP debug window](Render-Pipeline-Debug-Window.md).
 
+#### Volume debug mode
+![](Images/VolumeDebugMode.png)
+
+The Render Pipeline Debug window now has a new Volume panel which you can use to visualize the Volume components that affect a specific Camera. For each Volume that contributes to the final interpolated value, this panel shows the value of each property and whether or not it is overridden. It also calculates the Volume's influence percentage using the Volume's weight and blend distance. For more information, see the Volume panel section in the [HDRP debug window](Render-Pipeline-Debug-Window.md#VolumePanel).
+
 ### Alpha to Mask
 
 This version of HDRP adds support for alpha to mask (or alpha to coverage) to all HDRP and Shader Graph shaders.
@@ -123,7 +128,7 @@ For more information, see the [Light component documentation](Light-Component.md
 
 This version of HDRP adds support for emissive maps with parallax occlusion mapping.
 
-### Screen-space reflection on Transparent Material
+### Screen-space reflection on transparent Materials
 
 HDRP's screen-space reflection (SSR) solution now support transparent materials. This is useful for transparent surfaces such as windows or water.
 
@@ -131,9 +136,9 @@ HDRP's screen-space reflection (SSR) solution now support transparent materials.
 
 HDRP now includes a new sample that contains example fabric and hair materials. You can use these materials as references to more quickly develop fabric and hair materials for your application.
 
-### Decal layers
+### Decal Layers
 
-This version of HDRP introduces decal layers which allow you to specify which decals affect which Materials on a layer by layer basis. See [Decal](Decal.md) section for more detail.
+This version of HDRP introduces Decal Layers which allow you to specify which decals affect which Materials on a layer by layer basis. For more information about Decal Layers, see the [Decal documentation](Decal.md).
 
 ### Eye Shader Graph
 
@@ -188,13 +193,13 @@ HDRP now supports colored ray-traced shadows for transparent and transmissive Ga
 
 For more information, see [ray-traced shadows](Ray-Traced-Shadows.md).
 
-#### ray-traced reflection on Transparent Material
+#### ray-traced reflection on transparent Materials
 
 HDRP's ray-traced reflection (RTR) solution now support transparent materials. This is useful for transparent surfaces such as windows or water.
 
 #### Virtual Reality (VR)
 
-Ray tracing now support VR. It is however not recommended as the performance is very slow.
+Ray tracing now supports VR. However, since ray tracing is resource intensive and VR amplifies this, the performance is very slow.
 
 ### Scene view Camera properties
 
@@ -204,7 +209,7 @@ For information on HDRP's Scene view Camera properties, see [Scene view Camera](
 
 ### Shadow caching system
 
-Shadow atlas and shadow caching management have been improve. Cascade shadow can now be stagerred (Cascades can update at different frequency). Shadow that are cached (OnEnable option) render everything they can see independently of the main view. More API control have been added. See detail in [Shadows](Shadows-in-HDRP.md)
+This version of HDRP improves on shadow atlas and shadow caching management. You can now stagger cascade shadows which means you can update each cascade independently. Cached shadows (those that use **OnEnable**) render everything they can see independently of the main view. This version also introduces more API which you can use to more finely control cached shadows. For more information, see [Shadows](Shadows-in-HDRP.md)
 
 ### Compute shaders now use multi-compile
 
@@ -224,13 +229,13 @@ In the past, HDRP experienced stability issues for DirectX12, Vulkan, Metal, Lin
 
 In terms of performance, one of the most resource intensive operations for HDRP is processing lights before it sends them to the GPU. For many high-end projects that include a lot of lights in their Scene, this is particularly problematic. This version of HDRP introduces an optimization that reduces the resource intensity of the light loop by up to 80% which drastically improves CPU performance in the vast majority of cases.
 
-### Decal optimization
+### Decal improvement
 
-In terms of performance, HDRP no longer force a full depth prepass with Deferred Lit Mode when Decals are enabled. Only Decals with **Receive Decals** property enabled in Material will render in the Prepass.
+HDRP no longer forces a full depth pre-pass when you enable decals in Deferred Lit Mode. Only materials with the **Receive Decals** property enabled render in the pre-pass. Decal shader code has improved and now produces fewer shader variants and includes better UI to control which material attributes the decal affects. Finally, the [Decal Shader Graph](Master-Node-Decal.md) now exposes affects flags control on the Material.
 
 ### Constant buffer setup optimization
 
-In terms of performance, preparing and sending the shader data for the GPU is intensive. HDRP is now using a new C# constant buffer API allowing to setuping the various shader uniform in a single call instead of multiple one.
+In terms of performance, preparing and sending the shader data to the GPU is a resource intensive operation. HDRP now uses a new C# constant buffer API which allows it to set up the various shader uniforms in a single call, instead of multiple ones.
 
 ### Temporal anti-aliasing
 
@@ -241,6 +246,10 @@ HDRP's previous temporal anti-aliasing (TAA) solution suffered from typical TAA 
 You can now control the texture mapping mode for all textures in the [AxF Shader](AxF-Shader.md). You can choose between planar, triplanar, or different uv sets.
 
 For more information about this improvement, see [AxF Shader](AxF-Shader.md).
+
+### Contact Shadows Improvements
+
+More control is given for contact shadows, in particular now a bias can be set to avoid self intersection issues and a new thickness parameter is introduced to fill gaps that can be left by contact shadows. 
 
 ### Exposure
 
