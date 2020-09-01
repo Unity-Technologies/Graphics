@@ -616,7 +616,9 @@ namespace UnityEngine.Rendering.Universal
             Light light = lightData.light;
 
             lightOcclusionProbeChannel = Vector4.zero;
-            if (light != null && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
+            if (light != null && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed &&
+                0 <= light.bakingOutput.occlusionMaskChannel &&
+                light.bakingOutput.occlusionMaskChannel < 4)
             {
                 lightOcclusionProbeChannel[light.bakingOutput.occlusionMaskChannel] = 1.0f;
             }
