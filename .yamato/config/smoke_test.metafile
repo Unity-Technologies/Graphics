@@ -9,6 +9,26 @@ platforms:
   - name: Win
     apis:
       - DX11
+    overrides:
+      agents_project:
+        default:
+          type: Unity::VM::GPU
+          image: sdet/gamecode_win10:stable
+          flavor: b1.large
+        editmode:
+          type: Unity::VM
+          image: sdet/gamecode_win10:stable
+          flavor: b1.large
+        standalone:
+          type: Unity::VM::GPU
+          image: sdet/gamecode_win10:stable
+          flavor: b1.xlarge
+          model: gtx1080
+        standalone_build:
+          type: Unity::VM::GPU
+          image: sdet/gamecode_win10:stable
+          flavor: b1.xlarge
+          model: gtx1080
 all:
   dependencies:
     - platform: Win
