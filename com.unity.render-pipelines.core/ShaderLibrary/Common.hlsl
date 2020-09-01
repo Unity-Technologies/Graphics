@@ -218,7 +218,7 @@
 #if defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS)
 // Helper macro to compute lane swizzle offset starting from andMask, orMask and xorMask.
 // IMPORTANT, to guarantee compatibility with all platforms, the masks need to be constant literals (constants at compile time)
-#define LANE_SWIZZLE_OFFSET(andMask, orMask, xorMask)  andMask | (orMask << 5) | (xorMask << 10)
+#define LANE_SWIZZLE_OFFSET(andMask, orMask, xorMask)  (andMask | (orMask << 5) | (xorMask << 10))
 #endif
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonDeprecated.hlsl"
