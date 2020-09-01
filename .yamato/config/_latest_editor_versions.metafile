@@ -9,49 +9,49 @@ editor_version_names:
 editor_versions:
   trunk_latest_internal:
     android:
-      revision: 9c4d32d1b0d3d352b32236ec39d214f5f582d656
+      revision: 059a7e43841461e9ac5a31077cf9ac987cbe233f
       version: ''
     ios:
-      revision: 9c4d32d1b0d3d352b32236ec39d214f5f582d656
+      revision: 059a7e43841461e9ac5a31077cf9ac987cbe233f
       version: ''
     linux:
-      revision: 9c4d32d1b0d3d352b32236ec39d214f5f582d656
+      revision: 059a7e43841461e9ac5a31077cf9ac987cbe233f
       version: ''
     macos:
-      revision: 9c4d32d1b0d3d352b32236ec39d214f5f582d656
+      revision: 059a7e43841461e9ac5a31077cf9ac987cbe233f
       version: ''
     windows:
-      revision: 9c4d32d1b0d3d352b32236ec39d214f5f582d656
+      revision: 059a7e43841461e9ac5a31077cf9ac987cbe233f
       version: ''
   trunk_latest_public:
     android:
-      revision: 9c4d32d1b0d3d352b32236ec39d214f5f582d656
+      revision: 059a7e43841461e9ac5a31077cf9ac987cbe233f
       version: ''
     ios:
-      revision: 9c4d32d1b0d3d352b32236ec39d214f5f582d656
+      revision: 059a7e43841461e9ac5a31077cf9ac987cbe233f
       version: ''
     linux:
-      revision: 9c4d32d1b0d3d352b32236ec39d214f5f582d656
+      revision: 059a7e43841461e9ac5a31077cf9ac987cbe233f
       version: ''
     macos:
-      revision: 9c4d32d1b0d3d352b32236ec39d214f5f582d656
+      revision: 059a7e43841461e9ac5a31077cf9ac987cbe233f
       version: ''
     windows:
-      revision: 9c4d32d1b0d3d352b32236ec39d214f5f582d656
+      revision: 059a7e43841461e9ac5a31077cf9ac987cbe233f
       version: ''
   trunk_staging:
     android:
-      revision: 9c4d32d1b0d3d352b32236ec39d214f5f582d656
+      revision: 059a7e43841461e9ac5a31077cf9ac987cbe233f
       version: ''
     ios:
-      revision: 9c4d32d1b0d3d352b32236ec39d214f5f582d656
+      revision: 059a7e43841461e9ac5a31077cf9ac987cbe233f
       version: ''
     linux:
-      revision: 9c4d32d1b0d3d352b32236ec39d214f5f582d656
+      revision: 059a7e43841461e9ac5a31077cf9ac987cbe233f
       version: ''
     macos:
-      revision: 9c4d32d1b0d3d352b32236ec39d214f5f582d656
+      revision: 059a7e43841461e9ac5a31077cf9ac987cbe233f
       version: ''
     windows:
-      revision: 9c4d32d1b0d3d352b32236ec39d214f5f582d656
+      revision: 059a7e43841461e9ac5a31077cf9ac987cbe233f
       version: ''
