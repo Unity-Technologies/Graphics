@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Keep in sync with shader define USE_CBUFFER_FOR_TILELIST
         // Keep in sync with shader define USE_CBUFFER_FOR_LIGHTDATA
         // Keep in sync with shader define USE_CBUFFER_FOR_LIGHTLIST
-        private static bool IsOpenGL => (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore
+        internal static bool IsOpenGL => (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore
                                          || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2
                                          || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3);
 
@@ -1077,7 +1077,19 @@ namespace UnityEngine.Rendering.Universal.Internal
                     new Vector4(0.5f * this.RenderWidth, 0.5f * this.RenderHeight, 0.0f, 1.0f)
                 );
 
-                screenToWorld[eyeIndex] = Matrix4x4.Inverse(toScreen * gpuProj * view);
+                Matrix4x4 zScaleBias = Matrix4x4.identity;
+                if (DeferredConfig.IsOpenGL)
+                {
+                    // We need to manunally adjust z in NDC space from [-1; 1] to [0; 1] (storage in depth texture).
+                    zScaleBias = new Matrix4x4(
+                        new Vector4(1.0f, 0.0f, 0.0f, 0.0f),
+                        new Vector4(0.0f, 1.0f, 0.0f, 0.0f),
+                        new Vector4(0.0f, 0.0f, 0.5f, 0.0f),
+                        new Vector4(0.0f, 0.0f, 0.5f, 1.0f)
+                    );
+                }
+
+                screenToWorld[eyeIndex] = Matrix4x4.Inverse(toScreen * zScaleBias * gpuProj * view);
             }
 
             cmd.SetGlobalMatrixArray(ShaderConstants._ScreenToWorld, screenToWorld);
