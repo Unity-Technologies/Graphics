@@ -242,6 +242,70 @@ int GetAdditionalLightsCount()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+//           Reflection Probe Abstraction                                    //
+///////////////////////////////////////////////////////////////////////////////
+
+// Fills a reflection probe data struct given a perObjectReflectionProbeIndex
+ReflectionProbeData GetReflectionProbePerObject(uint i)
+{
+    // Abstraction over ReflectionProbe input constants
+#if defined(USE_STRUCTURED_BUFFER_FOR_REFLECTION_PROBE_DATA)
+    float4 probePositionWS = _ReflectionProbesBuffer[i].position;
+    float4 probeBoxMin = _ReflectionProbesBuffer[i].boxMin;
+    float4 probeBoxMax = _ReflectionProbesBuffer[i].boxMax;
+    float4 probeHDR = _ReflectionProbesBuffer[i].hdr;
+#else
+    // #note todo UBO implementation
+    float4 probePositionWS = float4(0);
+    float4 probeBoxMin = float4(0);
+    float4 probeBoxMax = float4(0);
+    float4 probeHDR = float(0);
+#endif
+
+    ReflectionProbeData probe;
+    probe.position = probePositionWS;
+    probe.boxMin = probeBoxMin;
+    probe.boxMax = probeBoxMax;
+    probe.hdr = probeHDR;
+    return probe;
+}
+
+// uint GetPerObjectReflectionProbeIndexOffset()
+// {
+// #if USE_STRUCTURED_BUFFER_FOR_REFLECTION_PROBE_DATA
+//     return unity_ReflectionProbeData.x;
+// #else
+//     return 0;
+// #endif
+// }
+
+// Returns a per-object index given a loop index.
+// This abstract the underlying data implementation for storing reflectionprobes/reflectionprobe indices
+int GetPerObjectReflectionProbeIndex(uint index)
+{
+#if defined(USE_STRUCTURED_BUFFER_FOR_REFLECTION_PROBE_DATA)
+    uint offset = unity_ReflectionProbeData.x;
+    return _ReflectionProbeIndices[offset + index];
+#else
+// #note todo UBO implementation
+    return 0;
+#endif
+}
+
+// Fills a reflection probe struct given a loop i index. This will convert the i
+// index to a perObjectReflectionProbeIndex
+ReflectionProbeData GetReflectionProbe(uint i)
+{
+    int perObjectReflectionProbeIndex = GetPerObjectReflectionProbeIndex(i);
+    return GetReflectionProbePerObject(perObjectReflectionProbeIndex);
+}
+
+int GetReflectionProbesCount()
+{
+    return min(_ReflectionProbesParams.x, unity_ReflectionProbeData.y);
+}
+
+///////////////////////////////////////////////////////////////////////////////
 //                         BRDF Functions                                    //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -581,29 +645,6 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
     #define SAMPLE_GI(lmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
 #endif
 
-ReflectionProbeData GetReflectionProbe(uint i)
-{
-#if defined(USE_STRUCTURED_BUFFER_FOR_REFLECTION_PROBE_DATA)
-    float4 probePositionWS = _ReflectionProbesBuffer[i].position;
-    float4 probeBoxMin = _ReflectionProbesBuffer[i].boxMin;
-    float4 probeBoxMax = _ReflectionProbesBuffer[i].boxMax;
-    float4 probeHDR = _ReflectionProbesBuffer[i].hdr;
-#else
-    // #note todo UBO implementation
-    float4 probePositionWS = float4(0);
-    float4 probeBoxMin = float4(0);
-    float4 probeBoxMax = float4(0);
-    float4 probeHDR = float(0);
-#endif
-
-    ReflectionProbeData probe;
-    probe.position = probePositionWS;
-    probe.boxMin = probeBoxMin;
-    probe.boxMax = probeBoxMax;
-    probe.hdr = probeHDR;
-    return probe;
-}
-
 half3 BoxProjectedCubemapDirection(half3 reflectVector, half3 positionWS, real4 cubemapCenter, real4 boxMin, real4 boxMax)
 {
     float3 boxMinMax = (reflectVector > 0.0f) ? boxMax.xyz : boxMin.xyz;
@@ -631,11 +672,10 @@ half3 getIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, h
     //Such the the highest priority and smallest reflection probes is first.
     float blendFactor = 1.0;
     half3 irradiance = half3(0, 0, 0);
-
-    
     half3 originalReflectVector = reflectVector;
 
-    for (int probeIndex = 0; probeIndex < _ReflectionProbesParams.x; ++probeIndex)
+    uint probeCount = GetReflectionProbesCount();
+    for (uint probeIndex = 0u; probeIndex < probeCount; ++probeIndex)
     {
         ReflectionProbeData probe = GetReflectionProbe(probeIndex);
         float weight = min(getWeight(positionWS, probe.boxMin, probe.boxMax), blendFactor);
@@ -644,8 +684,9 @@ half3 getIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, h
         reflectVector = (1 - probe.position.w) * originalReflectVector
             + probe.position.w * BoxProjectedCubemapDirection(originalReflectVector, positionWS, probe.position, probe.boxMin, probe.boxMax);
         half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
-        // #note to do Sample TextureCubeArray   
-        half4 encodedIrradiance = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_ReflectionProbeTextures, s_trilinear_clamp_sampler, reflectVector, probeIndex, mip);
+        int perObjectIndex = GetPerObjectReflectionProbeIndex(probeIndex);
+        half4 encodedIrradiance = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_ReflectionProbeTextures, s_trilinear_clamp_sampler, reflectVector, perObjectIndex, mip);
+
 #if !defined(UNITY_USE_NATIVE_HDR)
         irradiance += weight * encodedIrradiance.rgb;//* DecodeHDREnvironment(encodedIrradiance, probe.hdr);
 #else

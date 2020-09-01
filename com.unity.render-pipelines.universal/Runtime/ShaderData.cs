@@ -8,7 +8,9 @@ namespace UnityEngine.Rendering.Universal
         static ShaderData m_Instance = null;
         ComputeBuffer m_LightDataBuffer = null;
         ComputeBuffer m_LightIndicesBuffer = null;
+
         ComputeBuffer m_ReflectionProbeDataBuffer = null;
+        ComputeBuffer m_ReflectionProbeIndicesBuffer = null;
 
         ComputeBuffer m_ShadowDataBuffer = null;
         ComputeBuffer m_ShadowIndicesBuffer = null;
@@ -33,7 +35,7 @@ namespace UnityEngine.Rendering.Universal
             DisposeBuffer(ref m_LightDataBuffer);
             DisposeBuffer(ref m_LightIndicesBuffer);
             DisposeBuffer(ref m_ReflectionProbeDataBuffer);
-
+            DisposeBuffer(ref m_ReflectionProbeIndicesBuffer);
             DisposeBuffer(ref m_ShadowDataBuffer);
             DisposeBuffer(ref m_ShadowIndicesBuffer);
         }
@@ -51,6 +53,11 @@ namespace UnityEngine.Rendering.Universal
         internal ComputeBuffer GetReflectionProbeDataBuffer(int size)
         {
             return GetOrUpdateBuffer<ShaderInput.ReflectionProbeData>(ref m_ReflectionProbeDataBuffer, size);
+        }
+
+        internal ComputeBuffer GetReflectionProbeIndicesBuffer(int size)
+        {
+            return GetOrUpdateBuffer<int>(ref m_ReflectionProbeIndicesBuffer, size);
         }
 
         internal ComputeBuffer GetShadowDataBuffer(int size)
