@@ -624,7 +624,6 @@ float getWeight(half3 positionWS, real4 boxMin, real4 boxMax)
 
 half3 getIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, half perceptualRoughness)
 {
-    reflectVector.y = reflectVector.y * -1;
     //This is not like for the builtin but the reverse order:
     //Get a sorted list form largest reflection probe to the smallest and the smallest being rendered on top if they all have the same importance.
     //To fade reach out by 1 on each direction (The same for the deferred builtin implementation).
@@ -648,7 +647,7 @@ half3 getIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, h
         // #note to do Sample TextureCubeArray   
         half4 encodedIrradiance = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_ReflectionProbeTextures, s_trilinear_clamp_sampler, reflectVector, probeIndex, mip);
 #if !defined(UNITY_USE_NATIVE_HDR)
-        irradiance += weight * DecodeHDREnvironment(encodedIrradiance, probe.hdr);
+        irradiance += weight * encodedIrradiance.rgb;//* DecodeHDREnvironment(encodedIrradiance, probe.hdr);
 #else
         irradiance += weight * encodedIrradiance.rbg;
 #endif
