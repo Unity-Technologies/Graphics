@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
-- Changed thread group size for contact shadows (save 1.1ms on PS4)
+- Slight reduction of VGPR used by area light code.
 
 ## [10.0.0] - 2019-06-10
 
