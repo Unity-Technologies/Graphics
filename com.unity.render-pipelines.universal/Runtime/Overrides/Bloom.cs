@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.Universal
         public BoolParameter highQualityFiltering = new BoolParameter(false);
 
         [Tooltip("The number of final iterations to skip in the effect processing sequence.")]
-        public ClampedIntParameter skipIterations = new ClampedIntParameter(2, 0, 16);
+        public ClampedIntParameter skipIterations = new ClampedIntParameter(1, 0, 16);
 
         [Tooltip("Dirtiness texture to add smudges or dust to the bloom effect.")]
         public TextureParameter dirtTexture = new TextureParameter(null);

@@ -332,6 +332,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool                 centerHistogramAroundMiddleGrey = false;
         /// <summary>Whether to show tonemap curve in the histogram debug view or not.</summary>
         public bool                 displayFinalImageHistogramAsRGB = false;
+        /// <summary>Whether to show the only the mask in the picture in picture. If unchecked, the mask view is weighted by the scene color.</summary>
+        public bool                 displayMaskOnly = false;
 
         /// <summary>Display the light cookies atlas.</summary>
         public bool                 displayCookieAtlas = false;
@@ -364,6 +366,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public TileClusterDebug tileClusterDebug = TileClusterDebug.None;
         /// <summary>Category for tile and cluster debug mode.</summary>
         public TileClusterCategoryDebug tileClusterDebugByCategory = TileClusterCategoryDebug.Punctual;
+        /// <summary>Cluster Debug mode.</summary>
+        public ClusterDebugMode clusterDebugMode = ClusterDebugMode.VisualizeOpaque;
+        /// <summary>Distance at which clusters will be visualized.</summary>
+        public float clusterDebugDistance = 1.0f;
 
         // Internal APIs
         internal bool IsDebugDisplayRemovePostprocess()
