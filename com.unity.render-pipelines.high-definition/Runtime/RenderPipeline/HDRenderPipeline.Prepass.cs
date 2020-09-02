@@ -89,16 +89,38 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle CreateDepthBuffer(RenderGraph renderGraph, bool clear, bool msaa)
         {
+#if UNITY_2020_2_OR_NEWER
+            FastMemoryDesc fastMemDesc;
+            fastMemDesc.inFastMemory = true;
+            fastMemDesc.residencyFraction = 1.0f;
+            fastMemDesc.flags = FastMemoryFlags.SpillTop;
+#endif
+
             TextureDesc depthDesc = new TextureDesc(Vector2.one, true, true)
-                { depthBufferBits = DepthBits.Depth32, bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = clear, name = msaa ? "CameraDepthStencilMSAA" : "CameraDepthStencil" };
+                { depthBufferBits = DepthBits.Depth32, bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = clear, name = msaa ? "CameraDepthStencilMSAA" : "CameraDepthStencil"
+#if UNITY_2020_2_OR_NEWER
+                , fastMemoryDesc = fastMemDesc
+#endif
+            };
 
             return renderGraph.CreateTexture(depthDesc);
         }
 
         TextureHandle CreateNormalBuffer(RenderGraph renderGraph, bool msaa)
         {
+#if UNITY_2020_2_OR_NEWER
+            FastMemoryDesc fastMemDesc;
+            fastMemDesc.inFastMemory = true;
+            fastMemDesc.residencyFraction = 1.0f;
+            fastMemDesc.flags = FastMemoryFlags.SpillTop;
+#endif
+
             TextureDesc normalDesc = new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = NeedClearGBuffer(), clearColor = Color.black, bindTextureMS = msaa, enableMSAA = msaa, enableRandomWrite = !msaa, name = msaa ? "NormalBufferMSAA" : "NormalBuffer" };
+                { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = NeedClearGBuffer(), clearColor = Color.black, bindTextureMS = msaa, enableMSAA = msaa, enableRandomWrite = !msaa, name = msaa ? "NormalBufferMSAA" : "NormalBuffer"
+#if UNITY_2020_2_OR_NEWER
+                , fastMemoryDesc = fastMemDesc
+#endif
+            };
             return renderGraph.CreateTexture(normalDesc);
         }
 
@@ -184,6 +206,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // When evaluating probe volumes in material pass, we build a custom probe volume light list.
                 // When evaluating probe volumes in light loop, probe volumes are folded into the standard light loop data.
+                // Build probe volumes light list async during depth prepass.
+                // TODO: (Nick): Take a look carefully at data dependancies - could this be moved even earlier? Directly after PrepareVisibleProbeVolumeList?
+                // The probe volume light lists do not depend on any of the framebuffer RTs being cleared - do they depend on anything in PushGlobalParams()?
+                // Do they depend on hdCamera.xr.StartSinglePass()?
                 BuildGPULightListOutput probeVolumeListOutput = new BuildGPULightListOutput();
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
                 {

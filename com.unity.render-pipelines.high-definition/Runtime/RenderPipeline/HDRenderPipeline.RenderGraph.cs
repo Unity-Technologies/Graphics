@@ -79,8 +79,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Should probably be inside the AO render function but since it's a separate class it's currently not super clean to do.
                 PushFullScreenDebugTexture(m_RenderGraph, lightingBuffers.ambientOcclusionBuffer, FullScreenDebugMode.ScreenSpaceAmbientOcclusion);
 
-
-
                 lightingBuffers.contactShadowsBuffer = RenderContactShadows(m_RenderGraph, hdCamera, msaa ? prepassOutput.depthValuesMSAA : prepassOutput.depthPyramidTexture, gpuLightListOutput, GetDepthBufferMipChainInfo().mipLevelOffsets[1].y);
 
                 var volumetricDensityBuffer = VolumeVoxelizationPass(m_RenderGraph, hdCamera, m_VisibleVolumeBoundsBuffer, m_VisibleVolumeDataBuffer, gpuLightListOutput.bigTileLightList, m_FrameCount);
@@ -838,6 +836,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthBuffer = clear ? builder.UseDepthBuffer(depthBuffer, DepthAccess.Read) : builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
                 passData.flagMask = builder.WriteTexture(flagMask);
                 passData.clear = clear;
+
+                // when clear is required, it mean we are before the recursive rendering call, otherwise it mean we are before the depth prepass
+                // As the pass before depth prepass write depth, we don't need to write it again during the second one, also the buffer is only clear at this time
+                // TODO: evaluate the usage of a stencil bit in the stencil buffer to save a rendertarget (But it require various headaches to work correctly).
                 if (clear)
                 {
                     passData.opaqueRenderList = builder.UseRendererList(renderGraph.CreateRendererList(
