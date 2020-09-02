@@ -34,6 +34,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Optimize display of inspector when there is a lot of exposed VFX properties.
 - Correctly frame the whole graph, when opening the Visual Effect Editor
 - fix issue with multiselection and objectfields [Case 1250378](https://issuetracker.unity3d.com/issues/vfx-removing-texture-asset-while-multiediting-working-incorrectly)
+- Handle correctly disabled alphaTreshold material slot in shaderGraph.
+- Allow world position usage in shaderGraph plugged into an alpha/opacity output [Case 1259511](https://issuetracker.unity3d.com/product/unity/issues/guid/1259511/)
 
 ## [7.4.1] - 2020-06-03
 
@@ -158,8 +160,6 @@ The version number for this package has increased due to a version update of a r
 - Correct VFXSettings display in Shader Graph compatible outputs
 - No more NullReference on sub-outputs after domain reload
 - Fix typo in strip tangent computation
-- Handle correctly disabled alphaTreshold material slot in shaderGraph.
-- Allow world position usage in shaderGraph plugged into an alpha/opacity output [Case 1259511](https://issuetracker.unity3d.com/product/unity/issues/guid/1259511/)
 
 ## [7.1.1] - 2019-09-05
 ### Added
