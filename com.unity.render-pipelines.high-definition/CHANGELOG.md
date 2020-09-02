@@ -797,6 +797,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shader warning in DofGather (case 1272931)
 - Fixed AOV export of depth buffer which now correctly export linear depth (case 1265001)
 - Fixed issue that caused the decal atlas to not be updated upon changing of the decal textures content.
+- Fixed "Screen position out of view frustum" error when camera is at exactly the planar reflection probe location.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
