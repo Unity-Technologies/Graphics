@@ -187,14 +187,17 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_ActiveCameraColorAttachment = RenderTargetHandle.CameraTarget;
                 m_ActiveCameraDepthAttachment = RenderTargetHandle.CameraTarget;
+
                 if (sceneOverride == SceneOverrides.Overdraw)
                 {
                     m_ActiveCameraColorAttachment = m_CameraColorAttachment;
                     m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
 
-                    CreateCameraRenderTarget(context, ref renderingData.cameraData);
-                    ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(),
-                        BuiltinRenderTextureType.CameraTarget);
+                    bool createColor = m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget;
+                    bool createDepth = m_ActiveCameraDepthAttachment != RenderTargetHandle.CameraTarget;
+
+                    CreateCameraRenderTarget(context, ref cameraTargetDescriptor, createColor, createDepth);
+                    ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), BuiltinRenderTextureType.CameraTarget);
                 }
 
                 if (renderingData.cameraData.isSceneViewCamera)
@@ -332,13 +335,6 @@ namespace UnityEngine.Rendering.Universal
                 ConfigureCameraTarget(activeColorRenderTargetId, activeDepthRenderTargetId);
             }
 
-			// TODO: We removed this removal (and adding) of render-features on the Hackweek Debug Views project but I don't know why!!!
-            int count = activeRenderPassQueue.Count;
-            for (int i = count - 1; i >= 0; i--)
-            {
-                if(activeRenderPassQueue[i] == null)
-                    activeRenderPassQueue.RemoveAt(i);
-            }
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 
             if (mainLightShadows)

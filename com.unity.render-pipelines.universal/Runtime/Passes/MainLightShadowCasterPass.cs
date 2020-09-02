@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         bool m_SupportsBoxFilterForShadows;
 
         RenderTargetHandle m_MainLightShadowmap;
-        RenderTexture m_MainLightShadowmapTexture;
+        internal RenderTexture m_MainLightShadowmapTexture;
 
         Matrix4x4[] m_MainLightShadowMatrices;
         ShadowSliceData[] m_CascadeSlices;

@@ -83,7 +83,7 @@ namespace UnityEditor.Rendering.Universal
                     var resources = target as ForwardRendererData;
                     resources.shaders = null;
                     resources.textures = null;
-                    ResourceReloader.ReloadAllNullIn(target, LightweightRenderPipelineAsset.packagePath);
+                    ResourceReloader.ReloadAllNullIn(target, UniversalRenderPipelineAsset.packagePath);
                 }
             }
         }

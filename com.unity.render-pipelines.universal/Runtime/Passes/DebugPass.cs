@@ -56,7 +56,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             bool requiresSRGBConvertion = Display.main.requiresSrgbBlitToBackbuffer;
-            bool killAlpha = renderingData.killAlphaInFinalBlit;
 
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
 
@@ -65,10 +64,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             else
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
-            if (killAlpha)
-                cmd.EnableShaderKeyword(ShaderKeywordStrings.KillAlpha);
-            else
-                cmd.DisableShaderKeyword(ShaderKeywordStrings.KillAlpha);
+            // TODO: Is there another way to do "kill alpha" now?
+            // bool killAlpha = renderingData.killAlphaInFinalBlit;
+            //
+            // if (killAlpha)
+            //     cmd.EnableShaderKeyword(ShaderKeywordStrings.KillAlpha);
+            // else
+            //     cmd.DisableShaderKeyword(ShaderKeywordStrings.KillAlpha);
 
             ref CameraData cameraData = ref renderingData.cameraData;
             //if (cameraData.isStereoEnabled || cameraData.isSceneViewCamera || cameraData.isDefaultViewport)
@@ -90,16 +92,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalFloat("_FarPlane", m_FarPlane);
 
                 // TODO: Final blit pass should always blit to backbuffer. The first time we do we don't need to Load contents to tile.
-                // We need to keep in the pipeline of first render pass to each render target to propertly set load/store actions.
+                // We need to keep in the pipeline of first render pass to each render target to properly set load/store actions.
                 // meanwhile we set to load so split screen case works.
-                SetRenderTarget(
-                    cmd,
+                cmd.SetRenderTarget(
                     BuiltinRenderTextureType.CameraTarget,
                     m_ClearBlitTarget ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load,
                     RenderBufferStoreAction.Store,
-                    m_ClearBlitTarget ? ClearFlag.Color : ClearFlag.None,
-                    Color.black,
-                    m_TargetDimension);
+                    m_ClearBlitTarget ? RenderBufferLoadAction.Clear : RenderBufferLoadAction.Load,
+                    RenderBufferStoreAction.Store);
 
                 Camera camera = cameraData.camera;
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
