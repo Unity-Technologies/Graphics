@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
 - Fixed GPU hang on D3D12 on xbox. 
 - Fix Amplitude -> Min/Max parametrization conversion
+- Fixed issue with mipmap debug mode not properly resetting full screen mode (and viceversa). 
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
