@@ -1033,7 +1033,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (isPunctual || (lightType == HDLightType.Area && serialized.areaLightShape == AreaLightShape.Rectangle))
                     {
                         EditorGUILayout.PropertyField(serialized.useRayTracedShadows, s_Styles.useRayTracedShadows);
-                        if(serialized.useRayTracedShadows.boolValue)
+                        if (serialized.useRayTracedShadows.boolValue)
                         {
                             if (hdrp != null && lightType == HDLightType.Area && serialized.areaLightShape == AreaLightShape.Rectangle
                                 && (hdrp.currentPlatformRenderPipelineSettings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly))
@@ -1056,33 +1056,33 @@ namespace UnityEditor.Rendering.HighDefinition
                             EditorGUI.indentLevel--;
                         }
                     }
+                }
 
-                    // For the moment, we only support screen space rasterized shadows for directional lights
-                    if (lightType == HDLightType.Directional && HDRenderPipeline.pipelineSupportsScreenSpaceShadows)
+                // For the moment, we only support screen space rasterized shadows for directional lights
+                if (lightType == HDLightType.Directional && HDRenderPipeline.pipelineSupportsScreenSpaceShadows)
+                {
+                    EditorGUILayout.PropertyField(serialized.useScreenSpaceShadows, s_Styles.useScreenSpaceShadows);
+                    if (HDRenderPipeline.pipelineSupportsRayTracing)
                     {
-                        EditorGUILayout.PropertyField(serialized.useScreenSpaceShadows, s_Styles.useScreenSpaceShadows);
-                        if (HDRenderPipeline.pipelineSupportsRayTracing)
+                        using (new EditorGUI.DisabledScope(!serialized.useScreenSpaceShadows.boolValue))
                         {
-                            using (new EditorGUI.DisabledScope(!serialized.useScreenSpaceShadows.boolValue))
+                            EditorGUI.indentLevel++;
+                            EditorGUILayout.PropertyField(serialized.useRayTracedShadows, s_Styles.useRayTracedShadows);
+                            using (new EditorGUI.DisabledScope(!serialized.useRayTracedShadows.boolValue))
                             {
                                 EditorGUI.indentLevel++;
-                                EditorGUILayout.PropertyField(serialized.useRayTracedShadows, s_Styles.useRayTracedShadows);
-                                using (new EditorGUI.DisabledScope(!serialized.useRayTracedShadows.boolValue))
+                                EditorGUILayout.PropertyField(serialized.numRayTracingSamples, s_Styles.numRayTracingSamples);
+                                EditorGUILayout.PropertyField(serialized.colorShadow, s_Styles.colorShadow);
+                                EditorGUILayout.PropertyField(serialized.filterTracedShadow, s_Styles.denoiseTracedShadow);
+                                using (new EditorGUI.DisabledScope(!serialized.filterTracedShadow.boolValue))
                                 {
                                     EditorGUI.indentLevel++;
-                                    EditorGUILayout.PropertyField(serialized.numRayTracingSamples, s_Styles.numRayTracingSamples);
-                                    EditorGUILayout.PropertyField(serialized.colorShadow, s_Styles.colorShadow);
-                                    EditorGUILayout.PropertyField(serialized.filterTracedShadow, s_Styles.denoiseTracedShadow);
-                                    using (new EditorGUI.DisabledScope(!serialized.filterTracedShadow.boolValue))
-                                    {
-                                        EditorGUI.indentLevel++;
-                                        EditorGUILayout.PropertyField(serialized.filterSizeTraced, s_Styles.denoiserRadius);
-                                        EditorGUI.indentLevel--;
-                                    }
+                                    EditorGUILayout.PropertyField(serialized.filterSizeTraced, s_Styles.denoiserRadius);
                                     EditorGUI.indentLevel--;
                                 }
                                 EditorGUI.indentLevel--;
                             }
+                            EditorGUI.indentLevel--;
                         }
                     }
                 }
