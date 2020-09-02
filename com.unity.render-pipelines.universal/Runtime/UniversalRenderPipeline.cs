@@ -49,6 +49,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Creates a ProfilingScope for immediate CPU profiling only.
         // "Inl_" CPU time outside of any command buffers.
+        // TODO: should we add a verbosity level? something like GetCPUScope(string name, ProfilingVerbosity verbosity = default)
         public static ProfilingScope GetCPUScope(string scopeName)
         {
             return new ProfilingScope(null, TryGetOrAddSampler(scopeName));
@@ -108,10 +109,11 @@ namespace UnityEngine.Rendering.Universal
         // Typically no allocations, but might allocate once on a cache miss for Add operation.
         public static ProfilingSampler TryGetOrAddSampler(string samplerName)
         {
-            // TODO: do profiling levels
+            // TODO: do profiling verbosity levels
             //#define UNIVERSAL_PROFILING_MINIMAL
             #if UNIVERSAL_PROFILING_MINIMAL
                 // Disable caching and return a static sampler for all scopes.
+                // Useful for testin hashing impact
                 return m_UnknownSampler;
             #else
                 ProfilingSampler ps = null;
@@ -174,14 +176,10 @@ namespace UnityEngine.Rendering.Universal
         // Roughly categorized using structs.
         public struct Pipeline
         {
-            public static readonly ProfilingSampler universalRenderPipelineRender = new ProfilingSampler("UniversalRenderPipeline.Render");
             public static readonly ProfilingSampler beginFrameRendering           = new ProfilingSampler("BeginFrameRendering");
             public static readonly ProfilingSampler endFrameRendering             = new ProfilingSampler("EndFrameRendering");
             public static readonly ProfilingSampler beginCameraRendering          = new ProfilingSampler("BeginCameraRendering");
             public static readonly ProfilingSampler endCameraRendering            = new ProfilingSampler("EndCameraRendering");
-
-            public static readonly ProfilingSampler renderCameraStack     = new ProfilingSampler("RenderCameraStack");
-            public static readonly ProfilingSampler updateVolumeFramework = new ProfilingSampler("UpdateVolumeFramework");
         };
 
         public struct Renderer
@@ -303,16 +301,12 @@ namespace UnityEngine.Rendering.Universal
 
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
-#if UNITY_2020_2_OR_NEWER
-            // C#8 feature, only in >= 2020.2
-            using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.UniversalRenderTotal));
-#endif
-
             // TODO: Would be better to add Profiling name hooks into RenderPipelineManager.
             // TODO: This is a C# 8.0 feature, supported in Unity 2020.2, but are much cleaner. Perhaps ifdef these out from previous versions,
             // TODO: all the previous and some of the new scopes would still be present.
 #if UNITY_2020_2_OR_NEWER
-            using var profScope = new ProfilingScope(null, UniversalProfilingCache.Pipeline.universalRenderPipelineRender);
+            // C#8 feature, only in >= 2020.2
+            using var profScope = UniversalProfilingCache.GetCPUScope(URPProfileId.UniversalRenderTotal);
 #endif
 
             // TODO: Would be better to add Profiling name hooks into RenderPipeline.cs

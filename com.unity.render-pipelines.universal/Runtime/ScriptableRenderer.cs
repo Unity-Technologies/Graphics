@@ -100,6 +100,9 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cameraData">CameraData containing camera matrices information.</param>
         void SetPerCameraShaderVariables(CommandBuffer cmd, ref CameraData cameraData)
         {
+#if UNITY_2020_2_OR_NEWER
+            using var profScope = UniversalProfilingCache.GetGPUScope(cmd, "SetPerCameraShaderVariables");
+#endif
             Camera camera = cameraData.camera;
 
             Rect pixelRect = cameraData.pixelRect;
@@ -557,6 +560,9 @@ namespace UnityEngine.Rendering.Universal
 
         void ClearRenderingState(CommandBuffer cmd)
         {
+#if UNITY_2020_2_OR_NEWER
+            using var profScope = UniversalProfilingCache.GetGPUScope(cmd, "ClearRenderingState");
+#endif
             // Reset per-camera shader keywords. They are enabled depending on which render passes are executed.
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadows);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadowCascades);
@@ -628,7 +634,7 @@ namespace UnityEngine.Rendering.Universal
         {
             Camera camera = cameraData.camera;
             ClearFlag cameraClearFlag = GetCameraClearFlag(ref cameraData);
-            
+
             // Invalid configuration - use current attachment setup
             // Note: we only check color buffers. This is only technically correct because for shadowmaps and depth only passes
             // we bind depth as color and Unity handles it underneath. so we never have a situation that all color buffers are null and depth is bound.
