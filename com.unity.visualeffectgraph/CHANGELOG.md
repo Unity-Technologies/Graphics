@@ -124,6 +124,7 @@ The version number for this package has increased due to a version update of a r
 - Shader compilation now works when using view direction in shader graph
 - Fix for destroying selected component corrupt "Play Controls" window
 - Depth Position and Collision blocks now work correctly in local space systems
+- Allow world position usage in shaderGraph plugged into an alpha/opacity output [Case 1259511](https://issuetracker.unity3d.com/product/unity/issues/guid/1259511/)
 - Filter out Direction type on inconsistent operator [Case 1201681](https://issuetracker.unity3d.com/product/unity/issues/guid/1201681/)
 - Exclude MouseEvent, RigidBodyCollision, TriggerEvent & Sphere binders when physics modules isn't available
 - Visual Effect Activation Track : Handle empty string in ExposedProperty
