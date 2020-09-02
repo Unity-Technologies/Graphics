@@ -9,17 +9,30 @@ namespace UnityEditor.VFX
     #pragma warning disable 0659
     class VFXExpressionRandom : VFXExpression
     {
-        public VFXExpressionRandom(bool perElement = false) : base(perElement ? VFXExpression.Flags.PerElement : VFXExpression.Flags.None)
-        {}
+        public VFXExpressionRandom(bool perElement, object parent, uint id = 0) : base(perElement ? VFXExpression.Flags.PerElement : VFXExpression.Flags.None)
+        {
+            m_Parent = new WeakReference(parent);
+            m_Id = id;
+        }
 
         public override bool Equals(object obj)
         {
-            return ReferenceEquals(this, obj);
+            if (!base.Equals(obj))
+                return false;
+
+            var other = obj as VFXExpressionRandom;
+            if (other == null)
+                return false;
+
+            return ReferenceEquals(m_Parent.Target, other.m_Parent.Target) && m_Id == other.m_Id;
         }
 
         protected override int GetInnerHashCode()
         {
-            return RuntimeHelpers.GetHashCode(this);
+            int hash = base.GetInnerHashCode();
+            hash = (hash * 397) ^ RuntimeHelpers.GetHashCode(m_Parent.Target);
+            hash = (hash * 397) ^ (int)m_Id;
+            return hash;
         }
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.GenerateRandom; } }
@@ -39,6 +52,10 @@ namespace UnityEditor.VFX
             if (Is(Flags.PerElement))
                 yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
         }
+
+        // These fields are used to check from expression equality
+        private WeakReference m_Parent;
+        private uint m_Id;
     }
 
     class VFXExpressionFixedRandom : VFXExpression

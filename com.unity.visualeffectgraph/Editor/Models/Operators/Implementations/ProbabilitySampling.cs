@@ -113,7 +113,7 @@ namespace UnityEditor.VFX.Operator
                 if (m_Constant)
                     rand = VFXOperatorUtility.FixedRandom(inputExpression.Last(), m_Seed);
                 else
-                    rand = new VFXExpressionRandom(m_Seed == VFXSeedMode.PerParticle);
+                    rand = new VFXExpressionRandom(m_Seed == VFXSeedMode.PerParticle, this);
             }
             else
             {
