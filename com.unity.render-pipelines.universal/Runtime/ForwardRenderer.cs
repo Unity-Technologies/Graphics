@@ -78,9 +78,15 @@ namespace UnityEngine.Rendering.Universal
             m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
-            m_CopyColorPass = new CopyColorPass(RenderPassEvent.BeforeRenderingTransparents, m_SamplingMaterial);
-            m_TransparentSettingsPass = new TransparentSettingsPass(RenderPassEvent.BeforeRenderingTransparents, data.shadowTransparentReceive);
-            m_RenderTransparentForwardPass = new DrawObjectsPass("Render Transparents", false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
+            m_CopyColorPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial);
+#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
+            if (!UniversalRenderPipeline.asset.useAdaptivePerformance || AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipTransparentObjects == false)
+#endif
+            {
+                m_TransparentSettingsPass = new TransparentSettingsPass(RenderPassEvent.BeforeRenderingTransparents, data.shadowTransparentReceive);
+                m_RenderTransparentForwardPass = new DrawObjectsPass("Render Transparents", false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
+            }
+
             m_OnRenderObjectCallbackPass = new InvokeOnRenderObjectCallbackPass(RenderPassEvent.BeforeRenderingPostProcessing);
             m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
             m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRendering + 1, data.postProcessData, m_BlitMaterial);
@@ -126,6 +132,9 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
+            bool needTransparencyPass = !UniversalRenderPipeline.asset.useAdaptivePerformance || !AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipTransparentObjects;
+#endif
             Camera camera = renderingData.cameraData.camera;
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
@@ -144,6 +153,10 @@ namespace UnityEngine.Rendering.Universal
 
                 EnqueuePass(m_RenderOpaqueForwardPass);
                 EnqueuePass(m_DrawSkyboxPass);
+#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
+                if (!needTransparencyPass)
+                    return;
+#endif
                 EnqueuePass(m_RenderTransparentForwardPass);
                 return;
             }
@@ -156,7 +169,7 @@ namespace UnityEngine.Rendering.Universal
             var postProcessFeatureSet = UniversalRenderPipeline.asset.postProcessingFeatureSet;
 
             // We generate color LUT in the base camera only. This allows us to not break render pass execution for overlay cameras.
-            bool generateColorGradingLUT = anyPostProcessing && cameraData.renderType == CameraRenderType.Base;
+            bool generateColorGradingLUT = cameraData.postProcessEnabled;
 #if POST_PROCESSING_STACK_2_0_0_OR_NEWER
             // PPv2 doesn't need to generate color grading LUT.
             if (postProcessFeatureSet == PostProcessingFeatureSet.PostProcessingV2)
@@ -304,12 +317,17 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_CopyColorPass);
             }
 
-            if (transparentsNeedSettingsPass)
+#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
+            if (needTransparencyPass)
+#endif
             {
-                EnqueuePass(m_TransparentSettingsPass);
-            }
+                if (transparentsNeedSettingsPass)
+                {
+                    EnqueuePass(m_TransparentSettingsPass);
+                }
 
-            EnqueuePass(m_RenderTransparentForwardPass);
+                EnqueuePass(m_RenderTransparentForwardPass);
+            }
             EnqueuePass(m_OnRenderObjectCallbackPass);
 
             bool lastCameraInTheStack = cameraData.resolveFinalTarget;
@@ -513,7 +531,7 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_VR_MODULE
             if (!stereo)
                 return;
-            
+
             bool msaaSampleCountHasChanged = false;
             int currentQualitySettingsSampleCount = QualitySettings.antiAliasing;
             if (currentQualitySettingsSampleCount != msaaSamples &&
@@ -530,7 +548,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 QualitySettings.antiAliasing = msaaSamples;
                 XR.XRDevice.UpdateEyeTextureMSAASetting();
-            }  
+            }
 #endif
         }
 

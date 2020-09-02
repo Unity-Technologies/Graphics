@@ -6,8 +6,7 @@
 #   - All characters lowercase, except for HDRP (e.g. 'HDRP/staging')
 # The convention is enforced for all newly created branches.
 
-import sys, subprocess
-import re
+import sys, subprocess, re
 
 
 valid_branch_regex="^((HDRP)|((?!hdrp)([a-z0-9\-_\.]+)))(\/[a-z0-9\-_\.]+)+$"

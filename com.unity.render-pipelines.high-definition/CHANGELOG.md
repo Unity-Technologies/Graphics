@@ -4,7 +4,24 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.5.0] - 2020-07-02
+## [7.5.1] - 2020-06-08
+
+### Fixed
+- Pre-warm the RTHandle system to reduce the amount of memory allocations and the total memory needed at all points. 
+- Appropriately constraint blend distance of reflection probe while editing with the inspector (case 1248931)
+- Fixed fallback for ray tracing and light layers (1258837).
+- Fixed Sorting Priority not displayed correctly in the DrawRenderers custom pass UI.
+- Fixed default frame settings MSAA toggle for reflection probes (case 1247631)
+- Fixed regression where moving face of the probe gizmo was not moving its position anymore.
+- Remove MSAA debug mode when renderpipeline asset has no MSAA
+- Fixed issue that failed compilation when XR is disabled.
+- Fixed an issue where only one of the two lookdev views would update when changing the default lookdev volume profile
+- Fix Amplitude -> Min/Max parametrization conversion
+ 
+### Changed
+- The `CustomPassLoadCameraColor` and `CustomPassSampleCameraColor` functions now returns the correct color buffer when used in after post process instead of the color pyramid (which didn't had post processes).
+
+## [7.4.3] - 2020-08-06
 
 ### Fixed
 - Fixed a bug where connections to the `Normal` slot on *Stack Lit Master* node would be lost when changing normal space. 
