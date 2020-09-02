@@ -254,16 +254,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         void OnPointLight(SerializedObject serializedObject)
         {
-            //EditorGUI.BeginChangeCheck();
-            //EditorGUILayout.PropertyField(m_PointInnerRadius, Styles.pointLightInnerRadius);
-            //if (EditorGUI.EndChangeCheck())
-            //    m_PointInnerRadius.floatValue = Mathf.Max(0.0f, Mathf.Min(m_PointInnerRadius.floatValue, m_PointOuterRadius.floatValue));
-
-            //EditorGUI.BeginChangeCheck();
-            //EditorGUILayout.PropertyField(m_PointOuterRadius, Styles.pointLightOuterRadius);
-            //if (EditorGUI.EndChangeCheck())
-            //    m_PointOuterRadius.floatValue = Mathf.Max(m_PointInnerRadius.floatValue, m_PointOuterRadius.floatValue);
-
             float zero = 0;
             float maxRadius = m_PointMaxOuterRadius.floatValue;
             DrawCustomMinMaxSlider(m_PointInnerRadius, m_PointOuterRadius, ref zero, ref maxRadius, false, Styles.generalRadius);
@@ -299,6 +289,12 @@ namespace UnityEditor.Experimental.Rendering.Universal
             var minRect = new Rect(rect) { width = textFieldWidth };
             var maxRect = new Rect(rect) { xMin = rect.xMax - textFieldWidth };
             var sliderRect = new Rect(rect) { xMin = minRect.xMax + 4, xMax = maxRect.xMin - 4 };
+
+            if (maxConstraint < maxProperty.floatValue)
+                maxConstraint = maxProperty.floatValue;
+
+            if (minConstraint > minProperty.floatValue)
+                minConstraint = minProperty.floatValue;
 
             EditorGUI.BeginChangeCheck();
             EditorGUI.DelayedFloatField(minRect, minProperty, GUIContent.none);
