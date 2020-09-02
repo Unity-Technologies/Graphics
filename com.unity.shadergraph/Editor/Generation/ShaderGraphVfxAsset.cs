@@ -36,6 +36,9 @@ namespace UnityEditor.ShaderGraph.Internal
         public bool lit;
 
         [SerializeField]
+        public bool alphaClipping;
+
+        [SerializeField]
         internal GraphCompilationResult compilationResult;
 
         [SerializeField]
