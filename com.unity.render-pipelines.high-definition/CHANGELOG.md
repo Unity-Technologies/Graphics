@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
+- Skip biquadratic resampling of vbuffer when volumetric fog filtering is enabled.
 
 ## [10.0.0] - 2019-06-10
 
