@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
+- Remove HTile generation for decals (faster without).
 
 ## [10.0.0] - 2019-06-10
 
