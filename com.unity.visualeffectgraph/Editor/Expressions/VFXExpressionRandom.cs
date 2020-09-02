@@ -6,12 +6,39 @@ using System.Runtime.CompilerServices;
 
 namespace UnityEditor.VFX
 {
+    struct RandId
+    {
+        public RandId(object owner, int id = 0)
+        {
+            this.owner = new WeakReference(owner);
+            this.id = id;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is RandId))
+                return false;
+
+            var other = (RandId)obj;
+            return ReferenceEquals(owner.Target, other.owner.Target) && id == other.id;
+        }
+
+        public override int GetHashCode()
+        {
+            // This is not good practice as hashcode will mutate when target gets destroyed but in our case we don't care.
+            // Any entry in cache will just be lost, but it would have never been accessed anyway (as owner is lost)
+            return (RuntimeHelpers.GetHashCode(owner.Target) * 397) ^ id;
+        }
+
+        WeakReference owner;
+        int id;
+    }
+
     #pragma warning disable 0659
     class VFXExpressionRandom : VFXExpression
     {
-        public VFXExpressionRandom(bool perElement, object parent, uint id = 0) : base(perElement ? VFXExpression.Flags.PerElement : VFXExpression.Flags.None)
+        public VFXExpressionRandom(bool perElement, RandId id) : base(perElement ? VFXExpression.Flags.PerElement : VFXExpression.Flags.None)
         {
-            m_Parent = new WeakReference(parent);
             m_Id = id;
         }
 
@@ -24,15 +51,12 @@ namespace UnityEditor.VFX
             if (other == null)
                 return false;
 
-            return ReferenceEquals(m_Parent.Target, other.m_Parent.Target) && m_Id == other.m_Id;
+            return m_Id.Equals(other.m_Id);
         }
 
         protected override int GetInnerHashCode()
         {
-            int hash = base.GetInnerHashCode();
-            hash = (hash * 397) ^ RuntimeHelpers.GetHashCode(m_Parent.Target);
-            hash = (hash * 397) ^ (int)m_Id;
-            return hash;
+            return (base.GetInnerHashCode() * 397) ^ m_Id.GetHashCode();
         }
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.GenerateRandom; } }
@@ -53,9 +77,7 @@ namespace UnityEditor.VFX
                 yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
         }
 
-        // These fields are used to check from expression equality
-        private WeakReference m_Parent;
-        private uint m_Id;
+        private RandId m_Id;
     }
 
     class VFXExpressionFixedRandom : VFXExpression
