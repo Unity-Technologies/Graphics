@@ -142,20 +142,19 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
         void MarkShaderAsDirty(Shader shader, object context)
         {
             CompositionManager compositor = CompositionManager.GetInstance();
-            compositor.shaderPropertiesAreDirty = true;
-            m_RequiresRedraw = true;
+            if (compositor)
+            {
+                compositor.shaderPropertiesAreDirty = true;
+                m_RequiresRedraw = true;
 
-            EditorUtility.SetDirty(compositor);
-            EditorUtility.SetDirty(compositor.profile);
+                EditorUtility.SetDirty(compositor);
+                EditorUtility.SetDirty(compositor.profile);
+            }
         }
 
         private void OnDestroy()
         {
-            CompositionManager compositor = CompositionManager.GetInstance();
-            if (compositor && compositor.shader != null)
-            {
-                GraphData.onSaveGraph -= MarkShaderAsDirty;
-            }
+            GraphData.onSaveGraph -= MarkShaderAsDirty;
         }
     }
 }

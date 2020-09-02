@@ -791,6 +791,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug related to light cluster invalidation.
 - Fixed shader warning in DofGather (case 1272931)
 - Fixed issues when selecting a new composition graph or setting it to None (cases 1263350, 1266202)
+- Fixed ArgumentNullException when saving shader graphs after removing the compositor from the scene (case 1268658)
 
 ### Changed
 - Improve MIP selection for decals on Transparents
