@@ -71,12 +71,12 @@ MonoBehaviour:
     min: 0
   intensity:
     m_OverrideState: 1
-    m_Value: 0.2
+    m_Value: 0.15
     min: 0
     max: 1
   scatter:
     m_OverrideState: 1
-    m_Value: 0.8
+    m_Value: 0.65
     min: 0
     max: 1
   tint:
@@ -125,7 +125,7 @@ MonoBehaviour:
     m_Value: 0
   exposure:
     m_OverrideState: 1
-    m_Value: 15
+    m_Value: 13.5
   multiplier:
     m_OverrideState: 0
     m_Value: 1
@@ -246,6 +246,37 @@ MonoBehaviour:
   - {fileID: -2223948172287066284}
   - {fileID: 1359070828411649799}
   - {fileID: -1167143466653396744}
+  - {fileID: 747098994415714109}
+--- !u!114 &747098994415714109
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a6b00fcf518bb94a90b408492e07b44, type: 3}
+  m_Name: FilmGrain
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  type:
+    m_OverrideState: 1
+    m_Value: 0
+  intensity:
+    m_OverrideState: 1
+    m_Value: 0.2
+    min: 0
+    max: 1
+  response:
+    m_OverrideState: 1
+    m_Value: 0.8
+    min: 0
+    max: 1
+  texture:
+    m_OverrideState: 0
+    m_Value: {fileID: 0}
 --- !u!114 &1359070828411649799
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -285,13 +316,13 @@ MonoBehaviour:
   m_AdvancedMode: 0
   quality:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 2
   enable:
     m_OverrideState: 1
     m_Value: 1
   length:
     m_OverrideState: 1
-    m_Value: 0.15
+    m_Value: 0.1
     min: 0
     max: 1
   opacity:
@@ -306,20 +337,30 @@ MonoBehaviour:
     max: 1
   maxDistance:
     m_OverrideState: 1
-    m_Value: 50
+    m_Value: 100
     min: 0
   minDistance:
     m_OverrideState: 1
-    m_Value: 6
+    m_Value: 1
     min: 0
   fadeDistance:
-    m_OverrideState: 0
-    m_Value: 5
+    m_OverrideState: 1
+    m_Value: 10
     min: 0
   fadeInDistance:
     m_OverrideState: 1
-    m_Value: 2
+    m_Value: 1
     min: 0
+  rayBias:
+    m_OverrideState: 0
+    m_Value: 0.2
+    min: 0
+    max: 1
+  thicknessScale:
+    m_OverrideState: 0
+    m_Value: 0.15
+    min: 0.02
+    max: 1
   m_SampleCount:
     m_OverrideState: 1
     m_Value: 32
@@ -388,7 +429,7 @@ MonoBehaviour:
     showEyeDropper: 1
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 4000
+    m_Value: 5000
     min: 1
   enableVolumetricFog:
     m_OverrideState: 1
@@ -447,7 +488,7 @@ MonoBehaviour:
     m_Value: 0
   intensity:
     m_OverrideState: 1
-    m_Value: 0.5
+    m_Value: 0.4
     min: 0
     max: 4
   directLightingStrength:
@@ -533,7 +574,7 @@ MonoBehaviour:
   m_AdvancedMode: 0
   mode:
     m_OverrideState: 1
-    m_Value: 2
+    m_Value: 4
   meteringMode:
     m_OverrideState: 1
     m_Value: 4
@@ -551,7 +592,7 @@ MonoBehaviour:
     m_Value: 5
   limitMax:
     m_OverrideState: 1
-    m_Value: 12
+    m_Value: 13
   curveMap:
     m_OverrideState: 0
     m_Value:
@@ -635,18 +676,18 @@ MonoBehaviour:
     m_Value: 1
   adaptationSpeedDarkToLight:
     m_OverrideState: 1
-    m_Value: 3
+    m_Value: 4
     min: 0.001
   adaptationSpeedLightToDark:
     m_OverrideState: 1
-    m_Value: 3
+    m_Value: 4
     min: 0.001
   weightTextureMask:
     m_OverrideState: 0
     m_Value: {fileID: 0}
   histogramPercentages:
     m_OverrideState: 1
-    m_Value: {x: 8, y: 90}
+    m_Value: {x: 10, y: 90}
     min: 0
     max: 100
   histogramUseCurveRemapping:

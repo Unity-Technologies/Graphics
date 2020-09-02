@@ -199,7 +199,7 @@ VFXContextUI #header-space.spaceWorld
 
 VFXContextUI #footer #icon
 {
-    --unity-image:resource("VFX/Execution");
+    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor Default Resources/VFX/Execution.png");
 }
 
 VFXContextUI #block-container {

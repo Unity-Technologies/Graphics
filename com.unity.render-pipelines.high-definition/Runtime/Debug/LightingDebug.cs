@@ -332,6 +332,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool                 centerHistogramAroundMiddleGrey = false;
         /// <summary>Whether to show tonemap curve in the histogram debug view or not.</summary>
         public bool                 displayFinalImageHistogramAsRGB = false;
+        /// <summary>Whether to show the only the mask in the picture in picture. If unchecked, the mask view is weighted by the scene color.</summary>
+        public bool                 displayMaskOnly = false;
 
         /// <summary>Display the light cookies atlas.</summary>
         public bool                 displayCookieAtlas = false;

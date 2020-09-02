@@ -12,12 +12,12 @@ namespace UnityEngine.Rendering.HighDefinition
         [UnityEngine.Serialization.FormerlySerializedAs("indirectDiffuseIntensity")]
         /// <summary>Indirect diffuse lighting multiplier, between 0 and 1</summary>
         public MinFloatParameter indirectDiffuseLightingMultiplier = new MinFloatParameter(1.0f, 0.0f);
-        /// Controls which layer will be affected by the indirect diffuse lighting multiplier 
+        /// <summary>Controls which layer will be affected by the indirect diffuse lighting multiplier </summary>
         public LightLayerEnumParameter indirectDiffuseLightingLayers = new LightLayerEnumParameter(LightLayerEnum.Everything); // Default to everything to not have migration issue
 
         /// <summary>Reflection lighting multiplier, between 0 and 1</summary>
         public MinFloatParameter reflectionLightingMultiplier = new MinFloatParameter(1.0f, 0.0f);
-        /// Controls which layer will be affected by the reflection lighting multiplier 
+        /// <summary>Controls which layer will be affected by the reflection lighting multiplier </summary>
         public LightLayerEnumParameter reflectionLightingLayers = new LightLayerEnumParameter(LightLayerEnum.Everything); // Default to everything to not have migration issue
 
         [UnityEngine.Serialization.FormerlySerializedAs("indirectSpecularIntensity")]

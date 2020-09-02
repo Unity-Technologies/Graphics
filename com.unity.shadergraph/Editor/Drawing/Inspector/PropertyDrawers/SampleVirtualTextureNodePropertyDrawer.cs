@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
@@ -23,6 +23,19 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             PropertySheet propertySheet = new PropertySheet();
 
             var enumPropertyDrawer = new EnumPropertyDrawer();
+            propertySheet.Add(enumPropertyDrawer.CreateGUI((newValue) =>
+                {
+                    if (node.addressMode == (SampleVirtualTextureNode.AddressMode) newValue)
+                        return;
+
+                    node.owner.owner.RegisterCompleteObjectUndo("Address Mode Change");
+                    node.addressMode = (SampleVirtualTextureNode.AddressMode) newValue;
+                },
+                node.addressMode,
+                "Address Mode",
+                SampleVirtualTextureNode.AddressMode.VtAddressMode_Wrap,
+                out var addressModeVisualElement));
+
             propertySheet.Add(enumPropertyDrawer.CreateGUI((newValue) =>
                 {
                     if (node.lodCalculation == (SampleVirtualTextureNode.LodCalculation) newValue)
@@ -52,14 +65,14 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             var boolPropertyDrawer = new BoolPropertyDrawer();
             propertySheet.Add(boolPropertyDrawer.CreateGUI((newValue) =>
                 {
-                    if (node.noFeedback == newValue)
+                    if (node.noFeedback == !newValue)
                         return;
 
                     node.owner.owner.RegisterCompleteObjectUndo("Feedback Settings Change");
-                    node.noFeedback = newValue;
+                    node.noFeedback = !newValue;
                 },
-                node.noFeedback,
-                "No Feedback",
+                !node.noFeedback,
+                "Automatic Streaming",
                 out var propertyToggle));
 
             // display warning if the current master node doesn't support virtual texturing

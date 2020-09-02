@@ -107,7 +107,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Structure that holds all the dithered sampling texture that shall be binded at dispatch time.
-        public struct DitheredTextureSet
+        internal struct DitheredTextureSet
         {
             public Texture2D owenScrambled256Tex;
             public Texture2D scramblingTile;

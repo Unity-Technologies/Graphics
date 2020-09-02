@@ -206,11 +206,11 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, FormerlySerializedAs("rayLength")]
         private ClampedFloatParameter m_RayLength = new ClampedFloatParameter(0.5f, 0f, 50f);
         [SerializeField, FormerlySerializedAs("sampleCount")]
-        public ClampedIntParameter m_SampleCount = new ClampedIntParameter(1, 1, 64);
+        private ClampedIntParameter m_SampleCount = new ClampedIntParameter(1, 1, 64);
         [SerializeField, FormerlySerializedAs("denoise")]
-        public BoolParameter m_Denoise = new BoolParameter(true);
+        private BoolParameter m_Denoise = new BoolParameter(true);
         [SerializeField, FormerlySerializedAs("denoiserRadius")]
-        public ClampedFloatParameter m_DenoiserRadius = new ClampedFloatParameter(1.0f, 0.001f, 1.0f);
+        private ClampedFloatParameter m_DenoiserRadius = new ClampedFloatParameter(1.0f, 0.001f, 1.0f);
     }
 
     partial class AmbientOcclusionSystem

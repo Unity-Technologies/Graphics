@@ -319,7 +319,13 @@ namespace UnityEditor.ShaderGraph
         public DataValueEnumerable<Target> activeTargets => m_ActiveTargets.SelectValue();
 
         // TODO: Need a better way to handle this
-        public bool isVFXTarget => !isSubGraph && activeTargets.Count() > 0 && activeTargets.ElementAt(0).GetType() == typeof(VFXTarget);
+#if VFX_GRAPH_10_0_0_OR_NEWER
+        public bool hasVFXTarget => !isSubGraph && activeTargets.Count() > 0 && activeTargets.OfType<VFXTarget>().Any();
+        public bool isOnlyVFXTarget => hasVFXTarget && activeTargets.Count() == 1;
+#else
+        public bool isVFXTarget => false;
+        public bool isOnlyVFXTarget => false;
+#endif
         #endregion
 
         private Comparison<Target> targetComparison = new Comparison<Target>((a, b) => string.Compare(a.displayName, b.displayName));
@@ -363,25 +369,24 @@ namespace UnityEditor.ShaderGraph
         void GetBlockFieldDescriptors()
         {
             m_BlockFieldDescriptors = new List<BlockFieldDescriptor>();
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+
+            var asmTypes = TypeCache.GetTypesWithAttribute<GenerateBlocksAttribute>();
+            foreach (var type in asmTypes)
             {
-                foreach (var nestedType in assembly.GetTypes().SelectMany(t => t.GetNestedTypes()))
+                var attrs = type.GetCustomAttributes(typeof(GenerateBlocksAttribute), false);
+                if (attrs == null || attrs.Length <= 0)
+                    continue;
+
+                var attribute = attrs[0] as GenerateBlocksAttribute;
+
+                // Get all fields that are BlockFieldDescriptor
+                // If field and context stages match add to list
+                foreach (var fieldInfo in type.GetFields())
                 {
-                    var attrs = nestedType.GetCustomAttributes(typeof(GenerateBlocksAttribute), false);
-                    if (attrs == null || attrs.Length <= 0)
-                        continue;
-
-                    var attribute = attrs[0] as GenerateBlocksAttribute;
-
-                    // Get all fields that are BlockFieldDescriptor
-                    // If field and context stages match add to list
-                    foreach (var fieldInfo in nestedType.GetFields())
+                    if (fieldInfo.GetValue(type) is BlockFieldDescriptor blockFieldDescriptor)
                     {
-                        if(fieldInfo.GetValue(nestedType) is BlockFieldDescriptor blockFieldDescriptor)
-                        {
-                            blockFieldDescriptor.path = attribute.path;
-                            m_BlockFieldDescriptors.Add(blockFieldDescriptor);
-                        }
+                        blockFieldDescriptor.path = attribute.path;
+                        m_BlockFieldDescriptors.Add(blockFieldDescriptor);
                     }
                 }
             }

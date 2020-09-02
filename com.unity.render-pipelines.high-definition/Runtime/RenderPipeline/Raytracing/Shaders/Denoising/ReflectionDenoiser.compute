@@ -67,6 +67,16 @@ void TemporalAccumulation(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gr
         return;
     }
 
+    // Decode the normal data
+    NormalData normalData;
+    DecodeFromNormalBuffer(centerCoord, normalData);
+    // If this is close to a perfectly smooth surface, we do not want to use the history (it introduced unwanted ghosting)
+    if (PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness) > 0.99)
+    {
+        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color * GetInverseCurrentExposureMultiplier(), LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).w);
+        return;
+    }
+
     float3 topLeft = Fetch(_DenoiseInputTexture, uv, -RADIUS, _RTHandleScale.xy) * GetCurrentExposureMultiplier();
     float3 bottomRight = Fetch(_DenoiseInputTexture, uv, RADIUS, _RTHandleScale.xy) * GetCurrentExposureMultiplier();
 
