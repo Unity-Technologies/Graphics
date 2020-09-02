@@ -826,9 +826,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             Blit(cmd, source, BlitDstDiscardContent(cmd, destination), material, (int)m_MotionBlur.quality.value);
         }
 
-#endregion
+        #endregion
 
-#region Panini Projection
+        #region Panini Projection
 
         // Back-ported & adapted from the work of the Stockholm demo team - thanks Lasse!
         void DoPaniniProjection(Camera camera, CommandBuffer cmd, int source, int destination)
@@ -901,9 +901,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             return cylPos * (viewDist / cylDist);
         }
 
-#endregion
+        #endregion
 
-#region Bloom
+        #region Bloom
 
         void SetupBloom(CommandBuffer cmd, int source, Material uberMaterial)
         {
@@ -1019,9 +1019,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 uberMaterial.EnableKeyword(dirtIntensity > 0f ? ShaderKeywordStrings.BloomLQDirt : ShaderKeywordStrings.BloomLQ);
         }
 
-#endregion
+        #endregion
 
-#region Lens Distortion
+        #region Lens Distortion
 
         void SetupLensDistortion(Material material, bool isSceneView)
         {
@@ -1049,9 +1049,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 material.EnableKeyword(ShaderKeywordStrings.Distortion);
         }
 
-#endregion
+        #endregion
 
-#region Chromatic Aberration
+        #region Chromatic Aberration
 
         void SetupChromaticAberration(Material material)
         {
@@ -1061,9 +1061,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 material.EnableKeyword(ShaderKeywordStrings.ChromaticAberration);
         }
 
-#endregion
+        #endregion
 
-#region Vignette
+        #region Vignette
 
         void SetupVignette(Material material)
         {
@@ -1085,9 +1085,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             material.SetVector(ShaderConstants._Vignette_Params2, v2);
         }
 
-#endregion
+        #endregion
 
-#region Color Grading
+        #region Color Grading
 
         void SetupColorGrading(CommandBuffer cmd, ref RenderingData renderingData, Material material)
         {
@@ -1124,9 +1124,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-#endregion
+        #endregion
 
-#region Film Grain
+        #region Film Grain
 
         void SetupGrain(in CameraData cameraData, Material material)
         {
@@ -1142,9 +1142,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-#endregion
+        #endregion
 
-#region 8-bit Dithering
+        #region 8-bit Dithering
 
         void SetupDithering(in CameraData cameraData, Material material)
         {
@@ -1160,9 +1160,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-#endregion
+        #endregion
 
-#region Final pass
+        #region Final pass
 
         void RenderFinalPass(CommandBuffer cmd, ref RenderingData renderingData)
         {
@@ -1221,9 +1221,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-#endregion
+        #endregion
 
-#region Internal utilities
+        #region Internal utilities
 
         class MaterialLibrary
         {
@@ -1327,6 +1327,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static int[] _BloomMipDown;
         }
 
-#endregion
+        #endregion
     }
 }
