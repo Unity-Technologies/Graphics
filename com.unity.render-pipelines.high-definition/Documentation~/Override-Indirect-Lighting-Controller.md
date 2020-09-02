@@ -15,7 +15,7 @@ The **Indirect Lighting Controller** uses the [Volume](Volumes.md) framework, so
 
 ![](Images/Override-IndirectLightingController1.png)
 
-[!include[](Snippets/Volume-Override-Enable-Properties.md)]
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
 
 | Property                        | Description                                                  |
 | ------------------------------- | ------------------------------------------------------------ |
