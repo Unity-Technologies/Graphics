@@ -1,6 +1,7 @@
 using System;
 using Unity.Collections;
 using System.Collections.Generic;
+using UnityEditor.Rendering;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.Rendering.Universal;
@@ -75,6 +76,8 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        private readonly DebugDisplaySettingsUI m_DebugDisplaySettingsUI = new DebugDisplaySettingsUI();
+
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
             SetSupportedRenderingFeatures();
@@ -99,10 +102,14 @@ namespace UnityEngine.Rendering.Universal
             CameraCaptureBridge.enabled = true;
 
             RenderingUtils.ClearSystemInfoCache();
+
+            m_DebugDisplaySettingsUI.RegisterDebug(DebugDisplaySettings.Instance);
         }
 
         protected override void Dispose(bool disposing)
         {
+            m_DebugDisplaySettingsUI.UnregisterDebug();
+
             base.Dispose(disposing);
 
             Shader.globalRenderPipeline = "";
@@ -318,7 +325,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Post-processing not supported in GLES2.
             anyPostProcessingEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
-            
+
             bool isStackedRendering = lastActiveOverlayCameraIndex != -1;
 
             InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
