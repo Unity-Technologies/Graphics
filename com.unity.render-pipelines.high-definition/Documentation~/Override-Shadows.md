@@ -15,7 +15,7 @@ The **Shadows** override comes as default when you create a **Scene Settings** G
 
 ![](Images/Override-Shadows1.png)
 
-[!include[](Snippets/Volume-Override-Enable-Properties.md)]
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
 
 | **Property**     | **Description**                                              |
 | ---------------- | ------------------------------------------------------------ |

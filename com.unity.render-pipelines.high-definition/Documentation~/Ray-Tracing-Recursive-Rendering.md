@@ -25,7 +25,7 @@ Now that you have recursive rendering set up in your Scene, you must set GameObj
 You can also do this for Shader Graph master nodes:
 
 1. In the Project window, double-click on the Shader to open it in Shader Graph.
-2. On the master node, click the cog, then select Raytracing from the Rendering Pass drop-down.
+2. On the master node, click the gear, then select Raytracing from the Rendering Pass drop-down.
 
 ## Properties
 
