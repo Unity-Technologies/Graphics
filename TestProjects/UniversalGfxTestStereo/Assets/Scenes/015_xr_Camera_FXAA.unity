@@ -1394,8 +1394,8 @@ MonoBehaviour:
   ImageComparisonSettings:
     TargetWidth: 640
     TargetHeight: 360
-    PerPixelCorrectnessThreshold: 0.00025
-    AverageCorrectnessThreshold: 0.0001
+    PerPixelCorrectnessThreshold: 0.00005
+    AverageCorrectnessThreshold: 0.00001
     UseHDR: 0
     UseBackBuffer: 0
     ImageResolution: 0
