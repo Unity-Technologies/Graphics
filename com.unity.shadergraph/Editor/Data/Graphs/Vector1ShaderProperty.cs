@@ -53,13 +53,13 @@ namespace UnityEditor.ShaderGraph.Internal
             switch(floatType)
             {
                 case FloatType.Slider:
-                    return $"{supportedRenderPipelinesTagString}{hideTagString}{referenceName}(\"{displayName}\", Range({NodeUtils.FloatToShaderValue(m_RangeValues.x)}, {NodeUtils.FloatToShaderValue(m_RangeValues.y)})) = {valueString}";
+                    return $"{hideTagString}{referenceName}(\"{displayName}\", Range({NodeUtils.FloatToShaderValue(m_RangeValues.x)}, {NodeUtils.FloatToShaderValue(m_RangeValues.y)})) = {valueString}";
                 case FloatType.Integer:
-                    return $"{supportedRenderPipelinesTagString}{hideTagString}{referenceName}(\"{displayName}\", Int) = {valueString}";
+                    return $"{hideTagString}{referenceName}(\"{displayName}\", Int) = {valueString}";
                 case FloatType.Enum:
-                    return $"{supportedRenderPipelinesTagString}{hideTagString}{enumTagString}{referenceName}(\"{displayName}\", Float) = {valueString}";
+                    return $"{hideTagString}{enumTagString}{referenceName}(\"{displayName}\", Float) = {valueString}";
                 default:
-                    return $"{supportedRenderPipelinesTagString}{hideTagString}{referenceName}(\"{displayName}\", Float) = {valueString}";
+                    return $"{hideTagString}{referenceName}(\"{displayName}\", Float) = {valueString}";
             }
         }
 

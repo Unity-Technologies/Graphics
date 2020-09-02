@@ -13,7 +13,6 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.UIElements;
 using UnityEditorInternal;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 using FloatField = UnityEditor.ShaderGraph.Drawing.FloatField;
 
@@ -215,9 +214,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             switch(property)
             {
-            case IShaderPropertyDrawer propDrawer:
-                propDrawer.HandlePropertyField(propertySheet, _preChangeValueCallback, _postChangeValueCallback);
-                break;
             case Vector1ShaderProperty vector1Property:
                 HandleVector1ShaderProperty(propertySheet, vector1Property);
                 break;
@@ -268,61 +264,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 break;
             }
 
-            if (property.showSupportedRenderPipelinesField)
-                BuildSupportedRenderPipelinesField(propertySheet, property);
-
-            if (property.showPrecisionField)
-                BuildPrecisionField(propertySheet, property);
+            BuildPrecisionField(propertySheet, property);
             if(property.isGpuInstanceable)
                 BuildGpuInstancingField(propertySheet, property);
-        }
-
-        void BuildSupportedRenderPipelinesField(PropertySheet propertySheet, AbstractShaderProperty property)
-        {
-            var options = new List<string>();
-            var rpTypes = TypeCache.GetTypesDerivedFrom<RenderPipelineAsset>().Where(t => !t.IsAbstract).ToList();
-
-            foreach (var rpType in rpTypes)
-                options.Add(ObjectNames.NicifyVariableName(rpType.Name));
-
-            // temporarily convert supported RP string array to int mask for the field
-            // Hopefully, we'll never have more than 32 SRPs.
-            int mask = 0;
-
-            if (property.supportedRenderPipelines.Contains(SupportedRenderPipelineUtils.All))
-                mask = -1;
-            else
-            {
-                property.supportedRenderPipelines.All(supportedType => {
-                    int index = rpTypes.FindIndex(type => type.Name == supportedType);
-
-                    if (index != -1)
-                        mask |= 1 << index;
-
-                    return true;
-                });
-            }
-
-            var srpMask = new MaskField(options, mask);
-            srpMask.RegisterValueChangedCallback(e => {
-                this._preChangeValueCallback("Change Supported Render Pipelines");
-                if (e.newValue == -1)
-                    property.supportedRenderPipelines = new List<string>{SupportedRenderPipelineUtils.All};
-                else if (e.newValue == 0)
-                    property.supportedRenderPipelines = new List<string>{SupportedRenderPipelineUtils.None};
-                else
-                {
-                    property.supportedRenderPipelines.Clear();
-                    for (int i = 0; i < rpTypes.Count; i++)
-                        if ((e.newValue & (1 << i)) != 0)
-                            property.supportedRenderPipelines.Add(SupportedRenderPipelineUtils.GetRenderPipelineName(rpTypes[i]));
-                }
-                this._postChangeValueCallback();
-            });
-
-            var row = new PropertyRow(new Label("Supported Render Pipelines"));
-            row.Add(srpMask);
-            propertySheet.Add(row);
         }
 
         void BuildPrecisionField(PropertySheet propertySheet, AbstractShaderProperty property)
