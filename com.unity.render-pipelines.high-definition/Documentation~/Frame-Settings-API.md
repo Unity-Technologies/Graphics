@@ -1,6 +1,6 @@
 # Frame Settings Scripting API
 
-In the High Definition Render Pipelines (HDRP), [Frame Settings](Frame-Settings.md) control how a rendering component, such as a [Camera](HDRP-Camera.md), [Reflection Probe](Reflection-Probe.md), or [Planar Reflection Probe](Planar-Reflection-Probe.md), renders a Scene. You can specify default Frame Settings for your entire Project and then override them for a particular rendering component. This means that each Frame Setting has a default value, set in the [HDRP Asset](HDRP-Asset.md), then each individual rendering component in your Scene can have an override for it. This is useful if you have lower priority rendering components that do not need to use certain effects. To specify which default Frame Settings a rendering component overrides, each rendering component contains an [override mask](../api/UnityEngine.Rendering.HighDefinition.FrameSettingsOverrideMask.html). A mask is an array of bits, where each bit represents one of two states (0 for disabled and 1 for enabled). Each bit in the override mask represents the override state of a particular Frame Setting.
+In the High Definition Render Pipelines (HDRP), [Frame Settings](Frame-Settings.md) control how a rendering component, such as a [Camera](HDRP-Camera.md), [Reflection Probe](Reflection-Probe.md), or [Planar Reflection Probe](Planar-Reflection-Probe.md), renders a Scene. You can specify default Frame Settings for your entire Project and then override them for a particular rendering component. This means that each Frame Setting has a default value, set in the [HDRP Asset](HDRP-Asset.md), then each individual rendering component in your Scene can have an override for it. This is useful if you have lower priority rendering components that do not need to use certain effects. To specify which default Frame Settings a rendering component overrides, each rendering component contains an [override mask](../api/UnityEngine.Rendering.HighDefinition.FrameSettingsOverrideMask.md). A mask is an array of bits, where each bit represents one of two states (0 for disabled and 1 for enabled). Each bit in the override mask represents the override state of a particular Frame Setting.
 
 To get the final value of a Frame Setting for a particular rendering component, HDRP performs the following steps:
 
@@ -54,29 +54,29 @@ To make it easier to set the value of some Frame Settings, HDRP provides the fol
 
 An enum which helps to switch a rendering component between deferred and forward rendering.
 
-For information on what each enum value does, see [LitShaderMode](../api/UnityEngine.Rendering.HighDefinition.LitShaderMode.html).
+For information on what each enum value does, see [LitShaderMode](../api/UnityEngine.Rendering.HighDefinition.LitShaderMode.md).
 
 ### LODBiasMode
 
 An enum which defines how HDRP calculates a LOD bias.
 
-For information on what each enum value does, see [LODBiasMode](../api/UnityEngine.Rendering.HighDefinition.LODBiasMode.html).
+For information on what each enum value does, see [LODBiasMode](../api/UnityEngine.Rendering.HighDefinition.LODBiasMode.md).
 
 ### MaximumLODLevelMode
 
 An enum which defines how HDRP calculates the maximum LOD level.
 
-For information on what each enum value does, see [MaximumLODLevelMode](../api/UnityEngine.Rendering.HighDefinition.MaximumLODLevelMode.html).
+For information on what each enum value does, see [MaximumLODLevelMode](../api/UnityEngine.Rendering.HighDefinition.MaximumLODLevelMode.md).
 
 ### FrameSettingsField
 
-An enum where each entry represents a particular Frame Setting. For a list of entries in this enum, see [FrameSettingsField](../api/UnityEngine.Rendering.HighDefinition.FrameSettingsField.html).
+An enum where each entry represents a particular Frame Setting. For a list of entries in this enum, see [FrameSettingsField](../api/UnityEngine.Rendering.HighDefinition.FrameSettingsField.md).
 
 As well as an entry for each Frame Settings, this enum also includes the value `FrameSettingsField.None` that is set to **-1** for convenience and internal usage.
 
 ## FrameSettingsOverrideMask Scripting API
 
-This is a structure that has a single field which stores the override mask. For more information about this structure and the API it contains, see [FrameSettingsOverrideMask](../api/UnityEngine.Rendering.HighDefinition.FrameSettingsOverrideMask.html).
+This is a structure that has a single field which stores the override mask. For more information about this structure and the API it contains, see [FrameSettingsOverrideMask](../api/UnityEngine.Rendering.HighDefinition.FrameSettingsOverrideMask.md).
 
 In the override mask, to allow you to easily access the bit for a given Frame Setting, HDRP provides the [FrameSettingsField](#framesettingsfield) enum. You can use this, for example, to find the bit responsible for overriding the **Opaque Objects** Frame Setting. To do this, you would do `this[(int)FrameSettingsField.OpaqueObjects]`.
 
@@ -86,7 +86,7 @@ The following example shows how to compare the `humanizedData` from a rendering 
 
 ## FrameSettings Scripting API
 
-This is a structure that contains information on how a rendering component should render the Scene. For more information about this structure and the API it contains, see [FrameSettings](../api/UnityEngine.Rendering.HighDefinition.FrameSettings.html).
+This is a structure that contains information on how a rendering component should render the Scene. For more information about this structure and the API it contains, see [FrameSettings](../api/UnityEngine.Rendering.HighDefinition.FrameSettings.md).
 
 ### Example
 

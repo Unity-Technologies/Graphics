@@ -47,6 +47,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public MSAASamples  msaaSamples;
         ///<summary>Index of the current frame being rendered.</summary>
         public int          currentFrameIndex;
+        ///<summary>Scriptable Render Context used by the render pipeline.</summary>
+        public ScriptableRenderContext scriptableRenderContext;
+        ///<summary>Command Buffer used to execute graphic commands.</summary>
+        public CommandBuffer commandBuffer;
     }
 
     class RenderGraphDebugParams
@@ -57,7 +61,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public bool logFrameInformation;
         public bool logResources;
 
-        public void RegisterDebug()
+        public void RegisterDebug(string name)
         {
             var list = new List<DebugUI.Widget>();
             list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at creation", getter = () => clearRenderTargetsAtCreation, setter = value => clearRenderTargetsAtCreation = value });
@@ -82,13 +86,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 }
             });
 
-            var panel = DebugManager.instance.GetPanel("Render Graph", true);
+            var panel = DebugManager.instance.GetPanel(name.Length == 0 ? "Render Graph" : name, true);
             panel.children.Add(list.ToArray());
         }
 
-        public void UnRegisterDebug()
+        public void UnRegisterDebug(string name)
         {
-            DebugManager.instance.RemovePanel("Render Graph");
+            DebugManager.instance.RemovePanel(name.Length == 0 ? "Render Graph" : name);
         }
     }
 
@@ -200,6 +204,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
+        string                                  m_Name;
         RenderGraphResourceRegistry             m_Resources;
         RenderGraphObjectPool                   m_RenderGraphPool = new RenderGraphObjectPool();
         List<RenderGraphPass>                   m_RenderPasses = new List<RenderGraphPass>(64);
@@ -218,6 +223,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         #region Public Interface
 
+        /// <summary>
+        /// Set of default resources usable in a pass rendering code.
+        /// </summary>
         public RenderGraphDefaultResources defaultResources
         {
             get
@@ -230,16 +238,18 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <summary>
         /// Render Graph constructor.
         /// </summary>
-        /// <param name="supportMSAA">Specify if this Render Graph should support MSAA.</param>
-        /// <param name="initialSampleCount">Specify the initial sample count of MSAA render textures.</param>
-        public RenderGraph(bool supportMSAA, MSAASamples initialSampleCount)
+        /// <param name="name">Optional name used to identify the render graph instnace.</param>
+        public RenderGraph(string name = "")
         {
-            m_Resources = new RenderGraphResourceRegistry(supportMSAA, initialSampleCount, m_DebugParameters, m_Logger);
+            m_Name = name;
+            m_Resources = new RenderGraphResourceRegistry(m_DebugParameters, m_Logger);
 
             for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
             {
                 m_CompiledResourcesInfos[i] = new DynamicArray<CompiledResourceInfo>();
             }
+
+            m_DebugParameters.RegisterDebug(m_Name);
         }
 
         /// <summary>
@@ -247,24 +257,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         public void Cleanup()
         {
+            m_DebugParameters.UnRegisterDebug(m_Name);
             m_Resources.Cleanup();
             m_DefaultResources.Cleanup();
-        }
-
-        /// <summary>
-        /// Register this Render Graph to the debug window.
-        /// </summary>
-        public void RegisterDebug()
-        {
-            m_DebugParameters.RegisterDebug();
-        }
-
-        /// <summary>
-        /// Unregister this Render Graph from the debug window.
-        /// </summary>
-        public void UnRegisterDebug()
-        {
-            m_DebugParameters.UnRegisterDebug();
         }
 
         /// <summary>
@@ -379,17 +374,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         /// <summary>
-        /// Add a new Render Pass to the current Render Graph.
+        /// Add a new Render Pass to the Render Graph.
         /// </summary>
         /// <typeparam name="PassData">Type of the class to use to provide data to the Render Pass.</typeparam>
         /// <param name="passName">Name of the new Render Pass (this is also be used to generate a GPU profiling marker).</param>
         /// <param name="passData">Instance of PassData that is passed to the render function and you must fill.</param>
-        /// <param name="sampler">Optional profiling sampler.</param>
+        /// <param name="sampler">Profiling sampler used around the pass.</param>
         /// <returns>A new instance of a RenderGraphBuilder used to setup the new Render Pass.</returns>
-        public RenderGraphBuilder AddRenderPass<PassData>(string passName, out PassData passData, ProfilingSampler sampler = null) where PassData : class, new()
+        public RenderGraphBuilder AddRenderPass<PassData>(string passName, out PassData passData, ProfilingSampler sampler) where PassData : class, new()
         {
             var renderPass = m_RenderGraphPool.Get<RenderGraphPass<PassData>>();
-            renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, sampler != null ? sampler : GetDefaultProfilingSampler(passName));
+            renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, sampler);
 
             passData = renderPass.data;
 
@@ -399,12 +394,22 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         /// <summary>
+        /// Add a new Render Pass to the Render Graph.
+        /// </summary>
+        /// <typeparam name="PassData">Type of the class to use to provide data to the Render Pass.</typeparam>
+        /// <param name="passName">Name of the new Render Pass (this is also be used to generate a GPU profiling marker).</param>
+        /// <param name="passData">Instance of PassData that is passed to the render function and you must fill.</param>
+        /// <returns>A new instance of a RenderGraphBuilder used to setup the new Render Pass.</returns>
+        public RenderGraphBuilder AddRenderPass<PassData>(string passName, out PassData passData) where PassData : class, new()
+        {
+            return AddRenderPass(passName, out passData, GetDefaultProfilingSampler(passName));
+        }
+
+        /// <summary>
         /// Execute the Render Graph in its current state.
         /// </summary>
-        /// <param name="renderContext">ScriptableRenderContext used to execute Scriptable Render Pipeline.</param>
-        /// <param name="cmd">Command Buffer used for Render Passes rendering.</param>
         /// <param name="parameters">Render Graph execution parameters.</param>
-        public void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, in RenderGraphExecuteParams parameters)
+        public void Execute(in RenderGraphExecuteParams parameters)
         {
             m_ExecutionExceptionWasRaised = false;
 
@@ -417,7 +422,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 LogFrameInformation(parameters.renderingWidth, parameters.renderingHeight);
 
                 CompileRenderGraph();
-                ExecuteRenderGraph(renderContext, cmd);
+                ExecuteRenderGraph(parameters.scriptableRenderContext, parameters.commandBuffer);
             }
             catch (Exception e)
             {
@@ -439,17 +444,52 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 m_Resources.EndRender();
             }
         }
+
+
+        class ProfilingScopePassData
+        {
+            public ProfilingSampler sampler;
+        }
+
+        /// <summary>
+        /// Begin a profiling scope.
+        /// </summary>
+        /// <param name="sampler">Sampler used for profiling.</param>
+        public void BeginProfilingSampler(ProfilingSampler sampler)
+        {
+            using (var builder = AddRenderPass<ProfilingScopePassData>("BeginProfile", out var passData, null))
+            {
+                passData.sampler = sampler;
+                builder.AllowPassCulling(false);
+                builder.SetRenderFunc((ProfilingScopePassData data, RenderGraphContext ctx) =>
+                {
+                    data.sampler.Begin(ctx.cmd);
+                });
+            }
+        }
+
+        /// <summary>
+        /// End a profiling scope.
+        /// </summary>
+        /// <param name="sampler">Sampler used for profiling.</param>
+        public void EndProfilingSampler(ProfilingSampler sampler)
+        {
+            using (var builder = AddRenderPass<ProfilingScopePassData>("EndProfile", out var passData, null))
+            {
+                passData.sampler = sampler;
+                builder.AllowPassCulling(false);
+                builder.SetRenderFunc((ProfilingScopePassData data, RenderGraphContext ctx) =>
+                {
+                    data.sampler.End(ctx.cmd);
+                });
+            }
+        }
         #endregion
 
         #region Private Interface
 
         // Internal for testing purpose only
         internal DynamicArray<CompiledPassInfo> GetCompiledPassInfos() { return m_CompiledPassInfos; }
-
-        private RenderGraph()
-        {
-
-        }
 
         // Internal for testing purpose only
         internal void ClearCompiledGraph()
@@ -1040,6 +1080,53 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         #endregion
+    }
+
+    /// <summary>
+    /// Render Graph Scoped Profiling markers
+    /// </summary>
+    public struct RenderGraphProfilingScope : IDisposable
+    {
+        bool m_Disposed;
+        ProfilingSampler m_Sampler;
+        RenderGraph m_RenderGraph;
+
+        /// <summary>
+        /// Profiling Scope constructor
+        /// </summary>
+        /// <param name="sampler">Profiling Sampler to be used for this scope.</param>
+        public RenderGraphProfilingScope(RenderGraph renderGraph, ProfilingSampler sampler)
+        {
+            m_RenderGraph = renderGraph;
+            m_Sampler = sampler;
+            m_Disposed = false;
+            renderGraph.BeginProfilingSampler(sampler);
+        }
+
+        /// <summary>
+        ///  Dispose pattern implementation
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        // Protected implementation of Dispose pattern.
+        void Dispose(bool disposing)
+        {
+            if (m_Disposed)
+                return;
+
+            // As this is a struct, it could have been initialized using an empty constructor so we
+            // need to make sure `cmd` isn't null to avoid a crash. Switching to a class would fix
+            // this but will generate garbage on every frame (and this struct is used quite a lot).
+            if (disposing)
+            {
+                m_RenderGraph.EndProfilingSampler(m_Sampler);
+            }
+
+            m_Disposed = true;
+        }
     }
 }
 

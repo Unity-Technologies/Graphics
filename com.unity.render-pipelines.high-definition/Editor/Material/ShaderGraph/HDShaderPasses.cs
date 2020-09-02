@@ -811,19 +811,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 renderStates = RayTracingPrepassRenderState,
-                pragmas = LitRaytracingPrepassPragmas,
+                pragmas = CorePragmas.Basic,
                 defines = CoreDefines.ShaderGraphRaytracingHigh,
                 includes = RayTracingPrepassIncludes,
             };
         }
-
-        public static PragmaCollection LitRaytracingPrepassPragmas = new PragmaCollection
-        {
-            { Pragma.Target(ShaderModel.Target45) },
-            { Pragma.Vertex("Vert") },
-            { Pragma.Fragment("Frag") },
-            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.Playstation, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch}) },
-        };
 
         public static IncludeCollection RayTracingPrepassIncludes = new IncludeCollection
         {

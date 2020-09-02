@@ -11,10 +11,10 @@ The Emission Node allows you to apply emission in your Shader Graph.
 | **output**    | Output    | HDR Color(RGB) | Outputs the high dynamic range (HDR) color that this Node produces. |
 
 ## Emission Unit
-You can use two [physical light units](Physical-Light-Units.html) to control the strength of the emission:
+You can use two [physical light units](Physical-Light-Units.md) to control the strength of the emission:
 
-* [Nits](Physical-Light-Units.html#Nits).
-* [EV<sub>100</sub>](Physical-Light-Units.html#EV).
+* [Nits](Physical-Light-Units.md#Nits).
+* [EV<sub>100</sub>](Physical-Light-Units.md#EV).
 
 
 ## Exposure Weight

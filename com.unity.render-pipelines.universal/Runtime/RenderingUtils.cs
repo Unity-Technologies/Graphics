@@ -116,10 +116,11 @@ namespace UnityEngine.Rendering.Universal
 
             if (setInverseMatrices)
             {
-                Matrix4x4 inverseMatrix = Matrix4x4.Inverse(viewMatrix);
-                // Note: inverse projection is currently undefined
-                Matrix4x4 inverseViewProjection = Matrix4x4.Inverse(viewAndProjectionMatrix);
-                cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewMatrix, inverseMatrix);
+                Matrix4x4 inverseViewMatrix = Matrix4x4.Inverse(viewMatrix);
+                Matrix4x4 inverseProjectionMatrix = Matrix4x4.Inverse(projectionMatrix);
+                Matrix4x4 inverseViewProjection = inverseViewMatrix * inverseProjectionMatrix;
+                cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewMatrix, inverseViewMatrix);
+                cmd.SetGlobalMatrix(ShaderPropertyId.inverseProjectionMatrix, inverseProjectionMatrix);
                 cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewAndProjectionMatrix, inverseViewProjection);
             }
         }
@@ -129,9 +130,11 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int UNITY_STEREO_MATRIX_V = Shader.PropertyToID("unity_StereoMatrixV");
         internal static readonly int UNITY_STEREO_MATRIX_IV = Shader.PropertyToID("unity_StereoMatrixInvV");
         internal static readonly int UNITY_STEREO_MATRIX_P = Shader.PropertyToID("unity_StereoMatrixP");
-        internal static readonly int UNITY_STEREO_MATRIX_IP = Shader.PropertyToID("unity_StereoMatrixIP");
+        internal static readonly int UNITY_STEREO_MATRIX_IP = Shader.PropertyToID("unity_StereoMatrixInvP");
         internal static readonly int UNITY_STEREO_MATRIX_VP = Shader.PropertyToID("unity_StereoMatrixVP");
-        internal static readonly int UNITY_STEREO_MATRIX_IVP = Shader.PropertyToID("unity_StereoMatrixIVP");
+        internal static readonly int UNITY_STEREO_MATRIX_IVP = Shader.PropertyToID("unity_StereoMatrixInvVP");
+        internal static readonly int UNITY_STEREO_CAMERA_PROJECTION = Shader.PropertyToID("unity_StereoCameraProjection");
+        internal static readonly int UNITY_STEREO_CAMERA_INV_PROJECTION = Shader.PropertyToID("unity_StereoCameraInvProjection");
         internal static readonly int UNITY_STEREO_VECTOR_CAMPOS = Shader.PropertyToID("unity_StereoWorldSpaceCameraPos");
 
         // Hold the stereo matrices in this class to avoid allocating arrays every frame
@@ -141,6 +144,7 @@ namespace UnityEngine.Rendering.Universal
             public Matrix4x4[] invViewMatrix = new Matrix4x4[2];
             public Matrix4x4[] invProjMatrix = new Matrix4x4[2];
             public Matrix4x4[] invViewProjMatrix = new Matrix4x4[2];
+            public Matrix4x4[] invCameraProjMatrix = new Matrix4x4[2];
             public Vector4[] worldSpaceCameraPos = new Vector4[2];
         };
 
@@ -154,9 +158,10 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cmd">CommandBuffer to submit data to GPU.</param>
         /// <param name="viewMatrix">View matrix to be set. Array size is 2.</param>
         /// <param name="projectionMatrix">Projection matrix to be set.Array size is 2.</param>
+        /// <param name="cameraProjectionMatrix">Camera projection matrix to be set.Array size is 2. Does not include platform specific transformations such as depth-reverse, depth range in post-projective space and y-flip. </param>
         /// <param name="setInverseMatrices">Set this to true if you also need to set inverse camera matrices.</param>
         /// <returns>Void</c></returns>
-        internal static void SetStereoViewAndProjectionMatrices(CommandBuffer cmd, Matrix4x4[] viewMatrix, Matrix4x4[] projMatrix, bool setInverseMatrices)
+        internal static void SetStereoViewAndProjectionMatrices(CommandBuffer cmd, Matrix4x4[] viewMatrix, Matrix4x4[] projMatrix, Matrix4x4[] cameraProjMatrix, bool setInverseMatrices)
         {
             for (int i = 0; i < 2; i++)
             {
@@ -164,17 +169,23 @@ namespace UnityEngine.Rendering.Universal
                 stereoConstants.invViewMatrix[i] = Matrix4x4.Inverse(viewMatrix[i]);
                 stereoConstants.invProjMatrix[i] = Matrix4x4.Inverse(projMatrix[i]);
                 stereoConstants.invViewProjMatrix[i] = Matrix4x4.Inverse(stereoConstants.viewProjMatrix[i]);
+                stereoConstants.invCameraProjMatrix[i] = Matrix4x4.Inverse(cameraProjMatrix[i]);
                 stereoConstants.worldSpaceCameraPos[i] = stereoConstants.invViewMatrix[i].GetColumn(3);
             }
 
             cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_V, viewMatrix);
             cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_P, projMatrix);
             cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_VP, stereoConstants.viewProjMatrix);
+
+            cmd.SetGlobalMatrixArray(UNITY_STEREO_CAMERA_PROJECTION, cameraProjMatrix);
+            
             if (setInverseMatrices)
             {
                 cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_IV, stereoConstants.invViewMatrix);
                 cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_IP, stereoConstants.invProjMatrix);
                 cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_IVP, stereoConstants.invViewProjMatrix);
+
+                cmd.SetGlobalMatrixArray(UNITY_STEREO_CAMERA_INV_PROJECTION, stereoConstants.invCameraProjMatrix);
             }
             cmd.SetGlobalVectorArray(UNITY_STEREO_VECTOR_CAMPOS, stereoConstants.worldSpaceCameraPos);
         }
@@ -235,7 +246,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Caches render texture format support. SystemInfo.SupportsRenderTextureFormat and IsFormatSupported allocate memory due to boxing.
         static Dictionary<RenderTextureFormat, bool> m_RenderTextureFormatSupport = new Dictionary<RenderTextureFormat, bool>();
-        static Dictionary<GraphicsFormat, bool> m_GraphicsFormatSupport = new Dictionary<GraphicsFormat, bool>();
+        static Dictionary<GraphicsFormat, Dictionary<FormatUsage, bool> > m_GraphicsFormatSupport = new Dictionary<GraphicsFormat, Dictionary<FormatUsage, bool> >();
 
         internal static void ClearSystemInfoCache()
         {
@@ -269,10 +280,21 @@ namespace UnityEngine.Rendering.Universal
         /// <returns>Returns true if the graphics card supports the given <c>GraphicsFormat</c></returns>
         public static bool SupportsGraphicsFormat(GraphicsFormat format, FormatUsage usage)
         {
-            if (!m_GraphicsFormatSupport.TryGetValue(format, out var support))
+            bool support = false;
+            if (!m_GraphicsFormatSupport.TryGetValue(format, out var uses))
             {
+                uses = new Dictionary<FormatUsage, bool>();
                 support = SystemInfo.IsFormatSupported(format, usage);
-                m_GraphicsFormatSupport.Add(format, support);
+                uses.Add(usage, support);
+                m_GraphicsFormatSupport.Add(format, uses);
+            }
+            else
+            {
+                if (!uses.TryGetValue(usage, out support))
+                {
+                    support = SystemInfo.IsFormatSupported(format, usage);
+                    uses.Add(usage, support);
+                }
             }
 
             return support;
