@@ -7,7 +7,7 @@ using UnityEngine.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Serializable, HideInInspector]
+    [Serializable]
     class ShaderKeyword : ShaderInput
     {
         public const string kVariantLimitWarning = "Graph is generating too many variants. Either delete Keywords, reduce Keyword variants or increase the Shader Variant Limit in Preferences > Shader Graph.";

@@ -7,7 +7,6 @@ using UnityEngine.Rendering.HighDefinition;
 using System;
 using System.Linq;
 using UnityEngine.Rendering;
-using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -15,7 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [Title("Input", "High Definition Render Pipeline", "Diffusion Profile")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.DiffusionProfileNode")]
     [FormerName("UnityEditor.ShaderGraph.DiffusionProfileNode")]
-    class DiffusionProfileNode : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
+    class DiffusionProfileNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         public DiffusionProfileNode()
         {
@@ -126,15 +125,5 @@ namespace UnityEditor.Rendering.HighDefinition
                 //owner.AddSetupError(tempId, $"Diffusion profile '{diffusionProfile.name}' is not referenced in the current HDRP asset", ShaderCompilerMessageSeverity.Warning);
             }
         }
-
-        public AbstractShaderProperty AsShaderProperty()
-        {
-            var prop = new DiffusionProfileShaderProperty { value = new SerializableDiffusionProfile{ diffusionProfile = diffusionProfile } };
-            if (diffusionProfile != null)
-                prop.displayName = diffusionProfile.name;
-            return prop;
-        }
-
-        public int outputSlotId => kOutputSlotId;
     }
 }
