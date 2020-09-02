@@ -470,7 +470,7 @@ struct AmbientOcclusionFactor
 
 half SampleAmbientOcclusion(float2 normalizedScreenSpaceUV)
 {
-    float2 uv = UnityStereoTransformScreenSpaceTex(normalizedScreenSpaceUV * (GetScaledScreenParams().zw - 1.0));
+    float2 uv = UnityStereoTransformScreenSpaceTex(normalizedScreenSpaceUV);
     return SAMPLE_TEXTURE2D_X(_ScreenSpaceOcclusionTexture, sampler_ScreenSpaceOcclusionTexture, uv).x;
 }
 
@@ -806,6 +806,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
 #endif
 
     Light mainLight = GetMainLight(inputData.shadowCoord);
+    mainLight.shadowAttenuation = ApplyShadowFade(mainLight.shadowAttenuation, inputData.positionWS);
 
     #if defined(_SCREEN_SPACE_OCCLUSION)
         AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(inputData.normalizedScreenSpaceUV);
@@ -827,6 +828,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
     {
         Light light = GetAdditionalLight(lightIndex, inputData.positionWS);
+        light.shadowAttenuation = ApplyShadowFade(light.shadowAttenuation, inputData.positionWS);
         #if defined(_SCREEN_SPACE_OCCLUSION)
             light.color *= aoFactor.directAmbientOcclusion;
         #endif
@@ -865,6 +867,7 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
 half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)
 {
     Light mainLight = GetMainLight(inputData.shadowCoord);
+    mainLight.shadowAttenuation = ApplyShadowFade(mainLight.shadowAttenuation, inputData.positionWS);
 
     #if defined(_SCREEN_SPACE_OCCLUSION)
         AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(inputData.normalizedScreenSpaceUV);
@@ -883,6 +886,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
     {
         Light light = GetAdditionalLight(lightIndex, inputData.positionWS);
+        light.shadowAttenuation = ApplyShadowFade(light.shadowAttenuation, inputData.positionWS);
         #if defined(_SCREEN_SPACE_OCCLUSION)
             light.color *= aoFactor.directAmbientOcclusion;
         #endif

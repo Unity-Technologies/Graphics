@@ -4,21 +4,23 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
 
-// Terrain engine shader helpers
-CBUFFER_START(TerrainGrass)
-half4 _WavingTint;
-float4 _WaveAndDistance;    // wind speed, wave size, wind amount, max sqr distance
-float4 _CameraPosition;     // .xyz = camera position, .w = 1 / (max sqr distance)
-float3 _CameraRight, _CameraUp;
+CBUFFER_START(UnityPerMaterial)
+    float4 _MainTex_ST;
+    half4 _BaseColor;
+    half4 _SpecColor;
+    half4 _EmissionColor;
+    half _Cutoff;
+    half _Shininess;
 CBUFFER_END
 
-CBUFFER_START(UnityPerMaterial)
-float4 _MainTex_ST;
-half4 _BaseColor;
-half4 _SpecColor;
-half4 _EmissionColor;
-half _Cutoff;
-half _Shininess;
+#define _Surface 0.0 // Grass is always opaque
+
+// Terrain engine shader helpers
+CBUFFER_START(TerrainGrass)
+    half4 _WavingTint;
+    float4 _WaveAndDistance;    // wind speed, wave size, wind amount, max sqr distance
+    float4 _CameraPosition;     // .xyz = camera position, .w = 1 / (max sqr distance)
+    float3 _CameraRight, _CameraUp;
 CBUFFER_END
 
 TEXTURE2D(_MainTex);            SAMPLER(sampler_MainTex);
