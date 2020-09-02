@@ -57,7 +57,7 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
+  near clip plane: 0.1
   far clip plane: 1000
   field of view: 50.53402
   orthographic: 0
@@ -155,9 +155,9 @@ MonoBehaviour:
   SMAAQuality: 2
   dithering: 1
   stopNaNs: 0
-  taaSharpenStrength: 0.2
+  taaSharpenStrength: 0.1
   TAAQuality: 1
-  taaHistorySharpening: 0.3
+  taaHistorySharpening: 0.1
   taaAntiFlicker: 0.7
   taaMotionVectorRejection: 0
   taaAntiHistoryRinging: 0
@@ -259,7 +259,7 @@ CharacterController:
   m_Enabled: 1
   serializedVersion: 2
   m_Height: 2
-  m_Radius: 0.6
+  m_Radius: 0.3
   m_SlopeLimit: 45
   m_StepOffset: 0.7
   m_SkinWidth: 0.08

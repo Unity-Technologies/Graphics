@@ -156,6 +156,15 @@ To enable ray tracing for a specific Camera:
 2. In the **General** section, enable **Custom Frame Settings**. This exposes Frame Settings just for this Camera.
 3. in the **Rendering** section, enable **Ray Tracing**.
 
+<a name="FinalSetup-BuildSettings"></a>
+
+#### Build settings
+
+To build your Project to a Unity Player, ray tracing requires that the build uses 64 bits architecture. To set your build to use 64 bits architecture:
+
+1. Open the Build Settings window (menu: **File > Build Settings**).
+2. From the **Architecture** drop-down, select **x86_64**.
+
 <a name="RayTracingEffectsOverview"></a>
 
 ## Ray tracing effects overview
@@ -197,10 +206,6 @@ https://github.com/Unity-Technologies/SmallOfficeRayTracing
 This Project is already set up with ray tracing support.
 
 ## Advice and supported feature of preview ray tracing
-
-DX12 and DXR are currently in preview and are thus missing some functionnality. 
-When you enable DX12, Unity shows this error message:
-d3d12: generating mipmaps for array textures is not yet supported.
 
 There is no support for ray tracing on other platform than DX12 for now.
 

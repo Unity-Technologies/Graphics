@@ -966,7 +966,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 };
 
-                if (data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.HistogramView)
+                if (data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.MeteringWeighted)
+                {
+                    exposureFoldout.children.Add(
+                        new DebugUI.BoolField()
+                        {
+                            displayName = "Display Mask Only",
+                            getter = () => data.lightingDebugSettings.displayMaskOnly,
+                            setter = value => data.lightingDebugSettings.displayMaskOnly = value
+                        });
+                }
+                    if (data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.HistogramView)
                 {
                     exposureFoldout.children.Add(
                         new DebugUI.BoolField()

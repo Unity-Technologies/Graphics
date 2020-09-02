@@ -1,59 +1,69 @@
-# Upgrading to version 10.0.x of Shader Graph
+# Upgrade to version 10.0.x of Shader Graph
 
-## Master Stack Graph Output
+## Master Stack graph output
 
-Shader Graph has removed the Master Nodes and introduced a more flexible [Master Stack](Master-Stack) solution for graph output definition in 10.0. All graphs created in previous versions of Shader Graph can be opened and upgraded automatically in 10.0. See below for expected behavior and manual upgrade suggestions.
+Shader Graph has removed the Master Nodes and introduced a more flexible [Master Stack](Master-Stack.md) solution for defining graph output in 10.0. You can still open all graphs created in previous versions, because Shader Graph automatically upgrades them. This page describes the expected behavior and explains when you might need to perform manual upgrade steps.
+<a name="AutomaticUpgrade"></a>
 
-### Automatic Upgrade from One Master Node to the Master Stack 
-If your graph only has one Master Node present, all of the data from that Master Node is automatically upgraded to the [Master Stack](Master-Stack) output. The following behavior is expected: 
-The correct [Target(s)](Graph-Target) is added to the Graph Settings tab of the [Graph Inspector](Internal-Inspector) and all settings from the Master Node cog menu to describe surface options are copied from the Master Node to the Target Settings. 
-A [Block](Block-Node) node is added to the [Master Stack](Master-Stack) for each port that existed on the Master Node. Any nodes that were connected to the Master Node ports are now connected to the corresponding [Block](Block-Node) Node. 
-Any values that were entered into the default value inputs of the ports on the Master Node are now copied to the corresponding [Block](Block-Node) Node. 
-The final shader is identical in appearance after upgrading. 
+## Automatic upgrade from Master Nodes
 
-### Automatic Upgrade from Multiple Master Nodes to the [Master Stack](Master-Stack)
-If your graph has more than one Master Node present, all of the above applies to the currently selected Active Master Node. 
+### Upgrade one Master Node to the Master Stack
 
-Any Master Nodes present on the graph that are inactive will be removed from the graph when upgrading to the [Master Stack](Master-Stack) format. This data may be lost. When upgrading a graph with multiple Master Nodes, it is recommended that you make notes of the Master Node ports, connected nodes, and any non-default settings in the cog wheel menu of the inactive Master Nodes. 
+If your graph only has one Master Node, Shader Graph automatically upgrades all of the data from that Master Node to a Master Stack output, as described in this section.
 
-After upgrading, you can add any required [Block](Block-Node) nodes that may be missing and reconnect the nodes to the Master Stack. The cog wheel settings from the inactive Master Nodes will need to be manually entered into the corresponding target setting via the Graph Settings tab of the [Graph Inspector](Internal-Inspector). 
+Shader Graph automatically adds the correct [Targets](Graph-Target.md) to the [**Graph Settings**](Graph-Settings-Menu.md) tab of the [**Graph Inspector**](Internal-Inspector.md). It also copies all settings from the Master Node settings menu (gear icon) that describe surface options from the Master Node to the **Target Settings**.
 
-### Automatic Upgrade of Cross-Pipeline Master Nodes to the Master Stack 
-If your graph has either the PBR or Unlit Master Nodes that are compatible with both the Universal and the High Definition Render Pipelines, they will automatically upgrade to the [Master Stack](Master-Stack) based on the pipeline currently available in the project. 
+Shader Graph then adds a [Block](Block-Node.md) node for each port on the Master Node to the Master Stack. It connects any nodes that you connected to the Master Node ports to the corresponding Block node. Also, Shader Graph copies any values that you entered into the default value inputs of the Master Node ports to the corresponding Block node.
 
-In Universal, all settings from the PBR and Unlit Master Nodes should be the same as the Universal Lit and Unlit targets. See above for the expected behavior. 
+After this upgrade process, the final shader is identical in appearance.
 
-In High Definition, the settings from the PBR and Unlit Master Nodes are not the same as the High Definition Lit and Unlit targets. As such, there may be some unexpected behavior when upgrading the PBR or Unlit Master Nodes to Lit and Unlit [Master Stack](Master-Stack). The final shader may not be visually the same as before the upgrade. Please report any upgrade issues via the Bug Reporter, but keep in mind some upgrade paths may not have immediate automated solutions and will need manual adjustment.
+### Upgrade multiple Master Nodes to the Master Stack
 
-### “View Generated Shader” has moved 
-Previously, users could preview the generated shader by right clicking the Master Node and selecting “View Generated Shader” from the context menu. 
-In 10.0, users can now find the “View Generated Shader” button on the Shader Graph Asset via the Unity Inspector. 
+If your graph has more than one Master Node, Shader Graph applies the above process for automatically upgrading one Master Node to the currently selected Active Master Node. 
+
+When you upgrade to the Master Stack format, Shader Graph removes any inactive Master Nodes from your graph, and you might lose this data. If you plan to upgrade a graph with multiple Master Nodes, it's best practice to keep a record of the ports, connected nodes, and any non-default settings in the settings menu (gear icon) of inactive Master Nodes.
+
+After the upgrade, you can add any required Block nodes that went missing, and reconnect the nodes to the Master Stack. You also need to go to the **Graph Inspector** > **Graph Settings** tab > settings menu (gear icon), and manually enter the settings for inactive Master Nodes in the corresponding Target Setting.
+
+### Upgrade cross-pipeline Master Nodes to the Master Stack
+
+If your graph contains PBR or Unlit Master Nodes that are compatible with both the [Universal Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest) (URP) and the [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest) (HDRP), Shader Graph automatically upgrades them to the Master Stack based on the render pipeline currently available in your project.
+
+In URP, you can now find all PBR Master Node settings in the URP Lit Target. The Unlit Master Node settings are in the URP Unlit Target. These settings are the same, and the final shader should appear the same as before the upgrade. 
+
+In HDRP, settings from the PBR and Unlit Master Nodes are not the same as the HDRP Lit and Unlit Targets. Thus, there might be unexpected behavior when you upgrade PBR or Unlit Master Nodes to HDRP Lit and Unlit Master Stacks. The final shader might not appear the same as before the upgrade. When this happens, you can use the **Bug Reporter** to submit your upgrade issue, but keep in mind that some upgrade paths don't have immediate automated solutions and will require manual adjustments.
+
+### "View Generated Shader" has moved 
+
+Previously, you could right-click the Master Node to bring up a context menu, and select **View Generated Shader** to preview the generated shader. In 10.0, you must now use the Unity Inspector, and click the **View Generated Shader** button on the Shader Graph asset.
 
 ![image](images/GeneratedShaderButton.png)
 
 ## Settings in Graph Inspector 
-Shader Graph has introduced an internal [Graph Inspector](Internal-Inspector) in 10.0. It is a floating window to display settings related to selected objects in the graph. 
 
-### Graph Settings
-Graph-wide settings are now available in the Graph Settings tab of the [Graph Inspector](Internal-Inspector). 
-Notably, the Precision toggle previously located on the Shader Graph Toolbar is now accessible via the Graph Settings tab.
-No data has been changed, and as such the previous Precision setting of the graph will stay the same. 
+Shader Graph introduced an internal [Graph Inspector](Internal-Inspector.md) in version 10.0. The Graph Inspector is a floating window that displays settings related to objects you select in the graph. 
 
-Any settings from the Master Node cog menu that describe surface options are now available on a per-target basis via the Graph Settings tab of the [Graph Inspector](Internal-Inspector). See above for more details on the automatic upgrade of this data. 
+### Graph settings
 
-### Property Settings 
-Property settings have been moved from the Blackboard foldouts to the [Graph Inspector](Internal-Inspector). Multiple properties from the Blackboard can be selected at once and edited via the [Graph Inspector](Internal-Inspector). 
-No data has been changed, and as such all settings previously set on properties of the graph will stay the same. 
+Graph-wide settings are now available only in the Graph Inspector's **Graph Settings** tab. Most notably, you can now go to the **Graph Settings** tab to access the **Precision** toggle, which was previously located on the Shader Graph Toolbar. There were no changes to data, and things like the **Precision** setting of the graph remain the same.
 
-### Per-Node Settings 
-All per-node settings that were previously managed by opening a cog wheel sub-menu are now accessible through the [Graph Inspector](Internal-Inspector). 
-No data has been changed, and as such all settings previously set on nodes in the graph (for example: precision settings, Custom Function Node settings) will stay the same. 
+In the **Graph Settings** tab, you can also find settings that describe surface options for each Target, which were previously located in the Master Node cog menu. For more information about how Shader Graph automatically upgrades this data, see [Automatic upgrade from Master Nodes](#AutomaticUpgrade) above.
 
-Any settings that were present on the Master Node to define the surface options are now present in the Graph Settings tab of the [Graph Inspector](Internal-Inspector). See above for more details. 
+### Property settings
+
+Property settings that were previously in Blackboard foldouts are now available in the Graph Inspector. You can now select multiple properties from the Blackboard and edit them all at the same time. There were no changes to data, and all settings you made on properties of the graph remain the same.
+
+### Per-Node settings 
+
+All per-node settings that you previously managed by opening a settings (gear icon) sub-menu are now accessible through the Graph Inspector. There were no changes to data, and all settings you previously set on nodes, such as precision settings and Custom Function Node settings, remain the same.
+
+Any settings on the Master Node that define surface options are now located in the Graph Inspector’s Graph Settings tab. For more information, see [Automatic upgrade from Master Nodes](#AutomaticUpgrade) above.
 
 ## Custom Function Nodes and Shader Graph Preview 
-Custom Function Nodes may require the use of keywords for the in-graph preview rendering to avoid errors in the preview shader compilation. 
-If you have any Custom Function Nodes with custom Shader Graph Preview code using `#if SHADERGAPH_PREVIEW`, you need to upgrade it to use an `#ifdef` declaration, like so: 
+
+To avoid errors in the preview shader compilation for Custom Function Nodes, you might need to use keywords for the in-graph preview rendering.
+
+If you have any Custom Function Nodes with custom Shader Graph Preview code that uses `#if SHADERGAPH_PREVIEW`, you need to upgrade it to an `#ifdef` declaration, as follows.
 
 ```
 #ifdef SHADERGAPH_PREVIEW
