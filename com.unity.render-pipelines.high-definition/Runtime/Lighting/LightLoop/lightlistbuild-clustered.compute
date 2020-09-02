@@ -332,7 +332,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 #endif
 
     // sort lights (gives a more efficient execution in both deferred and tiled forward lighting).
-#if NR_THREADS > PLATFORM_LANE_COUNT
+#if NR_THREADS > PLATFORM_LANE_COUNT || (defined(PLATFORM_LANE_COUNT) && PLATFORM_LANE_COUNT==32)
     SORTLIST(coarseList, iNrCoarseLights, MAX_NR_COARSE_ENTRIES, t, NR_THREADS);
 #endif
 
@@ -496,7 +496,7 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
         lightOffsSph = offs;
     }
 
-#if NR_THREADS > PLATFORM_LANE_COUNT
+#if NR_THREADS > PLATFORM_LANE_COUNT || (defined(PLATFORM_LANE_COUNT) && PLATFORM_LANE_COUNT==32)
     GroupMemoryBarrierWithGroupSync();
 #endif
 
