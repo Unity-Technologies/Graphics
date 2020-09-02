@@ -10,6 +10,7 @@
   * [Upgrading to URP 9.0.x](upgrade-guide-9-0-x.md)
   * [Upgrading to URP 8.1.0](upgrade-guide-8-1-0.md)
   * [Upgrading to URP 8.0.0](upgrade-guide-8-0-0.md)
+  * [Upgrading to URP 7.5.0](upgrade-guide-7-5-0.md)
   * [Upgrading to URP 7.4.0](upgrade-guide-7-4-0.md)
   * [Upgrading to URP 7.3.0](upgrade-guide-7-3-0.md)
   * [Upgrading to URP 7.2.0](upgrade-guide-7-2-0.md)
@@ -92,5 +93,3 @@
 * [Building for consoles](Building-For-Consoles.md)
   
 * [Frequently asked questions (FAQ)](faq.md)
-
-* [Feature comparison with the Built-in Render Pipeline](universalrp-builtin-feature-comparison.md)
