@@ -7,7 +7,7 @@ class Project_NotStandaloneJob():
     
     def __init__(self, project, editor, platform, api, test_platform):
         self.project_name = project["name"]
-        self.job_id = project_job_id_test(project["name"],platform["name"],api,test_platform["name"],editor["version"])
+        self.job_id = project_job_id_test(project["name"],platform["name"],api["name"],test_platform["name"],editor["version"])
         self.yml = self.get_job_definition(project, editor, platform, api, test_platform).get_yml()
 
 

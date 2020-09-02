@@ -14,7 +14,7 @@ namespace UnityEngine.VFX.Utility
         protected override void OnEnable()
         {
             base.OnEnable();
-            oldPosition = Target.position;
+            oldPosition = Target != null ? Target.position : Vector3.zero;
         }
 
         public override bool IsValid(VisualEffect component)

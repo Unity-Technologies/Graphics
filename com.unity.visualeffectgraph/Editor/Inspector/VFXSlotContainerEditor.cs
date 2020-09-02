@@ -95,6 +95,11 @@ class VFXSlotContainerEditor : Editor
                 enumNames = values.Select(t => new GUIContent(Enum.GetName(prop.Key.FieldType, t))).ToArray();
                 enumValues = values.ToArray();
 
+                HeaderAttribute attr = prop.Key.GetCustomAttributes<HeaderAttribute>().FirstOrDefault();
+
+                if( attr != null)
+                    GUILayout.Label( attr.header, EditorStyles.boldLabel);
+
                 EditorGUILayout.IntPopup(prop.Value,enumNames,enumValues );
             }
             else

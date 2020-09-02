@@ -208,6 +208,7 @@ Shader ""Hidden/GraphErrorShader2""
             var graph = masterNode.owner;
 
             asset.lit = masterNode.lit.isOn;
+            asset.alphaClipping = masterNode.alphaTest.isOn;
 
             var assetGuid = masterNode.owner.assetGuid;
             var assetPath = AssetDatabase.GUIDToAssetPath(assetGuid);
@@ -547,9 +548,15 @@ Shader ""Hidden/GraphErrorShader2""
             for (var i = 0; i < ports.Count; i++)
             {
                 result.outputCodeIndices[i] = portCodeIndices[i].ToArray();
-        }
+            }
 
-            asset.SetOutputs(ports.Select((t, i) => new OutputMetadata(i, t.shaderOutputName,t.id)).ToArray());
+            var outputMetadatas = new OutputMetadata[ports.Count];
+            for (int portIndex = 0; portIndex < outputMetadatas.Length; portIndex++)
+            {
+                outputMetadatas[portIndex] = new OutputMetadata(portIndex, ports[portIndex].shaderOutputName, ports[portIndex].id);
+            }
+
+            asset.SetOutputs(outputMetadatas);
 
             asset.evaluationFunctionName = evaluationFunctionName;
             asset.inputStructName = inputStructName;

@@ -6,7 +6,7 @@ This sky is similar to the procedural sky in Unity’s built-in render pipeline.
 
 ## Deprecation
 
-HDRP deprecated **Procedural Sky** in 2019.3 and replaced it with [Physically Based Sky](Override-Physically-Based-Sky.html). To use Procedural Sky for HDRP Projects in Unity 2019.3 or later, follow the instructions on the [Upgrading from 2019.2 to 2019.3 guide](Upgrading-From-2019.2-to-2019.3.html#ProceduralSky).
+HDRP deprecated **Procedural Sky** in 2019.3 and replaced it with [Physically Based Sky](Override-Physically-Based-Sky.md). To use Procedural Sky for HDRP Projects in Unity 2019.3 or later, follow the instructions on the [Upgrading from 2019.2 to 2019.3 guide](Upgrading-From-2019.2-to-2019.3.html#ProceduralSky).
 
 ## Using Procedural Sky
 
@@ -18,6 +18,8 @@ HDRP deprecated **Procedural Sky** in 2019.3 and replaced it with [Physically Ba
 After you add a **Procedural Sky** override, you must set the Volume to use **Procedural  Sky**. The [Visual Environment](Override-Visual-Environment.html) override controls which type of sky the Volume uses. In the **Visual Environment** override, navigate to the **Sky** section and set the **Type** to **Procedural Sky**. HDRP now renders a **Procedural Sky** for any Camera this Volume affects.
 
 ## Properties
+
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
 
 | Property                  | Description                                                  |
 | ------------------------- | ------------------------------------------------------------ |

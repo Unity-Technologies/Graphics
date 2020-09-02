@@ -14,6 +14,8 @@ HDRP uses the [Volume](Volumes.html) framework to calculate SSR, so to enable an
 
 ![](Images/Override-ScreenSpaceRefraction1.png)
 
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
+
 | **Property**                  | **Description**                                              |
 | ----------------------------- | ------------------------------------------------------------ |
 | **Screen Edge Fade Distance** | Use the slider to control the distance at which HDRP fades out the refraction effect when the destination of the ray is near the boundaries of the screen. Increase this value to increase the distance from the screen edge at which HDRP fades out the refraction effect for a ray destination. |

@@ -64,6 +64,27 @@ class EditorTests
         Assert.IsFalse(string.IsNullOrEmpty(editorResourcesPath));
     }
 
+    // Validate that ShaderUtils.GetShaderGUID results are valid and that ShaderUtils.GetShaderPath match shader names.
+    [TestCase(ShaderPathID.Lit)]
+    [TestCase(ShaderPathID.SimpleLit)]
+    [TestCase(ShaderPathID.Unlit)]
+    [TestCase(ShaderPathID.TerrainLit)]
+    [TestCase(ShaderPathID.ParticlesLit)]
+    [TestCase(ShaderPathID.ParticlesSimpleLit)]
+    [TestCase(ShaderPathID.ParticlesUnlit)]
+    [TestCase(ShaderPathID.BakedLit)]
+    [TestCase(ShaderPathID.SpeedTree7)]
+    [TestCase(ShaderPathID.SpeedTree7Billboard)]
+    [TestCase(ShaderPathID.SpeedTree8)]
+    public void ValidateShaderResources(ShaderPathID shaderPathID)
+    {
+        string path = AssetDatabase.GUIDToAssetPath(ShaderUtils.GetShaderGUID(shaderPathID));
+        Assert.IsFalse(string.IsNullOrEmpty(path));
+
+        var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
+        Assert.AreEqual(shader.name, ShaderUtils.GetShaderPath(shaderPathID));
+    }
+
     // When creating URP all required resources should be initialized.
     [Test]
     public void ValidateNewAssetResources()
