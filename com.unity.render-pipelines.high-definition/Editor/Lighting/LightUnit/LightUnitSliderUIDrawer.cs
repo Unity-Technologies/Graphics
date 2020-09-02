@@ -190,8 +190,29 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void DoSlider(Rect rect, SerializedProperty value, Vector2 range)
         {
-            // TODO: Look into compiling a lambda to access internal slider function for logarithmic sliding.
-            value.floatValue = GUI.HorizontalSlider(rect, value.floatValue, range.x, range.y, GUI.skin.horizontalSlider, GUI.skin.horizontalSliderThumb);
+            // value.floatValue = GUI.HorizontalSlider(rect, value.floatValue, range.x, range.y, GUI.skin.horizontalSlider, GUI.skin.horizontalSliderThumb);
+            value.floatValue = ExponentialSlider(rect, value.floatValue, range.x, 20000f, range.y);
+        }
+
+        // Note: Could use the internal PowerSlider, but that comes with a textfield, and we can't define the f(0.5).
+        // ref: https://stackoverflow.com/a/17102320
+        static float ExponentialSlider(Rect rect, float value, float lo, float mi, float hi)
+        {
+            float x = lo;
+            float y = mi;
+            float z = hi;
+
+            // https://www.desmos.com/calculator/yx2yf4huia
+            float a = ((x * z) - (y * y)) / (x - (2 * y) + z);
+            float b = ((y - x) * (y - x)) / (x - (2 * y) + z);
+            float c = 2 * Mathf.Log((z - y) / (y - x));
+
+            float ValueToSlider(float x) => Mathf.Log((x - a) / b) / c;
+            float SliderToValue(float x) => a + b * Mathf.Exp(c * x);
+
+            float internalValue = GUI.HorizontalSlider(rect, ValueToSlider(value), 0f, 1f);
+
+            return SliderToValue(internalValue);
         }
 
         static string FormatTooltip(LightUnit unit, string baseTooltip, float value)
