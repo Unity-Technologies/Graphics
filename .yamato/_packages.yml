@@ -25,8 +25,8 @@ publish_core:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#test_core_windows_2019.3
-      -  .yamato/_packages.yml#test_core_macos_2019.3
+      -  .yamato/_packages.yml#test_core_windows_2019.4
+      -  .yamato/_packages.yml#test_core_macos_2019.4
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\core\upm-ci~\packages\* upm-ci~\packages
@@ -44,8 +44,8 @@ publish_core_dry:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#test_core_windows_2019.3
-      -  .yamato/_packages.yml#test_core_macos_2019.3
+      -  .yamato/_packages.yml#test_core_windows_2019.4
+      -  .yamato/_packages.yml#test_core_macos_2019.4
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\core\upm-ci~\packages\* upm-ci~\packages
@@ -77,8 +77,8 @@ publish_lwrp:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_lwrp
-      -  .yamato/_packages.yml#test_lwrp_windows_2019.3
-      -  .yamato/_packages.yml#test_lwrp_macos_2019.3
+      -  .yamato/_packages.yml#test_lwrp_windows_2019.4
+      -  .yamato/_packages.yml#test_lwrp_macos_2019.4
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\lwrp\upm-ci~\packages\* upm-ci~\packages
@@ -96,8 +96,8 @@ publish_lwrp_dry:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_lwrp
-      -  .yamato/_packages.yml#test_lwrp_windows_2019.3
-      -  .yamato/_packages.yml#test_lwrp_macos_2019.3
+      -  .yamato/_packages.yml#test_lwrp_windows_2019.4
+      -  .yamato/_packages.yml#test_lwrp_macos_2019.4
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\lwrp\upm-ci~\packages\* upm-ci~\packages
@@ -129,8 +129,8 @@ publish_shadergraph:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#test_shadergraph_windows_2019.3
-      -  .yamato/_packages.yml#test_shadergraph_macos_2019.3
+      -  .yamato/_packages.yml#test_shadergraph_windows_2019.4
+      -  .yamato/_packages.yml#test_shadergraph_macos_2019.4
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\shadergraph\upm-ci~\packages\* upm-ci~\packages
@@ -148,8 +148,8 @@ publish_shadergraph_dry:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#test_shadergraph_windows_2019.3
-      -  .yamato/_packages.yml#test_shadergraph_macos_2019.3
+      -  .yamato/_packages.yml#test_shadergraph_windows_2019.4
+      -  .yamato/_packages.yml#test_shadergraph_macos_2019.4
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\shadergraph\upm-ci~\packages\* upm-ci~\packages
@@ -181,8 +181,8 @@ publish_hdrp:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_hdrp
-      -  .yamato/_packages.yml#test_hdrp_windows_2019.3
-      -  .yamato/_packages.yml#test_hdrp_macos_2019.3
+      -  .yamato/_packages.yml#test_hdrp_windows_2019.4
+      -  .yamato/_packages.yml#test_hdrp_macos_2019.4
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\hdrp\upm-ci~\packages\* upm-ci~\packages
@@ -200,8 +200,8 @@ publish_hdrp_dry:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_hdrp
-      -  .yamato/_packages.yml#test_hdrp_windows_2019.3
-      -  .yamato/_packages.yml#test_hdrp_macos_2019.3
+      -  .yamato/_packages.yml#test_hdrp_windows_2019.4
+      -  .yamato/_packages.yml#test_hdrp_macos_2019.4
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\hdrp\upm-ci~\packages\* upm-ci~\packages
@@ -233,8 +233,8 @@ publish_universal:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_universal
-      -  .yamato/_packages.yml#test_universal_windows_2019.3
-      -  .yamato/_packages.yml#test_universal_macos_2019.3
+      -  .yamato/_packages.yml#test_universal_windows_2019.4
+      -  .yamato/_packages.yml#test_universal_macos_2019.4
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\universal\upm-ci~\packages\* upm-ci~\packages
@@ -252,8 +252,8 @@ publish_universal_dry:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_universal
-      -  .yamato/_packages.yml#test_universal_windows_2019.3
-      -  .yamato/_packages.yml#test_universal_macos_2019.3
+      -  .yamato/_packages.yml#test_universal_windows_2019.4
+      -  .yamato/_packages.yml#test_universal_macos_2019.4
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\universal\upm-ci~\packages\* upm-ci~\packages
@@ -285,8 +285,8 @@ publish_vfx:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_vfx
-      -  .yamato/_packages.yml#test_vfx_windows_2019.3
-      -  .yamato/_packages.yml#test_vfx_macos_2019.3
+      -  .yamato/_packages.yml#test_vfx_windows_2019.4
+      -  .yamato/_packages.yml#test_vfx_macos_2019.4
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\vfx\upm-ci~\packages\* upm-ci~\packages
@@ -304,8 +304,8 @@ publish_vfx_dry:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_vfx
-      -  .yamato/_packages.yml#test_vfx_windows_2019.3
-      -  .yamato/_packages.yml#test_vfx_macos_2019.3
+      -  .yamato/_packages.yml#test_vfx_windows_2019.4
+      -  .yamato/_packages.yml#test_vfx_macos_2019.4
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\vfx\upm-ci~\packages\* upm-ci~\packages
@@ -337,8 +337,8 @@ publish_config:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_config
-      -  .yamato/_packages.yml#test_config_windows_2019.3
-      -  .yamato/_packages.yml#test_config_macos_2019.3
+      -  .yamato/_packages.yml#test_config_windows_2019.4
+      -  .yamato/_packages.yml#test_config_macos_2019.4
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\config\upm-ci~\packages\* upm-ci~\packages
@@ -356,8 +356,8 @@ publish_config_dry:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_config
-      -  .yamato/_packages.yml#test_config_windows_2019.3
-      -  .yamato/_packages.yml#test_config_macos_2019.3
+      -  .yamato/_packages.yml#test_config_windows_2019.4
+      -  .yamato/_packages.yml#test_config_macos_2019.4
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\config\upm-ci~\packages\* upm-ci~\packages
@@ -367,14 +367,14 @@ publish_config_dry:
         packages:
             paths:
               -  "upm-ci~/packages/**/*"
-test_core_windows_2019.3:
-    name: Test Core Win 2019.3
+test_core_windows_2019.4:
+    name: Test Core Win 2019.4
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:windows
+      -  .yamato/_editor.yml#editor:priming:2019.4:windows
       -  .yamato/_packages.yml#pack_core
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -388,15 +388,15 @@ test_core_windows_2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_core_windows_2019.3_dependencies:
-    name: Test Core Win 2019.3 - dependencies
+test_core_windows_2019.4_dependencies:
+    name: Test Core Win 2019.4 - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:windows
-      -  .yamato/_packages.yml#test_core_windows_2019.3
+      -  .yamato/_editor.yml#editor:priming:2019.4:windows
+      -  .yamato/_packages.yml#test_core_windows_2019.4
       -  .yamato/_packages.yml#pack_core
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -407,14 +407,14 @@ test_core_windows_2019.3_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_windows_2019.3:
-    name: Test Lightweight Win 2019.3
+test_lwrp_windows_2019.4:
+    name: Test Lightweight Win 2019.4
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:windows
+      -  .yamato/_editor.yml#editor:priming:2019.4:windows
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -432,15 +432,15 @@ test_lwrp_windows_2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_windows_2019.3_dependencies:
-    name: Test Lightweight Win 2019.3 - dependencies
+test_lwrp_windows_2019.4_dependencies:
+    name: Test Lightweight Win 2019.4 - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:windows
-      -  .yamato/_packages.yml#test_lwrp_windows_2019.3
+      -  .yamato/_editor.yml#editor:priming:2019.4:windows
+      -  .yamato/_packages.yml#test_lwrp_windows_2019.4
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -458,14 +458,14 @@ test_lwrp_windows_2019.3_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_shadergraph_windows_2019.3:
-    name: Test ShaderGraph Win 2019.3
+test_shadergraph_windows_2019.4:
+    name: Test ShaderGraph Win 2019.4
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:windows
+      -  .yamato/_editor.yml#editor:priming:2019.4:windows
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
@@ -481,15 +481,15 @@ test_shadergraph_windows_2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_shadergraph_windows_2019.3_dependencies:
-    name: Test ShaderGraph Win 2019.3 - dependencies
+test_shadergraph_windows_2019.4_dependencies:
+    name: Test ShaderGraph Win 2019.4 - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:windows
-      -  .yamato/_packages.yml#test_shadergraph_windows_2019.3
+      -  .yamato/_editor.yml#editor:priming:2019.4:windows
+      -  .yamato/_packages.yml#test_shadergraph_windows_2019.4
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
@@ -505,14 +505,14 @@ test_shadergraph_windows_2019.3_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_windows_2019.3:
-    name: Test HDRP Win 2019.3
+test_hdrp_windows_2019.4:
+    name: Test HDRP Win 2019.4
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:windows
+      -  .yamato/_editor.yml#editor:priming:2019.4:windows
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -531,15 +531,15 @@ test_hdrp_windows_2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_windows_2019.3_dependencies:
-    name: Test HDRP Win 2019.3 - dependencies
+test_hdrp_windows_2019.4_dependencies:
+    name: Test HDRP Win 2019.4 - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:windows
-      -  .yamato/_packages.yml#test_hdrp_windows_2019.3
+      -  .yamato/_editor.yml#editor:priming:2019.4:windows
+      -  .yamato/_packages.yml#test_hdrp_windows_2019.4
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -558,14 +558,14 @@ test_hdrp_windows_2019.3_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_windows_2019.3:
-    name: Test Universal Win 2019.3
+test_universal_windows_2019.4:
+    name: Test Universal Win 2019.4
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:windows
+      -  .yamato/_editor.yml#editor:priming:2019.4:windows
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -582,15 +582,15 @@ test_universal_windows_2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_windows_2019.3_dependencies:
-    name: Test Universal Win 2019.3 - dependencies
+test_universal_windows_2019.4_dependencies:
+    name: Test Universal Win 2019.4 - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:windows
-      -  .yamato/_packages.yml#test_universal_windows_2019.3
+      -  .yamato/_editor.yml#editor:priming:2019.4:windows
+      -  .yamato/_packages.yml#test_universal_windows_2019.4
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -607,14 +607,14 @@ test_universal_windows_2019.3_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_vfx_windows_2019.3:
-    name: Test VFX Win 2019.3
+test_vfx_windows_2019.4:
+    name: Test VFX Win 2019.4
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:windows
+      -  .yamato/_editor.yml#editor:priming:2019.4:windows
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -631,15 +631,15 @@ test_vfx_windows_2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_vfx_windows_2019.3_dependencies:
-    name: Test VFX Win 2019.3 - dependencies
+test_vfx_windows_2019.4_dependencies:
+    name: Test VFX Win 2019.4 - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:windows
-      -  .yamato/_packages.yml#test_vfx_windows_2019.3
+      -  .yamato/_editor.yml#editor:priming:2019.4:windows
+      -  .yamato/_packages.yml#test_vfx_windows_2019.4
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -656,14 +656,14 @@ test_vfx_windows_2019.3_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_config_windows_2019.3:
-    name: Test Config Win 2019.3
+test_config_windows_2019.4:
+    name: Test Config Win 2019.4
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:windows
+      -  .yamato/_editor.yml#editor:priming:2019.4:windows
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
@@ -679,15 +679,15 @@ test_config_windows_2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_config_windows_2019.3_dependencies:
-    name: Test Config Win 2019.3 - dependencies
+test_config_windows_2019.4_dependencies:
+    name: Test Config Win 2019.4 - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:windows
-      -  .yamato/_packages.yml#test_config_windows_2019.3
+      -  .yamato/_editor.yml#editor:priming:2019.4:windows
+      -  .yamato/_packages.yml#test_config_windows_2019.4
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
@@ -703,14 +703,14 @@ test_config_windows_2019.3_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_core_macos_2019.3:
-    name: Test Core OSX 2019.3
+test_core_macos_2019.4:
+    name: Test Core OSX 2019.4
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:macos
+      -  .yamato/_editor.yml#editor:priming:2019.4:macos
       -  .yamato/_packages.yml#pack_core
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -724,15 +724,15 @@ test_core_macos_2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_core_macos_2019.3_dependencies:
-    name: Test Core OSX 2019.3 - dependencies
+test_core_macos_2019.4_dependencies:
+    name: Test Core OSX 2019.4 - dependencies
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:macos
-      -  .yamato/_packages.yml#test_core_macos_2019.3
+      -  .yamato/_editor.yml#editor:priming:2019.4:macos
+      -  .yamato/_packages.yml#test_core_macos_2019.4
       -  .yamato/_packages.yml#pack_core
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -743,14 +743,14 @@ test_core_macos_2019.3_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_macos_2019.3:
-    name: Test Lightweight OSX 2019.3
+test_lwrp_macos_2019.4:
+    name: Test Lightweight OSX 2019.4
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:macos
+      -  .yamato/_editor.yml#editor:priming:2019.4:macos
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -768,15 +768,15 @@ test_lwrp_macos_2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_macos_2019.3_dependencies:
-    name: Test Lightweight OSX 2019.3 - dependencies
+test_lwrp_macos_2019.4_dependencies:
+    name: Test Lightweight OSX 2019.4 - dependencies
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:macos
-      -  .yamato/_packages.yml#test_lwrp_macos_2019.3
+      -  .yamato/_editor.yml#editor:priming:2019.4:macos
+      -  .yamato/_packages.yml#test_lwrp_macos_2019.4
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -794,14 +794,14 @@ test_lwrp_macos_2019.3_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_shadergraph_macos_2019.3:
-    name: Test ShaderGraph OSX 2019.3
+test_shadergraph_macos_2019.4:
+    name: Test ShaderGraph OSX 2019.4
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:macos
+      -  .yamato/_editor.yml#editor:priming:2019.4:macos
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
@@ -817,15 +817,15 @@ test_shadergraph_macos_2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_shadergraph_macos_2019.3_dependencies:
-    name: Test ShaderGraph OSX 2019.3 - dependencies
+test_shadergraph_macos_2019.4_dependencies:
+    name: Test ShaderGraph OSX 2019.4 - dependencies
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:macos
-      -  .yamato/_packages.yml#test_shadergraph_macos_2019.3
+      -  .yamato/_editor.yml#editor:priming:2019.4:macos
+      -  .yamato/_packages.yml#test_shadergraph_macos_2019.4
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
@@ -841,14 +841,14 @@ test_shadergraph_macos_2019.3_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_macos_2019.3:
-    name: Test HDRP OSX 2019.3
+test_hdrp_macos_2019.4:
+    name: Test HDRP OSX 2019.4
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:macos
+      -  .yamato/_editor.yml#editor:priming:2019.4:macos
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -867,15 +867,15 @@ test_hdrp_macos_2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_macos_2019.3_dependencies:
-    name: Test HDRP OSX 2019.3 - dependencies
+test_hdrp_macos_2019.4_dependencies:
+    name: Test HDRP OSX 2019.4 - dependencies
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:macos
-      -  .yamato/_packages.yml#test_hdrp_macos_2019.3
+      -  .yamato/_editor.yml#editor:priming:2019.4:macos
+      -  .yamato/_packages.yml#test_hdrp_macos_2019.4
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -894,14 +894,14 @@ test_hdrp_macos_2019.3_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_macos_2019.3:
-    name: Test Universal OSX 2019.3
+test_universal_macos_2019.4:
+    name: Test Universal OSX 2019.4
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:macos
+      -  .yamato/_editor.yml#editor:priming:2019.4:macos
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -918,15 +918,15 @@ test_universal_macos_2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_macos_2019.3_dependencies:
-    name: Test Universal OSX 2019.3 - dependencies
+test_universal_macos_2019.4_dependencies:
+    name: Test Universal OSX 2019.4 - dependencies
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:macos
-      -  .yamato/_packages.yml#test_universal_macos_2019.3
+      -  .yamato/_editor.yml#editor:priming:2019.4:macos
+      -  .yamato/_packages.yml#test_universal_macos_2019.4
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -943,14 +943,14 @@ test_universal_macos_2019.3_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_vfx_macos_2019.3:
-    name: Test VFX OSX 2019.3
+test_vfx_macos_2019.4:
+    name: Test VFX OSX 2019.4
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:macos
+      -  .yamato/_editor.yml#editor:priming:2019.4:macos
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -967,15 +967,15 @@ test_vfx_macos_2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_vfx_macos_2019.3_dependencies:
-    name: Test VFX OSX 2019.3 - dependencies
+test_vfx_macos_2019.4_dependencies:
+    name: Test VFX OSX 2019.4 - dependencies
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:macos
-      -  .yamato/_packages.yml#test_vfx_macos_2019.3
+      -  .yamato/_editor.yml#editor:priming:2019.4:macos
+      -  .yamato/_packages.yml#test_vfx_macos_2019.4
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -992,14 +992,14 @@ test_vfx_macos_2019.3_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_config_macos_2019.3:
-    name: Test Config OSX 2019.3
+test_config_macos_2019.4:
+    name: Test Config OSX 2019.4
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:macos
+      -  .yamato/_editor.yml#editor:priming:2019.4:macos
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
@@ -1015,15 +1015,15 @@ test_config_macos_2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_config_macos_2019.3_dependencies:
-    name: Test Config OSX 2019.3 - dependencies
+test_config_macos_2019.4_dependencies:
+    name: Test Config OSX 2019.4 - dependencies
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:macos
-      -  .yamato/_packages.yml#test_config_macos_2019.3
+      -  .yamato/_editor.yml#editor:priming:2019.4:macos
+      -  .yamato/_packages.yml#test_config_macos_2019.4
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
@@ -1039,14 +1039,14 @@ test_config_macos_2019.3_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_core_windows_fast-2019.3:
-    name: Test Core Win fast-2019.3
+test_core_windows_fast-2019.4:
+    name: Test Core Win fast-2019.4
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:windows
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:windows
       -  .yamato/_packages.yml#pack_core
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -1060,15 +1060,15 @@ test_core_windows_fast-2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_core_windows_fast-2019.3_dependencies:
-    name: Test Core Win fast-2019.3 - dependencies
+test_core_windows_fast-2019.4_dependencies:
+    name: Test Core Win fast-2019.4 - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:windows
-      -  .yamato/_packages.yml#test_core_windows_fast-2019.3
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:windows
+      -  .yamato/_packages.yml#test_core_windows_fast-2019.4
       -  .yamato/_packages.yml#pack_core
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -1079,14 +1079,14 @@ test_core_windows_fast-2019.3_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_windows_fast-2019.3:
-    name: Test Lightweight Win fast-2019.3
+test_lwrp_windows_fast-2019.4:
+    name: Test Lightweight Win fast-2019.4
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:windows
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:windows
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -1104,15 +1104,15 @@ test_lwrp_windows_fast-2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_windows_fast-2019.3_dependencies:
-    name: Test Lightweight Win fast-2019.3 - dependencies
+test_lwrp_windows_fast-2019.4_dependencies:
+    name: Test Lightweight Win fast-2019.4 - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:windows
-      -  .yamato/_packages.yml#test_lwrp_windows_fast-2019.3
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:windows
+      -  .yamato/_packages.yml#test_lwrp_windows_fast-2019.4
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -1130,14 +1130,14 @@ test_lwrp_windows_fast-2019.3_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_shadergraph_windows_fast-2019.3:
-    name: Test ShaderGraph Win fast-2019.3
+test_shadergraph_windows_fast-2019.4:
+    name: Test ShaderGraph Win fast-2019.4
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:windows
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:windows
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
@@ -1153,15 +1153,15 @@ test_shadergraph_windows_fast-2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_shadergraph_windows_fast-2019.3_dependencies:
-    name: Test ShaderGraph Win fast-2019.3 - dependencies
+test_shadergraph_windows_fast-2019.4_dependencies:
+    name: Test ShaderGraph Win fast-2019.4 - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:windows
-      -  .yamato/_packages.yml#test_shadergraph_windows_fast-2019.3
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:windows
+      -  .yamato/_packages.yml#test_shadergraph_windows_fast-2019.4
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
@@ -1177,14 +1177,14 @@ test_shadergraph_windows_fast-2019.3_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_windows_fast-2019.3:
-    name: Test HDRP Win fast-2019.3
+test_hdrp_windows_fast-2019.4:
+    name: Test HDRP Win fast-2019.4
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:windows
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:windows
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -1203,15 +1203,15 @@ test_hdrp_windows_fast-2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_windows_fast-2019.3_dependencies:
-    name: Test HDRP Win fast-2019.3 - dependencies
+test_hdrp_windows_fast-2019.4_dependencies:
+    name: Test HDRP Win fast-2019.4 - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:windows
-      -  .yamato/_packages.yml#test_hdrp_windows_fast-2019.3
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:windows
+      -  .yamato/_packages.yml#test_hdrp_windows_fast-2019.4
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -1230,14 +1230,14 @@ test_hdrp_windows_fast-2019.3_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_windows_fast-2019.3:
-    name: Test Universal Win fast-2019.3
+test_universal_windows_fast-2019.4:
+    name: Test Universal Win fast-2019.4
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:windows
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:windows
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -1254,15 +1254,15 @@ test_universal_windows_fast-2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_windows_fast-2019.3_dependencies:
-    name: Test Universal Win fast-2019.3 - dependencies
+test_universal_windows_fast-2019.4_dependencies:
+    name: Test Universal Win fast-2019.4 - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:windows
-      -  .yamato/_packages.yml#test_universal_windows_fast-2019.3
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:windows
+      -  .yamato/_packages.yml#test_universal_windows_fast-2019.4
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -1279,14 +1279,14 @@ test_universal_windows_fast-2019.3_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_vfx_windows_fast-2019.3:
-    name: Test VFX Win fast-2019.3
+test_vfx_windows_fast-2019.4:
+    name: Test VFX Win fast-2019.4
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:windows
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:windows
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -1303,15 +1303,15 @@ test_vfx_windows_fast-2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_vfx_windows_fast-2019.3_dependencies:
-    name: Test VFX Win fast-2019.3 - dependencies
+test_vfx_windows_fast-2019.4_dependencies:
+    name: Test VFX Win fast-2019.4 - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:windows
-      -  .yamato/_packages.yml#test_vfx_windows_fast-2019.3
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:windows
+      -  .yamato/_packages.yml#test_vfx_windows_fast-2019.4
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -1328,14 +1328,14 @@ test_vfx_windows_fast-2019.3_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_config_windows_fast-2019.3:
-    name: Test Config Win fast-2019.3
+test_config_windows_fast-2019.4:
+    name: Test Config Win fast-2019.4
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:windows
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:windows
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
@@ -1351,15 +1351,15 @@ test_config_windows_fast-2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_config_windows_fast-2019.3_dependencies:
-    name: Test Config Win fast-2019.3 - dependencies
+test_config_windows_fast-2019.4_dependencies:
+    name: Test Config Win fast-2019.4 - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:windows
-      -  .yamato/_packages.yml#test_config_windows_fast-2019.3
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:windows
+      -  .yamato/_packages.yml#test_config_windows_fast-2019.4
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
@@ -1375,14 +1375,14 @@ test_config_windows_fast-2019.3_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_core_macos_fast-2019.3:
-    name: Test Core OSX fast-2019.3
+test_core_macos_fast-2019.4:
+    name: Test Core OSX fast-2019.4
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:macos
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:macos
       -  .yamato/_packages.yml#pack_core
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -1396,15 +1396,15 @@ test_core_macos_fast-2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_core_macos_fast-2019.3_dependencies:
-    name: Test Core OSX fast-2019.3 - dependencies
+test_core_macos_fast-2019.4_dependencies:
+    name: Test Core OSX fast-2019.4 - dependencies
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:macos
-      -  .yamato/_packages.yml#test_core_macos_fast-2019.3
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:macos
+      -  .yamato/_packages.yml#test_core_macos_fast-2019.4
       -  .yamato/_packages.yml#pack_core
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -1415,14 +1415,14 @@ test_core_macos_fast-2019.3_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_macos_fast-2019.3:
-    name: Test Lightweight OSX fast-2019.3
+test_lwrp_macos_fast-2019.4:
+    name: Test Lightweight OSX fast-2019.4
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:macos
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:macos
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -1440,15 +1440,15 @@ test_lwrp_macos_fast-2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_macos_fast-2019.3_dependencies:
-    name: Test Lightweight OSX fast-2019.3 - dependencies
+test_lwrp_macos_fast-2019.4_dependencies:
+    name: Test Lightweight OSX fast-2019.4 - dependencies
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:macos
-      -  .yamato/_packages.yml#test_lwrp_macos_fast-2019.3
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:macos
+      -  .yamato/_packages.yml#test_lwrp_macos_fast-2019.4
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -1466,14 +1466,14 @@ test_lwrp_macos_fast-2019.3_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_shadergraph_macos_fast-2019.3:
-    name: Test ShaderGraph OSX fast-2019.3
+test_shadergraph_macos_fast-2019.4:
+    name: Test ShaderGraph OSX fast-2019.4
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:macos
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:macos
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
@@ -1489,15 +1489,15 @@ test_shadergraph_macos_fast-2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_shadergraph_macos_fast-2019.3_dependencies:
-    name: Test ShaderGraph OSX fast-2019.3 - dependencies
+test_shadergraph_macos_fast-2019.4_dependencies:
+    name: Test ShaderGraph OSX fast-2019.4 - dependencies
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:macos
-      -  .yamato/_packages.yml#test_shadergraph_macos_fast-2019.3
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:macos
+      -  .yamato/_packages.yml#test_shadergraph_macos_fast-2019.4
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
@@ -1513,14 +1513,14 @@ test_shadergraph_macos_fast-2019.3_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_macos_fast-2019.3:
-    name: Test HDRP OSX fast-2019.3
+test_hdrp_macos_fast-2019.4:
+    name: Test HDRP OSX fast-2019.4
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:macos
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:macos
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -1539,15 +1539,15 @@ test_hdrp_macos_fast-2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_macos_fast-2019.3_dependencies:
-    name: Test HDRP OSX fast-2019.3 - dependencies
+test_hdrp_macos_fast-2019.4_dependencies:
+    name: Test HDRP OSX fast-2019.4 - dependencies
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:macos
-      -  .yamato/_packages.yml#test_hdrp_macos_fast-2019.3
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:macos
+      -  .yamato/_packages.yml#test_hdrp_macos_fast-2019.4
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -1566,14 +1566,14 @@ test_hdrp_macos_fast-2019.3_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_macos_fast-2019.3:
-    name: Test Universal OSX fast-2019.3
+test_universal_macos_fast-2019.4:
+    name: Test Universal OSX fast-2019.4
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:macos
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:macos
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -1590,15 +1590,15 @@ test_universal_macos_fast-2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_macos_fast-2019.3_dependencies:
-    name: Test Universal OSX fast-2019.3 - dependencies
+test_universal_macos_fast-2019.4_dependencies:
+    name: Test Universal OSX fast-2019.4 - dependencies
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:macos
-      -  .yamato/_packages.yml#test_universal_macos_fast-2019.3
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:macos
+      -  .yamato/_packages.yml#test_universal_macos_fast-2019.4
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -1615,14 +1615,14 @@ test_universal_macos_fast-2019.3_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_vfx_macos_fast-2019.3:
-    name: Test VFX OSX fast-2019.3
+test_vfx_macos_fast-2019.4:
+    name: Test VFX OSX fast-2019.4
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:macos
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:macos
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -1639,15 +1639,15 @@ test_vfx_macos_fast-2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_vfx_macos_fast-2019.3_dependencies:
-    name: Test VFX OSX fast-2019.3 - dependencies
+test_vfx_macos_fast-2019.4_dependencies:
+    name: Test VFX OSX fast-2019.4 - dependencies
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:macos
-      -  .yamato/_packages.yml#test_vfx_macos_fast-2019.3
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:macos
+      -  .yamato/_packages.yml#test_vfx_macos_fast-2019.4
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -1664,14 +1664,14 @@ test_vfx_macos_fast-2019.3_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_config_macos_fast-2019.3:
-    name: Test Config OSX fast-2019.3
+test_config_macos_fast-2019.4:
+    name: Test Config OSX fast-2019.4
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:macos
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:macos
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
@@ -1687,15 +1687,15 @@ test_config_macos_fast-2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_config_macos_fast-2019.3_dependencies:
-    name: Test Config OSX fast-2019.3 - dependencies
+test_config_macos_fast-2019.4_dependencies:
+    name: Test Config OSX fast-2019.4 - dependencies
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:macos
-      -  .yamato/_packages.yml#test_config_macos_fast-2019.3
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:macos
+      -  .yamato/_packages.yml#test_config_macos_fast-2019.4
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
@@ -2383,52 +2383,52 @@ test_config_macos_CUSTOM-REVISION_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-all_package_ci_2019.3:
-    name: Pack and test all packages - 2019.3
+all_package_ci_2019.4:
+    name: Pack and test all packages - 2019.4
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_packages.yml#test_core_windows_2019.3
-      -  .yamato/_packages.yml#test_lwrp_windows_2019.3
-      -  .yamato/_packages.yml#test_shadergraph_windows_2019.3
-      -  .yamato/_packages.yml#test_hdrp_windows_2019.3
-      -  .yamato/_packages.yml#test_universal_windows_2019.3
-      -  .yamato/_packages.yml#test_vfx_windows_2019.3
-      -  .yamato/_packages.yml#test_config_windows_2019.3
-      -  .yamato/_packages.yml#test_core_macos_2019.3
-      -  .yamato/_packages.yml#test_lwrp_macos_2019.3
-      -  .yamato/_packages.yml#test_shadergraph_macos_2019.3
-      -  .yamato/_packages.yml#test_hdrp_macos_2019.3
-      -  .yamato/_packages.yml#test_universal_macos_2019.3
-      -  .yamato/_packages.yml#test_vfx_macos_2019.3
-      -  .yamato/_packages.yml#test_config_macos_2019.3
+      -  .yamato/_packages.yml#test_core_windows_2019.4
+      -  .yamato/_packages.yml#test_lwrp_windows_2019.4
+      -  .yamato/_packages.yml#test_shadergraph_windows_2019.4
+      -  .yamato/_packages.yml#test_hdrp_windows_2019.4
+      -  .yamato/_packages.yml#test_universal_windows_2019.4
+      -  .yamato/_packages.yml#test_vfx_windows_2019.4
+      -  .yamato/_packages.yml#test_config_windows_2019.4
+      -  .yamato/_packages.yml#test_core_macos_2019.4
+      -  .yamato/_packages.yml#test_lwrp_macos_2019.4
+      -  .yamato/_packages.yml#test_shadergraph_macos_2019.4
+      -  .yamato/_packages.yml#test_hdrp_macos_2019.4
+      -  .yamato/_packages.yml#test_universal_macos_2019.4
+      -  .yamato/_packages.yml#test_vfx_macos_2019.4
+      -  .yamato/_packages.yml#test_config_macos_2019.4
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
       -  upm-ci package izon -d
-all_package_ci_fast-2019.3:
-    name: Pack and test all packages - fast-2019.3
+all_package_ci_fast-2019.4:
+    name: Pack and test all packages - fast-2019.4
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_packages.yml#test_core_windows_fast-2019.3
-      -  .yamato/_packages.yml#test_lwrp_windows_fast-2019.3
-      -  .yamato/_packages.yml#test_shadergraph_windows_fast-2019.3
-      -  .yamato/_packages.yml#test_hdrp_windows_fast-2019.3
-      -  .yamato/_packages.yml#test_universal_windows_fast-2019.3
-      -  .yamato/_packages.yml#test_vfx_windows_fast-2019.3
-      -  .yamato/_packages.yml#test_config_windows_fast-2019.3
-      -  .yamato/_packages.yml#test_core_macos_fast-2019.3
-      -  .yamato/_packages.yml#test_lwrp_macos_fast-2019.3
-      -  .yamato/_packages.yml#test_shadergraph_macos_fast-2019.3
-      -  .yamato/_packages.yml#test_hdrp_macos_fast-2019.3
-      -  .yamato/_packages.yml#test_universal_macos_fast-2019.3
-      -  .yamato/_packages.yml#test_vfx_macos_fast-2019.3
-      -  .yamato/_packages.yml#test_config_macos_fast-2019.3
+      -  .yamato/_packages.yml#test_core_windows_fast-2019.4
+      -  .yamato/_packages.yml#test_lwrp_windows_fast-2019.4
+      -  .yamato/_packages.yml#test_shadergraph_windows_fast-2019.4
+      -  .yamato/_packages.yml#test_hdrp_windows_fast-2019.4
+      -  .yamato/_packages.yml#test_universal_windows_fast-2019.4
+      -  .yamato/_packages.yml#test_vfx_windows_fast-2019.4
+      -  .yamato/_packages.yml#test_config_windows_fast-2019.4
+      -  .yamato/_packages.yml#test_core_macos_fast-2019.4
+      -  .yamato/_packages.yml#test_lwrp_macos_fast-2019.4
+      -  .yamato/_packages.yml#test_shadergraph_macos_fast-2019.4
+      -  .yamato/_packages.yml#test_hdrp_macos_fast-2019.4
+      -  .yamato/_packages.yml#test_universal_macos_fast-2019.4
+      -  .yamato/_packages.yml#test_vfx_macos_fast-2019.4
+      -  .yamato/_packages.yml#test_config_macos_fast-2019.4
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
