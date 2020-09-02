@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: 013_xr_SG_Lit
+  m_Name: 014_xr_SG_Lit
   m_Shader: {fileID: -6465566751694194690, guid: 80561c7bd3d85fd42a645bf281c1ed53,
     type: 3}
   m_ShaderKeywords: 
