@@ -790,6 +790,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where only one of the two lookdev views would update when changing the default lookdev volume profile.
 - Fixed a bug related to light cluster invalidation.
 - Fixed shader warning in DofGather (case 1272931)
+- Fixed screen space shadow option displayed on directional shadows while they shouldn't (case 1270537).
 
 ### Changed
 - Improve MIP selection for decals on Transparents
