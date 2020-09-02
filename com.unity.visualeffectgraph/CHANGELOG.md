@@ -45,6 +45,7 @@ The version number for this package has increased due to a version update of a r
 - Mesh and lit mesh outputs can now have up to 4 differents meshes that can be set per Particle (Experimental)
 - Screen space per particle LOD on mesh and lit mesh outputs (Experimental)
 - Compare operator can take int and uint as inputs
+- New operator : Sample Signed distance field
 
 ### Fixed
 - Moved VFX Event Tester Window visibility to Component Play Controls SceneView Window
