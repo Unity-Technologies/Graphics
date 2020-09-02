@@ -727,6 +727,8 @@ namespace UnityEngine.Rendering.Universal
             renderingData.supportsDynamicBatching = settings.supportsDynamicBatching;
             renderingData.perObjectData = GetPerObjectLightFlags(renderingData.lightData.additionalLightsCount);
             renderingData.postProcessingEnabled = anyPostProcessingEnabled;
+
+            CheckAndApplyDebugSettings(ref renderingData);
         }
 
         static void InitializeShadowData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, bool mainLightCastShadows, bool additionalLightsCastShadows, out ShadowData shadowData)
@@ -897,6 +899,31 @@ namespace UnityEngine.Rendering.Universal
 
             // Used when subtractive mode is selected
             Shader.SetGlobalVector(ShaderPropertyId.subtractiveShadowColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.subtractiveShadowColor));
+        }
+
+        static void CheckAndApplyDebugSettings(ref RenderingData renderingData)
+        {
+            DebugDisplaySettingsRendering renderingSettings = DebugDisplaySettings.Instance.renderingSettings;
+            if (renderingSettings.IsEnabled())
+            {
+                ref CameraData cameraData = ref renderingData.cameraData;
+
+                int msaaSamples = renderingData.cameraData.cameraTargetDescriptor.msaaSamples;
+                if (!renderingSettings.enableMsaa)
+                    msaaSamples = 1;
+
+                if (!renderingSettings.enableHDR)
+                    cameraData.isHdrEnabled = false;
+
+                if (!renderingSettings.enablePostProcessing)
+                    cameraData.postProcessEnabled = false;
+
+                cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(cameraData.camera,
+                                                                                  cameraData.renderScale,
+                                                                                  cameraData.isHdrEnabled,
+                                                                                  msaaSamples,
+                                                                                  true);
+            }
         }
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
