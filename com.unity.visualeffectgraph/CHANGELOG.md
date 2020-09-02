@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Compare operator can take int and uint as inputs
+- New operator : Sample Signed distance field
 
 ### Fixed
 - Fix for node window staying when clicking elsewhere
