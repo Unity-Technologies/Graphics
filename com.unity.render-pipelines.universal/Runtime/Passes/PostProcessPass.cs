@@ -779,7 +779,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             var material = m_Materials.cameraMotionBlur;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.singlePassEnabled)
+            if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
             {
                 var viewProj0 = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrix(0), true) * cameraData.GetViewMatrix(0);
                 var viewProj1 = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrix(1), true) * cameraData.GetViewMatrix(1);
@@ -798,6 +798,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             else
 #endif
             {
+                int prevViewProjMIdx = 0;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (cameraData.xr.enabled)
+                    prevViewProjMIdx = cameraData.xr.multipassId;
+#endif
                 // This is needed because Blit will reset viewproj matrices to identity and UniversalRP currently
                 // relies on SetupCameraProperties instead of handling its own matrices.
                 // TODO: We need get rid of SetupCameraProperties and setup camera matrices in Universal
@@ -810,10 +815,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (m_ResetHistory)
                     material.SetMatrix("_PrevViewProjM", viewProj);
                 else
-                    material.SetMatrix("_PrevViewProjM", m_PrevViewProjM[0]);
+                    material.SetMatrix("_PrevViewProjM", m_PrevViewProjM[prevViewProjMIdx]);
 
-                // m_PrevViewProjM[1] is not used in XR multipass or non-XR rendering.
-                m_PrevViewProjM[0] = viewProj;
+                m_PrevViewProjM[prevViewProjMIdx] = viewProj;
             }
 
             material.SetFloat("_Intensity", m_MotionBlur.intensity.value);
