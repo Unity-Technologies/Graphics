@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering.Universal
             m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
-            m_CopyColorPass = new CopyColorPass(RenderPassEvent.BeforeRenderingTransparents, m_SamplingMaterial);
+            m_CopyColorPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial);
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
             if (!UniversalRenderPipeline.asset.useAdaptivePerformance || AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipTransparentObjects == false)
 #endif
@@ -531,7 +531,7 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_VR_MODULE
             if (!stereo)
                 return;
-            
+
             bool msaaSampleCountHasChanged = false;
             int currentQualitySettingsSampleCount = QualitySettings.antiAliasing;
             if (currentQualitySettingsSampleCount != msaaSamples &&
@@ -548,8 +548,14 @@ namespace UnityEngine.Rendering.Universal
             {
                 QualitySettings.antiAliasing = msaaSamples;
                 XR.XRDevice.UpdateEyeTextureMSAASetting();
-            }  
+            }
 #endif
+        }
+
+        bool PlatformRequiresExplicitAutoResolve()
+        {
+            return !SystemInfo.supportsMultisampleAutoResolve &&
+                   SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal;
         }
 
         /// <summary>
@@ -571,7 +577,7 @@ namespace UnityEngine.Rendering.Universal
             bool isStereoEnabled = cameraData.isStereoEnabled;
             bool isScaledRender = !Mathf.Approximately(cameraData.renderScale, 1.0f) && !cameraData.isStereoEnabled;
             bool isCompatibleBackbufferTextureDimension = cameraTargetDescriptor.dimension == TextureDimension.Tex2D;
-            bool requiresExplicitMsaaResolve = msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve;
+            bool requiresExplicitMsaaResolve = msaaSamples > 1 && PlatformRequiresExplicitAutoResolve();
             bool isOffscreenRender = cameraData.targetTexture != null && !isSceneViewCamera;
             bool isCapturing = cameraData.captureActions != null;
 
