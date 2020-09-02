@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
 - Fixed GPU hang on D3D12 on xbox. 
 - Fix Amplitude -> Min/Max parametrization conversion
+- Fix issue that allocated a small cookie for normal spot lights.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
