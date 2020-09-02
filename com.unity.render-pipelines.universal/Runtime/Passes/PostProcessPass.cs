@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         bool m_UseRGBM;
         readonly GraphicsFormat m_SMAAEdgeFormat;
         readonly GraphicsFormat m_GaussianCoCFormat;
-        Matrix4x4 m_PrevViewProjM = Matrix4x4.identity;
+        Matrix4x4[] m_PrevViewProjM = new Matrix4x4[2];
         bool m_ResetHistory;
         int m_DitheringTextureIndex;
         RenderTargetIdentifier[] m_MRT2;
@@ -374,7 +374,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MotionBlur)))
                 {
-                    DoMotionBlur(cameraData.camera, cmd, GetSource(), GetDestination());
+                    DoMotionBlur(cameraData, cmd, GetSource(), GetDestination());
                     Swap();
                 }
             }
@@ -770,35 +770,61 @@ namespace UnityEngine.Rendering.Universal.Internal
         #endregion
 
         #region Motion Blur
-
-        void DoMotionBlur(Camera camera, CommandBuffer cmd, int source, int destination)
+#if ENABLE_VR && ENABLE_XR_MODULE
+        // Hold the stereo matrices to avoid allocating arrays every frame
+        internal static readonly Matrix4x4[] viewProjMatrixStereo = new Matrix4x4[2];
+#endif
+        void DoMotionBlur(CameraData cameraData, CommandBuffer cmd, int source, int destination)
         {
             var material = m_Materials.cameraMotionBlur;
 
-            // This is needed because Blit will reset viewproj matrices to identity and UniversalRP currently
-            // relies on SetupCameraProperties instead of handling its own matrices.
-            // TODO: We need get rid of SetupCameraProperties and setup camera matrices in Universal
-            var proj = camera.nonJitteredProjectionMatrix;
-            var view = camera.worldToCameraMatrix;
-            var viewProj = proj * view;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.singlePassEnabled)
+            {
+                var viewProj0 = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrix(0), true) * cameraData.GetViewMatrix(0);
+                var viewProj1 = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrix(1), true) * cameraData.GetViewMatrix(1);
+                if (m_ResetHistory)
+                {
+                    viewProjMatrixStereo[0] = viewProj0;
+                    viewProjMatrixStereo[1] = viewProj1;
+                    material.SetMatrixArray("_PrevViewProjMStereo", viewProjMatrixStereo);
+                }
+                else
+                    material.SetMatrixArray("_PrevViewProjMStereo", m_PrevViewProjM);
 
-            material.SetMatrix("_ViewProjM", viewProj);
-
-            if (m_ResetHistory)
-                material.SetMatrix("_PrevViewProjM", viewProj);
+                m_PrevViewProjM[0] = viewProj0;
+                m_PrevViewProjM[1] = viewProj1;
+            }
             else
-                material.SetMatrix("_PrevViewProjM", m_PrevViewProjM);
+#endif
+            {
+                // This is needed because Blit will reset viewproj matrices to identity and UniversalRP currently
+                // relies on SetupCameraProperties instead of handling its own matrices.
+                // TODO: We need get rid of SetupCameraProperties and setup camera matrices in Universal
+                var proj = cameraData.GetProjectionMatrix();
+                var view = cameraData.GetViewMatrix();
+                var viewProj = proj * view;
+
+                material.SetMatrix("_ViewProjM", viewProj);
+
+                if (m_ResetHistory)
+                    material.SetMatrix("_PrevViewProjM", viewProj);
+                else
+                    material.SetMatrix("_PrevViewProjM", m_PrevViewProjM[0]);
+
+                // m_PrevViewProjM[1] is not used in XR multipass or non-XR rendering.
+                m_PrevViewProjM[0] = viewProj;
+            }
 
             material.SetFloat("_Intensity", m_MotionBlur.intensity.value);
             material.SetFloat("_Clamp", m_MotionBlur.clamp.value);
 
             Blit(cmd, source, BlitDstDiscardContent(cmd, destination), material, (int)m_MotionBlur.quality.value);
-            m_PrevViewProjM = viewProj;
         }
 
-        #endregion
+#endregion
 
-        #region Panini Projection
+#region Panini Projection
 
         // Back-ported & adapted from the work of the Stockholm demo team - thanks Lasse!
         void DoPaniniProjection(Camera camera, CommandBuffer cmd, int source, int destination)
@@ -871,9 +897,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             return cylPos * (viewDist / cylDist);
         }
 
-        #endregion
+#endregion
 
-        #region Bloom
+#region Bloom
 
         void SetupBloom(CommandBuffer cmd, int source, Material uberMaterial)
         {
@@ -989,9 +1015,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 uberMaterial.EnableKeyword(dirtIntensity > 0f ? ShaderKeywordStrings.BloomLQDirt : ShaderKeywordStrings.BloomLQ);
         }
 
-        #endregion
+#endregion
 
-        #region Lens Distortion
+#region Lens Distortion
 
         void SetupLensDistortion(Material material, bool isSceneView)
         {
@@ -1019,9 +1045,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 material.EnableKeyword(ShaderKeywordStrings.Distortion);
         }
 
-        #endregion
+#endregion
 
-        #region Chromatic Aberration
+#region Chromatic Aberration
 
         void SetupChromaticAberration(Material material)
         {
@@ -1031,9 +1057,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 material.EnableKeyword(ShaderKeywordStrings.ChromaticAberration);
         }
 
-        #endregion
+#endregion
 
-        #region Vignette
+#region Vignette
 
         void SetupVignette(Material material)
         {
@@ -1055,9 +1081,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             material.SetVector(ShaderConstants._Vignette_Params2, v2);
         }
 
-        #endregion
+#endregion
 
-        #region Color Grading
+#region Color Grading
 
         void SetupColorGrading(CommandBuffer cmd, ref RenderingData renderingData, Material material)
         {
@@ -1094,9 +1120,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        #endregion
+#endregion
 
-        #region Film Grain
+#region Film Grain
 
         void SetupGrain(in CameraData cameraData, Material material)
         {
@@ -1112,9 +1138,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        #endregion
+#endregion
 
-        #region 8-bit Dithering
+#region 8-bit Dithering
 
         void SetupDithering(in CameraData cameraData, Material material)
         {
@@ -1130,9 +1156,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        #endregion
+#endregion
 
-        #region Final pass
+#region Final pass
 
         void RenderFinalPass(CommandBuffer cmd, ref RenderingData renderingData)
         {
@@ -1191,9 +1217,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        #endregion
+#endregion
 
-        #region Internal utilities
+#region Internal utilities
 
         class MaterialLibrary
         {
@@ -1297,6 +1323,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static int[] _BloomMipDown;
         }
 
-        #endregion
+#endregion
     }
 }
