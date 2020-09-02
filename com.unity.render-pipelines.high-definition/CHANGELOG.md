@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue causing the editor field not updating the disc area light radius.
 - Fixed an issue where only one of the two lookdev views would update when changing the default lookdev volume profile.
 - Fixed issue that caused the decal atlas to not be updated upon changing of the decal textures content.
+- Fixed "Screen position out of view frustum" error when camera is at exactly the planar reflection probe location.
 
 ### Changed
 - Remove MSAA debug mode when renderpipeline asset has no MSAA
