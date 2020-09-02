@@ -164,7 +164,7 @@ namespace UnityEditor.ShaderGraph
 
                     foreach (var rpCustomEditor in context.customEditorForRenderPipelines)
                     {
-                        m_Builder.AppendLine($"CustomEditorForRenderPipeline \"{rpCustomEditor.shaderGUI}\" \"{rpCustomEditor.renderPipelineType}\"");
+                        m_Builder.AppendLine($"CustomEditorForRenderPipeline \"{rpCustomEditor.shaderGUI}\" \"{rpCustomEditor.renderPipelineAssetType}\"");
                     }
                 }
 

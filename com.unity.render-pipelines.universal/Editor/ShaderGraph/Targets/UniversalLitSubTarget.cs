@@ -60,7 +60,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
-            context.AddRenderPipelineCustomEditor("ShaderGraph.PBRMasterGUI", typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset).FullName); // TODO: This should be owned by URP
+            context.AddRenderPipelineCustomEditor("ShaderGraph.PBRMasterGUI", typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset)); // TODO: This should be owned by URP
 
             // Process SubShaders
             SubShaderDescriptor[] litSubShaders = { SubShaders.LitComputeDOTS, SubShaders.LitGLES };

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -7,14 +8,14 @@ namespace UnityEditor.ShaderGraph
     {
         public List<SubShaderDescriptor> subShaders { get; private set; }
         public List<string> assetDependencyPaths { get; private set; }
-        public List<(string shaderGUI, string renderPipelineType)> customEditorForRenderPipelines { get; private set; }
+        public List<(string shaderGUI, string renderPipelineAssetType)> customEditorForRenderPipelines { get; private set; }
         public string defaultShaderGUI { get; private set; }
 
         public TargetSetupContext()
         {
             subShaders = new List<SubShaderDescriptor>();
             assetDependencyPaths = new List<string>();
-            customEditorForRenderPipelines = new List<(string shaderGUI, string renderPipelineType)>();
+            customEditorForRenderPipelines = new List<(string shaderGUI, string renderPipelineAssetType)>();
         }
 
         public void AddSubShader(SubShaderDescriptor subShader)
@@ -32,9 +33,9 @@ namespace UnityEditor.ShaderGraph
             this.defaultShaderGUI = defaultShaderGUI;
         }
 
-        public void AddRenderPipelineCustomEditor(string shaderGUI, string renderPipelineType)
+        public void AddCustomEditorForRenderPipeline(string shaderGUI, Type renderPipelineAssetType)
         {
-            this.customEditorForRenderPipelines.Add((shaderGUI, renderPipelineType));
+            this.customEditorForRenderPipelines.Add((shaderGUI, renderPipelineAssetType.FullName));
         }
     }
 }
