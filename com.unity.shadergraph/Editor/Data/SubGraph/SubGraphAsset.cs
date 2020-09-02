@@ -86,7 +86,9 @@ namespace UnityEditor.ShaderGraph
             if(m_SubGraphData == null)
             {
                 m_SubGraphData = new SubGraphData();
+                m_SubGraphData.OverrideObjectId(assetGuid, "_subGraphData");
             }
+
             m_SubGraphData.inputs.Clear();
             m_SubGraphData.keywords.Clear();
             m_SubGraphData.nodeProperties.Clear();

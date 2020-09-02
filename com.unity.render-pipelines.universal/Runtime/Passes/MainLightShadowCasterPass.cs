@@ -25,6 +25,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         const int k_MaxCascades = 4;
         const int k_ShadowmapBufferBits = 16;
+        float m_MaxShadowDistance;
         int m_ShadowmapWidth;
         int m_ShadowmapHeight;
         int m_ShadowCasterCascadesCount;
@@ -108,6 +109,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     return false;
             }
 
+            m_MaxShadowDistance = renderingData.cameraData.maxShadowDistance * renderingData.cameraData.maxShadowDistance;
+
             return true;
         }
 
@@ -183,16 +186,17 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades, shadowData.mainLightShadowCascadesCount > 1);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, softShadows);
 
-                SetupMainLightShadowReceiverConstants(cmd, shadowLight, softShadows);
+                SetupMainLightShadowReceiverConstants(cmd, shadowLight, shadowData.supportsSoftShadows);
             }
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
 
-        void SetupMainLightShadowReceiverConstants(CommandBuffer cmd, VisibleLight shadowLight, bool softShadows)
+        void SetupMainLightShadowReceiverConstants(CommandBuffer cmd, VisibleLight shadowLight, bool supportsSoftShadows)
         {
             Light light = shadowLight.light;
+            bool softShadows = shadowLight.light.shadows == LightShadows.Soft && supportsSoftShadows;
 
             int cascadeCount = m_ShadowCasterCascadesCount;
             for (int i = 0; i < cascadeCount; ++i)
@@ -211,9 +215,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             float invHalfShadowAtlasWidth = 0.5f * invShadowAtlasWidth;
             float invHalfShadowAtlasHeight = 0.5f * invShadowAtlasHeight;
             float softShadowsProp = softShadows ? 1.0f : 0.0f;
+
+            //To make the shadow fading fit into a single MAD instruction:
+            //distanceCamToPixel2 * oneOverFadeDist + minusStartFade (single MAD)
+            float startFade = m_MaxShadowDistance * 0.9f;
+            float oneOverFadeDist = 1/(m_MaxShadowDistance - startFade);
+            float minusStartFade = -startFade * oneOverFadeDist;
+
+
             cmd.SetGlobalTexture(m_MainLightShadowmap.id, m_MainLightShadowmapTexture);
             cmd.SetGlobalMatrixArray(MainLightShadowConstantBuffer._WorldToShadow, m_MainLightShadowMatrices);
-            cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams, new Vector4(light.shadowStrength, softShadowsProp, 0.0f, 0.0f));
+            cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams, new Vector4(light.shadowStrength, softShadowsProp, oneOverFadeDist, minusStartFade));
 
             if (m_ShadowCasterCascadesCount > 1)
             {
@@ -232,7 +244,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_CascadeSplitDistances[3].w * m_CascadeSplitDistances[3].w));
             }
 
-            if (softShadows)
+            // Inside shader soft shadows are controlled through global keyword.
+            // If any additional light has soft shadows it will force soft shadows on main light too.
+            // As it is not trivial finding out which additional light has soft shadows, we will pass main light properties if soft shadows are supported.
+            // This workaround will be removed once we will support soft shadows per light.
+            if (supportsSoftShadows)
             {
                 if (m_SupportsBoxFilterForShadows)
                 {

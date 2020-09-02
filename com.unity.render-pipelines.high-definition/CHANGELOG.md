@@ -4,6 +4,19 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.1.0] - 2019-08-04
+
+### Added
+- Added an option to have only the metering mask displayed in the debug mode.
+
+### Fixed
+- Fix several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
+- Fixed GPU hang on D3D12 on xbox. 
+- Fix Amplitude -> Min/Max parametrization conversion
+
+### Changed
+- Preparation pass for RTSSShadows to be supported by render graph.
+
 ## [10.0.0] - 2019-06-10
 
 ### Added
@@ -164,13 +177,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added API to check if a Camera, Light or ReflectionProbe is compatible with HDRP.
 - Added path tracing test scene for normal mapping.
 - Added missing API documentation.
-- Added an option to have only the metering mask displayed in the debug mode.
 - Added a new mode to cluster visualization debug where users can see a slice instead of the cluster on opaque objects.
-- Add tooltips with the full name of the (graphics) compositor properties to properly show large names that otherwise are clipped by the UI (case 1263590)
-- Add error message if a callback AOV allocation fail
-- Add marker for all AOV request operation on GPU
-- Add remapping options for Depth Pyramid debug view mode
-- Add an option to support AOV shader at runtime in HDRP settings (case 1265070)
+- Added ray traced reflection support for the render graph version of the pipeline.
+- Added render graph support of RTAO and required denoisers.
+- Added render graph support of RTGI.
+- Supporting RTSSS and Recursive Rendering in the render graph mode.
+- Supporting directional RT and screen space shadow for render graph.
+- Added tooltips with the full name of the (graphics) compositor properties to properly show large names that otherwise are clipped by the UI (case 1263590)
+- Added error message if a callback AOV allocation fail
+- Added marker for all AOV request operation on GPU
+- Added remapping options for Depth Pyramid debug view mode
+- Added an option to support AOV shader at runtime in HDRP settings (case 1265070)
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -761,11 +778,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed multiple volumes, planar reflection, and decal projector position when creating them from the menu.
 - Reduced the number of global keyword used in deferredTile.shader
 - Fixed incorrect processing of Ambient occlusion probe (9% error was introduced)
-- Fixed GPU hang on D3D12 on xbox. 
-- Fix several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
 - Fixed CoatMask block appearing when creating lit master node (case 1264632)
 - Fixed issue with SceneEV100 debug mode indicator when rescaling the window.
 - Fixed issue with PCSS filter being wrong on first frame. 
+- Fixed issue with emissive mesh for area light not appearing in playmode if Reload Scene option is disabled in Enter Playmode Settings.
+- Fixed issue when Reflection Probes are set to OnEnable and are never rendered if the probe is enabled when the camera is farther than the probe fade distance. 
+- Fixed issue with sun icon being clipped in the look dev window. 
+- Fixed error about layers when disabling emissive mesh for area lights.
+- Fix issue when the user deletes the composition graph or .asset in runtime (case 1263319)
+- Fixed assertion failure when changing resolution to compositor layers after using AOVs (case 1265023) 
+- Fixed flickering layers in graphics compositor (case 1264552)
+- Fix issue causing the editor field not updating the disc area light radius.
+- Fixed issues that lead to cookie atlas to be updated every frame even if cached data was valid.
+- Fixed an issue where world space UI was not emitted for reflection cameras in HDRP
+- Fixed an issue with cookie texture atlas that would cause realtime textures to always update in the atlas even when the content did not change.
+- Fixed an issue where only one of the two lookdev views would update when changing the default lookdev volume profile.
+- Fixed a bug related to light cluster invalidation.
+- Fixed shader warning in DofGather (case 1272931)
 - Fixed AOV export of depth buffer which now correctly export linear depth (case 1265001)
 
 ### Changed
@@ -920,6 +949,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Making the planar probe atlas's format match the color buffer's format.
 - Removing the planarReflectionCacheCompressed setting from asset.
 - SHADERPASS for TransparentDepthPrepass and TransparentDepthPostpass identification is using respectively SHADERPASS_TRANSPARENT_DEPTH_PREPASS and SHADERPASS_TRANSPARENT_DEPTH_POSTPASS
+- Moved the Parallax Occlusion Mapping node into Shader Graph.
 - Renamed the debug name from SSAO to ScreenSpaceAmbientOcclusion (1254974).
 - Added missing tooltips and improved the UI of the aperture control (case 1254916).
 - Fixed wrong tooltips in the Dof Volume (case 1256641).
@@ -942,6 +972,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the DXR wizard steps.
 - Preparation pass for RTSSS to be supported by render graph.
 - Changed the color space of EmissiveColorLDR property on all shader. Was linear but should have been sRGB. Auto upgrade script handle the conversion.
+- Add tooltips with the full name of the (graphics) compositor properties to properly show large names that otherwise are clipped by the UI (case 1263590)
+- Composition profile .asset files cannot be manually edited/reset by users (to avoid breaking things - case 1265631)
 - Preparation pass for RTSSShadows to be supported by render graph.
 
 ## [7.1.1] - 2019-09-05
