@@ -1,6 +1,6 @@
 
-#ifndef LIGHTWEIGHT_DEBUGGING_INCLUDED
-#define LIGHTWEIGHT_DEBUGGING_INCLUDED
+#ifndef UNIVERSAL_DEBUGGING_INCLUDED
+#define UNIVERSAL_DEBUGGING_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/SurfaceInput.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
@@ -26,7 +26,7 @@ int _DebugMaterialIndex;
 #define DEBUG_LIGHTING_LIGHT_ONLY 2
 #define DEBUG_LIGHTING_LIGHT_DETAIL 3
 #define DEBUG_LIGHTING_REFLECTIONS 4
-#define DEBUG_LIGHTING_REFLECTIONS_WITH_SMOOTHNESS 5 
+#define DEBUG_LIGHTING_REFLECTIONS_WITH_SMOOTHNESS 5
 
 int _DebugLightingIndex;
 
@@ -365,7 +365,7 @@ bool CalculateValidationColorForDebug(InputData inputData, SurfaceData surfaceDa
         }
         return true;
     }
-    
+
     return false;
 }
 
@@ -377,7 +377,7 @@ bool CalculateValidationColorForMipMaps(InputData inputData, SurfaceData surface
         color = half4(debugCol, 1.0f);
         return true;
     }
-    
+
     return false;
 }
 
