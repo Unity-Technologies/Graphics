@@ -402,9 +402,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class PushFullScreenDebugPassData
         {
-            public TextureHandle input;
-            public TextureHandle output;
-            public int mipIndex;
+            public TextureHandle    input;
+            public TextureHandle    output;
+            public int              mipIndex;
+            public Material         material;
         }
 
         void PushFullScreenLightingDebugTexture(RenderGraph renderGraph, TextureHandle input)
@@ -435,19 +436,31 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void PushFullScreenDebugTexture(RenderGraph renderGraph, TextureHandle input, int mipIndex = -1)
+        internal void PushFullScreenDebugTexture(RenderGraph renderGraph, TextureHandle input, FullScreenDebugMode debugMode, Material material)
+        {
+            if (debugMode == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
+            {
+                PushFullScreenDebugTexture(renderGraph, input, -1, material);
+            }
+        }
+
+
+        void PushFullScreenDebugTexture(RenderGraph renderGraph, TextureHandle input, int mipIndex = -1, Material material = null)
         {
             using (var builder = renderGraph.AddRenderPass<PushFullScreenDebugPassData>("Push Full Screen Debug", out var passData))
             {
                 passData.mipIndex = mipIndex;
+                passData.material = material;
                 passData.input = builder.ReadTexture(input);
                 passData.output = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, name = "DebugFullScreen" }), 0);
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, name = "DebugFullScreen" }), 0);
 
                 builder.SetRenderFunc(
                 (PushFullScreenDebugPassData data, RenderGraphContext ctx) =>
                 {
-                    if (data.mipIndex != -1)
+                    if (data.material != null)
+                        HDUtils.BlitCameraTexture(ctx.cmd, data.input, data.output, data.material, 0);
+                    else if (data.mipIndex != -1)
                         HDUtils.BlitCameraTexture(ctx.cmd, data.input, data.output, data.mipIndex);
                     else
                         HDUtils.BlitCameraTexture(ctx.cmd, data.input, data.output);
