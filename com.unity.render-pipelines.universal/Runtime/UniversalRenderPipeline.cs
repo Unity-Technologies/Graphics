@@ -303,6 +303,11 @@ namespace UnityEngine.Rendering.Universal
 
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
+#if UNITY_2020_2_OR_NEWER
+            // C#8 feature, only in >= 2020.2
+            using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.UniversalRenderTotal));
+#endif
+
             // TODO: Would be better to add Profiling name hooks into RenderPipelineManager.
             // TODO: This is a C# 8.0 feature, supported in Unity 2020.2, but are much cleaner. Perhaps ifdef these out from previous versions,
             // TODO: all the previous and some of the new scopes would still be present.
@@ -488,7 +493,7 @@ namespace UnityEngine.Rendering.Universal
         static void RenderCameraStack(ScriptableRenderContext context, Camera baseCamera)
         {
 #if UNITY_2020_2_OR_NEWER
-            using var profScope = new ProfilingScope(null, UniversalProfilingCache.Pipeline.renderCameraStack);
+            using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.RenderCameraStack));
 #endif
 
             baseCamera.TryGetComponent<UniversalAdditionalCameraData>(out var baseCameraAdditionalData);
@@ -668,7 +673,7 @@ namespace UnityEngine.Rendering.Universal
         static void UpdateVolumeFramework(Camera camera, UniversalAdditionalCameraData additionalCameraData)
         {
 #if UNITY_2020_2_OR_NEWER
-            using var profScope = new ProfilingScope(null, UniversalProfilingCache.Pipeline.updateVolumeFramework);
+            using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.UpdateVolumeFramework));
 #endif
 
             // Default values when there's no additional camera data available

@@ -79,12 +79,12 @@ namespace UnityEngine.Rendering.Universal
             m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
 #if ENABLE_VR && ENABLE_XR_MODULE
-            m_XROcclusionMeshPass = new XROcclusionMeshPass(RenderPassEvent.BeforeRenderingPrepasses);
+            m_XROcclusionMeshPass = new XROcclusionMeshPass(RenderPassEvent.BeforeRenderingOpaques);
 #endif
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_DepthNormalPrepass = new DepthNormalOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrepasses, data.postProcessData);
-            m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
+            m_RenderOpaqueForwardPass = new DrawObjectsPass(URPProfileId.DrawOpaqueObjects, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_BlitMaterial);
@@ -93,7 +93,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
             {
                 m_TransparentSettingsPass = new TransparentSettingsPass(RenderPassEvent.BeforeRenderingTransparents, data.shadowTransparentReceive);
-                m_RenderTransparentForwardPass = new DrawObjectsPass("Render Transparents", false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
+                m_RenderTransparentForwardPass = new DrawObjectsPass(URPProfileId.DrawTransparentObjects, false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             }
             m_OnRenderObjectCallbackPass = new InvokeOnRenderObjectCallbackPass(RenderPassEvent.BeforeRenderingPostProcessing);
             m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
@@ -280,13 +280,6 @@ namespace UnityEngine.Rendering.Universal
             if (additionalLightShadows)
                 EnqueuePass(m_AdditionalLightsShadowCasterPass);
 
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.hasValidOcclusionMesh)
-            {
-                m_XROcclusionMeshPass.Setup(m_ActiveCameraDepthAttachment);
-                EnqueuePass(m_XROcclusionMeshPass);
-            }
-#endif
             if (requiresDepthPrepass)
             {
                 if (renderPassInputs.requiresNormalsTexture)
@@ -306,6 +299,11 @@ namespace UnityEngine.Rendering.Universal
                 m_ColorGradingLutPass.Setup(m_ColorGradingLut);
                 EnqueuePass(m_ColorGradingLutPass);
             }
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.hasValidOcclusionMesh)
+                EnqueuePass(m_XROcclusionMeshPass);
+#endif
 
             EnqueuePass(m_RenderOpaqueForwardPass);
 

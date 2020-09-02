@@ -25,6 +25,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         const int k_MaxCascades = 4;
         const int k_ShadowmapBufferBits = 16;
+        float m_MaxShadowDistance;
         int m_ShadowmapWidth;
         int m_ShadowmapHeight;
         int m_ShadowCasterCascadesCount;
@@ -37,7 +38,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         ShadowSliceData[] m_CascadeSlices;
         Vector4[] m_CascadeSplitDistances;
 
-        ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Render Main Shadowmap");
         ProfilingSampler m_ProfilingSetupSampler = new ProfilingSampler("Setup Main Shadowmap");
 
         public MainLightShadowCasterPass(RenderPassEvent evt)
@@ -112,6 +112,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     return false;
             }
 
+            m_MaxShadowDistance = renderingData.cameraData.maxShadowDistance * renderingData.cameraData.maxShadowDistance;
+
             return true;
         }
 
@@ -167,7 +169,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // NOTE: Do NOT mix ProfilingScope with named CommandBuffers i.e. CommandBufferPool.Get("name").
             // Currently there's an issue which results in mismatched markers.
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MainLightShadow)))
             {
                 var settings = new ShadowDrawingSettings(cullResults, shadowLightIndex);
 
@@ -216,9 +218,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             float invHalfShadowAtlasWidth = 0.5f * invShadowAtlasWidth;
             float invHalfShadowAtlasHeight = 0.5f * invShadowAtlasHeight;
             float softShadowsProp = softShadows ? 1.0f : 0.0f;
+
+            //To make the shadow fading fit into a single MAD instruction:
+            //distanceCamToPixel2 * oneOverFadeDist + minusStartFade (single MAD)
+            float startFade = m_MaxShadowDistance * 0.9f;
+            float oneOverFadeDist = 1/(m_MaxShadowDistance - startFade);
+            float minusStartFade = -startFade * oneOverFadeDist;
+
+
             cmd.SetGlobalTexture(m_MainLightShadowmap.id, m_MainLightShadowmapTexture);
             cmd.SetGlobalMatrixArray(MainLightShadowConstantBuffer._WorldToShadow, m_MainLightShadowMatrices);
-            cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams, new Vector4(light.shadowStrength, softShadowsProp, 0.0f, 0.0f));
+            cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams, new Vector4(light.shadowStrength, softShadowsProp, oneOverFadeDist, minusStartFade));
 
             if (m_ShadowCasterCascadesCount > 1)
             {
