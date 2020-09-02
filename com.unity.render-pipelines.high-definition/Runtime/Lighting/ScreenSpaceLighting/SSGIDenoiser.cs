@@ -249,7 +249,6 @@ namespace UnityEngine.Rendering.HighDefinition
             bool historyRequireClear = false;
             RTHandle indirectDiffuseHistory = RequestIndirectDiffuseHistory(hdCamera, out historyRequireClear);
 
-
             SSGIDenoiserParameters parameters = PrepareSSGIDenoiserParameters(hdCamera, halfResolution, historyValidity, historyRequireClear);
             SSGIDenoiserResources resources = PrepareSSGIDenoiserResources(historyDepthBuffer, indirectDiffuseHistory, inputOutputBuffer, intermediateBuffer);
             Denoise(cmd, parameters, resources);

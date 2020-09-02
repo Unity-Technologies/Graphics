@@ -87,6 +87,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 shadowResult = RenderShadows(m_RenderGraph, hdCamera, cullingResults);
 
+                StartXRSinglePass(m_RenderGraph, hdCamera);
+
                 // Evaluate the clear coat mask texture based on the lit shader mode
                 var clearCoatMask = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? prepassOutput.gbuffer.mrt[2] : m_RenderGraph.defaultResources.blackTextureXR;
                 lightingBuffers.ssrLightingBuffer = RenderSSR(m_RenderGraph,
@@ -111,62 +113,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     default:
                         lightingBuffers.ssgiLightingBuffer = m_RenderGraph.defaultResources.blackTextureXR;
                         break;
-                }
-
-                StartXRSinglePass(m_RenderGraph, hdCamera);
-
-                // TODO RENDERGRAPH
-                //if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
-                //{
-                //    // We only request the light cluster if we are gonna use it for debug mode
-                //    if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode && GetRayTracingClusterState())
-                //    {
-                //        HDRaytracingLightCluster lightCluster = RequestLightCluster();
-                //        lightCluster.EvaluateClusterDebugView(cmd, hdCamera);
-                //    }
-
-                // TODO: check code, everything have change
-                //    bool validIndirectDiffuse = ValidIndirectDiffuseState(hdCamera);
-                //    if (validIndirectDiffuse)
-                //    {
-                //        if (RayTracedIndirectDiffuseState(hdCamera))
-                //        {
-                //            RenderRayTracedIndirectDiffuse(hdCamera, cmd, renderContext, m_FrameCount);
-                //        }
-                //        else
-                //        {
-                //            RenderSSGI(hdCamera, cmd, renderContext, m_FrameCount);
-                //            BindIndirectDiffuseTexture(cmd);
-                //        }
-                //    }
-                //    else
-                //    {
-                //        BindBlackIndirectDiffuseTexture(cmd);
-                //    }
-                //}
-                //else
-                //{
-                //    bool validIndirectDiffuse = ValidIndirectDiffuseState(hdCamera);
-                //    if (validIndirectDiffuse)
-                //    {
-                //        RenderSSGI(hdCamera, cmd, renderContext, m_FrameCount);
-                //        BindIndirectDiffuseTexture(cmd);
-                //    }
-                //    else
-                //    {
-                //        BindBlackIndirectDiffuseTexture(cmd);
-                //    }
-                //}
-
-                // Temporary workaround otherwise the texture is not bound when executing directly with rendergraph
-                using (var builder = m_RenderGraph.AddRenderPass<TempPassData>("TempPass", out var passData))
-                {
-                    builder.AllowPassCulling(false);
-                    builder.SetRenderFunc(
-                    (TempPassData data, RenderGraphContext context) =>
-                    {
-                        BindBlackIndirectDiffuseTexture(context.cmd);
-                    });
                 }
 
                 lightingBuffers.screenspaceShadowBuffer = RenderScreenSpaceShadows(m_RenderGraph, hdCamera, prepassOutput, prepassOutput.depthBuffer, prepassOutput.normalBuffer, prepassOutput.motionVectorsBuffer, rayCountTexture);
