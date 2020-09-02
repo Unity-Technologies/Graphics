@@ -2,7 +2,7 @@
 #ifndef UNIVERSAL_DEBUGGING_INCLUDED
 #define UNIVERSAL_DEBUGGING_INCLUDED
 
-#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/SurfaceInput.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
 
 float4 _BaseMap_TexelSize;
@@ -200,6 +200,8 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
         surfaceData.smoothness = 0.0;
         surfaceData.occlusion = 0.0;
         surfaceData.emission = half3(0.0h, 0.0h, 0.0h);
+        surfaceData.clearCoatMask       = 0;
+        surfaceData.clearCoatSmoothness = 1;
         changed = true;
     }
 

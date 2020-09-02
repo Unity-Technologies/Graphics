@@ -444,7 +444,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     inputData.uv = uv;
 #endif
 
-    half4 color = LightweightFragmentPBR(inputData, surfaceData);
+    half4 color = UniversalFragmentPBR(inputData, surfaceData);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     color.a = OutputAlpha(color.a);
 
