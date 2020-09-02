@@ -26,10 +26,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private static readonly ProfilingSampler m_ProfilingSamplerUnlit = new ProfilingSampler("Render Unlit");
 
         private readonly Renderer2DData m_Renderer2DData;
+        private bool m_HasValidDepth;
 
         public Render2DLightingPass(Renderer2DData rendererData)
         {
             m_Renderer2DData = rendererData;
+        }
+
+        internal void Setup(bool hasValidDepth)
+        {
+            m_HasValidDepth = hasValidDepth;
         }
 
         private void GetTransparencySortingMode(Camera camera, ref SortingSettings sortingSettings)
@@ -109,8 +115,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 using (new ProfilingScope(cmd, m_ProfilingSampler))
                 {
-                    this.CreateNormalMapRenderTexture(renderingData, cmd);
-
                     cmd.SetGlobalFloat(k_HDREmulationScaleID, m_Renderer2DData.hdrEmulationScale);
                     cmd.SetGlobalFloat(k_InverseHDREmulationScaleID, 1.0f / m_Renderer2DData.hdrEmulationScale);
                     cmd.SetGlobalFloat(k_UseSceneLightingID, isLitView ? 1.0f : 0.0f);
@@ -128,6 +132,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     normalsDrawSettings.sortingSettings = sortSettings;
 
                     var blendStylesCount = m_Renderer2DData.lightBlendStyles.Length;
+                    var prevNormalRTScale = 0.0f;
+
                     for (var i = 0; i < cachedSortingLayers.Length;)
                     {
                         var layerToRender = cachedSortingLayers[i].id;
@@ -146,9 +152,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                             RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleUsed);
                         }
-
-                        context.ExecuteCommandBuffer(cmd);
-
+                
                         // find the highest layer that share the same set of lights as this layer
                         var upperLayerInBatch = FindUpperBoundInBatch(i, cachedSortingLayers);
                         // Some renderers override their sorting layer value with short.MinValue or short.MaxValue.
@@ -163,7 +167,37 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                         // Start Rendering
                         if (lightStats.totalNormalMapUsage > 0)
-                            this.RenderNormals(context, renderingData.cullResults, normalsDrawSettings, filterSettings, depthAttachment);
+                        {
+                            var normalRTScale = 0.0f;
+
+                            if (m_HasValidDepth)
+                                normalRTScale = 1.0f;
+                            else
+                            {
+                                for (var j = 0; j < blendStylesCount; ++j)
+                                {
+                                    if ((lightStats.blendStylesUsed & (1 << j)) != 0)
+                                        normalRTScale = Mathf.Max(normalRTScale, Mathf.Clamp(m_Renderer2DData.lightBlendStyles[j].renderTextureScale, 0.01f, 1.0f));
+                                }
+                            }
+
+                            if (prevNormalRTScale != normalRTScale)
+                            {
+                                if (prevNormalRTScale != 0.0f)
+                                    cmd.ReleaseTemporaryRT(m_Renderer2DData.normalsRenderTarget.id);
+
+                                this.CreateNormalMapRenderTexture(renderingData, cmd, normalRTScale);
+                                prevNormalRTScale = normalRTScale;
+                            }
+                        }
+
+                        context.ExecuteCommandBuffer(cmd);
+
+                        if (lightStats.totalNormalMapUsage > 0)
+                        {
+                            var depthTarget = m_HasValidDepth ? depthAttachment : BuiltinRenderTextureType.None;
+                            this.RenderNormals(context, renderingData.cullResults, normalsDrawSettings, filterSettings, depthTarget);
+                        }
 
                         cmd.Clear();
                         if (lightStats.totalLights > 0)

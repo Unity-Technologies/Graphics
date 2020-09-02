@@ -82,9 +82,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return s_RenderTextureFormatToUse;
         }
 
-        public static void CreateNormalMapRenderTexture(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd)
+        public static void CreateNormalMapRenderTexture(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, float renderScale)
         {
-            var descriptor = new RenderTextureDescriptor(renderingData.cameraData.cameraTargetDescriptor.width, renderingData.cameraData.cameraTargetDescriptor.height);
+            var descriptor = new RenderTextureDescriptor(
+                (int)(renderingData.cameraData.cameraTargetDescriptor.width * renderScale),
+                (int)(renderingData.cameraData.cameraTargetDescriptor.height * renderScale));
+
             descriptor.graphicsFormat = GetRenderTextureFormat();
             descriptor.useMipMap = false;
             descriptor.autoGenerateMips = false;
@@ -346,8 +349,20 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
-                cmd.SetRenderTarget(pass.rendererData.normalsRenderTarget.Identifier(), depthTarget);
-                cmd.ClearRenderTarget(true, true, k_NormalClearColor);
+                if (depthTarget != BuiltinRenderTextureType.None)
+                {
+                    cmd.SetRenderTarget(
+                        pass.rendererData.normalsRenderTarget.Identifier(),
+                        RenderBufferLoadAction.DontCare,
+                        RenderBufferStoreAction.Store,
+                        depthTarget,
+                        RenderBufferLoadAction.Load,
+                        RenderBufferStoreAction.DontCare);
+                }
+                else
+                    cmd.SetRenderTarget(pass.rendererData.normalsRenderTarget.Identifier(), RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+
+                cmd.ClearRenderTarget(false, true, k_NormalClearColor);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
