@@ -127,8 +127,6 @@ namespace UnityEditor.Rendering.Universal
                 if (!asset.EndsWith(".mat", StringComparison.InvariantCultureIgnoreCase))
                     continue;
 
-
-
                 var material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
                 if (!ShaderUtils.IsLWShader(material.shader))
                     continue;
@@ -136,10 +134,9 @@ namespace UnityEditor.Rendering.Universal
                 ShaderPathID id = ShaderUtils.GetEnumFromPath(material.shader.name);
                 var wasUpgraded = false;
 
-                var assetVersion = AssetDatabase.LoadAssetAtPath<AssetVersion>(asset);
-
                 var debug = "\n" + material.name;
 
+                var assetVersion = AssetDatabase.LoadAssetAtPath<AssetVersion>(asset);
                 if (!assetVersion)
                 {
                     wasUpgraded = true;
