@@ -172,7 +172,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             // Unity defined keywords
             #pragma multi_compile_instancing
             #pragma instancing_options procedural:ParticleInstancingSetup
-	    
+
             #pragma vertex ParticlesGBufferVertex
             #pragma fragment ParticlesGBufferFragment
 
@@ -269,19 +269,19 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Universal2D.hlsl"
             ENDHLSL
         }
-        
+
         Pass
         {
             // Lightmode matches the ShaderPassName set in LightweightRenderPipeline.cs. SRPDefaultUnlit and passes with
             // no LightMode tag are also rendered by Lightweight Render Pipeline
             Name "DebugMaterial"
             Tags {"LightMode" = "DebugMaterial"}
-            
+
             BlendOp[_BlendOp]
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
             Cull[_Cull]
-            
+
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard SRP library
             // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
@@ -295,7 +295,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #pragma shader_feature _EMISSION
             #pragma shader_feature _METALLICSPECGLOSSMAP
             #pragma shader_feature _RECEIVE_SHADOWS_OFF
-            
+
             // -------------------------------------
             // Particle Keywords
             #pragma shader_feature _ _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
@@ -305,7 +305,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #pragma shader_feature _SOFTPARTICLES_ON
             #pragma shader_feature _FADING_ON
             #pragma shader_feature _DISTORTION_ON
-            
+
             // -------------------------------------
             // Lightweight Pipeline keywords
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
@@ -320,11 +320,11 @@ Shader "Universal Render Pipeline/Particles/Lit"
 
             #pragma vertex ParticlesLitVertex
             #pragma fragment ParticlesLitFragment
-            
+
             #define _DEBUG_SHADER
 
-            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Particles/ParticlesLitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Particles/ParticlesLitForwardPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitForwardPass.hlsl"
             ENDHLSL
         }
     }

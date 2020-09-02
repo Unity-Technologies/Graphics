@@ -22,7 +22,7 @@ Shader "Hidden/Lightweight Render Pipeline/FullScreenDebug"
             #pragma multi_compile _ _LINEAR_TO_SRGB_CONVERSION
             #pragma multi_compile _ _KILL_ALPHA
 
-            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #ifdef _LINEAR_TO_SRGB_CONVERSION
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
             #endif
@@ -67,7 +67,7 @@ Shader "Hidden/Lightweight Render Pipeline/FullScreenDebug"
                 #ifdef _LINEAR_TO_SRGB_CONVERSION
                     col = LinearToSRGB(col);
                 #endif
-                
+
                 if (_DebugMode == DEBUG_MODE_DEPTH)
                 {
                     half linearDepth = _FarPlane / (_FarPlane - _NearPlane) * (1.0f - (_NearPlane / col.r));

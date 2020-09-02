@@ -22,8 +22,8 @@ Shader "Hidden/Lightweight Render Pipeline/Debug/Replacement"
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
-            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Debugging.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debugging.hlsl"
 
             struct Attributes
             {
@@ -34,7 +34,7 @@ Shader "Hidden/Lightweight Render Pipeline/Debug/Replacement"
             {
                 float4 positionCS : SV_POSITION;
             };
-            
+
             Varyings vert(Attributes IN)
             {
                 Varyings OUT;
@@ -65,7 +65,7 @@ Shader "Hidden/Lightweight Render Pipeline/Debug/Replacement"
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
             struct Attributes
             {
@@ -109,8 +109,8 @@ Shader "Hidden/Lightweight Render Pipeline/Debug/Replacement"
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
-            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Debugging.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debugging.hlsl"
 
             struct Attributes
             {
