@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
         DenoiseSSAO,
         UpSampleSSAO,
         ScreenSpaceShadows,
+        ScreenSpaceShadowsDebug,
         BuildLightList,
         ContactShadows,
         BlitToFinalRTDevBuildOnly,
@@ -37,7 +38,13 @@ namespace UnityEngine.Rendering.HighDefinition
         SsrReprojection,
         SsrDenoiseInpainting,
         PrepareForTransparentSsr,
-        SsgiPass,
+
+        // SSGI
+        SSGITrace,
+        SSGIDenoise,
+        SSGIUpscale,
+        SSGIPass,
+
         ForwardEmissive,
         ForwardOpaque,
         ForwardOpaqueDebug,
@@ -108,7 +115,9 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracingBuildCluster,
         RaytracingCullLights,
         // RTR
-        RaytracingIntegrateReflection,
+        RaytracingReflectionDirectionGeneration,
+        RaytracingReflectionEvaluation,
+        RaytracingReflectionUpscaleGeneration,
         RaytracingFilterReflection,
         // RTAO
         RaytracingAmbientOcclusion,
@@ -117,12 +126,28 @@ namespace UnityEngine.Rendering.HighDefinition
         // RT Shadows
         RaytracingDirectionalLightShadow,
         RaytracingLightShadow,
+        RaytracingSphereLightShadow,
+        RaytracingAreaLightShadow,
         // RTGI
-        RaytracingIntegrateIndirectDiffuse,
+        RaytracingIndirectDiffuseDirectionGeneration,
+        RaytracingIndirectDiffuseEvaluation,
+        RaytracingIndirectDiffuseUpscale,
         RaytracingFilterIndirectDiffuse,
+        // RTSSS
+        RaytracingSSS,
+        RaytracingSSSTrace,
+        RaytracingSSSCompose,
+        // RTShadow
+        RaytracingWriteShadow,
+        // Other ray tracing
         RaytracingDebugOverlay,
         RayTracingRecursiveRendering,
         RayTracingPrepass,
+        // RT Deferred Lighting
+        RaytracingDeferredLighting,
+        // Denoisers
+        TemporalFilter,
+        DiffuseFilter,
 
         // Profile sampler for prepare light for GPU
         PrepareLightsForGPU,
@@ -204,6 +229,14 @@ namespace UnityEngine.Rendering.HighDefinition
         ProbeVolumeDebug,
         BuildGPULightListProbeVolumes,
         PushProbeVolumeLightListGlobalParameters,
+
+        AOVExecute,
+        // Enum AOVBuffers
+        AOVOutput,
+        AOVColor,
+        AOVDepthStencil,
+        AOVNormals,
+        AOVMotionVectors,
 
 #if ENABLE_VIRTUALTEXTURES
         VTFeedbackClear,
