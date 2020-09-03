@@ -103,6 +103,44 @@ From 10.x,SHADERPASS for TransparentDepthPrepass and TransparentDepthPostpass id
 10.x introduces a new multi-compile for Depth Prepass and Motion vector pass to allow for support of the Decal Layers feature. These passes now require you to add #pragma multi_compile _ WRITE_DECAL_BUFFER.
 
 From 10.x, the shader code for the Decal.shader has changed. Previously, the code used around 16 passes to handle the rendering of different decal attributes. It now only uses four passes: DBufferProjector, DecalProjectorForwardEmissive, DBufferMesh, DecalMeshForwardEmissive. Some pass names are also different. DBufferProjector and DBufferMesh now use a multi_compile DECALS_3RT DECALS_4RT to handle the differents variants and the shader stripper has been updated as well. Various Shader Decal Properties have been renamed/changed to match a new set of AffectXXX properties (_AlbedoMode, _MaskBlendMode, _MaskmapMetal, _MaskmapAO, _MaskmapSmoothness, _Emissive have been changed to _AffectAlbedo, _AffectNormal, _AffectAO, _AffectMetal, _AffectSmoothness, _AffectEmission - Keyword _ALBEDOCONTRIBUTION is now _MATERIAL_AFFECTS_ALBEDO and two new keywords, _MATERIAL_AFFECTS_NORMAL, _MATERIAL_AFFECTS_MASKMAP, have been added). These new properties now match with properties from the Decal Shader Graph which are now exposed in the Material. A Material upgrade process automatically upgrades all the Decal Materials. However, if your project includes any C# scripts that create or manipulate a Decal Material, you need to update the scripts to use the new properties and keyword; the migration does not work on procedurally generated Decal Materials.
+
+From 10.x, the shader code for the decal application inside a material must be changed. In previous version HDRP was performing an optimization name "HTile" relying on a HTileMask. After futher investigation it appear that this optimization is not a win anymore and all the code related to it have been removed. The HTileMask member in DecalSurfaceData and the structure DBufferHTileBit with associated flag have been removed. To update your custom shaders, it is require to not used the define DBUFFERHTILEBIT_DIFFUSE, DBUFFERHTILEBIT_NORMAL and DBUFFERHTILEBIT_MASK anymore as they have been removed but to test if the weight of individual attribute is non neutral. For example in your ApplyDecalToSurfaceData() function, replace the following lines:
+```
+    if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_DIFFUSE)
+    {
+      (...)
+    }
+
+    if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_NORMAL)
+    {
+      (...)
+    }
+
+    if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_MASK)
+    {
+        (...) ComputeFresnel0((decalSurfaceData.HTileMask & DBUFFERHTILEBIT_DIFFUSE) ? (...));
+    }
+```
+by respectively
+```
+    if (decalSurfaceData.baseColor.w  < 1.0)
+    {
+      (...)
+    }
+
+    if (decalSurfaceData.normalWS.w < 1.0)
+    {
+      (...)
+    }
+
+    if (decalSurfaceData.MAOSBlend.x < 1.0 || decalSurfaceData.MAOSBlend.y < 1.0 || decalSurfaceData.mask.w)
+    {
+        (...) ComputeFresnel0((decalSurfaceData.baseColor.w  < 1.0) ? (...));
+    }
+
+```
+you can look at the function ApplyDecalToSurfaceData() in the files LitDecalData.hlsl for best practices of how to apply decal on material.
+
 ## Custom pass API
 
 The signature of the Execute function has changed to simplify the parameters, now it only takes a CustomPassContext as its input:
