@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.PlayerLoop;
+using UnityEngine.Profiling;
 using UnityEngine.Serialization;
 using UnityEngine.Rendering;
 #if UNITY_EDITOR
@@ -63,7 +64,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal int[] affectedSortingLayers => m_ApplyToSortingLayers;
 
         private int lightCookieSpriteInstanceID => m_LightCookieSprite?.GetInstanceID() ?? 0;
-		
+
         private Bounds m_LocalBounds;
         internal BoundingSphere boundingSphere { get; private set; }
 
@@ -181,7 +182,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal bool IsLitLayer(int layer)
         {
-            return m_ApplyToSortingLayers != null ? Array.IndexOf(m_ApplyToSortingLayers, layer) >= 0 : false;
+            if (m_ApplyToSortingLayers == null)
+                return false;
+
+            for(var i = 0; i < m_ApplyToSortingLayers.Length; i++)
+                if (m_ApplyToSortingLayers[i] == layer)
+                    return true;
+
+            return false;
         }
 
         private void Awake()

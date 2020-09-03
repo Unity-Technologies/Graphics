@@ -24,6 +24,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static readonly GUIContent blendFactorAdditive = EditorGUIUtility.TrTextContent("Additive");
             public static readonly GUIContent useDepthStencilBuffer = EditorGUIUtility.TrTextContent("Use Depth/Stencil Buffer", "Uncheck this when you are certain you don't use any feature that requires the depth/stencil buffer (e.g. Sprite Mask). Not using the depth/stencil buffer may improve performance, especially on mobile platforms.");
             public static readonly GUIContent postProcessData = EditorGUIUtility.TrTextContent("Post-processing Data", "Resources (textures, shaders, etc.) required by post-processing effects.");
+
+            public static readonly GUIContent batchSize = EditorGUIUtility.TrTextContent("Pre-render Layer", "Number of layer batches to pre-render light textures upfront. More layers will reduce context switch at the cost of memory");
         }
 
         struct LightBlendStyleProps
@@ -46,6 +48,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         SerializedProperty m_PostProcessData;
         SerializedProperty m_DefaultMaterialType;
         SerializedProperty m_DefaultCustomMaterial;
+        SerializedProperty m_BatchSize;
 
         Analytics.Renderer2DAnalytics m_Analytics = Analytics.Renderer2DAnalytics.instance;
         Renderer2DData m_Renderer2DData;
@@ -73,6 +76,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_TransparencySortAxis = serializedObject.FindProperty("m_TransparencySortAxis");
             m_HDREmulationScale = serializedObject.FindProperty("m_HDREmulationScale");
             m_LightBlendStyles = serializedObject.FindProperty("m_LightBlendStyles");
+            m_BatchSize = serializedObject.FindProperty("m_BatchSize");
 
             int numBlendStyles = m_LightBlendStyles.arraySize;
             m_LightBlendStylePropsArray = new LightBlendStyleProps[numBlendStyles];
@@ -112,7 +116,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             EditorGUI.BeginChangeCheck();
 
-            
+
             EditorGUILayout.PropertyField(m_TransparencySortMode, Styles.transparencySortMode);
             if(m_TransparencySortMode.intValue == (int)TransparencySortMode.CustomAxis)
                 EditorGUILayout.PropertyField(m_TransparencySortAxis, Styles.transparencySortAxis);
@@ -130,7 +134,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             {
                 SerializedProperty blendStyleProp = m_LightBlendStyles.GetArrayElementAtIndex(i);
                 ref LightBlendStyleProps props = ref m_LightBlendStylePropsArray[i];
-                
+
                 EditorGUILayout.BeginHorizontal();
                 blendStyleProp.isExpanded = EditorGUILayout.Foldout(blendStyleProp.isExpanded, props.name.stringValue, true);
                 EditorGUILayout.EndHorizontal();
@@ -172,7 +176,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 }
             }
 
-            
+
             EditorGUI.indentLevel--;
             EditorGUILayout.PropertyField(m_UseDepthStencilBuffer, Styles.useDepthStencilBuffer);
             EditorGUILayout.PropertyField(m_PostProcessData, Styles.postProcessData);
@@ -180,6 +184,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
             EditorGUILayout.PropertyField(m_DefaultMaterialType, Styles.defaultMaterialType);
             if(m_DefaultMaterialType.intValue == (int)Renderer2DData.Renderer2DDefaultMaterialType.Custom)
                 EditorGUILayout.PropertyField(m_DefaultCustomMaterial, Styles.defaultCustomMaterial);
+
+            EditorGUILayout.PropertyField(m_BatchSize, Styles.batchSize);
 
             m_WasModified |= serializedObject.hasModifiedProperties;
             serializedObject.ApplyModifiedProperties();

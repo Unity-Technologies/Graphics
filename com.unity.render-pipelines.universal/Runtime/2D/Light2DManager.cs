@@ -1,36 +1,15 @@
 using System.Collections.Generic;
-using UnityEngine.Rendering;
 #if UNITY_EDITOR
 using UnityEditor.Experimental.SceneManagement;
 #endif
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
-    internal struct LayerBatch
-    {
-        public bool enabled;
-        public int layerToRender;
-        public SortingLayerRange layerRange;
-        public LightStats lightStats;
-        public unsafe fixed bool renderTargetUsed[4];
-        public unsafe fixed int renderTargetIds[4];
-
-        public void Init(int index)
-        {
-            for (var i = 0; i < 4; i++)
-            {
-                unsafe
-                {
-                    renderTargetIds[i] = Shader.PropertyToID($"_LightTexture_{index}_{i}");
-                }
-            }
-        }
-    }
 
     internal static class Light2DManager
     {
         private static SortingLayer[] s_SortingLayers;
-        private static LayerBatch[] s_LayerBatches;
+
 
         public static List<Light2D> lights { get; } = new List<Light2D>();
 
@@ -138,34 +117,5 @@ namespace UnityEngine.Experimental.Rendering.Universal
 #endif
             return s_SortingLayers;
         }
-
-        public static LayerBatch[] GetCachedLayerBatches()
-        {
-            var count = GetCachedSortingLayer().Length;
-            var needInit = s_LayerBatches == null;
-            s_LayerBatches ??= new LayerBatch[count];
-
-#if UNITY_EDITOR
-            // we should fix. Make a non allocating version of this
-            if(!Application.isPlaying && s_LayerBatches.Length != count)
-            {
-                s_LayerBatches = new LayerBatch[count];
-                needInit = true;
-            }
-#endif
-
-            if (needInit)
-            {
-                for(var i = 0; i < s_LayerBatches.Length; i++)
-                    s_LayerBatches[i].Init(i);
-            }
-
-            // reset them
-            for (var i = 0; i < s_LayerBatches.Length; i++)
-                s_LayerBatches[i].enabled = false;
-
-            return s_LayerBatches;
-        }
-
     }
 }

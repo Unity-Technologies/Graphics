@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine.Rendering;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering.Universal;
@@ -67,41 +68,24 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        private bool CompareLightsInLayer(int layerIndex1, int layerIndex2, SortingLayer[] sortingLayers)
-        {
-            var layerId1 = sortingLayers[layerIndex1].id;
-            var layerId2 = sortingLayers[layerIndex2].id;
-            foreach (var light in m_Renderer2DData.lightCullResult.visibleLights)
-            {
-                if (light.IsLitLayer(layerId1) != light.IsLitLayer(layerId2))
-                    return false;
-            }
-            return true;
-        }
-
-        private int FindUpperBoundInBatch(int startLayerIndex, SortingLayer[] sortingLayers)
-        {
-            // start checking at the next layer
-            for (var i = startLayerIndex+1; i < sortingLayers.Length; i++)
-            {
-                if(!CompareLightsInLayer(startLayerIndex, i, sortingLayers))
-                    return i-1;
-            }
-            return sortingLayers.Length-1;
-        }
-
-        private void DrawOneLayerBatch(CommandBuffer cmd, ScriptableRenderContext context, RenderingData renderingData, FilteringSettings filterSettings, DrawingSettings combinedDrawSettings, LayerBatch[] layerBatches, int count)
+        private void DrawRenderers(
+            LayerBatch[] layerBatches,
+            int startIndex,
+            int batchSize,
+            CommandBuffer cmd,
+            ScriptableRenderContext context,
+            ref RenderingData renderingData,
+            FilteringSettings filterSettings,
+            DrawingSettings combinedDrawSettings)
         {
             using(new ProfilingScope(cmd, m_ProfilingDrawRenderers))
             {
                 // and the main render target
                 CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment, ClearFlag.None, Color.white);
 
-                for (var i = 0; i < count; i++)
+                for (var i = 0; i < batchSize; i++)
                 {
-                    var layerBatch = layerBatches[i];
-                    if (!layerBatch.enabled)
-                        continue;
+                    var layerBatch = layerBatches[startIndex + i];
 
                     using(new ProfilingScope(cmd, m_ProfilingDrawLayerBatch))
                     {
@@ -133,44 +117,27 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        private int DrawLayerBatches(int i, CommandBuffer cmd, ScriptableRenderContext context, RenderingData renderingData, SortingLayer[] cachedSortingLayers, FilteringSettings filterSettings, DrawingSettings combinedDrawSettings, DrawingSettings normalsDrawSettings)
+        private void DrawLightTextures(
+            LayerBatch[] layerBatches,
+            int startIndex,
+            int batchSize,
+            CommandBuffer cmd,
+            ScriptableRenderContext context,
+            ref RenderingData renderingData,
+            FilteringSettings filterSettings,
+            DrawingSettings normalsDrawSettings)
         {
-            var batchSize = 0;
-            var layerBatches = Light2DManager.GetCachedLayerBatches();
             var blendStylesCount = m_Renderer2DData.lightBlendStyles.Length;
 
             using (new ProfilingScope(cmd, m_ProfilingDrawLights))
             {
-                for (; i < cachedSortingLayers.Length;)
+                for (var i = 0; i < batchSize; i++)
                 {
-                    var layerToRender = cachedSortingLayers[i].id;
-                    var lightStats = m_Renderer2DData.lightCullResult.GetLightStatsByLayer(layerToRender);
-                    if (lightStats.totalLights <= 0)
-                        continue;
+                    ref var layerBatch = ref layerBatches[startIndex + i];
 
-                    ref var layerBatch = ref layerBatches[batchSize];
-                    batchSize++;
-
-                    // find the highest layer that share the same set of lights as this layer
-                    var upperLayerInBatch = FindUpperBoundInBatch(i, cachedSortingLayers);
-                    // Some renderers override their sorting layer value with short.MinValue or short.MaxValue.
-                    // When drawing the first sorting layer, we should include the range from short.MinValue to layerValue.
-                    // Similarly, when drawing the last sorting layer, include the range from layerValue to short.MaxValue.
-                    var startLayerValue = (short) cachedSortingLayers[i].value;
-                    var lowerBound = (i == 0) ? short.MinValue : startLayerValue;
-                    var endLayerValue = (short) cachedSortingLayers[upperLayerInBatch].value;
-                    var upperBound = (upperLayerInBatch == cachedSortingLayers.Length - 1) ? short.MaxValue : endLayerValue;
-                    // renderer within this range share the same set of lights so they should be rendered together
-                    var sortingLayerRange = new SortingLayerRange(lowerBound, upperBound);
-
-                    layerBatch.enabled = true;
-                    layerBatch.layerToRender = layerToRender;
-                    layerBatch.layerRange = sortingLayerRange;
-                    layerBatch.lightStats = lightStats;
-
-                    if (lightStats.totalNormalMapUsage > 0)
+                    if (layerBatch.lightStats.totalNormalMapUsage > 0)
                     {
-                        filterSettings.sortingLayerRange = sortingLayerRange;
+                        filterSettings.sortingLayerRange = layerBatch.layerRange;
                         this.RenderNormals(context, renderingData, normalsDrawSettings, filterSettings, depthAttachment, cmd);
                     }
 
@@ -182,7 +149,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             unsafe
                             {
                                 var blendStyleMask = (uint) (1 << blendStyleIndex);
-                                var blendStyleUsed = (lightStats.blendStylesUsed & blendStyleMask) > 0;
+                                var blendStyleUsed = (layerBatch.lightStats.blendStylesUsed & blendStyleMask) > 0;
                                 layerBatch.renderTargetUsed[blendStyleIndex] = blendStyleUsed;
 
                                 if (!blendStyleUsed)
@@ -192,20 +159,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             }
                         }
 
-                        this.RenderLights(renderingData, cmd, layerToRender, layerBatch);
-                        i = upperLayerInBatch + 1;
+                        this.RenderLights(renderingData, cmd, layerBatch.layerToRender, layerBatch);
                     }
-
-                    if (batchSize >= 4)
-                        break;
                 }
             }
-
-            DrawOneLayerBatch(cmd, context, renderingData, filterSettings, combinedDrawSettings, layerBatches, batchSize);
-
-            return i;
         }
-
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -229,7 +187,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (isSceneLit)
             {
                 var cachedSortingLayers = Light2DManager.GetCachedSortingLayer();
-                var layerBatches = Light2DManager.GetCachedLayerBatches();
+                var layerBatches = LayerUtility.GetCachedLayerBatches();
                 var combinedDrawSettings = CreateDrawingSettings(k_ShaderTags, ref renderingData, SortingCriteria.CommonTransparent);
                 var normalsDrawSettings = CreateDrawingSettings(k_NormalsRenderingPassName, ref renderingData, SortingCriteria.CommonTransparent);
 
@@ -245,9 +203,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmd.SetGlobalColor(k_RendererColorID, Color.white);
                 this.SetShapeLightShaderGlobals(cmd);
 
-                for (var i = 0; i < cachedSortingLayers.Length;)
+                var batchCount = LayerUtility.CalculateBatches(cachedSortingLayers, layerBatches, m_Renderer2DData.lightCullResult);
+                var batchSize = m_Renderer2DData.batchSize;
+                for (var i = 0; i < batchCount; i += batchSize)
                 {
-                    i = DrawLayerBatches(i, cmd, context, renderingData, cachedSortingLayers, filterSettings, combinedDrawSettings, normalsDrawSettings);
+                    var effectiveBatchSize = math.min(batchSize, batchCount - i);
+                    DrawLightTextures(layerBatches, i, effectiveBatchSize, cmd, context, ref renderingData, filterSettings, normalsDrawSettings);
+                    DrawRenderers(layerBatches, i, effectiveBatchSize, cmd, context, ref renderingData, filterSettings, combinedDrawSettings);
                 }
 
                 this.ReleaseRenderTextures(cmd, layerBatches);
