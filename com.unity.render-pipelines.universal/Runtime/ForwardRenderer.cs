@@ -190,10 +190,14 @@ namespace UnityEngine.Rendering.Universal
                 m_ActiveCameraColorAttachment = RenderTargetHandle.CameraTarget;
                 m_ActiveCameraDepthAttachment = RenderTargetHandle.CameraTarget;
 
-                if (sceneOverride == SceneOverrides.Overdraw)
+                if (sceneOverrideEnabled)
                 {
                     m_ActiveCameraColorAttachment = m_CameraColorAttachment;
-                    m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
+
+                    if(sceneOverride == SceneOverrides.Overdraw)
+                    {
+                        m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
+                    }
 
                     CreateCameraRenderTarget(context, ref cameraTargetDescriptor);
                     ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), BuiltinRenderTextureType.CameraTarget);
