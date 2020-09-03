@@ -187,8 +187,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 #if defined(_MAIN_LIGHT_SHADOWS)
                     float4 shadowCoord = TransformWorldToShadowCoord(posWS.xyz);
                     unityLight.shadowAttenuation = MainLightRealtimeShadow(shadowCoord);
+                    unityLight.shadowAttenuation = ApplyShadowFade(unityLight.shadowAttenuation, posWS.xyz);
                 #elif defined(_DEFERRED_ADDITIONAL_LIGHT_SHADOWS)
                     unityLight.shadowAttenuation = AdditionalLightRealtimeShadow(_ShadowLightIndex, posWS.xyz);
+                    unityLight.shadowAttenuation = ApplyShadowFade(unityLight.shadowAttenuation, posWS.xyz);
                 #else
                     unityLight.shadowAttenuation = 1.0;
                 #endif
