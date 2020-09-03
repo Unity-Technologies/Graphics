@@ -52,6 +52,9 @@ namespace  UnityEngine.Rendering.HighDefinition
             m_DownSampleCS = asset.renderPipelineResources.shaders.VTFeedbackDownsample;
             m_DownsampleKernel = m_DownSampleCS.FindKernel("KMain");
             m_DownsampleKernelMSAA = m_DownSampleCS.FindKernel("KMainMSAA");
+
+            // This texture needs to be persistent because we do async gpu readback on it.
+            m_LowresResolver = RTHandles.Alloc(m_ResolverScale, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite: true, autoGenerateMips: false, name: "VTFeedback lowres");
         }
 
         public void CreateBuffers(RenderPipelineSettings settings)
@@ -63,8 +66,15 @@ namespace  UnityEngine.Rendering.HighDefinition
                 FeedbackBufferMsaa = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, bindTextureMS: true,
                     enableMSAA: settings.supportMSAA, useDynamicScale: true, name: "VTFeedbackForwardMSAA");
             }
+        }
 
-            m_LowresResolver = RTHandles.Alloc(m_ResolverScale, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite: true, autoGenerateMips: false, name: "VTFeedback lowres");
+        public void Cleanup()
+        {
+            m_Resolver.Dispose();
+            m_ResolverMsaa.Dispose();
+
+            RTHandles.Release(m_LowresResolver);
+            m_LowresResolver = null;
         }
 
         public void BeginRender(int width, int height)
@@ -98,8 +108,7 @@ namespace  UnityEngine.Rendering.HighDefinition
 
                 passData.parameters = PrepareResolveVTParameters(hdCamera);
                 passData.input = builder.ReadTexture(input);
-                passData.lowres = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(m_ResolverScale, true, true)
-                    { colorFormat = GetFeedbackBufferFormat(), enableRandomWrite = true, name = "VTFeedback lowres" }));
+                passData.lowres = builder.WriteTexture(renderGraph.ImportTexture(m_LowresResolver));
 
                 builder.SetRenderFunc(
                 (ResolveVTData data, RenderGraphContext ctx) =>
@@ -166,12 +175,8 @@ namespace  UnityEngine.Rendering.HighDefinition
         {
             RTHandles.Release(FeedbackBuffer);
             RTHandles.Release(FeedbackBufferMsaa);
-            RTHandles.Release(m_LowresResolver);
             FeedbackBuffer = null;
             FeedbackBufferMsaa = null;
-            m_LowresResolver = null;
-            m_Resolver.Dispose();
-            m_ResolverMsaa.Dispose();
         }
     }
 }

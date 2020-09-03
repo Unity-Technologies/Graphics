@@ -406,6 +406,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle    output;
             public int              mipIndex;
             public Material         material;
+            public bool             msaa;
         }
 
         void PushFullScreenLightingDebugTexture(RenderGraph renderGraph, TextureHandle input)
@@ -436,21 +437,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void PushFullScreenDebugTexture(RenderGraph renderGraph, TextureHandle input, FullScreenDebugMode debugMode, Material material)
-        {
-            if (debugMode == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
-            {
-                PushFullScreenDebugTexture(renderGraph, input, -1, material);
-            }
-        }
-
-
-        void PushFullScreenDebugTexture(RenderGraph renderGraph, TextureHandle input, int mipIndex = -1, Material material = null)
+        void PushFullScreenDebugTexture(RenderGraph renderGraph, TextureHandle input, int mipIndex = -1)
         {
             using (var builder = renderGraph.AddRenderPass<PushFullScreenDebugPassData>("Push Full Screen Debug", out var passData))
             {
                 passData.mipIndex = mipIndex;
-                passData.material = material;
                 passData.input = builder.ReadTexture(input);
                 passData.output = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                     { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, name = "DebugFullScreen" }), 0);
@@ -458,9 +449,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (PushFullScreenDebugPassData data, RenderGraphContext ctx) =>
                 {
-                    if (data.material != null)
-                        HDUtils.BlitCameraTexture(ctx.cmd, data.input, data.output, data.material, 0);
-                    else if (data.mipIndex != -1)
+                    if (data.mipIndex != -1)
                         HDUtils.BlitCameraTexture(ctx.cmd, data.input, data.output, data.mipIndex);
                     else
                         HDUtils.BlitCameraTexture(ctx.cmd, data.input, data.output);
@@ -478,6 +467,34 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.exposureDebugMode != ExposureDebugMode.None)
             {
                 PushFullScreenDebugTexture(renderGraph, input);
+            }
+        }
+
+        void PushFullScreenVTFeedbackDebugTexture(RenderGraph renderGraph, TextureHandle input, bool msaa)
+        {
+            if (FullScreenDebugMode.RequestedVirtualTextureTiles == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
+            {
+                using (var builder = renderGraph.AddRenderPass<PushFullScreenDebugPassData>("Push Full Screen Debug", out var passData))
+                {
+                    passData.material = m_VTDebugBlit;
+                    passData.msaa = msaa;
+                    passData.input = builder.ReadTexture(input);
+                    passData.output = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, name = "DebugFullScreen" }), 0);
+
+                    builder.SetRenderFunc(
+                    (PushFullScreenDebugPassData data, RenderGraphContext ctx) =>
+                    {
+                        CoreUtils.SetRenderTarget(ctx.cmd, data.output);
+                        data.material.SetTexture(data.msaa ? HDShaderIDs._BlitTextureMSAA : HDShaderIDs._BlitTexture, data.input);
+                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.material, data.msaa ? 1 : 0, MeshTopology.Triangles, 3, 1);
+                    });
+
+                    m_DebugFullScreenTexture = passData.output;
+
+                }
+
+                m_FullScreenDebugPushed = true;
             }
         }
 

@@ -248,7 +248,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_VIRTUALTEXTURES
             m_VtBufferManager.Resolve(m_RenderGraph, hdCamera, vtFeedbackBuffer);
-            PushFullScreenDebugTexture(m_RenderGraph, vtFeedbackBuffer, FullScreenDebugMode.RequestedVirtualTextureTiles, m_VTDebugBlit);
+            PushFullScreenVTFeedbackDebugTexture(m_RenderGraph, vtFeedbackBuffer, msaa);
 #endif
 
             // At this point, the color buffer has been filled by either debug views are regular rendering so we can push it here.
@@ -451,7 +451,7 @@ namespace UnityEngine.Rendering.HighDefinition
         class ForwardPassData
         {
             public RendererListHandle   rendererList;
-            public TextureHandle[]      renderTarget = new TextureHandle[3];
+            public TextureHandle[]      renderTarget = new TextureHandle[RenderGraph.kMaxMRTCount];
             public int                  renderTargetCount;
             public TextureHandle        depthBuffer;
             public ComputeBufferHandle  lightListBuffer;
@@ -563,11 +563,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     BindGlobalLightingBuffers(data.lightingBuffers, context.cmd);
 
                     RenderForwardRendererList(data.frameSettings, data.rendererList, mrt, data.depthBuffer, data.lightListBuffer, true, context.renderContext, context.cmd);
-
-                    // TODO RENDERGRAPH
-#if ENABLE_VIRTUALTEXTURES
-                    //context.cmd.ClearRandomWriteTargets();
-#endif
                 });
             }
         }

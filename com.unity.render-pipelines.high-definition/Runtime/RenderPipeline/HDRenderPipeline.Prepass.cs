@@ -548,11 +548,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     BindProbeVolumeGlobalData(data.frameSettings, data, context);
                     BindDBufferGlobalData(data.dBuffer, context);
                     DrawOpaqueRendererList(context, data.frameSettings, data.rendererList);
-
-                    // TODO RENDERGRAPH: Is that needed? We don't ever setup random write targets with VT.
-#if ENABLE_VIRTUALTEXTURES
-                    //context.cmd.ClearRandomWriteTargets();
-#endif
                 });
             }
         }
