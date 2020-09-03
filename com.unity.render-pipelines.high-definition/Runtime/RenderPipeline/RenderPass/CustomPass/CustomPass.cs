@@ -260,7 +260,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     ctx.cmd.SetGlobalFloat(HDShaderIDs._CustomPassInjectionPoint, (float)customPass.injectionPoint);
                     if (customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
-                        ctx.cmd.SetGlobalTexture(HDShaderIDs._AfterPostProcessColorBuffer, customPass.currentRenderTarget.cameraColorBuffer);
+                        ctx.cmd.SetGlobalTexture(HDShaderIDs._AfterPostProcessColorBuffer, customPass.currentRenderTarget.colorBufferRG);
 
                     if (!customPass.isSetup)
                     {
