@@ -40,10 +40,36 @@ namespace UnityEngine.Rendering.Universal
         SphericalHarmonicsL2 m_BlackAmbientProbe = new SphericalHarmonicsL2();
         Matrix4x4[] m_FacePixelCoordToViewDirMatrices = new Matrix4x4[6];
 
-        // TODO: Release SkyUpdateContext and associated SkyRenderingContext for any Camera that doesn't render anymore.
-        Dictionary<Camera, SkyUpdateContext> m_VisualSkiesCache = new Dictionary<Camera, SkyUpdateContext>();
+        Dictionary<Camera, SkyUpdateContext> m_Cameras = new Dictionary<Camera, SkyUpdateContext>();
+        List<Camera> m_CamerasToCleanup = new List<Camera>(); // Recycled to reduce GC pressure
+
         // TODO: Increase initial size to 2 when static sky is implemented.
         DynamicArray<CachedSkyContext> m_CachedSkyContexts = new DynamicArray<CachedSkyContext>(1);
+
+        // Look for any camera that hasn't been used in the last frame and remove them from the pool.
+        public void CleanUnusedCameras()
+        {
+            foreach (var camera in m_Cameras.Keys)
+            {
+                // Unfortunately, the scene view camera is always isActiveAndEnabled==false so we can't rely on this. For this reason we never release it (which should be fine in the editor)
+                if (camera != null && camera.cameraType == CameraType.SceneView)
+                    continue;
+
+                // We keep preview camera around as they are generally disabled/enabled every frame. They will be destroyed later when camera.camera is null
+                if (camera == null || (!camera.isActiveAndEnabled && camera.cameraType != CameraType.Preview))
+                    m_CamerasToCleanup.Add(camera);
+            }
+
+            foreach (var camera in m_CamerasToCleanup)
+            {
+                var skyUpdateContext = m_Cameras[camera];
+                ReleaseCachedContext(skyUpdateContext.cachedSkyRenderingContextId);
+                skyUpdateContext.Cleanup();
+                m_Cameras.Remove(camera);
+            }
+
+            m_CamerasToCleanup.Clear();
+        }
 
         public void UpdateCurrentSkySettings(ref CameraData cameraData)
         {
@@ -53,15 +79,16 @@ namespace UnityEngine.Rendering.Universal
 
             cameraData.skyAmbientMode = volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
 
-            if (!m_VisualSkiesCache.ContainsKey(cameraData.camera))
+            if (!m_Cameras.TryGetValue(cameraData.camera, out var visualSky))
             {
-                m_VisualSkiesCache[cameraData.camera] = new SkyUpdateContext();
+                visualSky = new SkyUpdateContext();
+                m_Cameras.Add(cameraData.camera, visualSky);
             }
-            cameraData.visualSky = m_VisualSkiesCache[cameraData.camera];
-            cameraData.visualSky.skySettings = GetSkySettings(volumeStack);
+            visualSky.skySettings = GetSkySettings(volumeStack);
+            cameraData.visualSky = visualSky;
 
             // TODO Lighting override
-            cameraData.lightingSky = cameraData.visualSky;
+            cameraData.lightingSky = visualSky;
         }
 
         SkySettings GetSkySettings(VolumeStack stack)
@@ -146,6 +173,10 @@ namespace UnityEngine.Rendering.Universal
         public void Cleanup()
         {
             CoreUtils.Destroy(m_StandardSkyboxMaterial);
+
+            foreach (var skyUpdateContext in m_Cameras.Values)
+                skyUpdateContext.Cleanup();
+            m_Cameras.Clear();
 
             for (int i = 0; i < m_CachedSkyContexts.size; ++i)
                 m_CachedSkyContexts[i].Cleanup();
@@ -267,12 +298,6 @@ namespace UnityEngine.Rendering.Universal
             context.refCount = 1;
             context.type = skyContext.skySettings.GetSkyRendererType();
 
-            if (context.renderingContext != null)
-            {
-                context.renderingContext.Cleanup();
-                context.renderingContext = null;
-            }
-
             if (context.renderingContext == null)
                 context.renderingContext = new SkyRenderingContext(k_Resolution, previousAmbientProbe, name);
             else
@@ -373,6 +398,8 @@ namespace UnityEngine.Rendering.Universal
         {
             int skyHash = skyContext.skySettings.GetHashCode();
 
+            // TODO: Use GetSunLightHashCode when any SkyRenderer starts to rely on the sun.
+
             return skyHash;
         }
 
@@ -383,6 +410,8 @@ namespace UnityEngine.Rendering.Universal
 
             if (skyContext.IsValid())
             {
+                skyContext.currentUpdateTime += Time.deltaTime; // TODO: Does URP have its own time to use?
+
                 int skyHash = ComputeSkyHash(skyContext);
                 bool forceUpdate = false;
 
