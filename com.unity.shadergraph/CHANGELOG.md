@@ -21,6 +21,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue where very old ShaderGraphs would fail to load because of uninitialized data [1269616](https://issuetracker.unity3d.com/issues/shadergraph-matrix-split-and-matrix-combine-shadergraphs-in-shadergraph-automated-tests-dont-open-throw-error)
 - Fixed an issue where ShaderGraph previews didn't display correctly when setting a texture to "None" [1264932]
 - Fixed an issue with the SampleVirtualTexture node in ShaderGraph, where toggling Automatic Streaming would cause the node to incorrectly display four output slots [1271618]
+- Fixed an issue in ShaderGraph with integer-mode Vector1 properties throwing errors when the value is changed [1264930]
 
 ## [10.0.0] - 2019-06-10
 ### Added
