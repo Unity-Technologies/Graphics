@@ -214,6 +214,7 @@ Shader "Universal Render Pipeline/Lit"
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #pragma vertex LitGBufferPassVertex
             #pragma fragment LitGBufferPassFragment
