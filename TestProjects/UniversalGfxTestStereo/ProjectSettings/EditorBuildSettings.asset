@@ -35,18 +35,21 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/012_xr_PostProc_FilmGrain.unity
     guid: 1d73c18c97cd7874dbec7c124a06557f
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/013_xr_PostProc_Tonemap.unity
     guid: e9548878d17aa7b4995bd809fe1fe6a3
   - enabled: 1
     path: Assets/Scenes/014_xr_PostProc_Bloom.unity
     guid: 976626cc568ea4e40b8255c49e3d51c3
   - enabled: 1
+    path: Assets/Scenes/014_xr_NoPostProc_NoBloom.unity
+    guid: 0bfa2b6069a0d5b4fbc34f87c3fa3faa
+  - enabled: 1
+    path: Assets/Scenes/014_xr_PostProc_NoBloom.unity
+    guid: 980db36d79f9c44469612e2142f998a1
+  - enabled: 1
     path: Assets/Scenes/015_xr_Camera_FXAA.unity
     guid: 87d52919694318342adeb912caaf63a1
-  - enabled: 1
-    path: Assets/Scenes/016_xr_Camera_SMAA.unity
-    guid: 0c6ee3de6c7b0064c818dd5ad47b8925
   - enabled: 1
     path: Assets/Scenes/017_xr_Particles_Additive.unity
     guid: 65d99b408a8134214906126ccdea532f
