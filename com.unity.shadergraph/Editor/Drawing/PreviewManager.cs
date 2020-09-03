@@ -799,12 +799,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     ShaderUtil.UpdateShaderAsset(shaderData.shader, shaderStr, false);
                 }
 
+                // Due to case 1259744, we have to re-create the material to update the preview material keywords
                 CoreUtils.Destroy(shaderData.mat);
-
-                if (shaderData.mat == null)
-                {
-                    shaderData.mat = new Material(shaderData.shader) { hideFlags = HideFlags.HideAndDontSave };
-                }
+                shaderData.mat = new Material(shaderData.shader) { hideFlags = HideFlags.HideAndDontSave };
 
                 int materialPassCount = shaderData.mat.passCount;
                 if (materialPassCount <= 0)
