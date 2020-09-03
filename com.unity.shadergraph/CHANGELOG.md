@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+### Added
+- Added parallax mapping node and parallax occlusion mapping node.
+- Added the possibility to have multiple POM node in a single graph.
+
+### Changed
+- Added method chaining support to shadergraph collection API.
+
+### Fixed
+- Fixed a bug where ShaderGraph subgraph nodes would not update their slot names or order
+- Fixed an issue where very old ShaderGraphs would fail to load because of uninitialized data [1269616](https://issuetracker.unity3d.com/issues/shadergraph-matrix-split-and-matrix-combine-shadergraphs-in-shadergraph-automated-tests-dont-open-throw-error)
+- Fixed an issue where ShaderGraph previews didn't display correctly when setting a texture to "None" [1264932]
+
 ## [10.0.0] - 2019-06-10
 ### Added
 - Added the Internal Inspector which allows the user to view data contained in selected nodes and properties in a new floating graph sub-window. Also added support for custom property drawers to let you visualize any data type you like and expose it to the inspector.  
@@ -47,6 +59,8 @@ The version number for this package has increased due to a version update of a r
 - Added support for `Linear Blend Skinning` Node to Universal Render Pipeline.
 - Moved all code to be under Unity specific namespaces.
 - Changed ShaderGraphImporter and ShaderSubgraphImporter so that graphs are imported before Models.
+- Remove VFXTarget if VisualEffect Graph package isn't included.
+- VFXTarget doesn't overwrite the shader export anymore, VFXTarget can be active with another target.
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
@@ -152,6 +166,8 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue where multiple SampleVirtualTextureNodes created functions with names that may collide in ShaderGraph
 - Made sub graph importer deterministic to avoid cascading shader recompiles when no change was present.
 - Adjusted style sheet for Blackboard to prevent ui conflicts.
+- Fixed a bug where the SampleVirtualTexture node would delete slots when changing its LOD mode
+- Use preview of the other target if VFXTarget is active.
 
 ## [7.1.1] - 2019-09-05
 ### Added

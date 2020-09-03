@@ -17,7 +17,7 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
         float4x4 _PrevViewProjM;
         float _Intensity;
         float _Clamp;
-        float4 _SourceTex_TexelSize;
+        float4 _SourceSize;
 
         struct VaryingsCMB
         {
@@ -88,7 +88,7 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
 
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv.xy);
             float2 velocity = GetCameraVelocity(float4(uv, input.uv.zw)) * _Intensity;
-            float randomVal = InterleavedGradientNoise(uv * _SourceTex_TexelSize.zw, 0);
+            float randomVal = InterleavedGradientNoise(uv * _SourceSize.xy, 0);
             float invSampleCount = rcp(iterations * 2.0);
 
             half3 color = 0.0;

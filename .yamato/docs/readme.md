@@ -158,7 +158,7 @@ platforms:
     agents_project_OpenGLCore: # agents used by all OSX OpenGLCore project jobs
       default:
         type: Unity::VM::osx
-        image: buildfarm/mac:stable
+        image: package-ci/mac:stable
         flavor: m1.mac
     agent_package: 
       type: Unity::VM::osx
