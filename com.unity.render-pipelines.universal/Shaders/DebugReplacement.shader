@@ -1,12 +1,13 @@
-Shader "Hidden/Lightweight Render Pipeline/Debug/Replacement"
+Shader "Hidden/Universal Render Pipeline/Debug/Replacement"
 {
     SubShader
     {
-        Tags{"RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline" "IgnoreProjector" = "True"}
+        Tags{"RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True"}
 
+        // Overdraw
         Pass
         {
-            Tags {"LightMode" = "LightweightForward"}
+            Tags {"LightMode" = "UniversalForward"}
 
             Blend One One
             ZWrite On
@@ -53,7 +54,7 @@ Shader "Hidden/Lightweight Render Pipeline/Debug/Replacement"
         // Wireframe
         Pass
         {
-            Tags {"LightMode" = "LightweightForward"}
+            Tags {"LightMode" = "UniversalForward"}
 
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard SRP library
@@ -97,7 +98,7 @@ Shader "Hidden/Lightweight Render Pipeline/Debug/Replacement"
         //Attribute debugger
         Pass
         {
-            Tags {"LightMode" = "LightweightForward"}
+            Tags {"LightMode" = "UniversalForward"}
 
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard SRP library

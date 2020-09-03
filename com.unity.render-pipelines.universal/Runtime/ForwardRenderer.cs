@@ -195,10 +195,7 @@ namespace UnityEngine.Rendering.Universal
                     m_ActiveCameraColorAttachment = m_CameraColorAttachment;
                     m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
 
-                    bool createColor = m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget;
-                    bool createDepth = m_ActiveCameraDepthAttachment != RenderTargetHandle.CameraTarget;
-
-                    CreateCameraRenderTarget(context, ref cameraTargetDescriptor, createColor, createDepth);
+                    CreateCameraRenderTarget(context, ref cameraTargetDescriptor);
                     ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), BuiltinRenderTextureType.CameraTarget);
                 }
 
@@ -310,7 +307,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // Doesn't create texture for Overlay cameras as they are already overlaying on top of created textures.
                 if (intermediateRenderTexture)
-                    CreateCameraRenderTarget(context, ref cameraTargetDescriptor, createColorTexture, createDepthTexture);
+                    CreateCameraRenderTarget(context, ref cameraTargetDescriptor);
 
                 // if rendering to intermediate render texture we don't have to create msaa backbuffer
                 int backbufferMsaaSamples = (intermediateRenderTexture) ? 1 : cameraTargetDescriptor.msaaSamples;
@@ -595,13 +592,13 @@ namespace UnityEngine.Rendering.Universal
             return inputSummary;
         }
 
-        void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor, bool createColor, bool createDepth)
+        void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 int msaaSamples = descriptor.msaaSamples;
-                if (createColor)
+                if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
                 {
                     bool useDepthRenderBuffer = m_ActiveCameraDepthAttachment == RenderTargetHandle.CameraTarget;
                     var colorDescriptor = descriptor;
@@ -609,7 +606,7 @@ namespace UnityEngine.Rendering.Universal
                     cmd.GetTemporaryRT(m_ActiveCameraColorAttachment.id, colorDescriptor, FilterMode.Bilinear);
                 }
 
-                if (createDepth)
+                if (m_ActiveCameraDepthAttachment != RenderTargetHandle.CameraTarget)
                 {
                     var depthDescriptor = descriptor;
                     depthDescriptor.colorFormat = RenderTextureFormat.Depth;

@@ -251,6 +251,7 @@ namespace UnityEngine.Rendering.Universal
 
         bool m_FirstTimeCameraColorTargetIsBound = true; // flag used to track when m_CameraColorTarget should be cleared (if necessary), as well as other special actions only performed the first time m_CameraColorTarget is bound as a render target
         bool m_FirstTimeCameraDepthTargetIsBound = true; // flag used to track when m_CameraDepthTarget should be cleared (if necessary), the first time m_CameraDepthTarget is bound as a render target
+        private bool m_FirstCameraRenderPassExecuted = false;
 
         const string k_SetCameraRenderStateTag = "Set Camera Data";
         const string k_SetRenderTarget = "Set RenderTarget";
@@ -571,6 +572,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_FirstTimeCameraColorTargetIsBound = cameraType == CameraRenderType.Base;
             m_FirstTimeCameraDepthTargetIsBound = true;
+            m_FirstCameraRenderPassExecuted = false;
 
             m_ActiveRenderPassQueue.Clear();
 
@@ -778,11 +780,16 @@ namespace UnityEngine.Rendering.Universal
                 else
                     finalClearFlag |= (renderPass.clearFlag & ClearFlag.Depth);
 
-                bool overdrawDebugMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides == SceneOverrides.Overdraw;
-                if (overdrawDebugMode)
+                if(!m_FirstCameraRenderPassExecuted)
                 {
-                    finalClearColor = Color.black;
-                    finalClearFlag = ClearFlag.All;
+                    bool overdrawDebugMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides == SceneOverrides.Overdraw;
+                    if (overdrawDebugMode)
+                    {
+                        finalClearColor = Color.black;
+                        finalClearFlag = ClearFlag.All;
+                    }
+
+                    m_FirstCameraRenderPassExecuted = true;
                 }
 
                 // Only setup render target if current render pass attachments are different from the active ones

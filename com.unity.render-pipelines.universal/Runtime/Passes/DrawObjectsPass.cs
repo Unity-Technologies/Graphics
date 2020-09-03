@@ -79,6 +79,15 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 Camera camera = renderingData.cameraData.camera;
                 var sortFlags = (m_IsOpaque) ? renderingData.cameraData.defaultOpaqueSortFlags : SortingCriteria.CommonTransparent;
+                var filterSettings = m_FilteringSettings;
+
+                #if UNITY_EDITOR
+                // When rendering the preview camera, we want the layer mask to be forced to Everything
+                if (renderingData.cameraData.isPreviewCamera)
+                {
+                    filterSettings.layerMask = -1;
+                }
+                #endif
 
                 var sceneOverrideMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
                 var validationMode = DebugDisplaySettings.Instance.Validation.validationMode;
@@ -101,21 +110,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.Clear();
                     bool overrideMaterial = isSceneOverrideActive || attributeDebugIndex != VertexAttributeDebugMode.None;
 
-                    RenderingUtils.RenderObjectWithDebug(context, ref renderingData,
-                        m_FilteringSettings, sortFlags, overrideMaterial);
+                    RenderingUtils.RenderObjectWithDebug(context, ref renderingData, filterSettings, sortFlags, overrideMaterial);
                 }
                 else
                 {
 	                var drawSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
-    	            var filterSettings = m_FilteringSettings;
-
-    	            #if UNITY_EDITOR
-        	        // When rendering the preview camera, we want the layer mask to be forced to Everything
-            	    if (renderingData.cameraData.isPreviewCamera)
-                	{
-	                    filterSettings.layerMask = -1;
-    	            }
-        	        #endif
 
             	    context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings, ref m_RenderStateBlock);
 

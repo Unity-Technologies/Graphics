@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [MovedFrom("UnityEngine.Rendering.LWRP")] public static class RenderingUtils
     {
-        static List<ShaderTagId> m_LegacyShaderPassNames = new List<ShaderTagId>()
+        static List<ShaderTagId> m_LegacyShaderPassNames = new List<ShaderTagId>
         {
             new ShaderTagId("Always"),
             new ShaderTagId("ForwardBase"),
@@ -99,10 +99,10 @@ namespace UnityEngine.Rendering.Universal
             new ShaderTagId("VertexLM"),
         };
 
-        static List<ShaderTagId> m_DebugShaderPassNames = new List<ShaderTagId>()
+        static List<ShaderTagId> m_DebugShaderPassNames = new List<ShaderTagId>
         {
             new ShaderTagId("DebugMaterial"),
-            new ShaderTagId("LightweightForward"),
+            new ShaderTagId("UniversalForward")
         };
 
         static Material m_ReplacementMaterial;
@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering.Universal
             get
             {
                 if (m_ReplacementMaterial == null)
-                    m_ReplacementMaterial = new Material(Shader.Find("Hidden/Lightweight Render Pipeline/Debug/Replacement"));
+                    m_ReplacementMaterial = new Material(Shader.Find("Hidden/Universal Render Pipeline/Debug/Replacement"));
 
                 return m_ReplacementMaterial;
             }
@@ -346,28 +346,32 @@ namespace UnityEngine.Rendering.Universal
             FilteringSettings filterSettings, SortingCriteria sortingCriteria, bool overrideMaterial)
         {
             SortingSettings sortingSettings = new SortingSettings(renderingData.cameraData.camera) { criteria = sortingCriteria };
-
-            DrawingSettings debugSettings = new DrawingSettings(m_DebugShaderPassNames[
-                (overrideMaterial) ? 1 : 0], sortingSettings)
+            ShaderTagId passId = m_DebugShaderPassNames[overrideMaterial ? 1 : 0];
+            DrawingSettings debugSettings = new DrawingSettings(passId, sortingSettings)
             {
                 perObjectData = renderingData.perObjectData,
                 enableInstancing = true,
                 mainLightIndex = renderingData.lightData.mainLightIndex,
-                enableDynamicBatching = renderingData.supportsDynamicBatching,
+                enableDynamicBatching = renderingData.supportsDynamicBatching
             };
 
             if (overrideMaterial)
             {
-                debugSettings.overrideMaterial = replacementMaterial;
                 var sceneOverrideMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
+                bool wireframe = false;
+
+                debugSettings.overrideMaterial = replacementMaterial;
+
                 switch (sceneOverrideMode)
                 {
                     case SceneOverrides.Overdraw:
                         debugSettings.overrideMaterialPassIndex = 0;
                         break;
+
                     case SceneOverrides.Wireframe:
                     case SceneOverrides.SolidWireframe:
                         debugSettings.overrideMaterialPassIndex = 1;
+                        wireframe = true;
                         break;
                 }
 
@@ -376,10 +380,10 @@ namespace UnityEngine.Rendering.Universal
                     debugSettings.overrideMaterialPassIndex = 2;
                 }
 
-                    RenderStateBlock rsBlock = new RenderStateBlock();
-                bool wireframe = sceneOverrideMode == SceneOverrides.Wireframe || sceneOverrideMode == SceneOverrides.SolidWireframe;
                 if (wireframe)
                 {
+                    RenderStateBlock rsBlock = new RenderStateBlock();
+
                     if (sceneOverrideMode == SceneOverrides.SolidWireframe)
                     {
                         replacementMaterial.SetColor("_DebugColor", Color.white);
@@ -392,13 +396,14 @@ namespace UnityEngine.Rendering.Universal
                     context.Submit();
                     GL.wireframe = true;
                     replacementMaterial.SetColor("_DebugColor", Color.black);
-                }
-                context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings, ref rsBlock);
 
-                if (wireframe)
-                {
+                    context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings, ref rsBlock);
                     context.Submit();
                     GL.wireframe = false;
+                }
+                else
+                {
+                    context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
                 }
             }
             else
