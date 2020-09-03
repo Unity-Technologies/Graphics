@@ -359,7 +359,7 @@ namespace UnityEditor.Rendering.Universal
                 if (renderer is ForwardRenderer)
                 {
                     ForwardRenderer forwardRenderer = (ForwardRenderer)renderer;
-                    if (forwardRenderer.renderingMode == RenderingMode.Deferred || forwardRenderer.mutableRenderingMode)
+                    if (forwardRenderer.renderingMode == RenderingMode.Deferred)
                     {
                         hasDeferredRenderer |= true;
                         withAccurateGbufferNormals |= forwardRenderer.accurateGbufferNormals;
