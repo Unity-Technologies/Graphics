@@ -307,7 +307,7 @@ MonoBehaviour:
     AverageCorrectnessThreshold: 0.001
     UseHDR: 0
     UseBackBuffer: 0
-    ImageResolution: 0
+    ImageResolution: 4
   WaitFrames: 5
 --- !u!81 &971756571
 AudioListener:
@@ -347,7 +347,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
-  m_RenderPostProcessing: 1
+  m_RenderPostProcessing: 0
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
   m_StopNaN: 1
