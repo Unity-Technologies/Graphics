@@ -16,7 +16,7 @@ The HD Scene Color Node does the same thing as the Scene Color Node, but allows 
 | **Lod** | Input | float | None | Sets the mip level that the sampler uses to sample the color buffer. |
 | **Output** | Output      |    Vector 3 | None | Output value |
 
-## Remarks
+## Notes
 ### Exposure
 
 You can use the Exposure property to specify if you want to output the Camera color with exposure applied or not. By default, this property is disabled to avoid double exposure.
