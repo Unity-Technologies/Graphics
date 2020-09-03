@@ -136,6 +136,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added missing SampleVirtualTextureNode address mode control in ShaderGraph
 - Fixed a badly named control on SampleVirtualTextureNode in ShaderGraph
 - Fixed an issue where multiple SampleVirtualTextureNodes created functions with names that may collide in ShaderGraph
+- Fixed a bug where the SampleVirtualTexture node would delete slots when changing its LOD mode [1268483]
 
 ## [7.1.1] - 2019-09-05
 ### Added
