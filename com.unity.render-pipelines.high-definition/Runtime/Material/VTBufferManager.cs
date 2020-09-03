@@ -77,10 +77,16 @@ namespace  UnityEngine.Rendering.HighDefinition
             m_LowresResolver = null;
         }
 
-        public void BeginRender(int width, int height)
+        public void BeginRender(HDCamera hdCamera)
         {
+            int width = hdCamera.actualWidth;
+            int height = hdCamera.actualHeight;
+            bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
             GetResolveDimensions(ref width, ref height);
-            m_Resolver.UpdateSize(width, height);
+            if (msaa)
+                m_ResolverMsaa.UpdateSize(width, height);
+            else
+                m_Resolver.UpdateSize(width, height);
         }
 
         public void Resolve(CommandBuffer cmd, RTHandle rt, HDCamera hdCamera)

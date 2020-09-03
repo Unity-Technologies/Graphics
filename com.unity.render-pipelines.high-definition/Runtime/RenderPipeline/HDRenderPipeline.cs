@@ -2278,7 +2278,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
 #if ENABLE_VIRTUALTEXTURES
-            m_VtBufferManager.BeginRender(hdCamera.actualWidth, hdCamera.actualHeight);
+            m_VtBufferManager.BeginRender(hdCamera);
 #endif
 
             using (ListPool<RTHandle>.Get(out var aovBuffers))
