@@ -405,8 +405,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle    input;
             public TextureHandle    output;
             public int              mipIndex;
-            public Material         material;
-            public bool             msaa;
         }
 
         void PushFullScreenLightingDebugTexture(RenderGraph renderGraph, TextureHandle input)
@@ -471,11 +469,19 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if ENABLE_VIRTUALTEXTURES
+        class PushFullScreenVTDebugPassData
+        {
+            public TextureHandle    input;
+            public TextureHandle    output;
+            public Material         material;
+            public bool             msaa;
+        }
+
         void PushFullScreenVTFeedbackDebugTexture(RenderGraph renderGraph, TextureHandle input, bool msaa)
         {
             if (FullScreenDebugMode.RequestedVirtualTextureTiles == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
             {
-                using (var builder = renderGraph.AddRenderPass<PushFullScreenDebugPassData>("Push Full Screen Debug", out var passData))
+                using (var builder = renderGraph.AddRenderPass<PushFullScreenVTDebugPassData>("Push Full Screen Debug", out var passData))
                 {
                     passData.material = m_VTDebugBlit;
                     passData.msaa = msaa;
@@ -484,7 +490,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, name = "DebugFullScreen" }), 0);
 
                     builder.SetRenderFunc(
-                    (PushFullScreenDebugPassData data, RenderGraphContext ctx) =>
+                    (PushFullScreenVTDebugPassData data, RenderGraphContext ctx) =>
                     {
                         CoreUtils.SetRenderTarget(ctx.cmd, data.output);
                         data.material.SetTexture(data.msaa ? HDShaderIDs._BlitTextureMSAA : HDShaderIDs._BlitTexture, data.input);
