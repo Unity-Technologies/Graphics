@@ -14,7 +14,7 @@ The Diffusion Profile Node allows you to sample a [Diffusion Profile](https://do
 |--- | --- | --- | --- |
 | **Out** | Output | float | Outputs a unique float that the Shader uses to identify the Diffusion Profile. |
 
-## Remarks
+## Notes
 
 The output of this Node is a float value that represents a Diffusion Profile. The Shader can use this value to find settings for the Diffusion Profile Asset that this value represents.
 
