@@ -477,7 +477,7 @@ namespace UnityEngine.Rendering.Universal
                         debugBuffer = m_DepthTexture.Identifier();
                         break;
                     case FullScreenDebugMode.MainLightShadowsOnly:
-                        debugBuffer = new RenderTargetIdentifier("_ScreenSpaceShadowmapTexture");
+                        debugBuffer = new RenderTargetIdentifier(m_MainLightShadowCasterPass.m_MainLightShadowmapTexture);
                         break;
                     case FullScreenDebugMode.AdditionalLightsShadowMap:
                         debugBuffer = m_AdditionalLightsShadowCasterPass.m_AdditionalLightsShadowmapTexture;
