@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - Fix hierarchicalbox gizmo outside facing check in symetry or homothety mode no longer move the center
 
-## [7.5.1] - 2020-06-08
+## [7.5.1] - 2020-09-02
 
 ### Fixed
 - Fix hierarchicalbox gizmo outside facing check in symetry or homothety mode no longer move the center

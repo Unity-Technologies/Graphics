@@ -1,6 +1,6 @@
 abv: # specify the editor versions for which to create the expression trigger for all_project_ci job
   trigger_editors:
-    - fast-2019.3
+    - fast-2019.4
   projects:
     - name: Universal
     - name: ShaderGraph
@@ -9,7 +9,7 @@ abv: # specify the editor versions for which to create the expression trigger fo
     - name: VFX_URP
 nightly:
   allowed_editors: # specify the editor versions for which to create nightly jobs
-    - 2019.3
+    - 2019.4
 smoke_test: # specifications for smoke tests
   folder: SRP_SmokeTest
   agent: sdet_win_large # used for editmode
