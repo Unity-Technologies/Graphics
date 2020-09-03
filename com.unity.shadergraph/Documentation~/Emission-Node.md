@@ -16,7 +16,7 @@ The Emission Node allows you to apply emission in your Shader Graph.
 | **intensity** | Input     | Float          | Sets the intensity of the emission color.                    |
 | **output**    | Output    | HDR Color(RGB) | Outputs the high dynamic range (HDR) color that this Node produces. |
 
-## Remarks
+## Notes
 
 ### Emission Unit
 
