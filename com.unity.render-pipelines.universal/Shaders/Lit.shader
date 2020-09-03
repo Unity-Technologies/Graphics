@@ -41,6 +41,10 @@ Shader "Universal Render Pipeline/Lit"
         _DetailNormalMapScale("Scale", Range(0.0, 2.0)) = 1.0
         [Normal] _DetailNormalMap("Normal Map", 2D) = "bump" {}
 
+        // SRP batching compatibility for Clear Coat (Not used in Lit)
+        [HideInInspector] _ClearCoatMask("_ClearCoatMask", Float) = 0.0
+        [HideInInspector] _ClearCoatSmoothness("_ClearCoatSmoothness", Float) = 0.0
+
         // Blending state
         [HideInInspector] _Surface("__surface", Float) = 0.0
         [HideInInspector] _Blend("__blend", Float) = 0.0
