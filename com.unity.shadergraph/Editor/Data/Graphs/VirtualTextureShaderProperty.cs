@@ -19,8 +19,8 @@ namespace UnityEditor.ShaderGraph
 
             // add at least one layer
             value.layers = new List<SerializableVirtualTextureLayer>();
-            value.layers.Add(new SerializableVirtualTextureLayer("Layer0", "Layer0", new SerializableTexture()));
-            value.layers.Add(new SerializableVirtualTextureLayer("Layer1", "Layer1", new SerializableTexture()));
+            value.layers.Add(new SerializableVirtualTextureLayer("Layer0", new SerializableTexture()));
+            value.layers.Add(new SerializableVirtualTextureLayer("Layer1", new SerializableTexture()));
         }
 
         public override PropertyType propertyType => PropertyType.VirtualTexture;
@@ -178,11 +178,7 @@ namespace UnityEditor.ShaderGraph
             for (int layer = 0; layer < value.layers.Count; layer++)
             {
                 var guid = Guid.NewGuid();
-                vt.value.layers.Add(
-                    new SerializableVirtualTextureLayer(
-                        value.layers[layer].layerName,
-                        $"Layer_{GuidEncoder.Encode(guid)}",
-                        value.layers[layer].layerTexture));
+                vt.value.layers.Add(new SerializableVirtualTextureLayer(value.layers[layer]));
             }
 
             return vt;

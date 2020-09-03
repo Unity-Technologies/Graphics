@@ -24,6 +24,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
     class ShaderInputPropertyDrawer : IPropertyDrawer
     {
         internal delegate void ChangeExposedFieldCallback(bool newValue);
+        internal delegate  void ChangeDisplayNameCallback(string newValue);
         internal delegate void ChangeReferenceNameCallback(string newValue);
         internal delegate void ChangeValueCallback(object newValue);
         internal delegate void PreChangeValueCallback(string actionName);
@@ -42,6 +43,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         ObjectField m_VTLayer_Texture;
         EnumField m_VTLayer_TextureType;
 
+        // Display Name
+        TextField m_DisplayNameField;
 
         // Reference Name
         TextField m_ReferenceNameField;
@@ -60,6 +63,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         GraphData graphData;
         bool isSubGraph { get ; set;  }
         ChangeExposedFieldCallback _exposedFieldChangedCallback;
+        ChangeDisplayNameCallback _displayNameChangedCallback;
         ChangeReferenceNameCallback _referenceNameChangedCallback;
         Action _precisionChangedCallback;
         Action _keywordChangedCallback;
@@ -70,6 +74,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             bool isSubGraph,
             GraphData graphData,
             ChangeExposedFieldCallback exposedFieldCallback,
+            ChangeDisplayNameCallback displayNameCallback,
             ChangeReferenceNameCallback referenceNameCallback,
             Action precisionChangedCallback,
             Action keywordChangedCallback,
@@ -80,6 +85,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             this.isSubGraph = isSubGraph;
             this.graphData = graphData;
             this._exposedFieldChangedCallback = exposedFieldCallback;
+            this._displayNameChangedCallback = displayNameCallback;
             this._referenceNameChangedCallback = referenceNameCallback;
             this._precisionChangedCallback = precisionChangedCallback;
             this._changeValueCallback = changeValueCallback;
@@ -99,6 +105,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             shaderInput = actualObject as ShaderInput;
             BuildPropertyNameLabel(propertySheet);
             BuildExposedField(propertySheet);
+            BuildDisplayNameField(propertySheet);
             BuildReferenceNameField(propertySheet);
             BuildPropertyFields(propertySheet);
             BuildKeywordFields(propertySheet, shaderInput);
@@ -130,6 +137,36 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     out var propertyToggle));
                 propertyToggle.SetEnabled(shaderInput.isExposable);
             }
+        }
+
+        void BuildDisplayNameField(PropertySheet propertySheet)
+        {
+            var textPropertyDrawer = new TextPropertyDrawer();
+            propertySheet.Add(textPropertyDrawer.CreateGUI(
+                null,
+                (string)shaderInput.displayName,
+                "Name",
+                out var propertyVisualElement));
+
+            m_DisplayNameField = (TextField) propertyVisualElement;
+            m_DisplayNameField.RegisterValueChangedCallback(
+                evt =>
+                {
+                    this._preChangeValueCallback("Change Display Name");
+                    this._displayNameChangedCallback(evt.newValue);
+
+                    if (string.IsNullOrEmpty(shaderInput.displayName))
+                        m_DisplayNameField.RemoveFromClassList("modified");
+                    else
+                        m_DisplayNameField.AddToClassList("modified");
+
+                    this._postChangeValueCallback(true, ModificationScope.Topological);
+                });
+
+            if(!string.IsNullOrEmpty(shaderInput.displayName))
+                propertyVisualElement.AddToClassList("modified");
+            propertyVisualElement.SetEnabled(shaderInput.isRenamable);
+            propertyVisualElement.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNameReferenceField"));
         }
 
         void BuildReferenceNameField(PropertySheet propertySheet)
@@ -685,12 +722,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             var layerName = "Layer" + index.ToString();
             // Add new entry
-            property.value.layers.Add(new SerializableVirtualTextureLayer(layerName, layerName, new SerializableTexture()));
+            property.value.layers.Add(new SerializableVirtualTextureLayer(layerName, new SerializableTexture()));
 
             // Update Blackboard & Nodes
             //DirtyNodes();
             this._postChangeValueCallback(true);
             m_VTSelectedIndex = list.list.Count - 1;
+            //Hack to handle downstream SampleVirtualTextureNodes
+            graphData.ValidateGraph();
         }
 
         // Allowed indicies are 1-MAX_ENUM_ENTRIES
@@ -726,6 +765,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             //DirtyNodes();
             this._postChangeValueCallback(true);
             m_VTSelectedIndex = m_VTSelectedIndex >= list.list.Count - 1 ? list.list.Count - 1 : m_VTSelectedIndex;
+            //Hack to handle downstream SampleVirtualTextureNodes
+            graphData.ValidateGraph();
         }
 
         private void VTReorderEntries(ReorderableList list)
@@ -1148,7 +1189,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         public string GetDuplicateSafeReferenceName(int id, string name)
         {
             name = name.Trim();
-            name = Regex.Replace(name, @"(?:[^A-Za-z_0-9_\s])", "_");
+            name = Regex.Replace(name, @"(?:[^A-Za-z_0-9_])", "_");
             var entryList = m_KeywordReorderableList.list as List<KeywordEntry>;
             return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.referenceName), "{0}_{1}", name);
         }

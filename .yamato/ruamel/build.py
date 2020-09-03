@@ -6,6 +6,7 @@ from jobs.shared.namer import *
 from jobs.projects.yml_project import create_project_ymls
 from jobs.editor.yml_editor import create_editor_yml
 from jobs.packages.yml_package import create_package_ymls
+from jobs.packages.yml_project import create_projectcontext_ymls
 from jobs.abv.yml_abv import create_abv_ymls
 from jobs.preview_publish.yml_pb import create_preview_publish_ymls
 from jobs.templates.yml_template import create_template_ymls
@@ -83,6 +84,7 @@ if __name__== "__main__":
     print(f'Running: packages')
     package_metafile = get_metafile(os.path.join(config_dir,'_packages.metafile'))
     yml_dump_files(create_package_ymls(package_metafile))
+    yml_dump_files(create_projectcontext_ymls(package_metafile))
 
     # create abv
     abv_metafile = get_metafile(os.path.join(config_dir,'_abv.metafile'), unfold_agents_root_keys=['smoke_test'], unfold_test_platforms_root_keys=['smoke_test'])
