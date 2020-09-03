@@ -32,9 +32,6 @@ half4 frag(Varyings input) : SV_Target
     half alpha = texColor.a * _BaseColor.a;
     AlphaDiscard(alpha, _Cutoff);
 
-#ifdef _ALPHAPREMULTIPLY_ON
-    color *= alpha;
-#endif
     return half4(color, alpha);
 }
 

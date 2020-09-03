@@ -97,10 +97,6 @@ Shader "Universal Render Pipeline/Unlit"
                 half alpha = texColor.a * _BaseColor.a;
                 AlphaDiscard(alpha, _Cutoff);
 
-#ifdef _ALPHAPREMULTIPLY_ON
-                color *= alpha;
-#endif
-
                 color = MixFog(color, input.fogCoord);
 
                 return half4(color, alpha);
@@ -228,10 +224,6 @@ Shader "Universal Render Pipeline/Unlit"
                 half3 color = texColor.rgb * _BaseColor.rgb;
                 half alpha = texColor.a * _BaseColor.a;
                 AlphaDiscard(alpha, _Cutoff);
-
-#ifdef _ALPHAPREMULTIPLY_ON
-                color *= alpha;
-#endif
 
                 color = MixFog(color, input.fogCoord);
                 alpha = OutputAlpha(alpha);
