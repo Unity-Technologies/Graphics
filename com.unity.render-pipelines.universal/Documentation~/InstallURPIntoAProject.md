@@ -29,7 +29,7 @@ The [Universal Render Pipeline Asset](universalrp-asset.md) controls the global 
 To create a Universal Render Pipeline Asset:
 
 1. In the Editor, go to the Project window.
-2. Right-click in the Project window, and select  __Create__ &gt; __Rendering__ &gt: __Universal Render Pipeline__&gt: __Pipeline Asset__. Alternatively, navigate to the menu bar at the top, and select __Assets__ &gt: __Create__ &gt: __Rendering__ &gt: __Universal Render Pipeline__ &gt: __Pipeline Asset__.
+2. Right-click in the Project window, and select  __Create__ &gt; __Rendering__ &gt; __Universal Render Pipeline__ &gt; __Pipeline Asset__. Alternatively, navigate to the menu bar at the top, and select __Assets__ &gt; __Create__ &gt; __Rendering__ &gt; __Universal Render Pipeline__ &gt; __Pipeline Asset__.
 
 You can either leave the default name for the new Universal Render Pipeline Asset, or type a new one.
 
@@ -46,4 +46,4 @@ To add the Universal Render Pipeline Asset to your Graphics settings:
 
 ## Upgrading your shaders
 
-If your Project uses Lit Shaders from the Built-in Render Pipeline, you must convert those Shaders to URP Shaders. For information on this, see [Upgrading your Shaders](upgrading-your-shaders.md).
+If your project uses the prebuilt [Standard Shader](https://docs.unity3d.com/Manual/shader-StandardShader.html), or custom Unity shaders made for the Built-in Render Pipeline, you must convert them to URP-compatible Unity shaders. For more information on this topic, see [Upgrading your Shaders](upgrading-your-shaders.md).

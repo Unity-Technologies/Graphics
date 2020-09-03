@@ -33,7 +33,7 @@ This table provides an overview of the current features supported in the Univers
 | Inner Spot Angle                                             | Not supported                                                | Yes                                                          |
 | Shading                                                      | Multiple Passes                                              | Single Pass                                                  |
 | *Culling*<br/>Per-Object<br/>Per-Layer                       | <br/>Yes<br/>Yes                                             | <br/>Yes<br/>Yes                                             |
-| *Light Limits*<br/>Main Directional Light<br/>Per Object<br/>Per Camera | <br/>1<br/>Unlimited<br/>Unlimited                           | <br/>1 <br/>8 (4 for GLES2).  Can be point, spot, and directional Lights.<br/>256 (32 on mobile platforms) |
+| *Light Limits*<br/>Main Directional Light<br/>Per Object<br/> <br/>Per Camera | <br/>1<br/>Unlimited<br/> <br/>Unlimited                           | <br/>1 <br/>8 (4 for GLES2).  Can be point, spot, and directional Lights.<br/>256 (16 for GLES 3.0 or lower, 32 on other mobile platforms) |
 | Attenuation                                                  | Legacy                                                       | InverseSquared                                               |
 | Vertex LIghts                                                | Yes                                                          | Yes                                                          |
 | SH Lights                                                    | Yes                                                          | In research                                                  |
@@ -118,11 +118,11 @@ This table provides an overview of the current features supported in the Univers
 | RenderPipeline.BeginFrameRendering                           | Not supported                                                | Yes                                                          |
 | RenderPipeline.EndFrameRendering                             | Not supported                                                | Yes                                                          |
 | RenderPipeline.BeginCameraRendering                          | Not supported                                                | Yes                                                          |
-| RenderPIpeline.EndCameraRendering                            | Not supported                                                | Yes                                                          |
+| RenderPipeline.EndCameraRendering                            | Not supported                                                | Yes                                                          |
 | UniversalRenderPipeline.RenderSingleCamera                   | Not supported                                                | Yes                                                          |
 | ScriptableRenderPass                                         | Not supported                                                | Yes                                                          |
 | Custom Renderers                                             | Not supported                                                | Yes                                                          |
-| ***Post-processing***                                        | Uses Post-Processing Version 2 package                      | Uses integrated [post-processing solution](integration-with-post-processing.md), supports PPV2 package for backwards compatibility with existing Projects |
+| ***Post-processing***                                        | Uses Post-Processing Stack v2 package                      | Uses integrated [post-processing solution](integration-with-post-processing.md), supports PPv2 package for backwards compatibility with existing Projects |
 | Ambient Occlusion (MSVO)                                     | Yes                                                          | In research                                                  |
 | Auto Exposure                                                | Yes                                                          | Not supported                                                          |
 | Bloom                                                        | Yes                                                          | Yes                                                          |
@@ -159,7 +159,7 @@ This table provides an overview of the current features supported in the Univers
 | World Space                                                  | Yes                                                          | Yes                                                          |
 | Text Mesh Pro                                                | Yes                                                          | Yes                                                          |
 | ***VR***                                                     |                                                              |                                                              |
-| Multipass                                                     | Yes                                                          | Yes                                                  |
+| Multipass                                                    | Yes                                                          | Yes                                                  |
 | Single Pass                                                  | Yes                                                          | Yes                                                          |
 | Single Pass Instanced                                        | Yes                                                          | Yes                                                          |
 | *Post-processing*<br>Oculus Rift<br/>Oculus Quest</br>Oculus Go<br/>Gear VR<br/>PSVR</br>HoloLens<br/>WMR<br/>Magic Leap One<br/>OpenVR| <br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes | <br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>No |
