@@ -439,9 +439,10 @@ namespace UnityEngine.Rendering.HighDefinition
             bool lightLayers = frameSettings.IsEnabled(FrameSettingsField.LightLayers);
             bool shadowMasks = frameSettings.IsEnabled(FrameSettingsField.Shadowmask);
 
+            int currentIndex = 0;
             passData.depthBuffer = builder.UseDepthBuffer(prepassOutput.depthBuffer, DepthAccess.ReadWrite);
-            passData.gbufferRT[0] = builder.UseColorBuffer(sssBuffer, 0);
-            passData.gbufferRT[1] = builder.UseColorBuffer(prepassOutput.normalBuffer, 1);
+            passData.gbufferRT[currentIndex++] = builder.UseColorBuffer(sssBuffer, 0);
+            passData.gbufferRT[currentIndex++] = builder.UseColorBuffer(prepassOutput.normalBuffer, 1);
 
 #if UNITY_2020_2_OR_NEWER
             FastMemoryDesc gbufferFastMemDesc;
@@ -452,24 +453,25 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // If we are in deferred mode and the SSR is enabled, we need to make sure that the second gbuffer is cleared given that we are using that information for clear coat selection
             bool clearGBuffer2 = clearGBuffer || hdCamera.IsSSREnabled();
-            passData.gbufferRT[2] = builder.UseColorBuffer(renderGraph.CreateTexture(
+            passData.gbufferRT[currentIndex++] = builder.UseColorBuffer(renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = clearGBuffer2, clearColor = Color.clear, name = "GBuffer2"
 #if UNITY_2020_2_OR_NEWER
                     , fastMemoryDesc = gbufferFastMemDesc
 #endif
                 }), 2);
-            passData.gbufferRT[3] = builder.UseColorBuffer(renderGraph.CreateTexture(
+            passData.gbufferRT[currentIndex++] = builder.UseColorBuffer(renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, true, true) { colorFormat = Builtin.GetLightingBufferFormat(), clearBuffer = clearGBuffer, clearColor = Color.clear, name = "GBuffer3"
 #if UNITY_2020_2_OR_NEWER
                   , fastMemoryDesc = gbufferFastMemDesc
 #endif
                 }), 3);
 
-            passData.gbufferRT[4] = builder.UseColorBuffer(vtFeedbackBuffer, 4);
+#if ENABLE_VIRTUALTEXTURES
+            passData.gbufferRT[currentIndex++] = builder.UseColorBuffer(vtFeedbackBuffer, 4);
+#endif
 
             prepassOutput.gbuffer.lightLayersTextureIndex = -1;
             prepassOutput.gbuffer.shadowMaskTextureIndex = -1;
-            int currentIndex = 5;
             if (lightLayers)
             {
                 passData.gbufferRT[currentIndex] = builder.UseColorBuffer(renderGraph.CreateTexture(

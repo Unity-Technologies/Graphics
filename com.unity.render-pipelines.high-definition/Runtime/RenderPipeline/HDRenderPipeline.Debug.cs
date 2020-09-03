@@ -470,6 +470,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+#if ENABLE_VIRTUALTEXTURES
         void PushFullScreenVTFeedbackDebugTexture(RenderGraph renderGraph, TextureHandle input, bool msaa)
         {
             if (FullScreenDebugMode.RequestedVirtualTextureTiles == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
@@ -497,6 +498,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_FullScreenDebugPushed = true;
             }
         }
+#endif
 
         TextureHandle PushColorPickerDebugTexture(RenderGraph renderGraph, TextureHandle input)
         {
