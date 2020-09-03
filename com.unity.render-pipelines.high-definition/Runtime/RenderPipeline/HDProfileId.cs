@@ -229,6 +229,14 @@ namespace UnityEngine.Rendering.HighDefinition
         BuildGPULightListProbeVolumes,
         PushProbeVolumeLightListGlobalParameters,
 
+        AOVExecute,
+        // Enum AOVBuffers
+        AOVOutput,
+        AOVColor,
+        AOVDepthStencil,
+        AOVNormals,
+        AOVMotionVectors,
+
 #if ENABLE_VIRTUALTEXTURES
         VTFeedbackClear,
 #endif

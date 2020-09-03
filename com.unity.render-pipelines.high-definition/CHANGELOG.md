@@ -12,9 +12,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fix several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
 - Fixed GPU hang on D3D12 on xbox. 
+- Fix Amplitude -> Min/Max parametrization conversion
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
+- Remove HTile generation for decals (faster without).
 
 ## [10.0.0] - 2019-06-10
 
@@ -182,6 +184,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added render graph support of RTGI.
 - Supporting RTSSS and Recursive Rendering in the render graph mode.
 - Supporting directional RT and screen space shadow for render graph.
+- Added tooltips with the full name of the (graphics) compositor properties to properly show large names that otherwise are clipped by the UI (case 1263590)
+- Added error message if a callback AOV allocation fail
+- Added marker for all AOV request operation on GPU
+- Added remapping options for Depth Pyramid debug view mode
+- Added an option to support AOV shader at runtime in HDRP settings (case 1265070)
 - Supporting SSGI in the render graph mode.
 
 ### Fixed
@@ -789,6 +796,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with cookie texture atlas that would cause realtime textures to always update in the atlas even when the content did not change.
 - Fixed an issue where only one of the two lookdev views would update when changing the default lookdev volume profile.
 - Fixed a bug related to light cluster invalidation.
+- Fixed shader warning in DofGather (case 1272931)
+- Fixed AOV export of depth buffer which now correctly export linear depth (case 1265001)
+- Fixed issue that caused the decal atlas to not be updated upon changing of the decal textures content.
+- Fixed "Screen position out of view frustum" error when camera is at exactly the planar reflection probe location.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -967,6 +978,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the color space of EmissiveColorLDR property on all shader. Was linear but should have been sRGB. Auto upgrade script handle the conversion.
 - Add tooltips with the full name of the (graphics) compositor properties to properly show large names that otherwise are clipped by the UI (case 1263590)
 - Composition profile .asset files cannot be manually edited/reset by users (to avoid breaking things - case 1265631)
+- Preparation pass for RTSSShadows to be supported by render graph.
 
 ## [7.1.1] - 2019-09-05
 

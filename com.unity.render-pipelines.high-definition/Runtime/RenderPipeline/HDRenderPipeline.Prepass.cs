@@ -87,10 +87,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle        flagMaskBuffer;
         }
 
-        TextureHandle CreateDepthBuffer(RenderGraph renderGraph, bool msaa)
+        TextureHandle CreateDepthBuffer(RenderGraph renderGraph, bool clear, bool msaa)
         {
             TextureDesc depthDesc = new TextureDesc(Vector2.one, true, true)
-                { depthBufferBits = DepthBits.Depth32, bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = true, name = msaa ? "CameraDepthStencilMSAA" : "CameraDepthStencil" };
+                { depthBufferBits = DepthBits.Depth32, bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = clear, name = msaa ? "CameraDepthStencilMSAA" : "CameraDepthStencil" };
 
             return renderGraph.CreateTexture(depthDesc);
         }
@@ -168,7 +168,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // TODO: See how to clean this. Some buffers are created outside, some inside functions...
             result.motionVectorsBuffer = CreateMotionVectorBuffer(renderGraph, msaa, clearMotionVectors);
-            result.depthBuffer = CreateDepthBuffer(renderGraph, msaa);
+            result.depthBuffer = CreateDepthBuffer(renderGraph, hdCamera.clearDepth, msaa);
             result.flagMaskBuffer = CreateFlagMaskTexture(renderGraph);
 
             RenderXROcclusionMeshes(renderGraph, hdCamera, colorBuffer, result.depthBuffer);
@@ -467,7 +467,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             for (int i = 0; i < dBufferOutput.dBufferCount; ++i)
                 ctx.cmd.SetGlobalTexture(HDShaderIDs._DBufferTexture[i], dBufferOutput.mrt[i]);
-            ctx.cmd.SetGlobalBuffer(HDShaderIDs._DecalPropertyMaskBufferSRV, dBufferOutput.decalPropertyMaskBuffer);
         }
 
         static void BindProbeVolumeGlobalData(in FrameSettings frameSettings, GBufferPassData data, in RenderGraphContext ctx)
@@ -559,7 +558,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthResolveMaterial = m_DepthResolveMaterial;
                 passData.depthResolvePassIndex = SampleCountToPassIndex(m_MSAASamples);
 
-                passData.depthBuffer = builder.UseDepthBuffer(CreateDepthBuffer(renderGraph, false), DepthAccess.Write);
+                passData.depthBuffer = builder.UseDepthBuffer(CreateDepthBuffer(renderGraph, true, false), DepthAccess.Write);
                 passData.depthValuesBuffer = builder.UseColorBuffer(depthValuesBuffer, 0);
                 passData.normalBuffer = builder.UseColorBuffer(CreateNormalBuffer(renderGraph, false), 1);
                 if (passData.needMotionVectors)
@@ -675,7 +674,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public RendererListHandle       meshDecalsRendererList;
             public TextureHandle            depthStencilBuffer;
             public TextureHandle            depthTexture;
-            public ComputeBufferHandle      propertyMaskBuffer;
             public TextureHandle            decalBuffer;
         }
 
@@ -712,14 +710,12 @@ namespace UnityEngine.Rendering.HighDefinition
             propertyMaskBufferSize = ((propertyMaskBufferSize + 63) / 64) * 64; // round off to nearest multiple of 64 for ease of use in CS
 
             passData.depthStencilBuffer = builder.UseDepthBuffer(output.resolvedDepthBuffer, DepthAccess.Write);
-            passData.propertyMaskBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(propertyMaskBufferSize, 4) { name = "DecalPropertyMask" }));
 
             output.dbuffer.dBufferCount = passData.dBufferCount;
             for (int i = 0; i < passData.dBufferCount; ++i)
             {
                 output.dbuffer.mrt[i] = passData.mrt[i];
             }
-            output.dbuffer.decalPropertyMaskBuffer = passData.propertyMaskBuffer;
         }
 
         static DBufferOutput ReadDBuffer(DBufferOutput dBufferOutput, RenderGraphBuilder builder)
@@ -783,7 +779,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                     data.depthStencilBuffer,
                                     data.depthTexture,
                                     data.meshDecalsRendererList,
-                                    data.propertyMaskBuffer,
                                     data.decalBuffer,
                                     context.renderContext,
                                     context.cmd);
