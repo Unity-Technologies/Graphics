@@ -735,6 +735,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_BuiltinParameters.skySettings = skyContext.skySettings;
                 m_BuiltinParameters.cloudLayer = skyContext.cloudLayer;
 
+                if (IsCachedContextValid(skyContext) && !updateRequired && !staticSky)
+                {
+                    if (skyContext.skySettings.updateMode == EnvironmentUpdateMode.OnDemand)
+                        return;
+                    else if (skyContext.skySettings.updateMode == EnvironmentUpdateMode.Realtime && skyContext.currentUpdateTime < skyContext.skySettings.updatePeriod.value)
+                        return;
+                }
+
                 int skyHash = ComputeSkyHash(hdCamera, skyContext, sunLight, ambientMode, staticSky);
                 bool forceUpdate = updateRequired;
 
