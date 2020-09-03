@@ -48,7 +48,7 @@ if (colliderSign * dist <= 0.0f) // collision
     float3 n = SampleSDFDerivatives(DistanceField, coord);
 
     // back in system space
-    float3 delta = colliderSign * mul(FieldTransform,float4(normalize(n) * abs(dist),0)).xyz;
+    float3 delta = colliderSign * mul(float4(normalize(n) * abs(dist),0), InvFieldTransform).xyz;
     n = normalize(delta);
 ";
 
