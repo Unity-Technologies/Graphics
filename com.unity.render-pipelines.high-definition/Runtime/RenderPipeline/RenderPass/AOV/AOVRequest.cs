@@ -54,62 +54,13 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MaterialProperty = MaterialSharedProperty.None,
             m_LightingProperty = LightingProperty.None,
             m_DebugFullScreen = DebugFullScreen.None,
-            m_LightFilterProperty = DebugLightFilterMode.None
+            m_LightFilterProperty = DebugLightFilterMode.None,
+            m_RequestMode = Camera.RenderRequestMode.None
         };
 
-        public static AOVRequest NewDefault(Camera.RenderRequestMode requestMode)
-        {
-            var request = NewDefault();
-            switch (requestMode)
-            {
-                case Camera.RenderRequestMode.None:
-                    break;
-                case Camera.RenderRequestMode.ObjectId:
-                    break;
-                case Camera.RenderRequestMode.Depth:
-                    request.m_DebugFullScreen = DebugFullScreen.Depth;
-                    break;
-                case Camera.RenderRequestMode.Normals:
-                    request.m_DebugFullScreen = DebugFullScreen.WorldSpaceVertexNormal;
-                    break;
-                case Camera.RenderRequestMode.WorldPositionRGB:
-                    request.m_DebugFullScreen = DebugFullScreen.WorldSpacePosition;
-                    break;
-                case Camera.RenderRequestMode.EntityId:
-                    break;
-                case Camera.RenderRequestMode.BaseColorRGB:
-                    //@TODO: Is this consistent?
-                    request.m_MaterialProperty = MaterialSharedProperty.Albedo;
-                    break;
-                case Camera.RenderRequestMode.SpecularColorRGB:
-                    request.m_MaterialProperty = MaterialSharedProperty.Specular;
-                    break;
-                case Camera.RenderRequestMode.MetallicR:
-                    request.m_MaterialProperty = MaterialSharedProperty.Metal;
-                    break;
-                case Camera.RenderRequestMode.EmissionRGB:
-                    request.m_LightingProperty = LightingProperty.EmissiveOnly;
-                    break;
-                case Camera.RenderRequestMode.WorldNormalPerPixelRGB:
-                    request.m_MaterialProperty = MaterialSharedProperty.Normal;
-                    break;
-                case Camera.RenderRequestMode.SmoothnessR:
-                    request.m_MaterialProperty = MaterialSharedProperty.Smoothness;
-                    break;
-                case Camera.RenderRequestMode.OcclusionR:
-                    request.m_MaterialProperty = MaterialSharedProperty.AmbientOcclusion;
-                    break;
-                case Camera.RenderRequestMode.DiffuseColorRGBA:
-                    //@TODO: not correct...
-                    request.m_MaterialProperty = MaterialSharedProperty.Albedo;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(requestMode), requestMode, null);
-            }
 
-            return request;
-        }
 
+        Camera.RenderRequestMode m_RequestMode;
         MaterialSharedProperty m_MaterialProperty;
         LightingProperty m_LightingProperty;
         DebugLightFilterMode m_LightFilterProperty;
@@ -132,6 +83,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_LightingProperty = other.m_LightingProperty;
             m_DebugFullScreen = other.m_DebugFullScreen;
             m_LightFilterProperty = other.m_LightFilterProperty;
+            m_RequestMode = other.m_RequestMode;
         }
 
         /// <summary>State the property to render. In case of several SetFullscreenOutput chained call, only last will be used.</summary>
@@ -167,6 +119,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public ref AOVRequest SetLightFilter(DebugLightFilterMode filter)
         {
             m_LightFilterProperty = filter;
+            return ref *thisPtr;
+        }
+
+        public ref AOVRequest SetRenderRequestMode(Camera.RenderRequestMode mode)
+        {
+            m_RequestMode = mode;
             return ref *thisPtr;
         }
 
@@ -227,7 +185,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 case DebugFullScreen.WorldSpaceVertexNormal:
                     debug.SetDebugViewVarying(DebugViewVarying.VertexNormalWS);
                     break;
-
                 case DebugFullScreen.ScreenSpaceAmbientOcclusion:
                     debug.SetFullScreenDebugMode(FullScreenDebugMode.ScreenSpaceAmbientOcclusion);
                     break;
@@ -236,6 +193,56 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
                 default:
                     throw new ArgumentException("Unknown DebugFullScreen");
+            }
+
+
+            switch (m_RequestMode)
+            {
+                case Camera.RenderRequestMode.None:
+                    break;
+                case Camera.RenderRequestMode.ObjectIdR:
+                    //@TODO:
+                    break;
+                case Camera.RenderRequestMode.DepthR:
+                    debug.SetFullScreenDebugMode(FullScreenDebugMode.DepthPyramid);
+                    break;
+                case Camera.RenderRequestMode.WorldNormalVertexRGB:
+                    debug.SetDebugViewVarying(DebugViewVarying.VertexNormalWS);
+                    break;
+                case Camera.RenderRequestMode.WorldPositionRGB:
+                    debug.SetFullScreenDebugMode(FullScreenDebugMode.WorldSpacePosition);
+                    break;
+                case Camera.RenderRequestMode.EntityIdRG:
+                    //@TODO:
+                    break;
+                case Camera.RenderRequestMode.BaseColorRGB:
+                    //@TODO: Validate that this works correctly in specular & metallic mode
+                    debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.Albedo);
+                    break;
+                case Camera.RenderRequestMode.SpecularColorRGB:
+                    debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.Specular);
+                    break;
+                case Camera.RenderRequestMode.MetallicR:
+                    debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.Metal);
+                    break;
+                case Camera.RenderRequestMode.EmissionRGB:
+                    debug.SetDebugLightingMode(DebugLightingMode.EmissiveLighting);
+                    break;
+                case Camera.RenderRequestMode.WorldNormalPerPixelRGB:
+                    debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.Normal);
+                    break;
+                case Camera.RenderRequestMode.SmoothnessR:
+                    debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.Smoothness);
+                    break;
+                case Camera.RenderRequestMode.OcclusionR:
+                    debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.AmbientOcclusion);
+                    break;
+                case Camera.RenderRequestMode.DiffuseColorRGBA:
+                    //@TODO: not correct... Need to perform specular / albedo conversion
+                    debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.Albedo);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(m_RequestMode), m_RequestMode, null);
             }
         }
     }

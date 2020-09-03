@@ -3031,41 +3031,31 @@ namespace UnityEngine.Rendering.HighDefinition
             HDUtils.DrawFullScreen(cmd, parameters.viewport, parameters.blitMaterial, destination, propertyBlock, 0, parameters.dstTexArraySlice);
         }
 
-        static RTHandle _DebugBufferID;
         protected override void ProcessRenderRequests(ScriptableRenderContext renderContext, Camera camera, List<Camera.RenderRequest> renderRequests)
         {
             var previousRT = RenderTexture.active;
             RenderTexture.active = null;
 
-
-            //@TODO: We probably need some kind of context to do proper caching of RT
-
             var requests = new AOVRequestBuilder();
-            RTHandle bufferID = null;
             foreach (var request in renderRequests)
             {
-                var aovRequest = AOVRequest.NewDefault(request.mode);
+                var aovRequest = AOVRequest.NewDefault().SetRenderRequestMode(request.mode);
                 var aovBuffers = AOVBuffers.Color;
-                if (request.mode == Camera.RenderRequestMode.Depth || request.mode == Camera.RenderRequestMode.WorldPositionRGB)
+                if (request.mode == Camera.RenderRequestMode.DepthR || request.mode == Camera.RenderRequestMode.WorldPositionRGB)
                     aovBuffers = AOVBuffers.Output;
 
                 //@TODO: _DebugBufferID handling seems dodgy what if the different buffers have different resolutions...
                 requests.Add(
                     aovRequest,
-                    bufferId => _DebugBufferID ?? (_DebugBufferID = RTHandles.Alloc(request.result.width, request.result.height, 1, DepthBits.None, request.result.graphicsFormat)),
+                    // NOTE: RTHandles.Alloc is never allocated because the texture is passed in explicitly.
+                    (AOVBuffers aovBufferId) => RTHandles.Alloc(request.result),
                     null,
                     new[] {aovBuffers},
                     (cmd, textures, properties) =>
                     {
-                        if (request.result != null)
-                            cmd.Blit(textures[0], request.result);
+                        //if (request.result != null)
+                        //    cmd.Blit(textures[0], request.result);
                     });
-            }
-
-            if (_DebugBufferID != null)
-            {
-                _DebugBufferID.Release();
-                _DebugBufferID = null;
             }
 
             var additionaCameraData = camera.GetComponent<HDAdditionalCameraData>();
