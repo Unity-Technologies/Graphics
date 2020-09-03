@@ -70,8 +70,10 @@ def cmd_standalone_performance(project_folder, platform, api, test_platform_args
 def cmd_standalone_build_performance(project_folder, platform, api, test_platform_args):
     base = _cmd_base(project_folder, platform["components"])
     extra_cmds = extra_perf_cmd(project_folder)
+    unity_config = install_unity_config()
     if project_folder.lower() == "BoatAttack".lower():
         base.insert(0, extra_cmds)
+        base.append(unity_config)
 
     base.extend([
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindows{api["name"]}Linear" --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS} --timeout=1200 --player-save-path=../../{PATH_PLAYERS} --build-only'
@@ -81,12 +83,20 @@ def cmd_standalone_build_performance(project_folder, platform, api, test_platfor
 def _get_extra_utr_arg(project_folder):
     return ' --compilation-errors-as-warnings' if project_folder.lower() in ['universalhybridtest', 'hdrp_hybridtests'] else ''
 
-def extra_perf_cmd(project_folder):
+def extra_perf_cmd(project_folder):   
     perf_list = [
         f'git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/{project_folder}',
         f'Xcopy /E /I \"com.unity.render-pipelines.core\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.render-pipelines.core\" /Y',
         f'Xcopy /E /I \"com.unity.render-pipelines.universal\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.render-pipelines.universal\" /Y',
         f'Xcopy /E /I \"com.unity.shadergraph\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.shadergraph\" /Y',
-        f'Xcopy /E /I \"com.unity.shaderanalysis\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.shaderanalysis\" /Y'
+        f'Xcopy /E /I \"com.unity.shaderanalysis\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.shaderanalysis\" /Y',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config add dependency com.unity.testframework.graphics@7.2.2-preview'
         ]
     return perf_list
+
+def install_unity_config():
+    cmds = [
+        f'choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local',
+        f'choco install unity-config'
+    ]
+    return cmds
