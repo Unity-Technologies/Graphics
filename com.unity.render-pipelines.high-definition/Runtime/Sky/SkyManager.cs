@@ -735,7 +735,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_BuiltinParameters.skySettings = skyContext.skySettings;
                 m_BuiltinParameters.cloudLayer = skyContext.cloudLayer;
 
-                if (IsCachedContextValid(skyContext) && !updateRequired && !staticSky)
+                // When update is not requested and the context is already valid (ie: already computed at least once),
+                // we need to early out in two cases:
+                // - updateMode is "OnDemand" in which case we never update unless explicitly requested
+                // - updateMode is "Realtime" in which case we only update if the time threshold for realtime update is passed.
+                if (IsCachedContextValid(skyContext) && !updateRequired)
                 {
                     if (skyContext.skySettings.updateMode == EnvironmentUpdateMode.OnDemand)
                         return;
@@ -761,6 +765,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateSkyEnvironment)))
                     {
+                        Debug.Log("Update Sky Lighting");
                         RenderSkyToCubemap(skyContext);
 
                         if (updateAmbientProbe)
@@ -840,7 +845,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_StaticLightingSky.skySettings = staticLightingSky != null ? staticLightingSky.skySettings : null;
                 m_StaticLightingSky.cloudLayer = staticLightingSky != null ? staticLightingSky.cloudLayer : null;
-                UpdateEnvironment(hdCamera, renderContext, m_StaticLightingSky, sunLight, m_StaticSkyUpdateRequired, true, true, SkyAmbientMode.Static, frameIndex, cmd);
+                UpdateEnvironment(hdCamera, renderContext, m_StaticLightingSky, sunLight, m_StaticSkyUpdateRequired || m_UpdateRequired, true, true, SkyAmbientMode.Static, frameIndex, cmd);
                 m_StaticSkyUpdateRequired = false;
             }
 
