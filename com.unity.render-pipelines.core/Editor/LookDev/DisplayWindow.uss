@@ -63,13 +63,13 @@
 
 .showEnvironmentPanel > #environmentContainer
 {
-	width: 249px;
+	width: 255px;
     visibility: visible;
 }
 
 .showDebugPanel > #debugContainer
 {
-	width: 250px; /*219px;*/
+	width: 256px; /*219px;*/
     visibility: visible;
 }
 
@@ -322,9 +322,9 @@ MultipleSourcePopupField > MultipleDifferentValue:hover
 
 #tabsRadio 
 {
-    width: 250px;
-    min-width: 250px;
-    max-width: 250px;
+    width: 256px;
+    min-width: 256px;
+    max-width: 256px;
     flex: 1;
     flex-direction: row;
     -unity-text-align: middle-center;
