@@ -42,7 +42,10 @@ def cmd_not_standalone_performance(project_folder, platform, api, test_platform_
 
     extra_cmds = extra_perf_cmd(project_folder)
     if project_folder.lower() == "BoatAttack".lower():
-        base.insert(0, extra_cmds)
+        x=0
+        for y in extra_cmds:
+            base.insert(x, y)
+            x += 1
  
     base.extend([
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {test_platform_args} --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}'
@@ -57,7 +60,10 @@ def cmd_standalone_performance(project_folder, platform, api, test_platform_args
 
     extra_cmds = extra_perf_cmd(project_folder)
     if project_folder.lower() == "BoatAttack".lower():
-        base.insert(0, extra_cmds)
+        x=0
+        for y in extra_cmds:
+            base.insert(x, y)
+            x += 1
 
     if project_folder.lower() == 'UniversalGraphicsTest'.lower():
         base.append('cd Tools && powershell -command ". .\\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"')

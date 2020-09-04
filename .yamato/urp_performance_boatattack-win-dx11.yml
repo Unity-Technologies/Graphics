@@ -17,14 +17,14 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_counters_trunk:
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_trunk
          rerun: on-new-revision
     commands:
-      -    -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
-           -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
-           -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
-           -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
-           -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
-           -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
-           -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
-           -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
+      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
+      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
+      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
+      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
+      -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
+      -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Counters --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
@@ -78,14 +78,14 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_memory_trunk:
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_trunk
          rerun: on-new-revision
     commands:
-      -    -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
-           -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
-           -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
-           -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
-           -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
-           -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
-           -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
-           -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
+      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
+      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
+      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
+      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
+      -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
+      -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Memory --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
@@ -104,14 +104,14 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_trunk:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
          rerun: on-new-revision
     commands:
-      -    -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
-           -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
-           -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
-           -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
-           -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
-           -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
-           -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
-           -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
+      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
+      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
+      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
+      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
+      -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
+      -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
@@ -134,14 +134,14 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_counters_fast-trunk:
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_fast-trunk
          rerun: on-new-revision
     commands:
-      -    -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
-           -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
-           -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
-           -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
-           -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
-           -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
-           -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
-           -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
+      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
+      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
+      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
+      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
+      -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
+      -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Counters --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
@@ -195,14 +195,14 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_memory_fast-trunk:
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_fast-trunk
          rerun: on-new-revision
     commands:
-      -    -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
-           -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
-           -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
-           -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
-           -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
-           -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
-           -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
-           -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
+      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
+      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
+      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
+      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
+      -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
+      -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Memory --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
@@ -221,14 +221,14 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_fast-trunk:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
          rerun: on-new-revision
     commands:
-      -    -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
-           -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
-           -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
-           -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
-           -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
-           -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
-           -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
-           -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
+      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
+      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
+      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
+      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
+      -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
+      -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
@@ -252,14 +252,14 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_counters_CUSTOM-REVISIO
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_CUSTOM-REVISION
          rerun: always
     commands:
-      -    -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
-           -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
-           -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
-           -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
-           -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
-           -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
-           -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
-           -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
+      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
+      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
+      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
+      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
+      -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
+      -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Counters --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
@@ -315,14 +315,14 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_memory_CUSTOM-REVISION:
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_CUSTOM-REVISION
          rerun: always
     commands:
-      -    -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
-           -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
-           -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
-           -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
-           -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
-           -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
-           -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
-           -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
+      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
+      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
+      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
+      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
+      -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
+      -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Memory --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
@@ -342,14 +342,14 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_CUSTOM-REVISION:
       -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
     commands:
-      -    -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
-           -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
-           -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
-           -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
-           -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
-           -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
-           -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
-           -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
+      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
+      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
+      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
+      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
+      -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
+      -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
