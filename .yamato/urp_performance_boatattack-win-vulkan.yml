@@ -26,8 +26,8 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_counters_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Counters --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
@@ -56,8 +56,8 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_Player_trunk:
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
@@ -89,8 +89,8 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_memory_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Memory --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
@@ -119,8 +119,8 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_trunk:
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
@@ -149,8 +149,8 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_counters_fast-trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Counters --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
@@ -179,8 +179,8 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_Player_fast-trunk:
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
@@ -212,8 +212,8 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_memory_fast-trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Memory --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
@@ -242,8 +242,8 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_fast-trunk:
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
@@ -273,8 +273,8 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_counters_CUSTOM-REVIS
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Counters --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
@@ -304,8 +304,8 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_Player_CUSTOM-REVISION:
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
@@ -338,8 +338,8 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_memory_CUSTOM-REVISIO
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Memory --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
@@ -369,8 +369,8 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_CUSTOM-REVISION
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
