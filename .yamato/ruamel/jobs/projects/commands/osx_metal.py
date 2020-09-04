@@ -64,8 +64,8 @@ def cmd_playmode(project_folder, platform, api, test_platform_args):
 def cmd_standalone(project_folder, platform, api, test_platform_args):
 
     utr_args = utr_standalone_not_split_flags(
-        platform='OSX',
-        platform_spec='',
+        platform='Standalone',
+        platform_spec='OSX',
         testproject=f'/Users/bokken/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}',
         editor_location=f'/Users/bokken/.Editor',
         artifacts_path=f'/Users/bokken/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}/{PATH_TEST_RESULTS}',
@@ -87,7 +87,3 @@ def cmd_standalone(project_folder, platform, api, test_platform_args):
 
 def cmd_standalone_build(project_folder, platform, api, test_platform_args):
     raise Exception('osx_metal: standalone_split set to true but build commands not specified')
-
-
-def _get_extra_utr_arg(project_folder):
-    return ' --compilation-errors-as-warnings' if project_folder.lower() in ['universalhybridtest', 'hdrp_hybridtests'] else ''

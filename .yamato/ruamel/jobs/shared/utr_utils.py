@@ -26,6 +26,7 @@ def utr_standalone_not_split_flags(platform_spec, suite='playmode', platform='St
         f'--suite={suite}',
         f'--platform={platform}{platform_spec}',
         f'--artifacts_path={artifacts_path}',
+        f'--timeout={timeout}' if timeout!=None else '',
         f'--testproject={testproject}',
         f'--editor-location={editor_location}'
 ]

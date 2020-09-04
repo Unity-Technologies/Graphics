@@ -36,7 +36,7 @@ def cmd_standalone(project_folder, platform, api, test_platform_args):
         cmd_standalone_build(project_folder, platform, api, test_platform_args)
         utr_args = utr_standalone_split_flags("Linux64")
     except:
-        utr_args = utr_standalone_not_split_flags("Linux64")
+        utr_args = utr_standalone_not_split_flags("Linux64", timeout=None)
     utr_args.extend(test_platform_args)
     utr_args.extend(['--extra-editor-arg="-executemethod"', f'--extra-editor-arg="CustomBuild.BuildLinux{api["name"]}Linear"'])
 
