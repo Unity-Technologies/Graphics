@@ -102,7 +102,7 @@ int VirtualTexturingLookup(
             // But we need to do it again here. The alternative is modifying dx,dy before passing to
             // GranitePrivate_CalcMiplevelAnisotropic adding a pow2 + 4 fmuls so probably
             // the exra clamp is more appropriate here.
-            mipLevel = min(mipLevel, gra_NumLevels);
+            mipLevel = clamp(mipLevel, 0.0f, gra_NumLevels);
         }
 
         mipLevel = floor(mipLevel + 0.5f); //round nearest
