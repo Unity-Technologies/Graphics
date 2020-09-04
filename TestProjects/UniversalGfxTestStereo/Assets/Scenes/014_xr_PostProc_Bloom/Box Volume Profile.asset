@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
-  m_Name: 014_xr_PostProc_Global_Profile
+  m_Name: Box Volume Profile
   m_EditorClassIdentifier: 
   components:
-  - {fileID: 7503356511718865675}
---- !u!114 &7503356511718865675
+  - {fileID: 4895733858794413799}
+--- !u!114 &4895733858794413799
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -30,11 +30,11 @@ MonoBehaviour:
   m_AdvancedMode: 0
   threshold:
     m_OverrideState: 1
-    m_Value: 0.4
+    m_Value: 0.35
     min: 0
   intensity:
     m_OverrideState: 1
-    m_Value: 5
+    m_Value: 2.2
     min: 0
   scatter:
     m_OverrideState: 0
@@ -47,7 +47,7 @@ MonoBehaviour:
     min: 0
   tint:
     m_OverrideState: 1
-    m_Value: {r: 1, g: 0.63676953, b: 0, a: 1}
+    m_Value: {r: 1, g: 0.6679427, b: 0, a: 1}
     hdr: 0
     showAlpha: 0
     showEyeDropper: 1
