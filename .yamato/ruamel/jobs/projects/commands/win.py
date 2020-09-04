@@ -72,7 +72,10 @@ def cmd_standalone_build_performance(project_folder, platform, api, test_platfor
     extra_cmds = extra_perf_cmd(project_folder)
     unity_config = install_unity_config()
     if project_folder.lower() == "BoatAttack".lower():
-        base.insert(0, extra_cmds)
+        x=0
+        for y in extra_cmds:
+            base.insert(x, y)
+            x += 1
         base.append(unity_config)
 
     base.extend([
