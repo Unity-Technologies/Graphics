@@ -368,10 +368,15 @@ project:
 
 # test platforms to generate jobs for
 test_platforms:
-  - Standalone
-  - playmode
-  - editmode
-  - playmode_XR
+  - type:Standalone
+    extra_utr_flags: # specify additional utr flags to run for this project and test platform
+      - --some-extra-utr-flag
+  - type:playmode
+  - type:editmode
+  - type: playmode # custom testplatform: specify the 'base' type, name it to what you want, and add any additional flags
+    name: playmode_XR
+    extra_utr_flags:
+      - --extra-editor-arg="-xr-tests" 
 
 # platforms to use (platform details obtained from __shared.metafile)
 # platforms can be overridden by using the same structure from shared
