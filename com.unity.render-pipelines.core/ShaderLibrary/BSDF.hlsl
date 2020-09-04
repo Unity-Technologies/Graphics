@@ -223,7 +223,7 @@ real V_SmithJointGGX(real NdotL, real NdotV, real roughness, real partLambdaV)
     real lambdaL = NdotV * sqrt((-NdotL * a2 + NdotL) * NdotL + a2);
 
     // Simplify visibility term: (2.0 * NdotL * NdotV) /  ((4.0 * NdotL * NdotV) * (lambda_v + lambda_l))
-    return 0.5 / (lambdaV + lambdaL);
+    return 0.5 / max(lambdaV + lambdaL, REAL_MIN);
 }
 
 real V_SmithJointGGX(real NdotL, real NdotV, real roughness)
