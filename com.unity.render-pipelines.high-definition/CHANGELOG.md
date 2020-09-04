@@ -45,9 +45,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed AOV export of depth buffer which now correctly export linear depth (case 1265001)
 - Fixed issue that caused the decal atlas to not be updated upon changing of the decal textures content.
 - Fixed "Screen position out of view frustum" error when camera is at exactly the planar reflection probe location.
-- Fix Amplitude -> Min/Max parametrization conversion
-- Fix issue that allocated a small cookie for normal spot lights.
+- Fixed Amplitude -> Min/Max parametrization conversion
+- Fixed issue that allocated a small cookie for normal spot lights.
 - Fixed issue when undoing a change in diffuse profile list after deleting the volume profile.
+- Fixed custom pass re-ordering and removing.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
