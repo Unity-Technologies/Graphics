@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with diffusion profile not being updated upon reset of the editor. 
 - Fixed Amplitude -> Min/Max parametrization conversion
 - Fixed an issue that lead to corrupted refraction in some scenarios on xbox.
+- Fixed issue when undoing a change in diffuse profile list after deleting the volume profile.
 
 ### Changed
 - Remove MSAA debug mode when renderpipeline asset has no MSAA
