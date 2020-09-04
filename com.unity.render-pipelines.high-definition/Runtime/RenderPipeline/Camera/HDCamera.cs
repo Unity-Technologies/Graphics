@@ -493,6 +493,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 actualHeight = Math.Max((int)finalViewport.size.y, 1);
             }
 
+            DynamicResolutionHandler.instance.finalViewport = new Vector2Int((int)finalViewport.width, (int)finalViewport.height);
+
             Vector2Int nonScaledViewport = new Vector2Int(actualWidth, actualHeight);
             if (isMainGameView)
             {
@@ -524,7 +526,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Set the RTHandle scale to the actual camera size (can be scaled)</summary>
         internal void SetReferenceSize()
         {
-            RTHandles.SetReferenceSize(actualWidth, actualHeight, msaaSamples, false, (int)finalViewport.width, (int)finalViewport.height);
+            RTHandles.SetReferenceSize(actualWidth, actualHeight, msaaSamples);
             m_HistoryRTSystem.SwapAndSetReferenceSize(actualWidth, actualHeight, msaaSamples);
         }
 

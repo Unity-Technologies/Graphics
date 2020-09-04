@@ -316,27 +316,6 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Sets the reference rendering size for subsequent rendering for the RTHandle System
-        /// </summary>
-        /// <param name="width">Reference rendering width for subsequent rendering.</param>
-        /// <param name="height">Reference rendering height for subsequent rendering.</param>
-        /// <param name="msaaSamples">Number of MSAA samples for multisampled textures for subsequent rendering.</param>
-        /// <param name="reset">If set to true, the new width and height will override the old values even if they are not bigger.</param>
-        /// <param name="finalWidth">Full resolution width for upscaling to final viewport.</param>
-        /// <param name="finalHeight">Full resolution height for upscaling to final viewport.</param>
-        public static void SetReferenceSize(int width, int height, MSAASamples msaaSamples, bool reset, int finalWidth, int finalHeight)
-        {
-            s_DefaultInstance.SetReferenceSize(
-                width,
-                height,
-                msaaSamples,
-                reset,
-                finalWidth,
-                finalHeight
-                );
-        }
-
-        /// <summary>
         /// Reset the reference size of the system and reallocate all textures.
         /// </summary>
         /// <param name="width">New width.</param>

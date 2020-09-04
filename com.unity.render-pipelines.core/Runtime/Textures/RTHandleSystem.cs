@@ -165,20 +165,6 @@ namespace UnityEngine.Rendering
         /// <param name="reset">If set to true, the new width and height will override the old values even if they are not bigger.</param>
         public void SetReferenceSize(int width, int height, MSAASamples msaaSamples, bool reset)
         {
-            SetReferenceSize(width, height, msaaSamples, false, m_MaxWidths, m_MaxHeights);
-        }
-
-        /// <summary>
-        /// Sets the reference rendering size for subsequent rendering for the RTHandle System
-        /// </summary>
-        /// <param name="width">Reference rendering width for subsequent rendering.</param>
-        /// <param name="height">Reference rendering height for subsequent rendering.</param>
-        /// <param name="msaaSamples">Number of MSAA samples for multisampled textures for subsequent rendering.</param>
-        /// <param name="reset">If set to true, the new width and height will override the old values even if they are not bigger.</param>
-        /// <param name="finalWidth">Full resolution width for upscaling to final viewport.</param>
-        /// <param name="finalHeight">Full resolution height for upscaling to final viewport.</param>
-        public void SetReferenceSize(int width, int height, MSAASamples msaaSamples, bool reset, int finalWidth, int finalHeight)
-        {
             m_RTHandleProperties.previousViewportSize = m_RTHandleProperties.currentViewportSize;
             m_RTHandleProperties.previousRenderTargetSize = m_RTHandleProperties.currentRenderTargetSize;
             Vector2 lastFrameMaxSize = new Vector2(GetMaxWidth(), GetMaxHeight());
@@ -209,8 +195,8 @@ namespace UnityEngine.Rendering
 
             if (DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
             {
-                float xScale = (float)finalWidth / GetMaxWidth();
-                float yScale = (float)finalHeight / GetMaxHeight();
+                float xScale = (float)DynamicResolutionHandler.instance.finalViewport.x / GetMaxWidth();
+                float yScale = (float)DynamicResolutionHandler.instance.finalViewport.y / GetMaxHeight();
                 m_RTHandleProperties.rtHandleScale = new Vector4(xScale, yScale, m_RTHandleProperties.rtHandleScale.x, m_RTHandleProperties.rtHandleScale.y);
             }
             else
