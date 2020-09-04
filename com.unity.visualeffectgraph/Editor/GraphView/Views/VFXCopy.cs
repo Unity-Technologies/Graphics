@@ -39,7 +39,6 @@ namespace UnityEditor.VFX.UI
             return JsonUtility.ToJson(serializableGraph);
         }
 
-
         public static object CopyBlocks(IEnumerable<VFXBlockController> blocks)
         {
             if (s_Instance == null)
@@ -67,7 +66,7 @@ namespace UnityEditor.VFX.UI
             else
             {
                 //Don't copy VFXBlockSubgraphContext because they can't be pasted anywhere.
-                CopyNodes(serializableGraph, elements, contexts.Where(t=>!(t.model is VFXBlockSubgraphContext)), nodes, bounds);
+                CopyNodes(serializableGraph, elements, contexts.Where(t => !(t.model is VFXBlockSubgraphContext)), nodes, bounds);
             }
 
             return serializableGraph;
@@ -254,11 +253,12 @@ namespace UnityEditor.VFX.UI
                     value = new VFXSerializableObject(p.model.type, p.model.value),
                     exposed = p.model.exposed,
                     isOutput = p.model.isOutput,
-                    range = p.hasRange,
-                    min = p.hasRange ? p.model.m_Min : null,
-                    max = p.hasRange ? p.model.m_Max : null,
+                    valueFilter = p.valueFilter,
+                    min = p.valueFilter == VFXValueFilter.Range ? new VFXSerializableObject(p.model.type, p.model.min) : null,
+                    max = p.valueFilter == VFXValueFilter.Range ? new VFXSerializableObject(p.model.type, p.model.max) : null,
+                    enumValue = p.valueFilter == VFXValueFilter.Enum ? p.model.enumValues.ToArray() : null,
                     tooltip = p.model.tooltip,
-                    nodes = c.Select((u, i) => CopyParameterNode(cpt - 1, i, u,parameterIndices[Array.IndexOf(parameters, u)])).ToArray()
+                    nodes = c.Select((u, i) => CopyParameterNode(cpt - 1, i, u, parameterIndices[Array.IndexOf(parameters, u)])).ToArray()
                 };
             }
                 ).ToArray();
@@ -325,11 +325,12 @@ namespace UnityEditor.VFX.UI
 
             return id;
         }
+
         SerializableGraph DoCopyBlocks(IEnumerable<VFXBlockController> blocks)
         {
             var newBlocks = new Node[blocks.Count()];
             uint cpt = 0;
-            foreach( var block in blocks)
+            foreach (var block in blocks)
             {
                 CopyNode(ref newBlocks[(int)cpt], block.model, cpt);
                 ++cpt;
@@ -381,7 +382,7 @@ namespace UnityEditor.VFX.UI
             if (controller.model is VFXAbstractRenderedOutput)
                 context.subOutputs = CopySubOutputs(((VFXAbstractRenderedOutput)controller.model).GetSubOutputs());
             else
-                context.subOutputs = null;    
+                context.subOutputs = null;
 
             return id;
         }

@@ -186,8 +186,11 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     input.texCoord1 = (_UVMappingMask.y + _UVDetailsMappingMask.y) > 0 ? input.texCoord1 : 0;
 #endif
 
+// Don't dither if displaced tessellation (we're fading out the displacement instead to match the next LOD)
+#if !defined(SHADER_STAGE_RAY_TRACING) && !defined(_TESSELLATION_DISPLACEMENT)
 #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
     LODDitheringTransition(ComputeFadeMaskSeed(V, posInput.positionSS), unity_LODFade.x);
+#endif
 #endif
 
 #ifdef _DOUBLESIDED_ON
@@ -215,18 +218,17 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float alphaValue = SAMPLE_UVMAPPING_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, layerTexCoord.base).a * _BaseColor.a;
 
     // Perform alha test very early to save performance (a killed pixel will not sample textures)
+    #if SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_PREPASS
+    float alphaCutoff = _AlphaCutoffPrepass;
+    #elif SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_POSTPASS
+    float alphaCutoff = _AlphaCutoffPostpass;
+    #elif SHADERPASS == SHADERPASS_SHADOWS
+    float alphaCutoff = _UseShadowThreshold ? _AlphaCutoffShadow : _AlphaCutoff;
+    #else
     float alphaCutoff = _AlphaCutoff;
-    #ifdef CUTOFF_TRANSPARENT_DEPTH_PREPASS
-    alphaCutoff = _AlphaCutoffPrepass;
-    #elif defined(CUTOFF_TRANSPARENT_DEPTH_POSTPASS)
-    alphaCutoff = _AlphaCutoffPostpass;
     #endif
 
-    #if SHADERPASS == SHADERPASS_SHADOWS
-        GENERIC_ALPHA_TEST(alphaValue, _UseShadowThreshold ? _AlphaCutoffShadow : alphaCutoff);
-    #else
-        GENERIC_ALPHA_TEST(alphaValue, alphaCutoff);
-    #endif
+    GENERIC_ALPHA_TEST(alphaValue, alphaCutoff);
 #endif
 
     // We perform the conversion to world of the normalTS outside of the GetSurfaceData
@@ -257,6 +259,18 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     bentNormalWS = surfaceData.normalWS;
 #endif
 
+#if defined(DEBUG_DISPLAY)  && !defined(SHADER_STAGE_RAY_TRACING)
+    if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
+    {
+        surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, layerTexCoord.base.uv, _BaseColorMap, _BaseColorMap_TexelSize, _BaseColorMap_MipInfo, surfaceData.baseColor);
+        surfaceData.metallic = 0;
+    }
+
+    // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
+    // as it can modify attribute use for static lighting
+    ApplyDebugToSurfaceData(input.tangentToWorld, surfaceData);
+#endif
+
     // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
     // If user provide bent normal then we process a better term
 #if defined(_BENTNORMALMAP) && defined(_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP)
@@ -279,20 +293,13 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, input.tangentToWorld[2], _SpecularAAScreenSpaceVariance, _SpecularAAThreshold);
 #endif
 
-#if defined(DEBUG_DISPLAY)  && !defined(SHADER_STAGE_RAY_TRACING)
-    if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
-    {
-        surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, layerTexCoord.base.uv, _BaseColorMap, _BaseColorMap_TexelSize, _BaseColorMap_MipInfo, surfaceData.baseColor);
-        surfaceData.metallic = 0;
-    }
-
-    // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
-    // as it can modify attribute use for static lighting
-    ApplyDebugToSurfaceData(input.tangentToWorld, surfaceData);
-#endif
-
     // Caution: surfaceData must be fully initialize before calling GetBuiltinData
-    GetBuiltinData(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
+    GetBuiltinData(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, layerTexCoord.base, builtinData);
+
+#ifdef _ALPHATEST_ON
+    // Used for sharpening by alpha to mask
+    builtinData.alphaClipTreshold = alphaCutoff;
+#endif
 
     RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
 }

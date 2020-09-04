@@ -40,7 +40,7 @@
 //
 // UnityEngine.Rendering.HighDefinition.EnvConstants:  static fields
 //
-#define ENVCONSTANTS_SPEC_CUBE_LOD_STEP (6)
+#define ENVCONSTANTS_CONVOLUTION_MIP_COUNT (7)
 
 //
 // UnityEngine.Rendering.HighDefinition.EnvCacheType:  static fields
@@ -97,6 +97,7 @@ struct LightData
     real angleScale;
     real angleOffset;
     float3 forward;
+    float iesCut;
     int lightType;
     float3 right;
     real range;
@@ -105,7 +106,6 @@ struct LightData
     float3 color;
     float rangeAttenuationBias;
     int cookieMode;
-    int cookieIndex;
     int shadowIndex;
     float4 cookieScaleOffset;
     int contactShadowMask;

@@ -1,0 +1,13 @@
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/GTAOCommon.hlsl"
+
+#pragma kernel GTAODenoise_CopyHistory
+
+RW_TEXTURE2D_X(uint, _OutputTexture);
+TEXTURE2D_X(_InputTexture);
+
+[numthreads(8, 8, 1)]
+void GTAODenoise_CopyHistory(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = _InputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)].x;
+}

@@ -66,7 +66,7 @@ VFXSystemBorder.graphElement TextField#title-field
     margin-right:0;
     margin-top:0;
     margin-bottom:0;
-    
+
     position: absolute;
 }
 
@@ -85,4 +85,3 @@ VFXSystemBorder.graphElement TextField#title-field #unity-text-input
     font-size: 48px;
     white-space: normal;
 }
-

@@ -87,7 +87,7 @@ VFXParameterUI.node.superCollapsed > #node-border > #contents > #top > #input
 {
     justify-content:space-around;
     background-color:rgba(0,0,0,0);
-    
+
 }
 
 VFXParameterUI.node.superCollapsed > #node-border > #contents .VFXDataAnchor.Output,

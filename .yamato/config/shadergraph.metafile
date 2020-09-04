@@ -1,0 +1,35 @@
+project:
+  name: ShaderGraph
+  folder: ShaderGraph
+test_platforms:
+  - Standalone
+  - playmode
+  - editmode
+platforms:
+  - name: Win
+    apis:
+      - DX11
+      - Vulkan
+  - name: OSX
+    apis:
+      - OpenGLCore
+      - Metal
+  - name: Linux
+    apis: 
+      - OpenGLCore
+      - Vulkan
+all:
+  dependencies:
+    - platform: Win
+      api: DX11
+      test_platforms:
+        - Standalone
+        - editmode
+        - playmode
+    - platform: OSX
+      api: OpenGLCore
+      test_platforms:
+        - editmode 
+    - project: ShaderGraph_Stereo
+      all: true  
+

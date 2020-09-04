@@ -1,0 +1,18 @@
+project:
+  name: Universal_Stereo
+  folder: UniversalGfxTestStereo
+test_platforms:
+  - Standalone
+#  - playmode
+  - editmode
+platforms:
+  - name: Win
+    apis: 
+all:
+  dependencies:
+    - platform: Win
+      api: ''
+      test_platforms:
+        - Standalone
+        - editmode
+  #      - playmode

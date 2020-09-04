@@ -3,11 +3,12 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesGlobal.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightingConvexHullUtils.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/SortingComputeUtils.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightCullUtils.hlsl"
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
 #define EXACT_EDGE_TESTS
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
@@ -16,17 +17,6 @@
 #define USE_OBLIQUE_MODE
 
 #define MAX_NR_BIGTILE_LIGHTS               (MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE-1)
-
-
-uniform int g_iNrVisibLights;
-uniform uint2 g_viDimensions;
-
-uniform float4x4 g_mInvScrProjectionArr[SHADEROPTIONS_XR_MAX_VIEWS];
-uniform float4x4 g_mScrProjectionArr[SHADEROPTIONS_XR_MAX_VIEWS];
-
-uniform float g_fNearPlane;
-uniform float g_fFarPlane;
-uniform uint g_isOrthographic;
 
 StructuredBuffer<float4> g_vBoundsBuffer : register( t1 );
 StructuredBuffer<LightVolumeData> _LightVolumeData : register(t2);

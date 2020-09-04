@@ -16,12 +16,12 @@ Varyings BuildVaryings(Attributes input)
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
     
     // Assign modified vertex attributes
-    input.positionOS = vertexDescription.VertexPosition;
+    input.positionOS = vertexDescription.Position;
     #if defined(VARYINGS_NEED_NORMAL_WS)
-        input.normalOS = vertexDescription.VertexNormal;
-    #endif //FEATURES_GRAPH_NORMAL  
+        input.normalOS = vertexDescription.Normal;
+    #endif //FEATURES_GRAPH_NORMAL
     #if defined(VARYINGS_NEED_TANGENT_WS)
-        input.tangentOS.xyz = vertexDescription.VertexTangent.xyz;
+        input.tangentOS.xyz = vertexDescription.Tangent.xyz;
     #endif //FEATURES GRAPH TANGENT
 #endif //FEATURES_GRAPH_VERTEX
 
@@ -51,7 +51,7 @@ Varyings BuildVaryings(Attributes input)
 #ifdef VARYINGS_NEED_POSITION_WS
     output.positionWS = positionWS;
 #endif
-    
+
 #ifdef VARYINGS_NEED_NORMAL_WS
     output.normalWS = normalWS;			// normalized in TransformObjectToWorldNormal()
 #endif
@@ -92,14 +92,14 @@ Varyings BuildVaryings(Attributes input)
 #endif
 
 #ifdef VARYINGS_NEED_VIEWDIRECTION_WS
-    output.viewDirectionWS = _WorldSpaceCameraPos.xyz - positionWS;
+    output.viewDirectionWS = GetWorldSpaceViewDir(positionWS);
 #endif
 
 #ifdef VARYINGS_NEED_SCREENPOSITION
     output.screenPosition = ComputeScreenPos(output.positionCS, _ProjectionParams.x);
 #endif
 
-#if (SHADERPASS == SHADERPASS_FORWARD)
+#if (SHADERPASS == SHADERPASS_FORWARD) || (SHADERPASS == SHADERPASS_GBUFFER)
     OUTPUT_LIGHTMAP_UV(input.uv1, unity_LightmapST, output.lightmapUV);
     OUTPUT_SH(normalWS, output.sh);
 #endif
@@ -110,9 +110,10 @@ Varyings BuildVaryings(Attributes input)
     output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 #endif
 
-#ifdef _MAIN_LIGHT_SHADOWS
+#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     output.shadowCoord = GetShadowCoord(vertexInput);
 #endif
 
     return output;
 }
+

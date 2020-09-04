@@ -12,13 +12,23 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition
 {
     // Extension class to setup material keywords on unlit materials
-        static class BaseUnlitGUI
+    static class BaseUnlitGUI
     {
         public static void SetupBaseUnlitKeywords(this Material material)
         {
+            // First thing, be sure to have an up to date RenderQueue
+            material.ResetMaterialCustomRenderQueue();
+
             bool alphaTestEnable = material.HasProperty(kAlphaCutoffEnabled) && material.GetFloat(kAlphaCutoffEnabled) > 0.0f;
             CoreUtils.SetKeyword(material, "_ALPHATEST_ON", alphaTestEnable);
 
+            // Setup alpha to mask using the _AlphaToMaskInspectorValue that we configure in the material UI
+            float alphaToMaskEnabled = material.HasProperty("_AlphaToMaskInspectorValue") && material.GetFloat("_AlphaToMaskInspectorValue") > 0.0 ? 1 : 0;
+            material.SetFloat(kAlphaToMask, alphaTestEnable ? alphaToMaskEnabled : 0);
+
+            bool alphaToMaskEnable = alphaTestEnable && material.HasProperty(kAlphaToMask) && material.GetFloat(kAlphaToMask) > 0.0f;
+            CoreUtils.SetKeyword(material, "_ALPHATOMASK_ON", alphaToMaskEnable);
+            
             SurfaceType surfaceType = material.GetSurfaceType();
             CoreUtils.SetKeyword(material, "_SURFACE_TYPE_TRANSPARENT", surfaceType == SurfaceType.Transparent);
 
@@ -198,7 +208,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            CullMode doubleSidedOffMode = (surfaceType == SurfaceType.Transparent) ? material.GetTransparentCullMode() : CullMode.Back;
+            CullMode doubleSidedOffMode = (surfaceType == SurfaceType.Transparent) ? material.GetTransparentCullMode() : material.GetOpaqueCullMode();
 
             bool isBackFaceEnable = material.HasProperty(kTransparentBackfaceEnable) && material.GetFloat(kTransparentBackfaceEnable) > 0.0f && surfaceType == SurfaceType.Transparent;
             bool doubleSidedEnable = material.HasProperty(kDoubleSidedEnable) && material.GetFloat(kDoubleSidedEnable) > 0.0f;
@@ -231,6 +241,14 @@ namespace UnityEditor.Rendering.HighDefinition
             // Commented out for now because unfortunately we used the hard coded property names used by the GI system for our own parameters
             // So we need a way to work around that before we activate this.
             material.SetupMainTexForAlphaTestGI("_EmissiveColorMap", "_EmissiveColor");
+
+            // depth offset for ShaderGraphs (they don't have the displacement mode property)
+            if (!material.HasProperty(kDisplacementMode) && material.HasProperty(kDepthOffsetEnable))
+            {
+                // Depth offset is only enabled if per pixel displacement is
+                bool depthOffsetEnable = (material.GetFloat(kDepthOffsetEnable) > 0.0f);
+                CoreUtils.SetKeyword(material, "_DEPTHOFFSET_ON", depthOffsetEnable);
+            }
 
             // DoubleSidedGI has to be synced with our double sided toggle
             var serializedObject = new SerializedObject(material);
@@ -289,6 +307,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrepassStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentBackfaceStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPostpassStr, enablePass);
+                material.SetShaderPassEnabled(HDShaderPassNames.s_RayTracingPrepassStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_MetaStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_ShadowCasterStr, enablePass);
             }
@@ -296,7 +315,8 @@ namespace UnityEditor.Rendering.HighDefinition
             if (material.HasProperty(kTransparentDepthPrepassEnable))
             {
                 bool depthWriteEnable = (material.GetFloat(kTransparentDepthPrepassEnable) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrepassStr, depthWriteEnable);
+                bool ssrTransparent = material.HasProperty(kReceivesSSRTransparent) ? (material.GetFloat(kReceivesSSRTransparent) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent) : false;
+                material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrepassStr, depthWriteEnable || ssrTransparent);
             }
 
             if (material.HasProperty(kTransparentDepthPostpassEnable))
@@ -311,7 +331,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentBackfaceStr, backFaceEnable);
             }
 
+            if (material.HasProperty(kRayTracing))
+            {
+                bool rayTracingEnable = (material.GetFloat(kRayTracing) > 0.0f);
+                material.SetShaderPassEnabled(HDShaderPassNames.s_RayTracingPrepassStr, rayTracingEnable);
+            }
+
             // Shader graphs materials have their own management of motion vector pass in the material inspector
+            // (see DrawMotionVectorToggle())
             if (!material.shader.IsShaderGraph())
             {
                 //In the case of additional velocity data we will enable the motion vector pass.
@@ -327,9 +354,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // don't do any vertex deformation but we can still have
                 // skinning / morph target
                 material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, addPrecomputedVelocity);
-
              }
-
         }
 
     }

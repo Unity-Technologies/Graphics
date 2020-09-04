@@ -29,10 +29,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-
         public override void SetEnabled(bool value)
         {
-            for(int i = 0; i < componentCount; ++i)
+            for (int i = 0; i < componentCount; ++i)
             {
                 m_Fields[i].SetEnabled(value);
                 if (value)
@@ -45,7 +44,6 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
-    
 
         void CreateTextField()
         {
@@ -60,10 +58,10 @@ namespace UnityEditor.VFX.UI
                 m_Fields[i].AddToClassList("fieldContainer");
                 m_Fields[i].RegisterCallback<ChangeEvent<float>, int>(OnValueChanged, i);
 
-                m_FieldParents[i] = new VisualElement{name = "FieldParent" };
+                m_FieldParents[i] = new VisualElement {name = "FieldParent" };
                 m_FieldParents[i].Add(m_Fields[i]);
                 m_FieldParents[i].style.flexGrow = 1;
-                m_TooltipHolders[i] = new VisualElement{name = "TooltipHolder" };
+                m_TooltipHolders[i] = new VisualElement {name = "TooltipHolder" };
                 m_TooltipHolders[i].style.position = UnityEngine.UIElements.Position.Absolute;
                 m_TooltipHolders[i].style.top = 0;
                 m_TooltipHolders[i].style.left = 0;

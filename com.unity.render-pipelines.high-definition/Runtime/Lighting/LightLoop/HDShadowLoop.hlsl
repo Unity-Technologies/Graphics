@@ -197,7 +197,7 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
 
                     if (distances.x < lightData.range && coef > 0.0)
                     {
-                        float shadowA = GetAreaLightAttenuation(shadowContext, posInput.positionSS, posInput.positionWS, normalWS, lightData.shadowIndex, normalize(lightData.positionRWS), length(lightData.positionRWS));
+                        float shadowA = GetRectAreaShadowAttenuation(shadowContext, posInput.positionSS, posInput.positionWS, normalWS, lightData.shadowIndex, normalize(lightData.positionRWS), length(lightData.positionRWS));
 
 #ifdef SHADOW_LOOP_MULTIPLY
                         shadow *= lerp(lightData.shadowTint, float3(1, 1, 1), shadowA);

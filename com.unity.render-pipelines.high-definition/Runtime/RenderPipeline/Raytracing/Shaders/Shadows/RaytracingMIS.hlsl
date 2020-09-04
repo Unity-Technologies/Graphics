@@ -37,6 +37,16 @@ struct MISSamplingOuput
     float2 sampleUV;
 };
 
+struct LightSamplingOutput
+{
+    // Sampled direction
+    float3 dir;
+    // Sampled position
+    float3 pos;
+    // PDF of the light technique
+    float lightPDF;
+};
+
 // The approach here is that on a grid pattern, every pixel is using the opposite technique of his direct neighbor and every sample the technique used changes
 void EvaluateMISTechnique(inout MISSamplingInput samplingInput)
 {
@@ -73,7 +83,7 @@ void InitSphericalQuad(LightData areaLightData, float3 positionWS, out SphQuad s
     SphQuadInit(v0, ex, ey, positionWS, squad);
 }
 
-bool InitSphericalQuad(LightData areaLightData, float3 positionWS, float3 normalWS, out SphQuad squad)
+bool InitSphericalQuad(LightData areaLightData, float3 positionWS, float3 normalWS, inout SphQuad squad)
 {
     ZERO_INITIALIZE(SphQuad, squad);
     
@@ -93,7 +103,9 @@ bool InitSphericalQuad(LightData areaLightData, float3 positionWS, float3 normal
     // Make sure that this point may have light contributions
     float d = -dot(normalWS, positionWS);
     if ((dot(normalWS, v0) + d < 0) && (dot(normalWS, v1) + d < 0) && (dot(normalWS, v2) + d < 0) && (dot(normalWS, v3) + d < 0))
+    {
         return false;
+    }
         
     float3 ex = v1 - v0;
     float3 ey = v3 - v0;
@@ -120,7 +132,6 @@ void brdfSampleMIS(MISSamplingInput misInput, out float3 direction, out float pd
     // Evaluate the pdf for this sample
     pdf = EvalBrdfPDF(misInput, direction);
 }
-
 
 // Here we decided to use a "Damier" pattern to define which importance sampling technique to use for the MIS
 bool GenerateMISSample(inout MISSamplingInput misInput, SphQuad squad, float3 viewVector, inout MISSamplingOuput misSamplingOutput)
@@ -170,6 +181,13 @@ bool GenerateMISSample(inout MISSamplingInput misInput, SphQuad squad, float3 vi
         misSamplingOutput.sampleUV = float2((lsPoint.x + misInput.rectDimension.x) / (2.0 * misInput.rectDimension.x), (lsPoint.y + misInput.rectDimension.y) /  (2.0 * misInput.rectDimension.y));
     }
     return validity;
+}
+
+void GenerateLightSample(float3 positionWS, float2 sample, SphQuad squad, float3 viewVector, out LightSamplingOutput lightSamplingOutput)
+{
+    lightSamplingOutput.pos = SphQuadSample(squad, sample.x, sample.y);
+    lightSamplingOutput.dir = normalize(lightSamplingOutput.pos - positionWS);
+    lightSamplingOutput.lightPDF = 1.0f / squad.S;
 }
 
 bool EvaluateMISProbabilties(DirectLighting lighting, float perceptualRoughness, out float brdfProb)

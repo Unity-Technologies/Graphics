@@ -14,4 +14,3 @@ Visual Effect Graph Preferences is a Section in Unity Preferences Window. You ca
 | Verbose Mode for Compilation        | Enable Verbose logging in Console when Compiling Graphs.     |
 | Experimental Shader Externalization | Enable Externalizing Shaders (for Debugging purposes) in the [Visual Effect Graph Asset Inspector](VisualEffectGraphAsset.md) |
 | Force Compilation in Edition Mode   | Disables Graph Optimization when Saving Assets (for Debug Purposes Only) |
-

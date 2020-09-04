@@ -11,19 +11,19 @@ namespace UnityEngine.Rendering.HighDefinition
         HTileForSSS,
         RenderSSAO,
         ResolveStencilBuffer,
+        AmbientOcclusion,
         HorizonSSAO,
         DenoiseSSAO,
         UpSampleSSAO,
         ScreenSpaceShadows,
+        ScreenSpaceShadowsDebug,
         BuildLightList,
         ContactShadows,
         BlitToFinalRTDevBuildOnly,
         Distortion,
+        AccumulateDistortion,
         ApplyDistortion,
-        DepthPrepassForward,
-        DepthPrepassDeferredForDecals,
-        DepthPrepassDeferred,
-        DepthPrepassDeferredIncomplete,
+        DepthPrepass,
         TransparentDepthPrepass,
         GBuffer,
         GBufferDebug,
@@ -36,6 +36,14 @@ namespace UnityEngine.Rendering.HighDefinition
         SubsurfaceScattering,
         SsrTracing,
         SsrReprojection,
+        PrepareForTransparentSsr,
+
+        // SSGI
+        SSGITrace,
+        SSGIDenoise,
+        SSGIUpscale,
+        SSGIPass,
+
         ForwardEmissive,
         ForwardOpaque,
         ForwardOpaqueDebug,
@@ -61,6 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ClearSSSFilteringTarget,
         ClearAndCopyStencilTexture,
         ClearHDRTarget,
+        ClearDecalBuffer,
         ClearGBuffer,
         ClearSsrBuffers,
         HDRenderPipelineRenderCamera,
@@ -75,6 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderWireFrame,
         PushToColorPicker,
         ResolveMSAAColor,
+        ResolveMSAAMotionVector,
         ResolveMSAADepth,
         ConvolveReflectionProbe,
         ConvolvePlanarReflectionProbe,
@@ -100,24 +110,48 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumetricLightingFiltering,
         PrepareVisibleDensityVolumeList,
 
+        // RT Cluster
         RaytracingBuildCluster,
         RaytracingCullLights,
-        RaytracingIntegrateReflection,
+        // RTR
+        RaytracingReflectionDirectionGeneration,
+        RaytracingReflectionEvaluation,
+        RaytracingReflectionUpscaleGeneration,
         RaytracingFilterReflection,
+        // RTAO
         RaytracingAmbientOcclusion,
         RaytracingFilterAmbientOcclusion,
+        RaytracingComposeAmbientOcclusion,
+        // RT Shadows
         RaytracingDirectionalLightShadow,
         RaytracingLightShadow,
-        RaytracingIntegrateIndirectDiffuse,
+        RaytracingSphereLightShadow,
+        RaytracingAreaLightShadow,
+        // RTGI
+        RaytracingIndirectDiffuseDirectionGeneration,
+        RaytracingIndirectDiffuseEvaluation,
+        RaytracingIndirectDiffuseUpscale,
         RaytracingFilterIndirectDiffuse,
+        // RTSSS
+        RaytracingSSS,
+        RaytracingSSSTrace,
+        RaytracingSSSCompose,
+        // RTShadow
+        RaytracingWriteShadow,
+        // Other ray tracing
         RaytracingDebugOverlay,
+        RayTracingRecursiveRendering,
+        RayTracingPrepass,
+        // RT Deferred Lighting
+        RaytracingDeferredLighting,
+        // Denoisers
+        TemporalFilter,
+        DiffuseFilter,
 
         // Profile sampler for prepare light for GPU
         PrepareLightsForGPU,
-        PushLightDataGlobalParameters,
 
         // Profile sampler for shadow
-        PushShadowGlobalParameters,
         RenderShadowMaps,
         RenderMomentShadowMaps,
         RenderPunctualShadowMaps,
@@ -140,6 +174,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Misc
         VolumeUpdate,
         CustomPassVolumeUpdate,
+
+        // XR
         XROcclusionMesh,
         XRMirrorView,
         XRCustomMirrorView,
@@ -151,10 +187,12 @@ namespace UnityEngine.Rendering.HighDefinition
         UpsampleLowResTransparent,
 
         // Post-processing
+        GuardBandClear,
         AlphaCopy,
         StopNaNs,
         FixedExposure,
         DynamicExposure,
+        ApplyExposure,
         TemporalAntialiasing,
         DepthOfField,
         DepthOfFieldKernel,
@@ -180,9 +218,27 @@ namespace UnityEngine.Rendering.HighDefinition
         FXAA,
         SMAA,
         FinalPost,
+        FinalImageHistogram,
+        CustomPostProcessBeforeTAA,
         CustomPostProcessBeforePP,
         CustomPostProcessAfterPP,
         CustomPostProcessAfterOpaqueAndSky,
         ContrastAdaptiveSharpen,
+        PrepareProbeVolumeList,
+        ProbeVolumeDebug,
+        BuildGPULightListProbeVolumes,
+        PushProbeVolumeLightListGlobalParameters,
+
+        AOVExecute,
+        // Enum AOVBuffers
+        AOVOutput,
+        AOVColor,
+        AOVDepthStencil,
+        AOVNormals,
+        AOVMotionVectors,
+
+#if ENABLE_VIRTUALTEXTURES
+        VTFeedbackClear,
+#endif
     }
 }

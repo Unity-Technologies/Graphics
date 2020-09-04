@@ -21,6 +21,8 @@ namespace UnityEngine.Rendering.HighDefinition
             ShadowFilteringVeryHighQualityRemoval,
             SeparateColorGradingAndTonemappingFrameSettings,
             ReplaceTextureArraysByAtlasForCookieAndPlanar,
+            AddedAdaptiveSSS,
+            RemoveCookieCubeAtlasToOctahedral2D
         }
 
         static readonly MigrationDescription<Version, HDRenderPipelineAsset> k_Migration = MigrationDescription.New(
@@ -80,24 +82,49 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 FrameSettings.MigrateToSeparateColorGradingAndTonemapping(ref data.m_RenderingPathDefaultCameraFrameSettings);
             }),
-            MigrationStep.New(Version.ReplaceTextureArraysByAtlasForCookieAndPlanar, (HDRenderPipelineAsset data) => 
+            MigrationStep.New(Version.ReplaceTextureArraysByAtlasForCookieAndPlanar, (HDRenderPipelineAsset data) =>
             {
                 ref var lightLoopSettings = ref data.m_RenderPipelineSettings.lightLoopSettings;
 
 #pragma warning disable 618 // Type or member is obsolete
-                int cookieAtlasSize = (int)lightLoopSettings.cookieAtlasSize * lightLoopSettings.cookieTexArraySize;
+                float cookieAtlasSize = Mathf.Sqrt((int)lightLoopSettings.cookieAtlasSize * (int)lightLoopSettings.cookieAtlasSize * lightLoopSettings.cookieTexArraySize);
+                float planarSize = Mathf.Sqrt((int)lightLoopSettings.planarReflectionAtlasSize * (int)lightLoopSettings.planarReflectionAtlasSize * lightLoopSettings.maxPlanarReflectionOnScreen);
 #pragma warning restore 618
-                int planarSize = (int)lightLoopSettings.planarReflectionAtlasSize * lightLoopSettings.maxPlanarReflectionOnScreen;
 
                 // The atlas only supports power of two sizes
-                cookieAtlasSize = Mathf.ClosestPowerOfTwo(cookieAtlasSize);
-                planarSize = Mathf.ClosestPowerOfTwo(planarSize);
+                cookieAtlasSize = (float)Mathf.NextPowerOfTwo((int)cookieAtlasSize);
+                planarSize = (float)Mathf.NextPowerOfTwo((int)planarSize);
+
                 // Clamp to avoid too large atlases
                 cookieAtlasSize = Mathf.Clamp(cookieAtlasSize, (int)CookieAtlasResolution.CookieResolution256, (int)CookieAtlasResolution.CookieResolution8192);
                 planarSize = Mathf.Clamp(planarSize, (int)PlanarReflectionAtlasResolution.PlanarReflectionResolution256, (int)PlanarReflectionAtlasResolution.PlanarReflectionResolution8192);
 
                 lightLoopSettings.cookieAtlasSize = (CookieAtlasResolution)cookieAtlasSize;
                 lightLoopSettings.planarReflectionAtlasSize = (PlanarReflectionAtlasResolution)planarSize;
+            }),
+            MigrationStep.New(Version.AddedAdaptiveSSS, (HDRenderPipelineAsset data) =>
+            {
+            #pragma warning disable 618 // Type or member is obsolete
+                bool previouslyHighQuality = data.m_RenderPipelineSettings.m_ObsoleteincreaseSssSampleCount;
+            #pragma warning restore 618
+
+                FrameSettings.MigrateSubsurfaceParams(ref data.m_RenderingPathDefaultCameraFrameSettings,                  previouslyHighQuality);
+                FrameSettings.MigrateSubsurfaceParams(ref data.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings, previouslyHighQuality);
+                FrameSettings.MigrateSubsurfaceParams(ref data.m_RenderingPathDefaultRealtimeReflectionFrameSettings,      previouslyHighQuality);
+            }),
+            MigrationStep.New(Version.RemoveCookieCubeAtlasToOctahedral2D, (HDRenderPipelineAsset data) =>
+            {
+                ref var lightLoopSettings = ref data.m_RenderPipelineSettings.lightLoopSettings;
+
+#pragma warning disable 618 // Type or member is obsolete
+                float cookieAtlasSize = Mathf.Sqrt((int)lightLoopSettings.cookieAtlasSize * (int)lightLoopSettings.cookieAtlasSize * lightLoopSettings.cookieTexArraySize);
+                float planarSize = Mathf.Sqrt((int)lightLoopSettings.planarReflectionAtlasSize * (int)lightLoopSettings.planarReflectionAtlasSize * lightLoopSettings.maxPlanarReflectionOnScreen);
+#pragma warning restore 618
+
+                if (cookieAtlasSize > 128f && planarSize <= 1024f)
+                {
+                    Debug.LogWarning("HDRP Internally change the storage of Cube Cookie to Octahedral Projection inside the Planar Reflection Atlas. It is recommended that you increase the size of the Planar Projection Atlas if the cookies no longer fit.");
+                }
             })
         );
 
@@ -105,7 +132,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Version m_Version = MigrationDescription.LastVersion<Version>();
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
-        void Awake() => k_Migration.Migrate(this);
+        void OnEnable() => k_Migration.Migrate(this);
 
 #pragma warning disable 618 // Type or member is obsolete
         [SerializeField]

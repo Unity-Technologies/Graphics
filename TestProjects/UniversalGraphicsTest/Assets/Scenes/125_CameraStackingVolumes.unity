@@ -43,7 +43,7 @@ RenderSettings:
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 11
+  serializedVersion: 12
   m_GIWorkflowMode: 1
   m_GISettings:
     serializedVersion: 2
@@ -98,7 +98,8 @@ LightmapSettings:
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 0}
-  m_UseShadowmask: 0
+  m_LightingSettings: {fileID: 4890085278179872738, guid: 6c99629dc513448b3a7332bb14b33e7d,
+    type: 2}
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -118,6 +119,8 @@ NavMeshSettings:
     manualTileSize: 0
     tileSize: 256
     accuratePlacement: 0
+    maxJobWorkers: 0
+    preserveTilesOutsideBounds: 0
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
@@ -247,9 +250,7 @@ GameObject:
   m_Component:
   - component: {fileID: 763890394}
   - component: {fileID: 763890393}
-  - component: {fileID: 763890392}
   - component: {fileID: 763890391}
-  - component: {fileID: 763890390}
   m_Layer: 0
   m_Name: BaseBottomRight
   m_TagString: Untagged
@@ -257,25 +258,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &763890390
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 763890389}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 73231aa468d81ea49bc3d914080de185, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ImageComparisonSettings:
-    TargetWidth: 640
-    TargetHeight: 360
-    PerPixelCorrectnessThreshold: 0.001
-    AverageCorrectnessThreshold: 0.005
-    UseHDR: 0
-  WaitFrames: 0
 --- !u!114 &763890391
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -308,14 +290,6 @@ MonoBehaviour:
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
---- !u!81 &763890392
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 763890389}
-  m_Enabled: 1
 --- !u!20 &763890393
 Camera:
   m_ObjectHideFlags: 0
@@ -445,9 +419,7 @@ GameObject:
   m_Component:
   - component: {fileID: 851340515}
   - component: {fileID: 851340514}
-  - component: {fileID: 851340513}
   - component: {fileID: 851340512}
-  - component: {fileID: 851340511}
   m_Layer: 0
   m_Name: BaseBottomLeft
   m_TagString: Untagged
@@ -455,25 +427,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &851340511
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 851340510}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 73231aa468d81ea49bc3d914080de185, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ImageComparisonSettings:
-    TargetWidth: 640
-    TargetHeight: 360
-    PerPixelCorrectnessThreshold: 0.001
-    AverageCorrectnessThreshold: 0.005
-    UseHDR: 0
-  WaitFrames: 0
 --- !u!114 &851340512
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -506,14 +459,6 @@ MonoBehaviour:
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
---- !u!81 &851340513
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 851340510}
-  m_Enabled: 1
 --- !u!20 &851340514
 Camera:
   m_ObjectHideFlags: 0
@@ -583,7 +528,6 @@ GameObject:
   - component: {fileID: 963194227}
   - component: {fileID: 963194226}
   - component: {fileID: 963194229}
-  - component: {fileID: 963194230}
   m_Layer: 0
   m_Name: BaseTopLeft
   m_TagString: Untagged
@@ -688,25 +632,6 @@ MonoBehaviour:
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
---- !u!114 &963194230
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 963194225}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 73231aa468d81ea49bc3d914080de185, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ImageComparisonSettings:
-    TargetWidth: 640
-    TargetHeight: 360
-    PerPixelCorrectnessThreshold: 0.001
-    AverageCorrectnessThreshold: 0.005
-    UseHDR: 0
-  WaitFrames: 0
 --- !u!1 &1080787040
 GameObject:
   m_ObjectHideFlags: 0
@@ -736,7 +661,7 @@ MeshCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 3
+  serializedVersion: 4
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
@@ -755,6 +680,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -779,6 +705,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &1080787043
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -811,7 +738,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1085589840}
   - component: {fileID: 1085589837}
-  - component: {fileID: 1085589839}
   - component: {fileID: 1085589838}
   m_Layer: 0
   m_Name: OverlayCameraVignette
@@ -894,14 +820,6 @@ MonoBehaviour:
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
---- !u!81 &1085589839
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1085589836}
-  m_Enabled: 1
 --- !u!4 &1085589840
 Transform:
   m_ObjectHideFlags: 0
@@ -926,11 +844,11 @@ GameObject:
   m_Component:
   - component: {fileID: 1142247714}
   - component: {fileID: 1142247711}
-  - component: {fileID: 1142247713}
   - component: {fileID: 1142247712}
+  - component: {fileID: 1142247713}
   m_Layer: 0
   m_Name: OverlayCameraFilmGrain
-  m_TagString: Untagged
+  m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1009,14 +927,27 @@ MonoBehaviour:
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
---- !u!81 &1142247713
-AudioListener:
+--- !u!114 &1142247713
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1142247710}
   m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73231aa468d81ea49bc3d914080de185, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ImageComparisonSettings:
+    TargetWidth: 640
+    TargetHeight: 360
+    PerPixelCorrectnessThreshold: 0.001
+    AverageCorrectnessThreshold: 0.005
+    UseHDR: 0
+    UseBackBuffer: 1
+    ImageResolution: 4
+  WaitFrames: 2
 --- !u!4 &1142247714
 Transform:
   m_ObjectHideFlags: 0
@@ -1126,6 +1057,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1150,6 +1082,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &1485498975
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -1182,9 +1115,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1611639447}
   - component: {fileID: 1611639446}
-  - component: {fileID: 1611639445}
   - component: {fileID: 1611639444}
-  - component: {fileID: 1611639443}
   m_Layer: 0
   m_Name: BaseTopRight
   m_TagString: Untagged
@@ -1192,25 +1123,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1611639443
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1611639442}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 73231aa468d81ea49bc3d914080de185, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ImageComparisonSettings:
-    TargetWidth: 640
-    TargetHeight: 360
-    PerPixelCorrectnessThreshold: 0.001
-    AverageCorrectnessThreshold: 0.005
-    UseHDR: 0
-  WaitFrames: 0
 --- !u!114 &1611639444
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1243,14 +1155,6 @@ MonoBehaviour:
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
---- !u!81 &1611639445
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1611639442}
-  m_Enabled: 1
 --- !u!20 &1611639446
 Camera:
   m_ObjectHideFlags: 0

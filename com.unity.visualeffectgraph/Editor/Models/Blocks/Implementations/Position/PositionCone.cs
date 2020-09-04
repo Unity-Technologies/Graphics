@@ -27,9 +27,9 @@ namespace UnityEditor.VFX.Block
 
         public class CustomProperties
         {
-            [Range(0, 1), Tooltip("Sets the position along the height to emit particles from when ‘Custom Emission’ is used.")]
+            [Range(0, 1), Tooltip("Sets the position along the height to emit particles from when â€˜Custom Emissionâ€™ is used.")]
             public float HeightSequencer = 0.0f;
-            [Range(0, 1), Tooltip("Sets the position on the arc to emit particles from when ‘Custom Emission’ is used.")]
+            [Range(0, 1), Tooltip("Sets the position on the arc to emit particles from when â€˜Custom Emissionâ€™ is used.")]
             public float ArcSequencer = 0.0f;
         }
 
@@ -47,8 +47,6 @@ namespace UnityEditor.VFX.Block
                 VFXExpression height = inputSlots[0][3].GetExpression();
                 VFXExpression tanSlope = (radius1 - radius0) / height;
                 VFXExpression slope = new VFXExpressionATan(tanSlope);
-                if (spawnMode == SpawnMode.Random)
-                    yield return new VFXNamedExpression(radius1 / tanSlope, "fullConeHeight");
                 yield return new VFXNamedExpression(new VFXExpressionCombine(new VFXExpression[] { new VFXExpressionSin(slope), new VFXExpressionCos(slope) }), "sincosSlope");
             }
         }
@@ -77,37 +75,42 @@ float rNorm = sqrt(volumeFactor + (1 - volumeFactor) * RAND);
 
 float2 sincosTheta;
 sincos(theta, sincosTheta.x, sincosTheta.y);
-
 float2 pos = (sincosTheta * rNorm);
-
 ";
 
                 if (heightMode == HeightMode.Base)
                 {
                     outSource += @"
 float hNorm = 0.0f;
-float3 base = float3(pos * ArcCone_radius0, 0.0f);
 ";
                 }
                 else if (spawnMode == SpawnMode.Random)
                 {
-                    outSource += @"
-float heightFactor = pow(ArcCone_radius0 / ArcCone_radius1, 3.0f);
-float hNorm = pow(heightFactor + (1 - heightFactor) * RAND, 1.0f / 3.0f);
-float3 base = float3(0.0f, 0.0f, ArcCone_height - fullConeHeight);
+                    float distributionExponent = positionMode == PositionMode.Surface ? 2.0f : 3.0f;
+                    outSource += $@"
+float hNorm = 0.0f;
+if (abs(ArcCone_radius0 - ArcCone_radius1) > VFX_EPSILON)
+{{
+    // Uniform distribution on cone
+    float heightFactor = ArcCone_radius0 / max(VFX_EPSILON,ArcCone_radius1);
+    float heightFactorPow = pow(heightFactor, {distributionExponent});
+    hNorm = pow(heightFactorPow + (1.0f - heightFactorPow) * RAND, rcp({distributionExponent}));
+    hNorm = (hNorm - heightFactor) / (1.0f - heightFactor); // remap on [0,1]
+}}
+else
+    hNorm = RAND; // Uniform distribution on cylinder
 ";
                 }
                 else
                 {
                     outSource += @"
 float hNorm = HeightSequencer;
-float3 base = float3(0.0f, 0.0f, 0.0f);
 ";
                 }
 
                 outSource += @"
 direction.xzy = normalize(float3(pos * sincosSlope.x, sincosSlope.y));
-position.xzy += lerp(base, float3(pos * ArcCone_radius1, ArcCone_height), hNorm) + ArcCone_center.xzy;
+position.xzy += lerp(float3(pos * ArcCone_radius0, 0.0f), float3(pos * ArcCone_radius1, ArcCone_height), hNorm) + ArcCone_center.xzy;
 ";
 
                 return outSource;

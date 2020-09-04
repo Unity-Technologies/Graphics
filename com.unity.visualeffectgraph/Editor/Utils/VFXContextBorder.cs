@@ -66,7 +66,7 @@ namespace UnityEditor.VFX.UI
                 s_Mesh.uv = uvsBorder;
                 s_Mesh.SetIndices(indices, MeshTopology.Quads, 0);
             }
-            if(m_Mat == null)
+            if (m_Mat == null)
                 m_Mat = new Material(Shader.Find("Hidden/VFX/GradientBorder"));
         }
 

@@ -29,31 +29,10 @@ struct ps_input
 
 #if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
 ${VFXPassVelocityDefine}
-#else
+#elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
 ${VFXPassDepthDefine}
 #endif
+
 ${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}	
-
-#if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
-int _ObjectId;
-int _PassValue;
-#endif
-
-#pragma fragment frag
-float4 frag(ps_input i) : SV_Target0
-{
-	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
-	VFXTransformPSInputs(i);
-	float alpha = VFXGetFragmentColor(i).a;
-	VFXClipFragmentColor(alpha,i);
-	#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
-		${VFXComputeOutputMotionVector}
-		return encodedMotionVector;
-	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
-		return float4(_ObjectId, _PassValue, 1.0, 1.0);
-	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
-		return (float4)0;
-	#else
-		#error VFX_PASSDEPTH undefined
-	#endif
-}
+#define VFX_SUPPORT_MAIN_TEXTURE_SAMPLING_IN_FRAGMENT_DEPTH 0
+${VFXPassDepthCommonFragmentUnlit}

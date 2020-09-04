@@ -6,7 +6,6 @@ using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
-
     [VFXInfo(type = typeof(Texture2D))]
     class VFXSlotTexture2D : VFXSlotObject
     {

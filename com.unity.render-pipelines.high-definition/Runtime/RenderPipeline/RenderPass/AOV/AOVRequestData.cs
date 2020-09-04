@@ -16,6 +16,17 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <param name="aovBufferId">The AOVBuffer to allocatE.</param>
     public delegate RTHandle AOVRequestBufferAllocator(AOVBuffers aovBufferId);
 
+    /// <summary>Called when the rendering has completed.</summary>
+    /// <param name="cmd">A command buffer that can be used.</param>
+    /// <param name="buffers">The buffers that has been requested.</param>
+    /// <param name="outputProperties">Several properties that were computed for this frame.</param>
+    public delegate void FramePassCallbackEx(CommandBuffer cmd, List<RTHandle> buffers, List<RTHandle> customPassbuffers, RenderOutputProperties outputProperties);
+    /// <summary>
+    /// Called to allocate a RTHandle for a specific custom pass AOVBuffer.
+    /// </summary>
+    /// <param name="aovBufferId">The AOVBuffer to allocatE.</param>
+    public delegate RTHandle AOVRequestCustomPassBufferAllocator(CustomPassAOVBuffers aovBufferId);
+
     /// <summary>Describes a frame pass.</summary>
     public struct AOVRequestData
     {
@@ -41,12 +52,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private AOVRequest m_Settings;
         private AOVBuffers[] m_RequestedAOVBuffers;
+        private CustomPassAOVBuffers[] m_CustomPassAOVBuffers;
         private FramePassCallback m_Callback;
+        private FramePassCallbackEx m_CallbackEx;
         private readonly AOVRequestBufferAllocator m_BufferAllocator;
+        private readonly AOVRequestCustomPassBufferAllocator m_CustomPassBufferAllocator;
         private List<GameObject> m_LightFilter;
 
         /// <summary>Whether this frame pass is valid.</summary>
-        public bool isValid => m_RequestedAOVBuffers != null && m_Callback != null;
+        public bool isValid => (m_RequestedAOVBuffers != null || m_CustomPassAOVBuffers != null) && (m_Callback != null || m_CallbackEx != null);
 
         /// <summary>Create a new frame pass.</summary>
         /// <param name="settings">Settings to use.</param>
@@ -67,6 +81,38 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RequestedAOVBuffers = requestedAOVBuffers;
             m_LightFilter = lightFilter;
             m_Callback = callback;
+
+            m_CallbackEx = null;
+            m_CustomPassAOVBuffers = null;
+            m_CustomPassBufferAllocator = null;
+        }
+
+        /// <summary>Create a new frame pass.</summary>
+        /// <param name="settings">Settings to use.</param>
+        /// <param name="bufferAllocator">Buffer allocators to use.</param>
+        /// <param name="lightFilter">If null, all light will be rendered, if not, only those light will be rendered.</param>
+        /// <param name="requestedAOVBuffers">The requested buffers for the callback.</param>
+        /// <param name="customPassAOVBuffers">The custom pass buffers that will be captured.</param>
+        /// <param name="customPassBufferAllocator">Buffer allocators to use for custom passes.</param>
+        /// <param name="callback">The callback to execute.</param>
+        public AOVRequestData(
+            AOVRequest settings,
+            AOVRequestBufferAllocator bufferAllocator,
+            List<GameObject> lightFilter,
+            AOVBuffers[] requestedAOVBuffers,
+            CustomPassAOVBuffers[] customPassAOVBuffers,
+            AOVRequestCustomPassBufferAllocator customPassBufferAllocator,
+            FramePassCallbackEx callback
+        )
+        {
+            m_Settings = settings;
+            m_BufferAllocator = bufferAllocator;
+            m_RequestedAOVBuffers = requestedAOVBuffers;
+            m_CustomPassAOVBuffers = customPassAOVBuffers;
+            m_CustomPassBufferAllocator = customPassBufferAllocator;
+            m_LightFilter = lightFilter;
+            m_Callback = null;
+            m_CallbackEx = callback;
         }
 
         /// <summary>Allocate texture if required.</summary>
@@ -76,12 +122,53 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!isValid || textures == null)
                 return;
 
-            Assert.IsNotNull(m_RequestedAOVBuffers);
-
             textures.Clear();
 
-            foreach (var bufferId in m_RequestedAOVBuffers)
-                textures.Add(m_BufferAllocator(bufferId));
+            if (m_RequestedAOVBuffers != null)
+            {
+                foreach (var bufferId in m_RequestedAOVBuffers)
+                    textures.Add(m_BufferAllocator(bufferId));
+            }
+        }
+
+        /// <summary>Allocate texture if required.</summary>
+        /// <param name="textures">A buffer of textures ready to use.</param>
+        /// <param name="customPassTextures">A buffer of textures ready to use for custom pass AOVs.</param>
+        public void AllocateTargetTexturesIfRequired(ref List<RTHandle> textures, ref List<RTHandle> customPassTextures)
+        {
+            if (!isValid || textures == null)
+                return;
+
+            textures.Clear();
+            customPassTextures.Clear();
+
+            if (m_RequestedAOVBuffers != null)
+            {
+                foreach (var bufferId in m_RequestedAOVBuffers)
+                {
+                    var rtHandle = m_BufferAllocator(bufferId);
+                    textures.Add(rtHandle);
+                    if (rtHandle == null)
+                    {
+                        Debug.LogError("Allocation for requested AOVBuffers ID: " + bufferId.ToString() + " have fail. Please ensure the callback allocator do the correct allocation.");
+                    }
+                }
+                    
+            }
+
+            if (m_CustomPassAOVBuffers != null)
+            {
+                foreach (var aovBufferId in m_CustomPassAOVBuffers)
+                {
+                    var rtHandle = m_CustomPassBufferAllocator(aovBufferId);
+                    customPassTextures.Add(rtHandle);
+
+                    if (rtHandle == null)
+                    {
+                        Debug.LogError("Allocation for requested AOVBuffers ID: " + aovBufferId.ToString() + " have fail. Please ensure the callback for custom pass allocator do the correct allocation.");
+                    }
+                }
+            }
         }
 
         /// <summary>Copy a camera sized texture into the texture buffers.</summary>
@@ -98,7 +185,7 @@ namespace UnityEngine.Rendering.HighDefinition
             List<RTHandle> targets
         )
         {
-            if (!isValid)
+            if (!isValid || m_RequestedAOVBuffers == null)
                 return;
 
             Assert.IsNotNull(m_RequestedAOVBuffers);
@@ -108,26 +195,28 @@ namespace UnityEngine.Rendering.HighDefinition
             if (index == -1)
                 return;
 
-            HDUtils.BlitCameraTexture(cmd, source, targets[index]);
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.AOVOutput + (int)aovBufferId)))
+            {
+                HDUtils.BlitCameraTexture(cmd, source, targets[index]);
+            }
         }
 
         class PushCameraTexturePassData
         {
-            public int                  requestIndex;
-            public RenderGraphResource  source;
-            // Not super clean to not use RenderGraphResources here. In practice it's ok because those texture are never passed back to any other render pass.
-            public List<RTHandle>       targets;
+            public TextureHandle source;
+            // Not super clean to not use TextureHandles here. In practice it's ok because those texture are never passed back to any other render pass.
+            public RTHandle target;
         }
 
         internal void PushCameraTexture(
-            RenderGraph         renderGraph,
-            AOVBuffers          aovBufferId,
-            HDCamera            camera,
-            RenderGraphResource source,
-            List<RTHandle>      targets
+            RenderGraph renderGraph,
+            AOVBuffers aovBufferId,
+            HDCamera camera,
+            TextureHandle source,
+            List<RTHandle> targets
         )
         {
-            if (!isValid)
+            if (!isValid || m_RequestedAOVBuffers == null)
                 return;
 
             Assert.IsNotNull(m_RequestedAOVBuffers);
@@ -137,16 +226,112 @@ namespace UnityEngine.Rendering.HighDefinition
             if (index == -1)
                 return;
 
-            using (var builder = renderGraph.AddRenderPass<PushCameraTexturePassData>("Push AOV Camera Texture", out var passData))
+            using (var builder = renderGraph.AddRenderPass<PushCameraTexturePassData>("Push AOV Camera Texture", out var passData, ProfilingSampler.Get(HDProfileId.AOVOutput + (int)aovBufferId)))
             {
-                passData.requestIndex = index;
                 passData.source = builder.ReadTexture(source);
-                passData.targets = targets;
+                passData.target = targets[index];
 
                 builder.SetRenderFunc(
                 (PushCameraTexturePassData data, RenderGraphContext ctx) =>
                 {
-                    HDUtils.BlitCameraTexture(ctx.cmd, ctx.resources.GetTexture(data.source), data.targets[data.requestIndex]);
+                    HDUtils.BlitCameraTexture(ctx.cmd, data.source, data.target);
+                });
+            }
+        }
+
+        internal void PushCustomPassTexture(
+            CommandBuffer cmd,
+            CustomPassInjectionPoint injectionPoint,
+            RTHandle cameraSource,
+            Lazy<RTHandle> customPassSource,
+            List<RTHandle> targets
+        )
+        {
+            if (!isValid || m_CustomPassAOVBuffers == null)
+                return;
+
+            Assert.IsNotNull(targets);
+
+            int index = -1;
+            for (int i = 0; i < m_CustomPassAOVBuffers.Length; ++i)
+            {
+                if (m_CustomPassAOVBuffers[i].injectionPoint == injectionPoint)
+                {
+                    index = i;
+                    break;
+                }
+            }
+
+            if (index == -1)
+                return;
+
+            if (m_CustomPassAOVBuffers[index].outputType == CustomPassAOVBuffers.OutputType.Camera)
+            {
+                HDUtils.BlitCameraTexture(cmd, cameraSource, targets[index]);
+            }
+            else
+            {
+                if (customPassSource.IsValueCreated)
+                {
+                    HDUtils.BlitCameraTexture(cmd, customPassSource.Value, targets[index]);
+                }
+            }
+        }
+
+        class PushCustomPassTexturePassData
+        {
+            public TextureHandle source;
+            public RTHandle customPassSource;
+            // Not super clean to not use TextureHandles here. In practice it's ok because those texture are never passed back to any other render pass.
+            public RTHandle target;
+        }
+
+        internal void PushCustomPassTexture(
+            RenderGraph renderGraph,
+            CustomPassInjectionPoint injectionPoint,
+            TextureHandle cameraSource,
+            Lazy<RTHandle> customPassSource,
+            List<RTHandle> targets
+        )
+        {
+            if (!isValid || m_CustomPassAOVBuffers == null)
+                return;
+
+            Assert.IsNotNull(targets);
+
+            int index = -1;
+            for (int i = 0; i < m_CustomPassAOVBuffers.Length; ++i)
+            {
+                if (m_CustomPassAOVBuffers[i].injectionPoint == injectionPoint)
+                {
+                    index = i;
+                    break;
+                }
+            }
+
+            if (index == -1)
+                return;
+
+            using (var builder = renderGraph.AddRenderPass<PushCustomPassTexturePassData>("Push Custom Pass Texture", out var passData))
+            {
+                if (m_CustomPassAOVBuffers[index].outputType == CustomPassAOVBuffers.OutputType.Camera)
+                {
+                    passData.source = builder.ReadTexture(cameraSource);
+                    passData.customPassSource = null;
+                }
+                else
+                {
+                    passData.customPassSource = customPassSource.Value;
+                }
+                passData.target = targets[index];
+
+                builder.SetRenderFunc(
+                (PushCustomPassTexturePassData data, RenderGraphContext ctx) =>
+                {
+                    if (data.customPassSource != null)
+                        HDUtils.BlitCameraTexture(ctx.cmd, data.customPassSource, data.target);
+                    else
+                        HDUtils.BlitCameraTexture(ctx.cmd, data.source, data.target);
                 });
             }
         }
@@ -161,6 +346,26 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             m_Callback(cmd, framePassTextures, outputProperties);
+        }
+
+        /// <summary>Execute the frame pass callback. It assumes that the textures are properly initialized and filled.</summary>
+        /// <param name="cmd">The command buffer to use.</param>
+        /// <param name="framePassTextures">The textures to use.</param>
+        /// <param name="customPassTextures">The custom pass AOV textures to use.</param>
+        /// <param name="outputProperties">The properties computed for this frame.</param>
+        public void Execute(CommandBuffer cmd, List<RTHandle> framePassTextures, List<RTHandle> customPassTextures, RenderOutputProperties outputProperties)
+        {
+            if (!isValid)
+                return;
+
+            if (m_CallbackEx != null)
+            {
+                m_CallbackEx(cmd, framePassTextures, customPassTextures, outputProperties);
+            }
+            else
+            {
+                m_Callback(cmd, framePassTextures, outputProperties);
+            }
         }
 
         /// <summary>Setup the display manager if necessary.</summary>

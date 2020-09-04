@@ -20,7 +20,7 @@ namespace UnityEditor.VFX
         [VFXSetting, Header("Render States"), Tooltip("Specifies the transparency and blending method for rendering the particles to the screen.")]
         public BlendMode blendMode = BlendMode.Alpha;
 
-        [VFXSetting,Tooltip("When enabled, transparent pixels under the specified alpha threshold will be discarded."), SerializeField]
+        [VFXSetting, Tooltip("When enabled, transparent pixels under the specified alpha threshold will be discarded."), SerializeField]
         protected bool useAlphaClipping = false;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles write to the velocity buffer, allowing them to be blurred with the Motion Blur post processing effect.")]
@@ -42,8 +42,14 @@ namespace UnityEditor.VFX
 
         public virtual bool implementsMotionVector { get { return false; } }
 
-        protected VFXAbstractRenderedOutput(VFXDataType dataType) : base(VFXContextType.Output, dataType, VFXDataType.None) { }
+        protected VFXAbstractRenderedOutput(VFXDataType dataType) : base(VFXContextType.Output, dataType, VFXDataType.None) {}
 
+
+
+        public override IEnumerable<int> GetFilteredOutEnumerators(string name)
+        {
+            return subOutput.GetFilteredOutEnumerators(name);
+        }
         public VFXSRPSubOutput subOutput
         {
             get
@@ -113,10 +119,9 @@ namespace UnityEditor.VFX
                 return;
             }
 
-            // TODO Uncommenting this code will removed SRP data that are unknown, this is probably not what we want
-            //int nbRemoved = 0;
-            //if ((nbRemoved = m_SubOutputs.RemoveAll(s => s == null)) > 0)
-            //    Debug.LogWarningFormat("Remove {0} SRP Sub Outputs that could not be deserialized from {1} of type {2}", nbRemoved, name, GetType());
+            // Reference equals because we only need to remove actual null sub-output, not the ones that cannot be deserialized
+            // Because we want to keep reference to unknown SRP outputs. No log because this is internal clean up
+            m_SubOutputs.RemoveAll(s => object.ReferenceEquals(s, null));
 
             var subOutputsTypes = new HashSet<Type>(); // TODO For some reason constructor that takes a capacity does not exist
             for (int i = 0; i < m_SubOutputs.Count; ++i)
@@ -140,11 +145,7 @@ namespace UnityEditor.VFX
         {
             base.CollectDependencies(objs, ownedOnly);
             foreach (var data in m_SubOutputs)
-                if (data != null)
-                {
-                    objs.Add(data);
-                    data.CollectDependencies(objs, ownedOnly);
-                }
+                objs.Add(data);
         }
 
         public override VFXSetting GetSetting(string name)
@@ -175,15 +176,15 @@ namespace UnityEditor.VFX
         {
             if (version < 3) // Fix Blend Modes and useAlphaClipping
             {
-                int blendModeValue = (int)blendMode; 
-                switch(blendModeValue)
+                int blendModeValue = (int)blendMode;
+                switch (blendModeValue)
                 {
                     case 0: // No change required for 0 and 1 (Additive and AlphaBlend)
                     case 1:
                         break;
                     case 2: // Masked
                         SetSettingValue("useAlphaClipping", true);
-                        SetSettingValue("blendMode",(int)BlendMode.Opaque);
+                        SetSettingValue("blendMode", (int)BlendMode.Opaque);
                         break;
                     case 3: // Alpha Premultiplied
                         SetSettingValue("blendMode", (int)BlendMode.AlphaPremultiplied);
@@ -192,7 +193,7 @@ namespace UnityEditor.VFX
                     case 4: // Opaque
                         SetSettingValue("blendMode", (int)BlendMode.Opaque);
                         break;
-                    default: 
+                    default:
                         break;
                 }
             }

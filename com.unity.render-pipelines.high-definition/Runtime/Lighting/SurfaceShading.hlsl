@@ -92,7 +92,7 @@ DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
         else
 #endif
         {
-            DirectionalShadowType shadow = EvaluateShadow_Directional(lightLoopContext, posInput, light, builtinData, GetNormalForShadowBias(bsdfData));
+            SHADOW_TYPE shadow = EvaluateShadow_Directional(lightLoopContext, posInput, light, builtinData, GetNormalForShadowBias(bsdfData));
             float NdotL  = dot(bsdfData.normalWS, L); // No microshadowing when facing away from light (use for thin transmission as well)
             shadow *= NdotL >= 0.0 ? ComputeMicroShadowing(GetAmbientOcclusionForMicroShadowing(bsdfData), NdotL, _MicroShadowOpacity) : 1.0;
             lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
@@ -132,24 +132,18 @@ float3 EvaluateTransmittance_Punctual(LightLoopContext lightLoopContext,
     // Note: based on the artist's input, dependence on the NdotL has been disabled.
     float distFrontFaceToLight   = distances.x;
     float thicknessInUnits       = (distFrontFaceToLight - distBackFaceToLight) /* * -NdotL */;
-    float thicknessInMeters      = thicknessInUnits * _WorldScales[bsdfData.diffusionProfileIndex].x;
+    float metersPerUnit          = _WorldScalesAndFilterRadiiAndThicknessRemaps[bsdfData.diffusionProfileIndex].x;
+    float thicknessInMeters      = thicknessInUnits * metersPerUnit;
     float thicknessInMillimeters = thicknessInMeters * MILLIMETERS_PER_METER;
 
     // We need to make sure it's not less than the baked thickness to minimize light leaking.
-    float thicknessDelta = max(0, thicknessInMillimeters - bsdfData.thickness);
+    float dt = max(0, thicknessInMillimeters - bsdfData.thickness);
+    float3 S = _ShapeParamsAndMaxScatterDists[bsdfData.diffusionProfileIndex].rgb;
 
-    float3 S = _ShapeParams[bsdfData.diffusionProfileIndex].rgb;
-
-#if 0
-    float3 expOneThird = exp(((-1.0 / 3.0) * thicknessDelta) * S);
-#else
-    // Help the compiler. S is premultiplied by ((-1.0 / 3.0) * LOG2_E) on the CPU.
-    float3 p = thicknessDelta * S;
-    float3 expOneThird = exp2(p);
-#endif
+    float3 exp_13 = exp2(((LOG2_E * (-1.0/3.0)) * dt) * S); // Exp[-S * dt / 3]
 
     // Approximate the decrease of transmittance by e^(-1/3 * dt * S).
-    return bsdfData.transmittance * expOneThird;
+    return bsdfData.transmittance * exp_13;
 }
 #endif
 
@@ -182,7 +176,7 @@ DirectLighting ShadeSurface_Punctual(LightLoopContext lightLoopContext,
 #endif
         {
             // This code works for both surface reflection and thin object transmission.
-            float shadow = EvaluateShadow_Punctual(lightLoopContext, posInput, light, builtinData, GetNormalForShadowBias(bsdfData), L, distances);
+            SHADOW_TYPE shadow = EvaluateShadow_Punctual(lightLoopContext, posInput, light, builtinData, GetNormalForShadowBias(bsdfData), L, distances);
             lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
 
 #ifdef DEBUG_DISPLAY
@@ -205,3 +199,5 @@ DirectLighting ShadeSurface_Punctual(LightLoopContext lightLoopContext,
 
     return lighting;
 }
+
+

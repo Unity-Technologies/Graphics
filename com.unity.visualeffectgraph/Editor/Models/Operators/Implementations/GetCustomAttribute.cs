@@ -42,13 +42,13 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return "Get " + attribute + " ("+AttributeType.ToString()+")";
+                return "Get " + attribute + " (" + AttributeType.ToString() + ")";
             }
         }
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var attribute = currentAttribute;
- 
+
             var expression = new VFXAttributeExpression(attribute, location);
             return new VFXExpression[] { expression };
         }

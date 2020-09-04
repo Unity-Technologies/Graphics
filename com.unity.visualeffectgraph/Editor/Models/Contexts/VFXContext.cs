@@ -17,11 +17,13 @@ namespace UnityEditor.VFX
 
         Spawner = 1 << 0,
         Init = 1 << 1,
-        Update = 1 << 2,
-        Output = 1 << 3,
-        Event = 1 << 4,
-        SpawnerGPU = 1 << 5,
-        Subgraph = 1 << 6,
+        OutputEvent = 1 << 2,
+        Update = 1 << 3,
+        Output = 1 << 4,
+        Event = 1 << 5,
+        SpawnerGPU = 1 << 6,
+        Subgraph = 1 << 7,
+        Filter = 1 << 8,
 
         InitAndUpdate = Init | Update,
         InitAndUpdateAndOutput = Init | Update | Output,
@@ -34,9 +36,10 @@ namespace UnityEditor.VFX
     {
         None =          0,
         SpawnEvent =    1 << 0,
-        Particle =      1 << 1,     
-        Mesh =          1 << 2,
-        ParticleStrip = 1 << 3 | Particle, // strips 
+        OutputEvent =   1 << 1,
+        Particle =      1 << 2,
+        Mesh =          1 << 3,
+        ParticleStrip = 1 << 4 | Particle, // strips 
     };
 
     [Serializable]
@@ -65,7 +68,8 @@ namespace UnityEditor.VFX
         public string label
         {
             get { return m_Label; }
-            set {
+            set
+            {
                 var invalidationCause = InvalidationCause.kUIChanged;
                 if (contextType == VFXContextType.Spawner && m_Label != value)
                     invalidationCause = InvalidationCause.kSettingChanged;
@@ -96,8 +100,6 @@ namespace UnityEditor.VFX
 
         public override void OnEnable()
         {
-            base.OnEnable();
-
             int nbRemoved = 0;
             if (m_InputFlowSlot == null)
                 m_InputFlowSlot = Enumerable.Range(0, inputFlowCount).Select(_ => new VFXContextSlot()).ToArray();
@@ -118,6 +120,8 @@ namespace UnityEditor.VFX
                 SetDefaultData(false);
 
             m_UICollapsed = false;
+
+            base.OnEnable();
         }
 
         public bool doesGenerateShader                                  { get { return codeGeneratorTemplate != null; } }
@@ -233,8 +237,12 @@ namespace UnityEditor.VFX
                 return false;
 
             //If link already present, returns false
-            if (from.m_OutputFlowSlot[fromIndex].link   .Any(o => o.context == to   && o.slotIndex == toIndex) ||
-                to.m_InputFlowSlot[toIndex].link        .Any(o => o.context == from && o.slotIndex == fromIndex))
+            if (from.m_OutputFlowSlot[fromIndex].link.Any(o => o.context == to   && o.slotIndex == toIndex) ||
+                to.m_InputFlowSlot[toIndex].link.Any(o => o.context == from && o.slotIndex == fromIndex))
+                return false;
+
+            //Special incorrect case, GPUEvent use the same type than Spawner which leads to an unexpected allowed link.
+            if (from.m_ContextType == VFXContextType.SpawnerGPU && to.m_ContextType == VFXContextType.OutputEvent)
                 return false;
 
             return true;
@@ -290,6 +298,7 @@ namespace UnityEditor.VFX
         private bool CanLinkFromMany()
         {
             return contextType == VFXContextType.Output
+                || contextType == VFXContextType.OutputEvent
                 || contextType == VFXContextType.Spawner
                 || contextType == VFXContextType.Subgraph
                 ||  contextType == VFXContextType.Init;
@@ -373,7 +382,7 @@ namespace UnityEditor.VFX
 
         public void SetDefaultData(bool notify)
         {
-            InnerSetData(VFXData.CreateDataType(GetGraph(),ownedType), notify);
+            InnerSetData(VFXData.CreateDataType(GetGraph(), ownedType), notify);
         }
 
         public virtual void OnDataChanges(VFXData oldData, VFXData newData)
@@ -388,7 +397,7 @@ namespace UnityEditor.VFX
                 {
                     m_Data.OnContextRemoved(this);
                     if (m_Data.owners.Count() == 0)
-                        m_Data.Detach();
+                        m_Data.Detach(notify);
                 }
                 OnDataChanges(m_Data, data);
                 m_Data = data;
@@ -437,52 +446,52 @@ namespace UnityEditor.VFX
 
         public IEnumerable<VFXBlock> activeFlattenedChildrenWithImplicit
         {
-            get{
+            get
+            {
                 List<VFXBlock> blocks = new List<VFXBlock>();
-                
-                foreach(var ctxblk in implicitPreBlock)
+
+                foreach (var ctxblk in implicitPreBlock)
                 {
                     if (ctxblk is VFXSubgraphBlock subgraphBlk)
                         foreach (var blk in subgraphBlk.recursiveSubBlocks)
                         {
                             if (blk.enabled)
-                             blocks.Add(blk);
+                                blocks.Add(blk);
                         }
                     else
                     {
                         if (ctxblk.enabled)
-                                blocks.Add(ctxblk);
+                            blocks.Add(ctxblk);
                     }
                 }
 
-                foreach( var ctxblk in children )
+                foreach (var ctxblk in children)
                 {
                     if (ctxblk is VFXSubgraphBlock subgraphBlk)
                         foreach (var blk in subgraphBlk.recursiveSubBlocks)
                         {
                             if (blk.enabled)
-                             blocks.Add(blk);
+                                blocks.Add(blk);
                         }
                     else
                     {
                         if (ctxblk.enabled)
-                                blocks.Add(ctxblk);
+                            blocks.Add(ctxblk);
                     }
-
                 }
 
-                foreach(var ctxblk in implicitPostBlock)
+                foreach (var ctxblk in implicitPostBlock)
                 {
                     if (ctxblk is VFXSubgraphBlock subgraphBlk)
                         foreach (var blk in subgraphBlk.recursiveSubBlocks)
                         {
                             if (blk.enabled)
-                             blocks.Add(blk);
+                                blocks.Add(blk);
                         }
                     else
                     {
                         if (ctxblk.enabled)
-                                blocks.Add(ctxblk);
+                            blocks.Add(ctxblk);
                     }
                 }
                 return blocks;
@@ -531,79 +540,6 @@ namespace UnityEditor.VFX
 
         public char letter { get; set; }
 
-
-        string shaderNamePrefix = "Hidden/VFX";
-
-        public string shaderName
-        {
-            get
-            {
-                string assetName = string.Empty;
-                try
-                {
-                    var resource = GetGraph().visualEffectResource;
-                    var asset = resource.asset;
-
-                    assetName = asset!= null ? asset.name : resource.name;
-                }
-                catch(Exception e)
-                {
-                    Debug.LogException(e, this);
-                }
-
-                string prefix = shaderNamePrefix + (assetName == string.Empty? "" : "/"+assetName);
-                if (GetData() != null)
-                {
-                    string dataName = GetData().fileName;
-                    if (!string.IsNullOrEmpty(dataName))
-                        prefix += "/" + dataName;
-                }
-
-                if (letter != '\0')
-                {
-                    if (string.IsNullOrEmpty(label))
-                        return string.Format("{2}/({0}) {1}", letter, libraryName, prefix);
-                    else
-                        return string.Format("{2}/({0}) {1}", letter, label, prefix);
-                }
-                else
-                {
-                    if (string.IsNullOrEmpty(label))
-                        return string.Format("{1}/{0}", libraryName, prefix);
-                    else
-                        return string.Format("{1}/{0}",label, prefix);
-                }
-            }
-        }
-        public string fileName
-        {
-            get
-            {
-                string prefix = string.Empty;
-                if (GetData() != null)
-                {
-                    string dataName = GetData().fileName;
-                    if (!string.IsNullOrEmpty(dataName))
-                        prefix += "[" + dataName + "]";
-                }
-
-                if (letter != '\0')
-                {
-                    if (string.IsNullOrEmpty(label))
-                        return string.Format("{2}{0} {1}", letter, libraryName, prefix);
-                    else
-                        return string.Format("{2}{0} {1}", letter, label, prefix);
-                }
-                else
-                {
-                    if (string.IsNullOrEmpty(label))
-                        return string.Format("{1}{0}", libraryName, prefix);
-                    else
-                        return string.Format("{1}{0}", label, prefix);
-                }
-            }
-        }
-
         public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {
             return space;
@@ -641,6 +577,16 @@ namespace UnityEditor.VFX
                         slot.Invalidate(InvalidationCause.kSpaceChanged);
                 }
             }
+        }
+
+        public override void CheckGraphBeforeImport()
+        {
+            base.CheckGraphBeforeImport();
+            // If the graph is reimported it can be because one of its depedency such as the subgraphs, has been changed.
+            // blocs could be subgraph blocks.
+
+            foreach (var block in children)
+                block.CheckGraphBeforeImport();
         }
     }
 }

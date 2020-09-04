@@ -63,7 +63,7 @@ Some attributes combinations are used in various implicit cases during the simul
 
 #### Velocity and Position : Integration
 
-During an Update simulation : any system that uses the `velocity` attribute will  integrate the velocity to the positions, every frame. 
+During an Update simulation : any system that uses the `velocity` attribute will  integrate the velocity to the positions, every frame.
 
 Velocity integration basically used the following formula: `position += velocity * deltaTime`
 
@@ -84,7 +84,7 @@ Setting a Lifetime attribute to a particle in an Initialize Context, will implic
 
 #### Angle and Angular Velocity : Angular Integration
 
-During an Update simulation : any system that uses the `angularVelocity` attribute will  integrate the angular Velocity to the angles, every frame. 
+During an Update simulation : any system that uses the `angularVelocity` attribute will  integrate the angular Velocity to the angles, every frame.
 
 Angular Velocity integration basically used the following formula: `angle += angularVelocity * deltaTime`
 
@@ -120,4 +120,3 @@ The pivot representation can be also generalized in 3D, with the Z Axis being us
 * The non-uniform `scale`
 
 You can use any of these two attributes to perform uniform and non-uniform scaling independently : for instance use the scale to compute an initial random scale, and use the size attribute to animate every element, keeping its ratio.
-

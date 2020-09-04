@@ -86,11 +86,17 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField, Header("Rendering Options"), Tooltip("")]
         protected int sortPriority = 0;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specified whether to use GPU sorting for transparent particles.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies whether to use GPU sorting for transparent particles.")]
         protected SortMode sort = SortMode.Auto;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the system will only output alive particles, as opposed to rendering all particles and culling dead ones in the vertex shader. Enable to improve performance when the system capacity is not reached or a high number of vertices per particle are used. Indirect draw is implicit when sorting is on.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the system will only output alive particles, as opposed to rendering all particles and culling dead ones in the vertex shader. Enable to improve performance when the system capacity is not reached or a high number of vertices per particle are used.")]
         protected bool indirectDraw = false;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particle that are not alive in the output are culled in a compute pass rather than in the vertex shader. Enable this to improve performance if you're setting alive attribute in the output and have a high number of vertices per particle.")]
+        protected bool computeCulling = false;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles that are outside of the camera frustum are culled in a compute pass. Use this to improve performance of large systems. Note that frustum culling can cause issues with shadow casting as particles outside of the camera frustum will not be taken into account in the shadow passes.")]
+        protected bool frustumCulling = false;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles will cast shadows.")]
         protected bool castShadows = false;
@@ -107,15 +113,38 @@ namespace UnityEditor.VFX
 
         private bool hasExposure { get { return needsExposureWeight && subOutput.supportsExposure; } }
 
-        public bool HasIndirectDraw()   { return (indirectDraw || HasSorting()) && !HasStrips(true); }
+        public bool HasIndirectDraw()   { return (indirectDraw || HasSorting() || VFXOutputUpdate.HasFeature(outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw)) && !HasStrips(true); }
         public bool HasSorting()        { return (sort == SortMode.On || (sort == SortMode.Auto && (blendMode == BlendMode.Alpha || blendMode == BlendMode.AlphaPremultiplied))) && !HasStrips(true); }
+        public bool HasComputeCulling() { return computeCulling && !HasStrips(true); }
+        public bool HasFrustumCulling() { return frustumCulling && !HasStrips(true); }
+        public bool NeedsOutputUpdate() { return outputUpdateFeatures != VFXOutputUpdate.Features.None; }
+
+        public virtual VFXOutputUpdate.Features outputUpdateFeatures
+        {
+            get
+            {
+                VFXOutputUpdate.Features features = VFXOutputUpdate.Features.None;
+                if (hasMotionVector)
+                    features |= VFXOutputUpdate.Features.MotionVector;
+                if (HasComputeCulling())
+                    features |= VFXOutputUpdate.Features.Culling;
+                if (HasSorting() && VFXOutputUpdate.HasFeature(features, VFXOutputUpdate.Features.IndirectDraw))
+                    features |= VFXOutputUpdate.Features.Sort;
+                if (HasFrustumCulling())
+                    features |= VFXOutputUpdate.Features.FrustumCulling;
+                return features;
+            }
+        }
+
         int IVFXSubRenderer.sortPriority
         {
-            get {
+            get
+            {
                 return sortPriority;
             }
-            set {
-                if(sortPriority != value)
+            set
+            {
+                if (sortPriority != value)
                 {
                     sortPriority = value;
                     Invalidate(InvalidationCause.kSettingChanged);
@@ -166,7 +195,7 @@ namespace UnityEditor.VFX
 
             if (hasSoftParticles)
             {
-                var softParticleFade = slotExpressions.First(o => o.name == "softParticlesFadeDistance");
+                var softParticleFade = slotExpressions.First(o => o.name == "softParticleFadeDistance");
                 var invSoftParticleFade = (VFXValue.Constant(1.0f) / softParticleFade.exp);
                 yield return new VFXNamedExpression(invSoftParticleFade, "invSoftParticlesFadeDistance");
             }
@@ -226,9 +255,9 @@ namespace UnityEditor.VFX
                 foreach (var property in PropertiesFromType(GetInputPropertiesTypeName()))
                     yield return property;
 
-                if(colorMapping == ColorMappingMode.GradientMapped)
+                if (colorMapping == ColorMappingMode.GradientMapped)
                 {
-                    foreach(var property in PropertiesFromType("InputPropertiesGradientMapped"))
+                    foreach (var property in PropertiesFromType("InputPropertiesGradientMapped"))
                         yield return property;
                 }
 
@@ -240,7 +269,7 @@ namespace UnityEditor.VFX
                         case UVMode.FlipbookBlend:
                         case UVMode.FlipbookMotionBlend:
                             yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "flipBookSize"), new Vector2(4, 4));
-                            if(uvMode == UVMode.FlipbookMotionBlend)
+                            if (uvMode == UVMode.FlipbookMotionBlend)
                             {
                                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(Texture2D), "motionVectorMap"));
                                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "motionVectorScale"), 1.0f);
@@ -255,13 +284,13 @@ namespace UnityEditor.VFX
                 }
 
                 if (exposeAlphaThreshold)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "alphaThreshold", VFXPropertyAttribute.Create(new RangeAttribute(0.0f, 1.0f), new TooltipAttribute("Alpha threshold used for pixel clipping"))), 0.5f);
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "alphaThreshold", new RangeAttribute(0.0f, 1.0f), new TooltipAttribute("Alpha threshold used for pixel clipping")), 0.5f);
 
                 if (hasSoftParticles)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "softParticlesFadeDistance", VFXPropertyAttribute.Create(new MinAttribute(0.001f))), 1.0f);
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "softParticleFadeDistance", new MinAttribute(0.001f)), 1.0f);
 
                 if (hasExposure && useExposureWeight)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "exposureWeight", VFXPropertyAttribute.Create(new RangeAttribute(0.0f, 1.0f))), 1.0f);
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "exposureWeight", new RangeAttribute(0.0f, 1.0f)), 1.0f);
             }
         }
 
@@ -269,7 +298,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                switch(colorMapping)
+                switch (colorMapping)
                 {
                     case ColorMappingMode.Default:
                         yield return "VFX_COLORMAPPING_DEFAULT";
@@ -372,11 +401,22 @@ namespace UnityEditor.VFX
                 if (!hasExposure)
                     yield return "useExposureWeight";
 
+                // indirect draw is implicit or forbidden
+                if (HasStrips(true) || HasSorting() || VFXOutputUpdate.HasFeature(outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw))
+                    yield return "indirectDraw";
+
+                // compute culling is implicit or forbidden
+                if (HasStrips(true)
+                    || VFXOutputUpdate.HasFeature(outputUpdateFeatures, VFXOutputUpdate.Features.MultiMesh)
+                    || VFXOutputUpdate.HasFeature(outputUpdateFeatures, VFXOutputUpdate.Features.LOD)
+                    || VFXOutputUpdate.HasFeature(outputUpdateFeatures, VFXOutputUpdate.Features.FrustumCulling))
+                    yield return "computeCulling";
+
                 // No indirect / sorting support now for strips
                 if (HasStrips(true))
                 {
-                    yield return "indirectDraw";
                     yield return "sort";
+                    yield return "frustumCulling";
                 }
             }
         }
@@ -458,7 +498,13 @@ namespace UnityEditor.VFX
             {
                 yield return new VFXMapping("sortPriority", sortPriority);
                 if (HasIndirectDraw())
+                {
                     yield return new VFXMapping("indirectDraw", 1);
+                    if (VFXOutputUpdate.HasFeature(outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw) && VFXOutputUpdate.IsPerCamera(outputUpdateFeatures))
+                        yield return new VFXMapping("indirectPerCamera", 1);
+                }
+                if (HasStrips(false))
+                    yield return new VFXMapping("strips", 1);
             }
         }
     }

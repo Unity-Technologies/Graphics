@@ -1,15 +1,18 @@
-﻿using System;
+using System;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Internal
 {
-    public abstract class ShaderInput
+    public abstract class ShaderInput : JsonObject
     {
         [SerializeField]
         SerializableGuid m_Guid = new SerializableGuid();
 
         internal Guid guid => m_Guid.guid;
-        
+
+        internal void OverrideGuid(string namespaceId, string name) { m_Guid.guid = GenerateNamespaceUUID(namespaceId, name); }
+
         [SerializeField]
         string m_Name;
 
@@ -18,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Internal
             get
             {
                 if (string.IsNullOrEmpty(m_Name))
-                    return $"{concreteShaderValueType}_{GuidEncoder.Encode(guid)}";
+                    return $"{concreteShaderValueType}_{objectId}";
                 return m_Name;
             }
             set => m_Name = value;
@@ -46,7 +49,7 @@ namespace UnityEditor.ShaderGraph.Internal
         // ColorShaderProperty is the only case where PropertyType doesnt match ConcreteSlotValueType
         public virtual string GetDefaultReferenceName()
         {
-            return $"{concreteShaderValueType.ToString()}_{GuidEncoder.Encode(guid)}";
+            return $"{concreteShaderValueType.ToString()}_{objectId}";
         }
 
         [SerializeField]

@@ -22,23 +22,27 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
     float maskMapBlend = fadeFactor;
 
     ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
-    surfaceData.baseColor = _BaseColor;
-    surfaceData.emissive = _EmissiveColor * fadeFactor;
-#ifdef _EMISSIVEMAP
-    surfaceData.emissive *= SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, texCoords);
-#endif
+
+#ifdef _MATERIAL_AFFECTS_EMISSION
+    surfaceData.emissive = _EmissiveColor.rgb * fadeFactor;
+    #ifdef _EMISSIVEMAP
+    surfaceData.emissive *= SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, texCoords).rgb;
+    #endif
 
     // Inverse pre-expose using _EmissiveExposureWeight weight
     float3 emissiveRcpExposure = surfaceData.emissive * GetInverseCurrentExposureMultiplier();
     surfaceData.emissive = lerp(emissiveRcpExposure, surfaceData.emissive, _EmissiveExposureWeight);
+#endif // _MATERIAL_AFFECTS_EMISSION
 
+    // Following code match the code in DecalUtilities.hlsl used for cluster. It have the same kind of condition and similar code structure
+    surfaceData.baseColor = _BaseColor;
 #ifdef _COLORMAP
     surfaceData.baseColor *= SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, texCoords);
-#endif
+ #endif
 	surfaceData.baseColor.w *= fadeFactor;
-	albedoMapBlend = surfaceData.baseColor.w;   
-// outside _COLORMAP because we still have base color
-#ifdef _ALBEDOCONTRIBUTION
+    albedoMapBlend = surfaceData.baseColor.w;
+    // outside _COLORMAP because we still have base color for albedoMapBlend
+#ifdef _MATERIAL_AFFECTS_ALBEDO
     if (surfaceData.baseColor.w > 0.0)
     {
         surfaceData.HTileMask |= DBUFFERHTILEBIT_DIFFUSE;
@@ -47,13 +51,29 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
 	surfaceData.baseColor.w = 0.0;	// dont blend any albedo
 #endif
 
-#ifdef _MASKMAP
+    // In case of Smoothness / AO / Metal, all the three are always computed but color mask can change
+    // Note: We always use a texture here as the decal atlas for transparent decal cluster only handle texture case
+    // If no texture is assign it is the white texture
+#ifdef _MATERIAL_AFFECTS_MASKMAP
+    #ifdef _MASKMAP
     surfaceData.mask = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, texCoords);
     surfaceData.mask.z *= _DecalMaskMapBlueScale;
 	maskMapBlend *= surfaceData.mask.z;	// store before overwriting with smoothness
+    #ifdef DECALS_4RT
     surfaceData.mask.x = _MetallicScale * surfaceData.mask.x;
     surfaceData.mask.y = lerp(_AORemapMin, _AORemapMax, surfaceData.mask.y);
+    #endif
     surfaceData.mask.z = lerp(_SmoothnessRemapMin, _SmoothnessRemapMax, surfaceData.mask.w);
+    #else
+    surfaceData.mask.z = _DecalMaskMapBlueScale;
+    maskMapBlend *= surfaceData.mask.z;	// store before overwriting with smoothness
+    #ifdef DECALS_4RT
+    surfaceData.mask.x = _Metallic;
+    surfaceData.mask.y = _AO;
+    #endif
+    surfaceData.mask.z = _Smoothness;
+    #endif
+
 	surfaceData.mask.w = _MaskBlendSrc ? maskMapBlend : albedoMapBlend;
 
     if (surfaceData.mask.w > 0.0)
@@ -63,21 +83,32 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
 #endif
 
 	// needs to be after mask, because blend source could be in the mask map blue
-#ifdef _NORMALMAP
+    // Note: We always use a texture here as the decal atlas for transparent decal cluster only handle texture case
+    // If no texture is assign it is the bump texture (0.0, 0.0, 1.0)
+#ifdef _MATERIAL_AFFECTS_NORMAL
+
+    #ifdef _NORMALMAP
 	float3 normalTS = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, texCoords));
+    #else
+    float3 normalTS = float3(0.0, 0.0, 1.0);
+    #endif
     float3 normalWS = float3(0.0, 0.0, 0.0);
-#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
+
+    #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
 	normalWS = mul((float3x3)normalToWorld, normalTS);
-#elif (SHADERPASS == SHADERPASS_DBUFFER_MESH)	
+    #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH)	
     // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
     normalWS = normalize(TransformTangentToWorld(normalTS, input.tangentToWorld));
-#endif
+    #endif
+
 	surfaceData.normalWS.xyz = normalWS;
 	surfaceData.normalWS.w = _NormalBlendSrc ? maskMapBlend : albedoMapBlend;
     if (surfaceData.normalWS.w > 0.0)
     {
         surfaceData.HTileMask |= DBUFFERHTILEBIT_NORMAL;
     }
+
 #endif
+
 	surfaceData.MAOSBlend.xy = float2(surfaceData.mask.w, surfaceData.mask.w);
 }

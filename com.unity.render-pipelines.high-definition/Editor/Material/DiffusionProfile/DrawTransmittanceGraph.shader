@@ -13,7 +13,7 @@ Shader "Hidden/HDRP/DrawTransmittanceGraph"
             HLSLPROGRAM
             #pragma editor_sync_compilation
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -32,7 +32,6 @@ Shader "Hidden/HDRP/DrawTransmittanceGraph"
             // Inputs & outputs
             //-------------------------------------------------------------------------------------
 
-            float4 _HalfRcpVarianceAndWeight1, _HalfRcpVarianceAndWeight2;
             float4 _ShapeParam, _TransmissionTint, _ThicknessRemap;
 
             //-------------------------------------------------------------------------------------
@@ -64,10 +63,15 @@ Shader "Hidden/HDRP/DrawTransmittanceGraph"
             {
                 // Profile display does not use premultiplied S.
                 float  d = (_ThicknessRemap.x + input.texcoord.x * (_ThicknessRemap.y - _ThicknessRemap.x));
-                float3 T = ComputeTransmittanceDisney(_ShapeParam.rgb * ((-1.0 / 3.0) * LOG2_E), float3(0.25, 0.25, 0.25), d);
+                float3 S = _ShapeParam.rgb;
+                float3 A = _TransmissionTint.rgb;
+                float3 M;
 
-                // Apply gamma for visualization only. Do not apply gamma to the color.
-                return float4(sqrt(T) * _TransmissionTint.rgb, 1);
+                // Gamma in previews is weird...
+                S = S * S;
+                A = A * A;
+                M = ComputeTransmittanceDisney(S, 0.25 * A, d); // The function expects pre-multiplied inputs
+                return float4(sqrt(M), 1);
             }
             ENDHLSL
         }

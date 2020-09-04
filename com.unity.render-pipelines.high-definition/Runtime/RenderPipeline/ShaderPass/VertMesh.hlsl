@@ -45,8 +45,6 @@ struct PackedVaryingsToDS
 #ifdef VARYINGS_NEED_PASS
     PackedVaryingsPassToDS vpass;
 #endif
-
-    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 PackedVaryingsToDS PackVaryingsToDS(VaryingsToDS input)
@@ -57,7 +55,6 @@ PackedVaryingsToDS PackVaryingsToDS(VaryingsToDS input)
     output.vpass = PackVaryingsPassToDS(input.vpass);
 #endif
 
-    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
     return output;
 }
 
@@ -123,7 +120,7 @@ VaryingsMeshType VertMesh(AttributesMesh input)
     float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
 #endif
 
-     // Do vertex modification in camera relative space (if enable)
+    // Do vertex modification in camera relative space (if enable)
 #if defined(HAVE_VERTEX_MODIFICATION)
     ApplyVertexModification(input, normalWS, positionRWS, _TimeParameters.xyz);
 #endif
@@ -131,18 +128,18 @@ VaryingsMeshType VertMesh(AttributesMesh input)
 #ifdef TESSELLATION_ON
     output.positionRWS = positionRWS;
     output.normalWS = normalWS;
-    #if defined(VARYINGS_NEED_TANGENT_TO_WORLD) || defined(VARYINGS_DS_NEED_TANGENT)
+#if defined(VARYINGS_NEED_TANGENT_TO_WORLD) || defined(VARYINGS_DS_NEED_TANGENT)
     output.tangentWS = tangentWS;
-    #endif
+#endif
 #else
-    #ifdef VARYINGS_NEED_POSITION_WS
+#ifdef VARYINGS_NEED_POSITION_WS
     output.positionRWS = positionRWS;
-    #endif
+#endif
     output.positionCS = TransformWorldToHClip(positionRWS);
-    #ifdef VARYINGS_NEED_TANGENT_TO_WORLD
+#ifdef VARYINGS_NEED_TANGENT_TO_WORLD
     output.normalWS = normalWS;
     output.tangentWS = tangentWS;
-    #endif
+#endif
 #endif
 
 #if defined(VARYINGS_NEED_TEXCOORD0) || defined(VARYINGS_DS_NEED_TEXCOORD0)

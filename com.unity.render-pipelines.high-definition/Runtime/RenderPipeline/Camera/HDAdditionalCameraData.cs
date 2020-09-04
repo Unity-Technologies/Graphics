@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// The minimum allowed aperture.
         /// </summary>
-        public const float kMinAperture = 1f;
+        public const float kMinAperture = 0.7f;
 
         /// <summary>
         /// The maximum allowed aperture.
@@ -132,6 +132,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Additional component that holds HDRP specific parameters for Cameras.
     /// </summary>
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Camera" + Documentation.endURL)]
+    [AddComponentMenu("")] // Hide in menu
     [DisallowMultipleComponent, ExecuteAlways]
     [RequireComponent(typeof(Camera))]
     public partial class HDAdditionalCameraData : MonoBehaviour, IFrameSettingsHistoryContainer
@@ -236,6 +237,19 @@ namespace UnityEngine.Rendering.HighDefinition
             High
         }
 
+        /// <summary>
+        /// TAA quality level.
+        /// </summary>
+        public enum TAAQualityLevel
+        {
+            /// <summary>Low quality.</summary>
+            Low,
+            /// <summary>Medium quality.</summary>
+            Medium,
+            /// <summary>High quality.</summary>
+            High
+        }
+
         /// <summary>Clear mode for the camera background.</summary>
         public ClearColorMode clearColorMode = ClearColorMode.Sky;
         /// <summary>HDR color used for clearing the camera background.</summary>
@@ -262,13 +276,35 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Strength of the sharpening component of temporal anti-aliasing.</summary>
         [Range(0, 2)]
-        public float taaSharpenStrength = 0.6f;
+        public float taaSharpenStrength = 0.5f;
+
+        /// <summary>Quality of the anti-aliasing when using TAA.</summary>
+        public TAAQualityLevel TAAQuality = TAAQualityLevel.Medium;
+
+        /// <summary>Strength of the sharpening of the history sampled for TAA.</summary>
+        [Range(0, 1)]
+        public float taaHistorySharpening = 0.35f;
+
+        /// <summary>Drive the anti-flicker mechanism. With high values flickering might be reduced, but it can lead to more ghosting or disocclusion artifacts.</summary>
+        [Range(0.0f, 1.0f)]
+        public float taaAntiFlicker = 0.5f;
+
+        /// <summary>Larger is this value, more likely history will be rejected when current and reprojected history motion vector differ by a substantial amount. 
+        /// Larger values can decrease ghosting but will also reintroduce aliasing on the aforementioned cases.</summary>
+        [Range(0.0f, 1.0f)]
+        public float taaMotionVectorRejection = 0.0f;
+
+        /// <summary>When enabled, ringing artifacts (dark or strangely saturated edges) caused by history sharpening will be improved. This comes at a potential loss of sharpness upon motion.</summary>
+        public bool taaAntiHistoryRinging = false;
 
         /// <summary>Physical camera parameters.</summary>
         public HDPhysicalCamera physicalParameters = new HDPhysicalCamera();
 
         /// <summary>Vertical flip mode.</summary>
         public FlipYMode flipYMode;
+
+        /// <summary>Enable XR rendering.</summary>
+        public bool xrRendering = true;
 
         /// <summary>Skips rendering settings to directly render in fullscreen (Useful for video).</summary>
         [Tooltip("Skips rendering settings to directly render in fullscreen (Useful for video).")]
@@ -302,6 +338,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public delegate void RequestAccessDelegate(ref BufferAccess bufferAccess);
         /// <summary>RequestAccessDelegate used to request access to various buffers of this camera.</summary>
         public event RequestAccessDelegate requestGraphicsBuffer;
+
+        /// <summary>The object used as a target for centering the Exposure's Procedural Mask metering mode when target object option is set (See Exposure Volume Component).</summary>
+        public GameObject exposureTarget = null;
 
         internal float probeCustomFixedExposure = 1.0f;
 
@@ -450,7 +489,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // When we are a preview, there is no way inside Unity to make a distinction between camera preview and material preview.
         // This property allow to say that we are an editor camera preview when the type is preview.
-        internal bool isEditorCameraPreview { get; set; }
+        /// <summary>
+        /// Unity support two type of preview: Camera preview and material preview. This property allow to know that we are an editor camera preview when the type is preview.
+        /// </summary>
+        public bool isEditorCameraPreview { get; internal set; }
 
         // This is use to copy data into camera for the Reset() workflow in camera editor
         /// <summary>
@@ -467,6 +509,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.volumeAnchorOverride = volumeAnchorOverride;
             data.antialiasing = antialiasing;
             data.dithering = dithering;
+            data.xrRendering = xrRendering;
             physicalParameters.CopyTo(data.physicalParameters);
 
             data.renderingPathCustomFrameSettings = renderingPathCustomFrameSettings;
@@ -510,6 +553,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_Camera.cameraType != CameraType.Preview && m_Camera.cameraType != CameraType.Reflection)
                 {
                     DebugDisplaySettings.RegisterCamera(this);
+                    VolumeDebugSettings.RegisterCamera(this);
                 }
                 m_IsDebugRegistered = true;
             }
@@ -523,6 +567,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Do not attempt to not register them till this issue persist.
                 if (m_Camera.cameraType != CameraType.Preview && m_Camera?.cameraType != CameraType.Reflection)
                 {
+                    VolumeDebugSettings.UnRegisterCamera(this);
                     DebugDisplaySettings.UnRegisterCamera(this);
                 }
                 m_IsDebugRegistered = false;

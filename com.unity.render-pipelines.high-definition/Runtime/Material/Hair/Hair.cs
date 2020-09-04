@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [GenerateHLSL(PackingRules.Exact, false, false, true, 1400)]
         public struct SurfaceData
         {
-            [SurfaceDataAttributes("MaterialFeatures")]
+            [SurfaceDataAttributes("Material Features")]
             public uint materialFeatures;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.AmbientOcclusion)]
@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [SurfaceDataAttributes("Transmittance")]
             public Vector3 transmittance;
 
-            [SurfaceDataAttributes("RimTransmissionIntensity")]
+            [SurfaceDataAttributes("Rim Transmission Intensity")]
             public float rimTransmissionIntensity;
 
             // Anisotropic

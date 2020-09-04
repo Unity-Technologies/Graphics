@@ -7,9 +7,6 @@
     #define GEOM_TYPE_BRANCH
 #endif
 
-#ifdef GEOM_TYPE_BRANCH_DETAIL
-    sampler2D _DetailTex;
-#endif
 
 #if defined(GEOM_TYPE_FROND) || defined(GEOM_TYPE_LEAF) || defined(GEOM_TYPE_FACING_LEAF)
 #define SPEEDTREE_ALPHATEST
@@ -22,5 +19,11 @@
 #endif
 
 #include "SpeedTree7CommonInput.hlsl"
+
+#ifdef GEOM_TYPE_BRANCH_DETAIL
+    sampler2D _DetailTex;
+#endif
+
+#define _Surface 0.0 // Speed Trees are always opaque
 
 #endif

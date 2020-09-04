@@ -9,7 +9,7 @@ Note: The behavior of this [Node](Node.md) is undefined globally. Shader Graph d
 Different Render Pipelines may produce different results. If you're building a shader in one Render Pipeline that you want to use in both, try checking it in both pipelines before production. A [Node](Node.md) might be defined in one Render Pipeline and undefined in the other. If this [Node](Node.md) is undefined, it returns 0 (black).
 
 #### Unity Render Pipelines Support
-- High Definition Render Pipeline
+- High Definition Render Pipeline. Although, this Node does not work in a Shader Graph that targets HDRP's [Unlit Master Node](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Master-Node-Unlit.html).
 - Universal Render Pipeline
 
 ## Ports

@@ -9,7 +9,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
     [DisallowMultipleComponent]
     [AddComponentMenu("Rendering/2D/Pixel Perfect Camera (Experimental)")]
     [RequireComponent(typeof(Camera))]
-    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")] public class PixelPerfectCamera : MonoBehaviour, IPixelPerfectCamera
+    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")]
+    [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2d-pixelperfect.html%23properties")]
+    public class PixelPerfectCamera : MonoBehaviour, IPixelPerfectCamera
     {
         /// <summary>
         /// Match this value to to the Pixels Per Unit values of all Sprites within the Scene.
@@ -179,20 +181,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_Internal.originalOrthoSize = m_Camera.orthographicSize;
         }
 
-        void LateUpdate()
-        {
-#if UNITY_EDITOR
-            if (!UnityEditor.EditorApplication.isPaused)
-#endif
-            {
-                // Reset the Cinemachine compatibility mode every frame.
-                // If any CinemachinePixelPerfect extension is present, they will turn this on 
-                // at a later time (during CinemachineBrain's LateUpdate(), which is 
-                // guaranteed to be after PixelPerfectCamera's LateUpdate()).
-                m_CinemachineCompatibilityMode = false;
-            }
-        }
-
         void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
         {
             if (camera != m_Camera)
@@ -230,6 +218,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         void OnEnable()
         {
+            m_CinemachineCompatibilityMode = false;
+
             RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
             RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
 

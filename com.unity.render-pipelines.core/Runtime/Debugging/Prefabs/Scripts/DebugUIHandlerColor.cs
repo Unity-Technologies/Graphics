@@ -141,7 +141,7 @@ namespace UnityEngine.Rendering.UI
             valueToggle.isOn = !valueToggle.isOn;
         }
 
-        void UpdateColor()
+        internal void UpdateColor()
         {
             if (colorImage != null)
                 colorImage.color = m_Field.GetValue();

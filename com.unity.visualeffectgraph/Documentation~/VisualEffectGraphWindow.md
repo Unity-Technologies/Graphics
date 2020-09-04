@@ -1,6 +1,6 @@
 # The Visual Effect Graph window
 
-The Visual Effect Graph window is the main window for Visual Effect Graph. This is where you can edit Visual Effect Graph Assets, and Subgraph Assets. The window displays a workspace that consists of the Systems, Contexts, and Operators that a  [Visual Effect Graph Asset](VisualEffectGraphAsset.md) contains. 
+The Visual Effect Graph window is the main window for Visual Effect Graph. This is where you can edit Visual Effect Graph Assets, and Subgraph Assets. The window displays a workspace that consists of the Systems, Contexts, and Operators that a  [Visual Effect Graph Asset](VisualEffectGraphAsset.md) contains.
 
 ![VisualEffectGraph-Window](Images/VisualEffectGraph-Window.png)
 
@@ -34,6 +34,7 @@ The Visual Effect Graph window Toolbar contains functionality to operate on a Vi
 | --------------------- | ------------------------------------------------------------ |
 | **Auto**              | **Toggle** : Toggles Auto-compilation of the Visual Effect Graph. |
 | **Compile**           | **Action** : Recompiles the currently opened Visual Effect Graph. |
+| **Save**              | **Action** : Save the currently opened Visual Effect Graph and its subgraphs. |
 | **Show in Project**   | **Action** : Focuses the currently opened Visual Effect Graph's Asset in the Project window. |
 | **Blackboard**        | **Toggle** : Toggles visibility of the **Blackboard Panel**. |
 | **Target GameObject** | **Toggle** : Toggles visibility of the **Target VisualEffect GameObject Panel**. |
@@ -100,7 +101,7 @@ The navigation controls for the Node Workspace are similar to those that other g
   * **Duplicate**: Ctrl+D.
   * **Duplicate with edges**: Ctrl+Alt+D.
 
-### Adding Graph Elements
+### Adding graph elements
 
 To add graph elements, you can use any of the following methods:
 
@@ -120,4 +121,3 @@ You can manipulate graph elements in the workspace :
 #### Resizing elements
 
 Some elements, such as Sticky Notes, support resizing. To do this, click on any edge or corner, drag until you reach the desired element size, and release the mouse button.
-

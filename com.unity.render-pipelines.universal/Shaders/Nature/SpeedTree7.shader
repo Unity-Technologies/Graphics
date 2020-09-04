@@ -21,6 +21,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             "RenderType" = "Opaque"
             "DisableBatching" = "LODFading"
             "RenderPipeline" = "UniversalPipeline"
+            "UniversalMaterialType" = "SimpleLit"
         }
         LOD 400
         Cull [_Cull]
@@ -40,6 +41,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
             #pragma multi_compile_fog
 
@@ -113,6 +115,42 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
 
         Pass
         {
+            Name "GBuffer"
+            Tags{"LightMode" = "UniversalGBuffer"}
+
+            HLSLPROGRAM
+
+            #pragma exclude_renderers d3d11_9x gles
+            #pragma vertex SpeedTree7Vert
+            #pragma fragment SpeedTree7Frag
+
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            //#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+            //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
+            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+
+            #pragma multi_compile_instancing
+            #pragma instancing_options assumeuniformscaling maxcount:50
+
+            #pragma shader_feature_local GEOM_TYPE_BRANCH GEOM_TYPE_BRANCH_DETAIL GEOM_TYPE_FROND GEOM_TYPE_LEAF GEOM_TYPE_MESH
+            #pragma shader_feature_local EFFECT_BUMP
+            #pragma shader_feature_local EFFECT_HUE_VARIATION
+
+            #define ENABLE_WIND
+            #define VERTEX_COLOR
+            #define GBUFFER
+
+            #include "SpeedTree7Input.hlsl"
+            #include "SpeedTree7Passes.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
             Name "DepthOnly"
             Tags{"LightMode" = "DepthOnly"}
 
@@ -132,6 +170,32 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
 
             #define ENABLE_WIND
             #define DEPTH_ONLY
+
+            #include "SpeedTree7Input.hlsl"
+            #include "SpeedTree7Passes.hlsl"
+
+            ENDHLSL
+        }
+
+        // This pass is used when drawing to a _CameraNormalsTexture texture
+        Pass
+        {
+            Name "DepthNormals"
+            Tags{"LightMode" = "DepthNormals"}
+
+            HLSLPROGRAM
+            #pragma vertex SpeedTree7VertDepthNormal
+            #pragma fragment SpeedTree7FragDepthNormal
+
+            #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
+
+            #pragma multi_compile_instancing
+            #pragma instancing_options assumeuniformscaling maxcount:50
+
+            #pragma shader_feature_local GEOM_TYPE_BRANCH GEOM_TYPE_BRANCH_DETAIL GEOM_TYPE_FROND GEOM_TYPE_LEAF GEOM_TYPE_MESH
+            #pragma shader_feature_local EFFECT_BUMP
+
+            #define ENABLE_WIND
 
             #include "SpeedTree7Input.hlsl"
             #include "SpeedTree7Passes.hlsl"

@@ -12,7 +12,7 @@ Shader "Hidden/HDRP/DebugBlitQuad"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -20,11 +20,11 @@ Shader "Hidden/HDRP/DebugBlitQuad"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
 
             TEXTURE2D(_InputTexture);
             SAMPLER(sampler_InputTexture);
             float _Mipmap;
+            float _ApplyExposure;
 
             struct Attributes
             {
@@ -48,7 +48,8 @@ Shader "Hidden/HDRP/DebugBlitQuad"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                return SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_InputTexture, input.texcoord.xy, _Mipmap) * exp2(_DebugExposure);
+                float3 color = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_InputTexture, input.texcoord.xy, _Mipmap).rgb;
+                return float4(color * (_ApplyExposure > 0.0 ? GetCurrentExposureMultiplier() : 1.0), 1.0);
             }
 
             ENDHLSL

@@ -86,6 +86,7 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
     output.fogCoord = (half)input.positionWS.w;
     output.vertexLighting = half3(0.0h, 0.0h, 0.0h);
     output.bakedGI = SampleSHPixel(input.vertexSH, output.normalWS);
+    output.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -102,7 +103,8 @@ VaryingsParticle ParticlesLitVertex(AttributesParticle input)
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normal, input.tangent);
-    half3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
+
+    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
 #if !SHADER_HINT_NICE_QUALITY
     viewDirWS = SafeNormalize(viewDirWS);
 #endif
@@ -121,12 +123,16 @@ VaryingsParticle ParticlesLitVertex(AttributesParticle input)
     output.positionWS.xyz = vertexInput.positionWS.xyz;
     output.positionWS.w = ComputeFogFactor(vertexInput.positionCS.z);
     output.clipPos = vertexInput.positionCS;
-    output.color = input.color;
+    output.color = GetParticleColor(input.color);
 
-    output.texcoord = input.texcoords.xy;
-#ifdef _FLIPBOOKBLENDING_ON
-    output.texcoord2AndBlend.xy = input.texcoords.zw;
-    output.texcoord2AndBlend.z = input.texcoordBlend;
+#if defined(_FLIPBOOKBLENDING_ON)
+#if defined(UNITY_PARTICLE_INSTANCING_ENABLED)
+    GetParticleTexcoords(output.texcoord, output.texcoord2AndBlend, input.texcoords.xyxy, 0.0);
+#else
+    GetParticleTexcoords(output.texcoord, output.texcoord2AndBlend, input.texcoords, input.texcoordBlend);
+#endif
+#else
+    GetParticleTexcoords(output.texcoord, input.texcoords.xy);
 #endif
 
 #if defined(_SOFTPARTICLES_ON) || defined(_FADING_ON) || defined(_DISTORTION_ON)
@@ -178,8 +184,8 @@ half4 ParticlesLitFragment(VaryingsParticle input) : SV_Target
     half4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specularGloss, shininess, emission, alpha);
 
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
-    color.a = OutputAlpha(color.a);
-    
+    color.a = OutputAlpha(color.a, _Surface);
+
     return color;
 }
 

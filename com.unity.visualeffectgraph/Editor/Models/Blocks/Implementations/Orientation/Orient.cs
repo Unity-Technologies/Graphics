@@ -94,15 +94,15 @@ namespace UnityEditor.VFX.Block
                         break;
 
                     case Mode.Advanced:
-                        {
-                            string axis1, axis2;
-                            Vector3 vector1, vector2;
-                            AxesPairToUI(axes, out axis1, out axis2);
-                            AxesPairToVector(axes, out vector1, out vector2);
-                            yield return new VFXPropertyWithValue(new VFXProperty(typeof(DirectionType), axis1), new DirectionType() { direction = vector1 });
-                            yield return new VFXPropertyWithValue(new VFXProperty(typeof(DirectionType), axis2), new DirectionType() { direction = vector2 });
-                            break;
-                        }
+                    {
+                        string axis1, axis2;
+                        Vector3 vector1, vector2;
+                        AxesPairToUI(axes, out axis1, out axis2);
+                        AxesPairToVector(axes, out vector1, out vector2);
+                        yield return new VFXPropertyWithValue(new VFXProperty(typeof(DirectionType), axis1), new DirectionType() { direction = vector1 });
+                        yield return new VFXPropertyWithValue(new VFXProperty(typeof(DirectionType), axis2), new DirectionType() { direction = vector2 });
+                        break;
+                    }
 
                     case Mode.FixedAxis:
                         yield return new VFXPropertyWithValue(new VFXProperty(typeof(DirectionType), "Up"), new DirectionType() { direction = Vector3.up });
@@ -171,18 +171,18 @@ axisY = cross(axisZ,axisX);
 ";
 
                     case Mode.Advanced:
-                        {
-                            string rotAxis1, rotAxis2, rotAxis3, uiAxis1, uiAxis2;
-                            AxesPairToHLSL(axes, out rotAxis1, out rotAxis2, out rotAxis3);
-                            AxesPairToUI(axes, out uiAxis1, out uiAxis2);
-                            string code = string.Format(@"
+                    {
+                        string rotAxis1, rotAxis2, rotAxis3, uiAxis1, uiAxis2;
+                        AxesPairToHLSL(axes, out rotAxis1, out rotAxis2, out rotAxis3);
+                        AxesPairToUI(axes, out uiAxis1, out uiAxis2);
+                        string code = string.Format(@"
 {0} = normalize({3});
 {2} = normalize({4});
 {1} = {5};
 ", rotAxis1, rotAxis2, rotAxis3,
-uiAxis1, LeftHandedBasis(axes, uiAxis1, uiAxis2), LeftHandedBasis(GetSecondAxesPair(axes), rotAxis1, rotAxis3));
-                            return code;
-                        }
+                            uiAxis1, LeftHandedBasis(axes, uiAxis1, uiAxis2), LeftHandedBasis(GetSecondAxesPair(axes), rotAxis1, rotAxis3));
+                        return code;
+                    }
 
                     case Mode.FixedAxis:
                         return @"
@@ -262,6 +262,7 @@ axisZ = cross(axisX,axisY);
                     throw new InvalidEnumArgumentException("Unsupported axes pair");
             }
         }
+
         private void AxesPairToUI(AxesPair pair, out string uiAxis1, out string uiAxis2)
         {
             string axis1, axis2, axis3;
@@ -337,6 +338,5 @@ axisZ = cross(axisX,axisY);
                     throw new InvalidEnumArgumentException("Unsupported axes pair");
             }
         }
-
     }
 }

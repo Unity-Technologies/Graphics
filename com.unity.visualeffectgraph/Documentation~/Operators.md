@@ -20,7 +20,7 @@ You can add operator Nodes:
 
 ## Configuring Operators
 
-Adjusting Operator [Settings](GraphLogicAndPhilosophy.md#settings) in the Node UI or the Inspector can change the way the Operator looks and behaves. 
+Adjusting Operator [Settings](GraphLogicAndPhilosophy.md#settings) in the Node UI or the Inspector can change the way the Operator looks and behaves.
 
 > For instance, Changing the Cull Mode of a `Position (Depth)` Operator  from *None* to *Range* will add an extra *Depth Range* property to the Operator.
 
@@ -77,10 +77,3 @@ Pressing the Options icon in the top-right corner switches the Node view to Conf
 * Reorder Inputs by dragging the Handle on the left of each input line
 * Manually Add Inputs using the + button
 * Delete Selected Input using the - button
-
-
-
-
-
-
-

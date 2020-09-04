@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
+using System.Globalization;
 
 namespace UnityEditor.VFX.Block
 {
@@ -33,14 +34,12 @@ namespace UnityEditor.VFX.Block
                 case Signature.Bool: return VFXValueType.Boolean;
             }
         }
-
     }
 
 
     [VFXInfo(category = "Attribute/Set", experimental = true)]
     class SetCustomAttribute : VFXBlock
     {
-
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Delayed]
         public string attribute = "CustomAttribute";
 
@@ -59,7 +58,7 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                string attributeName = ObjectNames.NicifyVariableName(attribute);
+                string attributeName = attribute;
                 return VFXBlockUtility.GetNameString(Composition) + " " + attributeName + " " + VFXBlockUtility.GetNameString(Random) + " (" + AttributeType.ToString() + ")";
             }
         }
@@ -82,7 +81,7 @@ namespace UnityEditor.VFX.Block
 
         static private string GenerateLocalAttributeName(string name)
         {
-            return "_"+name[0].ToString().ToUpper() + name.Substring(1);
+            return "_" + name[0].ToString().ToUpper(CultureInfo.InvariantCulture) + name.Substring(1);
         }
 
         public override string source
@@ -115,26 +114,15 @@ namespace UnityEditor.VFX.Block
             {
                 var attrib = currentAttribute;
 
-                VFXPropertyAttribute[] attr = null;
-
                 Type slotType = VFXExpression.TypeToType(attrib.type);
                 object content = attrib.value.GetContent();
 
                 if (Random == RandomMode.Off)
-                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, GenerateLocalAttributeName(attrib.name))
-                    {
-                        attributes = attr
-                    }, content);
+                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, GenerateLocalAttributeName(attrib.name)), content);
                 else
                 {
-                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Min")
-                    {
-                        attributes = attr
-                    });
-                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Max")
-                    {
-                        attributes = attr
-                    }, content);
+                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Min"));
+                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Max"), content);
                 }
 
                 if (Composition == AttributeCompositionMode.Blend)

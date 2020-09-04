@@ -38,11 +38,6 @@ namespace UnityEditor.VFX
             { typeof(uint), new[] {typeof(int), typeof(float), typeof(Vector2), typeof(Vector3), typeof(Position), typeof(Vector), typeof(Vector4), typeof(Color)} },
         };
 
-        public sealed override void OnEnable()
-        {
-            base.OnEnable();
-        }
-
         static public IEnumerable<Type> GetTypeAffinityList(Type type)
         {
             Type[] affinity = null;
@@ -85,6 +80,37 @@ namespace UnityEditor.VFX
         }
     }
 
+    abstract class VFXOperatorDynamicType : VFXOperatorDynamicOperand, IVFXOperatorUniform
+    {
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
+        protected SerializableType m_Type;
+
+        public override void OnEnable()
+        {
+            if (m_Type == null) // Lazy init at this stage is suitable because inputProperties access is done with SyncSlot
+            {
+                m_Type = defaultValueType;
+            }
+            base.OnEnable();
+        }
+
+        public Type GetOperandType()
+        {
+            return m_Type;
+        }
+
+        public void SetOperandType(Type type)
+        {
+            if (!validTypes.Contains(type))
+                throw new InvalidOperationException();
+
+            m_Type = type;
+            Invalidate(InvalidationCause.kSettingChanged);
+        }
+
+        abstract public IEnumerable<int> staticSlotIndex { get; }
+    }
+
     abstract class VFXOperatorNumeric : VFXOperatorDynamicOperand
     {
         protected sealed override Type defaultValueType
@@ -104,7 +130,7 @@ namespace UnityEditor.VFX
             allowOneDimensionType = 1 << 4,
             allowSignedInteger = 1 << 5,
             allowUnsignedInteger = 1 << 6,
-            allowSpaceableNotNormalized= 1 << 7,
+            allowSpaceableNotNormalized = 1 << 7,
             allowSpaceableNormalized = 1 << 8,
 
             allowSpaceable = allowSpaceableNotNormalized | allowSpaceableNormalized,
@@ -214,7 +240,7 @@ namespace UnityEditor.VFX
 
         protected virtual string expectedOutputName { get { return string.Empty; } }
 
-        protected virtual VFXPropertyAttribute[] expectedOutputAttributes { get { return null; } }
+        protected virtual VFXPropertyAttributes expectedOutputAttributes { get { return new VFXPropertyAttributes(); } }
 
         protected override sealed IEnumerable<VFXPropertyWithValue> outputProperties
         {

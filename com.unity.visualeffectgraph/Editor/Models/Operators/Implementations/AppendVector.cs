@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
@@ -17,7 +18,17 @@ namespace UnityEditor.VFX.Operator
 
         protected override Type GetExpectedOutputTypeOfOperation(IEnumerable<Type> inputTypes)
         {
-            var outputComponentCount = inputTypes.Select(o => VFXExpression.TypeToSize(VFXExpression.GetVFXValueTypeFromType(o))).Sum();
+            var outputComponentCount = inputTypes.Select(o =>
+            {
+                var type = VFXValueType.None;
+                if (o == typeof(Position) || o == typeof(DirectionType) || o == typeof(Vector))
+                    type = VFXValueType.Float3;
+                else
+                    type = VFXExpression.GetVFXValueTypeFromType(o);
+                if (type == VFXValueType.None)
+                    throw new InvalidOperationException("Unable to compute value type from " + o);
+                return VFXExpression.TypeToSize(type);
+            }).Sum();
             outputComponentCount = Mathf.Min(Mathf.Max(outputComponentCount, 1), 4);
             switch (outputComponentCount)
             {

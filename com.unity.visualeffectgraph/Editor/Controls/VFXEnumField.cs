@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Linq;
+using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.VFX.UI;
@@ -10,6 +13,10 @@ namespace UnityEditor.VFX.UIElements
         Label m_DropDownButton;
         TextElement m_ValueText;
         System.Type m_EnumType;
+
+        public IEnumerable<int> filteredOutValues { get; set; }
+
+        public Action<VFXEnumField> OnDisplayMenu;
 
         void CreateHierarchy()
         {
@@ -29,13 +36,15 @@ namespace UnityEditor.VFX.UIElements
 
         void OnClick()
         {
+            if (OnDisplayMenu != null)
+                OnDisplayMenu(this);
             GenericMenu menu = new GenericMenu();
 
             foreach (string val in System.Enum.GetNames(m_EnumType))
             {
                 int valueInt = (int)System.Enum.Parse(m_EnumType, val);
-
-                menu.AddItem(new GUIContent(ObjectNames.NicifyVariableName(val)), valueInt == m_Value, ChangeValue, valueInt);
+                if(filteredOutValues == null || !filteredOutValues.Any(t=>t == valueInt))
+                    menu.AddItem(new GUIContent(ObjectNames.NicifyVariableName(val)), valueInt == m_Value, ChangeValue, valueInt);
             }
             menu.DropDown(m_DropDownButton.worldBound);
         }
@@ -77,7 +86,6 @@ namespace UnityEditor.VFX.UIElements
             }
             m_EnumType = enumType;
             Add(m_DropDownButton);
-
         }
 
         protected override void ValueToGUI(bool force)

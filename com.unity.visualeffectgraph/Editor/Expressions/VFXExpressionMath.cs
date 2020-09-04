@@ -217,7 +217,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionSaturate : VFXExpressionUnaryFloatOperation
     {
-        public VFXExpressionSaturate() : this(VFXValue<float>.Default) { }
+        public VFXExpressionSaturate() : this(VFXValue<float>.Default) {}
 
         public VFXExpressionSaturate(VFXExpression parent) : base(parent, VFXExpressionOperation.Saturate)
         {
@@ -238,7 +238,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionCeil : VFXExpressionUnaryFloatOperation
     {
-        public VFXExpressionCeil() : this(VFXValue<float>.Default) { }
+        public VFXExpressionCeil() : this(VFXValue<float>.Default) {}
 
         public VFXExpressionCeil(VFXExpression parent) : base(parent, VFXExpressionOperation.Ceil)
         {
@@ -259,7 +259,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionRound : VFXExpressionUnaryFloatOperation
     {
-        public VFXExpressionRound() : this(VFXValue<float>.Default) { }
+        public VFXExpressionRound() : this(VFXValue<float>.Default) {}
 
         public VFXExpressionRound(VFXExpression parent) : base(parent, VFXExpressionOperation.Round)
         {
@@ -280,7 +280,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionFrac : VFXExpressionUnaryFloatOperation
     {
-        public VFXExpressionFrac() : this(VFXValue<float>.Default) { }
+        public VFXExpressionFrac() : this(VFXValue<float>.Default) {}
 
         public VFXExpressionFrac(VFXExpression parent) : base(parent, VFXExpressionOperation.Frac)
         {

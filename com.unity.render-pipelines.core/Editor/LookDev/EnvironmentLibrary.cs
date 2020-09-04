@@ -32,14 +32,20 @@ namespace UnityEditor.Rendering.LookDev
         /// <returns>The created Environment</returns>
         public Environment Add()
         {
+            Undo.SetCurrentGroupName("Add Environment");
+            int group = Undo.GetCurrentGroup();
+
             Environment environment = ScriptableObject.CreateInstance<Environment>();
             environment.name = "New Environment";
             Undo.RegisterCreatedObjectUndo(environment, "Add Environment");
 
+            Undo.RecordObject(this, "Add Environment");
             environments.Add(environment);
 
             // Store this new environment as a subasset so we can reference it safely afterwards.
             AssetDatabase.AddObjectToAsset(environment, this);
+
+            Undo.CollapseUndoOperations(group);
 
             // Force save / refresh. Important to do this last because SaveAssets can cause effect to become null!
             EditorUtility.SetDirty(this);
@@ -54,10 +60,15 @@ namespace UnityEditor.Rendering.LookDev
         /// <param name="index">Index where to remove Environment</param>
         public void Remove(int index)
         {
+            Undo.SetCurrentGroupName("Remove Environment");
+            int group = Undo.GetCurrentGroup();
+
             Environment environment = environments[index];
             Undo.RecordObject(this, "Remove Environment");
             environments.RemoveAt(index);
             Undo.DestroyObjectImmediate(environment);
+
+            Undo.CollapseUndoOperations(group);
 
             // Force save / refresh
             EditorUtility.SetDirty(this);

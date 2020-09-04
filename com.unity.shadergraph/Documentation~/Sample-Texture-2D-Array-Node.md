@@ -12,7 +12,7 @@ NOTE: This [Node](Node.md) can only be used in the **Fragment** shader stage.
 |:------------ |:-------------|:-----|:---|:---|
 | Texture Array |	Input |	Texture 2D Array  | None | Texture 2D Array to sample |
 | Index   | Input |	Vector 1    | None	| Index of array to sample |
-| UV      | Input |	Vector 2    | 	UV	| Mesh's normal vector |
+| UV      | Input |	Vector 2    | 	UV	| UV coordinates |
 | Sampler | Input |	Sampler State | Default sampler state | Sampler for the texture |
 | RGBA	| Output	| Vector 4	| None	| Output value as RGBA |
 | R	    | Output	| Vector 1	| None	| red (x) component of RGBA output |

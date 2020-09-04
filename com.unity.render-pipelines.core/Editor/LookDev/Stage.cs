@@ -197,6 +197,10 @@ namespace UnityEditor.Rendering.LookDev
             if (lineRenderer != null)
                 lineRenderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
 
+            var volumes = go.GetComponents<UnityEngine.Rendering.Volume>();
+            foreach (var volume in volumes)
+                volume.UpdateLayer(); //force update of layer now as the Update can be called after we unregister volume from manager
+
             foreach (Transform child in go.transform)
                 InitAddedObjectsRecursively(child.gameObject);
         }
@@ -269,6 +273,7 @@ namespace UnityEditor.Rendering.LookDev
 
         Stage[] m_Stages;
         Context m_Contexts;
+        IDataProvider m_CurrentDataProvider;
 
         public Stage this[ViewIndex index]
             => m_Stages[(int)index];
@@ -306,6 +311,8 @@ namespace UnityEditor.Rendering.LookDev
             }
 
             dataProvider.FirstInitScene(stage.runtimeInterface);
+
+            m_CurrentDataProvider = dataProvider;
             return stage;
         }
 
@@ -341,7 +348,10 @@ namespace UnityEditor.Rendering.LookDev
             if (!disposedValue)
             {
                 foreach (Stage stage in m_Stages)
+                {
+                    m_CurrentDataProvider.Cleanup(stage.runtimeInterface);
                     stage.Dispose();
+                }
 
                 disposedValue = true;
             }

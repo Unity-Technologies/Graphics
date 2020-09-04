@@ -4,13 +4,12 @@ The High Definition Render Pipeline (HDRP) uses a separate [package](https://doc
 
 For example, you can use it to:
 
-* Enable [ray tracing](Ray-Tracing-Getting-Started.html).
-* Enable [camera-relative rendering](Camera-Relative-Rendering.html).
-* Control the shadow filtering mode for deferred rendering.
+* Enable [ray tracing](Ray-Tracing-Getting-Started.md).
+* Enable [camera-relative rendering](Camera-Relative-Rendering.md).
 
 ## Using the HDRP Config package
 
-To use the HDRP Config package in your HDRP Project, you need to create a local copy of it and make your Project's package manifest reference it. You can either do this manually or use the [HDRP Wizard](Render-Pipeline-Wizard.html).
+To use the HDRP Config package in your HDRP Project, you need to create a local copy of it and make your Project's package manifest reference it. You can either do this manually or use the [HDRP Wizard](Render-Pipeline-Wizard.md).
 
 * **Manual**: In your Project's directory, move and rename the folder "**/Library/PackageCache/com.unity.render-pipelines.high-definition-config@[versionnumber]**" to "**/Packages/com.unity.render-pipelines.high-definition-config**".
 * **HDRP Wizard**: Open the HDRP Wizard (**Windows > Render Pipeline > HD Render Pipeline Wizard**) and click the **Install Configuration Editable Package**. This creates a **LocalPackage** folder at the root of your Project and populates it with a compatible HDRP config package. 
@@ -36,7 +35,7 @@ To ensure that the two files are synchronized, you should follow the first metho
 <a name="Example"></a>
 ### Example
 
-You can use the method described above to change the shadow filtering mode for the [Lit Shader](Lit-Shader.html) in deferred mode:
+You can use the method described above to disable [Camera-Relative rendering](Camera-Relative-Rendering.md):
 
-1. In the **ShaderConfig.cs** file, set **DeferredShadowFiltering** to **HDShadowFilteringQuality.High**.
-2. Generate the **ShaderConfig.cs.hlsl** file (**Edit > RenderPipeline > Generate Include Files**). Now, in the **ShaderConfig.cs.hlsl** file, the **SHADEROPTIONS_DEFERRED_SHADOW_FILTERING** define should be set to **2** (**#define SHADEROPTIONS_DEFERRED_SHADOW_FILTERING (2)**).
+1. In the **ShaderConfig.cs** file, set **CameraRelativeRendering** to **0**.
+2. Generate the **ShaderConfig.cs.hlsl** file (**Edit > RenderPipeline > Generate Include Files**). Now, in the **ShaderConfig.cs.hlsl** file, the **SHADEROPTIONS_CAMERA_RELATIVE_RENDERING** define should be set to **0** 

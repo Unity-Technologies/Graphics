@@ -5,8 +5,9 @@
 
 // SRP & HDRP includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition\Runtime\ShaderLibrary\ShaderVariables.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition\Runtime\RenderPipeline\Raytracing/HDRaytracingLightCluster.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/HDRaytracingLightCluster.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl"
 
 #define CLUSTER_GROUP_SIZE 8
 
@@ -15,11 +16,8 @@ StructuredBuffer<LightVolume>           _LightVolumes;
 uint                                    _LightVolumeCount;
 
 // The target data that this computer shader must fill
-RWStructuredBuffer<uint>                _RaytracingLightCluster;
-float3                                  _MinClusterPos;
-float3                                  _MaxClusterPos;
+RWStructuredBuffer<uint>                _RaytracingLightClusterRW;
 float3                                  _ClusterCellSize;
-uint                                    _LightPerCellCount;
 
 static const float3 CornerSubDirections[8] = {
     float3(-0.5f, -0.5f, -0.5f),
@@ -123,7 +121,7 @@ void RaytracingLightCluster(uint3 threadID : SV_GroupThreadID, uint3 groupId : S
         if(intersects)
         {
             // Flag this light in this cell and increase the light count
-            _RaytracingLightCluster[cellIndex * cellDataSize + 4 + currentLightCount] = currentLight.lightIndex;
+            _RaytracingLightClusterRW[cellIndex * cellDataSize + 4 + currentLightCount] = currentLight.lightIndex;
             currentLightCount++;
 
             // Also increase the matching light count
@@ -143,10 +141,10 @@ void RaytracingLightCluster(uint3 threadID : SV_GroupThreadID, uint3 groupId : S
     }
 
     // Set the light count for the cell
-    _RaytracingLightCluster[cellIndex * cellDataSize] = currentLightCount;
-    _RaytracingLightCluster[cellIndex * cellDataSize + 1] = punctualLightCount;
-    _RaytracingLightCluster[cellIndex * cellDataSize + 2] = punctualLightCount + areaLightCount;
-    _RaytracingLightCluster[cellIndex * cellDataSize + 3] = areaLightCount + punctualLightCount + envLightCount;
+    _RaytracingLightClusterRW[cellIndex * cellDataSize] = currentLightCount;
+    _RaytracingLightClusterRW[cellIndex * cellDataSize + 1] = punctualLightCount;
+    _RaytracingLightClusterRW[cellIndex * cellDataSize + 2] = punctualLightCount + areaLightCount;
+    _RaytracingLightClusterRW[cellIndex * cellDataSize + 3] = areaLightCount + punctualLightCount + envLightCount;
 }
 
 

@@ -136,9 +136,9 @@ namespace UnityEditor.VFX
     {
         [Tooltip("Sets the center of the cone."), VFXSpace(SpaceableType.Position)]
         public Vector3 center;
-        [Tooltip("Sets the base radius of the cone.")]
+        [Min(0.0f), Tooltip("Sets the base radius of the cone.")]
         public float radius0;
-        [Tooltip("Sets the top radius of the cone.")]
+        [Min(0.0f), Tooltip("Sets the top radius of the cone.")]
         public float radius1;
         [Tooltip("Sets the height of the cone.")]
         public float height;
@@ -151,9 +151,9 @@ namespace UnityEditor.VFX
     {
         [Tooltip("Sets the center of the cone."), VFXSpace(SpaceableType.Position)]
         public Vector3 center;
-        [Tooltip("Sets the base radius of the cone.")]
+        [Min(0.0f), Tooltip("Sets the base radius of the cone.")]
         public float radius0;
-        [Tooltip("Sets the top radius of the cone.")]
+        [Min(0.0f), Tooltip("Sets the top radius of the cone.")]
         public float radius1;
         [Tooltip("Sets the height of the cone.")]
         public float height;

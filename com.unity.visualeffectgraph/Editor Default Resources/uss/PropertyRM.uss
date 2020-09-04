@@ -185,6 +185,7 @@ Vector3PropertyRM VFXColorField
 
 Vector3PropertyRM.propertyrm VFXVector3Field.fieldContainer
 {
+    height: 20px;
     flex: 0 0 auto;
 }
 
@@ -275,4 +276,12 @@ Matrix4x4PropertyRM.propertyrm VFXMatrix4x4Field
 .propertyrm .sliderField #indeterminate
 {
     flex:0 0 auto;
+}
+
+.ListPropertyRM > .ReorderableList
+{
+    margin-top:4px;
+    margin-left:4px;
+    margin-right:4px;
+    flex:1 1 auto;
 }

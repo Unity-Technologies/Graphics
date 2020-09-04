@@ -8,6 +8,7 @@ using UnityEngine.VFX;
 
 using Object = UnityEngine.Object;
 using System.Text.RegularExpressions;
+using System.Globalization;
 
 namespace UnityEditor.VFX
 {
@@ -88,7 +89,7 @@ namespace UnityEditor.VFX
                     {
                         r.WriteLine();
                         r.WriteFormat("uint {0}_{1} = 0u;", VFXAttribute.EventCount.name, VFXCodeGeneratorHelper.GeneratePrefix(i));
-                    }                 
+                    }
                 }
                 r.WriteLine();
             }
@@ -140,7 +141,7 @@ namespace UnityEditor.VFX
                 for (uint i = 0; i < linkedOutCount; ++i)
                 {
                     var prefix = VFXCodeGeneratorHelper.GeneratePrefix(i);
-                    r.WriteLineFormat("for (uint i = 0; i < {1}_{0}; ++i) {2}_{0}.Append(index);", prefix, VFXAttribute.EventCount.name, eventListOutName);
+                    r.WriteLineFormat("for (uint i{0} = 0; i{0} < {1}_{0}; ++i{0}) {2}_{0}.Append(index);", prefix, VFXAttribute.EventCount.name, eventListOutName);
                 }
             }
             return r;
@@ -376,14 +377,16 @@ namespace UnityEditor.VFX
             var globalDeclaration = new VFXShaderWriter();
             globalDeclaration.WriteCBuffer(contextData.uniformMapper, "parameters");
             globalDeclaration.WriteLine();
+            globalDeclaration.WriteBuffer(contextData.uniformMapper);
+            globalDeclaration.WriteLine();
+            globalDeclaration.WriteTexture(contextData.uniformMapper);
             globalDeclaration.WriteAttributeStruct(allCurrentAttributes.Select(a => a.attrib), "Attributes");
             globalDeclaration.WriteLine();
             globalDeclaration.WriteAttributeStruct(allSourceAttributes.Select(a => a.attrib), "SourceAttributes");
             globalDeclaration.WriteLine();
-            globalDeclaration.WriteTexture(contextData.uniformMapper);
 
             var linkedEventOut = context.allLinkedOutputSlot.Where(s => ((VFXModel)s.owner).GetFirstOfType<VFXContext>().CanBeCompiled()).ToList();
-            globalDeclaration.WriteEventBuffer(eventListOutName, linkedEventOut.Count);
+            globalDeclaration.WriteEventBuffers(eventListOutName, linkedEventOut.Count);
 
             //< Block processor
             var blockFunction = new VFXShaderWriter();
@@ -416,9 +419,9 @@ namespace UnityEditor.VFX
             globalIncludeContent.WriteLine("#define VFX_PASSDEPTH_SELECTION (2)");
 
             foreach (var attribute in allCurrentAttributes)
-                globalIncludeContent.WriteLineFormat("#define VFX_USE_{0}_{1} 1", attribute.attrib.name.ToUpper(), "CURRENT");
+                globalIncludeContent.WriteLineFormat("#define VFX_USE_{0}_{1} 1", attribute.attrib.name.ToUpper(CultureInfo.InvariantCulture), "CURRENT");
             foreach (var attribute in allSourceAttributes)
-                globalIncludeContent.WriteLineFormat("#define VFX_USE_{0}_{1} 1", attribute.attrib.name.ToUpper(), "SOURCE");
+                globalIncludeContent.WriteLineFormat("#define VFX_USE_{0}_{1} 1", attribute.attrib.name.ToUpper(CultureInfo.InvariantCulture), "SOURCE");
 
             foreach (var additionnalHeader in context.additionalDataHeaders)
                 globalIncludeContent.WriteLine(additionnalHeader);
@@ -449,7 +452,6 @@ namespace UnityEditor.VFX
                 perPassIncludeContent.WriteLine(string.Format("#include \"{0}\"", includePath));
 
 
-
             ReplaceMultiline(stringBuilder, "${VFXGlobalInclude}", globalIncludeContent.builder);
             ReplaceMultiline(stringBuilder, "${VFXGlobalDeclaration}", globalDeclaration.builder);
             ReplaceMultiline(stringBuilder, "${VFXPerPassInclude}", perPassIncludeContent.builder);
@@ -474,15 +476,15 @@ namespace UnityEditor.VFX
             foreach (string fragmentParameter in context.fragmentParameters)
             {
                 var filteredNamedExpression = mainParameters.FirstOrDefault(o => fragmentParameter == o.name &&
-                !(expressionToName.ContainsKey(o.exp) && expressionToName[o.exp] == o.name));     // if parameter already in the global scope, there's nothing to do
+                    !(expressionToName.ContainsKey(o.exp) && expressionToName[o.exp] == o.name)); // if parameter already in the global scope, there's nothing to do
 
                 if (filteredNamedExpression.exp != null)
                 {
                     additionalInterpolantsDeclaration.WriteDeclaration(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, $"NORMAL{normSemantic++}");
-                    additionalInterpolantsGeneration.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name+"__", "0");
+                    additionalInterpolantsGeneration.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name + "__", "0");
                     var expressionToNameLocal = new Dictionary<VFXExpression, string>(expressionToName);
                     additionalInterpolantsGeneration.EnterScope();
-                    { 
+                    {
                         if (!expressionToNameLocal.ContainsKey(filteredNamedExpression.exp))
                         {
                             additionalInterpolantsGeneration.WriteVariable(filteredNamedExpression.exp, expressionToNameLocal);

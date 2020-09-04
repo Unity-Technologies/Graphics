@@ -118,7 +118,7 @@ namespace UnityEditor.VFX.UI
         {
             if (cause == VFXModel.InvalidationCause.kParamChanged)
             {
-                if(model is VFXSlot) // model not beeing a VFXSlot means it is a subgraph reporting a value change
+                if (model is VFXSlot) // model not beeing a VFXSlot means it is a subgraph reporting a value change
                 {
                     if (m_graphUndoStack != null)
                         m_graphUndoStack.AddSlotDelta(model as VFXSlot);

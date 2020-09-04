@@ -1,0 +1,87 @@
+#pragma kernel ClearTexture
+#pragma kernel BlendSubSurfaceData
+#pragma kernel BlendSubSurfaceDataWithGI
+
+#pragma only_renderers d3d11
+
+// Given that this pass does not use the shadow algorithm multi-compile, we need to define SHADOW_LOW to quite the shadow algorithm error
+#define SHADOW_LOW
+
+// HDRP generic includes
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+
+// The buffer of sub surface scattering  that was computed used ray tracing
+TEXTURE2D_X(_SubSurfaceLightingBuffer);
+// This buffer holds the diffuse lighting without the SSS contribution
+RW_TEXTURE2D_X(float4, _DiffuseLightingTextureRW);
+
+#define RAYTRACING_SUB_SURFACE_TILE_SIZE 8
+
+[numthreads(RAYTRACING_SUB_SURFACE_TILE_SIZE, RAYTRACING_SUB_SURFACE_TILE_SIZE, 1)]
+void ClearTexture(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Compute the pixel position to process
+    uint2 currentCoord = groupId * RAYTRACING_SUB_SURFACE_TILE_SIZE + groupThreadId;
+    _DiffuseLightingTextureRW[COORD_TEXTURE2D_X(currentCoord)] = 0.0;
+}
+
+[numthreads(RAYTRACING_SUB_SURFACE_TILE_SIZE, RAYTRACING_SUB_SURFACE_TILE_SIZE, 1)]
+void BlendSubSurfaceData(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Compute the pixel position to process
+    uint2 currentCoord = groupId * RAYTRACING_SUB_SURFACE_TILE_SIZE + groupThreadId;
+
+    // Read the SSS Data
+    SSSData sssData;
+    DECODE_FROM_SSSBUFFER(currentCoord, sssData);
+
+    // Compute the albedo color to use based on the scattering mode
+    int    profileIndex  = sssData.diffusionProfileIndex;
+    uint   texturingMode = GetSubsurfaceScatteringTexturingMode(profileIndex);
+    float3 albedo        = ApplySubsurfaceScatteringTexturingMode(texturingMode, sssData.diffuseColor);
+
+    // Blend and we are done
+    _DiffuseLightingTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(lerp(_DiffuseLightingTextureRW[COORD_TEXTURE2D_X(currentCoord)].xyz * albedo * GetInverseCurrentExposureMultiplier()
+    																	, _SubSurfaceLightingBuffer[COORD_TEXTURE2D_X(currentCoord)].xyz
+    																	, sssData.subsurfaceMask), 1.0);
+}
+
+// The buffer of indirect diffuse lighting that shall be used
+TEXTURE2D_X(_IndirectDiffuseLightingBuffer);
+
+[numthreads(RAYTRACING_SUB_SURFACE_TILE_SIZE, RAYTRACING_SUB_SURFACE_TILE_SIZE, 1)]
+void BlendSubSurfaceDataWithGI(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Compute the pixel position to process
+    uint2 currentCoord = groupId * RAYTRACING_SUB_SURFACE_TILE_SIZE + groupThreadId;
+
+    // Read the SSS Data
+    SSSData sssData;
+    DECODE_FROM_SSSBUFFER(currentCoord, sssData);
+
+    // Compute the albedo color to use based on the scattering mode
+    int    profileIndex  = sssData.diffusionProfileIndex;
+    uint   texturingMode = GetSubsurfaceScatteringTexturingMode(profileIndex);
+    float3 albedo        = ApplySubsurfaceScatteringTexturingMode(texturingMode, sssData.diffuseColor);
+    float3 indirectDiffuse = _IndirectDiffuseLightingBuffer[COORD_TEXTURE2D_X(currentCoord)].xyz * sssData.diffuseColor * GetInverseCurrentExposureMultiplier();
+
+    // Blend and we are done
+    _DiffuseLightingTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(lerp(_DiffuseLightingTextureRW[COORD_TEXTURE2D_X(currentCoord)].xyz * albedo * GetInverseCurrentExposureMultiplier()
+                                                                        , _SubSurfaceLightingBuffer[COORD_TEXTURE2D_X(currentCoord)].xyz + indirectDiffuse
+                                                                        , sssData.subsurfaceMask), 1.0);
+}

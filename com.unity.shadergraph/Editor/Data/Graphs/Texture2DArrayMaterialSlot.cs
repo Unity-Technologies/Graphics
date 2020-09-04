@@ -21,11 +21,13 @@ namespace UnityEditor.ShaderGraph
 
         public override SlotValueType valueType { get { return SlotValueType.Texture2DArray; } }
         public override ConcreteSlotValueType concreteValueType { get { return ConcreteSlotValueType.Texture2DArray; } }
+        public override bool isDefaultValue => true;
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
         {}
 
         public override void CopyValuesFrom(MaterialSlot foundSlot)
         {}
+
     }
 }

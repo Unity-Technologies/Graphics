@@ -3,6 +3,16 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
+#if defined(_PARALLAXMAP) && (SHADER_TARGET >= 30)
+#define REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR
+#endif
+
+#if (defined(_NORMALMAP) || (defined(_PARALLAXMAP) && !defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR))) || defined(_DETAIL)
+#define REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR
+#endif
+
+// keep this file in sync with LitGBufferPass.hlsl
+
 struct Attributes
 {
     float4 positionOS   : POSITION;
@@ -22,19 +32,20 @@ struct Varyings
     float3 positionWS               : TEXCOORD2;
 #endif
 
-#ifdef _NORMALMAP
-    float4 normalWS                 : TEXCOORD3;    // xyz: normal, w: viewDir.x
-    float4 tangentWS                : TEXCOORD4;    // xyz: tangent, w: viewDir.y
-    float4 bitangentWS              : TEXCOORD5;    // xyz: bitangent, w: viewDir.z
-#else
     float3 normalWS                 : TEXCOORD3;
-    float3 viewDirWS                : TEXCOORD4;
+#if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
+    float4 tangentWS                : TEXCOORD4;    // xyz: tangent, w: sign
 #endif
+    float3 viewDirWS                : TEXCOORD5;
 
     half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
 
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     float4 shadowCoord              : TEXCOORD7;
+#endif
+
+#if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
+    float3 viewDirTS                : TEXCOORD8;
 #endif
 
     float4 positionCS               : SV_POSITION;
@@ -50,17 +61,16 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.positionWS = input.positionWS;
 #endif
 
-#ifdef _NORMALMAP
-    half3 viewDirWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
-    inputData.normalWS = TransformTangentToWorld(normalTS,
-        half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
+    half3 viewDirWS = SafeNormalize(input.viewDirWS);
+#if defined(_NORMALMAP) || defined(_DETAIL)
+    float sgn = input.tangentWS.w;      // should be either +1 or -1
+    float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
+    inputData.normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz));
 #else
-    half3 viewDirWS = input.viewDirWS;
     inputData.normalWS = input.normalWS;
 #endif
 
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
-    viewDirWS = SafeNormalize(viewDirWS);
     inputData.viewDirectionWS = viewDirWS;
 
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
@@ -74,6 +84,7 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
+    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -90,20 +101,32 @@ Varyings LitPassVertex(Attributes input)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
+
+    // normalWS and tangentWS already normalize.
+    // this is required to avoid skewing the direction during interpolation
+    // also required for per-vertex lighting and SH evaluation
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
-    half3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
+
+    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
     half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
     half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
 
     output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
 
-#ifdef _NORMALMAP
-    output.normalWS = half4(normalInput.normalWS, viewDirWS.x);
-    output.tangentWS = half4(normalInput.tangentWS, viewDirWS.y);
-    output.bitangentWS = half4(normalInput.bitangentWS, viewDirWS.z);
-#else
-    output.normalWS = NormalizeNormalPerVertex(normalInput.normalWS);
+    // already normalized from normal transform to WS.
+    output.normalWS = normalInput.normalWS;
     output.viewDirWS = viewDirWS;
+#if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR) || defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
+    real sign = input.tangentOS.w * GetOddNegativeScale();
+    half4 tangentWS = half4(normalInput.tangentWS.xyz, sign);
+#endif
+#if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
+    output.tangentWS = tangentWS;
+#endif
+
+#if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
+    half3 viewDirTS = GetViewDirectionTangentSpace(tangentWS, output.normalWS, viewDirWS);
+    output.viewDirTS = viewDirTS;
 #endif
 
     OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
@@ -130,16 +153,25 @@ half4 LitPassFragment(Varyings input) : SV_Target
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
+#if defined(_PARALLAXMAP)
+#if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
+    half3 viewDirTS = input.viewDirTS;
+#else
+    half3 viewDirTS = GetViewDirectionTangentSpace(input.tangentWS, input.normalWS, input.viewDirWS);
+#endif
+    ApplyPerPixelDisplacement(viewDirTS, input.uv);
+#endif
+
     SurfaceData surfaceData;
     InitializeStandardLitSurfaceData(input.uv, surfaceData);
 
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
 
-    half4 color = UniversalFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
-    
+    half4 color = UniversalFragmentPBR(inputData, surfaceData);
+
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
-    color.a = OutputAlpha(color.a);
+    color.a = OutputAlpha(color.a, _Surface);
 
     return color;
 }

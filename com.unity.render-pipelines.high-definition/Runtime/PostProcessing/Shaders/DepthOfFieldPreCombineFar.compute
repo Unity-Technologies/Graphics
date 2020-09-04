@@ -1,0 +1,51 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+#pragma kernel KMainPreCombineFar       
+
+#pragma multi_compile _ ENABLE_ALPHA
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
+
+TEXTURE2D_X(_InputTexture);
+TEXTURE2D_X(_InputFarTexture);
+TEXTURE2D_X(_InputCoCTexture);
+
+RW_TEXTURE2D_X(CTYPE, _OutputTexture);
+
+SAMPLER(sampler_LinearClamp);
+
+CBUFFER_START(cb0)
+    float4 _TargetScale;
+CBUFFER_END
+
+#define GROUP_SIZE 8
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void KMainPreCombineFar(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    CTYPE baseColor = LOAD_TEXTURE2D_X(_InputTexture, dispatchThreadId.xy).CTYPE_SWIZZLE;
+    CTYPE farColor = LOAD_TEXTURE2D_X(_InputFarTexture, dispatchThreadId.xy).CTYPE_SWIZZLE;
+
+    CTYPE dstColor = 0.0f;
+    float dstAlpha = 1.0;
+
+    float coc = LOAD_TEXTURE2D_X(_InputCoCTexture, dispatchThreadId.xy).x;
+
+    if (coc > 0.0)
+    {
+        // Non-linear blend
+        // "CryEngine 3 Graphics Gems" [Sousa13]
+        float blend = sqrt(coc * FOUR_PI);
+        dstColor = farColor * saturate(blend);
+        dstAlpha = saturate(1.0 - blend);
+    }
+
+    CTYPE finalColor = baseColor * dstAlpha + dstColor;
+    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = finalColor;
+}

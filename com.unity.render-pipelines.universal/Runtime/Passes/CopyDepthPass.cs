@@ -4,7 +4,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 {
     /// <summary>
     /// Copy the given depth buffer into the given destination depth buffer.
-    /// 
+    ///
     /// You can use this pass to copy a depth buffer to a destination,
     /// so you can use it later in rendering. If the source texture has MSAA
     /// enabled, the pass uses a custom MSAA resolve. If the source texture
@@ -15,13 +15,12 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         private RenderTargetHandle source { get; set; }
         private RenderTargetHandle destination { get; set; }
+        internal bool AllocateRT  { get; set; }
         Material m_CopyDepthMaterial;
-        const string m_ProfilerTag = "Copy Depth";
-
-        int m_ScaleBiasId = Shader.PropertyToID("_ScaleBiasRT");
 
         public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial)
         {
+            AllocateRT = true;
             m_CopyDepthMaterial = copyDepthMaterial;
             renderPassEvent = evt;
         }
@@ -37,15 +36,18 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.destination = destination;
         }
 
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            var descriptor = cameraTextureDescriptor;
+            var descriptor = renderingData.cameraData.cameraTargetDescriptor;
             descriptor.colorFormat = RenderTextureFormat.Depth;
             descriptor.depthBufferBits = 32; //TODO: do we really need this. double check;
             descriptor.msaaSamples = 1;
-            cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
+            if (this.AllocateRT)
+                cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
 
-            ConfigureTarget(destination.Identifier());
+            // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
+            ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1));
+            ConfigureClear(ClearFlag.None, Color.black);
         }
 
         /// <inheritdoc/>
@@ -57,70 +59,77 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return;
             }
 
-            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
-            RenderTargetIdentifier depthSurface = source.Identifier();
-            RenderTargetIdentifier copyDepthSurface = destination.Identifier();
-
-            RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
-            int cameraSamples = descriptor.msaaSamples;
-
-            CameraData cameraData = renderingData.cameraData;
-            
-            switch (cameraSamples)
+            CommandBuffer cmd = CommandBufferPool.Get();
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyDepth)))
             {
-                case 8:
-                    cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
-                    cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                    cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
-                    break;
+                RenderTargetIdentifier depthSurface = source.Identifier();
+                RenderTargetIdentifier copyDepthSurface = destination.Identifier();
 
-                case 4:
-                    cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
-                    cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                    cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
-                    break;
+                RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
+                int cameraSamples = descriptor.msaaSamples;
 
-                case 2:
-                    cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
-                    cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                    cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
-                    break;
+                CameraData cameraData = renderingData.cameraData;
 
-                // MSAA disabled
-                default:
-                    cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
-                    cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                    cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
-                    break;
+                switch (cameraSamples)
+                {
+                    case 8:
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
+                        cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
+                        break;
+
+                    case 4:
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
+                        cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
+                        break;
+
+                    case 2:
+                        cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
+                        break;
+
+                    // MSAA disabled
+                    default:
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
+                        break;
+                }
+
+                cmd.SetGlobalTexture("_CameraDepthAttachment", source.Identifier());
+
+                // Blit has logic to flip projection matrix when rendering to render texture.
+                // Currently the y-flip is handled in CopyDepthPass.hlsl by checking _ProjectionParams.x
+                // If you replace this Blit with a Draw* that sets projection matrix double check
+                // to also update shader.
+                // scaleBias.x = flipSign
+                // scaleBias.y = scale
+                // scaleBias.z = bias
+                // scaleBias.w = unused
+                float flipSign = (cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
+                Vector4 scaleBiasRt = (flipSign < 0.0f)
+                    ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
+                    : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
+                cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
+
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
+
             }
-
-            cmd.SetGlobalTexture("_CameraDepthAttachment", source.Identifier());
-
-            // Blit has logic to flip projection matrix when rendering to render texture.
-            // Currently the y-flip is handled in CopyDepthPass.hlsl by checking _ProjectionParams.x
-            // If you replace this Blit with a Draw* that sets projection matrix double check
-            // to also update shader.
-            // scaleBias.x = flipSign
-            // scaleBias.y = scale
-            // scaleBias.z = bias
-            // scaleBias.w = unused
-            float flipSign = (cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
-            Vector4 scaleBias = (flipSign < 0.0f) ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f) : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
-            cmd.SetGlobalVector(m_ScaleBiasId, scaleBias);
-
-            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
 
         /// <inheritdoc/>
-        public override void FrameCleanup(CommandBuffer cmd)
+        public override void OnCameraCleanup(CommandBuffer cmd)
         {
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
 
-            cmd.ReleaseTemporaryRT(destination.id);
+            if (this.AllocateRT)
+                cmd.ReleaseTemporaryRT(destination.id);
             destination = RenderTargetHandle.CameraTarget;
         }
     }

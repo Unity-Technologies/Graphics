@@ -1,5 +1,4 @@
 using UnityEngine.Rendering;
-using Utilities;
 
 namespace UnityEditor.Rendering.Utilities
 {

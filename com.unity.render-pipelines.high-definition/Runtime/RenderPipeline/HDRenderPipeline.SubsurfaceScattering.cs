@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         // Albedo + SSS Profile and mask / Specular occlusion (when no SSS)
         // This will be used during GBuffer and/or forward passes.
-        RenderGraphMutableResource CreateSSSBuffer(RenderGraph renderGraph, bool msaa)
+        TextureHandle CreateSSSBuffer(RenderGraph renderGraph, bool msaa)
         {
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
             {
@@ -17,26 +17,32 @@ namespace UnityEngine.Rendering.HighDefinition
                 enableMSAA = msaa,
                 clearBuffer = NeedClearGBuffer(),
                 clearColor = Color.clear,
-                name = string.Format("SSSBuffer{0}", msaa ? "MSAA" : "" ) }
-            );
+                name = msaa ? "SSSBufferMSAA" : "SSSBuffer"
+            });
         }
 
         class SubsurfaceScaterringPassData
         {
             public SubsurfaceScatteringParameters parameters;
-            public RenderGraphResource colorBuffer;
-            public RenderGraphResource diffuseBuffer;
-            public RenderGraphResource depthStencilBuffer;
-            public RenderGraphResource depthTexture;
-            public RenderGraphMutableResource cameraFilteringBuffer;
-            public RenderGraphResource sssBuffer;
+            public TextureHandle colorBuffer;
+            public TextureHandle diffuseBuffer;
+            public TextureHandle depthStencilBuffer;
+            public TextureHandle depthTexture;
+            public TextureHandle cameraFilteringBuffer;
+            public TextureHandle sssBuffer;
+            public ComputeBufferHandle coarseStencilBuffer;
         }
 
-        void RenderSubsurfaceScattering(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphMutableResource colorBuffer,
-            in LightingBuffers lightingBuffers, RenderGraphResource depthStencilBuffer, RenderGraphResource depthTexture)
+        void RenderSubsurfaceScattering(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer,
+            in LightingBuffers lightingBuffers, ref PrepassOutput prepassOutput)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
                 return;
+
+            BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, ref prepassOutput);
+
+            TextureHandle depthStencilBuffer = prepassOutput.depthBuffer;
+            TextureHandle depthTexture = prepassOutput.depthPyramidTexture;
 
             using (var builder = renderGraph.AddRenderPass<SubsurfaceScaterringPassData>("Subsurface Scattering", out var passData, ProfilingSampler.Get(HDProfileId.SubsurfaceScattering)))
             {
@@ -46,23 +52,25 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthStencilBuffer = builder.ReadTexture(depthStencilBuffer);
                 passData.depthTexture = builder.ReadTexture(depthTexture);
                 passData.sssBuffer = builder.ReadTexture(lightingBuffers.sssBuffer);
+                passData.coarseStencilBuffer = builder.ReadComputeBuffer(prepassOutput.coarseStencilBuffer);
                 if (passData.parameters.needTemporaryBuffer)
                 {
-                    passData.cameraFilteringBuffer = builder.WriteTexture(renderGraph.CreateTexture(
+                    passData.cameraFilteringBuffer = builder.CreateTransientTexture(
                                             new TextureDesc(Vector2.one, true, true)
-                                            { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, clearBuffer = true, clearColor = Color.clear, name = "SSSCameraFiltering" }));
+                                            { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, clearBuffer = true, clearColor = Color.clear, name = "SSSCameraFiltering" });
                 }
 
                 builder.SetRenderFunc(
                 (SubsurfaceScaterringPassData data, RenderGraphContext context) =>
                 {
                     var resources = new SubsurfaceScatteringResources();
-                    resources.colorBuffer = context.resources.GetTexture(data.colorBuffer);
-                    resources.diffuseBuffer = context.resources.GetTexture(data.diffuseBuffer);
-                    resources.depthStencilBuffer = context.resources.GetTexture(data.depthStencilBuffer);
-                    resources.depthTexture = context.resources.GetTexture(data.depthTexture);
-                    resources.cameraFilteringBuffer = context.resources.GetTexture(data.cameraFilteringBuffer);
-                    resources.sssBuffer = context.resources.GetTexture(data.sssBuffer);
+                    resources.colorBuffer = data.colorBuffer;
+                    resources.diffuseBuffer = data.diffuseBuffer;
+                    resources.depthStencilBuffer = data.depthStencilBuffer;
+                    resources.depthTexture = data.depthTexture;
+                    resources.cameraFilteringBuffer = data.cameraFilteringBuffer;
+                    resources.sssBuffer = data.sssBuffer;
+                    resources.coarseStencilBuffer = data.coarseStencilBuffer;
 
                     RenderSubsurfaceScattering(data.parameters, resources, context.cmd);
                 });

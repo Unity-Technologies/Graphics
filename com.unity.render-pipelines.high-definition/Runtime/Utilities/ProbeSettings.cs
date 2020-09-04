@@ -137,6 +137,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float fadeDistance;
             /// <summary>The result of the rendering of the probe will be divided by this factor. When the probe is read, this factor is undone as the probe data is read.
             /// This is to simply avoid issues with values clamping due to precision of the storing format.</summary>
+            [Min(1e-6f)]
             public float rangeCompressionFactor;
         }
 
@@ -276,8 +277,9 @@ namespace UnityEngine.Rendering.HighDefinition
             HashUtilities.AppendHash(ref h2, ref h);
             HashUtilities.ComputeHash128(ref proxySettings, ref h2);
             HashUtilities.AppendHash(ref h2, ref h);
-            HashUtilities.ComputeHash128(ref cameraSettings, ref h2);
+            h2 = cameraSettings.GetHash();
             HashUtilities.AppendHash(ref h2, ref h);
+
             if (influence != null)
             {
                 h2 = influence.ComputeHash();

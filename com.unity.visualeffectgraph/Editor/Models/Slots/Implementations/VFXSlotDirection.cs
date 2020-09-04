@@ -20,7 +20,7 @@ namespace UnityEditor.VFX
                 || type == typeof(Vector4)
                 || type == typeof(Vector3)
                 || type == typeof(Vector);
-                //Doesn't expose cast from float/uint (scalar) due to the automatic normalization
+            //Doesn't expose cast from float/uint (scalar) due to the automatic normalization
         }
 
         sealed protected override VFXExpression ConvertExpression(VFXExpression expression, VFXSlot sourceSlot)
@@ -29,7 +29,7 @@ namespace UnityEditor.VFX
             {
                 if (sourceSlot.GetType() == typeof(VFXSlotDirection))
                     return expression; //avoid multiple normalization
-                if (sourceSlot.property.attributes != null && sourceSlot.property.attributes.OfType<NormalizeAttribute>().Any())
+                if (sourceSlot.property.attributes.Is(VFXPropertyAttributes.Type.Normalized))
                     return expression; //avoid multiple normalization from Normalize attribute (rarely used for output slot)
             }
 

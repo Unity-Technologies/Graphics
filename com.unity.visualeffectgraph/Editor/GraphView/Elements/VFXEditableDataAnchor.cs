@@ -1,4 +1,3 @@
-
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -55,6 +54,7 @@ namespace UnityEditor.VFX.UI
         {
             s_Clipboard = controller.value;
         }
+
         void OnPasteValue(DropdownMenuAction a)
         {
             controller.value = VFXConverter.ConvertTo(s_Clipboard, portType);
@@ -68,7 +68,7 @@ namespace UnityEditor.VFX.UI
         void OnAttachToPanel(AttachToPanelEvent e)
         {
             m_View = GetFirstAncestorOfType<VFXView>();
-            if( m_View == null)
+            if (m_View == null)
             {
                 //This can happen with asynchnous events.
                 return;
@@ -107,14 +107,19 @@ namespace UnityEditor.VFX.UI
         void BuildProperty()
         {
             Profiler.BeginSample("VFXNodeUI.BuildProperty");
+
+            float effectiveWidth = -1;
             if (m_PropertyRM != null)
             {
                 Remove(m_PropertyRM);
+                effectiveWidth = m_PropertyRM.effectiveLabelWidth;
             }
             m_PropertyRM = PropertyRM.Create(controller, VFXNodeUI.DefaultLabelWidth);
             if (m_PropertyRM != null)
             {
                 Add(m_PropertyRM);
+                if (effectiveWidth >= 0)
+                    m_PropertyRM.SetLabelWidth(effectiveWidth);
             }
             Profiler.EndSample();
         }

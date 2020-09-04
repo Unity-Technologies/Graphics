@@ -3,20 +3,27 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
-half4 _ScaleBiasRT;
+#if defined(_DEPTH_MSAA_2)
+    #define MSAA_SAMPLES 2
+#elif defined(_DEPTH_MSAA_4)
+    #define MSAA_SAMPLES 4
+#elif defined(_DEPTH_MSAA_8)
+    #define MSAA_SAMPLES 8
+#else
+    #define MSAA_SAMPLES 1
+#endif
 
 struct Attributes
 {
-    float4 positionHCS   : POSITION;
+    float4 positionHCS  : POSITION;
     float2 uv           : TEXCOORD0;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct Varyings
 {
-    float4 positionCS   : SV_POSITION;
-    float2 uv           : TEXCOORD0;
-    UNITY_VERTEX_INPUT_INSTANCE_ID
+    float4 positionCS : SV_POSITION;
+    float2 uv         : TEXCOORD0;
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
@@ -24,14 +31,13 @@ Varyings vert(Attributes input)
 {
     Varyings output;
     UNITY_SETUP_INSTANCE_ID(input);
-    UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
     output.uv = UnityStereoTransformScreenSpaceTex(input.uv);
 
     // Note: CopyDepth pass is setup with a mesh already in CS
     // Therefore, we can just output vertex position
 
-    // We need to handle y-flip in a way that all existing shaders using _ProjectionParams.x work. 
+    // We need to handle y-flip in a way that all existing shaders using _ProjectionParams.x work.
     // Otherwise we get flipping issues like this one (case https://issuetracker.unity3d.com/issues/lwrp-depth-texture-flipy)
 
     // Unity flips projection matrix in non-OpenGL platforms and when rendering to a render texture.
@@ -43,7 +49,7 @@ Varyings vert(Attributes input)
     // If URP is NOT rendering to RT neither rendering with OpenGL:
     //  - Source Depth is NOT fliped. We CANNOT flip when copying depth and don't flip when sampling. (ProjectionParams.x == 1)
     output.positionCS = float4(input.positionHCS.xyz, 1.0);
-    output.positionCS.y *= _ScaleBiasRT.x;
+    output.positionCS.y *= _ScaleBiasRt.x;
     return output;
 }
 
@@ -57,16 +63,6 @@ Varyings vert(Attributes input)
 #define DEPTH_TEXTURE(name) TEXTURE2D_FLOAT(name)
 #define LOAD(uv, sampleIndex) LOAD_TEXTURE2D_MSAA(_CameraDepthAttachment, uv, sampleIndex)
 #define SAMPLE(uv) SAMPLE_DEPTH_TEXTURE(_CameraDepthAttachment, sampler_CameraDepthAttachment, uv)
-#endif
-
-#if defined(_DEPTH_MSAA_2)
-    #define MSAA_SAMPLES 2
-#elif defined(_DEPTH_MSAA_4)
-    #define MSAA_SAMPLES 4
-#elif defined(_DEPTH_MSAA_8)
-    #define MSAA_SAMPLES 8
-#else
-    #define MSAA_SAMPLES 1
 #endif
 
 #if MSAA_SAMPLES == 1
@@ -103,7 +99,6 @@ float SampleDepth(float2 uv)
 float frag(Varyings input) : SV_Depth
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    UNITY_SETUP_INSTANCE_ID(input);
     return SampleDepth(input.uv);
 }
 

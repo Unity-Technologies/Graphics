@@ -39,7 +39,6 @@ namespace UnityEditor.VFX
                     if (contextData != null)
                         return contextData.title;
                 }
-
             }
             return null;
         }
@@ -106,7 +105,7 @@ namespace UnityEditor.VFX
                 return newName;
             }
             if (!(model is VFXSubgraphContext))
-                Debug.LogError("model not registered.");
+                throw new InvalidOperationException("SystemNames : Model is not registered " + model);
             return GetSystemName(model);
         }
 
@@ -164,6 +163,5 @@ namespace UnityEditor.VFX
 
             return index;
         }
-
     }
 }

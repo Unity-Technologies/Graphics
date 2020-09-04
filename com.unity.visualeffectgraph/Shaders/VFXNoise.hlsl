@@ -92,10 +92,10 @@ float2 NoiseHash1D(float gridcell)
     float kLargeFloat = 1.0f / 951.135664f;
 
     float2 P = float2(gridcell, gridcell + 1.0f);
-    P = P - floor(P * (1.0f / kDomain)) * kDomain;	// truncate the domain
+    P = P - floor(P * (1.0f / kDomain)) * kDomain;  // truncate the domain
     float3 P3 = float3(P.x, 0.0f, P.y);
-    P3 += kOffset.xyx;							    // offset to interesting part of the noise
-    P3 *= P3;										// calculate and return the hash
+    P3 += kOffset.xyx;                              // offset to interesting part of the noise
+    P3 *= P3;                                       // calculate and return the hash
     return frac(P3.xz * P3.y * kLargeFloat);
 }
 
@@ -107,9 +107,9 @@ float4 NoiseHash2D(float2 gridcell)
     float kLargeFloat = 1.0f / 951.135664f;
 
     float4 P = float4(gridcell.xy, gridcell.xy + 1.0f);
-    P = P - floor(P * (1.0f / kDomain)) * kDomain;	// truncate the domain
-    P += kOffset.xyxy;								// offset to interesting part of the noise
-    P *= P;											// calculate and return the hash
+    P = P - floor(P * (1.0f / kDomain)) * kDomain;  // truncate the domain
+    P += kOffset.xyxy;                              // offset to interesting part of the noise
+    P *= P;                                         // calculate and return the hash
     return frac(P.xzxz * P.yyww * kLargeFloat);
 }
 
@@ -182,8 +182,8 @@ void NoiseHash3D(float3 gridcell,
 float4 CellularWeightSamples(float4 samples)
 {
     samples = samples * 2.0f - 1.0f;
-    //return (1.0 - samples * samples) * sign(samples);	// square
-    return (samples * samples * samples) - sign(samples);	// cubic (even more variance)
+    //return (1.0 - samples * samples) * sign(samples); // square
+    return (samples * samples * samples) - sign(samples);   // cubic (even more variance)
 }
 
 // Value Noise
@@ -400,7 +400,7 @@ float4 GeneratePerlinNoise3D(float3 coordinate)
     result.w += dot(float4(k2_gk2.x, k4_gk4.x * u, float2(k5_gk5.x, k6_gk6.x * u) * v), float4(blendDeriv.zzzz));
 
     // normalize
-    return result * 1.1547005383792515290182975610039f;		// scale to -1.0 -> 1.0 range    *= 1.0/sqrt(0.75)
+    return result * 1.1547005383792515290182975610039f;     // scale to -1.0 -> 1.0 range    *= 1.0/sqrt(0.75)
 }
 
 NOISE_TEMPLATE(Perlin, float, float2, GeneratePerlinNoise1D);
@@ -424,7 +424,7 @@ float2 GenerateCellularNoise1D(float coordinate)
     // generate the 4 random points
     // restrict the random point offset to eliminate artifacts
     // we'll improve the variance of the noise by pushing the points to the extremes of the jitter window
-    float kJitterWindow = 0.25f;	// guarantees no artifacts. 0.25 is the intersection on x of graphs f(x)=( (0.5+(0.5-x))^2 + (0.5-x)^2 ) and f(x)=( (0.5+x)^2 + x^2 )
+    float kJitterWindow = 0.25f;    // guarantees no artifacts. 0.25 is the intersection on x of graphs f(x)=( (0.5+(0.5-x))^2 + (0.5-x)^2 ) and f(x)=( (0.5+x)^2 + x^2 )
     hash_x = CellularWeightSamples(hash_x) * kJitterWindow + float4(0.0f, 1.0f, 0.0f, 1.0f);
     hash_y = CellularWeightSamples(hash_y) * kJitterWindow + float4(0.0f, 0.0f, 1.0f, 1.0f);
 
@@ -451,7 +451,7 @@ float3 GenerateCellularNoise2D(float2 coordinate)
     // generate the 4 random points
     // restrict the random point offset to eliminate artifacts
     // we'll improve the variance of the noise by pushing the points to the extremes of the jitter window
-    float kJitterWindow = 0.25f;	// guarantees no artifacts. 0.25 is the intersection on x of graphs f(x)=( (0.5+(0.5-x))^2 + (0.5-x)^2 ) and f(x)=( (0.5+x)^2 + x^2 )
+    float kJitterWindow = 0.25f;    // guarantees no artifacts. 0.25 is the intersection on x of graphs f(x)=( (0.5+(0.5-x))^2 + (0.5-x)^2 ) and f(x)=( (0.5+x)^2 + x^2 )
     hash_x = CellularWeightSamples(hash_x) * kJitterWindow + float4(0.0f, 1.0f, 0.0f, 1.0f);
     hash_y = CellularWeightSamples(hash_y) * kJitterWindow + float4(0.0f, 0.0f, 1.0f, 1.0f);
 
@@ -478,7 +478,7 @@ float4 GenerateCellularNoise3D(float3 coordinate)
     // generate the 8 random points
     // restrict the random point offset to eliminate artifacts
     // we'll improve the variance of the noise by pushing the points to the extremes of the jitter window
-    float kJitterWindow = 0.166666666f;	// guarantees no artifacts. It is the intersection on x of graphs f(x)=( (0.5 + (0.5-x))^2 + 2*((0.5-x)^2) ) and f(x)=( 2 * (( 0.5 + x )^2) + x * x )
+    float kJitterWindow = 0.166666666f; // guarantees no artifacts. It is the intersection on x of graphs f(x)=( (0.5 + (0.5-x))^2 + 2*((0.5-x)^2) ) and f(x)=( 2 * (( 0.5 + x )^2) + x * x )
     hash_x0 = CellularWeightSamples(hash_x0) * kJitterWindow + float4(0.0f, 1.0f, 0.0f, 1.0f);
     hash_y0 = CellularWeightSamples(hash_y0) * kJitterWindow + float4(0.0f, 0.0f, 1.0f, 1.0f);
     hash_x1 = CellularWeightSamples(hash_x1) * kJitterWindow + float4(0.0f, 1.0f, 0.0f, 1.0f);
@@ -502,7 +502,7 @@ float4 GenerateCellularNoise3D(float3 coordinate)
     float4 r4 = d2.z < d2.w ? float4(d2.z, dx2.z, dy2.z, dz2.z) : float4(d2.w, dx2.w, dy2.w, dz2.w);
     float4 t1 = r1.x < r2.x ? r1 : r2;
     float4 t2 = r3.x < r4.x ? r3 : r4;
-    return (t1.x < t2.x ? t1 : t2) * float4(1.0f, 2.0f, 2.0f, 2.0f) * (9.0f / 12.0f);	// scale return value from 0.0->1.333333 to 0.0->1.0 (2/3)^2 * 3  == (12/9) == 1.333333;
+    return (t1.x < t2.x ? t1 : t2) * float4(1.0f, 2.0f, 2.0f, 2.0f) * (9.0f / 12.0f);   // scale return value from 0.0->1.333333 to 0.0->1.0 (2/3)^2 * 3  == (12/9) == 1.333333;
 }
 
 NOISE_TEMPLATE(Cellular, float, float2, GenerateCellularNoise1D);
@@ -546,4 +546,3 @@ float GenerateVoroNoise(float2 coordinate, float frequency, float warp, float sm
 
     return ((va / wt) * 2 - 1);
 }
-

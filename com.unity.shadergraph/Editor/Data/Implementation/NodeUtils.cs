@@ -4,7 +4,6 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using UnityEditor.ShaderGraph;
-using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEngine.Rendering.ShaderGraph;
 
@@ -26,10 +25,10 @@ namespace UnityEditor.Graphing
             var missingSlots = new List<int>();
 
             var inputSlots = expectedInputSlots as IList<int> ?? expectedInputSlots.ToList();
-            missingSlots.AddRange(inputSlots.Except(node.GetInputSlots<ISlot>().Select(x => x.id)));
+            missingSlots.AddRange(inputSlots.Except(node.GetInputSlots<MaterialSlot>().Select(x => x.id)));
 
             var outputSlots = expectedOutputSlots as IList<int> ?? expectedOutputSlots.ToList();
-            missingSlots.AddRange(outputSlots.Except(node.GetOutputSlots<ISlot>().Select(x => x.id)));
+            missingSlots.AddRange(outputSlots.Except(node.GetOutputSlots<MaterialSlot>().Select(x => x.id)));
 
             if (missingSlots.Count == 0)
                 return;
@@ -42,9 +41,9 @@ namespace UnityEditor.Graphing
         public static IEnumerable<IEdge> GetAllEdges(AbstractMaterialNode node)
         {
             var result = new List<IEdge>();
-            var validSlots = ListPool<ISlot>.Get();
+            var validSlots = ListPool<MaterialSlot>.Get();
 
-            validSlots.AddRange(node.GetInputSlots<ISlot>());
+            validSlots.AddRange(node.GetInputSlots<MaterialSlot>());
             for (int index = 0; index < validSlots.Count; index++)
             {
                 var inputSlot = validSlots[index];
@@ -52,14 +51,14 @@ namespace UnityEditor.Graphing
             }
 
             validSlots.Clear();
-            validSlots.AddRange(node.GetOutputSlots<ISlot>());
+            validSlots.AddRange(node.GetOutputSlots<MaterialSlot>());
             for (int index = 0; index < validSlots.Count; index++)
             {
                 var outputSlot = validSlots[index];
                 result.AddRange(node.owner.GetEdges(outputSlot.slotReference));
             }
 
-            ListPool<ISlot>.Release(validSlots);
+            ListPool<MaterialSlot>.Release(validSlots);
             return result;
         }
 
@@ -82,8 +81,27 @@ namespace UnityEditor.Graphing
             Exclude
         }
 
+        public static SlotReference DepthFirstCollectRedirectNodeFromNode(RedirectNodeData node)
+        {
+            var inputSlot = node.FindSlot<MaterialSlot>(RedirectNodeData.kInputSlotID);
+            foreach (var edge in node.owner.GetEdges(inputSlot.slotReference))
+            {
+                // get the input details
+                var outputSlotRef = edge.outputSlot;
+                var inputNode = outputSlotRef.node;
+                // If this is a redirect node we continue to look for the top one
+                if (inputNode is RedirectNodeData redirectNode)
+                {
+                    return DepthFirstCollectRedirectNodeFromNode( redirectNode );
+                }
+                return outputSlotRef;
+            }
+            // If no edges it is the first redirect node without an edge going into it and we should return the slot ref
+            return node.GetSlotReference(RedirectNodeData.kInputSlotID);
+        }
+
         public static void DepthFirstCollectNodesFromNode(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node,
-            IncludeSelf includeSelf = IncludeSelf.Include, IEnumerable<int> slotIds = null, List<KeyValuePair<ShaderKeyword, int>> keywordPermutation = null)
+            IncludeSelf includeSelf = IncludeSelf.Include, List<KeyValuePair<ShaderKeyword, int>> keywordPermutation = null)
         {
             // no where to start
             if (node == null)
@@ -99,29 +117,263 @@ namespace UnityEditor.Graphing
             // The only valid port id is the port that corresponds to that keywords value in the active permutation
             if(node is KeywordNode keywordNode && keywordPermutation != null)
             {
-                var valueInPermutation = keywordPermutation.Where(x => x.Key.guid == keywordNode.keywordGuid).FirstOrDefault();
+                var valueInPermutation = keywordPermutation.Where(x => x.Key == keywordNode.keyword).FirstOrDefault();
                 ids = new int[] { keywordNode.GetSlotIdForPermutation(valueInPermutation) };
-            }
-            else if (slotIds == null)
-            {
-                ids = node.GetInputSlots<ISlot>().Select(x => x.id);
             }
             else
             {
-                ids = node.GetInputSlots<ISlot>().Where(x => slotIds.Contains(x.id)).Select(x => x.id);
+                ids = node.GetInputSlots<MaterialSlot>().Select(x => x.id);
             }
 
             foreach (var slot in ids)
             {
                 foreach (var edge in node.owner.GetEdges(node.GetSlotReference(slot)))
                 {
-                    var outputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                    var outputNode = edge.outputSlot.node;
                     if (outputNode != null)
                         DepthFirstCollectNodesFromNode(nodeList, outputNode, keywordPermutation: keywordPermutation);
                 }
             }
 
-            if (includeSelf == IncludeSelf.Include)
+            if (includeSelf == IncludeSelf.Include && node.isActive)
+                nodeList.Add(node);
+        }
+
+        private static List<AbstractMaterialNode> GetParentNodes(AbstractMaterialNode node)
+        {
+            List<AbstractMaterialNode> nodeList = new List<AbstractMaterialNode>();
+            var ids = node.GetInputSlots<MaterialSlot>().Select(x => x.id);
+            foreach (var slot in ids)
+            {
+                foreach (var edge in node.owner.GetEdges(node.FindSlot<MaterialSlot>(slot).slotReference))
+                {
+                    var outputNode = ((Edge)edge).outputSlot.node;
+                    if (outputNode != null)
+                    {
+                        nodeList.Add(outputNode);
+                    }
+                }
+            }
+            return nodeList;
+        }
+
+        private static bool ActiveLeafExists(AbstractMaterialNode node)
+        {
+            //if our active state has been explicitly set to a value use it
+            switch (node.activeState)
+            {
+                case AbstractMaterialNode.ActiveState.Implicit:
+                    break;
+                case AbstractMaterialNode.ActiveState.ExplicitInactive:
+                    return false;
+                case AbstractMaterialNode.ActiveState.ExplicitActive:
+                    return true;
+            }
+
+
+
+            List<AbstractMaterialNode> parentNodes = GetParentNodes(node);
+            //at this point we know we are not explicitly set to a state,
+            //so there is no reason to be inactive
+            if(parentNodes.Count == 0)
+            {
+                return true;
+            }
+
+            bool output = false;
+            foreach(var parent in parentNodes)
+            {
+                output |= ActiveLeafExists(parent);
+                if(output)
+                {
+                    break;
+                }
+            }
+            return output;
+        }
+
+
+        private static List<AbstractMaterialNode> GetChildNodes(AbstractMaterialNode node)
+        {
+            List<AbstractMaterialNode> nodeList = new List<AbstractMaterialNode>();
+            var ids = node.GetOutputSlots<MaterialSlot>().Select(x => x.id);
+            foreach (var slot in ids)
+            {
+                foreach (var edge in node.owner.GetEdges(node.FindSlot<MaterialSlot>(slot).slotReference))
+                {
+                    var inputNode = ((Edge)edge).inputSlot.node;
+                    if (inputNode != null)
+                    {
+                        nodeList.Add(inputNode);
+                    }
+                }
+            }
+            return nodeList;
+        }
+
+        private static bool ActiveRootExists(AbstractMaterialNode node)
+        {
+            //if our active state has been explicitly set to a value use it
+            switch (node.activeState)
+            {
+                case AbstractMaterialNode.ActiveState.Implicit:
+                    break;
+                case AbstractMaterialNode.ActiveState.ExplicitInactive:
+                    return false;
+                case AbstractMaterialNode.ActiveState.ExplicitActive:
+                    return true;
+            }
+
+            List<AbstractMaterialNode> childNodes = GetChildNodes(node);
+            //at this point we know we are not explicitly set to a state,
+            //so there is no reason to be inactive
+            if (childNodes.Count == 0)
+            {
+                return true;
+            }
+
+            bool output = false;
+            foreach (var child in childNodes)
+            {
+                output |= ActiveRootExists(child);
+                if (output)
+                {
+                    break;
+                }
+            }
+            return output;
+
+        }
+
+        private static void ActiveTreeExists(AbstractMaterialNode node, out bool activeLeaf, out bool activeRoot, out bool activeTree)
+        {
+            activeLeaf = ActiveLeafExists(node);
+            activeRoot = ActiveRootExists(node);
+            activeTree = activeRoot && activeLeaf;
+        }
+
+        //First pass check if node is now active after a change, so just check if there is a valid "tree" : a valid upstream input path,
+        // and a valid downstream output path, or "leaf" and "root". If this changes the node's active state, then anything connected may
+        // change as well, so update the "forrest" or all connectected trees of this nodes leaves.
+        // NOTE: I cannot think if there is any case where the entirety of the connected graph would need to change, but if there are bugs
+        // on certain nodes farther away from the node not updating correctly, a possible solution may be to get the entirety of the connected
+        // graph instead of just what I have declared as the "local" connected graph
+        public static void ReevaluateActivityOfConnectedNodes(AbstractMaterialNode node, PooledHashSet<AbstractMaterialNode> changedNodes = null)
+        {
+            List<AbstractMaterialNode> forest = GetForest(node);
+            ReevaluateActivityOfNodeList(forest, changedNodes);
+        }
+
+        public static void ReevaluateActivityOfNodeList(IEnumerable<AbstractMaterialNode> nodes, PooledHashSet<AbstractMaterialNode> changedNodes = null)
+        {
+            bool getChangedNodes = changedNodes != null;
+            foreach(AbstractMaterialNode n in nodes)
+            {
+                if (n.activeState != AbstractMaterialNode.ActiveState.Implicit)
+                    continue;
+                ActiveTreeExists(n, out _, out _, out bool at);
+                if(n.isActive != at && getChangedNodes)
+                {
+                    changedNodes.Add(n);
+                }
+                n.SetActive(at, false);
+            }
+
+        }
+
+        //Go to the leaves of the node, then get all trees with those leaves
+        private static List<AbstractMaterialNode> GetForest(AbstractMaterialNode node)
+        {
+            List<AbstractMaterialNode> leaves = GetLeaves(node);
+            List<AbstractMaterialNode> forrest = new List<AbstractMaterialNode>();
+            foreach(var leaf in leaves)
+            {
+                if(!forrest.Contains(leaf))
+                {
+                    forrest.Add(leaf);
+                }
+                foreach(var child in GetChildNodesRecursive(leaf))
+                {
+                    if(!forrest.Contains(child))
+                    {
+                        forrest.Add(child);
+                    }
+                }
+            }
+            return forrest;
+        }
+
+        private static List<AbstractMaterialNode> GetChildNodesRecursive(AbstractMaterialNode node)
+        {
+            List<AbstractMaterialNode> output = new List<AbstractMaterialNode>() { node };
+            List<AbstractMaterialNode> children = GetChildNodes(node);
+            foreach(var child in children)
+            {
+                if(!output.Contains(child))
+                {
+                    output.Add(child);
+                }
+                foreach(var descendent in GetChildNodesRecursive(child))
+                {
+                    if(!output.Contains(descendent))
+                    {
+                        output.Add(descendent);
+                    }
+                }
+            }
+            return output;
+        }
+
+        private static List<AbstractMaterialNode> GetLeaves(AbstractMaterialNode node)
+        {
+            List<AbstractMaterialNode> parents = GetParentNodes(node);
+            List<AbstractMaterialNode> output = new List<AbstractMaterialNode>();
+            if(parents.Count == 0)
+            {
+                output.Add(node);
+            }
+            else
+            {
+                foreach(var parent in parents)
+                {
+                    foreach(var leaf in GetLeaves(parent))
+                    {
+                        if(!output.Contains(leaf))
+                        {
+                            output.Add(leaf);
+                        }
+                    }
+                }
+            }
+            return output;
+        }
+
+        public static void GetDownsteamNodesForNode(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node)
+        {
+            // no where to start
+            if (node == null)
+                return;            
+
+            // Recursively traverse downstream from the original node
+            // Traverse down each edge and continue on any connected downstream nodes
+            // Only nodes with no nodes further downstream are added to node list
+            bool hasDownstream = false;
+            var ids = node.GetOutputSlots<MaterialSlot>().Select(x => x.id);
+            foreach (var slot in ids)
+            {
+                foreach (var edge in node.owner.GetEdges(node.FindSlot<MaterialSlot>(slot).slotReference))
+                {
+                    var inputNode = ((Edge)edge).inputSlot.node;
+                    if (inputNode != null)
+                    {
+                        hasDownstream = true;
+                        GetDownsteamNodesForNode(nodeList, inputNode);
+                    }
+                }
+            }
+
+            // No more nodes downstream from here
+            if(!hasDownstream)
                 nodeList.Add(node);
         }
 
@@ -131,7 +383,7 @@ namespace UnityEditor.Graphing
             var graph = node.owner;
             foreach (var edge in graph.GetEdges(node.GetSlotReference(slot.id)))
             {
-                var outputNode = graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                var outputNode = edge.outputSlot.node;
                 if (outputNode != null)
                 {
                     CollectNodeSet(nodeSet, outputNode);
@@ -165,11 +417,11 @@ namespace UnityEditor.Graphing
             if (nodeList.Contains(node))
                 return;
 
-            foreach (var slot in node.GetOutputSlots<ISlot>())
+            foreach (var slot in node.GetOutputSlots<MaterialSlot>())
             {
                 foreach (var edge in node.owner.GetEdges(slot.slotReference))
                 {
-                    var inputNode = node.owner.GetNodeFromGuid(edge.inputSlot.nodeGuid);
+                    var inputNode = edge.inputSlot.node;
                     CollectNodesNodeFeedsInto(nodeList, inputNode);
                 }
             }
@@ -200,7 +452,7 @@ namespace UnityEditor.Graphing
                 {
                     foreach (var edge in graph.GetEdges(slot.slotReference))
                     {
-                        var node = graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                        var node = edge.outputSlot.node;
                         s_SlotStack.Push(node.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId));
                     }
                 }
@@ -208,7 +460,7 @@ namespace UnityEditor.Graphing
                 {
                     foreach (var edge in graph.GetEdges(slot.slotReference))
                     {
-                        var node = graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
+                        var node = edge.inputSlot.node;
                         s_SlotStack.Push(node.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId));
                     }
                 }
@@ -243,7 +495,7 @@ namespace UnityEditor.Graphing
                 {
                     foreach (var edge in graph.GetEdges(slot.slotReference))
                     {
-                        var node = graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                        var node = edge.outputSlot.node;
                         s_SlotStack.Push(node.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId));
                     }
                 }
@@ -251,7 +503,7 @@ namespace UnityEditor.Graphing
                 {
                     foreach (var edge in graph.GetEdges(slot.slotReference))
                     {
-                        var node = graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
+                        var node = edge.inputSlot.node;
                         s_SlotStack.Push(node.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId));
                     }
                 }

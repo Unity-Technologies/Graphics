@@ -79,7 +79,6 @@ namespace UnityEditor.VFX.Operator
         {
             get
             {
-                var baseInputProperties = base.inputProperties;
                 var defaultValue = GetDefaultValueForType(GetOperandType());
                 for (uint i = 0; i < m_EntryCount; ++i)
                 {
@@ -138,7 +137,8 @@ namespace UnityEditor.VFX.Operator
             for (int i = 0; i < m_EntryCount - 1; i++)
             {
                 compare[i] = new VFXExpressionCondition(VFXCondition.GreaterOrEqual, prefixedProbablities[i], rand);
-            };
+            }
+            ;
 
             var startValueIndex = Enumerable.Range(0, (int)m_EntryCount).Select(o => o * stride + 1).ToArray();
             return ChainedBranchResult(compare, inputExpression, startValueIndex);

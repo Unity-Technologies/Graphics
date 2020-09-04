@@ -73,6 +73,7 @@ namespace UnityEditor.VFX.UI
                 SetValueAndNotify(newValue);
             }
         }
+
         public override void SetEnabled(bool value)
         {
             for (int i = 0; i < m_FloatFields.GetLength(0); ++i)

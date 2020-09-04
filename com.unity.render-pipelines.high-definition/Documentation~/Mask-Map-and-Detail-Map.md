@@ -1,6 +1,6 @@
 # Mask and detail maps
 
-The High Definition Render Pipeline (HDRP) uses [channel-packed](Glossary.html#ChannelPacking) Textures to store multiple Material maps in a single Texture. Channel packing is efficient because it allows the renderer to sample up to four grayscale maps that use the same UV coordinates with a single Texture fetch. HDRP uses two types of channel-packed Textures: the [Mask Map](#MaskMap), and the [Detail Map](#DetailMap). They can use a different set of UV coordinates, or a different UV tiling value, giving you more creative freedom.
+The High Definition Render Pipeline (HDRP) uses [channel-packed](Glossary.md#ChannelPacking) Textures to store multiple Material maps in a single Texture. Channel packing is efficient because it allows the renderer to sample up to four grayscale maps that use the same UV coordinates with a single Texture fetch. HDRP uses two types of channel-packed Textures: the [Mask Map](#MaskMap), and the [Detail Map](#DetailMap). They can use a different set of UV coordinates, or a different UV tiling value, giving you more creative freedom.
 
 This document describes the format of the mask map and detail map so that you can author your own to use in HDRP. 
 

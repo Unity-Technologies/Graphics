@@ -1,4 +1,4 @@
-﻿namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph
 {
     [GenerationAPI]
     internal static class StructFields
@@ -27,6 +27,8 @@
                 "COLOR", subscriptOptions : StructFieldOptions.Optional);
             public static FieldDescriptor instanceID = new FieldDescriptor(Attributes.name, "instanceID", "", ShaderValueType.Uint,
                 "INSTANCEID_SEMANTIC", "UNITY_ANY_INSTANCING_ENABLED");
+            public static FieldDescriptor vertexID = new FieldDescriptor(Attributes.name, "vertexID", "ATTRIBUTES_NEED_VERTEXID", ShaderValueType.Uint,
+                "SV_VertexID", subscriptOptions: StructFieldOptions.Optional);
         }
 
         public struct Varyings
@@ -54,7 +56,7 @@
             public static FieldDescriptor screenPosition = new FieldDescriptor(Varyings.name, "screenPosition", "VARYINGS_NEED_SCREENPOSITION", ShaderValueType.Float4,
                 subscriptOptions : StructFieldOptions.Optional);
             public static FieldDescriptor instanceID = new FieldDescriptor(Varyings.name, "instanceID", "", ShaderValueType.Uint,
-                "INSTANCEID_SEMANTIC", "UNITY_ANY_INSTANCING_ENABLED");
+                "CUSTOM_INSTANCE_ID", "UNITY_ANY_INSTANCING_ENABLED");
             public static FieldDescriptor cullFace = new FieldDescriptor(Varyings.name, "cullFace", "VARYINGS_NEED_CULLFACE", "FRONT_FACE_TYPE",
                 "FRONT_FACE_SEMANTIC", "defined(SHADER_STAGE_FRAGMENT) && defined(VARYINGS_NEED_CULLFACE)", StructFieldOptions.Generated & StructFieldOptions.Optional);
         }
@@ -126,9 +128,11 @@
 
             public static FieldDescriptor BoneWeights = new FieldDescriptor(VertexDescriptionInputs.name, "BoneWeights", "", ShaderValueType.Float4,
                 subscriptOptions : StructFieldOptions.Optional);
-
             public static FieldDescriptor BoneIndices = new FieldDescriptor(VertexDescriptionInputs.name, "BoneIndices", "", ShaderValueType.Uint4,
                 subscriptOptions : StructFieldOptions.Optional);
+
+            public static FieldDescriptor VertexID = new FieldDescriptor(VertexDescriptionInputs.name, "VertexID", "", ShaderValueType.Uint,
+                subscriptOptions: StructFieldOptions.Optional);
         }
 
         public struct SurfaceDescriptionInputs
@@ -197,6 +201,14 @@
                 subscriptOptions : StructFieldOptions.Optional);
             public static FieldDescriptor FaceSign = new FieldDescriptor(SurfaceDescriptionInputs.name, "FaceSign", "", ShaderValueType.Float,
                 subscriptOptions : StructFieldOptions.Optional);
+
+            public static FieldDescriptor BoneWeights = new FieldDescriptor(SurfaceDescriptionInputs.name, "BoneWeights", "", ShaderValueType.Float4,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor BoneIndices = new FieldDescriptor(SurfaceDescriptionInputs.name, "BoneIndices", "", ShaderValueType.Uint4,
+                subscriptOptions: StructFieldOptions.Optional);
+
+            public static FieldDescriptor VertexID = new FieldDescriptor(SurfaceDescriptionInputs.name, "VertexID", "", ShaderValueType.Uint,
+                subscriptOptions: StructFieldOptions.Optional);
         }
     }
 }

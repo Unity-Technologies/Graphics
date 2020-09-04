@@ -26,6 +26,7 @@ namespace UnityEditor.VFX
             max = Mathf.Infinity;
             descendantCount = 0;
             sheetType = null;
+            enumValues = null;
         }
 
         public string name;
@@ -40,6 +41,8 @@ namespace UnityEditor.VFX
         public float min;
         public float max;
 
+        public List<string> enumValues;
+
         public int descendantCount;
 
 
@@ -50,7 +53,7 @@ namespace UnityEditor.VFX
                 categories = new List<VFXUI.CategoryInfo>();
 
 
-            var parameters = graph.children.OfType<VFXParameter>().Where(t => t.exposed && (string.IsNullOrEmpty(t.category) || !categories.Any(u => u.name == t.category)) && !t.isOutput ).OrderBy(t => t.order).ToArray();
+            var parameters = graph.children.OfType<VFXParameter>().Where(t => t.exposed && (string.IsNullOrEmpty(t.category) || !categories.Any(u => u.name == t.category)) && !t.isOutput).OrderBy(t => t.order).ToArray();
 
             var infos = new List<VFXParameterInfo>();
             BuildCategoryParameterInfo(parameters, infos);
@@ -85,12 +88,16 @@ namespace UnityEditor.VFX
                 {
                     paramInfo.sheetType = rootFieldName;
                     paramInfo.path = paramInfo.name;
-                    if (parameter.hasRange)
+                    if (parameter.valueFilter == VFXValueFilter.Range)
                     {
-                        float min = (float)System.Convert.ChangeType(parameter.m_Min.Get(), typeof(float));
-                        float max = (float)System.Convert.ChangeType(parameter.m_Max.Get(), typeof(float));
+                        float min = (float)System.Convert.ChangeType(parameter.min, typeof(float));
+                        float max = (float)System.Convert.ChangeType(parameter.max, typeof(float));
                         paramInfo.min = min;
                         paramInfo.max = max;
+                    }
+                    else if( parameter.valueFilter == VFXValueFilter.Enum)
+                    {
+                        paramInfo.enumValues = parameter.enumValues.ToList();
                     }
                     paramInfo.defaultValue = new VFXSerializableObject(parameter.type, parameter.value);
 

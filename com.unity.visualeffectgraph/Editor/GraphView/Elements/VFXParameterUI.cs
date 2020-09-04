@@ -134,7 +134,7 @@ namespace UnityEditor.VFX.UI
 
         public override VFXDataAnchor InstantiateDataAnchor(VFXDataAnchorController controller, VFXNodeUI node)
         {
-            if(controller.direction == Direction.Input)
+            if (controller.direction == Direction.Input)
                 return VFXInputParameterDataAnchor.Create(controller, node);
             else
                 return VFXOutputParameterDataAnchor.Create(controller, node);

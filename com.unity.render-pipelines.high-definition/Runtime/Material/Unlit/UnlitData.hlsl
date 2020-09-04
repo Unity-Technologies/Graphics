@@ -23,6 +23,18 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Builtin Data
     ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
     builtinData.opacity = alpha;
+    
+#ifdef _ALPHATEST_ON
+    // Used for sharpening by alpha to mask
+    builtinData.alphaClipTreshold = _AlphaCutoff;
+#endif
+
+#if defined(DEBUG_DISPLAY)
+    // Light Layers are currently not used for the Unlit shader (because it is not lit)
+    // But Unlit objects do cast shadows according to their rendering layer mask, which is what we want to
+    // display in the light layers visualization mode, therefore we need the renderingLayers
+    builtinData.renderingLayers = GetMeshRenderingLightLayer();
+#endif
 
 #ifdef _EMISSIVE_COLOR_MAP
     builtinData.emissiveColor = SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, TRANSFORM_TEX(input.texCoord0.xy, _EmissiveColorMap)).rgb * _EmissiveColor;
@@ -30,10 +42,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     builtinData.emissiveColor = _EmissiveColor;
 #endif
 
-#if SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT || SHADERPASS == SHADERPASS_RAYTRACING_GBUFFER
+    // Note: The code below is used only with EmmissiveMesh generated from Area Light with the option in the UX - So this code don't need
+    // to be present for shader graph
+#if SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT || SHADERPASS == SHADERPASS_RAYTRACING_GBUFFER || SHADERPASS == SHADERPASS_RAYTRACING_FORWARD
     builtinData.emissiveColor *= _IncludeIndirectLighting;
-#elif SHADERPASS == SHADERPASS_RAYTRACING_FORWARD || SHADERPASS == SHADERPASS_PATH_TRACING
-    if(rayCone.spreadAngle < 0.0)
+#elif SHADERPASS == SHADERPASS_PATH_TRACING
+    if (rayCone.spreadAngle < 0.0)
     {
         builtinData.emissiveColor *= _IncludeIndirectLighting;
     }
@@ -56,6 +70,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
         surfaceData.color = GetTextureDataDebug(_DebugMipMapMode, unlitColorMapUv, _UnlitColorMap, _UnlitColorMap_TexelSize, _UnlitColorMap_MipInfo, surfaceData.color);
     }
 #endif
+
+    ApplyDebugToBuiltinData(builtinData);
 
     RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
 }

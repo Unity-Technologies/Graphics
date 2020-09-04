@@ -24,6 +24,8 @@ namespace UnityEditor.ShaderGraph
             public Cubemap cubemapValue;
             [FieldOffset(0)]
             public Gradient gradientValue;
+            [FieldOffset(0)]
+            public VirtualTextureShaderProperty vtProperty;
         }
 
         [StructLayout(LayoutKind.Explicit)]
@@ -109,6 +111,22 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public VirtualTextureShaderProperty vtProperty
+        {
+            get
+            {
+                if (propType != PropertyType.VirtualTexture)
+                    throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Gradient, propType));
+                return m_ClassData.vtProperty;
+            }
+            set
+            {
+                if (propType != PropertyType.VirtualTexture)
+                    throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Gradient, propType));
+                m_ClassData.vtProperty = value;
+            }
+        }
+
         public Vector4 vector4Value
         {
             get
@@ -177,12 +195,35 @@ namespace UnityEditor.ShaderGraph
         const string k_SetErrorMessage = "Cannot set a {0} property on a PreviewProperty with type {1}.";
         const string k_GetErrorMessage = "Cannot get a {0} property on a PreviewProperty with type {1}.";
 
-        public void SetMaterialPropertyBlockValue(Material mat)
+        public void SetValueOnMaterialPropertyBlock(MaterialPropertyBlock mat)
         {
-            if ((propType == PropertyType.Texture2D || propType == PropertyType.Texture2DArray || propType == PropertyType.Texture3D) && textureValue != null)
-                mat.SetTexture(name, m_ClassData.textureValue);
-            else if (propType == PropertyType.Cubemap && cubemapValue != null)
-                mat.SetTexture(name, m_ClassData.cubemapValue);
+            if ((propType == PropertyType.Texture2D || propType == PropertyType.Texture2DArray || propType == PropertyType.Texture3D))
+            {
+                if (m_ClassData.textureValue == null)
+                {
+                    // there's no way to set the texture back to NULL
+                    // and no way to delete the property either
+                    // so instead we set the value to what we know the default will be
+                    // (all textures in ShaderGraph default to white)
+                    mat.SetTexture(name, Texture2D.whiteTexture);
+                }
+                else
+                    mat.SetTexture(name, m_ClassData.textureValue);
+            }
+            else if (propType == PropertyType.Cubemap)
+            {
+                if (m_ClassData.cubemapValue == null)
+                {
+                    // there's no way to set the texture back to NULL
+                    // and no way to delete the property either
+                    // so instead we set the value to what we know the default will be
+                    // (all textures in ShaderGraph default to white)
+                    // there's no Cubemap.whiteTexture, but this seems to work
+                    mat.SetTexture(name, Texture2D.whiteTexture);
+                }
+                else
+                    mat.SetTexture(name, m_ClassData.cubemapValue);
+            }
             else if (propType == PropertyType.Color)
                 mat.SetColor(name, m_StructData.colorValue);
             else if (propType == PropertyType.Vector2 || propType == PropertyType.Vector3 || propType == PropertyType.Vector4)
@@ -203,14 +244,10 @@ namespace UnityEditor.ShaderGraph
                 for (int i = 0; i < 8; i++)
                     mat.SetVector(string.Format("{0}_AlphaKey{1}", name, i), i < m_ClassData.gradientValue.alphaKeys.Length ? GradientUtil.AlphaKeyToVector(m_ClassData.gradientValue.alphaKeys[i]) : Vector2.zero);
             }
-        }
-    }
-
-    static class PreviewPropertyExtensions
-    {
-        public static void SetPreviewProperty(this Material mat, PreviewProperty previewProperty)
-        {
-            previewProperty.SetMaterialPropertyBlockValue(mat);
+            else if (propType == PropertyType.VirtualTexture)
+            {
+                // virtual texture assignments are not supported via the material property block, we must assign them to the materials
+            }
         }
     }
 }

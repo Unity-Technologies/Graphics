@@ -307,6 +307,15 @@ float3 ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCo
     float height1 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap1, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base1, lod).r - _HeightCenter1) * _HeightAmplitude1;
     float height2 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap2, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base2, lod).r - _HeightCenter2) * _HeightAmplitude2;
     float height3 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap3, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base3, lod).r - _HeightCenter3) * _HeightAmplitude3;
+
+    // Scale by lod factor to ensure tessellated displacement influence is fully removed by the time we transition LODs
+#if defined(LOD_FADE_CROSSFADE) && defined(_TESSELLATION_DISPLACEMENT)
+    height0 *= unity_LODFade.x;
+    height1 *= unity_LODFade.x;
+    height2 *= unity_LODFade.x;
+    height3 *= unity_LODFade.x;
+#endif
+
     // Height is affected by tiling property and by object scale (depends on option).
     // Apply scaling from tiling properties (TexWorldScale and tiling from BaseColor)
     ApplyDisplacementTileScale(height0, height1, height2, height3);

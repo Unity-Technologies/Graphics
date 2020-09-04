@@ -3,6 +3,7 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
 
+// NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
 CBUFFER_START(UnityPerMaterial)
 float4 _SoftParticleFadeParams;
 float4 _CameraFadeParams;
@@ -11,13 +12,12 @@ half4 _BaseColor;
 half4 _EmissionColor;
 half4 _BaseColorAddSubDiff;
 half _Cutoff;
-
 half _Metallic;
 half _Smoothness;
 half _BumpScale;
-
 half _DistortionStrengthScaled;
 half _DistortionBlend;
+half _Surface;
 CBUFFER_END
 
 TEXTURE2D(_MetallicGlossMap);   SAMPLER(sampler_MetallicGlossMap);
@@ -82,6 +82,7 @@ inline void InitializeParticleLitSurfaceData(float2 uv, float3 blendUv, float4 p
     albedo.rgb = Distortion(albedo, normalTS, _DistortionStrengthScaled, _DistortionBlend, projectedPosition);
 #endif
 
+    outSurfaceData = (SurfaceData)0;
     outSurfaceData.albedo = albedo.rgb;
     outSurfaceData.specular = half3(0.0h, 0.0h, 0.0h);
     outSurfaceData.normalTS = normalTS;
@@ -92,6 +93,9 @@ inline void InitializeParticleLitSurfaceData(float2 uv, float3 blendUv, float4 p
 
     outSurfaceData.albedo = AlphaModulate(outSurfaceData.albedo, albedo.a);
     outSurfaceData.alpha = albedo.a;
+
+    outSurfaceData.clearCoatMask       = 0.0h;
+    outSurfaceData.clearCoatSmoothness = 1.0h;
 }
 
 #endif // UNIVERSAL_PARTICLES_LIT_INPUT_INCLUDED

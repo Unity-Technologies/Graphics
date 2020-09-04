@@ -142,7 +142,7 @@ MonoBehaviour:
   m_GraphVersion: 4
   m_saved: 1
   m_SubgraphDependencies: []
-  m_CategoryPath: 
+  m_CategoryPath: Utility
 --- !u!114 &3
 MonoBehaviour:
   m_ObjectHideFlags: 0
