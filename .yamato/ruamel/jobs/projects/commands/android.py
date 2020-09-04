@@ -35,7 +35,7 @@ def cmd_standalone(project_folder, platform, api, test_platform_args):
         
 def cmd_standalone_build(project_folder, platform, api, test_platform_args):
 
-    utr_args = utr_standalone_build_flags(platform_spec='', platform='Android', testproject=f'{TEST_PROJECTS_DIR}\\{project_folder}', player_save_path=PATH_PLAYERS, editor_location='WindowsEditor')
+    utr_args = utr_standalone_build_flags(platform_spec='', platform='Android', testproject=f'{TEST_PROJECTS_DIR}\\{project_folder}', player_save_path=PATH_PLAYERS, editor_location='WindowsEditor', timeout=1800)
     utr_args.extend(test_platform_args)
     utr_args.extend(['--scripting-backend=il2cpp'])
 
