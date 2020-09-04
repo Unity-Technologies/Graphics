@@ -87,6 +87,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 shadowResult = RenderShadows(m_RenderGraph, hdCamera, cullingResults);
 
+                StartXRSinglePass(m_RenderGraph, hdCamera);
+
                 // Evaluate the clear coat mask texture based on the lit shader mode
                 var clearCoatMask = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? prepassOutput.gbuffer.mrt[2] : m_RenderGraph.defaultResources.blackTextureXR;
                 lightingBuffers.ssrLightingBuffer = RenderSSR(m_RenderGraph,
@@ -99,11 +101,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 switch (GetIndirectDiffuseMode(hdCamera))
                 {
-                    /*
                     case IndirectDiffuseMode.ScreenSpace:
-                        lightingBuffers.ssrLightingBuffer = RenderSSGI(hdCamera, cmd, renderContext, m_FrameCount);
+                        lightingBuffers.ssgiLightingBuffer = RenderSSGI(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, m_ShaderVariablesRayTracingCB);
                         break;
-                    */
+
                     case IndirectDiffuseMode.Raytrace:
                         lightingBuffers.ssgiLightingBuffer = RenderRayTracedIndirectDiffuse(m_RenderGraph, hdCamera,
                                                                         prepassOutput.depthBuffer, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, m_SkyManager.GetSkyReflection(hdCamera), rayCountTexture,
@@ -112,62 +113,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     default:
                         lightingBuffers.ssgiLightingBuffer = m_RenderGraph.defaultResources.blackTextureXR;
                         break;
-                }
-
-                StartXRSinglePass(m_RenderGraph, hdCamera);
-
-                // TODO RENDERGRAPH
-                //if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
-                //{
-                //    // We only request the light cluster if we are gonna use it for debug mode
-                //    if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode && GetRayTracingClusterState())
-                //    {
-                //        HDRaytracingLightCluster lightCluster = RequestLightCluster();
-                //        lightCluster.EvaluateClusterDebugView(cmd, hdCamera);
-                //    }
-
-                // TODO: check code, everything have change
-                //    bool validIndirectDiffuse = ValidIndirectDiffuseState(hdCamera);
-                //    if (validIndirectDiffuse)
-                //    {
-                //        if (RayTracedIndirectDiffuseState(hdCamera))
-                //        {
-                //            RenderRayTracedIndirectDiffuse(hdCamera, cmd, renderContext, m_FrameCount);
-                //        }
-                //        else
-                //        {
-                //            RenderSSGI(hdCamera, cmd, renderContext, m_FrameCount);
-                //            BindIndirectDiffuseTexture(cmd);
-                //        }
-                //    }
-                //    else
-                //    {
-                //        BindBlackIndirectDiffuseTexture(cmd);
-                //    }
-                //}
-                //else
-                //{
-                //    bool validIndirectDiffuse = ValidIndirectDiffuseState(hdCamera);
-                //    if (validIndirectDiffuse)
-                //    {
-                //        RenderSSGI(hdCamera, cmd, renderContext, m_FrameCount);
-                //        BindIndirectDiffuseTexture(cmd);
-                //    }
-                //    else
-                //    {
-                //        BindBlackIndirectDiffuseTexture(cmd);
-                //    }
-                //}
-
-                // Temporary workaround otherwise the texture is not bound when executing directly with rendergraph
-                using (var builder = m_RenderGraph.AddRenderPass<TempPassData>("TempPass", out var passData))
-                {
-                    builder.AllowPassCulling(false);
-                    builder.SetRenderFunc(
-                    (TempPassData data, RenderGraphContext context) =>
-                    {
-                        BindBlackIndirectDiffuseTexture(context.cmd);
-                    });
                 }
 
                 lightingBuffers.screenspaceShadowBuffer = RenderScreenSpaceShadows(m_RenderGraph, hdCamera, prepassOutput, prepassOutput.depthBuffer, prepassOutput.normalBuffer, prepassOutput.motionVectorsBuffer, rayCountTexture);
@@ -179,7 +124,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderForwardOpaque(m_RenderGraph, hdCamera, colorBuffer, lightingBuffers, gpuLightListOutput, prepassOutput.depthBuffer, shadowResult, prepassOutput.dbuffer, cullingResults);
 
                 // TODO RENDERGRAPH : Move this to the end after we do move semantic and graph culling to avoid doing the rest of the frame for nothing
-                aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Normals, hdCamera, prepassOutput.resolvedNormalBuffer, aovBuffers);
+                if (aovRequest.isValid)
+                    aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Normals, hdCamera, prepassOutput.resolvedNormalBuffer, aovBuffers);
 
                 lightingBuffers.diffuseLightingBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, lightingBuffers.diffuseLightingBuffer);
                 lightingBuffers.sssBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, lightingBuffers.sssBuffer);
@@ -220,9 +166,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // TODO RENDERGRAPH : Move this to the end after we do move semantic and graph culling to avoid doing the rest of the frame for nothing
                 // Transparent objects may write to the depth and motion vectors buffers.
-                aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.DepthStencil, hdCamera, prepassOutput.resolvedDepthBuffer, aovBuffers);
-                if (m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors)
-                    aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.MotionVectors, hdCamera, prepassOutput.resolvedMotionVectorsBuffer, aovBuffers);
+                if (aovRequest.isValid)
+                {
+                    aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.DepthStencil, hdCamera, prepassOutput.resolvedDepthBuffer, aovBuffers);
+                    if (m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors)
+                        aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.MotionVectors, hdCamera, prepassOutput.resolvedMotionVectorsBuffer, aovBuffers);
+                }
 
                 // This final Gaussian pyramid can be reused by SSR, so disable it only if there is no distortion
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Distortion) || hdCamera.IsSSREnabled())
@@ -251,7 +200,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.normalBuffer, customPassCullingResults, CustomPassInjectionPoint.BeforePostProcess, aovRequest, aovBuffers);
 
-            aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Color, hdCamera, colorBuffer, aovBuffers);
+            if (aovRequest.isValid)
+            {
+                aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Color, hdCamera, colorBuffer, aovBuffers);
+            }
 
             TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, colorBuffer, backBuffer, cullingResults, hdCamera);
 
@@ -294,7 +246,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Output, hdCamera, postProcessDest, aovBuffers);
+                if (aovRequest.isValid)
+                    aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Output, hdCamera, postProcessDest, aovBuffers);
             }
 
             // XR mirror view and blit do device
@@ -310,7 +263,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             ExecuteRenderGraph(m_RenderGraph, hdCamera, m_MSAASamples, m_FrameCount, renderContext, commandBuffer );
 
-            aovRequest.Execute(commandBuffer, aovBuffers, RenderOutputProperties.From(hdCamera));
+            if (aovRequest.isValid)
+            {
+                // aovRequest.Execute don't go through render graph for now
+                using (new ProfilingScope(commandBuffer, ProfilingSampler.Get(HDProfileId.AOVExecute)))
+                {
+                    aovRequest.Execute(commandBuffer, aovBuffers, RenderOutputProperties.From(hdCamera));
+                }
+            }
         }
 
         static void ExecuteRenderGraph(RenderGraph renderGraph, HDCamera hdCamera, MSAASamples msaaSample, int frameIndex, ScriptableRenderContext renderContext, CommandBuffer cmd)
