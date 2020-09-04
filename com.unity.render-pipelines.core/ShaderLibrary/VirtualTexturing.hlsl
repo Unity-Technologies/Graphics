@@ -98,7 +98,11 @@ int VirtualTexturingLookup(
         if ( input.sampleQuality == VtSampleQuality_Low && input.levelMode == VtLevel_Bias)
         {
             mipLevel += input.lodOrOffset;
-            mipLevel = clamp(mipLevel, 0.0f, gra_NumLevels);
+            // GranitePrivate_CalcMiplevelAnisotropic will already clamp between 0 gra_NumLevels
+            // But we need to do it again here. The alternative is modifying dx,dy before passing to
+            // GranitePrivate_CalcMiplevelAnisotropic adding a pow2 + 4 fmuls so probably
+            // the exra clamp is more appropriate here.
+            mipLevel = min(mipLevel, gra_NumLevels);
         }
 
         mipLevel = floor(mipLevel + 0.5f); //round nearest
