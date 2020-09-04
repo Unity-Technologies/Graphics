@@ -52,11 +52,8 @@ smoke_test: # specifications for smoke tests
   agent_gpu: sdet_win_large_gpu  # used for non-editmode
   test_platforms:
     - type: Standalone
-      name: Standalone
     - type: playmode
-      name: playmode
     - type: editmode
-      name: editmode
 trunk_verification: # jobs to include in trunk verification job
   dependencies:
     - project: Universal
