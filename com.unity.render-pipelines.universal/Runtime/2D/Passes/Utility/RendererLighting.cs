@@ -83,18 +83,29 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return s_RenderTextureFormatToUse;
         }
 
-        public static void CreateNormalMapRenderTexture(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd)
+        public static void CreateNormalMapRenderTexture(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, float renderScale)
         {
-            if (!pass.rendererData.isNormalsRenderTargetValid)
+            if (renderScale != pass.rendererData.normalsRenderTargetScale)
             {
+                if(pass.rendererData.isNormalsRenderTargetValid)
+                {
+                    cmd.ReleaseTemporaryRT(pass.rendererData.normalsRenderTarget.id);
+                }
+
                 pass.rendererData.isNormalsRenderTargetValid = true;
-                var descriptor = new RenderTextureDescriptor(renderingData.cameraData.cameraTargetDescriptor.width, renderingData.cameraData.cameraTargetDescriptor.height);
+                pass.rendererData.normalsRenderTargetScale = renderScale;
+
+                var descriptor = new RenderTextureDescriptor(
+                    (int)(renderingData.cameraData.cameraTargetDescriptor.width * renderScale),
+                    (int)(renderingData.cameraData.cameraTargetDescriptor.height * renderScale));
+
                 descriptor.graphicsFormat = GetRenderTextureFormat();
                 descriptor.useMipMap = false;
                 descriptor.autoGenerateMips = false;
                 descriptor.depthBufferBits = 0;
                 descriptor.msaaSamples = renderingData.cameraData.cameraTargetDescriptor.msaaSamples;
                 descriptor.dimension = TextureDimension.Tex2D;
+
                 cmd.GetTemporaryRT(pass.rendererData.normalsRenderTarget.id, descriptor, FilterMode.Bilinear);
             }
         }
@@ -144,6 +155,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
 
             pass.rendererData.isNormalsRenderTargetValid = false;
+            pass.rendererData.normalsRenderTargetScale = 0.0f;
             cmd.ReleaseTemporaryRT(pass.rendererData.normalsRenderTarget.id);
             cmd.ReleaseTemporaryRT(pass.rendererData.shadowsRenderTarget.id);
         }
@@ -332,20 +344,40 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        public static void RenderNormals(this IRenderPass2D pass, ScriptableRenderContext context, RenderingData renderingData, DrawingSettings drawSettings, FilteringSettings filterSettings, RenderTargetIdentifier depthTarget, CommandBuffer cmd)
+        public static void RenderNormals(this IRenderPass2D pass, ScriptableRenderContext context, RenderingData renderingData, DrawingSettings drawSettings, FilteringSettings filterSettings, RenderTargetIdentifier depthTarget, CommandBuffer cmd, LightStats lightStats)
         {
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
-                pass.CreateNormalMapRenderTexture(renderingData, cmd);
-                cmd.SetRenderTarget(
-                    pass.rendererData.normalsRenderTarget.Identifier(),
-                    RenderBufferLoadAction.DontCare,
-                    RenderBufferStoreAction.Store,
-                    depthTarget,
-                    RenderBufferLoadAction.Load, // only if we have 3D stuff or camera stacked
-                    RenderBufferStoreAction.DontCare);
+                // figure out the scale
+                var normalRTScale = 0.0f;
 
-                cmd.ClearRenderTarget(true, true, k_NormalClearColor);
+                if (depthTarget != BuiltinRenderTextureType.None)
+                    normalRTScale = 1.0f;
+                else
+                {
+                    for (var j = 0; j < pass.rendererData.lightBlendStyles.Length; ++j)
+                    {
+                        if ((lightStats.blendStylesUsed & (1 << j)) != 0)
+                            normalRTScale = Mathf.Max(normalRTScale, Mathf.Clamp(pass.rendererData.lightBlendStyles[j].renderTextureScale, 0.01f, 1.0f));
+                    }
+                }
+
+                pass.CreateNormalMapRenderTexture(renderingData, cmd, normalRTScale);
+
+                if (depthTarget != BuiltinRenderTextureType.None)
+                {
+                    cmd.SetRenderTarget(
+                        pass.rendererData.normalsRenderTarget.Identifier(),
+                        RenderBufferLoadAction.DontCare,
+                        RenderBufferStoreAction.Store,
+                        depthTarget,
+                        RenderBufferLoadAction.Load,
+                        RenderBufferStoreAction.DontCare);
+                }
+                else
+                    cmd.SetRenderTarget(pass.rendererData.normalsRenderTarget.Identifier(), RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+
+                cmd.ClearRenderTarget(false, true, k_NormalClearColor);
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();

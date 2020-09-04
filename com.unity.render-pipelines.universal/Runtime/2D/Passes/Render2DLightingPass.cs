@@ -36,10 +36,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private static readonly ProfilingSampler m_ProfilingSamplerUnlit = new ProfilingSampler("Render Unlit");
 
         private readonly Renderer2DData m_Renderer2DData;
+        private bool m_HasValidDepth;
 
         public Render2DLightingPass(Renderer2DData rendererData)
         {
             m_Renderer2DData = rendererData;
+        }
+
+        internal void Setup(bool hasValidDepth)
+        {
+            m_HasValidDepth = hasValidDepth;
         }
 
         private void GetTransparencySortingMode(Camera camera, ref SortingSettings sortingSettings)
@@ -138,7 +144,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     if (layerBatch.lightStats.totalNormalMapUsage > 0)
                     {
                         filterSettings.sortingLayerRange = layerBatch.layerRange;
-                        this.RenderNormals(context, renderingData, normalsDrawSettings, filterSettings, depthAttachment, cmd);
+                        var depthTarget = m_HasValidDepth ? depthAttachment : BuiltinRenderTextureType.None;
+                        this.RenderNormals(context, renderingData, normalsDrawSettings, filterSettings, depthTarget, cmd, layerBatch.lightStats);
                     }
 
                     using (new ProfilingScope(cmd, m_ProfilingDrawLightTextures))

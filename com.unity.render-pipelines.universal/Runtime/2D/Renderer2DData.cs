@@ -122,6 +122,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal Material[] removeSelfShadowMaterials { get; private set; }
 
         internal bool isNormalsRenderTargetValid { get; set; }
+        internal float normalsRenderTargetScale { get; set; }
         internal RenderTargetHandle normalsRenderTarget;
         internal RenderTargetHandle shadowsRenderTarget;
 
