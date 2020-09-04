@@ -23,9 +23,11 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_counters_trunk:
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
       -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
+      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Counters --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
@@ -49,13 +51,13 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_trunk:
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
       -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -    -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-           -  choco install unity-config
+      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  choco install unity-config
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
       -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
@@ -84,9 +86,11 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_memory_trunk:
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
       -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
+      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Memory --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
@@ -110,11 +114,13 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_trunk:
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
       -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  choco install unity-config
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
       -  cd TestProjects/BoatAttack && utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
@@ -140,9 +146,11 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_counters_fast-trunk:
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
       -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
+      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Counters --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
@@ -166,13 +174,13 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_fast-trunk:
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
       -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -    -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-           -  choco install unity-config
+      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  choco install unity-config
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
       -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
@@ -201,9 +209,11 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_memory_fast-trunk:
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
       -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
+      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Memory --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
@@ -227,11 +237,13 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_fast-trunk:
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
       -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  choco install unity-config
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
       -  cd TestProjects/BoatAttack && utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
@@ -258,9 +270,11 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_counters_CUSTOM-REVISIO
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
       -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
+      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Counters --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
@@ -285,13 +299,13 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_CUSTOM-REVISION:
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
       -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -    -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-           -  choco install unity-config
+      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  choco install unity-config
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
       -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
@@ -321,9 +335,11 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_memory_CUSTOM-REVISION:
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
       -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
+      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Memory --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
@@ -348,11 +364,13 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_CUSTOM-REVISION:
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
       -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  choco install unity-config
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview
       -  cd TestProjects/BoatAttack && utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
