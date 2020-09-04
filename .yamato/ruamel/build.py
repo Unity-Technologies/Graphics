@@ -87,19 +87,19 @@ if __name__== "__main__":
     yml_dump_files(create_projectcontext_ymls(package_metafile))
 
     # create abv
-    # print(f'Running: ABV')
-    # abv_metafile = get_metafile(os.path.join(config_dir,'_abv.metafile'), unfold_agents_root_keys=['smoke_test'], unfold_test_platforms_root_keys=['smoke_test'])
-    # yml_dump_files(create_abv_ymls(abv_metafile))
+    print(f'Running: ABV')
+    abv_metafile = get_metafile(os.path.join(config_dir,'_abv.metafile'), unfold_agents_root_keys=['smoke_test'], unfold_test_platforms_root_keys=['smoke_test'])
+    yml_dump_files(create_abv_ymls(abv_metafile))
 
     # create preview publish
     print(f'Running: preview_publish')
     pb_metafile = get_metafile(os.path.join(config_dir,'_preview_publish.metafile'))
     yml_dump_files(create_preview_publish_ymls(pb_metafile))
 
-    # # create template jobs
-    # print(f'Running: templates')
-    # template_metafile = get_metafile(os.path.join(config_dir,'_templates.metafile'))
-    # yml_dump_files(create_template_ymls(template_metafile))
+    # create template jobs
+    print(f'Running: templates')
+    template_metafile = get_metafile(os.path.join(config_dir,'_templates.metafile'))
+    yml_dump_files(create_template_ymls(template_metafile))
 
     # create yml jobs for each specified project
     #for project_metafile in glob.glob(os.path.join(config_dir,'*universal*.metafile')):

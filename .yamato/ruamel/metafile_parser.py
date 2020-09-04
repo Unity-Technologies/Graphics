@@ -78,17 +78,35 @@ def _unfold_platforms(metafile, shared):
 def _unfold_test_platforms(metafile, shared, root_keys=[]):
     '''Retrieves test platform details from shared metafile, corresponding to the specific metafile. 
     Returns the new 'test_platforms' section.'''
-    tps = []
-    for tp in metafile.get("test_platforms", []):
-        tp["type"] = tp["type"]
+    # tps = []
+    # for tp in metafile.get("test_platforms", []):
+    #     tp["name"] = tp["type"] if not tp.get("name") else tp.get("name")
+    #     tp["extra_utr_flags"] = [] if not tp.get("extra_utr_flags") else tp.get("extra_utr_flags")
+    #     tps.append(tp)
 
-        tp["name"]=tp["type"] if not tp.get("name", None) else tp["name"]
-        
-        if not tp.get("extra_utr_flags", None):
-            tp["extra_utr_flags"]=[]
-        
-        tps.append(tp)
-
-    metafile['test_platforms'] = tps
-    return metafile
+    # metafile['test_platforms'] = tps
+    # return metafile
     
+    #  # replace any additional test platforms found under other specified keys
+    # for root_key in root_keys:
+    #     metafile[root_key] = replace_test_platforms(metafile[root_key])
+
+
+    def replace_test_platforms(target_dict):
+        test_platforms = []
+        for tp in target_dict.get("test_platforms", []):
+            tp["name"] = tp["type"] if not tp.get("name") else tp.get("name")
+            tp["extra_utr_flags"] = [] if not tp.get("extra_utr_flags") else tp.get("extra_utr_flags")
+            test_platforms.append(tp)
+
+        target_dict['test_platforms'] = test_platforms
+        return target_dict
+
+    # replace all test platforms found directly under root of metafile
+    metafile = replace_test_platforms(metafile)
+
+    # replace any additional test platforms found under other specified keys
+    for root_key in root_keys:
+        metafile[root_key] = replace_test_platforms(metafile[root_key])
+    
+    return metafile
