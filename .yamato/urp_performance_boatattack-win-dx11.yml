@@ -23,6 +23,8 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_counters_trunk:
            -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
            -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
            -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.testframework.graphics@7.2.2-preview
+           -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.test-framework.performance@2.3.1-preview
+           -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.test.metadata-manager@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git"
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Counters --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
@@ -47,6 +49,8 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_trunk:
            -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
            -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
            -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.testframework.graphics@7.2.2-preview
+           -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.test-framework.performance@2.3.1-preview
+           -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.test.metadata-manager@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git"
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
@@ -80,6 +84,8 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_memory_trunk:
            -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
            -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
            -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.testframework.graphics@7.2.2-preview
+           -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.test-framework.performance@2.3.1-preview
+           -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.test.metadata-manager@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git"
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Memory --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
@@ -104,6 +110,8 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_trunk:
            -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
            -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
            -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.testframework.graphics@7.2.2-preview
+           -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.test-framework.performance@2.3.1-preview
+           -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.test.metadata-manager@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git"
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
@@ -132,6 +140,8 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_counters_fast-trunk:
            -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
            -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
            -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.testframework.graphics@7.2.2-preview
+           -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.test-framework.performance@2.3.1-preview
+           -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.test.metadata-manager@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git"
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Counters --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
@@ -156,6 +166,8 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_fast-trunk:
            -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
            -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
            -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.testframework.graphics@7.2.2-preview
+           -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.test-framework.performance@2.3.1-preview
+           -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.test.metadata-manager@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git"
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
@@ -189,6 +201,8 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_memory_fast-trunk:
            -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
            -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
            -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.testframework.graphics@7.2.2-preview
+           -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.test-framework.performance@2.3.1-preview
+           -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.test.metadata-manager@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git"
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Memory --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
@@ -213,6 +227,8 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_fast-trunk:
            -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
            -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
            -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.testframework.graphics@7.2.2-preview
+           -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.test-framework.performance@2.3.1-preview
+           -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.test.metadata-manager@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git"
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
@@ -242,6 +258,8 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_counters_CUSTOM-REVISIO
            -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
            -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
            -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.testframework.graphics@7.2.2-preview
+           -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.test-framework.performance@2.3.1-preview
+           -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.test.metadata-manager@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git"
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Counters --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
@@ -267,6 +285,8 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_CUSTOM-REVISION:
            -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
            -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
            -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.testframework.graphics@7.2.2-preview
+           -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.test-framework.performance@2.3.1-preview
+           -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.test.metadata-manager@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git"
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
@@ -301,6 +321,8 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_memory_CUSTOM-REVISION:
            -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
            -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
            -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.testframework.graphics@7.2.2-preview
+           -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.test-framework.performance@2.3.1-preview
+           -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.test.metadata-manager@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git"
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Memory --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
@@ -326,6 +348,8 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_CUSTOM-REVISION:
            -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
            -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
            -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.testframework.graphics@7.2.2-preview
+           -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.test-framework.performance@2.3.1-preview
+           -  cd TestProjects/BoatAttack && unity-config add dependency com.unity.test.metadata-manager@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git"
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only

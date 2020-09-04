@@ -90,7 +90,9 @@ def extra_perf_cmd(project_folder):
         f'Xcopy /E /I \"com.unity.render-pipelines.universal\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.render-pipelines.universal\" /Y',
         f'Xcopy /E /I \"com.unity.shadergraph\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.shadergraph\" /Y',
         f'Xcopy /E /I \"com.unity.shaderanalysis\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.shaderanalysis\" /Y',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config add dependency com.unity.testframework.graphics@7.2.2-preview'
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config add dependency com.unity.testframework.graphics@7.2.2-preview',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config add dependency com.unity.test-framework.performance@2.3.1-preview',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config add dependency com.unity.test.metadata-manager@\"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git\"'
         ]
     return perf_list
 
