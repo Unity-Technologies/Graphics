@@ -19,7 +19,7 @@ HDRP_Win_DX11_playmode_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -40,7 +40,7 @@ HDRP_Win_DX11_playmode_XR_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -61,7 +61,7 @@ HDRP_Win_DX11_playmode_RenderGraph_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --extra-editor-arg="-rendergraph-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --extra-editor-arg="-rendergraph-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -81,7 +81,7 @@ HDRP_Win_DX11_editmode_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_Tests && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -148,7 +148,7 @@ HDRP_Win_DX11_playmode_fast-trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -169,7 +169,7 @@ HDRP_Win_DX11_playmode_XR_fast-trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -190,7 +190,7 @@ HDRP_Win_DX11_playmode_RenderGraph_fast-trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --extra-editor-arg="-rendergraph-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --extra-editor-arg="-rendergraph-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -210,7 +210,7 @@ HDRP_Win_DX11_editmode_fast-trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_Tests && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -278,7 +278,7 @@ HDRP_Win_DX11_playmode_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -300,7 +300,7 @@ HDRP_Win_DX11_playmode_XR_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -322,7 +322,7 @@ HDRP_Win_DX11_playmode_RenderGraph_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --extra-editor-arg="-rendergraph-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --extra-editor-arg="-rendergraph-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -343,7 +343,7 @@ HDRP_Win_DX11_editmode_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_Tests && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:

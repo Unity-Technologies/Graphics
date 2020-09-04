@@ -11,7 +11,7 @@ def _cmd_base(project_folder, components):
 def cmd_not_standalone(project_folder, platform, api, test_platform_args):
     base = _cmd_base(project_folder, platform["components"])
     base.extend([
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {test_platform_args} --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}{_get_extra_utr_arg(project_folder)}'
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {test_platform_args} --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}{_get_extra_utr_arg(project_folder)} --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true"'
     ])
     base[-1] += f' --extra-editor-arg="{api["cmd"]}"' if api["name"] != ""  else ''
     return base
