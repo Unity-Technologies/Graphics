@@ -50,6 +50,7 @@
         * [Force](Block-Force.md)
         * [Gravity](Block-Gravity.md)
         * [Linear Drag](Block-LinearDrag.md)
+        * [Turbulence](Block-Turbulence.md)
       * GPU Event
         * [Trigger Event Always](Block-TriggerEventAlways.md)
         * [Trigger Event On Die](Block-TriggerEventOnDie.md)
@@ -270,8 +271,11 @@
         * [Square Wave](Operator-SquareWave.md)
         * [Triangle Wave](Operator-TriangleWave.md)
     * Noise
+      * [Cellular Curl Noise](Operator-CellularCurlNoise.md)
       * [Cellular Noise](Operator-CellularNoise.md)
+      * [Perlin Curl Noise](Operator-PerlinCurlNoise.md)
       * [Perlin Noise](Operator-PerlinNoise.md)
+      * [Value Curl Noise](Operator-ValueCurlNoise.md)
       * [Value Noise](Operator-ValueNoise.md)
     * Random
       * [Random Number](Operator-RandomNumber.md)
