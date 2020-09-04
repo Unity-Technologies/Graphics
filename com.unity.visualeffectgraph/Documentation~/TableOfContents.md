@@ -51,6 +51,7 @@
         * [Gravity](Block-Gravity.md)
         * [Linear Drag](Block-LinearDrag.md)
         * [Turbulence](Block-Turbulence.md)
+        * [Vector Force Field](Block-VectorForceField.md)
       * GPU Event
         * [Trigger Event Always](Block-TriggerEventAlways.md)
         * [Trigger Event On Die](Block-TriggerEventOnDie.md)
