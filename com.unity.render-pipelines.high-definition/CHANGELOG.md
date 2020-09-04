@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
 - Fixed GPU hang on D3D12 on xbox. 
 - Fix Amplitude -> Min/Max parametrization conversion
+- Fixed a static lighting flickering issue caused by having an active planar probe in the scene while rendering inspector preview.
+- Fixed an issue where even when set to OnDemand, the sky lighting would still be updated when changing sky parameters.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
