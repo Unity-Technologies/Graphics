@@ -174,6 +174,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #pragma vertex LitPassVertexSimple
             #pragma fragment LitPassFragmentSimple

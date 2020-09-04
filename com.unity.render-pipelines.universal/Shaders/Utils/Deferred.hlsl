@@ -87,7 +87,10 @@ Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData pun
     [branch] if (materialFlagReceiveShadowsOff)
         light.shadowAttenuation = 1.0;
     else
+    {
         light.shadowAttenuation = AdditionalLightRealtimeShadow(punctualLightData.shadowLightIndex, positionWS);
+        light.shadowAttenuation = ApplyShadowFade(light.shadowAttenuation, positionWS);
+    }
     return light;
 }
 

@@ -22,9 +22,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Keep in sync with shader define USE_CBUFFER_FOR_TILELIST
         // Keep in sync with shader define USE_CBUFFER_FOR_LIGHTDATA
         // Keep in sync with shader define USE_CBUFFER_FOR_LIGHTLIST
-        internal static bool IsOpenGL => (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore
-                                         || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2
-                                         || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3);
+        internal static bool IsOpenGL { get; set; }
 
         // Constant buffers are used for data that a repeatedly fetched by shaders.
         // Structured buffers are used for data only consumed once.
@@ -376,6 +374,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal DeferredLights(Material tileDepthInfoMaterial, Material tileDeferredMaterial, Material stencilDeferredMaterial)
         {
+            // Cache result for GL platform here. SystemInfo properties are in C++ land so repeated access will be unecessary penalized.
+            // They can also only be called from main thread!
+            DeferredConfig.IsOpenGL = SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore
+                                   || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2
+                                   || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
+
             m_TileDepthInfoMaterial = tileDepthInfoMaterial;
             m_TileDeferredMaterial = tileDeferredMaterial;
             m_StencilDeferredMaterial = stencilDeferredMaterial;
@@ -666,7 +670,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             // GBuffer slice count can change depending actual geometry/light being rendered.
             // For instance, we only bind shadowMask RT if the scene supports mix lighting and at least one visible light has subtractive mixed ligting mode.
-            return this.GBufferSliceCount <= SystemInfo.supportedRenderTargetCount;
+            return this.GBufferSliceCount <= SystemInfo.supportedRenderTargetCount && !DeferredConfig.IsOpenGL;
         }
 
         public void Setup(ref RenderingData renderingData,

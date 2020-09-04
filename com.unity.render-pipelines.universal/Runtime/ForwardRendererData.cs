@@ -73,7 +73,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
         [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData() { passOperation = StencilOp.Replace }; // This default state is compatible with deferred renderer.
         [SerializeField] bool m_ShadowTransparentReceive = true;
-        [SerializeField] bool m_MutableRenderingMode = false;
         [SerializeField] RenderingMode m_RenderingMode = RenderingMode.Forward;
         [SerializeField] bool m_AccurateGbufferNormals = false;
         //[SerializeField] bool m_TiledDeferredShading = false;
@@ -139,20 +138,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 SetDirty();
                 m_ShadowTransparentReceive = value;
-            }
-        }
-
-        /// <summary>
-        /// Rendering mode can be programatically changed in the runtime.
-        /// This prevents some optimisation such as stripping shader variants specific to a rendering mode.
-        /// </summary>
-        public bool mutableRenderingMode
-        {
-            get => m_MutableRenderingMode;
-            set
-            {
-                SetDirty();
-                m_MutableRenderingMode = value;
             }
         }
 
