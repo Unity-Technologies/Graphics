@@ -3,7 +3,6 @@ project:
   folder: UniversalHybridTest
 test_platforms:
   - type: Standalone
-    name: Standalone
     extra_utr_flags:
       - --compilation-errors-as-warnings
   - type: playmode
@@ -21,7 +20,7 @@ platforms:
   - name: OSX 
     apis:
       - Metal
-      - OpenGLCore
+#      - OpenGLCore
   - name: Linux
     apis: 
       - Vulkan

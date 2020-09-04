@@ -15,9 +15,9 @@ platforms:
       - DX11
   #    - DX12
       - Vulkan
-#  - name: OSX 
-#    apis:
-#      - Metal
+  - name: OSX 
+    apis:
+      - Metal
   - name: Linux
     apis: 
       - Vulkan

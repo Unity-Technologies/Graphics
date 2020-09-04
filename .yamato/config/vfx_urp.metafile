@@ -13,7 +13,7 @@ platforms:
       - Vulkan
   - name: OSX 
     apis:
-#      - Metal
+      - Metal
       - OpenGLCore
   - name: Linux
     apis: 

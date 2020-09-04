@@ -76,24 +76,25 @@ if __name__== "__main__":
     shared = yml_load(os.path.join(config_dir,'__shared.metafile'))
 
     # create editor
-    # print(f'Running: editor')
-    # editor_metafile = get_metafile(os.path.join(config_dir,'_editor.metafile'))
-    # yml_dump_files(create_editor_yml(editor_metafile))
+    print(f'Running: editor')
+    editor_metafile = get_metafile(os.path.join(config_dir,'_editor.metafile'))
+    yml_dump_files(create_editor_yml(editor_metafile))
 
-    # # create package jobs
-    # print(f'Running: packages')
-    # package_metafile = get_metafile(os.path.join(config_dir,'_packages.metafile'))
-    # yml_dump_files(create_package_ymls(package_metafile))
-    # yml_dump_files(create_projectcontext_ymls(package_metafile))
+    # create package jobs
+    print(f'Running: packages')
+    package_metafile = get_metafile(os.path.join(config_dir,'_packages.metafile'))
+    yml_dump_files(create_package_ymls(package_metafile))
+    yml_dump_files(create_projectcontext_ymls(package_metafile))
 
-    # # create abv
+    # create abv
+    # print(f'Running: ABV')
     # abv_metafile = get_metafile(os.path.join(config_dir,'_abv.metafile'), unfold_agents_root_keys=['smoke_test'], unfold_test_platforms_root_keys=['smoke_test'])
     # yml_dump_files(create_abv_ymls(abv_metafile))
 
-    # # create preview publish
-    # print(f'Running: preview_publish')
-    # pb_metafile = get_metafile(os.path.join(config_dir,'_preview_publish.metafile'))
-    # yml_dump_files(create_preview_publish_ymls(pb_metafile))
+    # create preview publish
+    print(f'Running: preview_publish')
+    pb_metafile = get_metafile(os.path.join(config_dir,'_preview_publish.metafile'))
+    yml_dump_files(create_preview_publish_ymls(pb_metafile))
 
     # # create template jobs
     # print(f'Running: templates')
@@ -107,10 +108,10 @@ if __name__== "__main__":
         project_metafile = get_metafile(project_metafile)
         yml_dump_files(create_project_ymls(project_metafile))
         
-    # # running assert checks for dependency paths
-    # print(f'Checking dependency paths')
-    # assert_dependencies()
+    # running assert checks for dependency paths
+    print(f'Checking dependency paths')
+    assert_dependencies()
 
-    # # # add comments on top of all yml files
-    # print(f'Adding comments')
-    # add_comments()
+    # # add comments on top of all yml files
+    print(f'Adding comments')
+    add_comments()
