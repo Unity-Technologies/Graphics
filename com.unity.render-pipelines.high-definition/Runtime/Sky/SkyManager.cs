@@ -741,9 +741,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 // - updateMode is "Realtime" in which case we only update if the time threshold for realtime update is passed.
                 if (IsCachedContextValid(skyContext) && !updateRequired)
                 {
-                    if (skyContext.skySettings.updateMode == EnvironmentUpdateMode.OnDemand)
+                    if (skyContext.skySettings.updateMode.value == EnvironmentUpdateMode.OnDemand)
                         return;
-                    else if (skyContext.skySettings.updateMode == EnvironmentUpdateMode.Realtime && skyContext.currentUpdateTime < skyContext.skySettings.updatePeriod.value)
+                    else if (skyContext.skySettings.updateMode.value == EnvironmentUpdateMode.Realtime && skyContext.currentUpdateTime < skyContext.skySettings.updatePeriod.value)
                         return;
                 }
 
