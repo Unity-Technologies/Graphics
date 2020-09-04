@@ -3,12 +3,19 @@ project:
   folder: HDRP_HybridTests
 test_platforms:
   - type: playmode
+    extra_utr_flags:
+      - --compilation-errors-as-warnings
   - type: playmode
     name: playmode_XR
     extra_utr_flags:
       - --extra-editor-arg="-xr-tests" 
+      - --compilation-errors-as-warnings
   # - type: editmode
+  #  extra_utr_flags:
+  #    - --compilation-errors-as-warnings
   - type: Standalone
+    extra_utr_flags:
+      - --compilation-errors-as-warnings
 platforms:
   - name: Win
     apis:
