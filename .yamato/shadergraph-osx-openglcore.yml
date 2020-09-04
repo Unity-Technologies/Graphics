@@ -15,7 +15,7 @@ ShaderGraph_OSX_OpenGLCore_playmode_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/ShaderGraph && unity-downloader-cli -u 059a7e43841461e9ac5a31077cf9ac987cbe233f -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/ShaderGraph && unity-downloader-cli -u 6f56d84adaf27a70878334e095397a3ed1fc53bf -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
         logs:
@@ -33,7 +33,7 @@ ShaderGraph_OSX_OpenGLCore_editmode_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/ShaderGraph && unity-downloader-cli -u 059a7e43841461e9ac5a31077cf9ac987cbe233f -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/ShaderGraph && unity-downloader-cli -u 6f56d84adaf27a70878334e095397a3ed1fc53bf -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
         logs:
