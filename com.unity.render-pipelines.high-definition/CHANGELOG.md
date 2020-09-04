@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed "Screen position out of view frustum" error when camera is at exactly the planar reflection probe location.
 - Fix Amplitude -> Min/Max parametrization conversion
 - Fix issue that allocated a small cookie for normal spot lights.
+- Fixed issue when undoing a change in diffuse profile list after deleting the volume profile.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
