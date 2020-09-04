@@ -43,9 +43,9 @@ platforms:
           image: graphics-foundation/win10-dxr:stable
           flavor: b1.xlarge
           model: rtx2080
-#  - name: OSX
-#    apis:
-#      - Metal
+  - name: OSX
+    apis:
+      - Metal
   - name: Linux
     apis:
       - Vulkan

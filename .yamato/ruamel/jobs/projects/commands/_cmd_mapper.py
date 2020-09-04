@@ -14,7 +14,8 @@ cmd_map = {
         'standalone_build' : osx_openglcore.cmd_standalone_build
     },
     'osx_metal' :  {
-        'not_standalone': osx_metal.cmd_not_standalone,
+        'editmode': osx_metal.cmd_editmode,
+        'playmode': osx_metal.cmd_playmode,
         'standalone' : osx_metal.cmd_standalone,
         'standalone_build' : osx_metal.cmd_standalone_build
     },

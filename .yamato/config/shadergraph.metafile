@@ -13,7 +13,7 @@ platforms:
   - name: OSX
     apis:
       - OpenGLCore
-#      - Metal
+      - Metal
   - name: Linux
     apis: 
       - OpenGLCore
