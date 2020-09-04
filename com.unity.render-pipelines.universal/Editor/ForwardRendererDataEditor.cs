@@ -16,7 +16,6 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent OpaqueMask = new GUIContent("Opaque Layer Mask", "Controls which opaque layers this renderer draws.");
             public static readonly GUIContent TransparentMask = new GUIContent("Transparent Layer Mask", "Controls which transparent layers this renderer draws.");
             public static readonly GUIContent LightingLabel = new GUIContent("Lighting", "Controls how lights are shaded.");
-            public static readonly GUIContent mutableRenderingModeLabel = EditorGUIUtility.TrTextContent("Mutable Rendering Path", "Rendering path can be programatically changed at runtime. This prevents some optimisations such as stripping unused shader variants.");
             public static readonly GUIContent RenderingModeLabel = new GUIContent("Rendering Path", "Choose a rendering path");
             public static readonly GUIContent accurateGbufferNormalsLabel = EditorGUIUtility.TrTextContent("Accurate G-buffer normals", "normals in G-buffer use octaedron encoding/decoding (expensive)");
             //public static readonly GUIContent tiledDeferredShadingLabel = EditorGUIUtility.TrTextContent("Tiled Deferred Shading (Experimental)", "Allows Tiled Deferred Shading on appropriate lights");
@@ -27,7 +26,6 @@ namespace UnityEditor.Rendering.Universal
 
         SerializedProperty m_OpaqueLayerMask;
         SerializedProperty m_TransparentLayerMask;
-        SerializedProperty m_MutableRenderingMode;
         SerializedProperty m_RenderingMode;
         SerializedProperty m_AccurateGbufferNormals;
         //SerializedProperty m_TiledDeferredShading;
@@ -40,7 +38,6 @@ namespace UnityEditor.Rendering.Universal
         {
             m_OpaqueLayerMask = serializedObject.FindProperty("m_OpaqueLayerMask");
             m_TransparentLayerMask = serializedObject.FindProperty("m_TransparentLayerMask");
-            m_MutableRenderingMode = serializedObject.FindProperty("m_MutableRenderingMode");
             m_RenderingMode = serializedObject.FindProperty("m_RenderingMode");
             m_AccurateGbufferNormals = serializedObject.FindProperty("m_AccurateGbufferNormals");
             // Not exposed yet.
@@ -71,7 +68,6 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUILayout.LabelField(Styles.LightingLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(m_MutableRenderingMode, Styles.mutableRenderingModeLabel);
             EditorGUILayout.PropertyField(m_RenderingMode, Styles.RenderingModeLabel);
             if (m_RenderingMode.intValue == (int)RenderingMode.Deferred)
             {

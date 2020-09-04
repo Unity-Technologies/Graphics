@@ -30,7 +30,7 @@ void BuildInputData(Varyings input, SurfaceDescription surfaceDescription, out I
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.sh, inputData.normalWS);
-    inputData.normalizedScreenSpaceUV = input.positionCS.xy;
+    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
 }
 
 PackedVaryings vert(Attributes input)
