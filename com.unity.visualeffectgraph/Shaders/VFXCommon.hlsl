@@ -320,6 +320,7 @@ float4 SampleMeshReadFloat(ByteAddressBuffer vertices, uint offset, uint channel
         uint format = channelFormatAndDimension & 0xff;
         uint dimension = (channelFormatAndDimension >> 8) & 0xff;
 
+        [branch]
         if (format == VERTEXATTRIBUTEFORMAT_FLOAT32)
         {
 			//TODOPAUL : Double check if this code cannot be simplified.
