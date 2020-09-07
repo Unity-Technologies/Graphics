@@ -21,8 +21,14 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(HDProfileId.AmbientOcclusion)))
                 {
-                    // Size must be checked independently of what version should be used
-                    EnsureRTSize(settings, hdCamera);
+                    float scaleFactor = m_RunningFullRes ? 1.0f : 0.5f;
+                    if (settings.fullResolution != m_RunningFullRes)
+                    {
+                        m_RunningFullRes = settings.fullResolution;
+                        scaleFactor = m_RunningFullRes ? 1.0f : 0.5f;
+                    }
+
+                    hdCamera.AllocateAmbientOcclusionHistoryBuffer(scaleFactor);
 
                     if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value)
                         return m_RaytracingAmbientOcclusion.RenderRTAO(renderGraph, hdCamera, depthPyramid, normalBuffer, motionVectors, rayCountTexture, frameCount, shaderVariablesRaytracing);
