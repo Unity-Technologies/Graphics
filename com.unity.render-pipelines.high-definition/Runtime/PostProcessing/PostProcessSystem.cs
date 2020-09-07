@@ -3927,8 +3927,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         finalPassMaterial.SetTexture(HDShaderIDs._GrainTexture, parameters.filmGrainTexture);
                         finalPassMaterial.SetVector(HDShaderIDs._GrainParams, new Vector2(parameters.filmGrainIntensity * 4f, parameters.filmGrainResponse));
 
-                        float uvScaleX = parameters.hdCamera.actualWidth / parameters.filmGrainTexture.width;
-                        float uvScaleY = parameters.hdCamera.actualHeight / parameters.filmGrainTexture.height;
+                        float uvScaleX = parameters.hdCamera.actualWidth / (float)parameters.filmGrainTexture.width;
+                        float uvScaleY = parameters.hdCamera.actualHeight / (float)parameters.filmGrainTexture.height;
                         float scaledOffsetX = offsetX * uvScaleX;
                         float scaledOffsetY = offsetY * uvScaleY;
 
