@@ -170,6 +170,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 this.MarkDirtyRepaint();
                 m_Node.OnSwizzleChange();
             });
+
+            // TODO: I don't think this event is getting called / doing anything useful
             field.Q("unity-text-input").RegisterCallback<InputEvent>(evt =>
             {
                 if (m_UndoGroup == -1)
@@ -177,9 +179,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     m_UndoGroup = Undo.GetCurrentGroup();
                     m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
                 }
-
                 MatrixSwizzleRow row = GetValue();
-                row.SetColumn(columnIndex, "kk");       // not sure when this event runs... or what it is trying to do
+                row.SetColumns(columnIndex, "kk");       // not sure when this event runs... or what it is trying to do
                 this.MarkDirtyRepaint();
             });
             field.Q("unity-text-input").RegisterCallback<KeyDownEvent>(evt =>

@@ -96,7 +96,7 @@ namespace UnityEditor.ShaderGraph
             return result;
         }
 
-        public Vector4 GetColumns(ref bool indicesValid)       // TODO: would be better to return two integers per column instead of using floats
+        public Vector4 GetColumns(ref bool indicesValid)
         {
             Vector4 result = Vector4.zero;
             for (int colIndex = 0; colIndex < 4; colIndex++)
@@ -248,21 +248,9 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new int[] { InputSlotId, OutputSlotId });
         }
 
-/*
-        int[] getIndex(float input)
+        static string GetColumnSwizzle(int col)
         {
-            var row = (int)input;
-            float temp_col = (float)(input - Math.Truncate(input)) * 10;
-
-            int[] index = { row, (int)Math.Round(temp_col) };
-            //Debug.Log(input+", row:" + index[0] + ", col:"+ (int)Math.Round(temp_col));
-            return index;
-        }
-*/
-
-        string mapComp(int n)
-        {
-            switch (n)
+            switch (col)
             {
                 default:
                     return "r";
@@ -275,21 +263,21 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-
         public override void ValidateNode()
         {
             base.ValidateNode();
 
+            // owner.ClearErrorsForNode(this);
             if (!AreIndicesValid)
             {
                 owner.AddValidationError(objectId, "Invalid index!", ShaderCompilerMessageSeverity.Error);
             }
         }
 
-        //1. get input matrix and demension
+        //1. get input matrix and dimension
         //2. get swizzle output row count
         //3. get index matrix 
-        //4. map output matirx/vec according to index matrix/vec
+        //4. map output matrix/vec according to index matrix/vec
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             //Get input matrix and its demension
@@ -297,7 +285,7 @@ namespace UnityEditor.ShaderGraph
 
             var inputSlot = FindInputSlot<MaterialSlot>(InputSlotId);
             var numInputRows = 0;
-            bool useIndentity = false;
+            bool useIdentity = false;
 
             if (inputSlot != null)
             {
@@ -305,15 +293,15 @@ namespace UnityEditor.ShaderGraph
                 if (numInputRows > 4)
                     numInputRows = 0;
 
+                // If nothing is connected to our input slot, then we use an inlined identity matrix as the input
                 if (!owner.GetEdges(inputSlot.slotReference).Any())
                 {
                     numInputRows = 0;
-                    useIndentity = true;
+                    useIdentity = true;
                 }
             }
 
-            //TODO: Change UI(2x2) to (4x4)
-            int concreteRowCount = useIndentity ? 4 : numInputRows;
+            int inputRowCount = useIdentity ? 4 : numInputRows;
 
             //get output row count
             int outputRowCount = 4;
@@ -342,127 +330,110 @@ namespace UnityEditor.ShaderGraph
                     break;
             }
 
-            Matrix4x4 inputRows = new Matrix4x4();
-            Matrix4x4 inputCols = new Matrix4x4();
-
-            //get input indices
-            inputRows.SetRow(0, _row0.GetRows(ref AreIndicesValid));
-            inputRows.SetRow(1, _row1.GetRows(ref AreIndicesValid));
-            inputRows.SetRow(2, _row2.GetRows(ref AreIndicesValid));
-            inputRows.SetRow(3, _row3.GetRows(ref AreIndicesValid));
-
-            inputCols.SetRow(0, _row0.GetColumns(ref AreIndicesValid));
-            inputCols.SetRow(1, _row1.GetColumns(ref AreIndicesValid));
-            inputCols.SetRow(2, _row2.GetColumns(ref AreIndicesValid));
-            inputCols.SetRow(3, _row3.GetColumns(ref AreIndicesValid));
-
-/*          //set all unused indices to zero
-            for (int r = 0; r < 4; r++)
-            {
-                Vector4 rows = inputRows.GetRow(r);
-                Vector4 cols = inputCols.GetRow(r);
-
-                for (int c = 0; c < 4; c++)
-                {
-                    if (IsOutputMatrix(m_OutputSize))
-                    {
-                        if (c >= outputRowCount)
-                        {
-                            rows[c] = 0;
-                            cols[c] = 0;
-                        }
-                    }
-                    else
-                    {
-                        if (c > 0)
-                        {
-                            rows[c] = 0;
-                            cols[c] = 0;
-                        }
-                    }
-                }
-
-                inputIndices.SetRow(r, rows);
-                if (r >= outputRowCount)
-                {
-                    inputIndices.SetRow(r, new Vector4(0, 0, 0, 0));
-                }
-            }
-*/
+            Matrix4x4 inputRowMatrix = new Matrix4x4();
+            Matrix4x4 inputColMatrix = new Matrix4x4();
 
             AreIndicesValid = true;
 
+            //get input indices
+            inputRowMatrix.SetRow(0, _row0.GetRows(ref AreIndicesValid));
+            inputRowMatrix.SetRow(1, _row1.GetRows(ref AreIndicesValid));
+            inputRowMatrix.SetRow(2, _row2.GetRows(ref AreIndicesValid));
+            inputRowMatrix.SetRow(3, _row3.GetRows(ref AreIndicesValid));
+
+            inputColMatrix.SetRow(0, _row0.GetColumns(ref AreIndicesValid));
+            inputColMatrix.SetRow(1, _row1.GetColumns(ref AreIndicesValid));
+            inputColMatrix.SetRow(2, _row2.GetColumns(ref AreIndicesValid));
+            inputColMatrix.SetRow(3, _row3.GetColumns(ref AreIndicesValid));
+
             // replace any out-of-bounds values with 0
-            for (int r = 0; r < 4; r++)
+            for (int outputRow = 0; outputRow < outputRowCount; outputRow++)
             {
-                Vector4 rows = inputRows.GetRow(r);
-                Vector4 cols = inputCols.GetRow(r);
+                Vector4 inputRowVector = inputRowMatrix.GetRow(outputRow);
+                Vector4 inputColVector = inputColMatrix.GetRow(outputRow);
 
-                for (int c = 0; c<4; c++)
+                for (int outputCol = 0; outputCol<4; outputCol++)
                 {
-                    float row = inputRows[c];
-                    float col = inputCols[c];
+                    float inputRow = inputRowVector[outputCol];
+                    float inputCol = inputColVector[outputCol];
 
-                    if (row > concreteRowCount-1 || col > concreteRowCount - 1)
+                    if (inputRow >= inputRowCount || inputCol >= inputRowCount)
                     {
-                        rows[c] = 0;
-                        cols[c] = 0;
-                        AreIndicesValid = false;
-                        ValidateNode();
+                        inputRowVector[outputCol] = 0;
+                        inputColVector[outputCol] = 0;
+
+                        // also report it as an invalid index, if it is actually being used
+                        if (IsOutputMatrix(m_OutputSize))
+                        {
+                            if (outputCol < outputRowCount)
+                                AreIndicesValid = false;
+                        }
+                        else if (outputCol == 0)    // vectors only use first column
+                            AreIndicesValid = false;
                     }
 
                 }
 
-                inputRows.SetRow(r, rows);
-                inputCols.SetRow(r, cols);
+                inputRowMatrix.SetRow(outputRow, inputRowVector);
+                inputColMatrix.SetRow(outputRow, inputColVector);
+            }
+
+            if (!AreIndicesValid)
+            {
+                Debug.Log("Indices invalid");
+                owner.ValidateGraph();
+                //                ValidateNode();     // publish as an error on the node
             }
 
             // build shader string
             string real_outputValue = "";
-            for (var r = 0; r < outputRowCount; r++)
+            for (int outputRow = 0; outputRow < outputRowCount; outputRow++)
             {
                 string outputValue = "";
-                // Vector4 indices = inputIndices.GetRow(r);
-                Vector4 rows = inputRows.GetRow(r);
-                Vector4 cols = inputCols.GetRow(r);
 
-                if (r != 0)
+                // Vector4 indices = inputIndices.GetRow(r);
+                Vector4 inputRowVector = inputRowMatrix.GetRow(outputRow);
+                Vector4 inputColVector = inputColMatrix.GetRow(outputRow);
+
+                if (outputRow != 0)
                     outputValue += ",";
 
                 //If output is a matrix
                 if (IsOutputMatrix(m_OutputSize))
                 {
-                    for (int c = 0; c < outputRowCount; c++)
+                    for (int outputCol = 0; outputCol < outputRowCount; outputCol++)
                     {
-                        if (useIndentity == true)
+                        int inputRow = (int) inputRowVector[outputCol];
+                        int inputCol = (int) inputColVector[outputCol];
+
+                        if (useIdentity == true)
                         {
-                            if (c != 0)
+                            if (outputCol != 0)
                             {
                                 outputValue += ",";
                             }
-                            outputValue += Matrix4x4.identity.GetRow((int) rows[c])[(int) cols[c]];
-
+                            outputValue += Matrix4x4.identity.GetRow(inputRow)[inputCol];
                         }
                         else
                         {
-                            if (c != 0)
+                            if (outputCol != 0)
                             {
                                 outputValue += ",";
                             }
-                            outputValue += string.Format("{0}[{1}].{2}", inputValue, (int) rows[c], mapComp((int) cols[c]));
+                            outputValue += string.Format("{0}[{1}].{2}", inputValue, inputRow, GetColumnSwizzle(inputCol));
                         }
                     }
                 }
                 else
                 {
                     //If output is a vector
-                    if (useIndentity == true)
+                    if (useIdentity == true)
                     {
-                        outputValue += Matrix4x4.identity.GetRow((int) rows[0])[(int) cols[0]];
+                        outputValue += Matrix4x4.identity.GetRow((int) inputRowVector[0])[(int) inputColVector[0]];
                     }
                     else
                     {
-                        outputValue += string.Format("{0}[{1}].{2}", inputValue, (int) rows[0], mapComp((int) cols[0]));
+                        outputValue += string.Format("{0}[{1}].{2}", inputValue, (int) inputRowVector[0], GetColumnSwizzle((int) inputColVector[0]));
                     }
                 }
                 real_outputValue += outputValue;
