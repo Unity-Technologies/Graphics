@@ -1,12 +1,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/CookieSampling.hlsl"
 
-#ifndef SCALARIZE_LIGHT_LOOP
-// We perform scalarization only for forward rendering as for deferred loads will already be scalar since tiles will match waves and therefore all threads will read from the same tile.
-// More info on scalarization: https://flashypixels.wordpress.com/2018/11/10/intro-to-gpu-scalarization-part-2-scalarize-all-the-lights/
-#define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
-#endif
-
 #define DWORD_PER_TILE 16 // See dwordsPerTile in LightLoop.cs, we have roomm for 31 lights and a number of light value all store on 16 bit (ushort)
 
 // Some file may not required HD shadow context at all. In this case provide an empty one
@@ -273,43 +267,6 @@ uint FetchIndex(uint lightStart, uint lightOffset)
 }
 
 #endif // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-
-bool IsFastPath(uint lightStart, out uint lightStartLane0)
-{
-#if SCALARIZE_LIGHT_LOOP
-    // Fast path is when we all pixels in a wave are accessing same tile or cluster.
-    lightStartLane0 = WaveReadLaneFirst(lightStart);
-    return WaveActiveAllTrue(lightStart == lightStartLane0);
-#else
-    lightStartLane0 = lightStart;
-    return false;
-#endif
-}
-
-// This function scalarize an index accross all lanes. To be effecient it must be used in the context
-// of the scalarization of a loop. It is to use with IsFastPath so it can optimize the number of
-// element to load, which is optimal when all the lanes are contained into a tile.
-uint ScalarizeElementIndex(uint v_elementIdx, bool fastPath)
-{
-    uint s_elementIdx = v_elementIdx;
-#if SCALARIZE_LIGHT_LOOP
-    if (!fastPath)
-    {
-        // If we are not in fast path, v_elementIdx is not scalar, so we need to query the Min value across the wave.
-        s_elementIdx = WaveActiveMin(v_elementIdx);
-        // If WaveActiveMin returns 0xffffffff it means that all lanes are actually dead, so we can safely ignore the loop and move forward.
-        // This could happen as an helper lane could reach this point, hence having a valid v_elementIdx, but their values will be ignored by the WaveActiveMin
-        if (s_elementIdx == -1)
-        {
-            return -1;
-        }
-    }
-    // Note that the WaveReadLaneFirst should not be needed, but the compiler might insist in putting the result in VGPR.
-    // However, we are certain at this point that the index is scalar.
-    s_elementIdx = WaveReadLaneFirst(s_elementIdx);
-#endif
-    return s_elementIdx;
-}
 
 uint FetchIndexWithBoundsCheck(uint start, uint count, uint i)
 {

@@ -117,8 +117,6 @@ void ProbeVolumeGetCountAndStart(PositionInputs posInput, out uint probeVolumeSt
 
 void ProbeVolumeGetCountAndStartAndFastPath(PositionInputs posInput, out uint probeVolumeStart, out uint probeVolumeCount, out bool fastPath)
 {
-    // Fetch first probe volume to provide the scene proxy for screen space computation
-    ProbeVolumeGetCountAndStart(posInput, probeVolumeStart, probeVolumeCount);
     fastPath = false;
 
 #if SCALARIZE_LIGHT_LOOP
