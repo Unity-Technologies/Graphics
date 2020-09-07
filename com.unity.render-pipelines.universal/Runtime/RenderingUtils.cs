@@ -346,13 +346,16 @@ namespace UnityEngine.Rendering.Universal
             FilteringSettings filterSettings, SortingCriteria sortingCriteria, bool overrideMaterial)
         {
             SortingSettings sortingSettings = new SortingSettings(renderingData.cameraData.camera) { criteria = sortingCriteria };
-            ShaderTagId passId = m_DebugShaderPassNames[overrideMaterial ? 1 : 0];
+            int overrideMaterialIndex = overrideMaterial ? 1 : 0;
+            ShaderTagId passId = m_DebugShaderPassNames[overrideMaterialIndex];
             DrawingSettings debugSettings = new DrawingSettings(passId, sortingSettings)
             {
                 perObjectData = renderingData.perObjectData,
-                enableInstancing = true,
                 mainLightIndex = renderingData.lightData.mainLightIndex,
-                enableDynamicBatching = renderingData.supportsDynamicBatching
+                enableDynamicBatching = renderingData.supportsDynamicBatching,
+
+                // Disable instancing for preview cameras. This is consistent with the built-in forward renderer.
+                enableInstancing = renderingData.cameraData.cameraType != CameraType.Preview
             };
 
             if (overrideMaterial)

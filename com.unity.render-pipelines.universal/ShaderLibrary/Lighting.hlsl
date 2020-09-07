@@ -1035,6 +1035,7 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
     s.specular            = specular;
     s.smoothness          = smoothness;
     s.occlusion           = occlusion;
+    s.normalTS            = half3(0.0h, 0.0h, 1.0h);
     s.emission            = emission;
     s.alpha               = alpha;
     s.clearCoatMask       = 0.0;

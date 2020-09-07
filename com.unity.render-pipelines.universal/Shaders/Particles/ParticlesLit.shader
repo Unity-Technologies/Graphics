@@ -291,20 +291,20 @@ Shader "Universal Render Pipeline/Particles/Lit"
 
             // -------------------------------------
             // Material Keywords
-            #pragma shader_feature _NORMALMAP
-            #pragma shader_feature _EMISSION
-            #pragma shader_feature _METALLICSPECGLOSSMAP
-            #pragma shader_feature _RECEIVE_SHADOWS_OFF
+            #pragma shader_feature_local_fragment _NORMALMAP
+            #pragma shader_feature_local_fragment _EMISSION
+            #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
+            #pragma shader_feature_local_fragment _RECEIVE_SHADOWS_OFF
 
             // -------------------------------------
             // Particle Keywords
-            #pragma shader_feature _ _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
-            #pragma shader_feature _ALPHATEST_ON
-            #pragma shader_feature _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
-            #pragma shader_feature _FLIPBOOKBLENDING_ON
-            #pragma shader_feature _SOFTPARTICLES_ON
-            #pragma shader_feature _FADING_ON
-            #pragma shader_feature _DISTORTION_ON
+            #pragma shader_feature_local_fragment _ _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
+            #pragma shader_feature_local _FLIPBOOKBLENDING_ON
+            #pragma shader_feature_local_fragment _SOFTPARTICLES_ON
+            #pragma shader_feature_local_fragment _FADING_ON
+            #pragma shader_feature_local_fragment _DISTORTION_ON
 
             // -------------------------------------
             // Lightweight Pipeline keywords
