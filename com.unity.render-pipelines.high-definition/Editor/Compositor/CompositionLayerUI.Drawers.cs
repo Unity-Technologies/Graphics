@@ -30,6 +30,10 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             static public readonly GUIContent k_AAMode = EditorGUIUtility.TrTextContent("Anti Aliasing", "To override the anti-aliasing mode, activate the option by clicking on the check-box and then select the desired value.");
             static public readonly GUIContent k_CullingMask = EditorGUIUtility.TrTextContent("Culling Mask", "To override the culling mask, activate the option by clicking on the check-box and then select the desired value.");
             static public readonly GUIContent k_VolumeMask = EditorGUIUtility.TrTextContent("Volume Mask", "To override the volume mask, activate the option by clicking on the check-box and then select the desired value.");
+
+            static public readonly string k_AlphaInfoPost = "The use of AOVs properties in a player require to to enable the Runtime AOV API support in the HDRP quality settings.";
+
+            static public float infoBoxHeight = EditorGUIUtility.singleLineHeight * 2.5f;
         }
 
         public static void DrawItemInList(Rect rect, SerializedCompositionLayer serialized, RenderTexture thumbnail, float aspectRatio, bool isAlphaEnbaled)
@@ -129,9 +133,17 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             EditorGUI.PropertyField(rect, serializedProperties.outputRenderer, Styles.k_OutputRenderer);
             rect.y += CompositorStyle.k_Spacing;
 
-            EditorGUI.PropertyField(rect, serializedProperties.aovBitmask, Styles.k_AOVs);
-            
+            EditorGUI.PropertyField(rect, serializedProperties.aovBitmask, Styles.k_AOVs);            
             rect.y += CompositorStyle.k_Spacing;
+
+            HDRenderPipelineAsset hdrp = HDRenderPipeline.currentAsset;
+            if (serializedProperties.aovBitmask.intValue != 0 && hdrp && !hdrp.currentPlatformRenderPipelineSettings.supportRuntimeAOVAPI)
+            {
+                Rect infoRect = rect;
+                infoRect.height = Styles.infoBoxHeight;
+                EditorGUI.HelpBox(infoRect, Styles.k_AlphaInfoPost, MessageType.Info);
+                rect.y += Styles.infoBoxHeight;
+            }
         }
 
         public static void DrawStackedLayerProperties(Rect rect, SerializedCompositionLayer serializedProperties, ReorderableList filterList)
