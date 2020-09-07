@@ -571,8 +571,7 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeProbeVolumes();
             CustomPassUtils.Initialize();
 
-            if (enableRenderGraphTests)
-                EnableRenderGraph(true);
+            EnableRenderGraph(true);
         }
 
 #if UNITY_EDITOR
