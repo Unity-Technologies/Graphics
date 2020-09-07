@@ -28,6 +28,7 @@ Shader "Hidden/LookDev/Compositor"
     }
 
     CGINCLUDE
+    #pragma never_use_dxc metal
     #include "UnityCG.cginc"
     #pragma vertex vert
 

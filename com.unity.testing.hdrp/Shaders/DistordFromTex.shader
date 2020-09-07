@@ -14,6 +14,7 @@ Shader "Hidden/DistordFromTex"
 		Pass
 		{
 			CGPROGRAM
+			#pragma never_use_dxc metal
             #include "UnityCustomRenderTexture.cginc"
             #pragma vertex CustomRenderTextureVertexShader
             #pragma fragment frag

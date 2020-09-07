@@ -9,6 +9,7 @@ Shader "Hidden/BlitNoAlpha"
             ZTest Always Cull Off ZWrite Off
 
             CGPROGRAM
+            #pragma never_use_dxc metal
             #pragma vertex vert
             #pragma fragment frag
             #include "UnityCG.cginc"

@@ -26,6 +26,7 @@ Shader "Hidden/DefaultCloudLayer"
             #pragma vertex CustomRenderTextureVertexShader
             #pragma fragment frag
             #pragma target 3.0
+            #pragma never_use_dxc metal
 
             sampler2D _Tex;
             float Opacity_R;

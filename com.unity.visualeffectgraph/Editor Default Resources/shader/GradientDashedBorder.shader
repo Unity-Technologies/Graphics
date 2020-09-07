@@ -22,6 +22,7 @@ Shader "Hidden/VFX/GradientDashedBorder"
         Pass
         {
             CGPROGRAM
+            #pragma never_use_dxc
             #pragma vertex vert
             #pragma fragment frag
 

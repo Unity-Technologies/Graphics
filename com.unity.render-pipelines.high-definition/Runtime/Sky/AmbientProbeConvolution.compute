@@ -5,6 +5,9 @@
 
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
+//Currently doesn't work with DXC's unoptimised mode for metal, needs more investigation
+#pragma never_use_dxc metal
+
 #pragma kernel AmbientProbeConvolution KERNEL_NAME=AmbientProbeConvolution
 
 RWStructuredBuffer<float> _AmbientProbeOutputBuffer;

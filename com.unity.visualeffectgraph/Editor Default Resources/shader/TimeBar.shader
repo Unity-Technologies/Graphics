@@ -18,6 +18,7 @@ Shader "Hidden/VFX/TimeBar"
         Pass
         {
             CGPROGRAM
+            #pragma never_use_dxc metal
             #pragma vertex vert
             #pragma fragment frag
 

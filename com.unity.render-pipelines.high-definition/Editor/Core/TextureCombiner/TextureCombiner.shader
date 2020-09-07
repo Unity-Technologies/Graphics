@@ -29,6 +29,7 @@ Shader "Hidden/SRP_Core/TextureCombiner"
         Pass
         {
             CGPROGRAM
+            #pragma never_use_dxc metal
 
             #pragma editor_sync_compilation
 

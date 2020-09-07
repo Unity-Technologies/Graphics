@@ -20,6 +20,7 @@ Shader "HDRenderPipeline/GraphicTests/2004_AnimatedCookie_AnimMat2"
         Pass
         {
             CGPROGRAM
+            #pragma never_use_dxc metal
             #include "UnityCustomRenderTexture.cginc"
             #pragma vertex CustomRenderTextureVertexShader
             #pragma fragment frag

@@ -21,6 +21,7 @@ Shader "Hidden/VFX/GradientBorder"
         Pass
         {
             CGPROGRAM
+            #pragma never_use_dxc metal
             #pragma vertex vert
             #pragma fragment frag
             // make fog work

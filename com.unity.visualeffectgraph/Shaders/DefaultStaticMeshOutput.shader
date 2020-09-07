@@ -14,6 +14,7 @@ Shader "Hidden/Default StaticMeshOutput"
             // Uncomment this in HDRP
             //Tags { "LightMode" = "ForwardOnly"}
             CGPROGRAM
+            #pragma never_use_dxc metal
             #pragma vertex vert
             #pragma fragment frag
 

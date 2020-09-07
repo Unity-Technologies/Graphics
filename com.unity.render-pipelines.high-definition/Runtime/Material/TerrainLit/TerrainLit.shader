@@ -54,7 +54,9 @@ Shader "HDRP/TerrainLit"
     }
 
     HLSLINCLUDE
-
+    
+    //This shader triggers a DXC SPIR-V codegen issue with debug shaders output //https://github.com/microsoft/DirectXShaderCompiler/issues/3101
+    #pragma never_use_dxc metal
     #pragma target 4.5
     #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 

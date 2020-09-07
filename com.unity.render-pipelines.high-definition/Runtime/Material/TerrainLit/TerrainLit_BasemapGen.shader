@@ -26,6 +26,9 @@ Shader "Hidden/HDRP/TerrainLit_BasemapGen"
         #pragma shader_feature_local _NORMALMAP
         #pragma shader_feature_local _MASKMAP
 
+        // There's an issue with sampler_mask0 not finding a pair texture with unoptimised DXC output
+        // issue is still there unused are only stripped after reflection which is too late for this error to be avoided
+        #pragma never_use_dxc metal
         #pragma shader_feature_local _TERRAIN_BLEND_HEIGHT
         #define _TERRAIN_BASEMAP_GEN
 

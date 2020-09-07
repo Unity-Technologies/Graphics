@@ -403,6 +403,8 @@ Shader "HDRP/Lit"
             }
 
             HLSLPROGRAM
+            //4
+            //#pragma enable_d3d11_debug_symbols
 
             #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
             //enable GPU instancing support
