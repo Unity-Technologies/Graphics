@@ -22,6 +22,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue where ShaderGraph previews didn't display correctly when setting a texture to "None" [1264932]
 - Fixed an issue with the SampleVirtualTexture node in ShaderGraph, where toggling Automatic Streaming would cause the node to incorrectly display four output slots [1271618]
 - Fixed an issue in ShaderGraph with integer-mode Vector1 properties throwing errors when the value is changed [1264930]
+- Fixed a bug where ShaderGraph would not load graphs using Procedural VT nodes when the nodes were the project had them disabled [1271598]
 
 ## [10.0.0] - 2019-06-10
 ### Added
