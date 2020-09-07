@@ -12,10 +12,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fix several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
 - Fixed GPU hang on D3D12 on xbox. 
+- Fix Amplitude -> Min/Max parametrization conversion
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
-- Skip an unneeded depth buffer copy on consoles. 
+- Skip biquadratic resampling of vbuffer when volumetric fog filtering is enabled.
 
 ## [10.0.0] - 2019-06-10
 
@@ -789,6 +790,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with cookie texture atlas that would cause realtime textures to always update in the atlas even when the content did not change.
 - Fixed an issue where only one of the two lookdev views would update when changing the default lookdev volume profile.
 - Fixed a bug related to light cluster invalidation.
+- Fixed shader warning in DofGather (case 1272931)
 
 ### Changed
 - Improve MIP selection for decals on Transparents

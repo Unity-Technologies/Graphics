@@ -1,0 +1,9 @@
+{
+	"SuiteConfig":
+	{
+		"Targets":
+		[
+			"+XboxOne"
+		]
+	}
+}

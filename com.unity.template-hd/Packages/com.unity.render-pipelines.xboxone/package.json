@@ -1,0 +1,9 @@
+{
+    "name": "com.unity.render-pipelines.xboxone",
+    "description": "Render Pipelines Core files for Xbox One. This package must be installed to use the core render pipelines on Xbox One.",
+    "version": "1.3.0",
+    "unity": "2019.3",
+    "displayName": "Xbox One Render Pipelines",
+    "dependencies": {
+    }
+}
