@@ -1,4 +1,5 @@
-### Configuration required only by ruamel build.py
+
+### EDITOR PRIMING
 platforms:
   # Exhaustive list of operating systems and editor components used by all jobs so the preparation jobs
   # can make sure all editors are cached on cheap vms before starting the heavy duty machines for running tests
@@ -7,8 +8,10 @@ platforms:
   - name: Win
   - name: Linux
   - name: iPhone
-editor_pin_agent: package_ci_ubuntu_small
 editor_priming_agent: cds_ops_ubuntu_small
+
+### EDITOR PINNING
+editor_pin_agent: package_ci_ubuntu_small
 
 # remove the following once editor pinning is done. these values will be picked up from __shared
 target_branch_editor_ci: yamato/editor-pin-ci
