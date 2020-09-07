@@ -129,6 +129,8 @@ namespace UnityEngine.Rendering.Universal
         {
             BeginFrameRendering(renderContext, cameras);
 
+            s_SkyManager.CleanUnusedCameras();
+
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
             SetupPerFrameShaderConstants();

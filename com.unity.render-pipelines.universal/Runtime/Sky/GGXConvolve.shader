@@ -12,8 +12,8 @@ Shader "Hidden/Universal Render Pipeline/GGXConvolve"
 
             HLSLPROGRAM
             #pragma editor_sync_compilation
-            #pragma target 3.0
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
 
             #pragma vertex Vert
             #pragma fragment Frag

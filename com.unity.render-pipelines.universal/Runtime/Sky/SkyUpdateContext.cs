@@ -38,6 +38,12 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        public void Cleanup()
+        {
+            if (skyRenderer != null)
+                skyRenderer.Cleanup();
+        }
+
         public bool IsValid()
         {
             return m_SkySettings != null;
