@@ -746,10 +746,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_RaytracingGBufferManager.CreateBuffers();
                 m_RayCountManager.InitializeNonRenderGraphResources();
 
-                m_RadianceTexture = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, dimension: TextureXR.dimension,
-                            enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
-                            name: "PathTracingFrameBuffer");
-
                 if (m_Asset.currentPlatformRenderPipelineSettings.supportSSGI)
                 {
                     m_IndirectDiffuseBuffer0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer0");
@@ -824,9 +820,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_RaytracingGBufferManager.DestroyBuffers();
                 m_RayCountManager.CleanupNonRenderGraphResources();
-
-                RTHandles.Release(m_RadianceTexture);
-                m_RadianceTexture = null;
 
                 if (m_IndirectDiffuseBuffer0 != null)
                     RTHandles.Release(m_IndirectDiffuseBuffer0);
@@ -1125,6 +1118,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             base.Dispose(disposing);
 
+            if (!m_EnableRenderGraph)
+                CleanupNonRenderGraphResources();
+
             ReleaseScreenSpaceShadows();
 
             if (m_RayTracingSupported)
@@ -1185,8 +1181,6 @@ namespace UnityEngine.Rendering.HighDefinition
             HDCamera.ClearAll();
 
             m_MipGenerator.Release();
-
-            DestroyRenderTextures();
 
             if (m_CustomPassColorBuffer.IsValueCreated)
                 RTHandles.Release(m_CustomPassColorBuffer.Value);
@@ -1257,9 +1251,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // we are detecting if we are in an OnValidate call and releasing the Singleton only if it is not the case.
             if (!m_Asset.isInOnValidateCall)
                 HDUtils.ReleaseComponentSingletons();
-
-            if (!m_EnableRenderGraph)
-                CleanupNonRenderGraphResources();
         }
 
 

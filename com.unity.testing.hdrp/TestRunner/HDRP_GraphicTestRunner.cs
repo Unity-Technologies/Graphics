@@ -58,14 +58,6 @@ public class HDRP_GraphicTestRunner
             }
         }
 
-        if (HDRenderPipeline.enableRenderGraphTests)
-        {
-            if (!settings.renderGraphCompatible)
-            {
-                Assert.Ignore("Test scene is not compatible with Render Graph and will be skipped.");
-            }
-        }
-
         if (settings.doBeforeTest != null)
         {
             settings.doBeforeTest.Invoke();
