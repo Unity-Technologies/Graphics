@@ -80,6 +80,7 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
 - Editor pinning:
     - Updates editor revisions (`config/_latest_editor_versions.metafile`) on a nightly basis, on the condition that ABV passes. All our jobs (ABV, nightly etc) use revisions from this file (specifically `[track]_latest_internal`). This way, if e.g. trunk breaks, it is discovered by the nightly update job (and revisions for this platform won't be updated), and we continue using the latest working revision, until a new working one becomes available.
     - Merge job postfixed with ABV refer to the automated flow (branch trigger + ABV dependency). The one without ABV is for manual run (no triggers or ABV dependency), in case ABV blocks us from updating revisions
+    - What to pay attention to (especially when setting up on another branch): target and ci branches are correct, last revision is correct, ci branch exists (should be created manually by branching out from target)
     - Renamed `merge-to-target` to `merge-revisions`, and `merge-from-target` to `target-to-ci`
     
     - ![Editor pinning flow](editor_pinning.png)
