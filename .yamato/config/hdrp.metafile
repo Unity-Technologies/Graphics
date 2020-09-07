@@ -15,7 +15,6 @@ platforms:
       - DX12
       - Vulkan
     overrides:
-      #copycmd: jnhuytfrdfghjkiuhytfrdfghjk
       agents_project:
         # default: package_ci_mac
         default:

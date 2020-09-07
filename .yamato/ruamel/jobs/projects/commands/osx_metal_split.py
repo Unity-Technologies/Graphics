@@ -6,7 +6,7 @@ def _cmd_base(project, components):
     return [   ]
 
 
-def cmd_not_standalone(project_folder, platform, api, test_platform_args):
+def cmd_not_standalone(project_folder, platform, api, test_platform_args, editor_revision):
     return [ 
         #f'git clone git@github.cds.internal.unity3d.com:unity/utr.git {TEST_PROJECTS_DIR}/{project_folder}/utr',
         f'curl -s {UTR_INSTALL_URL} --output {TEST_PROJECTS_DIR}/{project_folder}/utr',
@@ -14,7 +14,7 @@ def cmd_not_standalone(project_folder, platform, api, test_platform_args):
         f'ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc \'pip3 install --user unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade\'"',
         f'scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/{REPOSITORY_NAME}',
         f'scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini',
-        f'ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP \'/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/{REPOSITORY_NAME}/{PATH_UNITY_REVISION} {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only\'',
+        f'ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP \'/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli -u { editor_revision } {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only\'',
         pss(f'''
         set GIT_BRANCH=$GIT_BRANCH
         set GIT_REVISION=$GIT_REVISION
@@ -27,7 +27,7 @@ def cmd_not_standalone(project_folder, platform, api, test_platform_args):
         exit $UTR_RESULT''')
      ]
 
-def cmd_standalone(project_folder, platform, api, test_platform_args):
+def cmd_standalone(project_folder, platform, api, test_platform_args, editor_revision):
     return [ 
         f'curl -s {UTR_INSTALL_URL} --output utr',
         f'chmod +x ./utr',
@@ -47,7 +47,7 @@ def cmd_standalone(project_folder, platform, api, test_platform_args):
         exit $UTR_RESULT''')
      ]
 
-def cmd_standalone_build(project_folder, platform, api, test_platform_args):
+def cmd_standalone_build(project_folder, platform, api, test_platform_args, editor_revision):
     return  [
         f'git clone git@github.cds.internal.unity3d.com:unity/utr.git {TEST_PROJECTS_DIR}/{project_folder}/utr',
         f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
