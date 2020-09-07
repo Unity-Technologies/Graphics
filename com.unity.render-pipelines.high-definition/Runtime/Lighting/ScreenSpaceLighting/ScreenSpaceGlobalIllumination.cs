@@ -29,10 +29,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_Asset.currentPlatformRenderPipelineSettings.supportSSGI)
             {
-                m_IndirectDiffuseBuffer0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer0");
-                m_IndirectDiffuseBuffer1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer1");
-                m_IndirectDiffuseHitPointBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseHitBuffer");
-
                 // Grab the sets of shaders that we'll be using
                 ComputeShader ssGICS = m_Asset.renderPipelineResources.shaders.screenSpaceGlobalIlluminationCS;
                 ComputeShader bilateralUpsampleCS = m_Asset.renderPipelineResources.shaders.bilateralUpsampleCS;
@@ -44,16 +40,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ReprojectGlobalIlluminationHalfKernel = ssGICS.FindKernel("ReprojectGlobalIlluminationHalf");
                 m_BilateralUpSampleColorTMKernel = bilateralUpsampleCS.FindKernel("BilateralUpSampleColorTM");
             }
-        }
-
-        void ReleaseScreenSpaceGlobalIllumination()
-        {
-            if (m_IndirectDiffuseBuffer0 != null)
-                RTHandles.Release(m_IndirectDiffuseBuffer0);
-            if (m_IndirectDiffuseBuffer1 != null)
-                RTHandles.Release(m_IndirectDiffuseBuffer1);
-            if (m_IndirectDiffuseHitPointBuffer != null)
-                RTHandles.Release(m_IndirectDiffuseHitPointBuffer);
         }
 
         // This is shared between SSGI and RTGI

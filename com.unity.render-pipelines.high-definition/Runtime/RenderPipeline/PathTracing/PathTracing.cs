@@ -78,10 +78,6 @@ namespace UnityEngine.Rendering.HighDefinition
             Undo.undoRedoPerformed += OnSceneEdit;
             SceneView.duringSceneGui += OnSceneGui;
 #endif // UNITY_EDITOR
-
-            m_RadianceTexture = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, dimension: TextureXR.dimension,
-                                        enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
-                                        name: "PathTracingFrameBuffer");
         }
 
         void ReleasePathTracing()
@@ -91,8 +87,6 @@ namespace UnityEngine.Rendering.HighDefinition
             Undo.undoRedoPerformed -= OnSceneEdit;
             SceneView.duringSceneGui -= OnSceneGui;
 #endif // UNITY_EDITOR
-
-            RTHandles.Release(m_RadianceTexture);
         }
 
         internal void ResetPathTracing()

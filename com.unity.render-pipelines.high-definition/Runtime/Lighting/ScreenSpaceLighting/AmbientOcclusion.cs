@@ -267,29 +267,27 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!hdAsset.currentPlatformRenderPipelineSettings.supportSSAO)
                 return;
-
-            AllocRT(0.5f);
-        }
-
-        internal void Cleanup()
-        {
-            if (HDRenderPipeline.GatherRayTracingSupport(m_Settings))
-            {
-                m_RaytracingAmbientOcclusion.Release();
-            }
-
-            ReleaseRT();
         }
 
         internal void InitializeNonRenderGraphResources()
         {
             float scaleFactor = m_RunningFullRes ? 1.0f : 0.5f;
             AllocRT(scaleFactor);
+
+            if (HDRenderPipeline.GatherRayTracingSupport(m_Settings))
+            {
+                m_RaytracingAmbientOcclusion.InitializeNonRenderGraphResources();
+            }
         }
 
         internal void CleanupNonRenderGraphResources()
         {
             ReleaseRT();
+
+            if (HDRenderPipeline.GatherRayTracingSupport(m_Settings))
+            {
+                m_RaytracingAmbientOcclusion.CleanupNonRenderGraphResources();
+            }
         }
 
         internal void InitRaytracing(HDRenderPipeline renderPipeline)

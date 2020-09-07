@@ -23,7 +23,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 depthState = new DepthState(false, CompareFunction.LessEqual),
                 mask = RenderStateMask.Depth
             };
-            m_FlagMaskTextureRT = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8_SNorm, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "FlagMaskTexture");
         }
 
         public TextureHandle CreateFlagMaskTexture(RenderGraph renderGraph)
@@ -36,11 +35,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 useMipMap = true,
                 name = "FlagMaskTexture"
             });
-        }
-
-        void ReleaseRecursiveRenderer()
-        {
-            RTHandles.Release(m_FlagMaskTextureRT);
         }
 
         struct RecursiveRendererParameters

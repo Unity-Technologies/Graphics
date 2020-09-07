@@ -343,9 +343,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // RENDER GRAPH
-        internal static bool enableRenderGraphTests { get => Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-rendergraph-tests"); }
-        RenderGraph m_RenderGraph;
-        bool        m_EnableRenderGraph;
+        internal static bool enableNonRenderGraphTests { get => Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-non-rendergraph-tests"); }
+        RenderGraph m_RenderGraph = new RenderGraph();
+        bool        m_EnableRenderGraph = true;
 
         // MSAA resolve materials
         Material m_ColorResolveMaterial = null;
@@ -522,8 +522,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_DepthPyramidMipLevelOffsetsBuffer = new ComputeBuffer(15, sizeof(int) * 2);
 
-            InitializeRenderTextures();
-
             // TODO RENDERGRAPH: Moved those out of InitializeRenderTexture as they are still needed in render graph and would be deallocated otherwise when switching it on.
             m_CustomPassColorBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetCustomBufferFormat(), enableRandomWrite: true, useDynamicScale: true, name: "CustomPassColorBuffer"));
             m_CustomPassDepthBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_UInt, useDynamicScale: true, name: "CustomPassDepthBuffer", depthBufferBits: DepthBits.Depth32));
@@ -571,7 +569,8 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeProbeVolumes();
             CustomPassUtils.Initialize();
 
-            EnableRenderGraph(true);
+            if (enableNonRenderGraphTests)
+                EnableRenderGraph(false);
         }
 
 #if UNITY_EDITOR
@@ -741,6 +740,27 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_OpaqueAtmosphericScatteringMSAABuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "OpaqueAtmosphericScatteringMSAA");
                 m_CameraSssDiffuseLightingMSAABuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "CameraSSSDiffuseLightingMSAA");
             }
+
+            if (m_RayTracingSupported)
+            {
+                m_RaytracingGBufferManager.CreateBuffers();
+                m_RayCountManager.InitializeNonRenderGraphResources();
+
+                m_RadianceTexture = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, dimension: TextureXR.dimension,
+                            enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
+                            name: "PathTracingFrameBuffer");
+
+                if (m_Asset.currentPlatformRenderPipelineSettings.supportSSGI)
+                {
+                    m_IndirectDiffuseBuffer0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer0");
+                    m_IndirectDiffuseBuffer1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer1");
+                    m_IndirectDiffuseHitPointBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseHitBuffer");
+                }
+
+                m_RayTracingLightCluster.InitializeNonRenderGraphResources();
+
+                m_FlagMaskTextureRT = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8_SNorm, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "FlagMaskTexture");
+            }
         }
 
         void GetOrCreateDebugTextures()
@@ -799,6 +819,28 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugColorPickerBuffer = null;
             m_DebugFullScreenTempBuffer = null;
             m_IntermediateAfterPostProcessBuffer = null;
+
+            if (m_RayTracingSupported)
+            {
+                m_RaytracingGBufferManager.DestroyBuffers();
+                m_RayCountManager.CleanupNonRenderGraphResources();
+
+                RTHandles.Release(m_RadianceTexture);
+                m_RadianceTexture = null;
+
+                if (m_IndirectDiffuseBuffer0 != null)
+                    RTHandles.Release(m_IndirectDiffuseBuffer0);
+                if (m_IndirectDiffuseBuffer1 != null)
+                    RTHandles.Release(m_IndirectDiffuseBuffer1);
+                if (m_IndirectDiffuseHitPointBuffer != null)
+                    RTHandles.Release(m_IndirectDiffuseHitPointBuffer);
+
+                m_RayTracingLightCluster.CleanupNonRenderGraphResources();
+
+                RTHandles.Release(m_FlagMaskTextureRT);
+
+                RaytracingManagerCleanupNonRenderGraphResources();
+            }
         }
 
         void SetRenderingFeatures()
@@ -1001,6 +1043,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_AmbientOcclusionSystem.InitializeNonRenderGraphResources();
             m_PostProcessSystem.InitializeNonRenderGraphResources(asset);
             s_lightVolumes.InitializeNonRenderGraphResources();
+            ScreenSpaceShadowInitializeNonRenderGraphResources();
 
             // Reset resolution dependent buffers. Tile, Coarse stencil etc...
             m_MaxCameraWidth = m_MaxCameraHeight = m_MaxViewCount = 1;
@@ -1016,6 +1059,7 @@ namespace UnityEngine.Rendering.HighDefinition
             LightLoopCleanupNonRenderGraphResources();
             m_SharedRTManager.DisposeCoarseStencilBuffer();
             m_DbufferManager.ReleaseResolutionDependentBuffers();
+            ScreenSpaceShadowCleanupNonRenderGraphResources();
         }
 
         void InitializeDebugMaterials()
@@ -1082,11 +1126,9 @@ namespace UnityEngine.Rendering.HighDefinition
             base.Dispose(disposing);
 
             ReleaseScreenSpaceShadows();
-            ReleaseScreenSpaceGlobalIllumination();
 
             if (m_RayTracingSupported)
             {
-                ReleaseRecursiveRenderer();
                 ReleaseRayTracingDeferred();
                 ReleaseRayTracedIndirectDiffuse();
                 ReleaseRayTracedReflections();
@@ -1138,7 +1180,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             m_PostProcessSystem.Cleanup();
-            m_AmbientOcclusionSystem.Cleanup();
             m_BlueNoise.Cleanup();
 
             HDCamera.ClearAll();
@@ -1216,6 +1257,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // we are detecting if we are in an OnValidate call and releasing the Singleton only if it is not the case.
             if (!m_Asset.isInOnValidateCall)
                 HDUtils.ReleaseComponentSingletons();
+
+            if (!m_EnableRenderGraph)
+                CleanupNonRenderGraphResources();
         }
 
 

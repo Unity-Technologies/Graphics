@@ -215,9 +215,6 @@ namespace UnityEngine.Rendering.HighDefinition
             );
 
             FillEmptyExposureTexture();
-
-            // Call after initializing m_LutSize and m_KeepAlpha as it's needed for render target allocation.
-            InitializeNonRenderGraphResources(hdAsset);
         }
 
         public void Cleanup()

@@ -125,30 +125,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void ReleaseRayTracingManager()
         {
-            if (m_RayTracingDistanceBuffer != null)
-                RTHandles.Release(m_RayTracingDistanceBuffer);
-            if (m_RayTracingDirectionBuffer != null)
-                RTHandles.Release(m_RayTracingDirectionBuffer);
-
-            if (m_RayTracingIntermediateBufferR0 != null)
-                RTHandles.Release(m_RayTracingIntermediateBufferR0);
-            if (m_RayTracingIntermediateBufferR1 != null)
-                RTHandles.Release(m_RayTracingIntermediateBufferR1);
-            if (m_RayTracingIntermediateBufferRG0 != null)
-                RTHandles.Release(m_RayTracingIntermediateBufferRG0);
-            if (m_RayTracingIntermediateBufferRG1 != null)
-                RTHandles.Release(m_RayTracingIntermediateBufferRG1);
-            if (m_RayTracingIntermediateBufferRGBA0 != null)
-                RTHandles.Release(m_RayTracingIntermediateBufferRGBA0);
-            if (m_RayTracingIntermediateBufferRGBA1 != null)
-                RTHandles.Release(m_RayTracingIntermediateBufferRGBA1);
-            if (m_RayTracingIntermediateBufferRGBA2 != null)
-                RTHandles.Release(m_RayTracingIntermediateBufferRGBA2);
-            if (m_RayTracingIntermediateBufferRGBA3 != null)
-                RTHandles.Release(m_RayTracingIntermediateBufferRGBA3);
-            if (m_RayTracingIntermediateBufferRGBA4 != null)
-                RTHandles.Release(m_RayTracingIntermediateBufferRGBA4);
-
             if (m_RayTracingLightCluster != null)
                 m_RayTracingLightCluster.ReleaseResources();
             if (m_RayCountManager != null)
@@ -166,6 +142,33 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DiffuseShadowDenoiser.Release();
             if (m_DiffuseDenoiser != null)
                 m_DiffuseDenoiser.Release();
+        }
+
+        void RaytracingManagerCleanupNonRenderGraphResources()
+        {
+            RTHandles.Release(m_RayTracingDistanceBuffer);
+            m_RayTracingDistanceBuffer = null;
+            RTHandles.Release(m_RayTracingDirectionBuffer);
+            m_RayTracingDirectionBuffer = null;
+
+            RTHandles.Release(m_RayTracingIntermediateBufferR0);
+            m_RayTracingIntermediateBufferR0 = null;
+            RTHandles.Release(m_RayTracingIntermediateBufferR1);
+            m_RayTracingIntermediateBufferR1 = null;
+            RTHandles.Release(m_RayTracingIntermediateBufferRG0);
+            m_RayTracingIntermediateBufferRG0 = null;
+            RTHandles.Release(m_RayTracingIntermediateBufferRG1);
+            m_RayTracingIntermediateBufferRG1 = null;
+            RTHandles.Release(m_RayTracingIntermediateBufferRGBA0);
+            m_RayTracingIntermediateBufferRGBA0 = null;
+            RTHandles.Release(m_RayTracingIntermediateBufferRGBA1);
+            m_RayTracingIntermediateBufferRGBA1 = null;
+            RTHandles.Release(m_RayTracingIntermediateBufferRGBA2);
+            m_RayTracingIntermediateBufferRGBA2 = null;
+            RTHandles.Release(m_RayTracingIntermediateBufferRGBA3);
+            m_RayTracingIntermediateBufferRGBA3 = null;
+            RTHandles.Release(m_RayTracingIntermediateBufferRGBA4);
+            m_RayTracingIntermediateBufferRGBA4 = null;
         }
 
         AccelerationStructureStatus AddInstanceToRAS(Renderer currentRenderer,
@@ -608,7 +611,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ValidRayTracingCluster = true;
 
                 UpdateShaderVariablesRaytracingLightLoopCB(hdCamera, cmd);
-				
+
 				m_RayTracingLightCluster.BuildLightClusterBuffer(cmd, hdCamera, m_RayTracingLights);
             }
         }
