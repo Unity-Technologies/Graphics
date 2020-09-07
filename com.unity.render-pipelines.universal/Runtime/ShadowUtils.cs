@@ -246,6 +246,7 @@ namespace UnityEngine.Rendering.Universal
             textureScaleAndBias.m03 = 0.5f;
             textureScaleAndBias.m23 = 0.5f;
             textureScaleAndBias.m13 = 0.5f;
+            // textureScaleAndBias maps texture space coordinates from [-1,1] to [0,1]
 
             // Apply texture scale and offset to save a MAD in shader.
             return textureScaleAndBias * worldToShadow;
