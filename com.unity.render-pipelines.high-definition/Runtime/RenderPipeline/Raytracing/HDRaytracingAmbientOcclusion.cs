@@ -36,10 +36,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RTAOApplyIntensityKernel = m_PipelineRayTracingResources.aoRaytracingCS.FindKernel("RTAOApplyIntensity");
         }
 
-        public void Release()
-        {
-        }
-
         public void InitializeNonRenderGraphResources()
         {
             // Allocate the intermediate textures
