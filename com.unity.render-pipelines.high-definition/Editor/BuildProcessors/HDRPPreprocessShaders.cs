@@ -57,11 +57,21 @@ namespace UnityEditor.Rendering.HighDefinition
             if (isRayTracingPrepass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
                 return true;
 
-            // If we are in a release build, don't compile debug display variant
-            // Also don't compile it if not requested by the render pipeline settings
+            // If requested by the render pipeline settings, or if we are in a release build,
+			// don't compile fullscreen debug display variant
             bool isFullScreenDebugPass = snippet.passName == "FullScreenDebug";
-            if ((!Debug.isDebugBuild || !hdrpAsset.currentPlatformRenderPipelineSettings.supportRuntimeDebugDisplay) && (inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay) || isFullScreenDebugPass))
+			if (isFullScreenDebugPass && (!Debug.isDebugBuild || !hdrpAsset.currentPlatformRenderPipelineSettings.supportRuntimeDebugDisplay))
                 return true;
+			
+            // Debug Display shader is currently the longest shader to compile, so we allow users to disable it at runtime.
+            // We also don't want it in release build.
+            // However our AOV API rely on several debug display shader. In case AOV API is requested at runtime (like for the Graphics Compositor)
+            // we allow user to make explicit request for it and it bypass other request
+            if (!hdrpAsset.currentPlatformRenderPipelineSettings.supportRuntimeAOVAPI)
+            {
+                if ((!Debug.isDebugBuild || !hdrpAsset.currentPlatformRenderPipelineSettings.supportRuntimeDebugDisplay) && inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
+                    return true;
+            }
 
             if (inputData.shaderKeywordSet.IsEnabled(m_LodFadeCrossFade) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportDitheringCrossFade)
                 return true;

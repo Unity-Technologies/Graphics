@@ -101,7 +101,8 @@ namespace UnityEngine.Rendering.HighDefinition
             decalLayerName7 = "Decal Layer 7",
             msaaSampleCount = MSAASamples.None,
             supportMotionVectors = true,
-            supportRuntimeDebugDisplay = true,
+            supportRuntimeDebugDisplay = false,
+            supportRuntimeAOVAPI = false,
             supportDitheringCrossFade = true,
             supportTerrainHole = false,
 
@@ -227,6 +228,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportMotionVectors;
         /// <summary>Support runtime debug display.</summary>
         public bool supportRuntimeDebugDisplay;
+        /// <summary>Support runtime AOV API.</summary>
+        public bool supportRuntimeAOVAPI;
         /// <summary>Support dithered cross-fade.</summary>
         public bool supportDitheringCrossFade;
         /// <summary>Support terrain holes.</summary>

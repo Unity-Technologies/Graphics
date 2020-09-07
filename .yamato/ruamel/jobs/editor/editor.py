@@ -1,6 +1,6 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..shared.namer import editor_job_id
-from ..shared.constants import VAR_UPM_REGISTRY, PATH_UNITY_REVISION
+from ..shared.constants import VAR_UPM_REGISTRY, PATH_UNITY_REVISION, UNITY_DOWNLOADER_CLI_URL
 from ..shared.yml_job import YMLJob
 
 class Editor_PrimingJob():
@@ -31,7 +31,7 @@ class Editor_PrimingJob():
         job.add_var_upm_registry()
         job.add_var_custom_revision(editor["version"])
         job.add_commands([
-                f'pip install unity-downloader-cli --user --upgrade --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade',
+                f'pip install unity-downloader-cli --user --upgrade --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
                 f'unity-downloader-cli {editor["cmd"]} -o {platform_os} --wait --skip-download {"".join([f"-c {c} " for c in components])} > {PATH_UNITY_REVISION}'])
         job.add_artifacts_unity_revision()
         return job

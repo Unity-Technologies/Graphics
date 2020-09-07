@@ -207,14 +207,16 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             // Create a new camera if necessary or use the one specified by the user
             if (m_LayerCamera == null && m_OutputTarget == OutputTarget.CameraStack)
             {
-                m_LayerCamera = Object.Instantiate(m_Camera);
 
-                // delete any audio listeners from the clone camera
-                var listener = m_LayerCamera.GetComponent<AudioListener>();
-                if (listener)
+                // Clone the camera that was given by the user. We avoid calling Instantiate because we don't want to clone any other children that might be attachen to the camera 
+                var newCameraGameObject = new GameObject("Layer " + layerID)
                 {
-                    CoreUtils.Destroy(listener);
-                }
+                    hideFlags = HideFlags.HideInInspector | HideFlags.HideInHierarchy | HideFlags.HideAndDontSave
+                };
+                m_LayerCamera = newCameraGameObject.AddComponent<Camera>();
+                newCameraGameObject.AddComponent<HDAdditionalCameraData>();
+                CopyInternalCameraData();
+
                 m_LayerCamera.name = "Compositor" + layerID;
                 m_LayerCamera.gameObject.hideFlags = HideFlags.HideInInspector | HideFlags.HideInHierarchy | HideFlags.HideAndDontSave;
                 if(m_LayerCamera.tag == "MainCamera")
@@ -390,7 +392,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             {
                 foreach (var handle in m_AOVHandles)
                 {
-                    CoreUtils.Destroy(handle);
+                    handle.Release();
                 }
             }
             if (m_AOVRenderTargets != null)
@@ -452,6 +454,21 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             }
         }
 
+        internal void CopyInternalCameraData()
+        {
+            // Copy/update the camera data (but preserve the camera depth/draw-order [case 1264552])
+            var drawOrder = m_LayerCamera.depth;
+            m_LayerCamera.CopyFrom(m_Camera);
+            m_LayerCamera.depth = drawOrder;
+
+            var cameraDataOrig = m_Camera.GetComponent<HDAdditionalCameraData>();
+            var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
+            if (cameraDataOrig)
+            {
+                cameraDataOrig.CopyTo(cameraData);
+            }
+        }
+
         public void UpdateOutputCamera()
         {
             if (m_LayerCamera == null)
@@ -471,14 +488,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             if (m_LayerCamera.enabled)
             {
-                // Refresh the camera data
-                m_LayerCamera.CopyFrom(m_Camera);
-                var cameraDataOrig = m_Camera.GetComponent<HDAdditionalCameraData>();
-                var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
-                if (cameraDataOrig)
-                {
-                    cameraDataOrig.CopyTo(cameraData);
-                }
+                CopyInternalCameraData();
             }
 
         }
