@@ -14,7 +14,7 @@ test_platforms:
   Standalone: --suite=playmode --platform=Standalone
   playmode: --suite=playmode
   playmode_XR: --suite=playmode --extra-editor-arg="-xr-tests"
-  playmode_RenderGraph: --suite=playmode --extra-editor-arg="-rendergraph-tests"
+  playmode_NonRenderGraph: --suite=playmode --extra-editor-arg="-non-rendergraph-tests"
   editmode: --suite=editor --platform=editmode
 platforms:
   Win:

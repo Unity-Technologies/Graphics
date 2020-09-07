@@ -61,8 +61,8 @@ HDRP_OSX_Metal_playmode_XR_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_OSX_Metal_playmode_RenderGraph_trunk:
-    name: HDRP on OSX_Metal_playmode_RenderGraph on version trunk
+HDRP_OSX_Metal_playmode_NonRenderGraph_trunk:
+    name: HDRP on OSX_Metal_playmode_NonRenderGraph on version trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -81,7 +81,7 @@ HDRP_OSX_Metal_playmode_RenderGraph_trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/HDRP_Tests && ~/Graphics/TestProjects/HDRP_Tests/utr --suite=playmode --extra-editor-arg="-rendergraph-tests" --testproject=/Users/bokken/Graphics/TestProjects/HDRP_Tests --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_Tests/test-results"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/HDRP_Tests && ~/Graphics/TestProjects/HDRP_Tests/utr --suite=playmode --extra-editor-arg="-non-rendergraph-tests" --testproject=/Users/bokken/Graphics/TestProjects/HDRP_Tests --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_Tests/test-results"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/HDRP_Tests/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_Tests/test-results/ TestProjects/HDRP_Tests/test-results/
@@ -177,8 +177,8 @@ HDRP_OSX_Metal_playmode_XR_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_OSX_Metal_playmode_RenderGraph_fast-trunk:
-    name: HDRP on OSX_Metal_playmode_RenderGraph on version fast-trunk
+HDRP_OSX_Metal_playmode_NonRenderGraph_fast-trunk:
+    name: HDRP on OSX_Metal_playmode_NonRenderGraph on version fast-trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -197,7 +197,7 @@ HDRP_OSX_Metal_playmode_RenderGraph_fast-trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/HDRP_Tests && ~/Graphics/TestProjects/HDRP_Tests/utr --suite=playmode --extra-editor-arg="-rendergraph-tests" --testproject=/Users/bokken/Graphics/TestProjects/HDRP_Tests --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_Tests/test-results"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/HDRP_Tests && ~/Graphics/TestProjects/HDRP_Tests/utr --suite=playmode --extra-editor-arg="-non-rendergraph-tests" --testproject=/Users/bokken/Graphics/TestProjects/HDRP_Tests --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_Tests/test-results"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/HDRP_Tests/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_Tests/test-results/ TestProjects/HDRP_Tests/test-results/
@@ -295,8 +295,8 @@ HDRP_OSX_Metal_playmode_XR_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_OSX_Metal_playmode_RenderGraph_CUSTOM-REVISION:
-    name: HDRP on OSX_Metal_playmode_RenderGraph on version CUSTOM-REVISION
+HDRP_OSX_Metal_playmode_NonRenderGraph_CUSTOM-REVISION:
+    name: HDRP on OSX_Metal_playmode_NonRenderGraph on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -316,7 +316,7 @@ HDRP_OSX_Metal_playmode_RenderGraph_CUSTOM-REVISION:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/HDRP_Tests && ~/Graphics/TestProjects/HDRP_Tests/utr --suite=playmode --extra-editor-arg="-rendergraph-tests" --testproject=/Users/bokken/Graphics/TestProjects/HDRP_Tests --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_Tests/test-results"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/HDRP_Tests && ~/Graphics/TestProjects/HDRP_Tests/utr --suite=playmode --extra-editor-arg="-non-rendergraph-tests" --testproject=/Users/bokken/Graphics/TestProjects/HDRP_Tests --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_Tests/test-results"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/HDRP_Tests/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_Tests/test-results/ TestProjects/HDRP_Tests/test-results/

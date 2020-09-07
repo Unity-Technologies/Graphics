@@ -25,8 +25,8 @@ HDRP_Linux_Vulkan_playmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_Linux_Vulkan_playmode_RenderGraph_trunk:
-    name: HDRP on Linux_Vulkan_playmode_RenderGraph on version trunk
+HDRP_Linux_Vulkan_playmode_NonRenderGraph_trunk:
+    name: HDRP on Linux_Vulkan_playmode_NonRenderGraph on version trunk
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -42,7 +42,7 @@ HDRP_Linux_Vulkan_playmode_RenderGraph_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_Tests/utr
       -  chmod +x TestProjects/HDRP_Tests/utr
       -  cd TestProjects/HDRP_Tests && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --suite=playmode --extra-editor-arg="-rendergraph-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --suite=playmode --extra-editor-arg="-non-rendergraph-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -113,8 +113,8 @@ HDRP_Linux_Vulkan_playmode_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_Linux_Vulkan_playmode_RenderGraph_fast-trunk:
-    name: HDRP on Linux_Vulkan_playmode_RenderGraph on version fast-trunk
+HDRP_Linux_Vulkan_playmode_NonRenderGraph_fast-trunk:
+    name: HDRP on Linux_Vulkan_playmode_NonRenderGraph on version fast-trunk
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -130,7 +130,7 @@ HDRP_Linux_Vulkan_playmode_RenderGraph_fast-trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_Tests/utr
       -  chmod +x TestProjects/HDRP_Tests/utr
       -  cd TestProjects/HDRP_Tests && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --suite=playmode --extra-editor-arg="-rendergraph-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --suite=playmode --extra-editor-arg="-non-rendergraph-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -202,8 +202,8 @@ HDRP_Linux_Vulkan_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_Linux_Vulkan_playmode_RenderGraph_CUSTOM-REVISION:
-    name: HDRP on Linux_Vulkan_playmode_RenderGraph on version CUSTOM-REVISION
+HDRP_Linux_Vulkan_playmode_NonRenderGraph_CUSTOM-REVISION:
+    name: HDRP on Linux_Vulkan_playmode_NonRenderGraph on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -220,7 +220,7 @@ HDRP_Linux_Vulkan_playmode_RenderGraph_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_Tests/utr
       -  chmod +x TestProjects/HDRP_Tests/utr
       -  cd TestProjects/HDRP_Tests && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --suite=playmode --extra-editor-arg="-rendergraph-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --suite=playmode --extra-editor-arg="-non-rendergraph-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:

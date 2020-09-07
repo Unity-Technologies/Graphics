@@ -91,8 +91,8 @@ HDRP_DXR_Win_DX12_playmode_XR_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_DXR_Win_DX12_playmode_RenderGraph_trunk:
-    name: HDRP_DXR on Win_DX12_playmode_RenderGraph on version trunk
+HDRP_DXR_Win_DX12_playmode_NonRenderGraph_trunk:
+    name: HDRP_DXR on Win_DX12_playmode_NonRenderGraph on version trunk
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -107,7 +107,7 @@ HDRP_DXR_Win_DX12_playmode_RenderGraph_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --extra-editor-arg="-rendergraph-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d12"
+      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --extra-editor-arg="-non-rendergraph-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
@@ -200,8 +200,8 @@ HDRP_DXR_Win_DX12_playmode_XR_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_DXR_Win_DX12_playmode_RenderGraph_fast-trunk:
-    name: HDRP_DXR on Win_DX12_playmode_RenderGraph on version fast-trunk
+HDRP_DXR_Win_DX12_playmode_NonRenderGraph_fast-trunk:
+    name: HDRP_DXR on Win_DX12_playmode_NonRenderGraph on version fast-trunk
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -216,7 +216,7 @@ HDRP_DXR_Win_DX12_playmode_RenderGraph_fast-trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --extra-editor-arg="-rendergraph-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d12"
+      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --extra-editor-arg="-non-rendergraph-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
@@ -313,8 +313,8 @@ HDRP_DXR_Win_DX12_playmode_XR_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_DXR_Win_DX12_playmode_RenderGraph_CUSTOM-REVISION:
-    name: HDRP_DXR on Win_DX12_playmode_RenderGraph on version CUSTOM-REVISION
+HDRP_DXR_Win_DX12_playmode_NonRenderGraph_CUSTOM-REVISION:
+    name: HDRP_DXR on Win_DX12_playmode_NonRenderGraph on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -330,7 +330,7 @@ HDRP_DXR_Win_DX12_playmode_RenderGraph_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --extra-editor-arg="-rendergraph-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d12"
+      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --extra-editor-arg="-non-rendergraph-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
