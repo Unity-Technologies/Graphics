@@ -1,8 +1,12 @@
 Shader "Hidden/Universal Render Pipeline/XR/XROcclusionMesh"
 {
     HLSLINCLUDE
-        #pragma exclude_renderers d3d11_9x
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+        // Not all platforms properly support SV_RenderTargetArrayIndex
+        #if defined(SHADER_API_D3D11) || defined(SHADER_API_VULKAN) || defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3) || defined(SHADER_API_PSSL)
+            #pragma multi_compile _ XR_OCCLUSION_MESH_COMBINED
+        #endif
 
         struct Attributes
         {
@@ -12,19 +16,29 @@ Shader "Hidden/Universal Render Pipeline/XR/XROcclusionMesh"
         struct Varyings
         {
             float4 vertex : SV_POSITION;
+
+        #if XR_OCCLUSION_MESH_COMBINED
+            uint rtArrayIndex : SV_RenderTargetArrayIndex;
+        #endif
         };
 
         Varyings Vert(Attributes input)
         {
             Varyings output;
-            output.vertex = mul(UNITY_MATRIX_M, input.vertex);
+            output.vertex = float4(input.vertex.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f), UNITY_NEAR_CLIP_VALUE, 1.0f);
+
+        #if XR_OCCLUSION_MESH_COMBINED
+            output.rtArrayIndex = input.vertex.z;
+        #endif
+
             return output;
         }
 
-        void Frag(out float outputDepth : SV_Depth)
+        float4 Frag() : SV_Target
         {
-            outputDepth = UNITY_NEAR_CLIP_VALUE;
+            return (0.0f).xxxx;
         }
+
     ENDHLSL
 
     SubShader

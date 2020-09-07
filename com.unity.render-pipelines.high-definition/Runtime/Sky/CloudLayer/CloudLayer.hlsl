@@ -21,7 +21,6 @@ float4 _CloudParams2[2];
 #define _CloudOpacity               _CloudParams1[0].w
 #define _CloudUpperHemisphere       (_CloudParams1[1].w != 0.0)
 
-// TODO: Those 2 params can be premultiplied
 #define _CloudTint(l)       _CloudParams2[l].xyz
 
 struct CloudLayerData
