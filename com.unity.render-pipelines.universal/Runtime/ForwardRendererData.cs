@@ -61,6 +61,9 @@ namespace UnityEngine.Rendering.Universal
 
             // TODO Physically based sky
             // TODO Ambient probes
+
+            [Reload("Runtime/Sky/GGXConvolve.shader")]
+            public Shader GGXConvolvePS;
         }
 
         [Reload("Runtime/Data/PostProcessData.asset")]

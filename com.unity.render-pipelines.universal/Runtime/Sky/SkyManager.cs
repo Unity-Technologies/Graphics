@@ -37,7 +37,10 @@ namespace UnityEngine.Rendering.Universal
         const int k_Resolution = 128;
 
         Material m_StandardSkyboxMaterial; // This is the Unity standard skybox material. Used to pass the correct cubemap to Enlighten.
+        Material m_ConvolveMaterial;
         SphericalHarmonicsL2 m_BlackAmbientProbe = new SphericalHarmonicsL2();
+        RTHandle m_SkyboxBSDFCubemapIntermediate;
+        Matrix4x4[] m_FaceWorldToViewMatrixMatrices = new Matrix4x4[6];
         Matrix4x4[] m_FacePixelCoordToViewDirMatrices = new Matrix4x4[6];
 
         // TODO: Release SkyUpdateContext and associated SkyRenderingContext for any Camera that doesn't render anymore.
@@ -85,19 +88,28 @@ namespace UnityEngine.Rendering.Universal
             if (urpRendererData is ForwardRendererData forwardRendererData)
             {
                 m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(forwardRendererData.shaders.skyboxCubemapPS);
+                m_ConvolveMaterial = CoreUtils.CreateEngineMaterial(forwardRendererData.shaders.GGXConvolvePS);
             }
             else if (urpRendererData is DeferredRendererData deferredRendererData)
             {
                 m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(deferredRendererData.shaders.skyboxCubemapPS);
+                m_ConvolveMaterial = CoreUtils.CreateEngineMaterial(deferredRendererData.shaders.GGXConvolvePS);
             }
 
+            m_SkyboxBSDFCubemapIntermediate = RTHandles.Alloc(k_Resolution, k_Resolution,
+                colorFormat: Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat,
+                dimension: TextureDimension.Cube,
+                useMipMap: true,
+                autoGenerateMips: false,
+                filterMode: FilterMode.Trilinear,
+                name:  "SkyboxBSDFIntermediate");
+
+            var cubemapScreenSize = new Vector4(k_Resolution, k_Resolution, 1.0f / k_Resolution, 1.0f / k_Resolution);
             for (int i = 0; i < 6; ++i)
             {
                 var lookAt = Matrix4x4.LookAt(Vector3.zero, CoreUtils.lookAtList[i], CoreUtils.upVectorList[i]);
-                var worldToView = lookAt * Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)); // Need to scale -1.0 on Z to match what is being done in the camera.wolrdToCameraMatrix API. ...
-
-                var cubemapScreenSize = new Vector4(k_Resolution, k_Resolution, 1.0f / k_Resolution, 1.0f / k_Resolution);
-                m_FacePixelCoordToViewDirMatrices[i] = ComputePixelCoordToWorldSpaceViewDirectionMatrix(0.5f * Mathf.PI, Vector2.zero, cubemapScreenSize, worldToView, true);
+                m_FaceWorldToViewMatrixMatrices[i] = lookAt * Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)); // Need to scale -1.0 on Z to match what is being done in the camera.wolrdToCameraMatrix API. ...
+                m_FacePixelCoordToViewDirMatrices[i] = ComputePixelCoordToWorldSpaceViewDirectionMatrix(0.5f * Mathf.PI, Vector2.zero, cubemapScreenSize, m_FaceWorldToViewMatrixMatrices[i], true);
             }
         }
 
@@ -146,6 +158,9 @@ namespace UnityEngine.Rendering.Universal
         public void Cleanup()
         {
             CoreUtils.Destroy(m_StandardSkyboxMaterial);
+            CoreUtils.Destroy(m_ConvolveMaterial);
+
+            RTHandles.Release(m_SkyboxBSDFCubemapIntermediate);
 
             for (int i = 0; i < m_CachedSkyContexts.size; ++i)
                 m_CachedSkyContexts[i].Cleanup();
@@ -233,9 +248,65 @@ namespace UnityEngine.Rendering.Universal
             // Generate mipmap for our cubemap
             Debug.Assert(renderingContext.skyboxCubemapRT.rt.autoGenerateMips == false);
             cmd.GenerateMips(renderingContext.skyboxCubemapRT);
+        }
 
-            // TODO: Convolution
-            cmd.CopyTexture(renderingContext.skyboxCubemapRT, renderingContext.skyboxCubemap);
+        void RenderCubemapGGXConvolution(ref CameraData cameraData, CommandBuffer cmd)
+        {
+            var skyContext = cameraData.lightingSky;
+
+            var renderingContext = m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId].renderingContext;
+            var renderer = skyContext.skyRenderer;
+
+            {
+                const int CONVOLUTION_MIP_COUNT = 7;
+
+                Texture source = renderingContext.skyboxCubemapRT;
+                RenderTexture target = m_SkyboxBSDFCubemapIntermediate;
+
+                int mipCount = 1 + (int)Mathf.Log(source.width, 2.0f);
+                if (mipCount < CONVOLUTION_MIP_COUNT)
+                {
+                    Debug.LogWarning("RenderCubemapGGXConvolution: Cubemap size is too small for GGX convolution, needs at least " + CONVOLUTION_MIP_COUNT + " mip levels");
+                    return;
+                }
+
+                // Copy the first mip
+                for (int f = 0; f < 6; f++)
+                {
+                    cmd.CopyTexture(source, f, 0, target, f, 0);
+                }
+
+                // Solid angle associated with a texel of the cubemap.
+                float invOmegaP = (6.0f * source.width * source.width) / (4.0f * Mathf.PI);
+
+                // TODO Precalculated samples
+
+                var props = new MaterialPropertyBlock();
+                props.SetTexture("_MainTex", source);
+                props.SetFloat("_InvOmegaP", invOmegaP);
+
+                for (int mip = 1; mip < CONVOLUTION_MIP_COUNT; ++mip)
+                {
+                    props.SetFloat("_Level", mip);
+
+                    var faceSize = new Vector4(source.width >> mip, source.height >> mip, 1.0f / (source.width >> mip), 1.0f / (source.height >> mip));
+                    for (int face = 0; face < 6; ++face)
+                    {
+                        var transform = ComputePixelCoordToWorldSpaceViewDirectionMatrix(0.5f * Mathf.PI, Vector2.zero, faceSize, m_FaceWorldToViewMatrixMatrices[face], true);
+                        props.SetMatrix("_PixelCoordToViewDirWS", transform);
+
+                        CoreUtils.SetRenderTarget(cmd, target, ClearFlag.None, mip, (CubemapFace)face);
+                        CoreUtils.DrawFullScreen(cmd, m_ConvolveMaterial, props);
+                    }
+                }
+            }
+
+            // Finally, copy results to the cubemap array
+            // TODO Why can't skyboxCubemap just be a RT so we don't need an intermediate?
+            for (int i = 0; i < 6; ++i)
+            {
+                cmd.CopyTexture(m_SkyboxBSDFCubemapIntermediate, i, renderingContext.skyboxCubemap, i);
+            }
         }
 
         // We do our own hash here because Unity does not provide correct hash for builtin types
@@ -383,6 +454,8 @@ namespace UnityEngine.Rendering.Universal
 
             if (skyContext.IsValid())
             {
+                skyContext.currentUpdateTime += Time.deltaTime;
+
                 int skyHash = ComputeSkyHash(skyContext);
                 bool forceUpdate = false;
 
@@ -400,13 +473,15 @@ namespace UnityEngine.Rendering.Universal
 
                     renderingContext.UpdateAmbientProbe(skyContext.skyRenderer.GetAmbientProbe(ref cameraData));
 
+                    RenderCubemapGGXConvolution(ref cameraData, cmd);
+ 
                     skyContext.skyParametersHash = skyHash;
                     skyContext.currentUpdateTime = 0.0f;
 
 #if UNITY_EDITOR
                     // In the editor when we change the sky we want to make the GI dirty so when baking again the new sky is taken into account.
                     // Changing the hash of the rendertarget allow to say that GI is dirty
-                    renderingContext.skyboxCubemapRT.rt.imageContentsHash = new Hash128((uint)skyContext.skySettings.GetHashCode(), 0, 0, 0);
+                    renderingContext.skyboxCubemapRT.rt.imageContentsHash = new Hash128((uint)skyHash, 0, 0, 0);
 #endif
                 }
             }

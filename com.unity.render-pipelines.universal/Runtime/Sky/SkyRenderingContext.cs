@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.Universal
         public void Cleanup()
         {
             RTHandles.Release(skyboxCubemapRT);
+            // TODO Release skyboxCubemap
         }
 
         public void ClearAmbientProbe()
