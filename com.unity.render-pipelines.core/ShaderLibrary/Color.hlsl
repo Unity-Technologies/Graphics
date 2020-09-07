@@ -550,7 +550,9 @@ real3 NeutralCurve(real3 x, real a, real b, real c, real d, real e, real f)
 real3 NeutralTonemap(real3 x)
 {
 #if defined(SHADER_API_MOBILE) //Extremely high values cause NaN output when using fp16, we clamp to avoid the performace hit of switching to fp32
-    x = min(x, 435.2);
+    x = min(x, 435.18);
+    //The overflow happens in (x * (a * x + b)) of the NeutralCurve, highest value that avoids fp16 precision errors is ~571.569
+    //Since whiteScale is constant (~1.313) max input is ~435.187
 #endif
     // Tonemap
     const real a = 0.2;
