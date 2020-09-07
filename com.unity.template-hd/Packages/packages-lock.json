@@ -27,7 +27,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.rider": {
-      "version": "2.0.7",
+      "version": "2.0.5",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -124,7 +124,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.textmeshpro": {
-      "version": "3.0.1",
+      "version": "3.0.0-preview.1",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -154,11 +154,11 @@
       }
     },
     "com.unity.visualeffectgraph": {
-      "version": "file:C:/Users/francescoc/Documents/GitHub/SRP4/com.unity.visualeffectgraph",
+      "version": "file:C:/Users/francescoc/Documents/GitHub/SRP2/com.unity.visualeffectgraph",
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.unity.shadergraph": "9.0.0-preview.6"
+        "com.unity.shadergraph": "10.1.0-preview.15"
       }
     },
     "com.unity.modules.ai": {
