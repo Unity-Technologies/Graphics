@@ -153,39 +153,26 @@ namespace UnityEditor.ShaderGraph
         public MatrixSwizzleRow row0
         {
             get { return _row0; }
-//            set { SetRow(ref _row0, value);  }
         }
 
         [TextControl(1, "", " m", "   m", "   m", "   m")]
         public MatrixSwizzleRow row1
         {
             get { return _row1; }
-//            set { SetRow(ref _row1, value);  }
         }
 
         [TextControl(2, "", " m", "   m", "   m", "   m")]
         public MatrixSwizzleRow row2
         {
             get { return _row2; }
-//            set { SetRow(ref _row2, value);  }
         }
 
         [TextControl(3, "", " m", "   m", "   m", "   m")]
         public MatrixSwizzleRow row3
         {
             get { return _row3; }
-//            set { SetRow(ref _row3, value);  }
         }
-/*
-        void SetRow(ref MatrixSwizzleRow row, MatrixSwizzleRow value)
-        {
-            if (value == row)
-                return;
-            row = value;
-            owner.ValidateGraph();
-            Dirty(ModificationScope.Topological);
-        }
-*/
+
         public MatrixSwizzleNode()
         {
             name = "Matrix Swizzle";
@@ -196,11 +183,12 @@ namespace UnityEditor.ShaderGraph
         SwizzleOutputSize m_OutputSize;
 
         [EnumControl("Output Size:")]
-        SwizzleOutputSize outputSize
+        internal SwizzleOutputSize outputSize
         {
-            get {
-                OnSizeChange?.Invoke(m_OutputSize);
-                return m_OutputSize; }
+            get
+            {
+                return m_OutputSize;
+            }
             set
             {
                 if (m_OutputSize.Equals(value))

@@ -64,6 +64,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             AddField(1, subLabel2, swizzleRow);
             AddField(2, subLabel3, swizzleRow);
             AddField(3, subLabel4, swizzleRow);
+
+            // set up initial field visibility by invoking the size change callback
+            OnSizeChangeCallback(node.outputSize);
         }
 
         //Set visibility of indices boxes 
@@ -160,6 +163,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             field.RegisterCallback<MouseMoveEvent>(Repaint);
             field.RegisterValueChangedCallback(evt =>
             {
+                m_Node.owner.owner.RegisterCompleteObjectUndo("MatrixSwizzle Change");
                 MatrixSwizzleRow row = GetValue();
                 string value = row.GetColumn(columnIndex);
                 Assert.IsTrue(evt.newValue.Length <= 2);
@@ -172,17 +176,19 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             });
 
             // TODO: I don't think this event is getting called / doing anything useful
-            field.Q("unity-text-input").RegisterCallback<InputEvent>(evt =>
-            {
-                if (m_UndoGroup == -1)
-                {
-                    m_UndoGroup = Undo.GetCurrentGroup();
-                    m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
-                }
-                MatrixSwizzleRow row = GetValue();
-                row.SetColumns(columnIndex, "kk");       // not sure when this event runs... or what it is trying to do
-                this.MarkDirtyRepaint();
-            });
+//             field.Q("unity-text-input").RegisterCallback<InputEvent>(evt =>
+//             {
+//                 if (m_UndoGroup == -1)
+//                 {
+//                     m_UndoGroup = Undo.GetCurrentGroup();
+//                     m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
+//                 }
+//                 MatrixSwizzleRow row = GetValue();
+//                 row.SetColumn(columnIndex, "kk");       // not sure when this event runs... or what it is trying to do
+//                 this.MarkDirtyRepaint();
+//             });
+
+            // Pressing escape while we are editing causes it to revert to the original value when we gained focus
             field.Q("unity-text-input").RegisterCallback<KeyDownEvent>(evt =>
             {
                 if (evt.keyCode == KeyCode.Escape && m_UndoGroup > -1)
@@ -202,13 +208,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             Assert.IsNotNull(value);
             return value;
         }
-/*
-        void SetValue(MatrixSwizzleRow value)
-        {
-            Assert.IsNotNull(value);
-            m_PropertyInfo.SetValue(m_Node, value, null);
-        }
-*/
+
         void Repaint<T>(MouseEventBase<T> evt) where T : MouseEventBase<T>, new()
         {
             evt.StopPropagation();
