@@ -22,7 +22,6 @@ namespace UnityEditor.Rendering.Universal
                 cameraMode.drawMode == DrawCameraMode.DeferredNormal ||
                 cameraMode.drawMode == DrawCameraMode.ValidateAlbedo ||
                 cameraMode.drawMode == DrawCameraMode.ValidateMetalSpecular ||
-                cameraMode.drawMode == DrawCameraMode.ShadowMasks ||
                 cameraMode.drawMode == DrawCameraMode.LightOverlap
             )
                 return false;
