@@ -62,16 +62,6 @@ public class HDRP_GraphicTestRunner
         // Grab the HDCamera
         HDCamera hdCamera = HDCamera.GetOrCreate(camera);
 
-        if (settings.waitForFrameCountMultiple)
-        {
-            // Get HDRP instance
-            var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-            // Wait until we are back to frame 0 in the loop
-            while (hdCamera.cameraFrameCount % settings.frameCountMultiple != 0) yield return null;
-        }
-
-        // Force clear all the history buffers
-        hdCamera.RequestClearHistoryBuffers();
 
         Time.captureFramerate = settings.captureFramerate;
 
@@ -114,10 +104,29 @@ public class HDRP_GraphicTestRunner
             yield return null;
         }
 
-        // Reset temporal effects on hdCamera
-        hdCamera.Reset();
+        if (settings.waitForFrameCountMultiple)
+        {
+            // Get HDRP instance
+            var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
 
-        for (int i=0 ; i<settings.waitFrames ; ++i)
+            // Standard Test
+            if (settings.captureFromBackBuffer) // Using Backbuffer
+            {
+                // When we capture from the back buffer, there is no requirement of compensation frames
+                while (((hdCamera.cameraFrameCount) % (uint)settings.frameCountMultiple) != 0) yield return null;
+            }
+            else
+            {
+                // Given that we will render two frames, we need to compensate for them in the waiting
+                // After this line, the next frame will be frame 0.
+                while (((hdCamera.cameraFrameCount + 2) % (uint)settings.frameCountMultiple) != 0) yield return null;
+            }
+        }
+
+        // Force clear all the history buffers
+        hdCamera.RequestClearHistoryBuffers();
+
+        for (int i = 0 ; i < settings.waitFrames ; ++i)
             yield return null;
 
         var settingsSG = (GameObject.FindObjectOfType<HDRP_TestSettings>() as HDRP_ShaderGraph_TestSettings);
