@@ -56,6 +56,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed RTGI getting noisy for grazying angle geometry (case 1266462).
 - Fixed an issue with TAA history management on pssl.
 - Fixed the global illumination volume override having an unwanted advanced mode (case 1270459).
+- Fixed screen space shadow option displayed on directional shadows while they shouldn't (case 1270537).
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
