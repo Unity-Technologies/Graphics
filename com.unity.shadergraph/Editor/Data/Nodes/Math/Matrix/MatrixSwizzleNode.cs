@@ -321,6 +321,7 @@ namespace UnityEditor.ShaderGraph
             Matrix4x4 inputRowMatrix = new Matrix4x4();
             Matrix4x4 inputColMatrix = new Matrix4x4();
 
+            bool oldAreIndicesValid = AreIndicesValid;
             AreIndicesValid = true;
 
             //get input indices
@@ -366,11 +367,11 @@ namespace UnityEditor.ShaderGraph
                 inputColMatrix.SetRow(outputRow, inputColVector);
             }
 
-            if (!AreIndicesValid)
+            if (AreIndicesValid != oldAreIndicesValid)
             {
-                Debug.Log("Indices invalid");
+                // this is a hack to update the validation flags..
+                // there's probably a faster/cheaper way to do this...
                 owner.ValidateGraph();
-                //                ValidateNode();     // publish as an error on the node
             }
 
             // build shader string

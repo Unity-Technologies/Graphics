@@ -147,8 +147,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 }
             }
         }
-
-        private char[] value_char = { '0', '0', '0', '0', '0', '0', '0', '0' };
  
         void AddField(int columnIndex, string subLabel, MatrixSwizzleRow swizzleRow)
         {
