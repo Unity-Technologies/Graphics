@@ -1,0 +1,26 @@
+project:
+  name: URPUpdate
+  folder: URP-Update-Testing
+test_platforms:
+  - playmode
+  - editmode
+platforms:
+  - name: Win
+    apis:
+      - DX11
+      - Vulkan
+#  - name: OSX
+#    apis:
+#      - OpenGLCore
+#      - Metal
+all:
+  dependencies:
+    - platform: Win
+      api: DX11
+      test_platforms:
+        - editmode
+        - playmode
+#    - project: URPUpdate_BoatAttack
+#      all: true
+    - project: URPUpdate_Top_Asset_Store
+      all: true  

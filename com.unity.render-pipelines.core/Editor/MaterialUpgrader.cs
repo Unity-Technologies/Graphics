@@ -361,6 +361,13 @@ namespace UnityEditor.Rendering
                 }
             }
 
+            // Upgrade terrain specifically since it is a builtin material
+            if (Terrain.activeTerrains.Length > 0)
+            {
+                Material terrainMat = Terrain.activeTerrain.materialTemplate;
+                Upgrade(terrainMat, upgraders, flags);
+            }
+
             UnityEditor.EditorUtility.ClearProgressBar();
         }
 
