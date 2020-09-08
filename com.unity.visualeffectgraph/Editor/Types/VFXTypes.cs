@@ -151,10 +151,8 @@ namespace UnityEditor.VFX
     {
         [Tooltip("Sets the center of the cone."), VFXSpace(SpaceableType.Position)]
         public Vector3 center;
-        [Tooltip("TODO."), VFXSpace(SpaceableType.Direction)]
-        public Vector3 upAxis;
-        [Tooltip("TODO."), VFXSpace(SpaceableType.Direction)]
-        public Vector3 leftAxis;
+        [Tooltip("TODO.")]
+        public Vector3 angle;
 
         [Min(0.0f), Tooltip("Sets the base radius of the cone.")]
         public float radius0;
@@ -171,66 +169,7 @@ namespace UnityEditor.VFX
             radius1 = 0.1f,
             height = 1.0f,
             arc = 2.0f * Mathf.PI,
-            upAxis = new Vector3(0.0f, 1.0f, 0.0f),
-            leftAxis = new Vector3(1.0f, 0.0f, 0.0f)
-        };
-    }
-
-    //TEMP TEST VARIANT
-    [VFXType, Serializable]
-    struct ArcConeBis
-    {
-        [Tooltip("Sets the center of the cone."), VFXSpace(SpaceableType.Position)]
-        public Vector3 center;
-        [Tooltip("TODO."), VFXSpace(SpaceableType.Direction)]
-        public Vector3 upAxis;
-        [Tooltip("TODO.")]
-        public float upAxisRotation;
-
-        [Min(0.0f), Tooltip("Sets the base radius of the cone.")]
-        public float radius0;
-        [Min(0.0f), Tooltip("Sets the top radius of the cone.")]
-        public float radius1;
-        [Tooltip("Sets the height of the cone.")]
-        public float height;
-        [Angle, Range(0, Mathf.PI * 2.0f), Tooltip("Controls how much of the cone is used. The value is in radians.")]
-        public float arc;
-
-        public static ArcConeBis defaultValue = new ArcConeBis
-        {
-            radius0 = 1.0f,
-            radius1 = 0.1f,
-            height = 1.0f,
-            arc = 2.0f * Mathf.PI,
-            upAxis = new Vector3(0.0f, 1.0f, 0.0f),
-            upAxisRotation = 0.0f
-        };
-    }
-
-    [VFXType, Serializable]
-    struct ArcConeTer
-    {
-        [Tooltip("Sets the center of the cone."), VFXSpace(SpaceableType.Position)]
-        public Vector3 center;
-        [Tooltip("TODO.")]
-        public Vector3 angle;
-
-        [Min(0.0f), Tooltip("Sets the base radius of the cone.")]
-        public float radius0;
-        [Min(0.0f), Tooltip("Sets the top radius of the cone.")]
-        public float radius1;
-        [Tooltip("Sets the height of the cone.")]
-        public float height;
-        [Angle, Range(0, Mathf.PI * 2.0f), Tooltip("Controls how much of the cone is used. The value is in radians.")]
-        public float arc;
-
-        public static ArcConeTer defaultValue = new ArcConeTer
-        {
-            radius0 = 1.0f,
-            radius1 = 0.1f,
-            height = 1.0f,
-            arc = 2.0f * Mathf.PI,
-            angle = new Vector3(0.0f, 0.0f, 0.0f)
+            angle = new Vector3(0.0f, 0.0f, 0.0f),
         };
     }
 
