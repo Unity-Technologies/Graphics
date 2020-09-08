@@ -106,17 +106,13 @@ namespace UnityEngine.Rendering.HighDefinition
             RTGIHalfResDenoise[(int)ScalableSettingLevelParameter.Level.Medium] = false;
             RTGIHalfResDenoise[(int)ScalableSettingLevelParameter.Level.High] = false;
 
-            RTGIDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Low] = 0.66f;
-            RTGIDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 0.66f;
-            RTGIDenoiserRadius[(int)ScalableSettingLevelParameter.Level.High] = 1.0f;
+            RTGIDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Low] = 0.75f;
+            RTGIDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 0.5f;
+            RTGIDenoiserRadius[(int)ScalableSettingLevelParameter.Level.High] = 0.25f;
 
             RTGISecondDenoise[(int)ScalableSettingLevelParameter.Level.Low] = true;
             RTGISecondDenoise[(int)ScalableSettingLevelParameter.Level.Medium] = true;
             RTGISecondDenoise[(int)ScalableSettingLevelParameter.Level.High] = true;
-
-            RTGISecondDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Low] = 0.33f;
-            RTGISecondDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 0.33f;
-            RTGISecondDenoiserRadius[(int)ScalableSettingLevelParameter.Level.High] = 0.5f;
 
             // RTR
             RTRMinSmoothness[(int)ScalableSettingLevelParameter.Level.Low] = 0.6f;
