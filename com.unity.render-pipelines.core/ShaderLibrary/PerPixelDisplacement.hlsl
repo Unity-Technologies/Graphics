@@ -6,7 +6,13 @@
 // it return the offset to apply to the UVSet provide in PerPixelHeightDisplacementParam
 // viewDirTS is view vector in texture space matching the UVSet
 // ref: https://www.gamedev.net/resources/_/technical/graphics-programming-and-theory/a-closer-look-at-parallax-occlusion-mapping-r3262
-real2 ParallaxOcclusionMapping(real lod, real lodThreshold, int numSteps, real3 viewDirTS, PerPixelHeightDisplacementParam ppdParam, out real outHeight)
+real2
+#ifdef POM_NAME_ID
+MERGE_NAME(ParallaxOcclusionMapping,POM_NAME_ID)
+#else
+ParallaxOcclusionMapping
+#endif
+(real lod, real lodThreshold, int numSteps, real3 viewDirTS, PerPixelHeightDisplacementParam ppdParam, out real outHeight)
 {
     // Convention: 1.0 is top, 0.0 is bottom - POM is always inward, no extrusion
     real stepSize = 1.0 / (real)numSteps;

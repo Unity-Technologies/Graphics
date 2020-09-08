@@ -19,6 +19,10 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
         }
 
         static CompositorWindow s_Window;
+
+        // Remember the last selected layer
+        static int s_SelectionIndex = -1;
+
         CompositionManagerEditor m_Editor;
         Vector2 m_ScrollPosition = Vector2.zero;
         bool m_RequiresRedraw = false;
@@ -31,6 +35,12 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             s_Window = (CompositorWindow)EditorWindow.GetWindow(typeof(CompositorWindow));
             s_Window.titleContent = new GUIContent("Graphics Compositor (Preview)");
             s_Window.Show();
+        }
+
+        void OnEnable()
+        {
+            // Register a custom undo callback
+            Undo.undoRedoPerformed += UndoCallback;
         }
 
         void Update()
@@ -111,24 +121,33 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 }
             }
 
+            if (compositor.shader == null)
+            {
+                CompositionUtils.RemoveCompositionProfileAsset(compositor);
+                CompositionUtils.LoadDefaultCompositionGraph(compositor);
+                CompositionUtils.LoadOrCreateCompositionProfileAsset(compositor);
+                compositor.SetupCompositionMaterial();
+                m_RequiresRedraw = true;
+            }
+            else
+            {
+                // keep track of shader graph changes: when the user saves a graph, we should load/reflect any new shader properties
+                GraphData.onSaveGraph += MarkShaderAsDirty;
+            }
+
             if (compositor.profile == null)
             {
                 // The compositor was loaded, but there was no profile (someone deleted the asset from disk?), so create a new one
                 CompositionUtils.LoadOrCreateCompositionProfileAsset(compositor);
                 compositor.SetupCompositionMaterial();
-                return;
-            }
-
-            if (compositor.shader != null)
-            {
-                // keep track of shader graph changes: when the user saves a graph, we should load/reflect any new shader properties
-                GraphData.onSaveGraph += MarkShaderAsDirty;
+                m_RequiresRedraw = true;
             }
 
             if (m_Editor == null || m_Editor.target == null || m_Editor.isDirty || m_RequiresRedraw)
             {
                 m_Editor = (CompositionManagerEditor)Editor.CreateEditor(compositor);
                 m_RequiresRedraw = false;
+                m_Editor.defaultSelection = s_SelectionIndex;
             }
 
             m_ScrollPosition = GUILayout.BeginScrollView(m_ScrollPosition);
@@ -158,6 +177,25 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             if (compositor && compositor.shader != null)
             {
                 GraphData.onSaveGraph -= MarkShaderAsDirty;
+            }
+
+            Undo.undoRedoPerformed -= UndoCallback;
+            s_SelectionIndex = m_Editor.selectionIndex;
+        }
+
+        void UndoCallback()
+        {
+            // Undo-redo might change the layer order, so we need to redraw the compositor UI and also refresh the layer setup
+            m_Editor.CacheSerializedObjects();
+            m_RequiresRedraw = true;
+            s_SelectionIndex = m_Editor.selectionIndex;
+
+            CompositionManager compositor = CompositionManager.GetInstance();
+            {
+                // Some properties were changed, mark the profile as dirty so it can be saved if the user saves the scene
+                EditorUtility.SetDirty(compositor);
+                EditorUtility.SetDirty(compositor.profile);
+                compositor.UpdateLayerSetup();
             }
         }
     }
