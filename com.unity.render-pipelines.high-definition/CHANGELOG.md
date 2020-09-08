@@ -61,6 +61,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with composition graphs that include virtual textures, cubemaps and other non-2D textures (cases 1263347, 1265638).
 - Fixed issues when selecting a new composition graph or setting it to None (cases 1263350, 1266202)
 - Fixed ArgumentNullException when saving shader graphs after removing the compositor from the scene (case 1268658)
+- Fixed issue with updating the compositor output when not in play mode (case 1266216)
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
