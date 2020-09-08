@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 887bac95e5e1dbd45b80fc9604f8f3b7, type: 3}
+  m_Name: URP Asset
+  m_EditorClassIdentifier: 
+  counterTestSuite:
+    scenes:
+    - scene: SampleScene
+      sceneLabels: Default
+      scenePath: Assets/Scenes/SampleScene.unity
+      enabled: 1
+    srpAssets:
+    - asset: {fileID: 11400000, guid: 19ba41d7c0026c3459d37c2fe90c55a0, type: 2}
+      assetLabels: Default
+      alias: 
+    - asset: {fileID: 11400000, guid: a31e9f9f9c9d4b9429ed0d1234e22103, type: 2}
+      assetLabels: Default
+      alias: 
+    - asset: {fileID: 11400000, guid: d847b876476d3d6468f5dfcd34266f96, type: 2}
+      assetLabels: Default
+      alias: 
+  memoryTestSuite:
+    scenes:
+    - scene: SampleScene
+      sceneLabels: Default
+      scenePath: Assets/Scenes/SampleScene.unity
+      enabled: 1
+    srpAssets:
+    - asset: {fileID: 11400000, guid: 19ba41d7c0026c3459d37c2fe90c55a0, type: 2}
+      assetLabels: Default
+      alias: 
+    - asset: {fileID: 11400000, guid: a31e9f9f9c9d4b9429ed0d1234e22103, type: 2}
+      assetLabels: Default
+      alias: 
+    - asset: {fileID: 11400000, guid: d847b876476d3d6468f5dfcd34266f96, type: 2}
+      assetLabels: Default
+      alias: 
+  buildTestSuite:
+    scenes:
+    - scene: SampleScene
+      sceneLabels: Default
+      scenePath: Assets/Scenes/SampleScene.unity
+      enabled: 1
+    srpAssets:
+    - asset: {fileID: 11400000, guid: 19ba41d7c0026c3459d37c2fe90c55a0, type: 2}
+      assetLabels: Default
+      alias: 
+    - asset: {fileID: 11400000, guid: a31e9f9f9c9d4b9429ed0d1234e22103, type: 2}
+      assetLabels: Default
+      alias: 
+    - asset: {fileID: 11400000, guid: d847b876476d3d6468f5dfcd34266f96, type: 2}
+      assetLabels: Default
+      alias: 
+  srpAssetAliases: []

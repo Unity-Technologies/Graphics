@@ -1,0 +1,29 @@
+{
+    "name": "Unity.GraphicTests.Performance.Universal.Editor",
+    "rootNamespace": "",
+    "references": [
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.GraphicTests.Performance.Runtime",
+        "UnityEngine.TestRunner",
+        "Unity.GraphicTests.Performance.Editor",
+        "Unity.RenderPipelines.Universal.Editor",
+        "Unity.PerformanceTesting",
+        "Unity.RenderPipelines.Universal.Editor.Tests",
+        "Unity.RenderPipelines.Universal.Runtime.Tests"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
