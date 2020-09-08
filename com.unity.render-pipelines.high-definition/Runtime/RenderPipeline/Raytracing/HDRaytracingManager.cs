@@ -196,6 +196,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 numSubMeshes = skinnedMesh.sharedMesh.subMeshCount;
             }
 
+            // Let's clamp the number of sub-meshes to avoid throwing an unwated error
+            numSubMeshes = Mathf.Min(numSubMeshes, maxNumSubMeshes);
+
             // Get the layer of this object
             int objectLayerValue = 1 << currentRenderer.gameObject.layer;
 
