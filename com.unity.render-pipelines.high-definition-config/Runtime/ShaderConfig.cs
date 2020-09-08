@@ -85,7 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>The probe volume evaluation mode.</summary>
         /// <seealso cref = "ProbeVolumesEvaluationModes " />
-        ProbeVolumesEvaluationMode = ProbeVolumesEvaluationModes.Disabled,
+        ProbeVolumesEvaluationMode = ProbeVolumesEvaluationModes.MaterialPass,
         /// <summary>Probe volume supports additive blending.</summary>
         ProbeVolumesAdditiveBlending = 1,
         /// <summary>The probe volume filtering mode.</summary>
@@ -93,7 +93,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ProbeVolumesBilateralFilteringMode = ProbeVolumesBilateralFilteringModes.Validity,
         /// <summary>The probe volume encoding method.</summary>
         /// /// <seealso cref="ProbeVolumesEncodingModes"/>
-        ProbeVolumesEncodingMode = ProbeVolumesEncodingModes.SphericalHarmonicsL1,
+        ProbeVolumesEncodingMode = ProbeVolumesEncodingModes.SphericalHarmonicsL2,
 
         /// <summary>Support for area lights.</summary>
         AreaLights = 1,
