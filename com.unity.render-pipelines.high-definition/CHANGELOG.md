@@ -59,6 +59,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Composition profile .asset files cannot be manually edited/reset by users (to avoid breaking things - case 1265631)
 - Preparation pass for RTSSShadows to be supported by render graph.
 - Changed the way the ray tracing property is displayed on the material (QOL 1265297).
+- Exposed lens attenuation mode in default settings and remove it as a debug mode.
 
 ## [10.0.0] - 2019-06-10
 
