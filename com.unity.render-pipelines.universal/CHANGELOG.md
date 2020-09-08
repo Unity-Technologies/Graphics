@@ -27,7 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue that caused some properties in the camera to not be bold and highlighted when edited in prefab mode. [case 1230082](https://issuetracker.unity3d.com/issues/urp-camera-prefab-fields-render-type-renderer-background-type-are-not-bolded-and-highlighted-when-edited-in-prefab-mode)
 - Fixed an issue that impacted MSAA performance on iOS/Metal [case 1219054](https://issuetracker.unity3d.com/issues/urp-ios-msaa-has-a-bigger-negative-impact-on-performance-when-using-urp-compared-to-built-in-rp)
 - Fixed division by zero in `V_SmithJointGGX` function.
-
+- Fixed an issue with a render texture failing assertion when chosing an invalid format. [case 1271034](https://issuetracker.unity3d.com/issues/the-error-occurs-when-a-render-texture-which-has-a-certain-color-format-is-applied-to-the-cameras-output-target)
 ## [7.4.1] - 2020-06-03
 
 Version Updated
