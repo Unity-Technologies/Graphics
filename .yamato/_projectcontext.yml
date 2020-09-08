@@ -24,8 +24,8 @@ publish_core_project:
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.3
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.3
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.4
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.4
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.core
@@ -41,8 +41,8 @@ publish_core_project_dry:
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.3
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.3
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.4
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.4
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.core --dry-run
@@ -58,8 +58,8 @@ publish_lwrp_project:
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.3
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.3
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.4
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.4
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.lightweight
@@ -75,8 +75,8 @@ publish_lwrp_project_dry:
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.3
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.3
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.4
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.4
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.lightweight --dry-run
@@ -92,8 +92,8 @@ publish_shadergraph_project:
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.3
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.3
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.4
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.4
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.shadergraph
@@ -109,8 +109,8 @@ publish_shadergraph_project_dry:
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.3
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.3
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.4
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.4
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.shadergraph --dry-run
@@ -126,8 +126,8 @@ publish_hdrp_project:
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.3
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.3
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.4
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.4
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition
@@ -143,8 +143,8 @@ publish_hdrp_project_dry:
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.3
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.3
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.4
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.4
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition --dry-run
@@ -160,8 +160,8 @@ publish_universal_project:
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.3
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.3
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.4
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.4
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.universal
@@ -177,8 +177,8 @@ publish_universal_project_dry:
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.3
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.3
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.4
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.4
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.universal --dry-run
@@ -194,8 +194,8 @@ publish_vfx_project:
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.3
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.3
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.4
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.4
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.visualeffectgraph
@@ -211,8 +211,8 @@ publish_vfx_project_dry:
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.3
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.3
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.4
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.4
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.visualeffectgraph --dry-run
@@ -228,8 +228,8 @@ publish_config_project:
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.3
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.3
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.4
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.4
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition-config
@@ -245,8 +245,8 @@ publish_config_project_dry:
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.3
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.3
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.4
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.4
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition-config --dry-run
@@ -254,14 +254,14 @@ publish_config_project_dry:
         packages:
             paths:
               -  "upm-ci~/packages/**/*"
-test_all_project_windows_2019.3:
-    name: Test all packages [project context] Win 2019.3
+test_all_project_windows_2019.4:
+    name: Test all packages [project context] Win 2019.4
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:windows
+      -  .yamato/_editor.yml#editor:priming:2019.4:windows
       -  .yamato/_projectcontext.yml#pack_all_project
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -272,14 +272,14 @@ test_all_project_windows_2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_all_project_macos_2019.3:
-    name: Test all packages [project context] OSX 2019.3
+test_all_project_macos_2019.4:
+    name: Test all packages [project context] OSX 2019.4
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.3:macos
+      -  .yamato/_editor.yml#editor:priming:2019.4:macos
       -  .yamato/_projectcontext.yml#pack_all_project
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -290,14 +290,14 @@ test_all_project_macos_2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_all_project_windows_fast-2019.3:
-    name: Test all packages [project context] Win fast-2019.3
+test_all_project_windows_fast-2019.4:
+    name: Test all packages [project context] Win fast-2019.4
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:windows
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:windows
       -  .yamato/_projectcontext.yml#pack_all_project
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -308,14 +308,14 @@ test_all_project_windows_fast-2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-test_all_project_macos_fast-2019.3:
-    name: Test all packages [project context] OSX fast-2019.3
+test_all_project_macos_fast-2019.4:
+    name: Test all packages [project context] OSX fast-2019.4
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.3:macos
+      -  .yamato/_editor.yml#editor:priming:fast-2019.4:macos
       -  .yamato/_projectcontext.yml#pack_all_project
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -362,28 +362,28 @@ test_all_project_macos_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-all_package_ci_project_2019.3:
-    name: Pack and test all packages - 2019.3 [project context]
+all_package_ci_project_2019.4:
+    name: Pack and test all packages - 2019.4 [project context]
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.3
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.3
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2019.4
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2019.4
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
       -  upm-ci package izon -d
-all_package_ci_project_fast-2019.3:
-    name: Pack and test all packages - fast-2019.3 [project context]
+all_package_ci_project_fast-2019.4:
+    name: Pack and test all packages - fast-2019.4 [project context]
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_projectcontext.yml#test_all_project_windows_fast-2019.3
-      -  .yamato/_projectcontext.yml#test_all_project_macos_fast-2019.3
+      -  .yamato/_projectcontext.yml#test_all_project_windows_fast-2019.4
+      -  .yamato/_projectcontext.yml#test_all_project_macos_fast-2019.4
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t

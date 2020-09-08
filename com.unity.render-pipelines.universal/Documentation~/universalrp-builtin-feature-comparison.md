@@ -118,11 +118,11 @@ This table provides an overview of the current features supported in the Univers
 | RenderPipeline.BeginFrameRendering                           | Not supported                                                | Yes                                                          |
 | RenderPipeline.EndFrameRendering                             | Not supported                                                | Yes                                                          |
 | RenderPipeline.BeginCameraRendering                          | Not supported                                                | Yes                                                          |
-| RenderPIpeline.EndCameraRendering                            | Not supported                                                | Yes                                                          |
+| RenderPipeline.EndCameraRendering                            | Not supported                                                | Yes                                                          |
 | UniversalRenderPipeline.RenderSingleCamera                   | Not supported                                                | Yes                                                          |
 | ScriptableRenderPass                                         | Not supported                                                | Yes                                                          |
 | Custom Renderers                                             | Not supported                                                | Yes                                                          |
-| ***Post-processing***                                        | Uses Post-Processing Version 2 package                      | Uses integrated [post-processing solution](integration-with-post-processing.md), supports PPV2 package for backwards compatibility with existing Projects |
+| ***Post-processing***                                        | Uses Post-Processing Stack v2 package                      | Uses integrated [post-processing solution](integration-with-post-processing.md), supports PPv2 package for backwards compatibility with existing Projects |
 | Ambient Occlusion (MSVO)                                     | Yes                                                          | In research                                                  |
 | Auto Exposure                                                | Yes                                                          | Not supported                                                          |
 | Bloom                                                        | Yes                                                          | Yes                                                          |
