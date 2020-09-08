@@ -43,4 +43,5 @@ HDRP_Hybrid_Linux_OpenGLCore_playmode_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
+         rerun: always

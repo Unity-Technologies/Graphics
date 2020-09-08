@@ -111,7 +111,8 @@ Universal_Win_DX12_Standalone_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
       -  path: .yamato/universal-win-dx12.yml#Build_Universal_Win_DX12_Player_CUSTOM-REVISION
          rerun: always
 Build_Universal_Win_DX12_Player_CUSTOM-REVISION:
@@ -136,7 +137,8 @@ Build_Universal_Win_DX12_Player_CUSTOM-REVISION:
             paths:
               -  "players/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
 Universal_Win_DX12_playmode_CUSTOM-REVISION:
     name: Universal on Win_DX12_playmode on version CUSTOM-REVISION
     agent:
@@ -156,7 +158,8 @@ Universal_Win_DX12_playmode_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
 Universal_Win_DX12_editmode_CUSTOM-REVISION:
     name: Universal on Win_DX12_editmode on version CUSTOM-REVISION
     agent:
@@ -176,7 +179,8 @@ Universal_Win_DX12_editmode_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
 Universal_Win_DX12_playmode_XR_CUSTOM-REVISION:
     name: Universal on Win_DX12_playmode_XR on version CUSTOM-REVISION
     agent:
@@ -196,4 +200,5 @@ Universal_Win_DX12_playmode_XR_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
