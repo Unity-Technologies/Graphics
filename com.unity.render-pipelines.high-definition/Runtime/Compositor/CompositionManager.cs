@@ -132,6 +132,9 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         static private CompositionManager s_CompositorInstance;
 
+        // Built-in Color.black has an alpha of 1, so defien here a fully transparent black 
+        static Color s_TransparentBlack = new Color(0, 0, 0, 0); 
+
         #region Validation
         public void ValidateLayerListOrder(int oldIndex, int newIndex)
         {
@@ -654,6 +657,10 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 if (m_InputLayers[i].outputTarget != CompositorLayer.OutputTarget.CameraStack)
                 {
                     lastLayer = m_InputLayers[i];
+
+                    // [case 1265061] If this layer does not have any cameras that will clear/draw the background, set a flag so the compositor will clear it explicitly.
+                    m_InputLayers[i].clearsBackGround =
+                        (i + 1 < m_InputLayers.Count) ? (m_InputLayers[i + 1].outputTarget == CompositorLayer.OutputTarget.CompositorLayer) : true;
                 }
 
                 if (m_InputLayers[i].outputTarget == CompositorLayer.OutputTarget.CameraStack && i > 0)
@@ -749,6 +756,15 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 m_ShaderVariablesGlobalCB._WorldSpaceCameraPos_Internal = new Vector3(0.0f, 0.0f, 0.0f);
                 cmd.SetViewport(new Rect(0, 0, camera.camera.pixelWidth, camera.camera.pixelHeight));
                 cmd.ClearRenderTarget(true, false, Color.red);
+
+                foreach (var layer in m_InputLayers)
+                {
+                    if (layer.clearsBackGround)
+                    {
+                        cmd.SetRenderTarget(layer.GetRenderTarget());
+                        cmd.ClearRenderTarget(false, true, s_TransparentBlack);
+                    }
+                }
             }
 
             if (camera.camera.targetTexture)
@@ -761,7 +777,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             {
                 m_ShaderVariablesGlobalCB._ViewProjMatrix = m_ViewProjMatrix;
                 ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
-                cmd.Blit(null, BuiltinRenderTextureType.CurrentActive, m_Material, m_Material.FindPass("ForwardOnly"));
+                cmd.Blit(null, BuiltinRenderTextureType.CameraTarget, m_Material, m_Material.FindPass("ForwardOnly"));
             }
             
             context.ExecuteCommandBuffer(cmd);
