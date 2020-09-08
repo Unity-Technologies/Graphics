@@ -25,14 +25,16 @@
   * [Volume Profiles](Volume-Profile)
   * [Volume Overrides](Volume-Components)
   * Volume Overrides List
-    * [Diffusion Profile](Override-Diffusion-Profile)
     * [Exposure](Override-Exposure)
     * [Fog](Override-Fog)
     * Lighting
       * [Ambient Occlusion](Override-Ambient-Occlusion)
       * [Indirect Lighting Controller](Override-Indirect-Lighting-Controller)
+      * [Screen Space Global Illumination](Override-Screen-Space-GI)
       * [Screen Space Reflection](Override-Screen-Space-Reflection)
       * [Screen Space Refraction](Override-Screen-Space-Refraction)
+    * Material
+      * [Diffusion Profile](Override-Diffusion-Profile)
     * Shadowing
       * [Contact Shadows](Override-Contact-Shadows)
       * [Micro Shadows](Override-Micro-Shadows)
