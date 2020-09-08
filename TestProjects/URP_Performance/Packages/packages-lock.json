@@ -111,8 +111,8 @@
       "source": "local",
       "dependencies": {
         "com.unity.mathematics": "1.1.0",
-        "com.unity.render-pipelines.core": "10.1.0-preview.10",
-        "com.unity.shadergraph": "10.1.0-preview.10"
+        "com.unity.render-pipelines.core": "10.1.0-preview.20",
+        "com.unity.shadergraph": "10.1.0-preview.20"
       }
     },
     "com.unity.searcher": {
@@ -133,7 +133,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.unity.render-pipelines.core": "10.1.0-preview.10",
+        "com.unity.render-pipelines.core": "10.1.0-preview.20",
         "com.unity.searcher": "4.3.1"
       }
     },
