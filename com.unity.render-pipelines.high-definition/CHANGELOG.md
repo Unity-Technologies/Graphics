@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue that allocated a small cookie for normal spot lights.
 - Fixed issue when undoing a change in diffuse profile list after deleting the volume profile.
 - Fixed custom pass re-ordering and removing.
+- Fixed TAA issue and hardware dynamic resolution.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
