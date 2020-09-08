@@ -120,6 +120,10 @@ Shader "Universal Render Pipeline/Baked Lit"
                 half alpha = texColor.a * _BaseColor.a;
                 AlphaDiscard(alpha, _Cutoff);
 
+#ifdef _ALPHAPREMULTIPLY_ON
+                color *= alpha;
+#endif
+
     #if defined(_NORMALMAP)
                 half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap)).xyz;
                 float sgn = input.tangentWS.w;      // should be either +1 or -1
@@ -347,6 +351,10 @@ Shader "Universal Render Pipeline/Baked Lit"
                 half3 color = texColor.rgb * _BaseColor.rgb;
                 half alpha = texColor.a * _BaseColor.a;
                 AlphaDiscard(alpha, _Cutoff);
+
+#ifdef _ALPHAPREMULTIPLY_ON
+                color *= alpha;
+#endif
 
     #if defined(_NORMALMAP)
                 half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap)).xyz;

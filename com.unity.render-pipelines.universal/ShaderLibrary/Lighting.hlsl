@@ -295,6 +295,11 @@ inline void InitializeBRDFDataDirect(half3 diffuse, half3 specular, half reflect
     outBRDFData.grazingTerm         = saturate(smoothness + reflectivity);
     outBRDFData.normalizationTerm   = outBRDFData.roughness * 4.0h + 2.0h;
     outBRDFData.roughness2MinusOne  = outBRDFData.roughness2 - 1.0h;
+
+#ifdef _ALPHAPREMULTIPLY_ON
+    outBRDFData.diffuse *= alpha;
+    alpha = alpha * oneMinusReflectivity + reflectivity; // NOTE: alpha modified and propagated up.
+#endif
 }
 
 inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half smoothness, inout half alpha, out BRDFData outBRDFData)
