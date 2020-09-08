@@ -85,7 +85,8 @@ ShaderGraph_OSX_Metal_Standalone_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
+         rerun: always
 ShaderGraph_OSX_Metal_playmode_CUSTOM-REVISION:
     name: ShaderGraph on OSX_Metal_playmode on version CUSTOM-REVISION
     agent:
@@ -114,4 +115,5 @@ ShaderGraph_OSX_Metal_playmode_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
+         rerun: always
