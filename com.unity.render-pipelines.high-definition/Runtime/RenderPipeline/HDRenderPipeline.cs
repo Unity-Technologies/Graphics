@@ -304,6 +304,8 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle                        m_DebugFullScreenTempBuffer;
         // This target is only used in Dev builds as an intermediate destination for post process and where debug rendering will be done.
         RTHandle                        m_IntermediateAfterPostProcessBuffer;
+        RTHandle                        m_IntermediateAfterPostProcessBufferFloat;
+
         // We need this flag because otherwise if no full screen debug is pushed (like for example if the corresponding pass is disabled), when we render the result in RenderDebug m_DebugFullScreenTempBuffer will contain potential garbage
         bool                            m_FullScreenDebugPushed;
         bool                            m_ValidAPI; // False by default mean we render normally, true mean we don't render anything
@@ -800,9 +802,11 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_DebugColorPickerBuffer);
             RTHandles.Release(m_DebugFullScreenTempBuffer);
             RTHandles.Release(m_IntermediateAfterPostProcessBuffer);
+            RTHandles.Release(m_IntermediateAfterPostProcessBufferFloat);
             m_DebugColorPickerBuffer = null;
             m_DebugFullScreenTempBuffer = null;
             m_IntermediateAfterPostProcessBuffer = null;
+            m_IntermediateAfterPostProcessBufferFloat = null;
         }
 
         void SetRenderingFeatures()
@@ -3035,37 +3039,48 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var previousRT = RenderTexture.active;
             RenderTexture.active = null;
+            if (m_IntermediateAfterPostProcessBufferFloat == null)
+                m_IntermediateAfterPostProcessBufferFloat = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, useDynamicScale: true, name: "AfterPostProcessFloat");
 
-            var requests = new AOVRequestBuilder();
-            foreach (var request in renderRequests)
+            var previousPostprocessBuffer = m_IntermediateAfterPostProcessBuffer;
+            m_IntermediateAfterPostProcessBuffer = previousPostprocessBuffer;
+
+            try
             {
-                var aovRequest = AOVRequest.NewDefault().SetRenderRequestMode(request.mode);
-                var aovBuffers = AOVBuffers.Color;
-                if (request.mode == Camera.RenderRequestMode.DepthR || request.mode == Camera.RenderRequestMode.WorldPositionRGB)
-                    aovBuffers = AOVBuffers.Output;
+                var requests = new AOVRequestBuilder();
+                foreach (var request in renderRequests)
+                {
+                    var aovRequest = AOVRequest.NewDefault().SetRenderRequestMode(request.mode);
+                    var aovBuffers = AOVBuffers.Color;
+                    if (request.mode == Camera.RenderRequestMode.DepthR ||
+                        request.mode == Camera.RenderRequestMode.WorldPositionRGB)
+                        aovBuffers = AOVBuffers.Output;
 
-                //@TODO: _DebugBufferID handling seems dodgy what if the different buffers have different resolutions...
-                requests.Add(
-                    aovRequest,
-                    // NOTE: RTHandles.Alloc is never allocated because the texture is passed in explicitly.
-                    (AOVBuffers aovBufferId) => RTHandles.Alloc(request.result),
-                    null,
-                    new[] {aovBuffers},
-                    (cmd, textures, properties) =>
-                    {
-                        //if (request.result != null)
-                        //    cmd.Blit(textures[0], request.result);
-                    });
+                    requests.Add(
+                        aovRequest,
+                        // NOTE: RTHandles.Alloc is never allocated because the texture is passed in explicitly.
+                        (AOVBuffers aovBufferId) => RTHandles.Alloc(request.result),
+                        null,
+                        new[] {aovBuffers},
+                        (cmd, textures, properties) =>
+                        {
+                            //if (request.result != null)
+                            //    cmd.Blit(textures[0], request.result);
+                        });
+                }
+
+                var additionaCameraData = camera.GetComponent<HDAdditionalCameraData>();
+                additionaCameraData.SetAOVRequests(requests.Build());
+
+                Render(renderContext, new[] {camera});
+
+                additionaCameraData.SetAOVRequests(null);
             }
-
-            var additionaCameraData = camera.GetComponent<HDAdditionalCameraData>();
-            additionaCameraData.SetAOVRequests(requests.Build());
-
-            Render(renderContext, new[] {camera});
-
-            additionaCameraData.SetAOVRequests(null);
-
-            RenderTexture.active = previousRT;
+            finally
+            {
+                m_IntermediateAfterPostProcessBuffer = previousPostprocessBuffer;
+                RenderTexture.active = previousRT;
+            }
         }
 
         void SetupCameraProperties(HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
