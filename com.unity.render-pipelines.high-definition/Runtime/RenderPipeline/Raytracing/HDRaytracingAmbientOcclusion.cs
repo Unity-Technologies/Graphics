@@ -244,7 +244,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Apply the diffuse denoiser
                 HDDiffuseDenoiser diffuseDenoiser = m_RenderPipeline.GetDiffuseDenoiser();
-                DiffuseDenoiserParameters ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, true, aoSettings.denoiserRadius, false);
+                DiffuseDenoiserParameters ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, true, aoSettings.denoiserRadius, false, false);
                 RTHandle intermediateBuffer = m_RenderPipeline.GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);
                 DiffuseDenoiserResources ddResources = diffuseDenoiser.PrepareDiffuseDenoiserResources(m_AOIntermediateBuffer1, intermediateBuffer, outputTexture);
                 HDDiffuseDenoiser.DenoiseBuffer(cmd, ddParams, ddResources);

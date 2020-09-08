@@ -811,6 +811,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Reduced the number of global keyword used in deferredTile.shader
 - Fixed incorrect processing of Ambient occlusion probe (9% error was introduced)
 - Fixed an error message trigerred when a mesh has more than 32 sub-meshes (case 1274508).
+- Fixed RTGI getting noisy for grazying angle geometry (case 1266462).
 
 ### Changed
 - Improve MIP selection for decals on Transparents
