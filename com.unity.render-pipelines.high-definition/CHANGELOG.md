@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where only one of the two lookdev views would update when changing the default lookdev volume profile.
 - Fixed issue that caused the decal atlas to not be updated upon changing of the decal textures content.
 - Fixed "Screen position out of view frustum" error when camera is at exactly the planar reflection probe location.
+- Fixed issue with diffusion profile not being updated upon reset of the editor. 
 
 ### Changed
 - Remove MSAA debug mode when renderpipeline asset has no MSAA
