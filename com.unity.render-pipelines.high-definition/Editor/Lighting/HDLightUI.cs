@@ -612,7 +612,7 @@ namespace UnityEditor.Rendering.HighDefinition
             lightUnitSliderRect.width -= EditorGUIUtility.labelWidth + k_ValueUnitSeparator;
 
             LightUnit lightUnit = serialized.lightUnit.GetEnumValue<LightUnit>();
-            s_LightUnitSliderUIDrawer.OnGUI(lightUnit, serialized.intensity, lightUnitSliderRect);
+            s_LightUnitSliderUIDrawer.Draw(lightUnit, serialized.intensity, lightUnitSliderRect);
 
             // We use PropertyField to draw the value to keep the handle at left of the field
             // This will apply the indent again thus we need to remove it time for alignment

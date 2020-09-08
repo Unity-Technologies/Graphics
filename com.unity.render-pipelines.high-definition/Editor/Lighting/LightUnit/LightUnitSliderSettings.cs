@@ -84,7 +84,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Exposure
         public static LightUnitSliderUIDescriptor k_ExposureDescriptor = new LightUnitSliderUIDescriptor(
-            LightUnitSliderRanges.k_LumenValueTable,
+            LightUnitSliderRanges.k_ExposureValueTable,
             LightUnitTooltips.k_ExposureCaution,
             "EV"
         );

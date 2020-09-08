@@ -216,7 +216,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
     class TemperatureSlider : LightUnitSlider
     {
-        public TemperatureSlider(LightUnitSliderUIDescriptor descriptor) : base(descriptor) {}
+        public TemperatureSlider(LightUnitSliderUIDescriptor descriptor) : base(descriptor)
+        {
+
+        }
+
+
     }
 
     internal class LightUnitSliderUIDrawer
@@ -237,7 +242,7 @@ namespace UnityEditor.Rendering.HighDefinition
             };
 
             // Exposure is in EV100, but we load a separate due to the different icon set.
-            s_ExposureSlider = new LightUnitSlider(LightUnitSliderDescriptors.k_LuxDescriptor);
+            s_ExposureSlider = new LightUnitSlider(LightUnitSliderDescriptors.k_ExposureDescriptor);
 
             // Kelvin is not classified internally as a light unit so we handle it independently as well.
             s_TemperatureSlider = new TemperatureSlider(LightUnitSliderDescriptors.k_TemperatureDescriptor);
