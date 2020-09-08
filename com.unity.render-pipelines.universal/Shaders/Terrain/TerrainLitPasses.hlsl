@@ -110,7 +110,7 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
     input.vertexLighting = IN.fogFactorAndVertexLight.yzw;
 
     input.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, input.normalWS);
-    input.normalizedScreenSpaceUV = IN.clipPos.xy;
+    input.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(IN.clipPos);
     input.normalTS = normalTS;
     #if defined(LIGHTMAP_ON)
     input.lightmapUV = IN.uvMainAndLM.zw;

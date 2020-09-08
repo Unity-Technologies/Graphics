@@ -11,8 +11,6 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     public class FinalBlitPass : ScriptableRenderPass
     {
-        const string m_ProfilerTag = "Final Blit Pass";
-        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
         RenderTargetHandle m_Source;
         Material m_BlitMaterial;
 
@@ -54,7 +52,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.FinalBlit)))
             {
 	            if (DebugDisplaySettings.Instance.Validation.validationMode==DebugValidationMode.HiglightNanInfNegative)
     	            cmd.EnableShaderKeyword("_DEBUG_HIGHLIGHT_NAN_INF_NEGATIVE_PIXELS");

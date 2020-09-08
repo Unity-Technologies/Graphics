@@ -34,7 +34,7 @@ Shader "Hidden/Universal Render Pipeline/Blit"
             TEXTURE2D_X(_SourceTex);
             SAMPLER(sampler_SourceTex);
 
-            half4 Fragment(FullscreenVaryings input) : SV_Target
+            half4 Fragment(Varyings input) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 
