@@ -58,6 +58,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the global illumination volume override having an unwanted advanced mode (case 1270459).
 - Fixed screen space shadow option displayed on directional shadows while they shouldn't (case 1270537).
 - Fixed the handling of undo and redo actions in the graphics compositor (cases 1268149, 1266212, 1265028)
+- Fixed issue with composition graphs that include virtual textures, cubemaps and other non-2D textures (cases 1263347, 1265638).
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
