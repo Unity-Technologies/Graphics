@@ -119,6 +119,11 @@ namespace UnityEngine.Rendering.Universal
 
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
+#if UNITY_2020_2_OR_NEWER
+            // C#8 feature, only in >= 2020.2
+            using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.UniversalRenderTotal));
+#endif
+
             BeginFrameRendering(renderContext, cameras);
 
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
@@ -264,6 +269,10 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="camera">Camera to render.</param>
         static void RenderCameraStack(ScriptableRenderContext context, Camera baseCamera)
         {
+#if UNITY_2020_2_OR_NEWER
+            using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.RenderCameraStack));
+#endif
+
             baseCamera.TryGetComponent<UniversalAdditionalCameraData>(out var baseCameraAdditionalData);
 
             // Overlay cameras will be rendered stacked while rendering base cameras
@@ -318,7 +327,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Post-processing not supported in GLES2.
             anyPostProcessingEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
-            
+
             bool isStackedRendering = lastActiveOverlayCameraIndex != -1;
 
             InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
@@ -426,6 +435,10 @@ namespace UnityEngine.Rendering.Universal
 
         static void UpdateVolumeFramework(Camera camera, UniversalAdditionalCameraData additionalCameraData)
         {
+#if UNITY_2020_2_OR_NEWER
+            using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.UpdateVolumeFramework));
+#endif
+
             // Default values when there's no additional camera data available
             LayerMask layerMask = 1; // "Default"
             Transform trigger = camera.transform;

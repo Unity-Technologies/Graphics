@@ -681,7 +681,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 m_NearBokehTileList.SetCounterValue(0u);
                                 m_FarBokehTileList.SetCounterValue(0u);
 
-                                DoDepthOfField(dofParameters, cmd, source, destination, pingNearRGB, pongNearRGB, nearCoC, nearAlpha,
+                                DoDepthOfField(dofParameters, cmd, source, destination, depthBuffer, pingNearRGB, pongNearRGB, nearCoC, nearAlpha,
                                                dilatedNearCoC, pingFarRGB, pongFarRGB, farCoC, fullresCoC, dofSafePathMips, dilationPingPongRT, prevCoC, nextCoC, motionVecTexture,
                                                m_BokehNearKernel, m_BokehFarKernel, m_BokehIndirectCmd, m_NearBokehTileList, m_FarBokehTileList,  taaEnabled);
 
@@ -1594,8 +1594,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material temporalAAMaterial;
             public MaterialPropertyBlock taaHistoryPropertyBlock;
             public MaterialPropertyBlock taaPropertyBlock;
-
-            public HDCamera camera;
+            public bool resetPostProcessingHistory;
 
             public Vector4 taaParameters;
             public Vector4 taaFilterWeights;
@@ -1606,7 +1605,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             TemporalAntiAliasingParameters parameters = new TemporalAntiAliasingParameters();
 
-            parameters.camera = camera;
+            parameters.resetPostProcessingHistory = camera.resetPostProcessingHistory;
 
             float minAntiflicker = 0.0f;
             float maxAntiflicker = 3.5f;
@@ -1696,7 +1695,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         RTHandle prevMVLen,
                                         RTHandle nextMVLen)
         {
-            if (taaParams.camera.resetPostProcessingHistory)
+            if (taaParams.resetPostProcessingHistory)
             {
                 taaParams.taaHistoryPropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
                 var rtScaleSource = source.rtHandleProperties.rtHandleScale;
@@ -1789,7 +1788,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
 
             public ComputeShader dofKernelCS;
-            public int dofKernelKernel; 
+            public int dofKernelKernel;
             public ComputeShader dofCoCCS;
             public int dofCoCKernel;
             public ComputeShader dofCoCReprojectCS;
@@ -2036,7 +2035,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // TODO: can be further optimized
         // TODO: debug panel entries (coc, tiles, etc)
         //
-        static void DoDepthOfField(in DepthOfFieldParameters dofParameters, CommandBuffer cmd, RTHandle source, RTHandle destination,
+        static void DoDepthOfField(in DepthOfFieldParameters dofParameters, CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle depthBuffer,
             RTHandle pingNearRGB, RTHandle pongNearRGB, RTHandle nearCoC, RTHandle nearAlpha, RTHandle dilatedNearCoC,
             RTHandle pingFarRGB, RTHandle pongFarRGB, RTHandle farCoC, RTHandle fullresCoC, RTHandle[] mips, RTHandle dilationPingPong,
             RTHandle prevCoCHistory, RTHandle nextCoCHistory, RTHandle motionVecTexture,
@@ -2160,6 +2159,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(nearStart, nearEnd, farStart, farEnd));
                 }
 
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CameraDepthTexture, depthBuffer);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputCoCTexture, fullresCoC);
                 cmd.DispatchCompute(cs, kernel, (dofParameters.camera.actualWidth + 7) / 8, (dofParameters.camera.actualHeight + 7) / 8, dofParameters.camera.viewCount);
 
@@ -4010,7 +4010,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (needsBlitToColorBuffer)
                 {
-                    Rect backBufferRect = camera.finalViewport;
                     HDUtils.BlitCameraTexture(cmd, source, colorBuffer);
                 }
             }

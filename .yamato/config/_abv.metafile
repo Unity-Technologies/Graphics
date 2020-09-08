@@ -9,7 +9,7 @@ abv: # specify the editor versions for which to create the expression trigger fo
     - name: VFX_URP
 nightly:
   allowed_editors: # specify the editor versions for which to create nightly jobs
-    - fast-trunk
+    - trunk
   extra_dependencies: # additional project jobs to run nightly (in addition to ABV and smoke tests)
     - project: Universal
       platform: Android
