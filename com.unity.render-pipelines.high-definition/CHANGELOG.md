@@ -45,12 +45,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed AOV export of depth buffer which now correctly export linear depth (case 1265001)
 - Fixed issue that caused the decal atlas to not be updated upon changing of the decal textures content.
 - Fixed "Screen position out of view frustum" error when camera is at exactly the planar reflection probe location.
+- Fixed Amplitude -> Min/Max parametrization conversion
+- Fixed issue that allocated a small cookie for normal spot lights.
+- Fixed issue when undoing a change in diffuse profile list after deleting the volume profile.
+- Fixed custom pass re-ordering and removing.
+- Fixed TAA issue and hardware dynamic resolution.
+- Fixed a static lighting flickering issue caused by having an active planar probe in the scene while rendering inspector preview.
+- Fixed an issue where even when set to OnDemand, the sky lighting would still be updated when changing sky parameters.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
 - Add tooltips with the full name of the (graphics) compositor properties to properly show large names that otherwise are clipped by the UI (case 1263590)
 - Composition profile .asset files cannot be manually edited/reset by users (to avoid breaking things - case 1265631)
 - Preparation pass for RTSSShadows to be supported by render graph.
+- Changed the way the ray tracing property is displayed on the material (QOL 1265297).
 
 ## [10.0.0] - 2019-06-10
 
@@ -802,6 +810,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed multiple volumes, planar reflection, and decal projector position when creating them from the menu.
 - Reduced the number of global keyword used in deferredTile.shader
 - Fixed incorrect processing of Ambient occlusion probe (9% error was introduced)
+- Fixed an error message trigerred when a mesh has more than 32 sub-meshes (case 1274508).
 - Fixed RTGI getting noisy for grazying angle geometry (case 1266462).
 
 ### Changed
