@@ -359,6 +359,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _DebugFullScreenTexture = Shader.PropertyToID("_DebugFullScreenTexture");
         public static readonly int _BlitTexture = Shader.PropertyToID("_BlitTexture");
+        public static readonly int _BlitTextureMSAA = Shader.PropertyToID("_BlitTextureMSAA");
         public static readonly int _BlitScaleBias = Shader.PropertyToID("_BlitScaleBias");
         public static readonly int _BlitMipLevel = Shader.PropertyToID("_BlitMipLevel");
         public static readonly int _BlitScaleBiasRt = Shader.PropertyToID("_BlitScaleBiasRt");
@@ -369,6 +370,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture");
         public static readonly int _CameraMotionVectorsTexture = Shader.PropertyToID("_CameraMotionVectorsTexture");
         public static readonly int _FullScreenDebugMode = Shader.PropertyToID("_FullScreenDebugMode");
+        public static readonly int _FullScreenDebugDepthRemap = Shader.PropertyToID("_FullScreenDebugDepthRemap");
         public static readonly int _TransparencyOverdrawMaxPixelCost = Shader.PropertyToID("_TransparencyOverdrawMaxPixelCost");
         public static readonly int _CustomDepthTexture = Shader.PropertyToID("_CustomDepthTexture");
         public static readonly int _CustomColorTexture = Shader.PropertyToID("_CustomColorTexture");
