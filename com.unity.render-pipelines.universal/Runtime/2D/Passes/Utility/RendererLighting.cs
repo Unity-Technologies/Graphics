@@ -141,6 +141,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
 
 
+        public static void DrawPointLight(CommandBuffer cmd, Light2D light, Mesh lightMesh, Material material)
+        {
+            var scale = new Vector3(light.pointLightOuterRadius, light.pointLightOuterRadius, light.pointLightOuterRadius);
+            var matrix = Matrix4x4.TRS(light.transform.position, Quaternion.LookRotation(light.transform.forward, Vector3.up), scale);
+            //var matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
+            cmd.DrawMesh(lightMesh, matrix, material);
+        }
+
+
         private static bool RenderLightSet(IRenderPass2D pass, RenderingData renderingData, int blendStyleIndex, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTexture, bool rtNeedsClear, Color clearColor, List<Light2D> lights)
         {
             var renderedAnyLight = false;
@@ -189,9 +198,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     }
                     else if (light.lightType == Light2D.LightType.Point)
                     {
-                        var scale = new Vector3(light.pointLightOuterRadius, light.pointLightOuterRadius, light.pointLightOuterRadius);
-                        var matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
-                        cmd.DrawMesh(lightMesh, matrix, lightMaterial);
+                        DrawPointLight(cmd, light, lightMesh, lightMaterial);
                     }
                 }
             }
@@ -246,9 +253,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                                     }
                                     else if (light.lightType == Light2D.LightType.Point)
                                     {
-                                        var scale = new Vector3(light.pointLightOuterRadius, light.pointLightOuterRadius, light.pointLightOuterRadius);
-                                        var matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
-                                        cmd.DrawMesh(lightMesh, matrix, lightVolumeMaterial);
+                                        DrawPointLight(cmd, light, lightMesh, lightVolumeMaterial);
                                     }
                                 }
                             }
@@ -291,7 +296,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var outerRadiusScale = new Vector3(lightScale.x * outerRadius, lightScale.y * outerRadius, lightScale.z * outerRadius);
 
             var transform = light.transform;
-            var rotation = includeRotation ? transform.rotation : Quaternion.identity;
+            var rotation = includeRotation ? transform.rotation : Quaternion.LookRotation(light.transform.forward, Vector3.up);
 
             var scaledLightMat = Matrix4x4.TRS(transform.position, rotation, outerRadiusScale);
             retMatrix = Matrix4x4.Inverse(scaledLightMat);
