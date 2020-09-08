@@ -11,6 +11,8 @@ namespace UnityEditor.ShaderGraph
             public KeywordDescriptor descriptor { get; }
             public FieldCondition[] fieldConditions { get; }
             public string value => descriptor.ToDefineString(index);
+            // KeywordType.Boolean, index 0: disable, 1: enable
+            // KeywordType.Enum, index into enum entries
             public int index { get; }
 
             public Item(KeywordDescriptor descriptor, int index, FieldCondition[] fieldConditions)
@@ -28,27 +30,32 @@ namespace UnityEditor.ShaderGraph
             m_Items = new List<Item>();
         }
 
-        public void Add(DefineCollection defines)
+        public DefineCollection Add(DefineCollection defines)
         {
             foreach(DefineCollection.Item item in defines)
             {
                 m_Items.Add(item);
             }
+
+            return this;
         }
 
-        public void Add(KeywordDescriptor descriptor, int index)
+        public DefineCollection Add(KeywordDescriptor descriptor, int index)
         {
             m_Items.Add(new Item(descriptor, index, null));
+            return this;
         }
 
-        public void Add(KeywordDescriptor descriptor, int index, FieldCondition fieldCondition)
+        public DefineCollection Add(KeywordDescriptor descriptor, int index, FieldCondition fieldCondition)
         {
             m_Items.Add(new Item(descriptor, index, new FieldCondition[]{ fieldCondition }));
+            return this;
         }
 
-        public void Add(KeywordDescriptor descriptor, int index, FieldCondition[] fieldConditions)
+        public DefineCollection Add(KeywordDescriptor descriptor, int index, FieldCondition[] fieldConditions)
         {
             m_Items.Add(new Item(descriptor, index, fieldConditions));
+            return this;
         }
 
         public IEnumerator<Item> GetEnumerator()

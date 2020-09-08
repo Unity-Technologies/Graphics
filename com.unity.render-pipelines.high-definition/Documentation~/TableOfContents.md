@@ -25,14 +25,16 @@
   * [Volume Profiles](Volume-Profile)
   * [Volume Overrides](Volume-Components)
   * Volume Overrides List
-    * [Diffusion Profile](Override-Diffusion-Profile)
     * [Exposure](Override-Exposure)
     * [Fog](Override-Fog)
     * Lighting
       * [Ambient Occlusion](Override-Ambient-Occlusion)
       * [Indirect Lighting Controller](Override-Indirect-Lighting-Controller)
+      * [Screen Space Global Illumination](Override-Screen-Space-GI)
       * [Screen Space Reflection](Override-Screen-Space-Reflection)
       * [Screen Space Refraction](Override-Screen-Space-Refraction)
+    * Material
+      * [Diffusion Profile](Override-Diffusion-Profile)
     * Shadowing
       * [Contact Shadows](Override-Contact-Shadows)
       * [Micro Shadows](Override-Micro-Shadows)
@@ -65,6 +67,10 @@
     * [Subsurface Scattering Materials](Subsurface-Scattering)
     * [Diffusion Profile](Diffusion-Profile)
   * Shader List
+    * Autodesk Interactive
+      * [Autodesk Interactive Shader](Autodesk-Interactive-Shader)
+      * [Autodesk Interactive Masked Shader](Autodesk-Interactive-Shader-Masked)
+      * [Autodesk Interactive Transparent Shader](Autodesk-Interactive-Shader-Transparent)
     * [AxF Shader](AxF-Shader)
     * [Decal Shader](Decal-Shader)
     * [Layered Lit Shader](Layered-Lit-Shader)
@@ -139,6 +145,7 @@
     * [Overview](Authoring-LUTs)
     * [Authoring in Adobe Photoshop](LUT-Authoring-Photoshop)
     * [Authoring in DaVinci Resolve](LUT-Authoring-Resolve)
+  * [Propagating NaNs](Post-Processing-Propagating-NaNs)
 * Ray Tracing
   * [Getting Started with Ray Tracing](Ray-Tracing-Getting-Started)
   * Effects and Volume Overrides

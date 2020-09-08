@@ -172,6 +172,18 @@ namespace UnityEngine.Rendering.HighDefinition
     };
 
     /// <summary>
+    /// Cluster visualization mode.
+    /// </summary>
+    [GenerateHLSL]
+    public enum ClusterDebugMode : int
+    {
+        /// <summary>Visualize Cluster on opaque objects.</summary>
+        VisualizeOpaque,
+        /// <summary>Visualize a slice of the Cluster at a given distance.</summary>
+        VisualizeSlice
+    }
+
+    /// <summary>
     /// Light Volume Debug Mode.
     /// </summary>
     public enum LightVolumeDebug : int
@@ -3589,7 +3601,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool sunLightShadow = sunLightData != null && m_CurrentShadowSortedSunLightIndex >= 0;
             cb._DirectionalShadowIndex = sunLightShadow ? m_CurrentShadowSortedSunLightIndex : -1;
             cb._EnableLightLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? 1u : 0u;
-            cb._EnableDecalLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers) ? 1u : 0u;            
+            cb._EnableDecalLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers) ? 1u : 0u;
             cb._EnvLightSkyEnabled = m_SkyManager.IsLightingSkyValid(hdCamera) ? 1 : 0;
 
             const float C = (float)(1 << k_Log2NumClusters);
@@ -4183,6 +4195,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // lightCategories
                         parameters.debugViewTilesMaterial.SetInt(HDShaderIDs._ViewTilesFlags, (int)lightingDebug.tileClusterDebugByCategory);
+                        parameters.debugViewTilesMaterial.SetInt(HDShaderIDs._ClusterDebugMode, bUseClustered ? (int)lightingDebug.clusterDebugMode : (int)ClusterDebugMode.VisualizeOpaque);
+                        parameters.debugViewTilesMaterial.SetFloat(HDShaderIDs._ClusterDebugDistance, lightingDebug.clusterDebugDistance);
                         parameters.debugViewTilesMaterial.SetVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(hdCamera));
                         parameters.debugViewTilesMaterial.SetVector(HDShaderIDs._MouseClickPixelCoord, HDUtils.GetMouseClickCoordinates(hdCamera));
                         parameters.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_vLightListGlobal, bUseClustered ? perVoxelLightListBuffer : lightListBuffer);
