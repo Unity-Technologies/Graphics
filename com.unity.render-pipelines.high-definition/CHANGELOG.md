@@ -63,6 +63,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ArgumentNullException when saving shader graphs after removing the compositor from the scene (case 1268658)
 - Fixed issue with updating the compositor output when not in play mode (case 1266216)
 - Fixed warning with area mesh (case 1268379)
+- Fixed issue with diffusion profile not being updated upon reset of the editor. 
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
