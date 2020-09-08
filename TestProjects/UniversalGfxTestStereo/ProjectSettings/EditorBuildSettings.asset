@@ -36,9 +36,6 @@ EditorBuildSettings:
     path: Assets/Scenes/012_xr_PostProc_FilmGrain.unity
     guid: 1d73c18c97cd7874dbec7c124a06557f
   - enabled: 1
-    path: Assets/Scenes/013_xr_PostProc_Tonemap.unity
-    guid: e9548878d17aa7b4995bd809fe1fe6a3
-  - enabled: 1
     path: Assets/Scenes/014_xr_PostProc_Bloom.unity
     guid: 976626cc568ea4e40b8255c49e3d51c3
   - enabled: 1
