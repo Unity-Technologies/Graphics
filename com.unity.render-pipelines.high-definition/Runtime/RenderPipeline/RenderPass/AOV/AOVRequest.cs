@@ -33,8 +33,6 @@ namespace UnityEngine.Rendering.HighDefinition
         None,
         /// <summary>Depth buffer.</summary>
         Depth,
-        WorldSpacePosition,
-        WorldSpaceVertexNormal,
         /// <summary>Screen space ambient occlusion buffer.</summary>
         ScreenSpaceAmbientOcclusion,
         /// <summary>Motion vectors buffer.</summary>
@@ -178,12 +176,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
                 case DebugFullScreen.Depth:
                     debug.SetFullScreenDebugMode(FullScreenDebugMode.DepthPyramid);
-                    break;
-                case DebugFullScreen.WorldSpacePosition:
-                    debug.SetFullScreenDebugMode(FullScreenDebugMode.WorldSpacePosition);
-                    break;
-                case DebugFullScreen.WorldSpaceVertexNormal:
-                    debug.SetDebugViewVarying(DebugViewVarying.VertexNormalWS);
                     break;
                 case DebugFullScreen.ScreenSpaceAmbientOcclusion:
                     debug.SetFullScreenDebugMode(FullScreenDebugMode.ScreenSpaceAmbientOcclusion);
