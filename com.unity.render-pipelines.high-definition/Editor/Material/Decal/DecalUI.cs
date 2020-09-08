@@ -104,7 +104,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected const string kEmissiveColorMap = "_EmissiveColorMap";
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
-        static public void SetupMaterialKeywordsAndPass(Material material)
+        static public void SetupDecalKeywordsAndPass(Material material)
         {
             // Setup color mask properties
             SetupCommonDecalMaterialKeywordsAndPass(material);
@@ -115,6 +115,6 @@ namespace UnityEditor.Rendering.HighDefinition
             CoreUtils.SetKeyword(material, "_EMISSIVEMAP", material.GetTexture(kEmissiveColorMap));
         }
 
-        protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
+        protected override void SetupMaterialKeywordsAndPass(Material material) => SetupDecalKeywordsAndPass(material);
     }
 }

@@ -76,7 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         const string kSpecularOcclusionMode = "_SpecularOcclusionMode";
 
-        protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
+        protected override void SetupMaterialKeywordsAndPass(Material material) => SetupLayeredLitKeywordsAndPass(material);
 
         static public void SetupLayersMappingKeywords(Material material)
         {
@@ -156,7 +156,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
-        static public void SetupMaterialKeywordsAndPass(Material material)
+        static public void SetupLayeredLitKeywordsAndPass(Material material)
         {
             BaseLitGUI.SetupBaseLitKeywords(material);
             BaseLitGUI.SetupBaseLitMaterialPass(material);

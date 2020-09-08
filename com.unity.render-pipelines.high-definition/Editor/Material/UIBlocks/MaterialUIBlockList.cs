@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// <summary>
     /// Wrapper to handle Material UI Blocks, it will handle initialization of the blocks when drawing the GUI.
     /// </summary>
-    class MaterialUIBlockList : List<MaterialUIBlock>
+    public class MaterialUIBlockList : List<MaterialUIBlock>
     {
         [System.NonSerialized]
         bool                        m_Initialized = false;
@@ -44,7 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public MaterialUIBlockList() : this(null) {}
 
         /// <summary>
-        /// Render the list of ui blocks added contained in the materials property
+        /// Render the list of ui blocks
         /// </summary>
         /// <param name="materialEditor"></param>
         /// <param name="properties"></param>
@@ -62,7 +62,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Initialize the ui blocks, can be called at every frame, a guard is prevents more that one initialization
+        /// Initialize the ui blocks
         /// <remarks>This function is called automatically by MaterialUIBlockList.OnGUI so you only need this when you want to render the UI Blocks in a custom order</remarks>
         /// </summary>
         public void Initialize(MaterialEditor materialEditor, MaterialProperty[] properties)

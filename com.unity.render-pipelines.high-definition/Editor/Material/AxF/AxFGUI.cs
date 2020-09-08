@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition
             new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.Instancing | AdvancedOptionsUIBlock.Features.SpecularOcclusion | AdvancedOptionsUIBlock.Features.AddPrecomputedVelocity),
         };
 
-        protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
+        protected override void SetupMaterialKeywordsAndPass(Material material) => SetupAxFKeywordsAndPass(material);
 
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (changed.changed)
                 {
                     foreach (var material in uiBlocks.materials)
-                        SetupMaterialKeywordsAndPass(material);
+                        SetupAxFKeywordsAndPass(material);
                 }
             }
         }
@@ -97,7 +97,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
         
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
-        static public void SetupMaterialKeywordsAndPass(Material material)
+        static public void SetupAxFKeywordsAndPass(Material material)
         {
             material.SetupBaseUnlitKeywords();
             material.SetupBaseUnlitPass();

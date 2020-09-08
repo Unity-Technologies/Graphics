@@ -11,7 +11,10 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    internal class SurfaceOptionUIBlock : MaterialUIBlock
+    /// <summary>
+    /// Surface Option properties in the material inspector.
+    /// </summary>
+    public class SurfaceOptionUIBlock : MaterialUIBlock
     {
         [Flags]
         public enum Features

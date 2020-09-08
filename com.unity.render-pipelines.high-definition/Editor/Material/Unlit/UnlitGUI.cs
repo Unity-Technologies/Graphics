@@ -30,10 +30,10 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupUnlitMaterialKeywordsAndPass(material);
+        protected override void SetupMaterialKeywordsAndPass(Material material) => SetupUnlitKeywordsAndPass(material);
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
-        public static void SetupUnlitMaterialKeywordsAndPass(Material material)
+        public static void SetupUnlitKeywordsAndPass(Material material)
         {
             material.SetupBaseUnlitKeywords();
             material.SetupBaseUnlitPass();

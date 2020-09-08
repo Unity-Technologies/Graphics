@@ -45,11 +45,11 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
-        static public void SetupMaterialKeywordsAndPass(Material material)
+        static public void SetupDecalKeywordsAndPass(Material material)
         {
             DecalUI.SetupCommonDecalMaterialKeywordsAndPass(material);
         }
 
-        protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
+        protected override void SetupMaterialKeywordsAndPass(Material material) => SetupDecalKeywordsAndPass(material);
     }
 }

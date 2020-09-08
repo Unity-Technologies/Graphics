@@ -21,14 +21,14 @@ namespace UnityEditor.Rendering.HighDefinition
     /// Use this class to build your custom Shader GUI for HDRP.
     /// You can use a class that inherits from HDShaderGUI in the Shader Graph Custom EditorGUI field.
     /// </summary>
-    internal abstract class HDShaderGUI : ShaderGUI
+    public abstract class HDShaderGUI : ShaderGUI
     {
         internal protected bool m_FirstFrame = true;
 
         // The following set of functions are call by the ShaderGraph
         // It will allow to display our common parameters + setup keyword correctly for them
 
-        protected abstract void SetupMaterialKeywordsAndPassInternal(Material material);
+        protected abstract void SetupMaterialKeywordsAndPass(Material material);
 
         /// <summary>
         /// Unity calls this function when you assign a new shader to the material.
@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             base.AssignNewShaderToMaterial(material, oldShader, newShader);
 
-            SetupMaterialKeywordsAndPassInternal(material);
+            SetupMaterialKeywordsAndPass(material);
         }
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_FirstFrame = false;
 
                 foreach (var material in materials)
-                    SetupMaterialKeywordsAndPassInternal(material);
+                    SetupMaterialKeywordsAndPass(material);
             }
         }
 

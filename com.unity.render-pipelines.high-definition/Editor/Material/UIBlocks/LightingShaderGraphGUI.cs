@@ -9,18 +9,23 @@ namespace UnityEditor.Rendering.HighDefinition
     /// <summary>
     /// Common GUI for Lit ShaderGraphs
     /// </summary>
-    internal class LightingShaderGraphGUI : HDShaderGUI
+    public class LightingShaderGraphGUI : HDShaderGUI
     {
         // For surface option shader graph we only want all unlit features but alpha clip and back then front rendering
         const SurfaceOptionUIBlock.Features   surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Lit
             | SurfaceOptionUIBlock.Features.ShowDepthOffsetOnly;
 
-        MaterialUIBlockList uiBlocks = new MaterialUIBlockList
+        MaterialUIBlockList m_UIBlocks = new MaterialUIBlockList
         {
             new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, features: surfaceOptionFeatures),
             new ShaderGraphUIBlock(MaterialUIBlock.Expandable.ShaderGraph),
             new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, ~AdvancedOptionsUIBlock.Features.SpecularOcclusion)
         };
+
+        /// <summary>
+        /// List of UI Blocks used to render the material inspector.
+        /// </summary>
+        protected MaterialUIBlockList uiBlocks => m_UIBlocks;
 
         /// <summary>
         /// Implement your custom GUI in this function. To display a UI similar to HDRP shaders, use a MaterialUIBlock.
@@ -31,8 +36,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             using (var changed = new EditorGUI.ChangeCheckScope())
             {
-                uiBlocks.OnGUI(materialEditor, props);
-                ApplyKeywordsAndPassesIfNeeded(changed.changed, uiBlocks.materials);
+                m_UIBlocks.OnGUI(materialEditor, props);
+                ApplyKeywordsAndPassesIfNeeded(changed.changed, m_UIBlocks.materials);
             }
         }
 
@@ -40,7 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// Sets up the keywords and passes for a Lit Shader Graph material.
         /// </summary>
         /// <param name="material">The target material.</param>
-        public static void SetupMaterialKeywordsAndPass(Material material)
+        public static void SetupLightingKeywordsAndPass(Material material)
         {
             SynchronizeShaderGraphProperties(material);
 
@@ -59,6 +64,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreUtils.SetKeyword(material, "_ADD_PRECOMPUTED_VELOCITY", material.GetInt(kAddPrecomputedVelocity) != 0);
         }
 
-        protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
+        protected override void SetupMaterialKeywordsAndPass(Material material) => SetupLightingKeywordsAndPass(material);
     }
 }

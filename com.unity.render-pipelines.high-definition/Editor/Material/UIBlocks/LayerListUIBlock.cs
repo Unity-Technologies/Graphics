@@ -187,7 +187,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 foreach (var mat in materials)
                 {
-                    LayeredLitGUI.SetupMaterialKeywordsAndPass(mat);
+                    LayeredLitGUI.SetupLayeredLitKeywordsAndPass(mat);
                 }
 
                 // SaveAssetsProcessor the referenced material in the users data

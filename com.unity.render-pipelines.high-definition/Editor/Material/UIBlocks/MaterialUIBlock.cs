@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// <summary>
     /// Base implementation of a material GUI block to be disabled in the material inspector.
     /// </summary>
-    abstract class MaterialUIBlock
+    public abstract class MaterialUIBlock
     {
         /// <summary>The current material editor.</summary>
         protected MaterialEditor        materialEditor;
@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected MaterialUIBlockList   parent;
 
         [Flags]
-        internal enum Expandable : uint
+        public enum Expandable : uint
         {
             // Standard
             Base = 1<<0,
@@ -35,7 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition
             Advance = 1<<7,
             Other = 1 << 8,
             ShaderGraph = 1 << 9,
-
+            // Free slot 10
             // Layered
             MainLayer = 1 << 11,
             Layer1 = 1 << 12,
@@ -57,6 +57,55 @@ namespace UnityEditor.Rendering.HighDefinition
             LayeringOption1 = 1 << 28,
             LayeringOption2 = 1 << 29,
             LayeringOption3 = 1 << 30
+
+        }
+
+        // Note that we use the bit reserved for layered material UI in this enum, we can do this
+        // because this enum will be used for ShaderGraph custom UI and we can't author layered
+        // shader in shadergraph.
+        /// <summary>Bit index used to store a foldout state in the editor preferences.</summary>
+        public enum UserExpandableBit
+        {
+            ///<summary>User Bit 0</summary>
+            User0 = 1 << 11,
+            ///<summary></summary>
+            User1 = 1 << 12,
+            ///<summary></summary>
+            User2 = 1 << 13,
+            ///<summary></summary>
+            User3 = 1 << 14,
+            ///<summary></summary>
+            User4 = 1 << 15,
+            ///<summary></summary>
+            User5 = 1 << 16,
+            ///<summary></summary>
+            User6 = 1 << 17,
+            ///<summary></summary>
+            User7 = 1 << 18,
+            ///<summary></summary>
+            User8 = 1 << 19,
+            ///<summary></summary>
+            User9 = 1 << 20,
+            ///<summary></summary>
+            User10 = 1 << 21,
+            ///<summary></summary>
+            User11 = 1 << 22,
+            ///<summary></summary>
+            User12 = 1 << 23,
+            ///<summary></summary>
+            User13 = 1 << 24,
+            ///<summary></summary>
+            User14 = 1 << 25,
+            ///<summary></summary>
+            User15 = 1 << 26,
+            ///<summary></summary>
+            User16 = 1 << 27,
+            ///<summary></summary>
+            User17 = 1 << 28,
+            ///<summary></summary>
+            User18 = 1 << 29,
+            ///<summary></summary>
+            User19 = 1 << 30,
         }
 
         internal void         Initialize(MaterialEditor materialEditor, MaterialProperty[] properties, MaterialUIBlockList parent)

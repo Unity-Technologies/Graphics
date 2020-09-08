@@ -39,12 +39,12 @@ namespace UnityEditor.Rendering.HighDefinition
         /// Sets up the keywords and passes for an Unlit Shader Graph material.
         /// </summary>
         /// <param name="material">The target material.</param>
-        public static void SetupMaterialKeywordsAndPass(Material material)
+        public static void SetupUnlitKeywordsAndPass(Material material)
         {
             SynchronizeShaderGraphProperties(material);
-            UnlitGUI.SetupUnlitMaterialKeywordsAndPass(material);
+            UnlitGUI.SetupUnlitKeywordsAndPass(material);
         }
 
-        protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
+        protected override void SetupMaterialKeywordsAndPass(Material material) => SetupUnlitKeywordsAndPass(material);
     }
 }
