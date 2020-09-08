@@ -765,7 +765,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateSkyEnvironment)))
                     {
-                        Debug.Log("Update Sky Lighting");
+                        // Debug.Log("Update Sky Lighting");
                         RenderSkyToCubemap(skyContext);
 
                         if (updateAmbientProbe)
