@@ -1,4 +1,4 @@
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DataExtraction.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DataExtraction.hlsl"
 
 void BuildInputData(Varyings input, SurfaceDescription surfaceDescription, out InputData inputData)
 {

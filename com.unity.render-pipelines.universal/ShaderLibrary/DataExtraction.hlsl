@@ -16,19 +16,6 @@ int UNITY_DataExtraction_Space;
 #define RENDER_OCCLUSION_R             12
 #define RENDER_DIFFUSE_COLOR_RGBA      13
 
-
-void ConvertSpecularToMetallic(float3 diffuseColor, float3 specularColor, out float3 baseColor, out float metallic)
-{
-    metallic = saturate( (Max3(specularColor.r, specularColor.g, specularColor.b) - 0.1F) / 0.45F);
-    baseColor = lerp(diffuseColor, specularColor, metallic);
-}
-
-void ConvertMetallicToSpecular(float3 baseColor, float metallic, out float3 diffuseColor, out float3 specularColor)
-{
-    diffuseColor = ComputeDiffuseColor(baseColor, metallic);
-    specularColor = ComputeFresnel0(baseColor, metallic, DEFAULT_SPECULAR_VALUE);
-}
-
 struct ExtractionInputs
 {
     float3 vertexNormalWS;
@@ -64,7 +51,7 @@ float4 OutputExtraction(ExtractionInputs inputs)
     #endif
 
     if (UNITY_DataExtraction_Mode == RENDER_OBJECT_ID)
-        return asint(unity_LODFade.z);
+        return float4(asint(unity_LODFade.z), 0, 0, 1);
     //@TODO
     if (UNITY_DataExtraction_Mode == RENDER_DEPTH)
         return 0;
@@ -78,17 +65,17 @@ float4 OutputExtraction(ExtractionInputs inputs)
     if (UNITY_DataExtraction_Mode == RENDER_BASE_COLOR_RGBA)
         return float4(baseColor, inputs.alpha);
     if (UNITY_DataExtraction_Mode == RENDER_SPECULAR_RGB)
-        return float4(specular, 1);
+        return float4(specular.xxx, 1);
     if (UNITY_DataExtraction_Mode == RENDER_METALLIC_R)
-        return float4(metallic, 0.0, 0.0, 1.0);
+        return float4(metallic.xxx, 1.0);
     if (UNITY_DataExtraction_Mode == RENDER_EMISSION_RGB)
         return float4(inputs.emission, 1.0);
     if (UNITY_DataExtraction_Mode == RENDER_WORLD_NORMALS_PIXEL_RGB)
         return float4(PackNormalRGB(inputs.pixelNormalWS), 1.0f);
     if (UNITY_DataExtraction_Mode == RENDER_SMOOTHNESS_R)
-        return float4(inputs.smoothness, 0.0, 0.0, 1.0);
+        return float4(inputs.smoothness.xxx, 1.0);
     if (UNITY_DataExtraction_Mode == RENDER_OCCLUSION_R)
-       return float4(inputs.occlusion, 0.0, 0.0, 1.0);
+       return float4(inputs.occlusion.xxx, 1.0);
     if (UNITY_DataExtraction_Mode == RENDER_DIFFUSE_COLOR_RGBA)
        return float4(diffuse, inputs.alpha);
 
