@@ -20,12 +20,14 @@ namespace UnityEngine.Rendering.Universal
 
         // XR SDK display interface
         static List<XRDisplaySubsystem> displayList = new List<XRDisplaySubsystem>();
-        XRDisplaySubsystem display = null;
+        XRDisplaySubsystem              display = null;
+        // XRSDK does not support msaa per XR display. All displays share the same msaa level.
+        static  int                     msaaLevel = 1;
 
         // Internal resources used by XR rendering
-        Material occlusionMeshMaterial = null;
-        Material mirrorViewMaterial = null;
-        MaterialPropertyBlock mirrorViewMaterialProperty = new MaterialPropertyBlock();
+        Material                        occlusionMeshMaterial = null;
+        Material                        mirrorViewMaterial = null;
+        MaterialPropertyBlock           mirrorViewMaterialProperty = new MaterialPropertyBlock();
 
         RenderTexture testRenderTexture = null;
 
@@ -84,6 +86,12 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 0; i < displayList.Count; i++)
                 displayList[i].SetMSAALevel(level);
 #endif
+            msaaLevel = level;
+        }
+
+        internal static int GetMSAALevel()
+        {
+            return msaaLevel;
         }
 
         internal static void UpdateRenderScale(float renderScale)
