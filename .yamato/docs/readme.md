@@ -358,6 +358,7 @@ override_editors:
 
 
 ### {project_name}.metafile: project jobs configuration
+If the project is just a high-level job only consisting of dependencies, then `project.folder`, `test_platforms`, and `platforms` can be left out (i.e. you only need to specify `project.name` and `all.dependencies`).
 ```
 # project details
 project:
