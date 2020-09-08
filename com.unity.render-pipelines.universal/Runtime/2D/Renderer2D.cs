@@ -11,6 +11,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         PostProcessPass m_PostProcessPass;
         FinalBlitPass m_FinalBlitPass;
         PostProcessPass m_FinalPostProcessPass;
+        Light2DCullResult m_LightCullResult;
 
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Create Camera Textures");
 
@@ -55,6 +56,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 cameraStacking = true,
             };
+
+            m_LightCullResult = new Light2DCullResult();
+            m_Renderer2DData.lightCullResult = m_LightCullResult;
         }
 
         protected override void Dispose(bool disposing)
@@ -219,6 +223,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cullingParameters.cullingOptions = CullingOptions.None;
             cullingParameters.isOrthographic = cameraData.camera.orthographic;
             cullingParameters.shadowDistance = 0.0f;
+            m_LightCullResult.SetupCulling(ref cullingParameters, cameraData.camera);
         }
 
         public override void FinishRendering(CommandBuffer cmd)
