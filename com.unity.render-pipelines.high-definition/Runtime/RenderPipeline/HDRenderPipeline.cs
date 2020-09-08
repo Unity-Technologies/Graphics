@@ -409,6 +409,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
+            var defaultLensAttenuation = m_DefaultAsset.lensAttenuationMode;
+            if (defaultLensAttenuation == LensAttenuationMode.ImperfectLens)
+            {
+                ColorUtils.s_LensAttenuation = 0.65f;
+            }
+            else if (defaultLensAttenuation == LensAttenuationMode.PerfectLens)
+            {
+                ColorUtils.s_LensAttenuation = 0.78f;
+            }
+
 #if ENABLE_VIRTUALTEXTURES
             VirtualTexturingSettingsSRP settings = asset.virtualTexturingSettings;
 
@@ -2306,9 +2316,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_CurrentDebugDisplaySettings = m_DebugDisplaySettings;
             }
-
-            // Now that we have the display settings, we can setup the lens attenuation factor.
-            ColorUtils.s_LensAttenuation = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLensAttenuation;
 
             aovRequest.SetupDebugData(ref m_CurrentDebugDisplaySettings);
 
