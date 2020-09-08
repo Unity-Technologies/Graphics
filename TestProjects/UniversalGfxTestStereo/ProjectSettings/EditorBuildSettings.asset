@@ -45,6 +45,9 @@ EditorBuildSettings:
     path: Assets/Scenes/015_xr_Camera_FXAA.unity
     guid: 87d52919694318342adeb912caaf63a1
   - enabled: 1
+    path: Assets/Scenes/016_xr_Camera_SMAA.unity
+    guid: 35939b3e05b232141b4f92be0657cf6f
+  - enabled: 1
     path: Assets/Scenes/017_xr_Particles_Additive.unity
     guid: 65d99b408a8134214906126ccdea532f
   - enabled: 1
@@ -62,9 +65,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/126_SampleDepth.unity
     guid: d66b74ae4e7264d62bdb2c4f56261030
-  - enabled: 1
-    path: Assets/Scenes/016_xr_Camera_SMAA.unity
-    guid: 35939b3e05b232141b4f92be0657cf6f
   m_configObjects:
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 82dc1c7729e14374592a84ca219d6b0a,
       type: 2}
