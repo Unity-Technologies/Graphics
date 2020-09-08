@@ -60,6 +60,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Preparation pass for RTSSShadows to be supported by render graph.
 - Changed the way the ray tracing property is displayed on the material (QOL 1265297).
 - Exposed lens attenuation mode in default settings and remove it as a debug mode.
+- On platforms that allow it skip the first mip of the depth pyramid and compute it alongside the depth buffer used for low res transparents.
 
 ## [10.0.0] - 2019-06-10
 
