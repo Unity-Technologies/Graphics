@@ -50,8 +50,6 @@ Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData pun
 {
     // Keep in sync with GetAdditionalPerObjectLight in Lighting.hlsl
 
-    half4 probesOcclusion = shadowMask;
-
     Light light;
 
     float3 lightVector = punctualLightData.posWS - positionWS.xyz;
@@ -66,12 +64,10 @@ Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData pun
 
     light.distanceAttenuation = attenuation;
 
-    light.occlusionProbeChannels = punctualLightData.occlusionProbeInfo;
-
     [branch] if (materialFlagReceiveShadowsOff)
         light.shadowAttenuation = 1.0;
     else
-        light.shadowAttenuation = AdditionalLightRealtimeShadow(punctualLightData.shadowLightIndex, positionWS);
+        light.shadowAttenuation = AdditionalLightShadow(punctualLightData.shadowLightIndex, positionWS, shadowMask, punctualLightData.occlusionProbeInfo);
     return light;
 }
 

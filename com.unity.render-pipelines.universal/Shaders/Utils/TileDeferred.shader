@@ -260,7 +260,6 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 [branch] if (dot(L, L) < light.radius2)
                 {
                     Light unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, materialReceiveShadowsOff);
-                    MixRealtimeAndBakedShadows(unityLight, posWS.xyz, shadowMask);
                     color += LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS, materialSpecularHighlightsOff);
                 }
             }
@@ -283,7 +282,6 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 [branch] if (dot(L, L) < light.radius2)
                 {
                     Light unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, materialReceiveShadowsOff);
-                    MixRealtimeAndBakedShadows(unityLight, posWS.xyz, shadowMask);
 
                     half3 attenuatedLightColor = unityLight.color * (unityLight.distanceAttenuation * unityLight.shadowAttenuation);
                     half3 diffuseColor = LightingLambert(attenuatedLightColor, unityLight.direction, inputData.normalWS);

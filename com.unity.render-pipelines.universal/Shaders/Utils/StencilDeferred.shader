@@ -180,16 +180,15 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             unityLight.direction = _LightDirection;
             unityLight.color = _LightColor.rgb;
             unityLight.distanceAttenuation = 1.0;
-            unityLight.occlusionProbeChannels = _LightOcclusionProbInfo;
             if (materialReceiveShadowsOff)
                 unityLight.shadowAttenuation = 1.0;
             else
             {
                 #if defined(_MAIN_LIGHT_SHADOWS)
                     float4 shadowCoord = TransformWorldToShadowCoord(posWS.xyz);
-                    unityLight.shadowAttenuation = MainLightRealtimeShadow(shadowCoord);
+                    unityLight.shadowAttenuation = MainLightShadow(shadowCoord, posWS.xyz, shadowMask, _LightOcclusionProbInfo);
                 #elif defined(_DEFERRED_ADDITIONAL_LIGHT_SHADOWS)
-                    unityLight.shadowAttenuation = AdditionalLightRealtimeShadow(_ShadowLightIndex, posWS.xyz);
+                    unityLight.shadowAttenuation = AdditionalLightShadow(_ShadowLightIndex, posWS.xyz, shadowMask, _LightOcclusionProbInfo);
                 #else
                     unityLight.shadowAttenuation = 1.0;
                 #endif
@@ -206,8 +205,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             light.shadowLightIndex = _ShadowLightIndex;
             unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, materialReceiveShadowsOff);
         #endif
-
-        MixRealtimeAndBakedShadows(unityLight, posWS.xyz, shadowMask);
 
         half3 color = 0.0.xxx;
 

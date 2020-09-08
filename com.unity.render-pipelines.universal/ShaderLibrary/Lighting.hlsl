@@ -52,7 +52,6 @@ struct Light
     half3   color;
     half    distanceAttenuation;
     half    shadowAttenuation;
-    half4   occlusionProbeChannels;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -112,7 +111,6 @@ Light GetMainLight()
     light.distanceAttenuation = unity_LightData.z; // unity_LightData.z is 1 when not culled by the culling mask, otherwise 0.
     light.shadowAttenuation = 1.0;
     light.color = _MainLightColor.rgb;
-    light.occlusionProbeChannels = _MainLightOcclusionProbes;
 
     return light;
 }
@@ -121,6 +119,13 @@ Light GetMainLight(float4 shadowCoord)
 {
     Light light = GetMainLight();
     light.shadowAttenuation = MainLightRealtimeShadow(shadowCoord);
+    return light;
+}
+
+Light GetMainLight(float4 shadowCoord, float3 positionWS, half4 shadowMask)
+{
+    Light light = GetMainLight();
+    light.shadowAttenuation = MainLightShadow(shadowCoord, positionWS, shadowMask, _MainLightOcclusionProbes);
     return light;
 }
 
@@ -133,13 +138,11 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
     half3 color = _AdditionalLightsBuffer[perObjectLightIndex].color.rgb;
     half4 distanceAndSpotAttenuation = _AdditionalLightsBuffer[perObjectLightIndex].attenuation;
     half4 spotDirection = _AdditionalLightsBuffer[perObjectLightIndex].spotDirection;
-    half4 occlusionProbeChannels = _AdditionalLightsBuffer[perObjectLightIndex].occlusionProbeChannels;
 #else
     float4 lightPositionWS = _AdditionalLightsPosition[perObjectLightIndex];
     half3 color = _AdditionalLightsColor[perObjectLightIndex].rgb;
     half4 distanceAndSpotAttenuation = _AdditionalLightsAttenuation[perObjectLightIndex];
     half4 spotDirection = _AdditionalLightsSpotDir[perObjectLightIndex];
-    half4 occlusionProbeChannels = _AdditionalLightsOcclusionProbes[perObjectLightIndex];
 #endif
 
     // Directional lights store direction in lightPosition.xyz and have .w set to 0.0.
@@ -153,9 +156,8 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
     Light light;
     light.direction = lightDirection;
     light.distanceAttenuation = attenuation;
-    light.shadowAttenuation = AdditionalLightRealtimeShadow(perObjectLightIndex, positionWS);
+    light.shadowAttenuation = 1.0;
     light.color = color;
-    light.occlusionProbeChannels = occlusionProbeChannels;
 
     return light;
 }
@@ -218,6 +220,21 @@ Light GetAdditionalLight(uint i, float3 positionWS)
 {
     int perObjectLightIndex = GetPerObjectLightIndex(i);
     return GetAdditionalPerObjectLight(perObjectLightIndex, positionWS);
+}
+
+Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
+{
+    int perObjectLightIndex = GetPerObjectLightIndex(i);
+    Light light = GetAdditionalPerObjectLight(perObjectLightIndex, positionWS);
+
+#if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
+    half4 occlusionProbeChannels = _AdditionalLightsBuffer[perObjectLightIndex].occlusionProbeChannels;
+#else
+    half4 occlusionProbeChannels = _AdditionalLightsOcclusionProbes[perObjectLightIndex];
+#endif
+    light.shadowAttenuation = AdditionalLightShadow(perObjectLightIndex, positionWS, shadowMask, occlusionProbeChannels);
+
+    return light;
 }
 
 int GetAdditionalLightsCount()
@@ -649,29 +666,17 @@ half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3
     return GlobalIllumination(brdfData, noClearCoat, 0.0, bakedGI, occlusion, normalWS, viewDirectionWS);
 }
 
-void MixRealtimeAndBakedShadows(inout Light light, float3 positionWS, half4 shadowMask)
-{
-    half bakedShadowAttenuation = light.occlusionProbeChannels.x >= 0 ? dot(shadowMask, light.occlusionProbeChannels) : 1.0h;
-
-#if defined(LIGHTMAP_SHADOW_MIXING)
-    light.shadowAttenuation = min(ApplyShadowFade(light.shadowAttenuation, positionWS), bakedShadowAttenuation);
-#else
-    light.shadowAttenuation = ApplyShadowFade(light.shadowAttenuation, bakedShadowAttenuation, positionWS);
-#endif
-}
-
-// Backwards compatiblity
-void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI, half4 shadowMask)
+void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI)
 {
 #if defined(LIGHTMAP_ON) && defined(_MIXED_LIGHTING_SUBTRACTIVE)
     bakedGI = SubtractDirectMainLightFromLightmap(light, normalWS, bakedGI);
 #endif
 }
 
-void MixRealtimeAndBakedGI(inout Light light, float3 positionWS, half3 normalWS, inout half3 bakedGI, half4 shadowMask)
+// Backwards compatiblity
+void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI, half4 shadowMask)
 {
-    MixRealtimeAndBakedShadows(light, positionWS, shadowMask);
-    MixRealtimeAndBakedGI(light, normalWS, bakedGI, shadowMask);
+    MixRealtimeAndBakedGI(light, normalWS, bakedGI);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -810,7 +815,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     InitializeBRDFDataClearCoat(surfaceData.clearCoatMask, surfaceData.clearCoatSmoothness, brdfData, brdfDataClearCoat);
 #endif
 
-    Light mainLight = GetMainLight(inputData.shadowCoord);
+    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
 
     #if defined(_SCREEN_SPACE_OCCLUSION)
         AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(inputData.normalizedScreenSpaceUV);
@@ -818,7 +823,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
         surfaceData.occlusion = min(surfaceData.occlusion, aoFactor.indirectAmbientOcclusion);
     #endif
 
-    MixRealtimeAndBakedGI(mainLight, inputData.positionWS, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI);
     half3 color = GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
                                      inputData.bakedGI, surfaceData.occlusion,
                                      inputData.normalWS, inputData.viewDirectionWS);
@@ -831,8 +836,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     uint pixelLightCount = GetAdditionalLightsCount();
     for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
     {
-        Light light = GetAdditionalLight(lightIndex, inputData.positionWS);
-        MixRealtimeAndBakedShadows(light, inputData.positionWS, inputData.shadowMask);
+        Light light = GetAdditionalLight(lightIndex, inputData.positionWS, inputData.shadowMask);
         #if defined(_SCREEN_SPACE_OCCLUSION)
             light.color *= aoFactor.directAmbientOcclusion;
         #endif
@@ -870,7 +874,7 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
 
 half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)
 {
-    Light mainLight = GetMainLight(inputData.shadowCoord);
+    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
 
     #if defined(_SCREEN_SPACE_OCCLUSION)
         AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(inputData.normalizedScreenSpaceUV);
@@ -878,7 +882,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
         inputData.bakedGI *= aoFactor.indirectAmbientOcclusion;
     #endif
 
-    MixRealtimeAndBakedGI(mainLight, inputData.positionWS, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI);
 
     half3 attenuatedLightColor = mainLight.color * (mainLight.distanceAttenuation * mainLight.shadowAttenuation);
     half3 diffuseColor = inputData.bakedGI + LightingLambert(attenuatedLightColor, mainLight.direction, inputData.normalWS);
@@ -888,8 +892,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     uint pixelLightCount = GetAdditionalLightsCount();
     for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
     {
-        Light light = GetAdditionalLight(lightIndex, inputData.positionWS);
-        MixRealtimeAndBakedShadows(light, inputData.positionWS, inputData.shadowMask);
+        Light light = GetAdditionalLight(lightIndex, inputData.positionWS, inputData.shadowMask);
         #if defined(_SCREEN_SPACE_OCCLUSION)
             light.color *= aoFactor.directAmbientOcclusion;
         #endif
