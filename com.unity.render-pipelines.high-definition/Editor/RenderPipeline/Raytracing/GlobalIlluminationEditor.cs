@@ -41,8 +41,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_DenoiserRadius;
         SerializedDataParameter m_SecondDenoiserPass;
 
-        public override bool hasAdvancedMode => true;
-
         public override void OnEnable()
         {
             base.OnEnable();

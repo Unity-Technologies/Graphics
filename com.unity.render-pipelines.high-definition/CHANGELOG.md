@@ -52,6 +52,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed TAA issue and hardware dynamic resolution.
 - Fixed a static lighting flickering issue caused by having an active planar probe in the scene while rendering inspector preview.
 - Fixed an issue where even when set to OnDemand, the sky lighting would still be updated when changing sky parameters.
+- Fixed an error message trigerred when a mesh has more than 32 sub-meshes (case 1274508).
+- Fixed RTGI getting noisy for grazying angle geometry (case 1266462).
+- Fixed an issue with TAA history management on pssl.
+- Fixed the global illumination volume override having an unwanted advanced mode (case 1270459).
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
@@ -811,9 +815,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed multiple volumes, planar reflection, and decal projector position when creating them from the menu.
 - Reduced the number of global keyword used in deferredTile.shader
 - Fixed incorrect processing of Ambient occlusion probe (9% error was introduced)
-- Fixed an error message trigerred when a mesh has more than 32 sub-meshes (case 1274508).
-- Fixed RTGI getting noisy for grazying angle geometry (case 1266462).
-- Fixed an issue with TAA history management on pssl.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
