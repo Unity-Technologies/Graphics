@@ -472,6 +472,16 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             path = EditorUtility.SaveFilePanelInProject("Save Sub Graph", "New Shader Sub Graph", ShaderSubGraphImporter.Extension, "", path);
             path = path.Replace(Application.dataPath, "Assets");
+
+            // Friendly warning that the user is generating a subgraph that would overwrite the one they are currently working on.
+            if (AssetDatabase.AssetPathToGUID(path) == selectedGuid)
+            {             
+                if (!EditorUtility.DisplayDialog("Overwrite Current Subgraph", "Do you want to overwrite this Sub Graph that you are currently working on? You cannot undo this operation.", "Yes", "Cancel"))
+                {
+                    path = "";
+                }
+            }
+
             if (path.Length == 0)
                 return;
 
