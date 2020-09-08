@@ -23,11 +23,11 @@ namespace UnityEditor.ShaderGraph
 
         ShaderStringBuilder m_Builder;
         List<PropertyCollector.TextureInfo> m_ConfiguredTextures;
-        List<string> m_AssetDependencyPaths;
+        HashSet<GUID> m_AssetDependencyGUIDs;
 
         public string generatedShader => m_Builder.ToCodeBlock();
         public List<PropertyCollector.TextureInfo> configuredTextures => m_ConfiguredTextures;
-        public List<string> assetDependencyPaths => m_AssetDependencyPaths;
+        public HashSet<GUID> assetDependencyGUIDs => m_AssetDependencyGUIDs;
         public List<BlockNode> blocks => m_Blocks;
 
         public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name)
@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph
 
             m_Builder = new ShaderStringBuilder();
             m_ConfiguredTextures = new List<PropertyCollector.TextureInfo>();
-            m_AssetDependencyPaths = new List<string>();
+            m_AssetDependencyGUIDs = new HashSet<GUID>();
 
             m_Blocks = graphData.GetNodes<BlockNode>().ToList();
             GetTargetImplementations();
@@ -55,14 +55,6 @@ namespace UnityEditor.ShaderGraph
             else
             {
                 m_Targets = new Target[] { new PreviewTarget() };
-            }
-        }
-
-        void GetAssetDependencyPaths(TargetSetupContext context)
-        {
-            foreach(string assetDependency in context.assetDependencyPaths)
-            {
-                m_AssetDependencyPaths.Add(assetDependency);
             }
         }
 
@@ -145,11 +137,10 @@ namespace UnityEditor.ShaderGraph
 
                 for(int i = 0; i < m_Targets.Length; i++)
                 {
-                    TargetSetupContext context = new TargetSetupContext();
+                    TargetSetupContext context = new TargetSetupContext(m_AssetDependencyGUIDs);
 
                     // Instead of setup target, we can also just do get context
                     m_Targets[i].Setup(ref context);
-                    GetAssetDependencyPaths(context);
 
                     foreach(var subShader in context.subShaders)
                     {
@@ -798,7 +789,7 @@ namespace UnityEditor.ShaderGraph
 
             // Process Template
             var templatePreprocessor = new ShaderSpliceUtil.TemplatePreprocessor(activeFields, spliceCommands,
-                isDebug, sharedTemplateDirectories, m_AssetDependencyPaths);
+                isDebug, sharedTemplateDirectories, m_AssetDependencyGUIDs);
             templatePreprocessor.ProcessTemplateFile(passTemplatePath);
             m_Builder.Concat(templatePreprocessor.GetShaderCode());
         }

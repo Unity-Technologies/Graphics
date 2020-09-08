@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
     sealed class UniversalLitSubTarget : SubTarget<UniversalTarget>, ILegacyTarget
     {
-        const string kAssetGuid = "d6c78107b64145745805d963de80cc17";
+        static readonly GUID kAssetGuid = new GUID("d6c78107b64145745805d963de80cc17"); // UniversalLitSubTarget.cs
 
         [SerializeField]
         WorkflowMode m_WorkflowMode = WorkflowMode.Metallic;
@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void Setup(ref TargetSetupContext context)
         {
-            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
+            context.AddAssetDependencyGUID(kAssetGuid);
             context.SetDefaultShaderGUI("ShaderGraph.PBRMasterGUI"); // TODO: This should be owned by URP
 
             // Process SubShaders

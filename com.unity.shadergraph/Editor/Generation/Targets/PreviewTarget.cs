@@ -8,6 +8,8 @@ namespace UnityEditor.ShaderGraph
 {
     sealed class PreviewTarget : Target
     {
+        static readonly GUID kAssetGuid = new GUID("7464b9fcde08e5645a16b9b8ae1e573c");
+
         public PreviewTarget()
         {
             displayName = "Preview";
@@ -18,7 +20,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void Setup(ref TargetSetupContext context)
         {
-            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("7464b9fcde08e5645a16b9b8ae1e573c")); // PreviewTarget
+            context.AddAssetDependencyGUID(kAssetGuid);
             context.AddSubShader(SubShaders.Preview);
         }
 
