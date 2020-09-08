@@ -95,7 +95,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var icount = 0;
             const float kClipperScale = 10000.0f;
             var meshInteriorColor = new Color(1.0f,0,0,1.0f);
-            var meshExteriorColor = new Color(0.0f,0,0,0.5f);
+            var meshExteriorColor = new Color(0.0f,0,0,0.0f);
             var convexPath = shapePath;
             var vertices = new NativeArray<ParametricLightMeshVertex>(convexPath.Length * 128, Allocator.Temp);
             var indices = new NativeArray<ushort>(convexPath.Length * 128, Allocator.Temp);
@@ -128,36 +128,65 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             if (solution.Count > 0)
             {
+
                 path = solution[0];
+                path.Add(path[0]);
 
-                var iout = 0;
-                var outer = new ContourVertex[innerShapeVertexCount + 2 + path.Count];
-                var pathSize = path.Count - 1;
-                var pathMod = (pathSize / innerShapeVertexCount) + 1;
-                string debug = "";
-                for (var i = 0; i < innerShapeVertexCount + 1; ++i)
+                for (int i = 1; i < path.Count; ++i)
                 {
-                    outer[iout++] = inner[i];
-                    debug += String.Format("<{0}>{1}, {2}\n", i, inner[i].Position.X, inner[i].Position.Y);
-                }
+                    var prev = path[i - 1];
+                    var curr = path[i];
+                    var prevPoint = new float2(prev.X / kClipperScale, prev.Y / kClipperScale);
+                    var currPoint = new float2(curr.X / kClipperScale, curr.Y / kClipperScale);
 
-                for (var i = pathSize; i >= 0; --i)
-                {
-                    var p = new float2(path[i].X / kClipperScale, path[i].Y / kClipperScale);
-                    outer[iout++] = new ContourVertex()
+                    if (prev.N != curr.N)
                     {
-                        Position = new Vec3() {X = p.x, Y = p.y, Z = 0},
-                        // Data = new Color((float)path[i].NX, (float)path[i].NY, 0, 0)
-                        Data = meshExteriorColor
-                    };
-                    debug += String.Format("[{0}, {1}] {2}, {3}\n", i, path[i].N, p.x, p.y);
-                }
-                outer[iout++] = outer[innerShapeVertexCount + 1];
-                Debug.Log(debug);
+                        vertices[vcount++] = new ParametricLightMeshVertex()
+                        {
+                            position =
+                                new float3(inner[prev.N].Position.X, inner[prev.N].Position.Y, 0),
+                            color = meshInteriorColor
+                        };
+                        vertices[vcount++] = new ParametricLightMeshVertex()
+                        {
+                            position =
+                                new float3(inner[curr.N].Position.X, inner[curr.N].Position.Y, 0),
+                            color = meshInteriorColor
+                        };
+                        vertices[vcount++] = new ParametricLightMeshVertex()
+                        {
+                            position =
+                                new float3(currPoint.x, currPoint.y, 0),
+                            color = meshExteriorColor
+                        };
+                        indices[icount++] = (ushort)(vcount - 3);
+                        indices[icount++] = (ushort)(vcount - 2);
+                        indices[icount++] = (ushort)(vcount - 1);
+                    }
 
-                var edgeTess = new Tess();
-                edgeTess.AddContour(outer, ContourOrientation.Original);
-                bounds = Tessellate(edgeTess, ElementType.Polygons, indices, vertices, ref vcount, ref icount);
+                    vertices[vcount++] = new ParametricLightMeshVertex()
+                    {
+                        position =
+                            new float3(inner[prev.N].Position.X, inner[prev.N].Position.Y, 0),
+                        color = meshInteriorColor
+                    };
+                    vertices[vcount++] = new ParametricLightMeshVertex()
+                    {
+                        position =
+                            new float3(prevPoint.x, prevPoint.y, 0),
+                        color = meshExteriorColor
+                    };
+                    vertices[vcount++] = new ParametricLightMeshVertex()
+                    {
+                        position =
+                            new float3(currPoint.x, currPoint.y, 0),
+                        color = meshExteriorColor
+                    };
+                    indices[icount++] = (ushort)(vcount - 3);
+                    indices[icount++] = (ushort)(vcount - 2);
+                    indices[icount++] = (ushort)(vcount - 1);
+                }
+
             }
 
             mesh.SetVertexBufferParams(vcount, ParametricLightMeshVertex.VertexLayout);
