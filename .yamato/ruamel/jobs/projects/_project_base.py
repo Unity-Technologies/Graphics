@@ -26,7 +26,12 @@ def _job(project_name, test_platform_name, editor, platform, api, cmd):
     job.add_commands(cmd)
     job.add_artifacts_test_results()
 
+
+    dependencies = [{
+                'path' : f'{editor_priming_filepath()}#{editor_job_id(editor["track"], platform["os"])}',
+                'rerun' : editor["rerun_strategy"]}]
+
     if str(editor['track']).lower() == 'custom-revision':
-        job.add_dependencies([f'{editor_priming_filepath()}#{editor_job_id(editor["track"], platform["os"]) }'])
+        job.add_dependencies(dependencies)
 
     return job

@@ -62,7 +62,8 @@ ShaderGraph_Linux_OpenGLCore_playmode_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
+         rerun: always
 ShaderGraph_Linux_OpenGLCore_editmode_CUSTOM-REVISION:
     name: ShaderGraph on Linux_OpenGLCore_editmode on version CUSTOM-REVISION
     agent:
@@ -84,4 +85,5 @@ ShaderGraph_Linux_OpenGLCore_editmode_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
+         rerun: always
