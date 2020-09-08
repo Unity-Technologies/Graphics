@@ -351,9 +351,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
     public struct IntPoint
     {
+        public cInt N;
         public cInt X;
         public cInt Y;
-
         public double NX;
         public double NY;
 #if use_xyz
@@ -389,18 +389,21 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             this.X = X; this.Y = Y;
             this.NX = 0; this.NY = 0;
+            this.N = 0;
         }
 
         public IntPoint(double x, double y)
         {
             this.X = (cInt)x; this.Y = (cInt)y;
             this.NX = 0; this.NY = 0;
+            this.N = 0;
         }
 
         public IntPoint(IntPoint pt)
         {
             this.X = pt.X; this.Y = pt.Y;
             this.NX = pt.NX; this.NY = pt.NY;
+            this.N = 0;
         }
 
 #endif
@@ -4861,10 +4864,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         pt1 = new IntPoint((cInt)Round(m_srcPoly[j].X + m_normals[j].X *
                                     delta), (cInt)Round(m_srcPoly[j].Y + m_normals[j].Y * delta));
                         pt1.NX = m_normals[j].X;    pt1.NY = m_normals[j].Y;
+                        pt1.N = j;
                         m_destPoly.Add(pt1);
                         pt1 = new IntPoint((cInt)Round(m_srcPoly[j].X - m_normals[j].X *
                                     delta), (cInt)Round(m_srcPoly[j].Y - m_normals[j].Y * delta));
                         pt1.NX = -m_normals[j].X;    pt1.NY = -m_normals[j].Y;
+                        pt1.N = j;
                         m_destPoly.Add(pt1);
                     }
                     else
@@ -4893,11 +4898,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     {
                         pt1 = new IntPoint((cInt)Round(m_srcPoly[0].X - m_normals[0].X * delta),
                                 (cInt)Round(m_srcPoly[0].Y - m_normals[0].Y * delta));
-                        pt1.NX = -m_normals[0].X;    pt1.NY = -m_normals[0].Y;
+                        pt1.NX = -m_normals[0].X; pt1.NY = -m_normals[0].Y; pt1.N = 0;
                         m_destPoly.Add(pt1);
                         pt1 = new IntPoint((cInt)Round(m_srcPoly[0].X + m_normals[0].X * delta),
                                 (cInt)Round(m_srcPoly[0].Y + m_normals[0].Y * delta));
-                        pt1.NX = m_normals[0].X;    pt1.NY = m_normals[0].Y;
+                        pt1.NX = m_normals[0].X; pt1.NY = m_normals[0].Y; pt1.N = 0;
                         m_destPoly.Add(pt1);
                     }
                     else
@@ -5005,7 +5010,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 {
                     var item = new IntPoint(Round(m_srcPoly[j].X + m_normals[k].X * m_delta),
                         Round(m_srcPoly[j].Y + m_normals[k].Y * m_delta));
-                    item.NX = m_normals[k].X; item.NY = m_normals[k].Y;
+                    item.NX = m_normals[k].X; item.NY = m_normals[k].Y; item.N = j;
                     m_destPoly.Add(item);
                     return;
                 }
@@ -5021,11 +5026,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 pt.NX = m_normals[k].X; pt.NY = m_normals[k].Y;
                 m_destPoly.Add(pt);
                 pt = m_srcPoly[j];
-                pt.NX = m_normals[k].X; pt.NY = m_normals[k].Y;
+                pt.NX = m_normals[k].X; pt.NY = m_normals[k].Y; pt.N = j;
                 m_destPoly.Add(pt);
                 pt = new IntPoint(Round(m_srcPoly[j].X + m_normals[j].X * m_delta),
                     Round(m_srcPoly[j].Y + m_normals[j].Y * m_delta));
-                pt.NX = m_normals[j].X; pt.NY = m_normals[j].Y;
+                pt.NX = m_normals[j].X; pt.NY = m_normals[j].Y; pt.N = j;
                 m_destPoly.Add(pt);
             }
             else
@@ -5087,7 +5092,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 var pt = new IntPoint(
                     Round(m_srcPoly[j].X + X * m_delta),
                     Round(m_srcPoly[j].Y + Y * m_delta));
-                pt.NX = X; pt.NY = Y;
+                pt.NX = X; pt.NY = Y; pt.N = j;
                 m_destPoly.Add(pt);
                 X2 = X;
                 X = X * m_cos - m_sin * Y;
@@ -5097,8 +5102,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var pt1 = new IntPoint(
                 Round(m_srcPoly[j].X + m_normals[j].X * m_delta),
                 Round(m_srcPoly[j].Y + m_normals[j].Y * m_delta));
-            pt1.NX = m_normals[j].X;
-            pt1.NY = m_normals[j].Y;
+            pt1.NX = m_normals[j].X; pt1.NY = m_normals[j].Y; pt1.N = j;
             m_destPoly.Add(pt1);
         }
 

@@ -58,10 +58,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             };
         }
 
-        static Bounds Tessellate(Tess tess, NativeArray<ushort> indices,
+        static Bounds Tessellate(Tess tess, ElementType boundaryType, NativeArray<ushort> indices,
             NativeArray<ParametricLightMeshVertex> vertices, ref int vcount, ref int icount)
         {
-            tess.Tessellate(WindingRule.NonZero, ElementType.Polygons, 3);
+            tess.Tessellate(WindingRule.NonZero, boundaryType, 3);
 
             var iout = tess.Elements.Select(i => i);
             var vout = tess.Vertices.Select(v =>
@@ -108,8 +108,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             inner[ix++] = inner[0];
 
             var tess = new Tess();
-            tess.AddContour(inner, ContourOrientation.CounterClockwise);
-            var bounds = Tessellate(tess, indices, vertices, ref vcount, ref icount);
+            tess.AddContour(inner, ContourOrientation.Original);
+            var bounds = Tessellate(tess, ElementType.Polygons, indices, vertices, ref vcount, ref icount);
 
             // Create falloff geometry
             List<IntPoint> path = new List<IntPoint>();
@@ -122,7 +122,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             // Generate Bevels.
             List<List<IntPoint>> solution = new List<List<IntPoint>>();
             ClipperOffset clipOffset = new ClipperOffset();
-            clipOffset.ArcTolerance = 45.0f;
+            clipOffset.ArcTolerance = 300.0f;
             clipOffset.AddPath(path, JoinType.jtRound, EndType.etClosedPolygon);
             clipOffset.Execute(ref solution, kClipperScale * falloffDistance);
 
@@ -134,9 +134,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 var outer = new ContourVertex[innerShapeVertexCount + 2 + path.Count];
                 var pathSize = path.Count - 1;
                 var pathMod = (pathSize / innerShapeVertexCount) + 1;
+                string debug = "";
                 for (var i = 0; i < innerShapeVertexCount + 1; ++i)
                 {
                     outer[iout++] = inner[i];
+                    debug += String.Format("<{0}>{1}, {2}\n", i, inner[i].Position.X, inner[i].Position.Y);
                 }
 
                 for (var i = pathSize; i >= 0; --i)
@@ -145,15 +147,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     outer[iout++] = new ContourVertex()
                     {
                         Position = new Vec3() {X = p.x, Y = p.y, Z = 0},
-                        Data = new Color((float)path[i].NX, (float)path[i].NY, 0, 0)
-                        // Data = meshExteriorColor
+                        // Data = new Color((float)path[i].NX, (float)path[i].NY, 0, 0)
+                        Data = meshExteriorColor
                     };
+                    debug += String.Format("[{0}, {1}] {2}, {3}\n", i, path[i].N, p.x, p.y);
                 }
                 outer[iout++] = outer[innerShapeVertexCount + 1];
+                Debug.Log(debug);
 
                 var edgeTess = new Tess();
-                edgeTess.AddContour(outer, ContourOrientation.CounterClockwise);
-                bounds = Tessellate(edgeTess, indices, vertices, ref vcount, ref icount);
+                edgeTess.AddContour(outer, ContourOrientation.Original);
+                bounds = Tessellate(edgeTess, ElementType.Polygons, indices, vertices, ref vcount, ref icount);
             }
 
             mesh.SetVertexBufferParams(vcount, ParametricLightMeshVertex.VertexLayout);
