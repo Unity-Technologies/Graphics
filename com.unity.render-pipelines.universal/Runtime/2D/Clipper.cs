@@ -389,21 +389,21 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             this.X = X; this.Y = Y;
             this.NX = 0; this.NY = 0;
-            this.N = 0;
+            this.N = -1;
         }
 
         public IntPoint(double x, double y)
         {
             this.X = (cInt)x; this.Y = (cInt)y;
             this.NX = 0; this.NY = 0;
-            this.N = 0;
+            this.N = -1;
         }
 
         public IntPoint(IntPoint pt)
         {
             this.X = pt.X; this.Y = pt.Y;
             this.NX = pt.NX; this.NY = pt.NY;
-            this.N = 0;
+            this.N = pt.N;
         }
 
 #endif
@@ -3209,6 +3209,30 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private void IntersectPoint(TEdge edge1, TEdge edge2, out IntPoint ip)
         {
             ip = new IntPoint();
+            long x = 0;
+            if (edge1.Curr.N > edge2.Curr.N)
+            {
+                if (edge2.Curr.N != -1)
+                {
+                    x = (edge1.Curr.N > 0) ? edge1.Curr.N - 1 : 0;
+                }
+                else
+                {
+                    x = edge1.Curr.N;
+                }
+            }
+            else
+            {
+                if (edge1.Curr.N != -1)
+                {
+                    x = edge2.Curr.N;
+                }
+                else
+                {
+                    x = (edge2.Curr.N > 0) ? edge2.Curr.N - 1 : 0;
+                }
+            }
+            ip.N = x;
             double b1, b2;
             //nb: with very large coordinate values, it's possible for SlopesEqual() to
             //return false but for the edge.Dx value be equal due to double precision rounding.

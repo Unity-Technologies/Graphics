@@ -97,8 +97,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var meshInteriorColor = new Color(1.0f,0,0,1.0f);
             var meshExteriorColor = new Color(0.0f,0,0,0.0f);
             var convexPath = shapePath;
-            var vertices = new NativeArray<ParametricLightMeshVertex>(convexPath.Length * 128, Allocator.Temp);
-            var indices = new NativeArray<ushort>(convexPath.Length * 128, Allocator.Temp);
+            var vertices = new NativeArray<ParametricLightMeshVertex>(convexPath.Length * 256, Allocator.Temp);
+            var indices = new NativeArray<ushort>(convexPath.Length * 256, Allocator.Temp);
 
             // Create shape geometry
             var innerShapeVertexCount = convexPath.Length;
@@ -116,7 +116,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             for (var i = 0; i < innerShapeVertexCount; ++i)
             {
                 var newPoint = new Vector2(inner[i].Position.X, inner[i].Position.Y) * kClipperScale;
-                path.Add(new IntPoint((System.Int64)newPoint.x, (System.Int64)newPoint.y));
+                var addPoint = new IntPoint((System.Int64) newPoint.x, (System.Int64) newPoint.y);
+                addPoint.N = i;
+                path.Add(addPoint);
             }
 
             // Generate Bevels.
@@ -128,29 +130,32 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             if (solution.Count > 0)
             {
-
                 path = solution[0];
                 path.Add(path[0]);
-
+                
                 for (int i = 1; i < path.Count; ++i)
                 {
                     var prev = path[i - 1];
                     var curr = path[i];
+                    
                     var prevPoint = new float2(prev.X / kClipperScale, prev.Y / kClipperScale);
                     var currPoint = new float2(curr.X / kClipperScale, curr.Y / kClipperScale);
 
-                    if (prev.N != curr.N)
+                    var prevIndex = prev.N == -1 ? 0 : prev.N;
+                    var currIndex = curr.N == -1 ? 0 : curr.N;
+
+                    if (prevIndex != currIndex)
                     {
                         vertices[vcount++] = new ParametricLightMeshVertex()
                         {
                             position =
-                                new float3(inner[prev.N].Position.X, inner[prev.N].Position.Y, 0),
+                                new float3(inner[prevIndex].Position.X, inner[prevIndex].Position.Y, 0),
                             color = meshInteriorColor
                         };
                         vertices[vcount++] = new ParametricLightMeshVertex()
                         {
                             position =
-                                new float3(inner[curr.N].Position.X, inner[curr.N].Position.Y, 0),
+                                new float3(inner[currIndex].Position.X, inner[currIndex].Position.Y, 0),
                             color = meshInteriorColor
                         };
                         vertices[vcount++] = new ParametricLightMeshVertex()
@@ -167,7 +172,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     vertices[vcount++] = new ParametricLightMeshVertex()
                     {
                         position =
-                            new float3(inner[prev.N].Position.X, inner[prev.N].Position.Y, 0),
+                            new float3(inner[prevIndex].Position.X, inner[prevIndex].Position.Y, 0),
                         color = meshInteriorColor
                     };
                     vertices[vcount++] = new ParametricLightMeshVertex()
@@ -186,7 +191,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     indices[icount++] = (ushort)(vcount - 2);
                     indices[icount++] = (ushort)(vcount - 1);
                 }
-
             }
 
             mesh.SetVertexBufferParams(vcount, ParametricLightMeshVertex.VertexLayout);
