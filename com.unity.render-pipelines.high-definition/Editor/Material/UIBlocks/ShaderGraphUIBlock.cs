@@ -9,34 +9,55 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class ShaderGraphUIBlock : MaterialUIBlock
+    /// <summary>
+    /// ShaderGraph material UI block.
+    /// This class will display every non-hidden properties inside a shader and thus it can also be used on non-shadergraph shaders.
+    /// </summary>
+    public class ShaderGraphUIBlock : MaterialUIBlock
     {
+        /// <summary>ShaderGraph UI Block features.</summary>
         [Flags]
         public enum Features
         {
+            /// <summary>Only displays the shader properties.</summary>
             None = 0,
+            /// <summary>Display the default exposed diffusion profile from the graph.</summary>
             DiffusionProfileAsset = 1 << 2,
+            /// <summary>Display the shadow matte options.</summary>
             ShadowMatte = 1 << 5,
+            /// <summary>Display all the Unlit fields.</summary>
             Unlit = ShadowMatte,
+            /// <summary>Display all the fields.</summary>
             All = ~0,
         }
 
-        protected static class Styles
+        internal static class Styles
         {
             public const string header = "Exposed Properties";
         }
 
-        Expandable  m_ExpandableBit;
+        ExpandableBit  m_ExpandableBit;
         Features    m_Features;
 
-        public ShaderGraphUIBlock(Expandable expandableBit = Expandable.ShaderGraph, Features features = Features.All)
+        /// <summary>
+        /// Construct the ShaderGraph material UI block.
+        /// </summary>
+        /// <param name="expandableBit">Bit index used to store the foldout state.</param>
+        /// <param name="features">Features enabled in the block.</param>
+        public ShaderGraphUIBlock(ExpandableBit expandableBit = ExpandableBit.ShaderGraph, Features features = Features.All)
         {
             m_ExpandableBit = expandableBit;
             m_Features = features;
         }
 
+        /// <summary>
+        /// Use this function to load the material properties you need in your block.
+        /// </summary>
         public override void LoadMaterialProperties() {}
 
+        /// <summary>
+        /// Renders the properties in your block.
+        /// </summary>
         public override void OnGUI()
         {
             using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor))

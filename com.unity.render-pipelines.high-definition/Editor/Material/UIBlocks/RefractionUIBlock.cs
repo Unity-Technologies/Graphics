@@ -9,7 +9,10 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class RefractionUIBlock : MaterialUIBlock
+    /// <summary>
+    /// Refraction material UI Block
+    /// </summary>
+    public class RefractionUIBlock : MaterialUIBlock
     {
         internal static class Styles
         {
@@ -44,11 +47,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
         int m_LayerCount;
 
+        /// <summary>
+        /// Construct a Refraction material UI Block.
+        /// </summary>
+        /// <param name="layerCount">Current layer index. For non-layered shader, indicate 1.</param>
         public RefractionUIBlock(int layerCount)
         {
             m_LayerCount = layerCount;
         }
 
+        /// <summary>
+        /// Use this function to load the material properties you need in your block.
+        /// </summary>
         public override void LoadMaterialProperties()
         {
             refractionModel = FindProperty(kRefractionModel, false);
@@ -62,6 +72,9 @@ namespace UnityEditor.Rendering.HighDefinition
             ior = FindProperty(kIor, false);
         }
 
+        /// <summary>
+        /// Renders the properties in your block.
+        /// </summary>
         public override void OnGUI()
         {
             var isPrepass = materials.All(m => HDRenderQueue.k_RenderQueue_PreRefraction.Contains(m.renderQueue));

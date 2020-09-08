@@ -5,7 +5,10 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class DistortionUIBlock : MaterialUIBlock
+    /// <summary>
+    /// Distortion material UI Block.
+    /// </summary>
+    public class DistortionUIBlock : MaterialUIBlock
     {
         internal static class Styles
         {
@@ -42,10 +45,9 @@ namespace UnityEditor.Rendering.HighDefinition
         protected MaterialProperty distortionBlurRemapMax = null;
         protected const string kDistortionBlurRemapMax = "_DistortionBlurRemapMax";
 
-        public DistortionUIBlock()
-        {
-        }
-
+        /// <summary>
+        /// Use this function to load the material properties you need in your block.
+        /// </summary>
         public override void LoadMaterialProperties()
         {
             distortionEnable = FindProperty(kDistortionEnable, false);
@@ -61,6 +63,9 @@ namespace UnityEditor.Rendering.HighDefinition
             distortionBlurRemapMax = FindProperty(kDistortionBlurRemapMax, false);
         }
 
+        /// <summary>
+        /// Renders the properties in your block.
+        /// </summary>
         public override void OnGUI()
         {
             if (distortionEnable != null)

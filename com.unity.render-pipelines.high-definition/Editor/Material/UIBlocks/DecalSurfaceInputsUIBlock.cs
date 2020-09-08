@@ -12,9 +12,10 @@ using static UnityEditor.Rendering.HighDefinition.DecalSurfaceOptionsUIBlock.Sty
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class DecalSurfaceInputsUIBlock : MaterialUIBlock
+    /// <summary>Decal Surface Inputs material UI block</summary>
+    public class DecalSurfaceInputsUIBlock : MaterialUIBlock
     {
-        public class Styles
+        internal class Styles
         {
             public const string header = "Surface Inputs";
 
@@ -40,7 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent maskMapText = new GUIContent("Mask Map", "Specifies the Mask Map for this Material - Metal(R), Ambient Occlusion(G), Opacity(B), Smoothness(A)");
         }
 
-        Expandable  m_ExpandableBit;
+        ExpandableBit  m_ExpandableBit;
 
         enum BlendSource
         {
@@ -138,11 +139,18 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty emissiveExposureWeight = null;
         const string kEmissiveExposureWeight = "_EmissiveExposureWeight";
 
-        public DecalSurfaceInputsUIBlock(Expandable expandableBit)
+        /// <summary>
+        /// Construct Decal Surface Inputs material UI block
+        /// </summary>
+        /// <param name="expandableBit">Bit index used to store the foldout state</param>
+        public DecalSurfaceInputsUIBlock(ExpandableBit expandableBit)
         {
             m_ExpandableBit = expandableBit;
         }
 
+        /// <summary>
+        /// Use this function to load the material properties you need in your block.
+        /// </summary>
         public override void LoadMaterialProperties()
         {
             baseColor = FindProperty(kBaseColor);
@@ -181,6 +189,9 @@ namespace UnityEditor.Rendering.HighDefinition
             instancing.boolValue = true;
         }
 
+        /// <summary>
+        /// Renders the properties in your block.
+        /// </summary>
         public override void OnGUI()
         {
             using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor))

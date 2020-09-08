@@ -16,27 +16,49 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     public class SurfaceOptionUIBlock : MaterialUIBlock
     {
+        /// <summary>
+        /// Surface Option features, allow you to hide certain parts of the UI.
+        /// </summary>
         [Flags]
         public enum Features
         {
+            /// <summary>Display the minimum surface option fields.</summary>
             None                        = 0,
+            /// <summary>Display the surface field.</summary>
             Surface                     = 1 << 0,
+            /// <summary>Display the blend mode field.</summary>
             BlendMode                   = 1 << 1,
+            /// <summary>Display the double sided field.</summary>
             DoubleSided                 = 1 << 2,
+            /// <summary>Display the alpha cutoff field.</summary>
             AlphaCutoff                 = 1 << 3,
+            /// <summary>Display the alpha cutoff threshold field.</summary>
             AlphaCutoffThreshold        = 1 << 4,
+            /// <summary>Display the alpha cutoff shadow treshold field.</summary>
             AlphaCutoffShadowThreshold  = 1 << 5,
+            /// <summary>Display the double sided normal mode field.</summary>
             DoubleSidedNormalMode       = 1 << 6,
+            /// <summary>Display the back then front rendering field.</summary>
             BackThenFrontRendering      = 1 << 7,
+            /// <summary>Display the receive ssr field.</summary>
             ReceiveSSR                  = 1 << 8,
+            /// <summary>Display the receive decal field.</summary>
             ReceiveDecal                = 1 << 9,
+            /// <summary>Display the show after post process field.</summary>
             ShowAfterPostProcessPass    = 1 << 10,
+            /// <summary>Display the alpha to mask field.</summary>
             AlphaToMask                 = 1 << 11,
+            /// <summary>Display the show pre pass and post pass fields.</summary>
             ShowPrePassAndPostPass      = 1 << 12,
+            /// <summary>Display the depth offset field.</summary>
             ShowDepthOffsetOnly         = 1 << 13,
+            /// <summary>Display the preserve specular lighting field.</summary>
             PreserveSpecularLighting    = 1 << 14,
+            /// <summary>Display all the Unlit Surface Option fields.</summary>
             Unlit                       = Surface | BlendMode | DoubleSided | AlphaCutoff | AlphaCutoffThreshold | AlphaCutoffShadowThreshold| AlphaToMask | BackThenFrontRendering | ShowAfterPostProcessPass | ShowPrePassAndPostPass | ShowDepthOffsetOnly,
+            /// <summary>Display all the Lit Surface Option fields field.</summary>
             Lit                         = All ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass ^ ShowDepthOffsetOnly, // Lit can't be display in after postprocess pass
+            /// <summary>Display all the fields.</summary>
             All                         = ~0,
         }
 
@@ -269,17 +291,26 @@ namespace UnityEditor.Rendering.HighDefinition
         List<string> m_RenderingPassNames = new List<string>();
         List<int> m_RenderingPassValues = new List<int>();
 
-        Expandable  m_ExpandableBit;
+        ExpandableBit  m_ExpandableBit;
         Features    m_Features;
         int         m_LayerCount;
 
-        public SurfaceOptionUIBlock(Expandable expandableBit, int layerCount = 1, Features features = Features.All)
+        /// <summary>
+        /// Construct a surface option material UI block.
+        /// </summary>
+        /// <param name="expandableBit">Bit used for the foldout state.</param>
+        /// <param name="layerCount">Number of layers available in the shader.</param>
+        /// <param name="features">Features of the block.</param>
+        public SurfaceOptionUIBlock(ExpandableBit expandableBit, int layerCount = 1, Features features = Features.All)
         {
             m_ExpandableBit = expandableBit;
             m_Features = features;
             m_LayerCount = layerCount;
         }
 
+        /// <summary>
+        /// Use this function to load the material properties you need in your block.
+        /// </summary>
         public override void LoadMaterialProperties()
         {
             surfaceType = FindProperty(kSurfaceType);
@@ -376,6 +407,9 @@ namespace UnityEditor.Rendering.HighDefinition
             refractionModel = FindProperty(kRefractionModel);
         }
 
+        /// <summary>
+        /// Renders the properties in your block.
+        /// </summary>
         public override void OnGUI()
         {
             using (var header = new MaterialHeaderScope(Styles.optionText, (uint)m_ExpandableBit, materialEditor))
@@ -827,7 +861,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public void UpdateDisplacement(int layerIndex)
+        internal void UpdateDisplacement(int layerIndex)
         {
             DisplacementMode displaceMode = (DisplacementMode)displacementMode.floatValue;
             if (displaceMode == DisplacementMode.Pixel)

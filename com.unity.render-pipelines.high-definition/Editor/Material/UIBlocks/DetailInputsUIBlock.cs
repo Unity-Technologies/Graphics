@@ -10,18 +10,24 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class DetailInputsUIBlock : MaterialUIBlock
+    /// <summary>
+    /// Detail Inputs material UI Block
+    /// </summary>
+    public class DetailInputsUIBlock : MaterialUIBlock
     {
+        /// <summary>Detail Inputs material UI Block features.</summary>
         [Flags]
         public enum Features
         {
+            /// <summary>Display the standard Detail Inputs UI.</summary>
             None                = 0,
-            EnableEmissionForGI = 1 << 0,
+            /// <summary>Replaces the header by a sub-header. This is useful for layered material UI</summary>
             SubHeader           = 1 << 1,
+            /// <summary>Display the standard Detail Inputs UI.</summary>
             All                 = ~0 ^ SubHeader // By default we don't want to have a sub-header
         }
 
-        public class Styles
+        internal class Styles
         {
             public const string header = "Detail Inputs";
 
@@ -54,7 +60,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected MaterialProperty displacementMode = null;
         protected const string kDisplacementMode = "_DisplacementMode";
 
-        Expandable  m_ExpandableBit;
+        ExpandableBit  m_ExpandableBit;
         Features    m_Features;
         int         m_LayerIndex;
         int         m_LayerCount;
@@ -62,7 +68,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool        isLayeredLit => m_LayerCount > 1;
 
-        public DetailInputsUIBlock(Expandable expandableBit, int layerCount = 1, int layerIndex = 0, Features features = Features.All, Color dotColor = default(Color))
+        /// <summary>
+        /// Construct a Detail Inputs material UI block.
+        /// </summary>
+        /// <param name="expandableBit">Bit index to store the foldout state.</param>
+        /// <param name="layerCount">Number of layers in the shader.</param>
+        /// <param name="layerIndex">Current layer index to display. 0 if it's not a layered shader</param>
+        /// <param name="features">Features of the block.</param>
+        /// <param name="dotColor">Subheader dot color. See Layered Lit UI subheader for more info.</param>
+        public DetailInputsUIBlock(ExpandableBit expandableBit, int layerCount = 1, int layerIndex = 0, Features features = Features.All, Color dotColor = default(Color))
         {
             m_ExpandableBit = expandableBit;
             m_Features = features;
@@ -71,6 +85,9 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DotColor = dotColor;
         }
 
+        /// <summary>
+        /// Use this function to load the material properties you need in your block.
+        /// </summary>
         public override void LoadMaterialProperties()
         {
             UVDetail = FindPropertyLayered(kUVDetail, m_LayerCount);
@@ -84,6 +101,9 @@ namespace UnityEditor.Rendering.HighDefinition
             displacementMode = FindProperty(kDisplacementMode);
         }
 
+        /// <summary>
+        /// Renders the properties in your block.
+        /// </summary>
         public override void OnGUI()
         {
             bool subHeader = (m_Features & Features.SubHeader) != 0;

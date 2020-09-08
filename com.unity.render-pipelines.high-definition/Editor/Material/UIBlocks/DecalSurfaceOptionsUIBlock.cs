@@ -10,9 +10,10 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class DecalSurfaceOptionsUIBlock : MaterialUIBlock
+    /// <summary>Decal Surface Options material UI block.</summary>
+    public class DecalSurfaceOptionsUIBlock : MaterialUIBlock
     {
-        public class Styles
+        internal class Styles
         {
             public const string header = "Surface Options";
 
@@ -24,7 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent affectEmissionText = new GUIContent("Affect Emission", "When enabled, this decal becomes emissive and appears self-illuminated. Affect Emission does not support Affects Transparents option on Decal Projector.");
         }
 
-        Expandable  m_ExpandableBit;
+        ExpandableBit  m_ExpandableBit;
 
         MaterialProperty affectsAlbedo = new MaterialProperty();
         MaterialProperty affectsNormal = new MaterialProperty();
@@ -33,11 +34,18 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty affectsSmoothness = new MaterialProperty();
         MaterialProperty affectsEmission = new MaterialProperty();
 
-        public DecalSurfaceOptionsUIBlock(Expandable expandableBit)
+        /// <summary>
+        /// Construct a Decal surface options material UI Block.
+        /// </summary>
+        /// <param name="expandableBit">Bit index used to store the foldout state.</param>
+        public DecalSurfaceOptionsUIBlock(ExpandableBit expandableBit)
         {
             m_ExpandableBit = expandableBit;
         }
 
+        /// <summary>
+        /// Use this function to load the material properties you need in your block.
+        /// </summary>
         public override void LoadMaterialProperties()
         {
             affectsAlbedo = FindProperty(kAffectAlbedo);
@@ -48,6 +56,9 @@ namespace UnityEditor.Rendering.HighDefinition
             affectsEmission = FindProperty(kAffectEmission);
         }
 
+        /// <summary>
+        /// Renders the properties in your block.
+        /// </summary>
         public override void OnGUI()
         {
             using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor))

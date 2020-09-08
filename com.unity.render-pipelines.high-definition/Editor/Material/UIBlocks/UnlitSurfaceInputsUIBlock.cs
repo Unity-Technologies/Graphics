@@ -5,33 +5,46 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class UnlitSurfaceInputsUIBlock : MaterialUIBlock
+    /// <summary>
+    /// Unlit Surface Inputs material UI Block
+    /// </summary>
+    public class UnlitSurfaceInputsUIBlock : MaterialUIBlock
     {
-        public class Styles
+        internal class Styles
         {
             public const string header = "Surface Inputs";
 
             public static GUIContent colorText = new GUIContent("Color", " Albedo (RGB) and Transparency (A).");
         }
 
-        Expandable  m_ExpandableBit;
+        ExpandableBit  m_ExpandableBit;
 
         protected MaterialProperty color = null;
         protected const string kColor = "_UnlitColor";
         protected MaterialProperty colorMap = null;
         protected const string kColorMap = "_UnlitColorMap";
 
-        public UnlitSurfaceInputsUIBlock(Expandable expandableBit)
+        /// <summary>
+        /// Construct an Unlit Surface Inputs material UI Block.
+        /// </summary>
+        /// <param name="expandableBit">Bit index used to store the foldout state.</param>
+        public UnlitSurfaceInputsUIBlock(ExpandableBit expandableBit)
         {
             m_ExpandableBit = expandableBit;
         }
 
+        /// <summary>
+        /// Use this function to load the material properties you need in your block.
+        /// </summary>
         public override void LoadMaterialProperties()
         {
             color = FindProperty(kColor);
             colorMap = FindProperty(kColorMap);
         }
 
+        /// <summary>
+        /// Renders the properties in your block.
+        /// </summary>
         public override void OnGUI()
         {
             using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor))

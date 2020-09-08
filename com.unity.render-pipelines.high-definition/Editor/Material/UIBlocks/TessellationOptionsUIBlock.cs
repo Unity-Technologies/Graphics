@@ -9,7 +9,10 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class TessellationOptionsUIBlock : MaterialUIBlock
+    /// <summary>
+    /// Tessellation Options Material UI Block.
+    /// </summary>
+    public class TessellationOptionsUIBlock : MaterialUIBlock
     {
         public class Styles
         {
@@ -44,13 +47,20 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kTessellationBackFaceCullEpsilon = "_TessellationBackFaceCullEpsilon";
         MaterialProperty doubleSidedEnable = null;
 
-        Expandable m_ExpandableBit;
+        ExpandableBit m_ExpandableBit;
 
-        public TessellationOptionsUIBlock(Expandable expandableBit)
+        /// <summary>
+        /// Construct the tessellation options material UI block.
+        /// </summary>
+        /// <param name="expandableBit">Bit used to store the foldout state</param>
+        public TessellationOptionsUIBlock(ExpandableBit expandableBit)
         {
             m_ExpandableBit = expandableBit;
         }
 
+        /// <summary>
+        /// Use this function to load the material properties you need in your block.
+        /// </summary>
         public override void LoadMaterialProperties()
         {
             doubleSidedEnable = FindProperty(kDoubleSidedEnable, false);
@@ -65,6 +75,9 @@ namespace UnityEditor.Rendering.HighDefinition
             tessellationBackFaceCullEpsilon = FindProperty(kTessellationBackFaceCullEpsilon);
         }
 
+        /// <summary>
+        /// Renders the properties in your block.
+        /// </summary>
         public override void OnGUI()
         {
             // If we don't have tesselation

@@ -9,14 +9,22 @@ using System.Linq;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class EmissionUIBlock : MaterialUIBlock
+    /// <summary>
+    /// Emission material UI block.
+    /// </summary>
+    public class EmissionUIBlock : MaterialUIBlock
     {
+        /// <summary>Feature of the Emission block, used to control which field is visible.</summary>
         [Flags]
         public enum Features
         {
+            /// <summary>Show the minimal emission fields.</summary>
             None                = 0,
+            /// <summary>Show the enable emission for GI field.</summary>
             EnableEmissionForGI = 1 << 0,
+            /// <summary>Show the multiply with base field.</summary>
             MultiplyWithBase    = 1 << 1,
+            /// <summary>Show all the fields.</summary>
             All                 = ~0
         }
 
@@ -30,8 +38,7 @@ namespace UnityEditor.Rendering.HighDefinition
             GetLightingSettingsOrDefaultsFallback = getLightingSettingsOrDefaultsFallbackLambda.Compile();
         }
 
-
-        public class Styles
+        internal class Styles
         {
             public const string header = "Emission Inputs";
 
@@ -71,15 +78,23 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty albedoAffectEmissive = null;
         const string kAlbedoAffectEmissive = "_AlbedoAffectEmissive";
 
-        Expandable  m_ExpandableBit;
+        ExpandableBit  m_ExpandableBit;
         Features    m_Features;
 
-        public EmissionUIBlock(Expandable expandableBit, Features features = Features.All)
+        /// <summary>
+        /// Construct an emission material UI block.
+        /// </summary>
+        /// <param name="expandableBit">Bit index used to store the foldout state.</param>
+        /// <param name="features">Features of the block.</param>
+        public EmissionUIBlock(ExpandableBit expandableBit, Features features = Features.All)
         {
             m_ExpandableBit = expandableBit;
             m_Features = features;
         }
 
+        /// <summary>
+        /// Use this function to load the material properties you need in your block.
+        /// </summary>
         public override void LoadMaterialProperties()
         {
             emissiveColor = FindProperty(kEmissiveColor);
@@ -95,6 +110,9 @@ namespace UnityEditor.Rendering.HighDefinition
             UVMappingMaskEmissive = FindProperty(kUVMappingMaskEmissive);
         }
 
+        /// <summary>
+        /// Renders the properties in your block.
+        /// </summary>
         public override void OnGUI()
         {
             using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor))
@@ -227,7 +245,11 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-
+        /// <summary>
+        /// Draw the Baked Emission Enabled field
+        /// </summary>
+        /// <param name="materialEditor">The current material editor in use.</param>
+        /// <returns>True if the property is enabled on all selected materials.</returns>
         public static bool BakedEmissionEnabledProperty(MaterialEditor materialEditor)
         {
             Material[] materials = Array.ConvertAll(materialEditor.targets, (UnityEngine.Object o) => { return (Material)o; });

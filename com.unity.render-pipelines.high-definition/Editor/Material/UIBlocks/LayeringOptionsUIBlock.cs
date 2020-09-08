@@ -9,7 +9,10 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class LayeringOptionsUIBlock : MaterialUIBlock
+    /// <summary>
+    /// Layering Options material UI Block.
+    /// </summary>
+    public class LayeringOptionsUIBlock : MaterialUIBlock
     {
         public static class Styles
         {
@@ -35,19 +38,27 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty useMainLayerInfluence = null;
         const string kkUseMainLayerInfluence = "_UseMainLayerInfluence";
 
-        Expandable  m_ExpandableBit;
+        ExpandableBit  m_ExpandableBit;
         int         m_LayerIndex;
 
         // Density/opacity mode
         MaterialProperty[] opacityAsDensity = new MaterialProperty[kMaxLayerCount];
         const string kOpacityAsDensity = "_OpacityAsDensity";
 
-        public LayeringOptionsUIBlock(Expandable expandableBit, int layerIndex)
+        /// <summary>
+        /// Construct a Layering Option material UI Block.
+        /// </summary>
+        /// <param name="expandableBit">Bit index used to store the foldout state.</param>
+        /// <param name="layerIndex">Current layer index. For non-layered shader, indicate 0.</param>
+        public LayeringOptionsUIBlock(ExpandableBit expandableBit, int layerIndex)
         {
             m_ExpandableBit = expandableBit;
             m_LayerIndex = layerIndex;
         }
 
+        /// <summary>
+        /// Use this function to load the material properties you need in your block.
+        /// </summary>
         public override void LoadMaterialProperties()
         {
             useMainLayerInfluence = FindProperty(kkUseMainLayerInfluence);
@@ -64,6 +75,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Renders the properties in your block.
+        /// </summary>
         public override void OnGUI()
         {
             // We're using a subheader here because we know that layering options are only used within layers
