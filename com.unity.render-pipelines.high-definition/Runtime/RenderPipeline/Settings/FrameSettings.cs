@@ -699,6 +699,13 @@ namespace UnityEngine.Rendering.HighDefinition
             // When MSAA is enabled we disable Fptl as it become expensive compare to cluster
             // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.FPTLForForwardOpaque] &= !msaa;
+
+            // We disable reflection probes and planar reflections in regular preview rendering for two reasons.
+            // - Performance: Realtime reflection are 99% not necessary in previews
+            // - Static lighting consistency: When rendering a planar probe from a preview camera it may induce a recomputing of the static lighting
+            //   but with the preview lights which are different from the ones in the scene and will change the result inducing flickering.
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ReflectionProbe] &= !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.PlanarProbe] &= !preview;
         }
 
         /// <summary>Aggregation is default with override of the renderer then sanitized depending on supported features of hdrpasset.</summary>

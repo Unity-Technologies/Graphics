@@ -53,6 +53,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where opening the look dev window with the light theme would make the window blink and eventually crash unity.
 - Fixed a serialization issue, preventing quality level parameters to undo/redo and update scene view on change.
 - Fixed an issue where look dev lighting would go black when a new scene is loaded.
+- Fixed a static lighting flickering issue caused by having an active planar probe in the scene while rendering inspector preview.
+- Fixed an issue where even when set to OnDemand, the sky lighting would still be updated when changing sky parameters.
 
 ### Changed
 - Changed extensions of shader CAS include files.
