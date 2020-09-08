@@ -758,8 +758,8 @@ namespace UnityEngine.Rendering.HighDefinition
             //TODO : Clean this with the RenderGraph system
             if (Debug.isDebugBuild && m_DebugColorPickerBuffer == null && m_DebugFullScreenTempBuffer == null)
             {
-                m_DebugColorPickerBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, useDynamicScale: true, name: "DebugColorPicker");
-                m_DebugFullScreenTempBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, useDynamicScale: true, name: "DebugFullScreen");
+                m_DebugColorPickerBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, useDynamicScale: true, name: "DebugColorPicker");
+                m_DebugFullScreenTempBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, useDynamicScale: true, name: "DebugFullScreen");
             }
 
             if (m_IntermediateAfterPostProcessBuffer == null)
@@ -3040,7 +3040,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var previousRT = RenderTexture.active;
             RenderTexture.active = null;
             if (m_IntermediateAfterPostProcessBufferFloat == null)
-                m_IntermediateAfterPostProcessBufferFloat = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, useDynamicScale: true, name: "AfterPostProcessFloat");
+                m_IntermediateAfterPostProcessBufferFloat = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), useDynamicScale: true, name: "AfterPostProcessFloat");
 
             var previousPostprocessBuffer = m_IntermediateAfterPostProcessBuffer;
             m_IntermediateAfterPostProcessBuffer = previousPostprocessBuffer;
