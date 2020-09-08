@@ -57,7 +57,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with TAA history management on pssl.
 - Fixed the global illumination volume override having an unwanted advanced mode (case 1270459).
 - Fixed screen space shadow option displayed on directional shadows while they shouldn't (case 1270537).
-- Composition layers without any sub layers are now cleared to black to avoid confusion (case 1265061).
+- Fixed the handling of undo and redo actions in the graphics compositor (cases 1268149, 1266212, 1265028)
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
@@ -66,6 +66,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Preparation pass for RTSSShadows to be supported by render graph.
 - Changed the way the ray tracing property is displayed on the material (QOL 1265297).
 - Exposed lens attenuation mode in default settings and remove it as a debug mode.
+- Composition layers without any sub layers are now cleared to black to avoid confusion (case 1265061).
 
 ## [10.0.0] - 2019-06-10
 

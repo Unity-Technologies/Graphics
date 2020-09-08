@@ -45,8 +45,12 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
         public bool isDirty => m_IsEditorDirty;
 
+        public int defaultSelection = -1;
+        public int selectionIndex => m_layerList != null ? m_layerList.index : -1;
+
         void AddLayerOfTypeCallback(object type)
         {
+            Undo.RecordObject(m_compositionManager, "Add compositor sublayer");
             m_compositionManager.AddNewLayer(m_layerList.index + 1, (CompositorLayer.LayerType)type);
             m_SerializedProperties.layerList.serializedObject.Update();
             m_compositionManager.UpdateLayerSetup();
@@ -54,6 +58,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
         void AddFilterOfTypeCallback(object type)
         {
+            Undo.RecordObject(m_compositionManager, "Add input filter");
             m_compositionManager.AddInputFilterAtLayer(CompositionFilter.Create((CompositionFilter.FilterType)type), m_layerList.index);
             m_SerializedProperties.layerList.serializedObject.Update();
             CacheSerializedObjects();
@@ -64,7 +69,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             ShaderPropertyUI.Draw(m_SerializedShaderProperties);
         }
 
-        bool CacheSerializedObjects()
+        public bool CacheSerializedObjects()
         {
             try
             {
@@ -182,6 +187,12 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 var serializedLayerList = m_SerializedProperties.layerList;
                 m_layerList = new ReorderableList(m_SerializedProperties.compositorSO, serializedLayerList, true, false, true, true);
 
+                // Pre-select the "default" item in the list (used to remember the last selected item when re-creating the Editor) 
+                if (defaultSelection >= 0)
+                {
+                    m_layerList.index = Math.Min(defaultSelection, m_layerList.count-1);
+                }
+
                 m_layerList.drawHeaderCallback = (Rect rect) =>
                 {
                 };
@@ -228,6 +239,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
                 m_layerList.onRemoveCallback = (list) =>
                 {
+                    Undo.RecordObject(m_compositionManager, "Remove compositor sublayer");
                     m_compositionManager.RemoveLayerAtIndex(list.index);
                     m_IsEditorDirty = true;
                     EditorUtility.SetDirty(m_compositionManager.profile);
