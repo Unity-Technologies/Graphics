@@ -10,7 +10,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/WavingDoublePass"
     }
     SubShader
     {
-        Tags {"Queue" = "Geometry+200" "RenderType" = "Grass" "IgnoreProjector" = "True" "RenderPipeline" = "UniversalPipeline" }//"DisableBatching"="True"
+        Tags {"Queue" = "Geometry+200" "RenderType" = "Grass" "IgnoreProjector" = "True" "RenderPipeline" = "UniversalPipeline" "UniversalMaterialType" = "SimpleLit" }//"DisableBatching"="True"
         Cull Off
         LOD 200
         AlphaTest Greater [_Cutoff]
@@ -58,17 +58,6 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/WavingDoublePass"
         {
             Name "GBuffer"
             Tags{"LightMode" = "UniversalGBuffer"}
-
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
-            // This is an SimpleLit material.
-            Stencil {
-                Ref 64       // 0b01000000
-                WriteMask 96 // 0b01100000
-                Comp Always
-                Pass Replace
-                Fail Keep
-                ZFail Keep
-            }
 
             HLSLPROGRAM
             #pragma exclude_renderers d3d11_9x gles

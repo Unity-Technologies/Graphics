@@ -34,7 +34,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             Tags{ "LightMode" = "UniversalForwardOnly" }
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex vert
@@ -135,10 +135,11 @@ Shader "Universal Render Pipeline/Baked Lit"
                 normalWS = NormalizeNormalPerPixel(normalWS);
                 color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
                 #if defined(_SCREEN_SPACE_OCCLUSION)
-                    color *= SampleAmbientOcclusion(input.vertex);
+                    float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.vertex);
+                    color *= SampleAmbientOcclusion(normalizedScreenSpaceUV);
                 #endif
                 color = MixFog(color, input.uv0AndFogCoord.z);
-                alpha = OutputAlpha(alpha);
+                alpha = OutputAlpha(alpha, _Surface);
 
                 return half4(color, alpha);
             }
@@ -153,7 +154,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             ColorMask 0
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex DepthOnlyVertex
@@ -183,7 +184,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex DepthNormalsVertex
@@ -217,7 +218,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             Cull Off
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex UniversalVertexMeta
@@ -238,7 +239,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex vert
@@ -282,7 +283,6 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
-            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             // Lighting include is needed because of GI
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
@@ -367,10 +367,11 @@ Shader "Universal Render Pipeline/Baked Lit"
                 normalWS = NormalizeNormalPerPixel(normalWS);
                 color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
                 #if defined(_SCREEN_SPACE_OCCLUSION)
-                    color *= SampleAmbientOcclusion(input.vertex);
+                    float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.vertex);
+                    color *= SampleAmbientOcclusion(normalizedScreenSpaceUV);
                 #endif
                 color = MixFog(color, input.uv0AndFogCoord.z);
-                alpha = OutputAlpha(alpha);
+                alpha = OutputAlpha(alpha, _Surface);
 
                 return half4(color, alpha);
             }

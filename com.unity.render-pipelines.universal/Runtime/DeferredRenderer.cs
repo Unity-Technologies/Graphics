@@ -114,7 +114,7 @@ namespace UnityEngine.Rendering.Universal
             m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
 #if ENABLE_VR && ENABLE_XR_MODULE
-            m_XROcclusionMeshPass = new XROcclusionMeshPass(RenderPassEvent.BeforeRenderingPrepasses);
+            m_XROcclusionMeshPass = new XROcclusionMeshPass(RenderPassEvent.BeforeRenderingOpaques);
 #endif
             m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass(RenderPassEvent.BeforeRenderingPrepasses, m_ScreenspaceShadowsMaterial);
             m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrepasses, data.postProcessData);
@@ -298,14 +298,6 @@ namespace UnityEngine.Rendering.Universal
             if (additionalLightShadows)
                 EnqueuePass(m_AdditionalLightsShadowCasterPass);
 
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.hasValidOcclusionMesh)
-            {
-                m_XROcclusionMeshPass.Setup(m_ActiveCameraDepthAttachment);
-                EnqueuePass(m_XROcclusionMeshPass);
-            }
-#endif
-
             if (requiresDepthPrepass)
             {
                 m_DepthPrepass.Setup(cameraTargetDescriptor, m_CameraDepthAttachment);
@@ -317,6 +309,11 @@ namespace UnityEngine.Rendering.Universal
                 m_ColorGradingLutPass.Setup(m_ColorGradingLut);
                 EnqueuePass(m_ColorGradingLutPass);
             }
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.hasValidOcclusionMesh)
+                EnqueuePass(m_XROcclusionMeshPass);
+#endif
 
             EnqueueDeferred(ref renderingData, requiresDepthPrepass, mainLightShadows, additionalLightShadows);
 
