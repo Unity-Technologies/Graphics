@@ -457,6 +457,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_GbufferManager = new GBufferManager(asset, m_DeferredMaterial);
             m_DbufferManager = new DBufferManager();
+            m_DbufferManager.InitializeHDRPResouces(asset);
 #if ENABLE_VIRTUALTEXTURES
             m_VtBufferManager = new VTBufferManager(asset);
             m_VTDebugBlit = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugViewVirtualTexturingBlit);
@@ -1015,6 +1016,7 @@ namespace UnityEngine.Rendering.HighDefinition
             s_lightVolumes.CleanupNonRenderGraphResources();
             LightLoopCleanupNonRenderGraphResources();
             m_SharedRTManager.DisposeCoarseStencilBuffer();
+            m_DbufferManager.ReleaseResolutionDependentBuffers();
         }
 
         void InitializeDebugMaterials()
@@ -1107,6 +1109,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_DecalNormalBufferMaterial);
 
 #if ENABLE_VIRTUALTEXTURES
+            m_VtBufferManager.Cleanup();
             CoreUtils.Destroy(m_VTDebugBlit);
 #endif
             CoreUtils.Destroy(m_DebugViewMaterialGBuffer);
@@ -1152,6 +1155,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CullingGroupManager.instance.Cleanup();
 
+            m_DbufferManager.ReleaseResolutionDependentBuffers();
             m_SharedRTManager.DisposeCoarseStencilBuffer();
 
             CoreUtils.SafeRelease(m_DepthPyramidMipLevelOffsetsBuffer);
@@ -1231,12 +1235,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_MaxCameraWidth > 0 && m_MaxCameraHeight > 0)
                 {
                     LightLoopReleaseResolutionDependentBuffers();
+                    m_DbufferManager.ReleaseResolutionDependentBuffers();
                     m_SharedRTManager.DisposeCoarseStencilBuffer();
                 }
 
                 LightLoopAllocResolutionDependentBuffers(hdCamera, m_MaxCameraWidth, m_MaxCameraHeight);
                 if (!m_EnableRenderGraph)
                 {
+                    m_DbufferManager.AllocResolutionDependentBuffers(m_MaxCameraWidth, m_MaxCameraHeight);
                     m_SharedRTManager.AllocateCoarseStencilBuffer(m_MaxCameraWidth, m_MaxCameraHeight, hdCamera.viewCount);
                 }
             }
@@ -2272,7 +2278,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
 #if ENABLE_VIRTUALTEXTURES
-            m_VtBufferManager.BeginRender(hdCamera.actualWidth, hdCamera.actualHeight);
+            m_VtBufferManager.BeginRender(hdCamera);
 #endif
 
             using (ListPool<RTHandle>.Get(out var aovBuffers))
@@ -2871,7 +2877,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if(m_VTDebugBlit != null)
             {
-                PushFullScreenDebugTexture(cmd, GetVTFeedbackBufferForForward(hdCamera), FullScreenDebugMode.RequestedVirtualTextureTiles, m_VTDebugBlit);
+                PushFullScreenVTFeedbackDebugTexture(cmd, GetVTFeedbackBufferForForward(hdCamera), hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
             }
 #endif
 
@@ -3725,9 +3731,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 DrawOpaqueRendererList(renderContext, cmd, hdCamera.frameSettings, rendererList);
 
                 m_GbufferManager.BindBufferAsTextures(cmd);
-#if ENABLE_VIRTUALTEXTURES
-                cmd.ClearRandomWriteTargets();
-#endif
             }
         }
 
@@ -3737,6 +3740,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // We still bind black textures to make sure that something is bound (can be a problem on some platforms)
                 m_DbufferManager.BindBlackTextures(cmd);
+
+                // Bind buffer to make sure that something is bound .
+                cmd.SetGlobalBuffer(HDShaderIDs._DecalPropertyMaskBufferSRV, m_DbufferManager.propertyMaskBuffer);
 
                 return;
             }
@@ -3759,8 +3765,11 @@ namespace UnityEngine.Rendering.HighDefinition
                                 m_SharedRTManager.GetDepthStencilBuffer(),
                                 m_SharedRTManager.GetDepthTexture(),
                                 RendererList.Create(PrepareMeshDecalsRendererList(cullingResults, hdCamera, parameters.use4RTs)),
+                                m_DbufferManager.propertyMaskBuffer,
                                 m_SharedRTManager.GetDecalPrepassBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),
                                 renderContext, cmd);
+
+                cmd.SetGlobalBuffer(HDShaderIDs._DecalPropertyMaskBufferSRV, m_DbufferManager.propertyMaskBuffer);
 
                 m_DbufferManager.BindBufferAsTextures(cmd);
             }
@@ -3864,6 +3873,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public bool use4RTs;
             public bool useDecalLayers;
+            public ComputeShader clearPropertyMaskBufferCS;
+            public int clearPropertyMaskBufferKernel;
+            public int propertyMaskBufferSize;
         }
 
         RenderDBufferParameters PrepareRenderDBufferParameters(HDCamera hdCamera)
@@ -3871,6 +3883,9 @@ namespace UnityEngine.Rendering.HighDefinition
             var parameters = new RenderDBufferParameters();
             parameters.use4RTs = m_Asset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
             parameters.useDecalLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers);
+            parameters.clearPropertyMaskBufferCS = m_DbufferManager.clearPropertyMaskBufferShader;
+            parameters.clearPropertyMaskBufferKernel = m_DbufferManager.clearPropertyMaskBufferKernel;
+            parameters.propertyMaskBufferSize = m_DbufferManager.GetPropertyMaskBufferSize(m_MaxCameraWidth, m_MaxCameraHeight);
             return parameters;
         }
 
@@ -3880,6 +3895,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     RTHandle                    depthStencilBuffer,
                                     RTHandle                    depthTexture,
                                     RendererList                meshDecalsRendererList,
+                                    ComputeBuffer               propertyMaskBuffer,
                                     RTHandle                    decalPrepassBuffer,
                                     ScriptableRenderContext     renderContext,
                                     CommandBuffer               cmd)
@@ -3911,6 +3927,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 // this actually sets the MRTs and HTile RWTexture, this is done separately because we do not have an api to clear MRTs to different colors
                 CoreUtils.SetRenderTarget(cmd, m_Dbuffer3RtIds, depthStencilBuffer); // do not clear anymore
             }
+
+            // clear decal property mask buffer
+            cmd.SetComputeBufferParam(parameters.clearPropertyMaskBufferCS, parameters.clearPropertyMaskBufferKernel, HDShaderIDs._DecalPropertyMaskBuffer, propertyMaskBuffer);
+            cmd.DispatchCompute(parameters.clearPropertyMaskBufferCS, parameters.clearPropertyMaskBufferKernel, parameters.propertyMaskBufferSize / 64, 1, 1);
+            cmd.SetRandomWriteTarget(parameters.use4RTs ? 4 : 3, propertyMaskBuffer);
 
             if (parameters.useDecalLayers)
                 cmd.SetGlobalTexture(HDShaderIDs._DecalPrepassTexture, decalPrepassBuffer);
@@ -4220,10 +4241,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                             m_SharedRTManager.GetDepthStencilBuffer(msaa),
                                             useFptl ? m_TileAndClusterData.lightList : m_TileAndClusterData.perVoxelLightLists,
                                             true, renderContext, cmd);
-
-#if ENABLE_VIRTUALTEXTURES
-                cmd.ClearRandomWriteTargets();
-#endif
             }
         }
 
@@ -4979,6 +4996,18 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+#if ENABLE_VIRTUALTEXTURES
+        void PushFullScreenVTFeedbackDebugTexture(CommandBuffer cmd, RTHandle textureID, bool msaa)
+        {
+            if (FullScreenDebugMode.RequestedVirtualTextureTiles == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
+            {
+                CoreUtils.SetRenderTarget(cmd, m_DebugFullScreenTempBuffer);
+                m_VTDebugBlit.SetTexture(msaa ? HDShaderIDs._BlitTextureMSAA : HDShaderIDs._BlitTexture, textureID);
+                cmd.DrawProcedural(Matrix4x4.identity, m_VTDebugBlit, msaa ? 1 : 0, MeshTopology.Triangles, 3, 1);
+            }
+        }
+#endif
+
         internal void PushFullScreenDebugTexture(HDCamera hdCamera, CommandBuffer cmd, RTHandle textureID, FullScreenDebugMode debugMode)
         {
             if (debugMode == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
@@ -4987,16 +5016,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDUtils.BlitCameraTexture(cmd, textureID, m_DebugFullScreenTempBuffer);
             }
         }
-
-        void PushFullScreenDebugTexture(CommandBuffer cmd, RTHandle textureID, FullScreenDebugMode debugMode, Material shader)
-        {
-            if (debugMode == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
-            {
-                m_FullScreenDebugPushed = true; // We need this flag because otherwise if no full screen debug is pushed (like for example if the corresponding pass is disabled), when we render the result in RenderDebug m_DebugFullScreenTempBuffer will contain potential garbage
-                HDUtils.BlitCameraTexture(cmd, textureID, m_DebugFullScreenTempBuffer, shader, 0);
-            }
-        }
-
 
         void PushFullScreenDebugTextureMip(HDCamera hdCamera, CommandBuffer cmd, RTHandle texture, int lodCount, FullScreenDebugMode debugMode)
         {
@@ -5382,24 +5401,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-#if ENABLE_VIRTUALTEXTURES
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VTFeedbackClear)))
-                {
-                    RTHandle alreadyCleared = null;
-                    if (m_GbufferManager?.GetVTFeedbackBuffer() != null)
-                    {
-                        alreadyCleared = m_GbufferManager.GetVTFeedbackBuffer();
-                        CoreUtils.SetRenderTarget(cmd, alreadyCleared, ClearFlag.Color, Color.white);
-                    }
-
-                    // If the forward buffer is different from the GBuffer clear it also
-                    if (GetVTFeedbackBufferForForward(hdCamera) != alreadyCleared)
-                    {
-                        CoreUtils.SetRenderTarget(cmd, GetVTFeedbackBufferForForward(hdCamera), ClearFlag.Color, Color.white);
-                    }
-                }
-#endif
-
                 // We don't need to clear the GBuffers as scene is rewrite and we are suppose to only access valid data (invalid data are tagged with StencilUsage.Clear in the stencil),
                 // This is to save some performance
                 if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred)
@@ -5433,6 +5434,24 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
                     }
                 }
+
+#if ENABLE_VIRTUALTEXTURES
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VTFeedbackClear)))
+                {
+                    RTHandle alreadyCleared = null;
+                    if (m_GbufferManager?.GetVTFeedbackBuffer() != null)
+                    {
+                        alreadyCleared = m_GbufferManager.GetVTFeedbackBuffer();
+                        CoreUtils.SetRenderTarget(cmd, alreadyCleared, ClearFlag.Color, Color.white);
+                    }
+
+                    // If the forward buffer is different from the GBuffer clear it also
+                    if (GetVTFeedbackBufferForForward(hdCamera) != alreadyCleared)
+                    {
+                        CoreUtils.SetRenderTarget(cmd, GetVTFeedbackBufferForForward(hdCamera), ClearFlag.Color, Color.white);
+                    }
+                }
+#endif
             }
         }
 
