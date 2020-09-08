@@ -261,19 +261,18 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             if (m_Shader == null)
             {
-                Debug.Log("A composition shader graph must be set in the compositor window");
+                m_InputLayers.Clear();
+                m_CompositionProfile = null;
                 return false;
             }
 
             if (m_CompositionProfile == null)
             {
-                Debug.Log("The composition profile was not set at runtime");
                 return false;
             }
 
             if (m_Material == null)
             {
-                Debug.Log("The composition material was Null");
                 SetupCompositionMaterial();
             }
 
@@ -331,7 +330,11 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         void OnValidate()
         {
-
+            if (shader == null)
+            {
+                m_InputLayers.Clear();
+                m_CompositionProfile = null;
+            }
         }
 
         public void OnEnable()
@@ -404,7 +407,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             }
             else
             {
-                Debug.LogError("Cannot find the default composition graph. Was the installation folder corrupted?");
+                m_CompositionProfile = null;
                 m_Material = null;
             }
         }
@@ -721,8 +724,14 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         void CustomRender(ScriptableRenderContext context, HDCamera camera)
         {
-            if (camera == null || camera.camera == null || m_Material == null)
+            if (camera == null || camera.camera == null || m_Material == null || m_Shader == null)
+            {
+                // If something is wrong, don't keep the previous image (clear to black) to avoid confusion
+                var cmdbuff = CommandBufferPool.Get("Compositor Blit");
+                cmdbuff.ClearRenderTarget(false, true, Color.black);
                 return;
+            }
+                
 
             // set shader uniforms
             m_CompositionProfile.CopyPropertiesToMaterial(m_Material);
