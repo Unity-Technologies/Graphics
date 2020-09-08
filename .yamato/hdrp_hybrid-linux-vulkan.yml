@@ -62,7 +62,8 @@ HDRP_Hybrid_Linux_Vulkan_playmode_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
+         rerun: always
 HDRP_Hybrid_Linux_Vulkan_Standalone_CUSTOM-REVISION:
     name: HDRP_Hybrid on Linux_Vulkan_Standalone on version CUSTOM-REVISION
     agent:
@@ -84,4 +85,5 @@ HDRP_Hybrid_Linux_Vulkan_Standalone_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
+         rerun: always

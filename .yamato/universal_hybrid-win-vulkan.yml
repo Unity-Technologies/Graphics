@@ -76,7 +76,8 @@ Universal_Hybrid_Win_Vulkan_Standalone_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
       -  path: .yamato/universal_hybrid-win-vulkan.yml#Build_Universal_Hybrid_Win_Vulkan_Player_CUSTOM-REVISION
          rerun: always
     skip_checkout: true
@@ -102,7 +103,8 @@ Build_Universal_Hybrid_Win_Vulkan_Player_CUSTOM-REVISION:
             paths:
               -  "players/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
 Universal_Hybrid_Win_Vulkan_playmode_CUSTOM-REVISION:
     name: Universal_Hybrid on Win_Vulkan_playmode on version CUSTOM-REVISION
     agent:
@@ -122,4 +124,5 @@ Universal_Hybrid_Win_Vulkan_playmode_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
