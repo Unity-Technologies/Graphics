@@ -359,10 +359,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RayTracedShadowsRequired = false;
             m_RayTracedContactShadowsRequired = false;
 
-            // If the camera does not have a ray tracing frame setting
-            // or it is a preview camera (due to the fact that the sphere does not exist as a game object we can't create the RTAS)
-            // we do not want to build a RTAS
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)|| hdCamera.camera.cameraType == CameraType.Preview)
+            // If the camera does not have a ray tracing frame setting or it is a preview camera (due to the fact that the sphere does not exist as a game object we can't create the RTAS) we do not want to build a RTAS
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
                 return;
 
             // We only support ray traced shadows if the camera supports ray traced shadows
