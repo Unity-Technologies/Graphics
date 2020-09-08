@@ -23,6 +23,9 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_counters_trunk:
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
       -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.test.performance.runtimesettings TestProjects/BoatAttack/Packages
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager TestProjects/BoatAttack/Packages
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup TestProjects/BoatAttack/Packages
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -51,6 +54,9 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_Player_trunk:
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
       -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.test.performance.runtimesettings TestProjects/BoatAttack/Packages
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager TestProjects/BoatAttack/Packages
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup TestProjects/BoatAttack/Packages
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
@@ -86,6 +92,9 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_memory_trunk:
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
       -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.test.performance.runtimesettings TestProjects/BoatAttack/Packages
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager TestProjects/BoatAttack/Packages
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup TestProjects/BoatAttack/Packages
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -114,6 +123,9 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_trunk:
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
       -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.test.performance.runtimesettings TestProjects/BoatAttack/Packages
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager TestProjects/BoatAttack/Packages
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup TestProjects/BoatAttack/Packages
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
@@ -146,6 +158,9 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_counters_fast-trunk:
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
       -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.test.performance.runtimesettings TestProjects/BoatAttack/Packages
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager TestProjects/BoatAttack/Packages
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup TestProjects/BoatAttack/Packages
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -174,6 +189,9 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_Player_fast-trunk:
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
       -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.test.performance.runtimesettings TestProjects/BoatAttack/Packages
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager TestProjects/BoatAttack/Packages
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup TestProjects/BoatAttack/Packages
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
@@ -209,6 +227,9 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_memory_fast-trunk:
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
       -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.test.performance.runtimesettings TestProjects/BoatAttack/Packages
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager TestProjects/BoatAttack/Packages
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup TestProjects/BoatAttack/Packages
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -237,6 +258,9 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_fast-trunk:
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
       -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.test.performance.runtimesettings TestProjects/BoatAttack/Packages
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager TestProjects/BoatAttack/Packages
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup TestProjects/BoatAttack/Packages
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
@@ -270,6 +294,9 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_counters_CUSTOM-REVIS
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
       -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.test.performance.runtimesettings TestProjects/BoatAttack/Packages
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager TestProjects/BoatAttack/Packages
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup TestProjects/BoatAttack/Packages
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -299,6 +326,9 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_Player_CUSTOM-REVISION:
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
       -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.test.performance.runtimesettings TestProjects/BoatAttack/Packages
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager TestProjects/BoatAttack/Packages
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup TestProjects/BoatAttack/Packages
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
@@ -335,6 +365,9 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_memory_CUSTOM-REVISIO
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
       -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.test.performance.runtimesettings TestProjects/BoatAttack/Packages
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager TestProjects/BoatAttack/Packages
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup TestProjects/BoatAttack/Packages
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -364,6 +397,9 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_CUSTOM-REVISION
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  Xcopy /E /I "com.unity.shaderanalysis" "TestProjects/BoatAttack/Packages/com.unity.shaderanalysis" /Y
       -  Xcopy /E /I "com.unity.testing.graphics-performance" "TestProjects/BoatAttack/Packages/com.unity.testing.graphics-performance" /Y
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.test.performance.runtimesettings TestProjects/BoatAttack/Packages
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager TestProjects/BoatAttack/Packages
+      -  git clone https://github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup TestProjects/BoatAttack/Packages
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only

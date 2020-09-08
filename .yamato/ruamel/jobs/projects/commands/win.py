@@ -103,8 +103,11 @@ def extra_perf_cmd(project_folder):
         f'Xcopy /E /I \"com.unity.render-pipelines.universal\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.render-pipelines.universal\" /Y',
         f'Xcopy /E /I \"com.unity.shadergraph\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.shadergraph\" /Y',
         f'Xcopy /E /I \"com.unity.shaderanalysis\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.shaderanalysis\" /Y',
-        f'Xcopy /E /I \"com.unity.testing.graphics-performance\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.testing.graphics-performance\" /Y'
-       ]
+        f'Xcopy /E /I \"com.unity.testing.graphics-performance\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.testing.graphics-performance\" /Y',
+        # the below is just a test until unity-config can handle it
+        f'git clone https://github.cds.internal.unity3d.com/unity/com.unity.test.performance.runtimesettings TestProjects/{project_folder}/Packages',
+        f'git clone https://github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager TestProjects/{project_folder}/Packages',
+        f'git clone https://github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup TestProjects/{project_folder}/Packages']
     return perf_list
 
 def install_unity_config(project_folder):
