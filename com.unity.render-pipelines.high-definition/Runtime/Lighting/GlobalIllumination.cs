@@ -273,20 +273,6 @@ namespace UnityEngine.Rendering.HighDefinition
             set { m_SecondDenoiserPass.value = value; }
         }
 
-        /// <summary>
-        /// Controls the radius of the global illumination denoiser (Second Pass).
-        /// </summary>
-        public float secondDenoiserRadius
-        {
-            get
-            {
-                if (!UsesQualitySettings() || UsesQualityMode())
-                    return m_SecondDenoiserRadius.value;
-                else
-                    return GetLightingQualitySettings().RTGISecondDenoiserRadius[(int)quality.value];
-            }
-            set { m_SecondDenoiserRadius.value = value; }
-        }
 
         // RTGI
         [SerializeField, FormerlySerializedAs("rayLength")]
@@ -320,9 +306,5 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, FormerlySerializedAs("secondDenoiserPass")]
         [Tooltip("Enable second denoising pass.")]
         private BoolParameter m_SecondDenoiserPass = new BoolParameter(true);
-
-        [SerializeField, FormerlySerializedAs("secondDenoiserRadius")]
-        [Tooltip("Controls the radius of the GI denoiser (Second Pass).")]
-        private ClampedFloatParameter m_SecondDenoiserRadius = new ClampedFloatParameter(0.3f, 0.001f, 0.5f);
     }
 }

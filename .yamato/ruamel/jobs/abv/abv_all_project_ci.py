@@ -13,7 +13,7 @@ class ABV_AllProjectCiJob():
     
         # define dependencies
         dependencies = [{
-            'path': f'{packages_filepath()}#{package_job_id_test_all(editor["version"])}',
+            'path': f'{projectcontext_filepath()}#{projectcontext_job_id_test_all(editor["version"])}',
             'rerun': editor["rerun_strategy"]}]
 
         for project in projects:

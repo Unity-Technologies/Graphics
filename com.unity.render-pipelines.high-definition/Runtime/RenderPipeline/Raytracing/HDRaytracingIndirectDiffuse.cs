@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-        RTHandle IndirectDiffuseHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
+        static RTHandle IndirectDiffuseHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
         {
             return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension,
                                         enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
@@ -324,18 +324,24 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle directionBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.Direction);
             RTHandle intermediateBuffer1 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA1);
 
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingIntegrateIndirectDiffuse)))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseDirectionGeneration)))
             {
                 // Prepare the components for the direction generation
                 RTIndirectDiffuseDirGenParameters rtidDirGenParameters = PrepareRTIndirectDiffuseDirGenParameters(hdCamera, settings);
                 RTIndirectDiffuseDirGenResources rtidDirGenResousources = PrepareRTIndirectDiffuseDirGenResources(hdCamera, directionBuffer);
                 RTIndirectDiffuseDirGen(cmd, rtidDirGenParameters, rtidDirGenResousources);
+            }
 
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseEvaluation)))
+            {
                 // Prepare the components for the deferred lighting
                 DeferredLightingRTParameters deferredParamters = PrepareIndirectDiffuseDeferredLightingRTParameters(hdCamera);
                 DeferredLightingRTResources deferredResources = PrepareDeferredLightingRTResources(hdCamera, directionBuffer, intermediateBuffer1);
                 RenderRaytracingDeferredLighting(cmd, deferredParamters, deferredResources);
+            }
 
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseUpscale)))
+            {
                 // Upscale the indirect diffuse buffer
                 RTIndirectDiffuseUpscaleParameters rtidUpscaleParameters = PrepareRTIndirectDiffuseUpscaleParameters(hdCamera, settings);
                 RTIndirectDiffuseUpscaleResources rtidUpscaleResources = PrepareRTIndirectDiffuseUpscaleResources(hdCamera, intermediateBuffer1, directionBuffer, m_IndirectDiffuseBuffer0);
@@ -403,7 +409,7 @@ namespace UnityEngine.Rendering.HighDefinition
         struct QualityRTIndirectDiffuseResources
         {
             // Input buffer
-            public RTHandle depthStencilBuffer;
+            public RTHandle depthBuffer;
             public RTHandle normalBuffer;
 
             // Debug buffer
@@ -418,7 +424,7 @@ namespace UnityEngine.Rendering.HighDefinition
             QualityRTIndirectDiffuseResources qualityrtidResources = new QualityRTIndirectDiffuseResources();
 
             // Input buffers
-            qualityrtidResources.depthStencilBuffer = m_SharedRTManager.GetDepthStencilBuffer();
+            qualityrtidResources.depthBuffer = m_SharedRTManager.GetDepthStencilBuffer();
             qualityrtidResources.normalBuffer = m_SharedRTManager.GetNormalBuffer();
 
             // Debug buffer
@@ -443,7 +449,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Set the data for the ray generation
             cmd.SetRayTracingTextureParam(qrtidParameters.indirectDiffuseRT, HDShaderIDs._IndirectDiffuseTextureRW, qrtidResources.outputBuffer);
-            cmd.SetRayTracingTextureParam(qrtidParameters.indirectDiffuseRT, HDShaderIDs._DepthTexture, qrtidResources.depthStencilBuffer);
+            cmd.SetRayTracingTextureParam(qrtidParameters.indirectDiffuseRT, HDShaderIDs._DepthTexture, qrtidResources.depthBuffer);
             cmd.SetRayTracingTextureParam(qrtidParameters.indirectDiffuseRT, HDShaderIDs._NormalBufferTexture, qrtidResources.normalBuffer);
 
             // Set ray count texture
@@ -512,7 +518,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Apply the first pass of our denoiser
             HDDiffuseDenoiser diffuseDenoiser = GetDiffuseDenoiser();
-            DiffuseDenoiserParameters ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, false, settings.denoiserRadius, settings.halfResolutionDenoiser);
+            DiffuseDenoiserParameters ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, false, settings.denoiserRadius, settings.halfResolutionDenoiser, settings.secondDenoiserPass);
             RTHandle intermediateBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);
             DiffuseDenoiserResources ddResources = diffuseDenoiser.PrepareDiffuseDenoiserResources(intermediateBuffer1, intermediateBuffer, m_IndirectDiffuseBuffer0);
             HDDiffuseDenoiser.DenoiseBuffer(cmd, ddParams, ddResources);
@@ -530,7 +536,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDTemporalFilter.DenoiseBuffer(cmd, tfParameters, tfResources);
 
                 // Run the spatial denoiser
-                ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, false, settings.secondDenoiserRadius, settings.halfResolutionDenoiser);
+                ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, false, settings.denoiserRadius * 0.5f, settings.halfResolutionDenoiser, false);
                 ddResources = diffuseDenoiser.PrepareDiffuseDenoiserResources(intermediateBuffer1, intermediateBuffer, m_IndirectDiffuseBuffer0);
                 HDDiffuseDenoiser.DenoiseBuffer(cmd, ddParams, ddResources);
             }
