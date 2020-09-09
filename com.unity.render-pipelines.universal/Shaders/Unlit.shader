@@ -14,6 +14,7 @@ Shader "Universal Render Pipeline/Unlit"
         [HideInInspector] _DstBlend("Dst", Float) = 0.0
         [HideInInspector] _ZWrite("ZWrite", Float) = 1.0
         [HideInInspector] _Cull("__cull", Float) = 2.0
+        [HideInInspector] _PreserveSpecular("__preserve_specular", Float) = 1.0
 
         // Editmode props
         [HideInInspector] _QueueOffset("Queue offset", Float) = 0.0
@@ -44,6 +45,7 @@ Shader "Universal Render Pipeline/Unlit"
             #pragma fragment frag
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature_local_fragment _PRESERVE_SPECULAR
 
             // -------------------------------------
             // Unity defined keywords

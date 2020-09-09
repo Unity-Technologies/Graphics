@@ -159,6 +159,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 onChange();
             });
 
+            // Hide checkbox for Preserve Specular if unsupported blend mode
+            if (target.alphaMode != AlphaMode.Multiply)
+            {
+                context.AddProperty("Preserve Specular", new Toggle() { value = target.preserveSpecular }, (evt) =>
+                {
+                    if (Equals(target.preserveSpecular, evt.newValue))
+                        return;
+
+                    registerUndo("Change Preserve Specular");
+                    target.preserveSpecular = evt.newValue;
+                    onChange();
+                });
+            }
+
             context.AddProperty("Alpha Clip", new Toggle() { value = target.alphaClip }, (evt) =>
             {
                 if (Equals(target.alphaClip, evt.newValue))

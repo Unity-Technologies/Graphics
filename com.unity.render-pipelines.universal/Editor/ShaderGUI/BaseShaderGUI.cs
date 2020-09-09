@@ -54,6 +54,9 @@ namespace UnityEditor
             public static readonly GUIContent blendingMode = new GUIContent("Blending Mode",
                 "Controls how the color of the Transparent surface blends with the Material color in the background.");
 
+            public static readonly GUIContent preserveSpecularText = new GUIContent("Preserve Specular Lighting",
+                "Preserves specular lighting intensity and size by focusing blending to diffuse (transmitted) parts in transparent objects.");
+
             public static readonly GUIContent cullingText = new GUIContent("Render Face",
                 "Specifies which faces to cull from your geometry. Front culls front faces. Back culls backfaces. None means that both sides are rendered.");
 
@@ -94,6 +97,7 @@ namespace UnityEditor
         protected MaterialProperty surfaceTypeProp { get; set; }
 
         protected MaterialProperty blendModeProp { get; set; }
+        protected MaterialProperty preserveSpecProp { get; set; }
 
         protected MaterialProperty cullingProp { get; set; }
 
@@ -145,6 +149,7 @@ namespace UnityEditor
         {
             surfaceTypeProp = FindProperty("_Surface", properties);
             blendModeProp = FindProperty("_Blend", properties);
+            preserveSpecProp = FindProperty("_PreserveSpecular", properties, false);    // TODO: should be mandatory?
             cullingProp = FindProperty("_Cull", properties);
             alphaClipProp = FindProperty("_AlphaClip", properties);
             alphaCutoffProp = FindProperty("_Cutoff", properties);
@@ -236,8 +241,26 @@ namespace UnityEditor
         public virtual void DrawSurfaceOptions(Material material)
         {
             DoPopup(Styles.surfaceType, surfaceTypeProp, Enum.GetNames(typeof(SurfaceType)));
-            if ((SurfaceType)material.GetFloat("_Surface") == SurfaceType.Transparent)
+            if ((SurfaceType) material.GetFloat("_Surface") == SurfaceType.Transparent)
+            {
                 DoPopup(Styles.blendingMode, blendModeProp, Enum.GetNames(typeof(BlendMode)));
+
+                if(material.HasProperty("_PreserveSpecular"))
+                {
+                    BlendMode blendMode = (BlendMode) material.GetFloat("_Blend");
+                    var isDisabled = blendMode == BlendMode.Multiply;
+
+                    EditorGUI.BeginDisabledGroup(isDisabled);
+                        EditorGUI.indentLevel += 2;
+                            EditorGUI.BeginChangeCheck();
+                            var preserveSpecEnabled = EditorGUILayout.Toggle(Styles.preserveSpecularText, preserveSpecProp.floatValue == 1);
+                            if (EditorGUI.EndChangeCheck())
+                                preserveSpecProp.floatValue = preserveSpecEnabled ? 1 : 0;
+                        EditorGUI.indentLevel -= 2;
+                    EditorGUI.EndDisabledGroup();
+                }
+            }
+
 
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = cullingProp.hasMixedValue;
@@ -458,37 +481,85 @@ namespace UnityEditor
                     material.SetInt("_DstBlend", (int) UnityEngine.Rendering.BlendMode.Zero);
                     material.SetInt("_ZWrite", 1);
                     material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                    material.DisableKeyword("_PRESERVE_SPECULAR");
                     material.SetShaderPassEnabled("ShadowCaster", true);
                 }
                 else
                 {
                     BlendMode blendMode = (BlendMode) material.GetFloat("_Blend");
 
+                    bool preserveSpecular = (material.HasProperty("_PreserveSpecular") && material.GetFloat("_PreserveSpecular") > 0) && blendMode != BlendMode.Multiply;
+                    bool needOffScreenBlendFactor = false;
+
+                    // Clear blend keyword state.
+                    material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                    material.DisableKeyword("_ALPHAMODULATE_ON");
+                    material.DisableKeyword("_PRESERVE_SPECULAR");
+
+                    if (preserveSpecular)
+                        material.EnableKeyword("_PRESERVE_SPECULAR");
+
+                    var SrcBlendA = UnityEngine.Rendering.BlendMode.One;
+                    if (needOffScreenBlendFactor)
+                        SrcBlendA = UnityEngine.Rendering.BlendMode.Zero;
+
+
                     // Specific Transparent Mode Settings
                     switch (blendMode)
                     {
                         case BlendMode.Alpha:
-                            material.SetInt("_SrcBlend", (int) UnityEngine.Rendering.BlendMode.SrcAlpha);
-                            material.SetInt("_DstBlend", (int) UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                            material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                            if (preserveSpecular)
+                            {
+                                // Lift alpha multiply from ROP to shader by setting pre-multiplied _SrcBlend mode
+                                // i.e. _PRESERVE_SPECULAR implies _ALPHAPREMULTIPLY_ON but that isn't its purpose.
+                                // Source is expected to be straight color, no alpha pre-multiplication.
+                                material.SetInt("_SrcBlend", (int) UnityEngine.Rendering.BlendMode.One);
+                                material.SetInt("_DstBlend", (int) UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                            }
+                            else
+                            {
+                                material.SetInt("_SrcBlend", (int) UnityEngine.Rendering.BlendMode.SrcAlpha);
+                                material.SetInt("_DstBlend", (int) UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                            }
+                            material.SetInt("_SrcBlendA", (int) SrcBlendA);
+                            material.SetInt("_DstBlendA", (int) UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                             break;
+
                         case BlendMode.Premultiply:
                             material.SetInt("_SrcBlend", (int) UnityEngine.Rendering.BlendMode.One);
                             material.SetInt("_DstBlend", (int) UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                            // Alpha channel blended the same way as in the straight alpha blending.
+                            material.SetInt("_SrcBlendA", (int) SrcBlendA);
+                            material.SetInt("_DstBlendA", (int) UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                             material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
                             break;
+
                         case BlendMode.Additive:
-                            material.SetInt("_SrcBlend", (int) UnityEngine.Rendering.BlendMode.SrcAlpha);
-                            material.SetInt("_DstBlend", (int) UnityEngine.Rendering.BlendMode.One);
-                            material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                            if (preserveSpecular)
+                            {
+                                // Similar to alpha blend. Lift alpha from ROP to shader by setting "pre-multiplied" _SrcBlend mode.
+                                material.SetInt("_SrcBlend", (int) UnityEngine.Rendering.BlendMode.One);
+                                material.SetInt("_DstBlend", (int) UnityEngine.Rendering.BlendMode.One);
+                            }
+                            else
+                            {
+                                material.SetInt("_SrcBlend", (int) UnityEngine.Rendering.BlendMode.SrcAlpha);
+                                material.SetInt("_DstBlend", (int) UnityEngine.Rendering.BlendMode.One);
+                            }
+                            material.SetInt("_SrcBlendA", (int) SrcBlendA);
+                            material.SetInt("_DstBlendA", (int) UnityEngine.Rendering.BlendMode.One);
                             break;
+
                         case BlendMode.Multiply:
                             material.SetInt("_SrcBlend", (int) UnityEngine.Rendering.BlendMode.DstColor);
                             material.SetInt("_DstBlend", (int) UnityEngine.Rendering.BlendMode.Zero);
-                            material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
                             material.EnableKeyword("_ALPHAMODULATE_ON");
+                            // TODO: what would make the most sense
+                            material.SetInt("_SrcBlendA", (int) UnityEngine.Rendering.BlendMode.DstAlpha);
+                            material.SetInt("_DstBlendA", (int) UnityEngine.Rendering.BlendMode.Zero);
                             break;
                     }
+
 
                     // General Transparent Material Settings
                     material.SetOverrideTag("RenderType", "Transparent");

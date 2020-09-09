@@ -917,6 +917,7 @@
     },
     "m_SurfaceType": 1,
     "m_AlphaMode": 0,
+    "m_PreserveSpecular": false,
     "m_TwoSided": false,
     "m_AlphaClip": false,
     "m_CustomEditorGUI": ""

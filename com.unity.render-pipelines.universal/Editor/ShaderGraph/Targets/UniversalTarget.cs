@@ -69,6 +69,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         AlphaMode m_AlphaMode = AlphaMode.Alpha;
 
         [SerializeField]
+        bool m_PreserveSpecular = true;
+
+        [SerializeField]
         bool m_TwoSided = false;
 
         [SerializeField]
@@ -127,6 +130,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             set => m_AlphaMode = value;
         }
 
+        public bool preserveSpecular
+        {
+            // preserveSpecular for multiply blend-mode is not supported
+            get => m_PreserveSpecular && m_AlphaMode != AlphaMode.Multiply;
+            set => m_PreserveSpecular = value;
+        }
+
         public bool twoSided
         {
             get => m_TwoSided;
@@ -161,7 +171,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Setup the Target
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
 
-            // Setup the active SubTarget
+            // Setup the actƒive SubTarget
             TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
             m_ActiveSubTarget.value.target = this;
             m_ActiveSubTarget.value.Setup(ref context);
@@ -183,6 +193,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddField(Fields.GraphPixel);
             context.AddField(Fields.AlphaClip,              alphaClip);
             context.AddField(Fields.DoubleSided,            twoSided);
+            context.AddField(UniversalFields.PreserveSpecular, preserveSpecular);
 
             // SubTarget fields
             m_ActiveSubTarget.value.GetFields(ref context);

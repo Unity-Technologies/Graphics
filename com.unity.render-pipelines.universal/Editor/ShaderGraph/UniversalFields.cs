@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static FieldDescriptor SurfaceTransparent =    new FieldDescriptor(kSurfaceType, "Transparent",            "_SURFACE_TYPE_TRANSPARENT 1");
         public static FieldDescriptor BlendAdd =              new FieldDescriptor(kBlendMode,   "Add",                    "_BLENDMODE_ADD 1");
         public static FieldDescriptor BlendPremultiply =      new FieldDescriptor(kBlendMode,   "Premultiply",            "_ALPHAPREMULTIPLY_ON 1");
-        public static FieldDescriptor BlendMultiply =         new FieldDescriptor(kBlendMode,   "Multiply",               "_BLENDMODE_MULTIPLY 1");
+        public static FieldDescriptor BlendMultiply =         new FieldDescriptor(kBlendMode,   "Multiply",               "_BLENDMODE_MULTIPLY 1"); // NOTE: this is actually _ALPHAMODULATE_ON in URP standard shaders
         public static FieldDescriptor VelocityPrecomputed =   new FieldDescriptor(string.Empty, "AddPrecomputedVelocity", "_ADD_PRECOMPUTED_VELOCITY");
         public static FieldDescriptor SpecularSetup =         new FieldDescriptor(string.Empty, "SpecularSetup",          "_SPECULAR_SETUP");
         public static FieldDescriptor Normal =                new FieldDescriptor(string.Empty, "Normal",                 "_NORMALMAP 1");
@@ -28,6 +28,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 // A predicate is field that has a matching template command, for example: $<name> <content>
 // It is only used to enable/disable <content> in the tempalate
 #region Predicates
+        public static FieldDescriptor PreserveSpecular =      new FieldDescriptor(string.Empty, "PreserveSpecular",       "_PRESERVE_SPECULAR 1");
         //public static FieldDescriptor PredicateClearCoat =    new FieldDescriptor(string.Empty, "ClearCoat", "_CLEARCOAT 1");
 #endregion
     }
