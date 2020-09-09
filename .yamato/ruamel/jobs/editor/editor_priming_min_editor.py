@@ -32,7 +32,12 @@ class Editor_PrimingMinEditorJob():
         job.add_var_custom('DISPLAY', dss(":0"))
         job.add_var_upm_registry()
         job.add_commands([
-            f'pwd',
+            f'ls',
+            f'ls .yamato',
+            f'ls .yamato/ruamel',
+            f'ls .yamato/ruamel/jobs',
+            f'ls .yamato/ruamel/jobs/editor',
+            f'ls .yamato/ruamel/jobs/editor/util',
             f'pip install unity-downloader-cli --user --upgrade --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
             f'python3 .yamato/ruamel/jobs/editor/util/get_minimum_editor_version.py {tmp_revision_file}',
             f'unity-downloader-cli --source-file {tmp_revision_file} -c {platform_os} --wait --skip-download {"".join([f"-c {c} " for c in components])} > {PATH_UNITY_REVISION}',
