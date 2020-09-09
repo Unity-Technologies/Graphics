@@ -2,43 +2,45 @@
 
 ## What is a probe
 
-Reflection probes and planar reflection probes provide indirect specular lighting.
+[Reflection Probes](Reflection-Probe.md) and [Planar Reflection Probes](Planar-Reflection-Probe.md) provide indirect specular lighting.
 
-A probe capture its surroundings and will influence specular lighting in a specific volume.
-A reflection probe will capture all of its surroundings while a planar reflection probe will capture only one direction.
+A Reflection Probe captures all of its surroundings whereas a Planar Reflection Probe only captures one direction.
+
+For more information on probes and how they work, see [Reflection Probes](Reflection-Probes-Intro.md).
+
 
 ## Controlling the influence of a probe
 
-The influence of a probe determines which pixels will be affected and by how much.
+The influence of a probe determines which pixels it affects and by how much.
 
 There are 3 tools to control the influence on a pixel:
-* Influence volume: any pixel inside this volume will be affected.
-* Blend distance: pixel near the border of the volume will be less influenced.
-* Blend normal distance: pixels near the border with an invalid normal won't be affected.
+* [Influence volume](#influence-volume): The probe affects any pixel inside this volume.
+* [Blend distance](#blend-influence): The probe affects pixels near the border of the Influence volume less.
+* [Blend normal distance](#blend-normal-influence): The probe does not affect pixels near the border with an invalid normal.
 
 ### Influence volume
 
-Use this volume to include or exclude pixels to be influenced.
+Use this volume to include or exclude pixels from the probe's influence.
 
-Note: When a pixel is inside an influence volume it will be _processed_ by the probe, even if specular value provided by the probe is not significant. This is important to handle performance of probes.
+Note: When a pixel is inside an influence volume, the probe still _processes_ it even if the specular value provided by the probe is not significant. This is important to handle the performance of probes.
 
 ![img](Images/ReflectionProbe_Influence.svg)
 
 ### Blend influence
 
-Between the influence volume and the blend volume, the specular lighting value provided by the probe is linearly weighted.
-Use the blending to make smooth transition at the border of the influences of a probe or when probes are overlapping.
+Unity weights the specular lighting value provided by the probe linearly between the influence volume and the blend volume.
+Use blending to create smooth transitions at the border of the probe's influence, or when probes overlap.
 
 ![img](Images/ReflectionProbe_InfluenceBlend.svg)
 ![img](Images/ReflectionProbe_InfluenceBlendOverlap.svg)
 
 ### Blend normal influence
 
-In some cases, a probe influence can "bleed", it does influence a pixel that makes no sense to be influenced.
+In some cases, a probe can influence a pixel that is not consistent with the scene layout.
 
-This is the case when a light ray can not reach a pixel due to occlusion but is inside the influence volume.
+For example, when a light ray cannot reach a pixel due to occlusion but is inside the influence volume.
 
 You can set a blend normal distance similarly to a blend distance.
-Pixels inside the influence volume but outside of the blend normal volume will not be influenced if their normal is pointing outward the probe.
+The probe does not influence pixels that are inside the influence volume, but outside of the blend normal distance, if their normal points away from the probe.
 
 ![img](Images/ReflectionProbe_InfluenceBlendNormal.svg)
