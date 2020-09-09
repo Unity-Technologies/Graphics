@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed "Screen position out of view frustum" error when camera is at exactly the planar reflection probe location.
 - Fixed issue with diffusion profile not being updated upon reset of the editor. 
 - Fixed Amplitude -> Min/Max parametrization conversion
+- Fixed an issue that lead to corrupted refraction in some scenarios on xbox.
 
 ### Changed
 - Remove MSAA debug mode when renderpipeline asset has no MSAA
