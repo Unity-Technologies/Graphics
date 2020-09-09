@@ -277,7 +277,7 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
 
         if (_EnableVolumetricFog != 0)
         {
-            bool doBiquadraticReconstruction = _VolumetricFilteringEnabled < 0.5f; // Only if filtering is disabled.
+            bool doBiquadraticReconstruction = _VolumetricFilteringEnabled == 0; // Only if filtering is disabled.
             float4 value = SampleVBuffer(TEXTURE3D_ARGS(_VBufferLighting, s_linear_clamp_sampler),
                                          posInput.positionNDC,
                                          fogFragDist,
