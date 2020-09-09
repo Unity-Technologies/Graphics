@@ -24,7 +24,7 @@ def retrieve_unity_release(working_dir):
             package_data = json.load(package_file)
             tmp_unity_release = package_data["unity"] + "." + package_data["unityRelease"]
             if unity_release != "" and unity_release != tmp_unity_release:
-                logging.error(f'{directory} is requiring {tmp_unity_release} as the minimum version while other packages are using {unity_release}.')
+                logging.error('%s is requiring %s as the minimum version while other packages are using %s.', directory, tmp_unity_release, unity_release)
                 raise Exception('[ERROR] Not all packages are requiring the same minimum unity version (package.json > unityRelease).')
             else:
                 unity_release = tmp_unity_release
@@ -43,10 +43,10 @@ def main(tmp_revision_file_path):
     working_dir = subprocess.check_output(["git", "rev-parse", "--show-toplevel"])
     working_dir = working_dir.decode('utf-8').rstrip()
     
-    logging.info(f'Working directory: {working_dir}')
+    logging.info('Working directory: %s', working_dir)
     unity_release = retrieve_unity_release(working_dir)
 
-    logging.info(f'Unity release used by all the packages: {unity_release}')
+    logging.info('Unity release used by all the packages: %s', unity_release)
     store_version(os.path.join(working_dir, tmp_revision_file_path), unity_release)
 
 
@@ -54,6 +54,6 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
 
     if len(sys.argv) < 2:
-        logging.error(f'Usage: python3 {sys.argv[0]} [tmp_unity_revision_file_path]')
+        logging.error('Usage: python3 %s [tmp_unity_revision_file_path]', sys.argv[0])
         exit(1)
     sys.exit(main(sys.argv[1:]))
