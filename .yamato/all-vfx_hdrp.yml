@@ -14,17 +14,6 @@ All_VFX_HDRP_trunk:
          rerun: on-new-revision
       -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_XR_trunk
          rerun: on-new-revision
-All_VFX_HDRP_fast-trunk:
-    name: All VFX_HDRP CI - fast-trunk
-    dependencies:
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_Standalone_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_XR_fast-trunk
-         rerun: on-new-revision
 All_VFX_HDRP_CUSTOM-REVISION:
     name: All VFX_HDRP CI - CUSTOM-REVISION
     dependencies:
