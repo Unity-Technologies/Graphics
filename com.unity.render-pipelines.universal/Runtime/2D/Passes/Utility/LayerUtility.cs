@@ -57,10 +57,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 var layerToRender = cachedSortingLayers[i].id;
                 var lightStats = lightCullResult.GetLightStatsByLayer(layerToRender);
-
-                if (lightStats.totalLights <= 0)
-                    continue;
-
                 ref var layerBatch = ref layerBatches[batchCount++];
 
                 // find the highest layer that share the same set of lights as this layer
