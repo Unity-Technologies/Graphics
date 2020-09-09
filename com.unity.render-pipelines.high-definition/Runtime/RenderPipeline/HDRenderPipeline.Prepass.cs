@@ -267,7 +267,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderCameraMotionVectors(renderGraph, hdCamera, result.depthBuffer, result.resolvedMotionVectorsBuffer);
                 }
 
-                BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, ref result);
+                // NOTE: Currently we profiled that generating the HTile for SSR and using it is not worth it the optimization.
+                // However if the generated HTile will be used for something else but SSR, this should be made NOT resolve only and
+                // re-enabled in the shader.
+                if (hdCamera.IsSSREnabled())
+                    BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, resolveOnly: true, ref result);
             }
 
             return result;
@@ -669,11 +673,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle coarseStencilBuffer;
         }
 
-        void BuildCoarseStencilAndResolveIfNeeded(RenderGraph renderGraph, HDCamera hdCamera, ref PrepassOutput output)
+        void BuildCoarseStencilAndResolveIfNeeded(RenderGraph renderGraph, HDCamera hdCamera, bool resolveOnly, ref PrepassOutput output)
         {
             using (var builder = renderGraph.AddRenderPass<ResolveStencilPassData>("Resolve Stencil", out var passData, ProfilingSampler.Get(HDProfileId.ResolveStencilBuffer)))
             {
-                passData.parameters = PrepareBuildCoarseStencilParameters(hdCamera);
+                passData.parameters = PrepareBuildCoarseStencilParameters(hdCamera, resolveOnly);
                 passData.inputDepth = output.depthBuffer;
                 passData.coarseStencilBuffer = builder.WriteComputeBuffer(
                     renderGraph.CreateComputeBuffer(new ComputeBufferDesc(HDUtils.DivRoundUp(m_MaxCameraWidth, 8) * HDUtils.DivRoundUp(m_MaxCameraHeight, 8) * m_MaxViewCount, sizeof(uint)) { name = "CoarseStencilBuffer" }));

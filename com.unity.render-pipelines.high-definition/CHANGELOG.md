@@ -78,6 +78,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed thread group size for contact shadows (save 1.1ms on PS4)
 - Make sure distortion stencil test happens before pixel shader is run.
 - Small optimization that allows to skip motion vector prepping when the whole wave as velocity of 0.
+- Improved performance to avoid generating coarse stencil buffer when not needed.
 
 ## [10.0.0] - 2019-06-10
 
