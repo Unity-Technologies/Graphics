@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where transparent meshes were rendered opaque when using custom render passes [case 1262887](https://issuetracker.unity3d.com/issues/urp-transparent-meshes-are-rendered-as-opaques-when-using-lit-shader-with-custom-render-pass)
 - Fixed regression from 8.x.x that increased launch times on Android with GLES3. [case 1269119](https://issuetracker.unity3d.com/issues/android-launch-times-increased-x4-from-urp-8-dot-1-0-to-urp-10-dot-0-0-preview-dot-26)
 - Fixed an issue with a render texture failing assertion when chosing an invalid format. [case 1222676](https://issuetracker.unity3d.com/issues/the-error-occurs-when-a-render-texture-which-has-a-certain-color-format-is-applied-to-the-cameras-output-target)
+- Fixed an issue where XR eye textures are recreated multiple times per frame due to per camera MSAA change.
+- Fixed an issue wehre XR mirror view selector stuck. 
 
 ## [10.0.0] - 2019-06-10
 ### Added
