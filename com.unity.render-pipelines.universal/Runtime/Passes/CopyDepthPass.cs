@@ -17,8 +17,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         private RenderTargetHandle destination { get; set; }
         internal bool AllocateRT  { get; set; }
         Material m_CopyDepthMaterial;
-        const string m_ProfilerTag = "Copy Depth";
-        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
 
         public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial)
         {
@@ -62,7 +60,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyDepth)))
             {
                 RenderTargetIdentifier depthSurface = source.Identifier();
                 RenderTargetIdentifier copyDepthSurface = destination.Identifier();
