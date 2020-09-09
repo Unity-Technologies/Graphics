@@ -27,17 +27,10 @@ class Editor_PrimingMinEditorJob():
         job = YMLJob()
         job.set_name(f'[Min_Editor,{platform["os"]}] Editor priming')
         job.set_agent(agent)
-        job.set_skip_checkout(True)
         job.add_var_custom('PATH', '/home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin')
         job.add_var_custom('DISPLAY', dss(":0"))
         job.add_var_upm_registry()
         job.add_commands([
-            f'ls',
-            f'ls .yamato',
-            f'ls .yamato/ruamel',
-            f'ls .yamato/ruamel/jobs',
-            f'ls .yamato/ruamel/jobs/editor',
-            f'ls .yamato/ruamel/jobs/editor/util',
             f'pip install unity-downloader-cli --user --upgrade --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
             f'python3 .yamato/ruamel/jobs/editor/util/get_minimum_editor_version.py {tmp_revision_file}',
             f'unity-downloader-cli --source-file {tmp_revision_file} -c {platform_os} --wait --skip-download {"".join([f"-c {c} " for c in components])} > {PATH_UNITY_REVISION}',

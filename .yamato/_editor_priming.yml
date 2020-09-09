@@ -46,18 +46,11 @@ editor:priming:test_min_editor:macos:
         type: Unity::VM
         image: cds-ops/ubuntu-16.04-base:stable
         flavor: b1.small
-    skip_checkout: true
     variables:
         PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
         DISPLAY: ":0"
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  ls
-      -  ls .yamato
-      -  ls .yamato/ruamel
-      -  ls .yamato/ruamel/jobs
-      -  ls .yamato/ruamel/jobs/editor
-      -  ls .yamato/ruamel/jobs/editor/util
       -  pip install unity-downloader-cli --user --upgrade --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  python3 .yamato/ruamel/jobs/editor/util/get_minimum_editor_version.py tmp_unity_revision.txt
       -  unity-downloader-cli --source-file tmp_unity_revision.txt -c macos --wait --skip-download -c editor -c il2cpp  > unity_revision.txt
@@ -109,18 +102,11 @@ editor:priming:test_min_editor:android:
         type: Unity::VM
         image: cds-ops/ubuntu-16.04-base:stable
         flavor: b1.small
-    skip_checkout: true
     variables:
         PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
         DISPLAY: ":0"
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  ls
-      -  ls .yamato
-      -  ls .yamato/ruamel
-      -  ls .yamato/ruamel/jobs
-      -  ls .yamato/ruamel/jobs/editor
-      -  ls .yamato/ruamel/jobs/editor/util
       -  pip install unity-downloader-cli --user --upgrade --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  python3 .yamato/ruamel/jobs/editor/util/get_minimum_editor_version.py tmp_unity_revision.txt
       -  unity-downloader-cli --source-file tmp_unity_revision.txt -c windows --wait --skip-download -c editor -c il2cpp -c android  > unity_revision.txt
@@ -172,18 +158,11 @@ editor:priming:test_min_editor:windows:
         type: Unity::VM
         image: cds-ops/ubuntu-16.04-base:stable
         flavor: b1.small
-    skip_checkout: true
     variables:
         PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
         DISPLAY: ":0"
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  ls
-      -  ls .yamato
-      -  ls .yamato/ruamel
-      -  ls .yamato/ruamel/jobs
-      -  ls .yamato/ruamel/jobs/editor
-      -  ls .yamato/ruamel/jobs/editor/util
       -  pip install unity-downloader-cli --user --upgrade --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  python3 .yamato/ruamel/jobs/editor/util/get_minimum_editor_version.py tmp_unity_revision.txt
       -  unity-downloader-cli --source-file tmp_unity_revision.txt -c windows --wait --skip-download -c editor -c il2cpp  > unity_revision.txt
@@ -235,18 +214,11 @@ editor:priming:test_min_editor:linux:
         type: Unity::VM
         image: cds-ops/ubuntu-16.04-base:stable
         flavor: b1.small
-    skip_checkout: true
     variables:
         PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
         DISPLAY: ":0"
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  ls
-      -  ls .yamato
-      -  ls .yamato/ruamel
-      -  ls .yamato/ruamel/jobs
-      -  ls .yamato/ruamel/jobs/editor
-      -  ls .yamato/ruamel/jobs/editor/util
       -  pip install unity-downloader-cli --user --upgrade --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  python3 .yamato/ruamel/jobs/editor/util/get_minimum_editor_version.py tmp_unity_revision.txt
       -  unity-downloader-cli --source-file tmp_unity_revision.txt -c linux --wait --skip-download -c editor -c il2cpp  > unity_revision.txt
@@ -298,18 +270,11 @@ editor:priming:test_min_editor:ios:
         type: Unity::VM
         image: cds-ops/ubuntu-16.04-base:stable
         flavor: b1.small
-    skip_checkout: true
     variables:
         PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
         DISPLAY: ":0"
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  ls
-      -  ls .yamato
-      -  ls .yamato/ruamel
-      -  ls .yamato/ruamel/jobs
-      -  ls .yamato/ruamel/jobs/editor
-      -  ls .yamato/ruamel/jobs/editor/util
       -  pip install unity-downloader-cli --user --upgrade --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  python3 .yamato/ruamel/jobs/editor/util/get_minimum_editor_version.py tmp_unity_revision.txt
       -  unity-downloader-cli --source-file tmp_unity_revision.txt -c macos --wait --skip-download -c editor -c iOS  > unity_revision.txt
