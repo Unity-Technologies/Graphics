@@ -109,7 +109,7 @@ Use the Reflection settings to configure the max number and resolution of the pr
 | **Property**                             | **Description**                                              |
 | ---------------------------------------- | ------------------------------------------------------------ |
 | **Screen Space Reflection**              | Enable the checkbox to make HDRP support [screen space reflection](https://docs.unity3d.com/Manual/PostProcessing-ScreenSpaceReflection.html). SSR is a technique for calculating reflections by reusing screen space data. |
-| **Reflection and Planar Probes Format**  | Color format used for reflection and planar probes. Keep in mind that probes are not pre-exposed when selecting the format. |
+| **Reflection and Planar Probes Format**  | Color format used for reflection and planar probes. |
 | **Compress Reflection Probe Cache**      | Enable the checkbox to compress the [Reflection Probe](Reflection-Probe.md) cache in order to save space on disk. |
 | **Reflection Cubemap Size**              | Use the drop-down to select the maximum resolution of individual Reflection Probe[ ](https://docs.unity3d.com/Manual/class-Cubemap.html)[cubemaps](https://docs.unity3d.com/Manual/class-Cubemap.html). |
 | **Probe Cache Size**                     | The maximum size of the Probe Cache. Defines how many Probe cube maps HDRP can save in cache. |
