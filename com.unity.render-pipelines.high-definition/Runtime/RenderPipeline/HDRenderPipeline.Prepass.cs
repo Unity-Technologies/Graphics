@@ -502,7 +502,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             for (int i = 0; i < dBufferOutput.dBufferCount; ++i)
                 ctx.cmd.SetGlobalTexture(HDShaderIDs._DBufferTexture[i], dBufferOutput.mrt[i]);
-            ctx.cmd.SetGlobalBuffer(HDShaderIDs._DecalPropertyMaskBufferSRV, dBufferOutput.decalPropertyMaskBuffer);
         }
 
         static void BindProbeVolumeGlobalData(in FrameSettings frameSettings, GBufferPassData data, in RenderGraphContext ctx)
@@ -710,7 +709,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public RendererListHandle       meshDecalsRendererList;
             public TextureHandle            depthStencilBuffer;
             public TextureHandle            depthTexture;
-            public ComputeBufferHandle      propertyMaskBuffer;
             public TextureHandle            decalBuffer;
         }
 
@@ -747,14 +745,12 @@ namespace UnityEngine.Rendering.HighDefinition
             propertyMaskBufferSize = ((propertyMaskBufferSize + 63) / 64) * 64; // round off to nearest multiple of 64 for ease of use in CS
 
             passData.depthStencilBuffer = builder.UseDepthBuffer(output.resolvedDepthBuffer, DepthAccess.Write);
-            passData.propertyMaskBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(propertyMaskBufferSize, 4) { name = "DecalPropertyMask" }));
 
             output.dbuffer.dBufferCount = passData.dBufferCount;
             for (int i = 0; i < passData.dBufferCount; ++i)
             {
                 output.dbuffer.mrt[i] = passData.mrt[i];
             }
-            output.dbuffer.decalPropertyMaskBuffer = passData.propertyMaskBuffer;
         }
 
         static DBufferOutput ReadDBuffer(DBufferOutput dBufferOutput, RenderGraphBuilder builder)
@@ -818,7 +814,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                     data.depthStencilBuffer,
                                     data.depthTexture,
                                     data.meshDecalsRendererList,
-                                    data.propertyMaskBuffer,
                                     data.decalBuffer,
                                     context.renderContext,
                                     context.cmd);

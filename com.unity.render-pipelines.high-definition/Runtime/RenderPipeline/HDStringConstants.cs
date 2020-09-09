@@ -200,8 +200,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DecalDatas = Shader.PropertyToID("_DecalDatas");
         public static readonly int _DecalNormalBufferStencilReadMask = Shader.PropertyToID("_DecalNormalBufferStencilReadMask");
         public static readonly int _DecalNormalBufferStencilRef = Shader.PropertyToID("_DecalNormalBufferStencilRef");
-        public static readonly int _DecalPropertyMaskBuffer = Shader.PropertyToID("_DecalPropertyMaskBuffer");
-        public static readonly int _DecalPropertyMaskBufferSRV = Shader.PropertyToID("_DecalPropertyMaskBufferSRV");
         public static readonly int _DecalPrepassTexture = Shader.PropertyToID("_DecalPrepassTexture");
         public static readonly int _DecalPrepassTextureMS = Shader.PropertyToID("_DecalPrepassTextureMS");
 
