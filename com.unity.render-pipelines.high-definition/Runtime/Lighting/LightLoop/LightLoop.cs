@@ -2866,14 +2866,14 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_TextureCaches.lightCookieManager.ReserveSpaceCube(hdLightData.IESPoint);
                     break;
                 case HDLightType.Spot:
-                    // Projectors lights must always have a cookie texture.
                     if (light?.cookie != null && hdLightData.IESSpot != null && light.cookie != hdLightData.IESSpot)
                         m_TextureCaches.lightCookieManager.ReserveSpace(light.cookie, hdLightData.IESSpot);
                     else if (light?.cookie != null)
                         m_TextureCaches.lightCookieManager.ReserveSpace(light.cookie);
                     else if (hdLightData.IESSpot != null)
                         m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.IESSpot);
-                    else
+                    // Projectors lights must always have a cookie texture.
+                    else if (hdLightData.spotLightShape != SpotLightShape.Cone)
                         m_TextureCaches.lightCookieManager.ReserveSpace(Texture2D.whiteTexture);
                     break;
                 case HDLightType.Area:
@@ -3778,7 +3778,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.params2 = new Vector4(firstMipOffsetY, contactShadowMinDist, contactShadowFadeIn, m_ContactShadows.rayBias.value * 0.01f);
             parameters.params3 = new Vector4(m_ContactShadows.sampleCount, m_ContactShadows.thicknessScale.value * 10.0f , 0.0f, 0.0f);
 
-            int deferredShadowTileSize = 16; // Must match DeferreDirectionalShadow.compute
+            int deferredShadowTileSize = 8; // Must match ContactShadows.compute
             parameters.numTilesX = (hdCamera.actualWidth + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
             parameters.numTilesY = (hdCamera.actualHeight + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
             parameters.viewCount = hdCamera.viewCount;

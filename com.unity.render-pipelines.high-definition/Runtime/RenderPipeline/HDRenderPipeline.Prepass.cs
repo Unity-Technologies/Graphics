@@ -87,18 +87,40 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle        flagMaskBuffer;
         }
 
-        TextureHandle CreateDepthBuffer(RenderGraph renderGraph, bool msaa)
+        TextureHandle CreateDepthBuffer(RenderGraph renderGraph, bool clear, bool msaa)
         {
+#if UNITY_2020_2_OR_NEWER
+            FastMemoryDesc fastMemDesc;
+            fastMemDesc.inFastMemory = true;
+            fastMemDesc.residencyFraction = 1.0f;
+            fastMemDesc.flags = FastMemoryFlags.SpillTop;
+#endif
+
             TextureDesc depthDesc = new TextureDesc(Vector2.one, true, true)
-                { depthBufferBits = DepthBits.Depth32, bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = true, name = msaa ? "CameraDepthStencilMSAA" : "CameraDepthStencil" };
+                { depthBufferBits = DepthBits.Depth32, bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = clear, name = msaa ? "CameraDepthStencilMSAA" : "CameraDepthStencil"
+#if UNITY_2020_2_OR_NEWER
+                , fastMemoryDesc = fastMemDesc
+#endif
+            };
 
             return renderGraph.CreateTexture(depthDesc);
         }
 
         TextureHandle CreateNormalBuffer(RenderGraph renderGraph, bool msaa)
         {
+#if UNITY_2020_2_OR_NEWER
+            FastMemoryDesc fastMemDesc;
+            fastMemDesc.inFastMemory = true;
+            fastMemDesc.residencyFraction = 1.0f;
+            fastMemDesc.flags = FastMemoryFlags.SpillTop;
+#endif
+
             TextureDesc normalDesc = new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = NeedClearGBuffer(), clearColor = Color.black, bindTextureMS = msaa, enableMSAA = msaa, enableRandomWrite = !msaa, name = msaa ? "NormalBufferMSAA" : "NormalBuffer" };
+                { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = NeedClearGBuffer(), clearColor = Color.black, bindTextureMS = msaa, enableMSAA = msaa, enableRandomWrite = !msaa, name = msaa ? "NormalBufferMSAA" : "NormalBuffer"
+#if UNITY_2020_2_OR_NEWER
+                , fastMemoryDesc = fastMemDesc
+#endif
+            };
             return renderGraph.CreateTexture(normalDesc);
         }
 
@@ -151,6 +173,7 @@ namespace UnityEngine.Rendering.HighDefinition
         PrepassOutput RenderPrepass(RenderGraph     renderGraph,
                                     TextureHandle   colorBuffer,
                                     TextureHandle   sssBuffer,
+                                    TextureHandle   vtFeedbackBuffer,
                                     CullingResults  cullingResults,
                                     CullingResults  customPassCullingResults,
                                     HDCamera        hdCamera,
@@ -168,7 +191,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // TODO: See how to clean this. Some buffers are created outside, some inside functions...
             result.motionVectorsBuffer = CreateMotionVectorBuffer(renderGraph, msaa, clearMotionVectors);
-            result.depthBuffer = CreateDepthBuffer(renderGraph, msaa);
+            result.depthBuffer = CreateDepthBuffer(renderGraph, hdCamera.clearDepth, msaa);
             result.flagMaskBuffer = CreateFlagMaskTexture(renderGraph);
 
             RenderXROcclusionMeshes(renderGraph, hdCamera, colorBuffer, result.depthBuffer);
@@ -184,6 +207,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // When evaluating probe volumes in material pass, we build a custom probe volume light list.
                 // When evaluating probe volumes in light loop, probe volumes are folded into the standard light loop data.
+                // Build probe volumes light list async during depth prepass.
+                // TODO: (Nick): Take a look carefully at data dependancies - could this be moved even earlier? Directly after PrepareVisibleProbeVolumeList?
+                // The probe volume light lists do not depend on any of the framebuffer RTs being cleared - do they depend on anything in PushGlobalParams()?
+                // Do they depend on hdCamera.xr.StartSinglePass()?
                 BuildGPULightListOutput probeVolumeListOutput = new BuildGPULightListOutput();
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
                 {
@@ -214,7 +241,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderDBuffer(renderGraph, hdCamera, decalBuffer, ref result, cullingResults);
 
-                RenderGBuffer(renderGraph, sssBuffer, ref result, probeVolumeListOutput, cullingResults, hdCamera);
+                RenderGBuffer(renderGraph, sssBuffer, vtFeedbackBuffer, ref result, probeVolumeListOutput, cullingResults, hdCamera);
 
                 DecalNormalPatch(renderGraph, hdCamera, ref result);
 
@@ -410,15 +437,16 @@ namespace UnityEngine.Rendering.HighDefinition
             public int shadowMaskTextureIndex;
         }
 
-        void SetupGBufferTargets(RenderGraph renderGraph, HDCamera hdCamera, GBufferPassData passData, TextureHandle sssBuffer, ref PrepassOutput prepassOutput, FrameSettings frameSettings, RenderGraphBuilder builder)
+        void SetupGBufferTargets(RenderGraph renderGraph, HDCamera hdCamera, GBufferPassData passData, TextureHandle sssBuffer, TextureHandle vtFeedbackBuffer, ref PrepassOutput prepassOutput, FrameSettings frameSettings, RenderGraphBuilder builder)
         {
             bool clearGBuffer = NeedClearGBuffer();
             bool lightLayers = frameSettings.IsEnabled(FrameSettingsField.LightLayers);
             bool shadowMasks = frameSettings.IsEnabled(FrameSettingsField.Shadowmask);
 
+            int currentIndex = 0;
             passData.depthBuffer = builder.UseDepthBuffer(prepassOutput.depthBuffer, DepthAccess.ReadWrite);
-            passData.gbufferRT[0] = builder.UseColorBuffer(sssBuffer, 0);
-            passData.gbufferRT[1] = builder.UseColorBuffer(prepassOutput.normalBuffer, 1);
+            passData.gbufferRT[currentIndex++] = builder.UseColorBuffer(sssBuffer, 0);
+            passData.gbufferRT[currentIndex++] = builder.UseColorBuffer(prepassOutput.normalBuffer, 1);
 
 #if UNITY_2020_2_OR_NEWER
             FastMemoryDesc gbufferFastMemDesc;
@@ -429,22 +457,25 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // If we are in deferred mode and the SSR is enabled, we need to make sure that the second gbuffer is cleared given that we are using that information for clear coat selection
             bool clearGBuffer2 = clearGBuffer || hdCamera.IsSSREnabled();
-            passData.gbufferRT[2] = builder.UseColorBuffer(renderGraph.CreateTexture(
+            passData.gbufferRT[currentIndex++] = builder.UseColorBuffer(renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = clearGBuffer2, clearColor = Color.clear, name = "GBuffer2"
 #if UNITY_2020_2_OR_NEWER
                     , fastMemoryDesc = gbufferFastMemDesc
 #endif
                 }), 2);
-            passData.gbufferRT[3] = builder.UseColorBuffer(renderGraph.CreateTexture(
+            passData.gbufferRT[currentIndex++] = builder.UseColorBuffer(renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, true, true) { colorFormat = Builtin.GetLightingBufferFormat(), clearBuffer = clearGBuffer, clearColor = Color.clear, name = "GBuffer3"
 #if UNITY_2020_2_OR_NEWER
                   , fastMemoryDesc = gbufferFastMemDesc
 #endif
                 }), 3);
 
+#if ENABLE_VIRTUALTEXTURES
+            passData.gbufferRT[currentIndex++] = builder.UseColorBuffer(vtFeedbackBuffer, 4);
+#endif
+
             prepassOutput.gbuffer.lightLayersTextureIndex = -1;
             prepassOutput.gbuffer.shadowMaskTextureIndex = -1;
-            int currentIndex = 4;
             if (lightLayers)
             {
                 passData.gbufferRT[currentIndex] = builder.UseColorBuffer(renderGraph.CreateTexture(
@@ -489,7 +520,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // RenderGBuffer do the gbuffer pass. This is only called with deferred. If we use a depth prepass, then the depth prepass will perform the alpha testing for opaque alpha tested and we don't need to do it anymore
         // during Gbuffer pass. This is handled in the shader and the depth test (equal and no depth write) is done here.
-        void RenderGBuffer(RenderGraph renderGraph, TextureHandle sssBuffer, ref PrepassOutput prepassOutput, in BuildGPULightListOutput probeVolumeLightList, CullingResults cull, HDCamera hdCamera)
+        void RenderGBuffer(RenderGraph renderGraph, TextureHandle sssBuffer, TextureHandle vtFeedbackBuffer, ref PrepassOutput prepassOutput, in BuildGPULightListOutput probeVolumeLightList, CullingResults cull, HDCamera hdCamera)
         {
             if (hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred)
             {
@@ -502,7 +533,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 FrameSettings frameSettings = hdCamera.frameSettings;
 
                 passData.frameSettings = frameSettings;
-                SetupGBufferTargets(renderGraph, hdCamera, passData, sssBuffer, ref prepassOutput, frameSettings, builder);
+                SetupGBufferTargets(renderGraph, hdCamera, passData, sssBuffer, vtFeedbackBuffer, ref prepassOutput, frameSettings, builder);
                 passData.rendererList = builder.UseRendererList(
                     renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_GBufferName, m_CurrentRendererConfigurationBakedLighting)));
 
@@ -563,7 +594,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthResolveMaterial = m_DepthResolveMaterial;
                 passData.depthResolvePassIndex = SampleCountToPassIndex(m_MSAASamples);
 
-                passData.depthBuffer = builder.UseDepthBuffer(CreateDepthBuffer(renderGraph, false), DepthAccess.Write);
+                passData.depthBuffer = builder.UseDepthBuffer(CreateDepthBuffer(renderGraph, true, false), DepthAccess.Write);
                 passData.depthValuesBuffer = builder.UseColorBuffer(depthValuesBuffer, 0);
                 passData.normalBuffer = builder.UseColorBuffer(CreateNormalBuffer(renderGraph, false), 1);
                 if (passData.needMotionVectors)
