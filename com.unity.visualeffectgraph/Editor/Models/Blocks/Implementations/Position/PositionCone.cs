@@ -53,15 +53,6 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        static VFXExpression RemoveTranslatePart(VFXExpression matrix)
-        {
-            var i = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(0));
-            var j = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(1));
-            var k = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(2));
-            var o = VFXValue.Constant(new Vector4(0, 0, 0, 1));
-            return new VFXExpressionVector4sToMatrix(i, j, k, o);
-        }
-
         public override IEnumerable<VFXNamedExpression> parameters
         {
             get
@@ -88,19 +79,6 @@ namespace UnityEditor.VFX.Block
 
                 var zeroF3 = VFXOperatorUtility.ZeroExpression[VFXValueType.Float3];
                 var oneF3 = VFXOperatorUtility.OneExpression[VFXValueType.Float3];
-                /*
-                 * Automatically applied in VFXModel
-                VFXExpression rotationMatrix = new VFXExpressionTRSToMatrix(zeroF3, eulerAngle, oneF3);
-                if (slotSpace != systemSpace)
-                {
-                    if (systemSpace == VFXCoordinateSpace.World)
-                        rotationMatrix = new VFXExpressionTransformMatrix(rotationMatrix, RemoveTranslatePart(VFXBuiltInExpression.LocalToWorld));
-                    else if (systemSpace == VFXCoordinateSpace.Local)
-                        rotationMatrix = new VFXExpressionTransformMatrix(rotationMatrix, RemoveTranslatePart(VFXBuiltInExpression.WorldToLocal));
-                    else
-                        throw new System.NotImplementedException();
-                }
-                */
 
                 VFXExpression rotationMatrix = new VFXExpressionTRSToMatrix(zeroF3, eulerAngle, oneF3);
                 //TODOPAUL : track parent of euler angle to detect potential shortcut
