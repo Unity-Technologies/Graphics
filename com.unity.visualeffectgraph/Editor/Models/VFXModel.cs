@@ -380,6 +380,15 @@ namespace UnityEditor.VFX
             return input;
         }
 
+        static VFXExpression RemoveTranslatePart(VFXExpression matrix)
+        {
+            var i = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(0));
+            var j = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(1));
+            var k = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(2));
+            var o = VFXValue.Constant(new Vector4(0, 0, 0, 1));
+            return new VFXExpressionVector4sToMatrix(i, j, k, o);
+        }
+
         static protected VFXExpression ConvertSpace(VFXExpression input, SpaceableType spaceType, VFXCoordinateSpace space)
         {
             VFXExpression matrix = null;
@@ -411,6 +420,21 @@ namespace UnityEditor.VFX
             else if (spaceType == SpaceableType.Vector)
             {
                 input = new VFXExpressionTransformVector(matrix, input);
+            }
+            else if (spaceType == SpaceableType.Euler)
+            {
+                //TODOPAUL : It can be reduced
+                var zeroF3 = VFXOperatorUtility.ZeroExpression[VFXValueType.Float3];
+                var oneF3 = VFXOperatorUtility.OneExpression[VFXValueType.Float3];
+                VFXExpression rotationMatrix = new VFXExpressionTRSToMatrix(zeroF3, input, oneF3);
+                rotationMatrix = new VFXExpressionTransformMatrix(rotationMatrix, RemoveTranslatePart(matrix));
+                input = new VFXExpressionExtractAnglesFromMatrix(rotationMatrix);
+            }
+            else if (spaceType == SpaceableType.Scale)
+            {
+                //TODOPAUL : Cover this by test
+                var extractScale = new VFXExpressionExtractScaleFromMatrix(matrix);
+                input = input * extractScale;
             }
             else
             {

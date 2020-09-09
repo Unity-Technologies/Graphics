@@ -84,13 +84,13 @@ namespace UnityEditor.VFX.Block
 
                 VFXExpression center = inputSlots[0][0].GetExpression();
 
-                VFXExpression eulerAngle = inputSlots[0][1].GetExpression();
+                var eulerAngle = inputSlots[0][1].GetExpression();
 
                 var zeroF3 = VFXOperatorUtility.ZeroExpression[VFXValueType.Float3];
                 var oneF3 = VFXOperatorUtility.OneExpression[VFXValueType.Float3];
-
+                /*
+                 * Automatically applied in VFXModel
                 VFXExpression rotationMatrix = new VFXExpressionTRSToMatrix(zeroF3, eulerAngle, oneF3);
-
                 if (slotSpace != systemSpace)
                 {
                     if (systemSpace == VFXCoordinateSpace.World)
@@ -100,6 +100,10 @@ namespace UnityEditor.VFX.Block
                     else
                         throw new System.NotImplementedException();
                 }
+                */
+
+                VFXExpression rotationMatrix = new VFXExpressionTRSToMatrix(zeroF3, eulerAngle, oneF3);
+                //TODOPAUL : track parent of euler angle to detect potential shortcut
 
                 //TODOPAUL Can be simplified using matrix composition.
                 var translateMatrix = new VFXExpressionTRSToMatrix(center, zeroF3, oneF3);
