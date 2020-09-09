@@ -24,13 +24,21 @@ namespace UnityEngine.Rendering.Universal
         Metallic,
     }
 
-    public enum DebugReplacementPassType
+    public enum FullScreenDebugMode
+    {
+        None,
+        Depth,
+        MainLightShadowsOnly,
+        AdditionalLightsShadowMap,
+        MainLightShadowMap,
+    }
+
+    public enum SceneOverrides
     {
         None,
         Overdraw,
         Wireframe,
         SolidWireframe,
-        Attributes,
     }
 
     public enum LightingDebugMode
@@ -69,7 +77,7 @@ namespace UnityEngine.Rendering.Universal
     public enum DebugValidationMode
     {
         None,
-        HiglightNanInfNegative,
+        HighlightNanInfNegative,
         HighlightOutsideOfRange,
         ValidateAlbedo,
     }

@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.FinalBlit)))
             {
-	            if (DebugDisplaySettings.Instance.Validation.validationMode==DebugValidationMode.HiglightNanInfNegative)
+	            if (DebugDisplaySettings.Instance.Validation.validationMode==DebugValidationMode.HighlightNanInfNegative)
     	            cmd.EnableShaderKeyword("_DEBUG_HIGHLIGHT_NAN_INF_NEGATIVE_PIXELS");
         	    else
             	    cmd.DisableShaderKeyword("_DEBUG_HIGHLIGHT_NAN_INF_NEGATIVE_PIXELS");

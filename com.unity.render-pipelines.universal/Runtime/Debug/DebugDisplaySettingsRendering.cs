@@ -3,23 +3,6 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering
 {
-    internal enum FullScreenDebugMode
-    {
-        None,
-        Depth,
-        MainLightShadowsOnly,
-        AdditionalLightsShadowMap,
-        MainLightShadowMap,
-    }
-
-    internal enum SceneOverrides
-    {
-        None,
-        Overdraw,
-        Wireframe,
-        SolidWireframe,
-    }
-
     public class DebugDisplaySettingsRendering : IDebugDisplaySettingsData
     {
         internal FullScreenDebugMode fullScreenDebugMode { get; private set; } = FullScreenDebugMode.None;
