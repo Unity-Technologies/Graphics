@@ -311,7 +311,11 @@ half MainLightShadow(float4 shadowCoord, float3 positionWS, half4 shadowMask, ha
     half realtimeShadow = MainLightRealtimeShadow(shadowCoord);
     half bakedShadow = BakedShadow(shadowMask, occlusionProbeChannels);
 
+#ifdef MAIN_LIGHT_CALCULATE_SHADOWS
     half shadowFade = GetShadowFade(positionWS);
+#else
+    half shadowFade = 1.0h;
+#endif
 #ifdef _MAIN_LIGHT_SHADOWS_CASCADE
     // shadowCoord.w represents shadow cascade index
     // in case we are out of shadow cascade we need to set shadow fade to 1.0 for correct blending
@@ -325,7 +329,12 @@ half AdditionalLightShadow(int lightIndex, float3 positionWS, half4 shadowMask, 
 {
     half realtimeShadow = AdditionalLightRealtimeShadow(lightIndex, positionWS);
     half bakedShadow = BakedShadow(shadowMask, occlusionProbeChannels);
+
+#ifdef ADDITIONAL_LIGHT_CALCULATE_SHADOWS
     half shadowFade = GetShadowFade(positionWS);
+#else
+    half shadowFade = 1.0h;
+#endif
 
     return MixRealtimeAndBakedShadows(realtimeShadow, bakedShadow, shadowFade);
 }
