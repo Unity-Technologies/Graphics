@@ -27,6 +27,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Sampling radius. Bigger the radius, wider AO will be achieved, risking to lose fine details and increasing cost of the effect due to increasing cache misses.
         /// </summary>
         public ClampedFloatParameter radius = new ClampedFloatParameter(2.0f, 0.25f, 5.0f);
+
+        /// <summary>
+        /// Moving this factor closer to 0 will increase the amount of accepted samples during temporal accumulation, increasing the ghosting, but reducing the temporal noise.
+        /// </summary>
+        public ClampedFloatParameter spatialBilateralAggressiveness = new ClampedFloatParameter(0.15f, 0.0f, 1.0f);
+
+
         /// <summary>
         /// Whether the results are accumulated over time or not. This can get higher quality results at a cheaper cost, but it can lead to temporal artifacts such as ghosting.
         /// </summary>
@@ -432,7 +439,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 settings.directionCount,
                 upperNudgeFactor,
                 minUpperNudgeLimit,
-                0
+                settings.spatialBilateralAggressiveness.value * 15.0f
             );
 
             cb._FirstTwoDepthMipOffsets = new Vector4(depthMipInfo.mipLevelOffsets[1].x, depthMipInfo.mipLevelOffsets[1].y, depthMipInfo.mipLevelOffsets[2].x, depthMipInfo.mipLevelOffsets[2].y);
