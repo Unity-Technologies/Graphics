@@ -518,7 +518,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Apply the first pass of our denoiser
             HDDiffuseDenoiser diffuseDenoiser = GetDiffuseDenoiser();
-            DiffuseDenoiserParameters ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, false, settings.denoiserRadius, settings.halfResolutionDenoiser);
+            DiffuseDenoiserParameters ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, false, settings.denoiserRadius, settings.halfResolutionDenoiser, settings.secondDenoiserPass);
             RTHandle intermediateBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);
             DiffuseDenoiserResources ddResources = diffuseDenoiser.PrepareDiffuseDenoiserResources(intermediateBuffer1, intermediateBuffer, m_IndirectDiffuseBuffer0);
             HDDiffuseDenoiser.DenoiseBuffer(cmd, ddParams, ddResources);
@@ -536,7 +536,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDTemporalFilter.DenoiseBuffer(cmd, tfParameters, tfResources);
 
                 // Run the spatial denoiser
-                ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, false, settings.secondDenoiserRadius, settings.halfResolutionDenoiser);
+                ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, false, settings.denoiserRadius * 0.5f, settings.halfResolutionDenoiser, false);
                 ddResources = diffuseDenoiser.PrepareDiffuseDenoiserResources(intermediateBuffer1, intermediateBuffer, m_IndirectDiffuseBuffer0);
                 HDDiffuseDenoiser.DenoiseBuffer(cmd, ddParams, ddResources);
             }

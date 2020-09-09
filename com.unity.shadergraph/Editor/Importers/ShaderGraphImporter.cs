@@ -100,8 +100,6 @@ Shader ""Hidden/GraphErrorShader2""
             string path = ctx.assetPath;
             var sourceAssetDependencyPaths = new List<string>();
 
-            UnityEngine.Object mainObject;
-
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
             var graph = new GraphData
             {
@@ -111,55 +109,65 @@ Shader ""Hidden/GraphErrorShader2""
             graph.OnEnable();
             graph.ValidateGraph();
 
-            // TODO: How to handle this?
-            if (graph.isVFXTarget)
+            Shader shader = null;
+#if VFX_GRAPH_10_0_0_OR_NEWER
+            if (!graph.isOnlyVFXTarget)
+#endif
             {
-                var vfxAsset = GenerateVfxShaderGraphAsset(graph);
-                mainObject = vfxAsset;
-            }
-            else
-            {
-            var text = GetShaderText(path, out configuredTextures, sourceAssetDependencyPaths,graph);
-            var shader = ShaderUtil.CreateShaderAsset(text, false);
-
-
-            if (graph != null && graph.messageManager.nodeMessagesChanged)
-            {
-                foreach (var pair in graph.messageManager.GetNodeMessages())
+                var text = GetShaderText(path, out configuredTextures, sourceAssetDependencyPaths, graph);
+                shader = ShaderUtil.CreateShaderAsset(text, false);
+                if (graph.messageManager.nodeMessagesChanged)
                 {
-                    var node = graph.GetNodeFromId(pair.Key);
-                    MessageManager.Log(node, path, pair.Value.First(), shader);
+                    foreach (var pair in graph.messageManager.GetNodeMessages())
+                    {
+                        var node = graph.GetNodeFromId(pair.Key);
+                        MessageManager.Log(node, path, pair.Value.First(), shader);
+                    }
+                }
+
+                EditorMaterialUtility.SetShaderDefaults(
+                    shader,
+                    configuredTextures.Where(x => x.modifiable).Select(x => x.name).ToArray(),
+                    configuredTextures.Where(x => x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
+                EditorMaterialUtility.SetShaderNonModifiableDefaults(
+                    shader,
+                    configuredTextures.Where(x => !x.modifiable).Select(x => x.name).ToArray(),
+                    configuredTextures.Where(x => !x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
+            }
+
+            UnityEngine.Object mainObject = shader;
+#if VFX_GRAPH_10_0_0_OR_NEWER
+            ShaderGraphVfxAsset vfxAsset = null;
+            if (graph.hasVFXTarget)
+            {
+                vfxAsset = GenerateVfxShaderGraphAsset(graph);
+                if (mainObject == null)
+                {
+                    mainObject = vfxAsset;
+                }
+                else
+                {
+                    //Correct main object if we have a shader and ShaderGraphVfxAsset : save as sub asset
+                    vfxAsset.name = Path.GetFileNameWithoutExtension(path);
+                    ctx.AddObjectToAsset("VFXShaderGraph", vfxAsset);
                 }
             }
+#endif
 
-            EditorMaterialUtility.SetShaderDefaults(
-                shader,
-                configuredTextures.Where(x => x.modifiable).Select(x => x.name).ToArray(),
-                configuredTextures.Where(x => x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
-            EditorMaterialUtility.SetShaderNonModifiableDefaults(
-                shader,
-                configuredTextures.Where(x => !x.modifiable).Select(x => x.name).ToArray(),
-                configuredTextures.Where(x => !x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
-
-            mainObject = shader;
-            }
             Texture2D texture = Resources.Load<Texture2D>("Icons/sg_graph_icon@64");
             ctx.AddObjectToAsset("MainAsset", mainObject, texture);
             ctx.SetMainObject(mainObject);
 
-            if(graph != null)
+            foreach(var target in graph.activeTargets)
             {
-                foreach(var target in graph.activeTargets)
+                if(target is IHasMetadata iHasMetadata)
                 {
-                    if(target is IHasMetadata iHasMetadata)
-                    {
-                        var metadata = iHasMetadata.GetMetadataObject();
-                        if(metadata == null)
-                            continue;
+                    var metadata = iHasMetadata.GetMetadataObject();
+                    if(metadata == null)
+                        continue;
 
-                        metadata.hideFlags = HideFlags.HideInHierarchy;
-                        ctx.AddObjectToAsset($"{iHasMetadata.identifier}:Metadata", metadata);
-                    }
+                    metadata.hideFlags = HideFlags.HideInHierarchy;
+                    ctx.AddObjectToAsset($"{iHasMetadata.identifier}:Metadata", metadata);
                 }
             }
 
@@ -243,6 +251,7 @@ Shader ""Hidden/GraphErrorShader2""
             return GetShaderText(path, out configuredTextures, null,graph );
         }
 
+#if VFX_GRAPH_10_0_0_OR_NEWER
         // TODO: Fix this
         static ShaderGraphVfxAsset GenerateVfxShaderGraphAsset(GraphData graph)
         {
@@ -257,6 +266,7 @@ Shader ""Hidden/GraphErrorShader2""
             var mode = GenerationMode.ForReals;
 
             asset.lit = target.lit;
+            asset.alphaClipping = target.alphaTest;
 
             var assetGuid = graph.assetGuid;
             var assetPath = AssetDatabase.GUIDToAssetPath(assetGuid);
@@ -275,6 +285,16 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 fragmentBlock.value.GetInputSlots(ports);
                 NodeUtils.DepthFirstCollectNodesFromNode(nodes, fragmentBlock);
+            }
+
+            //Remove inactive blocks from generation
+            {
+                var tmpCtx = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), null);
+                target.GetActiveBlocks(ref tmpCtx);
+                ports.RemoveAll(materialSlot =>
+                {
+                    return !tmpCtx.activeBlocks.Any(o => materialSlot.RawDisplayName() == o.displayName);
+                });
             }
 
             var bodySb = new ShaderStringBuilder(1);
@@ -626,10 +646,10 @@ Shader ""Hidden/GraphErrorShader2""
             for (var i = 0; i < ports.Count; i++)
             {
                 result.outputCodeIndices[i] = portCodeIndices[i].ToArray();
-        }
-            
+            }
+
             var outputMetadatas = new OutputMetadata[ports.Count];
-            for(int portIndex = 0; portIndex < outputMetadatas.Length; portIndex++)
+            for (int portIndex = 0; portIndex < outputMetadatas.Length; portIndex++)
             {
                 outputMetadatas[portIndex] = new OutputMetadata(portIndex, ports[portIndex].shaderOutputName, originialPortIds[portIndex]);
             }
@@ -650,5 +670,6 @@ Shader ""Hidden/GraphErrorShader2""
 
             return asset;
         }
+#endif
     }
 }
