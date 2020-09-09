@@ -1,10 +1,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepassBuffer.hlsl"
 
-#ifndef SCALARIZE_LIGHT_LOOP
-#define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
-#endif
-
 DECLARE_DBUFFER_TEXTURE(_DBufferTexture);
 
 // In order that the lod for with transpartent decal better match the lod for opaque decal
@@ -192,11 +188,9 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
     GetCountAndStart(posInput, LIGHTCATEGORY_DECAL, decalStart, decalCount);
 
-    #if SCALARIZE_LIGHT_LOOP
     // Fast path is when we all pixels in a wave are accessing same tile or cluster.
-    uint decalStartLane0 = WaveReadLaneFirst(decalStart);
-    bool fastPath = WaveActiveAllTrue(decalStart == decalStartLane0);
-    #endif
+    uint decalStartLane0;
+    bool fastPath = IsFastPath(decalStart, decalStartLane0);
 
 #else // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
     decalCount = _DecalCount;
@@ -226,26 +220,9 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
         v_decalIdx = decalStart + v_decalListOffset;
 #endif // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 
-        uint s_decalIdx = v_decalIdx;
-
-#if SCALARIZE_LIGHT_LOOP
-
-        if (!fastPath)
-        {
-            // If we are not in fast path, v_lightIdx is not scalar, so we need to query the Min value across the wave.
-            s_decalIdx = WaveActiveMin(v_decalIdx);
-            // If WaveActiveMin returns 0xffffffff it means that all lanes are actually dead, so we can safely ignore the loop and move forward.
-            // This could happen as an helper lane could reach this point, hence having a valid v_lightIdx, but their values will be ignored by the WaveActiveMin
-            if (s_decalIdx == -1)
-            {
-                break;
-            }
-        }
-        // Note that the WaveReadLaneFirst should not be needed, but the compiler might insist in putting the result in VGPR.
-        // However, we are certain at this point that the index is scalar.
-        s_decalIdx = WaveReadLaneFirst(s_decalIdx);
-
-#endif // SCALARIZE_LIGHT_LOOP
+        uint s_decalIdx = ScalarizeElementIndex(v_decalIdx, fastPath);
+        if (s_decalIdx == -1)
+            break;
 
         DecalData s_decalData = FetchDecal(s_decalIdx);
         bool isRejected = (s_decalData.decalLayerMask & decalLayerMask) == 0;
