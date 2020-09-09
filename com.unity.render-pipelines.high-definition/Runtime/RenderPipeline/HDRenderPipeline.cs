@@ -2545,15 +2545,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_IsDepthBufferCopyValid = false;
 
             // Only on consoles is safe to read and write from/to the depth atlas
-            bool mip0FromDownsampleForLowResTrans = SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
+            bool mip1FromDownsampleForLowResTrans = SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
                                                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
                                                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12;
-            mip0FromDownsampleForLowResTrans = mip0FromDownsampleForLowResTrans && hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent);
+            mip1FromDownsampleForLowResTrans = mip1FromDownsampleForLowResTrans && hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent);
 
-            DownsampleDepthForLowResTransparency(hdCamera, cmd, m_SharedRTManager.GetDepthTexture(), mip0FromDownsampleForLowResTrans);
+            DownsampleDepthForLowResTransparency(hdCamera, cmd, m_SharedRTManager.GetDepthTexture(), mip1FromDownsampleForLowResTrans);
 
             // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
-            GenerateDepthPyramid(hdCamera, cmd, FullScreenDebugMode.DepthPyramid, mip0FromDownsampleForLowResTrans);
+            GenerateDepthPyramid(hdCamera, cmd, FullScreenDebugMode.DepthPyramid, mip1FromDownsampleForLowResTrans);
 
             // Depth texture is now ready, bind it (Depth buffer could have been bind before if DBuffer is enable)
             cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, m_SharedRTManager.GetDepthTexture());
@@ -4814,7 +4814,7 @@ namespace UnityEngine.Rendering.HighDefinition
             PushFullScreenDebugTextureMip(hdCamera, cmd, currentColorPyramid, lodCount, isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
         }
 
-        void GenerateDepthPyramid(HDCamera hdCamera, CommandBuffer cmd, FullScreenDebugMode debugMode, bool mip0AlreadyComputed)
+        void GenerateDepthPyramid(HDCamera hdCamera, CommandBuffer cmd, FullScreenDebugMode debugMode, bool mip1AlreadyComputed)
         {
             CopyDepthBufferIfNeeded(hdCamera, cmd);
             m_SharedRTManager.GetDepthBufferMipChainInfo().ComputePackedMipChainInfo(new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight));
@@ -4822,7 +4822,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthPyramid)))
             {
-                m_MipGenerator.RenderMinDepthPyramid(cmd, m_SharedRTManager.GetDepthTexture(), m_SharedRTManager.GetDepthBufferMipChainInfo(), mip0AlreadyComputed);
+                m_MipGenerator.RenderMinDepthPyramid(cmd, m_SharedRTManager.GetDepthTexture(), m_SharedRTManager.GetDepthBufferMipChainInfo(), mip1AlreadyComputed);
             }
 
             cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, m_SharedRTManager.GetDepthTexture());

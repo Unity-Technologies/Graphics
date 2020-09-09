@@ -255,15 +255,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_IsDepthBufferCopyValid = false;
 
                 // Only on consoles is safe to read and write from/to the depth atlas
-                bool mip0FromDownsampleForLowResTrans = SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
+                bool mip1FromDownsampleForLowResTrans = SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
                                                         SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
                                                         SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12;
-                mip0FromDownsampleForLowResTrans = mip0FromDownsampleForLowResTrans && hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent);
+                mip1FromDownsampleForLowResTrans = mip1FromDownsampleForLowResTrans && hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent);
 
-                DownsampleDepthForLowResTransparency(renderGraph, hdCamera, mip0FromDownsampleForLowResTrans, ref result);
+                DownsampleDepthForLowResTransparency(renderGraph, hdCamera, mip1FromDownsampleForLowResTrans, ref result);
 
                 // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
-                GenerateDepthPyramid(renderGraph, hdCamera, mip0FromDownsampleForLowResTrans, ref result);
+                GenerateDepthPyramid(renderGraph, hdCamera, mip1FromDownsampleForLowResTrans, ref result);
 
                 if (shouldRenderMotionVectorAfterGBuffer)
                 {
@@ -866,10 +866,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Data needed for potentially writing 
             public Vector2Int mip0Offset;
-            public bool computesMip0OfAtlas;
+            public bool computesMip1OfAtlas;
         }
 
-        void DownsampleDepthForLowResTransparency(RenderGraph renderGraph, HDCamera hdCamera, bool computeMip0OfPyramid, ref PrepassOutput output)
+        void DownsampleDepthForLowResTransparency(RenderGraph renderGraph, HDCamera hdCamera, bool computeMip1OfPyramid, ref PrepassOutput output)
         {
             // If the depth buffer hasn't been already copied by the decal depth buffer pass, then we do the copy here.
             CopyDepthBufferIfNeeded(renderGraph, hdCamera, ref output);
@@ -882,8 +882,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_DownsampleDepthMaterial.EnableKeyword("CHECKERBOARD_DOWNSAMPLE");
                 }
 
-                passData.computesMip0OfAtlas = computeMip0OfPyramid;
-                if (computeMip0OfPyramid)
+                passData.computesMip1OfAtlas = computeMip1OfPyramid;
+                if (computeMip1OfPyramid)
                 {
                     passData.mip0Offset = GetDepthBufferMipChainInfo().mipLevelOffsets[1];
                     m_DownsampleDepthMaterial.EnableKeyword("OUTPUT_FIRST_MIP_OF_MIPCHAIN");
@@ -891,7 +891,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.downsampleDepthMaterial = m_DownsampleDepthMaterial;
                 passData.depthTexture = builder.ReadTexture(output.depthPyramidTexture);
-                if(computeMip0OfPyramid)
+                if(computeMip1OfPyramid)
                 {
                     passData.depthTexture = builder.WriteTexture(passData.depthTexture);
                 }
@@ -901,7 +901,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (DownsampleDepthForLowResPassData data, RenderGraphContext context) =>
                 {
-                    if (data.computesMip0OfAtlas)
+                    if (data.computesMip1OfAtlas)
                     {
                         data.downsampleDepthMaterial.SetVector(HDShaderIDs._DstOffset, new Vector4(data.mip0Offset.x, data.mip0Offset.y, 0.0f, 0.0f));
                         context.cmd.SetRandomWriteTarget(1, data.depthTexture);
@@ -909,7 +909,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     context.cmd.DrawProcedural(Matrix4x4.identity, data.downsampleDepthMaterial, 0, MeshTopology.Triangles, 3, 1, null);
 
-                    if (data.computesMip0OfAtlas)
+                    if (data.computesMip1OfAtlas)
                     {
                         context.cmd.ClearRandomWriteTargets();
                     }
