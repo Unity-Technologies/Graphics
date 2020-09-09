@@ -252,7 +252,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 customGetter: () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.maximumLODLevelQualityLevel.intValue,
                 customSetter: v => serialized.maximumLODLevelQualityLevel.intValue = (int)v,
                 customOverrideable: () => serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>() != MaximumLODLevelMode.OverrideQualitySettings,
-                hasMixedValues: serialized.maximumLODLevelMode.hasMultipleDifferentValues);
+                hasMixedValues: serialized.maximumLODLevelQualityLevel.hasMultipleDifferentValues);
 
             area.AmmendInfo(FrameSettingsField.MaximumLODLevel,
                 overridedDefaultValue: QualitySettings.maximumLODLevel,

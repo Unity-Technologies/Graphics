@@ -279,11 +279,14 @@ namespace UnityEditor.Rendering.HighDefinition
                                 break;
                             case FrameSettingsFieldAttribute.DisplayType.Others:
                                 var oldValue = field.customGetter();
+                                EditorGUI.BeginChangeCheck();
                                 var newValue = DrawFieldShape(fieldRect, oldValue);
                                 // We need an extensive check here, otherwise in some case with boxing or polymorphism
                                 // the != operator won't be accurate. (This is the case for enum types).
                                 var valuesAreEquals = oldValue == null && newValue == null || oldValue != null && oldValue.Equals(newValue);
-                                if (!valuesAreEquals)
+                                // If the UI reported a change, we also assign values.
+                                // When assigning to a multiple selection, the equals check may fail while there was indeed a change.
+                                if (EditorGUI.EndChangeCheck() || !valuesAreEquals)
                                 {
                                     Undo.RecordObject(serializedFrameSettings.serializedObject.targetObject, "Changed FrameSettings " + field.field);
                                     field.customSetter(newValue);
