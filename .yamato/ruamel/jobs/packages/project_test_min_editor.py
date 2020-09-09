@@ -20,7 +20,7 @@ class Project_TestMinEditorJob():
         commands = [
                 f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
                 f'pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade',
-                f'unity-downloader-cli --source-file ../../{PATH_UNITY_REVISION} -c editor --wait --published-only']
+                f'unity-downloader-cli --source-file {PATH_UNITY_REVISION} -c editor --wait --published-only']
         commands.append(f'upm-ci project test -u {platform["editorpath"]} --project-path TestProjects/SRP_SmokeTest --type vetting-tests')
 
         # construct job
