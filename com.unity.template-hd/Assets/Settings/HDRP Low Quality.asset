@@ -362,8 +362,8 @@ MonoBehaviour:
       AOMaximumRadiusPixels: 180000002000000020000000
       AOBilateralUpsample: 000000
       AODirectionCount: 010000000100000002000000
-      ContactShadowSampleCount: 060000000a00000010000000
-      SSRMaxRaySteps: 100000002000000040000000
+      ContactShadowSampleCount: 04000000060000000a000000
+      SSRMaxRaySteps: 080000001000000020000000
       RTAORayLength:
       - 0.5
       - 3
