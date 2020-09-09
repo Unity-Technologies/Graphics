@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a static lighting flickering issue caused by having an active planar probe in the scene while rendering inspector preview.
 - Fixed an issue where even when set to OnDemand, the sky lighting would still be updated when changing sky parameters.
 - Fixed TAA issue and hardware dynamic resolution.
+- Fixed warning with area mesh (case 1268379)
+- Fixed an issue that lead to corrupted refraction in some scenarios on xbox.
 
 ### Changed
 - The `CustomPassLoadCameraColor` and `CustomPassSampleCameraColor` functions now returns the correct color buffer when used in after post process instead of the color pyramid (which didn't had post processes).
