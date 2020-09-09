@@ -75,6 +75,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Exposed lens attenuation mode in default settings and remove it as a debug mode.
 - Composition layers without any sub layers are now cleared to black to avoid confusion (case 1265061).
 - Slight reduction of VGPR used by area light code.
+- Changed thread group size for contact shadows (save 1.1ms on PS4)
 
 ## [10.0.0] - 2019-06-10
 
