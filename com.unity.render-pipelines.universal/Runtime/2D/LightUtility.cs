@@ -119,6 +119,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 }
                 pivotPoint = path[i].N;
             }
+
+            for (int i = 1; i < path.Count; ++i)
+            {
+                var prev = path[i - 1];
+                var curr = path[i];
+
+                if (curr.N - prev.N > 1)
+                {
+                    IntPoint ins = path[i];
+                    ins.N = (ins.N - 1);
+                    path.Insert(i, ins);
+                }
+            }
         }
 
         public static Bounds GenerateShapeMesh(Mesh mesh, Vector3[] shapePath, float falloffDistance)
