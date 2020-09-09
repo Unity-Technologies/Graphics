@@ -23,17 +23,19 @@ namespace UnityEditor.ShaderGraph
             m_Items = new List<DependencyCollection.Item>();
         }
 
-        public void Add(DependencyCollection dependencies)
+        public DependencyCollection Add(DependencyCollection dependencies)
         {
             foreach(DependencyCollection.Item item in dependencies)
             {
                 m_Items.Add(item);
             }
+            return this;
         }
 
-        public void Add(FieldDependency dependency)
+        public DependencyCollection Add(FieldDependency dependency)
         {
             m_Items.Add(new Item(dependency));
+            return this;
         }
 
         public IEnumerator<DependencyCollection.Item> GetEnumerator()
