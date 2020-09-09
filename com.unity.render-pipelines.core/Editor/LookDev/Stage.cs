@@ -218,12 +218,12 @@ namespace UnityEditor.Rendering.LookDev
                     continue;
                 foreach (UnityEngine.Renderer renderer in go.GetComponentsInChildren<UnityEngine.Renderer>())
                 {
-                    if((renderer.hideFlags & HideFlags.HideInInspector) == 0 && ((renderer.hideFlags & HideFlags.NotEditable) == 0))
+                    if((renderer.hideFlags & HideFlags.HideInInspector) == 0 && ((renderer.hideFlags & HideFlags.HideAndDontSave) == 0))
                         renderer.enabled = visible;
                 }
                 foreach (Light light in go.GetComponentsInChildren<Light>())
                 {
-                    if ((light.hideFlags & HideFlags.HideInInspector) == 0 && ((light.hideFlags & HideFlags.NotEditable) == 0))
+                    if ((light.hideFlags & HideFlags.HideInInspector) == 0 && ((light.hideFlags & HideFlags.HideAndDontSave) == 0))
                         light.enabled = visible;
                 }
             }
@@ -231,12 +231,12 @@ namespace UnityEditor.Rendering.LookDev
             // in case we add camera frontal light and such
             foreach (UnityEngine.Renderer renderer in m_Camera.GetComponentsInChildren<UnityEngine.Renderer>())
             {
-                if ((renderer.hideFlags & HideFlags.HideInInspector) == 0 && ((renderer.hideFlags & HideFlags.NotEditable) == 0))
+                if ((renderer.hideFlags & HideFlags.HideInInspector) == 0 && ((renderer.hideFlags & HideFlags.HideAndDontSave) == 0))
                     renderer.enabled = visible;
             }
             foreach (Light light in m_Camera.GetComponentsInChildren<Light>())
             {
-                if ((light.hideFlags & HideFlags.HideInInspector) == 0 && ((light.hideFlags & HideFlags.NotEditable) == 0))
+                if ((light.hideFlags & HideFlags.HideInInspector) == 0 && ((light.hideFlags & HideFlags.HideAndDontSave) == 0))
                     light.enabled = visible;
             }
         }
