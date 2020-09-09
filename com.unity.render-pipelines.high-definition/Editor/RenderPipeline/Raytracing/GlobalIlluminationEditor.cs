@@ -40,7 +40,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_HalfResolutionDenoiser;
         SerializedDataParameter m_DenoiserRadius;
         SerializedDataParameter m_SecondDenoiserPass;
-        SerializedDataParameter m_SecondDenoiserRadius;
 
         public override bool hasAdvancedMode => true;
 
@@ -80,7 +79,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_HalfResolutionDenoiser = Unpack(o.Find(x => x.halfResolutionDenoiser));
             m_DenoiserRadius = Unpack(o.Find(x => x.denoiserRadius));
             m_SecondDenoiserPass = Unpack(o.Find(x => x.secondDenoiserPass));
-            m_SecondDenoiserRadius = Unpack(o.Find(x => x.secondDenoiserRadius));
         }
 
         static public readonly GUIContent k_DepthBufferThicknessText = EditorGUIUtility.TrTextContent("Object Thickness", "Controls the typical thickness of objects the global illumination rays may pass behind.");
@@ -93,7 +91,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_HalfResolutionDenoiser);
                 PropertyField(m_DenoiserRadius);
                 PropertyField(m_SecondDenoiserPass);
-                PropertyField(m_SecondDenoiserRadius);
                 EditorGUI.indentLevel--;
             }
         }
