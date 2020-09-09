@@ -68,7 +68,8 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
 URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_CUSTOM-REVISION:
     name: URPUpdate_Top_Asset_Store on Win_Vulkan_editmode on version CUSTOM-REVISION
     agent:
@@ -92,4 +93,5 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
