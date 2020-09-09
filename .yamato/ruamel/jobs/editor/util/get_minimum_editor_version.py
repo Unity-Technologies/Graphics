@@ -39,7 +39,7 @@ def store_version(tmp_revision_file_path, unity_release):
 
 def main(tmp_revision_file_path):
     
-    logging.info(f'RUNNING: git rev-parse --show-toplevel')
+    logging.info('RUNNING: git rev-parse --show-toplevel')
     working_dir = subprocess.check_output(["git", "rev-parse", "--show-toplevel"])
     working_dir = working_dir.decode('utf-8').rstrip()
     
