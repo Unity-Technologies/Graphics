@@ -83,11 +83,8 @@ namespace UnityEditor.Rendering.HighDefinition
         internal override bool isRenamable => true;
         internal override bool isGpuInstanceable => true;
 
-        internal override List<string> supportedRenderPipelines => new List<string>{SupportedRenderPipelineUtils.GetRenderPipelineName(typeof(HDRenderPipelineAsset))};
-
         internal override bool showPrecisionField => false;
-        internal override bool showSupportedRenderPipelinesField => false;
-        
+    
         public override PropertyType propertyType => PropertyType.Vector1;
 
         string assetReferenceName => $"{referenceName}_Asset";
@@ -107,7 +104,7 @@ namespace UnityEditor.Rendering.HighDefinition
             string f2s(float f) => System.Convert.ToDouble(f).ToString("0." + new string('#', 339));
 
             return
-$@"{supportedRenderPipelinesTagString}[DiffusionProfile]{referenceName}(""{displayName}"", Float) = {f2s(HDShadowUtils.Asfloat(hash))}
+$@"[DiffusionProfile]{referenceName}(""{displayName}"", Float) = {f2s(HDShadowUtils.Asfloat(hash))}
 [HideInInspector]{assetReferenceName}(""{displayName}"", Vector) = ({f2s(asset.x)}, {f2s(asset.y)}, {f2s(asset.z)}, {f2s(asset.w)})";
         }
 
