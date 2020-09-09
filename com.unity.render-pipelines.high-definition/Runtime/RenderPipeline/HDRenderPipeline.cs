@@ -35,6 +35,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static bool pipelineSupportsRayTracing => HDRenderPipeline.currentPipeline != null && HDRenderPipeline.currentPipeline.rayTracingSupported;
 
+        internal static bool pipelineSupportsScreenSpaceShadows => GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset hdrpAsset ? hdrpAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows : false;
+
 
         private static Volume s_DefaultVolume = null;
         static VolumeProfile defaultVolumeProfile
@@ -407,6 +409,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ValidAPI = false;
 
                 return;
+            }
+
+            var defaultLensAttenuation = m_DefaultAsset.lensAttenuationMode;
+            if (defaultLensAttenuation == LensAttenuationMode.ImperfectLens)
+            {
+                ColorUtils.s_LensAttenuation = 0.65f;
+            }
+            else if (defaultLensAttenuation == LensAttenuationMode.PerfectLens)
+            {
+                ColorUtils.s_LensAttenuation = 0.78f;
             }
 
 #if ENABLE_VIRTUALTEXTURES
@@ -1107,6 +1119,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_DecalNormalBufferMaterial);
 
 #if ENABLE_VIRTUALTEXTURES
+            m_VtBufferManager.Cleanup();
             CoreUtils.Destroy(m_VTDebugBlit);
 #endif
             CoreUtils.Destroy(m_DebugViewMaterialGBuffer);
@@ -1367,9 +1380,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader    resolveStencilCS;
             public int              resolveKernel;
             public bool             resolveIsNecessary;
+            public bool             resolveOnly;
         }
 
-        BuildCoarseStencilAndResolveParameters PrepareBuildCoarseStencilParameters(HDCamera hdCamera)
+        BuildCoarseStencilAndResolveParameters PrepareBuildCoarseStencilParameters(HDCamera hdCamera, bool resolveOnly)
         {
             var parameters = new BuildCoarseStencilAndResolveParameters();
             parameters.hdCamera = hdCamera;
@@ -1386,13 +1400,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int kernel = SampleCountToPassIndex(MSAAEnabled ? hdCamera.msaaSamples : MSAASamples.None);
             parameters.resolveKernel = parameters.resolveIsNecessary ? kernel + 3 : kernel; // We have a different variant if we need to resolve to non-MSAA stencil
+            parameters.resolveOnly = resolveOnly;
+
+            if(parameters.resolveIsNecessary && resolveOnly)
+            {
+                parameters.resolveKernel = (kernel - 1) + 7;
+            }
 
             return parameters;
         }
 
-        void BuildCoarseStencilAndResolveIfNeeded(HDCamera hdCamera, CommandBuffer cmd)
+        void BuildCoarseStencilAndResolveIfNeeded(HDCamera hdCamera, CommandBuffer cmd, bool resolveOnly)
         {
-            var parameters = PrepareBuildCoarseStencilParameters(hdCamera);
+            var parameters = PrepareBuildCoarseStencilParameters(hdCamera, resolveOnly);
             bool msaaEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
             BuildCoarseStencilAndResolveIfNeeded(parameters, m_SharedRTManager.GetDepthStencilBuffer(msaaEnabled),
                          msaaEnabled ? m_SharedRTManager.GetStencilBuffer(msaaEnabled) : null,
@@ -1402,6 +1422,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void BuildCoarseStencilAndResolveIfNeeded(BuildCoarseStencilAndResolveParameters parameters, RTHandle depthStencilBuffer, RTHandle resolvedStencilBuffer, ComputeBuffer coarseStencilBuffer, CommandBuffer cmd)
         {
+            if (parameters.resolveOnly && !parameters.resolveIsNecessary)
+                return;
+
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CoarseStencilGeneration)))
             {
                 ComputeShader cs = parameters.resolveStencilCS;
@@ -2272,7 +2295,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
 #if ENABLE_VIRTUALTEXTURES
-            m_VtBufferManager.BeginRender(hdCamera.actualWidth, hdCamera.actualHeight);
+            m_VtBufferManager.BeginRender(hdCamera);
 #endif
 
             using (ListPool<RTHandle>.Get(out var aovBuffers))
@@ -2300,9 +2323,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_CurrentDebugDisplaySettings = m_DebugDisplaySettings;
             }
-
-            // Now that we have the display settings, we can setup the lens attenuation factor.
-            ColorUtils.s_LensAttenuation = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLensAttenuation;
 
             aovRequest.SetupDebugData(ref m_CurrentDebugDisplaySettings);
 
@@ -2588,9 +2608,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     CoreUtils.SetRenderTarget(cmd, m_ContactShadowBuffer, ClearFlag.Color, Color.clear);
                 }
 
-                BuildCoarseStencilAndResolveIfNeeded(hdCamera, cmd);
+                // NOTE: Currently we profiled that generating the HTile for SSR and using it is not worth it the optimization.
+                // However if the generated HTile will be used for something else but SSR, this should be made NOT resolve only and
+                // re-enabled in the shader.
+                if (hdCamera.IsSSREnabled())
+                    BuildCoarseStencilAndResolveIfNeeded(hdCamera, cmd, resolveOnly: true);
 
-                hdCamera.xr.StopSinglePass(cmd);
+                    hdCamera.xr.StopSinglePass(cmd);
 
                 var buildLightListTask = new HDGPUAsyncTask("Build light list", ComputeQueueType.Background);
                 // It is important that this task is in the same queue as the build light list due to dependency it has on it. If really need to move it, put an extra fence to make sure buildLightListTask has finished.
@@ -2871,7 +2895,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if(m_VTDebugBlit != null)
             {
-                PushFullScreenDebugTexture(cmd, GetVTFeedbackBufferForForward(hdCamera), FullScreenDebugMode.RequestedVirtualTextureTiles, m_VTDebugBlit);
+                PushFullScreenVTFeedbackDebugTexture(cmd, GetVTFeedbackBufferForForward(hdCamera), hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
             }
 #endif
 
@@ -3725,9 +3749,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 DrawOpaqueRendererList(renderContext, cmd, hdCamera.frameSettings, rendererList);
 
                 m_GbufferManager.BindBufferAsTextures(cmd);
-#if ENABLE_VIRTUALTEXTURES
-                cmd.ClearRandomWriteTargets();
-#endif
             }
         }
 
@@ -4220,10 +4241,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                             m_SharedRTManager.GetDepthStencilBuffer(msaa),
                                             useFptl ? m_TileAndClusterData.lightList : m_TileAndClusterData.perVoxelLightLists,
                                             true, renderContext, cmd);
-
-#if ENABLE_VIRTUALTEXTURES
-                cmd.ClearRandomWriteTargets();
-#endif
             }
         }
 
@@ -4718,7 +4735,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                BuildCoarseStencilAndResolveIfNeeded(hdCamera, cmd);
+                // NOTE: Currently we profiled that generating the HTile for SSR and using it is not worth it the optimization.
+                // However if the generated HTile will be used for something else but SSR, this should be made NOT resolve only and
+                // re-enabled in the shader.
+                BuildCoarseStencilAndResolveIfNeeded(hdCamera, cmd, resolveOnly: true);
 
                 // Before doing anything, we need to clear the target buffers and rebuild the depth pyramid for tracing
                 // NOTE: This is probably something we can avoid if we read from the depth buffer and traced on the pyramid without the transparent objects
@@ -4979,6 +4999,18 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+#if ENABLE_VIRTUALTEXTURES
+        void PushFullScreenVTFeedbackDebugTexture(CommandBuffer cmd, RTHandle textureID, bool msaa)
+        {
+            if (FullScreenDebugMode.RequestedVirtualTextureTiles == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
+            {
+                CoreUtils.SetRenderTarget(cmd, m_DebugFullScreenTempBuffer);
+                m_VTDebugBlit.SetTexture(msaa ? HDShaderIDs._BlitTextureMSAA : HDShaderIDs._BlitTexture, textureID);
+                cmd.DrawProcedural(Matrix4x4.identity, m_VTDebugBlit, msaa ? 1 : 0, MeshTopology.Triangles, 3, 1);
+            }
+        }
+#endif
+
         internal void PushFullScreenDebugTexture(HDCamera hdCamera, CommandBuffer cmd, RTHandle textureID, FullScreenDebugMode debugMode)
         {
             if (debugMode == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
@@ -4987,16 +5019,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDUtils.BlitCameraTexture(cmd, textureID, m_DebugFullScreenTempBuffer);
             }
         }
-
-        void PushFullScreenDebugTexture(CommandBuffer cmd, RTHandle textureID, FullScreenDebugMode debugMode, Material shader)
-        {
-            if (debugMode == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
-            {
-                m_FullScreenDebugPushed = true; // We need this flag because otherwise if no full screen debug is pushed (like for example if the corresponding pass is disabled), when we render the result in RenderDebug m_DebugFullScreenTempBuffer will contain potential garbage
-                HDUtils.BlitCameraTexture(cmd, textureID, m_DebugFullScreenTempBuffer, shader, 0);
-            }
-        }
-
 
         void PushFullScreenDebugTextureMip(HDCamera hdCamera, CommandBuffer cmd, RTHandle texture, int lodCount, FullScreenDebugMode debugMode)
         {
@@ -5382,24 +5404,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-#if ENABLE_VIRTUALTEXTURES
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VTFeedbackClear)))
-                {
-                    RTHandle alreadyCleared = null;
-                    if (m_GbufferManager?.GetVTFeedbackBuffer() != null)
-                    {
-                        alreadyCleared = m_GbufferManager.GetVTFeedbackBuffer();
-                        CoreUtils.SetRenderTarget(cmd, alreadyCleared, ClearFlag.Color, Color.white);
-                    }
-
-                    // If the forward buffer is different from the GBuffer clear it also
-                    if (GetVTFeedbackBufferForForward(hdCamera) != alreadyCleared)
-                    {
-                        CoreUtils.SetRenderTarget(cmd, GetVTFeedbackBufferForForward(hdCamera), ClearFlag.Color, Color.white);
-                    }
-                }
-#endif
-
                 // We don't need to clear the GBuffers as scene is rewrite and we are suppose to only access valid data (invalid data are tagged with StencilUsage.Clear in the stencil),
                 // This is to save some performance
                 if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred)
@@ -5433,6 +5437,24 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
                     }
                 }
+
+#if ENABLE_VIRTUALTEXTURES
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VTFeedbackClear)))
+                {
+                    RTHandle alreadyCleared = null;
+                    if (m_GbufferManager?.GetVTFeedbackBuffer() != null)
+                    {
+                        alreadyCleared = m_GbufferManager.GetVTFeedbackBuffer();
+                        CoreUtils.SetRenderTarget(cmd, alreadyCleared, ClearFlag.Color, Color.white);
+                    }
+
+                    // If the forward buffer is different from the GBuffer clear it also
+                    if (GetVTFeedbackBufferForForward(hdCamera) != alreadyCleared)
+                    {
+                        CoreUtils.SetRenderTarget(cmd, GetVTFeedbackBufferForForward(hdCamera), ClearFlag.Color, Color.white);
+                    }
+                }
+#endif
             }
         }
 
