@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added remapping options for Depth Pyramid debug view mode
 - Added an option to support AOV shader at runtime in HDRP settings (case 1265070)
 - Added support of SSGI in the render graph mode.
+- Added option for 11-11-10 format for cube reflection probes.
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
