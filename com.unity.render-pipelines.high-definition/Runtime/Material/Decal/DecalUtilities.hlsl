@@ -215,7 +215,7 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
     GetCountAndStart(posInput, LIGHTCATEGORY_DECAL, decalStart, decalCount);
 
     // Fast path is when we all pixels in a wave are accessing same tile or cluster.
-    uint decalStartLane0 = WaveReadLaneFirst(decalStart);
+    uint decalStartLane0;
     bool fastPath = IsFastPath(decalStart, decalStartLane0);
 
 #else // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
