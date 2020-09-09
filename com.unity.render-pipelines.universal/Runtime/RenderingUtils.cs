@@ -28,7 +28,8 @@ namespace UnityEngine.Rendering.Universal
     {
         None,
         Depth,
-        MainLightShadowsOnly,
+        // TODO: Restore this once we have access to the screen-space shadow texture...
+        //MainLightShadowsOnly,
         AdditionalLightsShadowMap,
         MainLightShadowMap,
     }
