@@ -30,6 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// HDRP Additional light data component. It contains the light API and fields used by HDRP.
     /// </summary>
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Light-Component" + Documentation.endURL)]
+    [AddComponentMenu("")] // Hide in menu
     [RequireComponent(typeof(Light))]
     [ExecuteAlways]
     public partial class HDAdditionalLightData : MonoBehaviour, ISerializationCallbackReceiver
@@ -1722,7 +1723,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
 
                 m_AreaLightEmissiveMeshLayer = value;
-                if (emissiveMeshRenderer != null && !emissiveMeshRenderer.Equals(null))
+                if (emissiveMeshRenderer != null && !emissiveMeshRenderer.Equals(null) && m_AreaLightEmissiveMeshLayer != -1)
                 {
                     emissiveMeshRenderer.gameObject.layer = m_AreaLightEmissiveMeshLayer;
                 }
@@ -1779,6 +1780,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// when Update Mode is set to On Demand. For example, to request the update of a second cascade, shadowIndex should be 1.
         /// Note: if shadowIndex is a 0-based index and it must be lower than the number of shadow maps a light renders (i.e. cascade count for directional lights, 6 for point lights).
         /// </summary>
+        /// <param name="shadowIndex">The index of the subshadow to update.</param>
         public void RequestSubShadowMapRendering(int shadowIndex)
         {
             if (shadowUpdateMode == ShadowUpdateMode.OnDemand)
@@ -2019,6 +2021,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (shadowRequestIndex == -1)
                     continue;
 
+                shadowRequest.atlasViewport = resolutionRequest.atlasViewport;
+
                 if (!shadowNeedsRendering)
                 {
                     shadowRequest.cachedShadowData.cacheTranslationDelta = cameraPos - m_CachedViewPos;
@@ -2078,7 +2082,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     SetCommonShadowRequestSettings(shadowRequest, visibleLight, cameraPos, invViewProjection, viewportSize, lightIndex, lightType, filteringQuality);
                 }
 
-                shadowRequest.atlasViewport = resolutionRequest.atlasViewport;
                 manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest, shadowIsInCachedSystem);
 
                 if(shadowIsInCachedSystem && shadowNeedsRendering)
@@ -2309,6 +2312,14 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
 #if UNITY_EDITOR
+
+            // If we requested an emissive mesh but for some reason (e.g. Reload scene unchecked in the Enter Playmode options) Awake has not been called,
+            // we need to create it manually.
+            if (m_DisplayAreaLightEmissiveMesh && (m_ChildEmissiveMeshViewer == null || m_ChildEmissiveMeshViewer.Equals(null)))
+            {
+                UpdateAreaLightEmissiveMesh();
+            }
+
             //if not parented anymore, refresh it
             if (m_ChildEmissiveMeshViewer != null && !m_ChildEmissiveMeshViewer.Equals(null))
             {
@@ -2507,7 +2518,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RefreshCachedShadow();
 
-            if (emissiveMeshRenderer != null && !emissiveMeshRenderer.Equals(null))
+            if (emissiveMeshRenderer != null && !emissiveMeshRenderer.Equals(null) && m_AreaLightEmissiveMeshLayer != -1)
             {
                 emissiveMeshRenderer.gameObject.layer = m_AreaLightEmissiveMeshLayer;
             }
@@ -2834,7 +2845,9 @@ namespace UnityEngine.Rendering.HighDefinition
             shapeHeight = m_ShapeHeight;
 
 #if UNITY_EDITOR
-            legacyLight.areaSize = new Vector2(shapeWidth, shapeHeight);
+            // We don't want to update the disc area since their shape is largely handled by builtin.
+            if (GetLightTypeAndShape() != HDLightTypeAndShape.DiscArea)
+                legacyLight.areaSize = new Vector2(shapeWidth, shapeHeight);
 #endif
         }
 

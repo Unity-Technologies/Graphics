@@ -17,7 +17,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public TextureHandle    ambientOcclusionBuffer;
             public TextureHandle    ssrLightingBuffer;
+            public TextureHandle    ssgiLightingBuffer;
             public TextureHandle    contactShadowsBuffer;
+            public TextureHandle    screenspaceShadowBuffer;
         }
 
         static LightingBuffers ReadLightingBuffers(in LightingBuffers buffers, RenderGraphBuilder builder)
@@ -26,7 +28,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // We only read those buffers because sssBuffer and diffuseLightingBuffer our just output of the lighting process, not inputs.
             result.ambientOcclusionBuffer = builder.ReadTexture(buffers.ambientOcclusionBuffer);
             result.ssrLightingBuffer = builder.ReadTexture(buffers.ssrLightingBuffer);
+            result.ssgiLightingBuffer = builder.ReadTexture(buffers.ssgiLightingBuffer);
             result.contactShadowsBuffer = builder.ReadTexture(buffers.contactShadowsBuffer);
+            result.screenspaceShadowBuffer = builder.ReadTexture(buffers.screenspaceShadowBuffer);
 
             return result;
         }
@@ -35,7 +39,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, buffers.ambientOcclusionBuffer);
             cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, buffers.ssrLightingBuffer);
+            cmd.SetGlobalTexture(HDShaderIDs._IndirectDiffuseTexture, buffers.ssgiLightingBuffer);
             cmd.SetGlobalTexture(HDShaderIDs._ContactShadowTexture, buffers.contactShadowsBuffer);
+            cmd.SetGlobalTexture(HDShaderIDs._ScreenSpaceShadowsTexture, buffers.screenspaceShadowBuffer);
         }
 
         class BuildGPULightListPassData
@@ -402,6 +408,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                     HDCamera            hdCamera,
                                     ref PrepassOutput   prepassOutput,
                                     TextureHandle       clearCoatMask,
+                                    TextureHandle       rayCountTexture,
+                                    Texture             skyTexture,
                                     bool                transparent)
         {
             if (!hdCamera.IsSSREnabled(transparent))
@@ -409,14 +417,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureHandle result;
 
-            // TODO RENDERGRAPH
-            //var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
-            //bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value;
-            //if (usesRaytracedReflections)
-            //{
-            //    RenderRayTracedReflections(hdCamera, cmd, m_SsrLightingTexture, renderContext, m_FrameCount, true);
-            //}
-            //else
+            var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
+            bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value;
+            if (usesRaytracedReflections)
+            {
+                result = RenderRayTracedReflections(renderGraph, hdCamera,
+                                                    prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, clearCoatMask, skyTexture, rayCountTexture,
+                                                    m_FrameCount, m_ShaderVariablesRayTracingCB, transparent);
+            }
+            else
             {
                 if (transparent)
                     BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, ref prepassOutput);
@@ -570,7 +579,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     return passData.densityBuffer;
                 }
             }
-            return new TextureHandle();
+            return TextureHandle.nullHandle;
         }
 
         class VolumetricLightingPassData

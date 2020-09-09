@@ -46,6 +46,12 @@ namespace UnityEngine.Rendering.LookDev
         /// </summary>
         /// <param name="stage">Access element of the LookDev's scene</param>
         void OnEndRendering(StageRuntimeInterface stage);
+
+        /// <summary>
+        /// Callback called to do any necessary cleanup.
+        /// </summary>
+        /// <param name="SRI">Access element of the LookDev's scene</param>
+        void Cleanup(StageRuntimeInterface SRI);
     }
 
     /// <summary>

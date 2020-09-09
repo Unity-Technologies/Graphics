@@ -2,16 +2,27 @@ VFXComponentBoard.graphElement
 {
     position:Absolute;
 
-    background-color: #2b2b2b;
-    border-color: #191919;
-
     padding-left:0;
     padding-right:0;
     padding-top:0;
     padding-bottom:0;
 
+    
+
+
     min-width: 286px;
     min-height: 100px;
+}
+
+VFXComponentBoard.graphElement > .mainContainer
+{
+    flex: 1 1 auto;
+    background-color: #2b2b2b;
+    border-color: #191919;
+    margin-left:6px;
+    margin-right:6px;
+    margin-top:6px;
+    margin-bottom:6px;
 }
 
  *
@@ -54,9 +65,9 @@ VFXComponentBoard, #component-container
     border-color: #212121;
     border-top-right-radius: 4px;
     border-top-left-radius: 4px;
-    padding-left: 1px;
-    padding-top: 4px;
-    padding-bottom: 2px;
+    padding-left: 8px;
+    padding-top: 8px;
+    padding-bottom: 8px;
 }
 #header > #labelContainer {
     flex:1 0 auto;

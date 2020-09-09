@@ -455,8 +455,11 @@ namespace UnityEditor.Rendering
 
                     if (evt.keyCode == KeyCode.Return || evt.keyCode == KeyCode.KeypadEnter)
                     {
-                        GoToChild(m_ActiveElement, true);
-                        evt.Use();
+                        if (m_ActiveElement != null)
+                        {
+                            GoToChild(m_ActiveElement, true);
+                            evt.Use();
+                        }
                     }
 
                     // Do these if we're not in search mode

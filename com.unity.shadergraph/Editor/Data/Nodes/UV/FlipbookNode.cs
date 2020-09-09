@@ -4,6 +4,7 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -35,7 +36,16 @@ namespace UnityEditor.ShaderGraph
 
         string GetFunctionName()
         {
-            return $"Unity_Flipbook_{concretePrecision.ToShaderString()}";
+            string invertText = string.Empty;
+
+            if(m_InvertX && m_InvertY)
+                invertText = "InvertXY_";
+            else if(m_InvertX)
+                invertText = "InvertX_";
+            else if(m_InvertY)
+                invertText = "InvertY_";
+
+            return $"Unity_Flipbook_{invertText}{concretePrecision.ToShaderString()}";
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -60,7 +70,7 @@ namespace UnityEditor.ShaderGraph
                 if (m_InvertX == value.isOn)
                     return;
                 m_InvertX = value.isOn;
-                Dirty(ModificationScope.Node);
+                Dirty(ModificationScope.Graph);
             }
         }
 
@@ -76,7 +86,7 @@ namespace UnityEditor.ShaderGraph
                 if (m_InvertY == value.isOn)
                     return;
                 m_InvertY = value.isOn;
-                Dirty(ModificationScope.Node);
+                Dirty(ModificationScope.Graph);
             }
         }
 
@@ -134,13 +144,46 @@ namespace UnityEditor.ShaderGraph
                         FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString());
                     using (s.BlockScope())
                     {
-                        s.AppendLine("Tile = fmod(Tile, Width*Height);");
+                        string offset;
+                        if (concretePrecision == ConcretePrecision.Half)
+                        {
+                            offset = "0.00001h";
+                        }
+                        else
+                        {
+                            offset = "0.000001";
+                        }
+
+                        s.AppendLine("Tile = floor(fmod(Tile + " + offset + ", Width*Height));");
                         s.AppendLine("$precision2 tileCount = $precision2(1.0, 1.0) / $precision2(Width, Height);");
-                        s.AppendLine("$precision tileY = abs(Invert.y * Height - (floor(Tile * tileCount.x) + Invert.y * 1));");
-                        s.AppendLine("$precision tileX = abs(Invert.x * Width - ((Tile - Width * floor(Tile * tileCount.x)) + Invert.x * 1));");
+
+                        AppendInvertSpecificLines(s);
+
                         s.AppendLine("Out = (UV + $precision2(tileX, tileY)) * tileCount;");
                     }
                 });
+        }
+
+        private void AppendInvertSpecificLines(ShaderStringBuilder stringBuilder)
+        {
+
+            if (m_InvertX)
+            {
+                stringBuilder.AppendLine("$precision tileX = (Invert.x * Width - ((Tile - Width * floor(Tile * tileCount.x)) + Invert.x * 1));");
+            }
+            else
+            {
+                stringBuilder.AppendLine("$precision tileX = (Tile - Width * floor(Tile * tileCount.x));");
+            }
+
+            if (m_InvertY)
+            {
+                stringBuilder.AppendLine("$precision tileY = (Invert.y * Height - (floor(Tile * tileCount.x) + Invert.y * 1));");
+            }
+            else
+            {
+                stringBuilder.AppendLine("$precision tileY = (floor(Tile * tileCount.x));");
+            }
         }
 
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)

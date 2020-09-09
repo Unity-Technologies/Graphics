@@ -44,14 +44,16 @@ namespace UnityEditor.Rendering.Universal
             m_RendererFeatures = serializedObject.FindProperty(nameof(ScriptableRendererData.m_RendererFeatures));
             m_RendererFeaturesMap = serializedObject.FindProperty(nameof(ScriptableRendererData.m_RendererFeatureMap));
             var editorObj = new SerializedObject(this);
-            m_FalseBool =  editorObj.FindProperty(nameof(falseBool));
+            m_FalseBool = editorObj.FindProperty(nameof(falseBool));
             UpdateEditorList();
         }
 
         public override void OnInspectorGUI()
         {
-            if(m_RendererFeatures == null)
+            if (m_RendererFeatures == null)
                 OnEnable();
+            else if (m_RendererFeatures.arraySize != m_Editors.Count)
+                UpdateEditorList();
 
             serializedObject.Update();
             DrawRendererFeatureList();
@@ -111,7 +113,17 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUI.BeginChangeCheck();
                     SerializedProperty nameProperty = serializedRendererFeaturesEditor.FindProperty("m_Name");
                     nameProperty.stringValue = ValidateName(EditorGUILayout.DelayedTextField(Styles.PassNameField, nameProperty.stringValue));
-                    hasChangedProperties |= EditorGUI.EndChangeCheck();
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        hasChangedProperties = true;
+
+                        // We need to update sub-asset name
+                        rendererFeatureObjRef.name = nameProperty.stringValue;
+                        AssetDatabase.SaveAssets();
+
+                        // Triggers update for sub-asset name change
+                        ProjectWindowUtil.ShowCreatedAsset(target);
+                    }
 
                     EditorGUI.BeginChangeCheck();
                     rendererFeatureEditor.OnInspectorGUI();

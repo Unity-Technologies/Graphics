@@ -280,8 +280,8 @@ Matrix4x4PropertyRM.propertyrm VFXMatrix4x4Field
 
 .ListPropertyRM > .ReorderableList
 {
-    margin-top:4;
-    margin-left:4;
-    margin-right:4;
+    margin-top:4px;
+    margin-left:4px;
+    margin-right:4px;
     flex:1 1 auto;
 }

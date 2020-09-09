@@ -28,6 +28,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
             CBUFFER_START (UnityDebug)
             float _FullScreenDebugMode;
+            float4 _FullScreenDebugDepthRemap;
             float _TransparencyOverdrawMaxPixelCost;
             uint _DebugContactShadowLightIndex;
             int _DebugDepthPyramidMip;
@@ -57,6 +58,23 @@ Shader "Hidden/HDRP/DebugFullScreen"
                 output.texcoord = GetNormalizedFullScreenTriangleTexCoord(input.vertexID);
                 return output;
             }
+
+            static float4 VTDebugColors[] = {
+                float4(1.0f, 1.0f, 1.0f, 1.0f),
+                float4(1.0f, 1.0f, 0.0f, 1.0f),
+                float4(0.0f, 1.0f, 1.0f, 1.0f),
+                float4(0.0f, 1.0f, 0.0f, 1.0f),
+                float4(1.0f, 0.0f, 1.0f, 1.0f),
+                float4(1.0f, 0.0f, 0.0f, 1.0f),
+                float4(0.0f, 0.0f, 1.0f, 1.0f),
+                float4(0.5f, 0.5f, 0.5f, 1.0f),
+                float4(0.5f, 0.5f, 0.0f, 1.0f),
+                float4(0.0f, 0.5f, 0.5f, 1.0f),
+                float4(0.0f, 0.5f, 0.0f, 1.0f),
+                float4(0.5f, 0.0f, 0.5f, 1.0f),
+                float4(0.5f, 0.0f, 0.0f, 1.0f),
+                float4(0.0f, 0.0f, 0.5f, 1.0f)
+            };
 
             // Motion vector debug utilities
             float DistanceToLine(float2 p, float2 p1, float2 p2)
@@ -303,7 +321,8 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     uint2 pixCoord = (uint2)input.positionCS.xy >> _DebugDepthPyramidMip;
                     float depth = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixCoord + mipOffset).r;
                     PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
-                    float linearDepth = frac(posInput.linearDepth * 0.1);
+
+                    float linearDepth = lerp(_FullScreenDebugDepthRemap.x, _FullScreenDebugDepthRemap.y, (posInput.linearDepth - _FullScreenDebugDepthRemap.z) / (_FullScreenDebugDepthRemap.w - _FullScreenDebugDepthRemap.z));
                     return float4(linearDepth.xxx, 1.0);
                 }
 
@@ -326,6 +345,35 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     if ((pixelCost > 0.001))
                         color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / _TransparencyOverdrawMaxPixelCost) * pixelCost), 1.0, 1.0));//
                     return color;
+                }
+
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_REQUESTED_VIRTUAL_TEXTURE_TILES)
+                {
+                    float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
+                    if (!any(color))
+                        return float4(0, 0, 0, 0);
+
+                    float tileX = color.r;
+                    float tileY = color.g;
+                    float level = color.b;
+                    float tex = color.a;
+                    float3 hsv = RgbToHsv(VTDebugColors[level].rgb);
+
+                    //dont adjust hue/saturation when trying to show white or grey (on mips 0 and 7)
+                    if (level == 0 || level == 7)
+                    {
+                        hsv.z = ((uint)tileY % 5) / 5.0f + 1.0f - (((uint)tileX % 5) / 5.0f);
+                        hsv.z /= 2.0f;
+                        hsv.x = hsv.y = 0.0f;
+                    }
+                    else
+                    {
+                        hsv.y = ((uint)tileY % 5) / 10.0f + 0.5f;
+                        hsv.z = 1.0f - (((uint)tileX % 5) / 10.0f + 0.5f);
+                    }
+
+                    return float4(HsvToRgb(hsv), 1.0f);
+
                 }
 
                 return float4(0.0, 0.0, 0.0, 0.0);

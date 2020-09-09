@@ -4,6 +4,27 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.1.0] - 2019-08-04
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+### Added
+- Added parallax mapping node and parallax occlusion mapping node.
+- Added the possibility to have multiple POM node in a single graph.
+
+### Changed
+- Added method chaining support to shadergraph collection API.
+
+### Fixed
+- Fixed a bug where ShaderGraph subgraph nodes would not update their slot names or order
+- Fixed an issue where very old ShaderGraphs would fail to load because of uninitialized data [1269616](https://issuetracker.unity3d.com/issues/shadergraph-matrix-split-and-matrix-combine-shadergraphs-in-shadergraph-automated-tests-dont-open-throw-error)
+- Fixed an issue where ShaderGraph previews didn't display correctly when setting a texture to "None" [1264932]
+- Fixed an issue with the SampleVirtualTexture node in ShaderGraph, where toggling Automatic Streaming would cause the node to incorrectly display four output slots [1271618]
+- Fixed an issue in ShaderGraph with integer-mode Vector1 properties throwing errors when the value is changed [1264930]
+- Fixed a bug where ShaderGraph would not load graphs using Procedural VT nodes when the nodes were the project had them disabled [1271598]
+- Fixed an issue where the ProceduralVT node was not updating any connected SampleVT nodes when the number of layers was changed [1274288]
+
 ## [10.0.0] - 2019-06-10
 ### Added
 - Added the Internal Inspector which allows the user to view data contained in selected nodes and properties in a new floating graph sub-window. Also added support for custom property drawers to let you visualize any data type you like and expose it to the inspector.  
@@ -41,6 +62,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Updated the dependent version of `Searcher` to 4.2.0. 
 - Added support for `Linear Blend Skinning` Node to Universal Render Pipeline.
 - Moved all code to be under Unity specific namespaces.
+- Changed ShaderGraphImporter and ShaderSubgraphImporter so that graphs are imported before Models.
+- Remove VFXTarget if VisualEffect Graph package isn't included.
+- VFXTarget doesn't overwrite the shader export anymore, VFXTarget can be active with another target.
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
@@ -129,7 +153,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved VT layer TextureType to the VTProperty from the SampleVT node
 - Fixed the squished UI of VT property layers
 - Disallow Save As and Convert to Subgraph that would create recursive dependencies
+- Fixed an issue where the user would not get a save prompt on application close [1262044](https://issuetracker.unity3d.com/product/unity/issues/guid/1262044/)
+- Fixed bug where output port type would not visually update when input type changed (for example from Vec1 to Vec3) [1259501](https://issuetracker.unity3d.com/product/unity/issues/guid/1259501/)
+- Fixed an issue with how we collected/filtered nodes for targets. Applied the work to the SearchWindowProvider as well
 - Fixed a bug where the object selector for Custom Function Nodes did not update correctly. [1176129](https://issuetracker.unity3d.com/product/unity/issues/guid/1176129/)
+- Fixed a bug where whitespaces were allowed in keyword reference names
+- Fixed a bug where the Create Node menu would override the Object Field selection window. [1176125](https://issuetracker.unity3d.com/issues/shader-graph-object-input-field-with-space-bar-shortcut-opens-shader-graph-search-window-and-object-select-window)
+- Fixed a bug where the Main Preview window was no longer a square aspect ratio. [1257053](https://issuetracker.unity3d.com/product/unity/issues/guid/1257053/)
+- Fixed a bug where the size of the Graph Inspector would not save properly. [1257084](https://issuetracker.unity3d.com/product/unity/issues/guid/1257084/)
+- Replace toggle by an enumField for lit/unlit with VFXTarget
+- Alpha Clipping option in Graph inspector now correctly hides and indents dependent options. (https://fogbugz.unity3d.com/f/cases/1257041/)
+- Fixed a bug where changing the name of a property did not update nodes on the graph. [1249164](https://issuetracker.unity3d.com/product/unity/issues/guid/1249164/)
+- Fixed a crash issue when ShaderGraph included in a project along with DOTS assemblies
+- Added missing SampleVirtualTextureNode address mode control in ShaderGraph
+- Fixed a badly named control on SampleVirtualTextureNode in ShaderGraph
+- Fixed an issue where multiple SampleVirtualTextureNodes created functions with names that may collide in ShaderGraph
+- Made sub graph importer deterministic to avoid cascading shader recompiles when no change was present.
+- Adjusted style sheet for Blackboard to prevent ui conflicts.
+- Fixed a bug where the SampleVirtualTexture node would delete slots when changing its LOD mode
+- Use preview of the other target if VFXTarget is active.
 
 ## [7.1.1] - 2019-09-05
 ### Added

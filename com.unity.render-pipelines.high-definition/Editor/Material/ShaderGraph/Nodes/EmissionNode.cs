@@ -15,6 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
         EV100,
     }
 
+    [SRPFilter(typeof(HDRenderPipeline))]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.EmissionNode")]
     [Title("Utility", "High Definition Render Pipeline", "Emission Node")]
     class EmissionNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction

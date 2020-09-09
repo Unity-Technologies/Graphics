@@ -83,12 +83,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public TextureHandle        stencilBuffer;
             public ComputeBufferHandle  coarseStencilBuffer;
+
+            public TextureHandle        flagMaskBuffer;
         }
 
-        TextureHandle CreateDepthBuffer(RenderGraph renderGraph, bool msaa)
+        TextureHandle CreateDepthBuffer(RenderGraph renderGraph, bool clear, bool msaa)
         {
             TextureDesc depthDesc = new TextureDesc(Vector2.one, true, true)
-                { depthBufferBits = DepthBits.Depth32, bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = true, name = msaa ? "CameraDepthStencilMSAA" : "CameraDepthStencil" };
+                { depthBufferBits = DepthBits.Depth32, bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = clear, name = msaa ? "CameraDepthStencilMSAA" : "CameraDepthStencil" };
 
             return renderGraph.CreateTexture(depthDesc);
         }
@@ -114,8 +116,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(motionVectorDesc);
         }
 
-        // TODO RENDERGRAPH: in someplaces we auto bind and in others we have to generate MRT because of discrepancy with non render graph path.
-        // Clean this once we only have one path.
         void BindPrepassColorBuffers(in RenderGraphBuilder builder, in PrepassOutput prepassOutput, HDCamera hdCamera)
         {
             int index = 0;
@@ -168,7 +168,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // TODO: See how to clean this. Some buffers are created outside, some inside functions...
             result.motionVectorsBuffer = CreateMotionVectorBuffer(renderGraph, msaa, clearMotionVectors);
-            result.depthBuffer = CreateDepthBuffer(renderGraph, msaa);
+            result.depthBuffer = CreateDepthBuffer(renderGraph, hdCamera.clearDepth, msaa);
+            result.flagMaskBuffer = CreateFlagMaskTexture(renderGraph);
 
             RenderXROcclusionMeshes(renderGraph, hdCamera, colorBuffer, result.depthBuffer);
 
@@ -179,7 +180,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderCustomPass(renderGraph, hdCamera, colorBuffer, result.depthBuffer, result.normalBuffer, customPassCullingResults, CustomPassInjectionPoint.BeforeRendering, aovRequest, aovBuffers);
 
-                //RenderRayTracingPrepass(cullingResults, hdCamera, renderContext, cmd, false);
+                RenderRayTracingPrepass(renderGraph, cullingResults, hdCamera, result.flagMaskBuffer, result.depthBuffer, false);
 
                 // When evaluating probe volumes in material pass, we build a custom probe volume light list.
                 // When evaluating probe volumes in light loop, probe volumes are folded into the standard light loop data.
@@ -330,8 +331,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (data.decalLayersEnabled)
                             forwardMrt[1] = data.decalBuffer;
                     }
-
-                    bool useRayTracing = data.frameSettings.IsEnabled(FrameSettingsField.RayTracing);
 
                     RenderDepthPrepass(context.renderContext, context.cmd, data.frameSettings
                                     , deferredMrt
@@ -560,7 +559,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthResolveMaterial = m_DepthResolveMaterial;
                 passData.depthResolvePassIndex = SampleCountToPassIndex(m_MSAASamples);
 
-                passData.depthBuffer = builder.UseDepthBuffer(CreateDepthBuffer(renderGraph, false), DepthAccess.Write);
+                passData.depthBuffer = builder.UseDepthBuffer(CreateDepthBuffer(renderGraph, true, false), DepthAccess.Write);
                 passData.depthValuesBuffer = builder.UseColorBuffer(depthValuesBuffer, 0);
                 passData.normalBuffer = builder.UseColorBuffer(CreateNormalBuffer(renderGraph, false), 1);
                 if (passData.needMotionVectors)
@@ -677,7 +676,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle            depthStencilBuffer;
             public TextureHandle            depthTexture;
             public ComputeBufferHandle      propertyMaskBuffer;
-            public TextureHandle            decalBuffer;            
+            public TextureHandle            decalBuffer;
         }
 
         struct DBufferOutput
@@ -786,7 +785,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     data.meshDecalsRendererList,
                                     data.propertyMaskBuffer,
                                     data.decalBuffer,
-                                    context.renderContext,                                    
+                                    context.renderContext,
                                     context.cmd);
                 });
             }

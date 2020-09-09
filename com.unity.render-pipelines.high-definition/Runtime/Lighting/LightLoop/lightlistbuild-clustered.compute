@@ -12,6 +12,8 @@
 
 // #pragma enable_d3d11_debug_symbols
 
+#define REQUEST_DISABLE_OPTIMISTIC_SCALAR_ALLOCATION
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
 

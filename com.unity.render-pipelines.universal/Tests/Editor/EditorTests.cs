@@ -73,6 +73,9 @@ class EditorTests
     [TestCase(ShaderPathID.ParticlesSimpleLit)]
     [TestCase(ShaderPathID.ParticlesUnlit)]
     [TestCase(ShaderPathID.BakedLit)]
+    [TestCase(ShaderPathID.SpeedTree7)]
+    [TestCase(ShaderPathID.SpeedTree7Billboard)]
+    [TestCase(ShaderPathID.SpeedTree8)]
     public void ValidateShaderResources(ShaderPathID shaderPathID)
     {
         string path = AssetDatabase.GUIDToAssetPath(ShaderUtils.GetShaderGUID(shaderPathID));

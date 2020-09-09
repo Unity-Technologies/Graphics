@@ -1,6 +1,6 @@
 # Diffusion Profile Node
 
-The Diffusion Profile Node allows you to sample a [Diffusion Profile](Diffusion-Profile.html) Asset in your Shader Graph. For information on what a Diffusion Profile is and the properties that it contains, see the [Diffusion Profile documentation](Diffusion-Profile.html).
+The Diffusion Profile Node allows you to sample a [Diffusion Profile](Diffusion-Profile.md) Asset in your Shader Graph. For information on what a Diffusion Profile is and the properties that it contains, see the [Diffusion Profile documentation](Diffusion-Profile.md).
 
 ## Output port
 
