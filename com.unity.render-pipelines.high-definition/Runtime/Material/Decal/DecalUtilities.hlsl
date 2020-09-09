@@ -246,7 +246,6 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
         v_decalIdx = decalStart + v_decalListOffset;
 #endif // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 
-        uint s_decalIdx = v_decalIdx;
         uint s_decalIdx = ScalarizeElementIndex(v_decalIdx, fastPath);
         if (s_decalIdx == -1)
             break;
