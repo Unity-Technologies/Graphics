@@ -481,7 +481,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateAllViewConstants();
             isFirstFrame = false;
             cameraFrameCount++;
-	
+
             hdrp.UpdateVolumetricBufferParams(this);
         }
 
@@ -645,8 +645,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalVectorArray(HDShaderIDs._XRWorldSpaceCameraPos, m_XRWorldSpaceCameraPos);
                 cmd.SetGlobalVectorArray(HDShaderIDs._XRWorldSpaceCameraPosViewOffset, m_XRWorldSpaceCameraPosViewOffset);
                 cmd.SetGlobalVectorArray(HDShaderIDs._XRPrevWorldSpaceCameraPos, m_XRPrevWorldSpaceCameraPos);
-            }
 
+                if (xr.singlePassEnabled)
+                    xr.UpdateBuiltinStereoMatrices(cmd);
+            }
         }
 
         internal void AllocateAmbientOcclusionHistoryBuffer(float scaleFactor)
