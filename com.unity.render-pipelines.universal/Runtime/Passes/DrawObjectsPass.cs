@@ -63,7 +63,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
+            // NOTE: Do NOT mix ProfilingScope with named CommandBuffers i.e. CommandBufferPool.Get("name").
+            // Currently there's an issue which results in mismatched markers.
+            CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 // Global render pass data containing various settings.
@@ -71,6 +73,17 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // w is used for knowing whether the object is opaque(1) or alpha blended(0)
                 Vector4 drawObjectPassData = new Vector4(0.0f, 0.0f, 0.0f, (m_IsOpaque) ? 1.0f : 0.0f);
                 cmd.SetGlobalVector(s_DrawObjectPassDataPropID, drawObjectPassData);
+
+                // scaleBias.x = flipSign
+                // scaleBias.y = scale
+                // scaleBias.z = bias
+                // scaleBias.w = unused
+                float flipSign = (renderingData.cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
+                Vector4 scaleBias = (flipSign < 0.0f)
+                    ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
+                    : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
+                cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBias);
+
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 

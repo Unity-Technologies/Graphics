@@ -49,9 +49,10 @@ These settings control the quality level of the URP. This is where you can make 
 
 
 ### Lighting
+
 These settings affect the lights in your Scene. 
 
-If you disable some of these settings, the relevant [keywords](shader-stripping-keywords.md) are [stripped from the Shader variables](shading-model.md#shaderStripping). If there are certain settings that you know for certain you won’t use in your game or app, you can disable them to improve performance and reduce build time.
+If you disable some of these settings, the relevant [keywords](shader-stripping.md) are [stripped from the Shader variables](shading-model.md#shaderStripping). If there are settings that you know for certain you won’t use in your game or app, you can disable them to improve performance and reduce build time.
 
 | Property              | Description                                                  |
 | --------------------- | ------------------------------------------------------------ |

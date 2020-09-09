@@ -184,7 +184,7 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
 {
     // Need PositionInputs for indexing probe volume clusters, but they are not availbile from the current SampleBakedGI() function signature.
     // Reconstruct.
-    uint renderingLayers = DEFAULT_LIGHT_LAYERS;
+    uint renderingLayers = 0;
     PositionInputs posInputs;
     ZERO_INITIALIZE(PositionInputs, posInputs);
     posInputs.positionWS = positionRWS;
@@ -204,7 +204,7 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
     posInputs.deviceDepth = 0.0f; // Not needed for probe volume cluster indexing.
 
     // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
-    renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
+    renderingLayers = GetMeshRenderingLightLayer();
     #endif
     #endif // #ifdef SHADERPASS
 #endif

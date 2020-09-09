@@ -179,13 +179,16 @@ namespace UnityEditor.ShaderGraph
                 builder.Append("#define HYBRID_V1_CUSTOM_ADDITIONAL_MATERIAL_VARS\t");
 
                 int count = 0;
+                int instancedCount = dotsInstancingProperties.Count();
                 foreach (var prop in dotsInstancingProperties)
                 {
                     string varName = $"{prop.referenceName}_Array";
                     string sType = prop.concreteShaderValueType.ToShaderString(prop.concretePrecision);
                     builder.Append("UNITY_DEFINE_INSTANCED_PROP({0}, {1})", sType, varName);
-//                     if (count < instancedCount - 1)
-//                         builder.Append("\\");
+                    // Combine the UNITY_DEFINE_INSTANCED_PROP lines with \ so the generated
+                    // macro expands into multiple definitions if there are more than one.
+                    if (count < instancedCount - 1)
+                        builder.Append("\\");
                     builder.AppendLine("");
                     count++;
                 }

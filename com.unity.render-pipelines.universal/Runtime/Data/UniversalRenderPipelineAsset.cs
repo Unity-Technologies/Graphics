@@ -195,7 +195,7 @@ namespace UnityEngine.Rendering.Universal
                 instance.m_RendererDataList[0] = rendererData;
             else
                 instance.m_RendererDataList[0] = CreateInstance<ForwardRendererData>();
-            
+
             // Initialize default Renderer
             instance.m_EditorResourcesAsset = instance.editorResources;
 
@@ -261,7 +261,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (m_EditorResourcesAsset != null && !m_EditorResourcesAsset.Equals(null))
                     return m_EditorResourcesAsset;
-                
+
                 string resourcePath = AssetDatabase.GUIDToAssetPath(editorResourcesGUID);
                 var objs = InternalEditorUtility.LoadSerializedFileAndForget(resourcePath);
                 m_EditorResourcesAsset = objs != null && objs.Length > 0 ? objs.First() as UniversalRenderPipelineEditorResources : null;
@@ -691,7 +691,7 @@ namespace UnityEngine.Rendering.Universal
                     if (defaultShader != null)
                         return defaultShader;
                 }
-                
+
                 if (m_DefaultShader == null)
                 {
                     string path = AssetDatabase.GUIDToAssetPath(ShaderUtils.GetShaderGUID(ShaderPathID.Lit));

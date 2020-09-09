@@ -64,13 +64,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 (SubsurfaceScaterringPassData data, RenderGraphContext context) =>
                 {
                     var resources = new SubsurfaceScatteringResources();
-                    resources.colorBuffer = context.resources.GetTexture(data.colorBuffer);
-                    resources.diffuseBuffer = context.resources.GetTexture(data.diffuseBuffer);
-                    resources.depthStencilBuffer = context.resources.GetTexture(data.depthStencilBuffer);
-                    resources.depthTexture = context.resources.GetTexture(data.depthTexture);
-                    resources.cameraFilteringBuffer = context.resources.GetTexture(data.cameraFilteringBuffer);
-                    resources.sssBuffer = context.resources.GetTexture(data.sssBuffer);
-                    resources.coarseStencilBuffer = context.resources.GetComputeBuffer(data.coarseStencilBuffer);
+                    resources.colorBuffer = data.colorBuffer;
+                    resources.diffuseBuffer = data.diffuseBuffer;
+                    resources.depthStencilBuffer = data.depthStencilBuffer;
+                    resources.depthTexture = data.depthTexture;
+                    resources.cameraFilteringBuffer = data.cameraFilteringBuffer;
+                    resources.sssBuffer = data.sssBuffer;
+                    resources.coarseStencilBuffer = data.coarseStencilBuffer;
 
                     RenderSubsurfaceScattering(data.parameters, resources, context.cmd);
                 });

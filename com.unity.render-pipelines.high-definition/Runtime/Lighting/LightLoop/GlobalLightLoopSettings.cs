@@ -134,6 +134,7 @@ namespace UnityEngine.Rendering.HighDefinition
             maxEnvLightsOnScreen = 64,
             maxDecalsOnScreen = 512,
             maxPlanarReflectionOnScreen = 16,
+            maxLightsPerClusterCell = 8,
         };
 
         /// <summary>Cookie atlas resolution.</summary>
@@ -141,8 +142,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public CookieAtlasResolution cookieAtlasSize;
         /// <summary>Cookie atlas graphics format.</summary>
         public CookieAtlasGraphicsFormat cookieFormat;
+#if UNITY_2020_1_OR_NEWER
+#else
         /// <summary>Cookie atlas resolution for point lights.</summary>
         public CubeCookieResolution pointCookieSize;
+#endif
         /// <summary>Last valid mip for cookie atlas.</summary>
         public int cookieAtlasLastValidMip;
         // We keep this property for the migration code (we need to know how many cookies we could have before).
@@ -178,5 +182,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int maxDecalsOnScreen;
         /// <summary>Maximum number of planar reflections at the same time on screen.</summary>
         public int maxPlanarReflectionOnScreen;
+        /// <summary>Maximum number of lights per ray tracing light cluster cell.</summary>
+        public int maxLightsPerClusterCell;
     }
 }

@@ -4,7 +4,7 @@ The High Definition Render Pipeline (HDRP) allocates resources when the applicat
 
 These settings define which effects are available in your HDRP Project and impact GPU performance and the amount of graphics memory that the application uses. If you enable fewer effects, HDRP uses less memory. If you use a less precise algorithm for an effect, HDRP processes the effect faster.
 
-To specify which effects HDRP allocates memory for, as well as the resource intensity of the algorithm it uses to process them, see the [HDRP Asset](HDRP-Asset.html). 
+To specify which effects HDRP allocates memory for, as well as the resource intensity of the algorithm it uses to process them, see the [HDRP Asset](HDRP-Asset.md). 
 
 Different platforms and computers have different capabilities in terms of GPU performance and available graphics memory. With this in mind, HDRP allows you to define multiple HDRP Assets for your Project. Each HDRP Asset can target a specific platform or quality tier to maintain a balance between performance and rendering quality. For example, you can define separate HDRP Assets for:
 
@@ -20,7 +20,7 @@ Different platforms and computers have different capabilities in terms of GPU pe
 
 ### The default HDRP Asset
 
-To use HDRP, you need to create an HDRP Asset and assign it as the **Scriptable Render Pipeline** for your Project. To do this, see [Creating an HDRP Asset](HDRP-Asset.html#CreatingAnHDRPAsset). When you assign an HDRP Asset as the **Scriptable Render Pipeline**, it acts as the **default** HDRP Asset for your Project and contains all of the default HDRP settings.
+To use HDRP, you need to create an HDRP Asset and assign it as the **Scriptable Render Pipeline** for your Project. To do this, see [Creating an HDRP Asset](HDRP-Asset.md#CreatingAnHDRPAsset). When you assign an HDRP Asset as the **Scriptable Render Pipeline**, it acts as the **default** HDRP Asset for your Project and contains all of the default HDRP settings.
 
 ### Overriding settings for a quality level
 

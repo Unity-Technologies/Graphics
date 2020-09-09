@@ -1,9 +1,11 @@
 * [High Definition Render Pipeline](index)
+* [Requirements](System-Requirements.md)
+* [What's new](whats-new.md)
+  * [10.0](whats-new-10-0.md)
 * Features
   * [Features List](HDRP-Features)
   * [Comparison with the Built-in Render Pipeline](Feature-Comparison)
 * Getting started
-  * [System Requirements](System-Requirements.md)
   * [Getting Started with HDRP](Getting-started-with-HDRP)
   * [Upgrading to HDRP](Upgrading-To-HDRP)
   * [Render Pipeline Wizard](Render-Pipeline-Wizard)
@@ -11,12 +13,13 @@
   * [Exposing More Options](More-Options)
   * [Sample Content](HDRP-Sample-Content)
   * [Sample project](HDRP-Sample-Projects)
+  * [Menu Items](Menu-Items.md)
 * Upgrading HDRP between Unity Versions
   * [Material Upgrade](Material-Upgrade)
-  * [2019.1 to 2019.2](Upgrading-from-2019.1-to-2019.2)
-  * [2019.2 to 2019.3](Upgrading-from-2019.2-to-2019.3)
-  * [2019.3 to 2020.1](Upgrading-from-2019.3-to-2020.1)
-  * [2020.1 to 2020.2](Upgrading-from-2020.1-to-2020.2)
+  * [5.x to 6.x](Upgrading-from-2019.1-to-2019.2)
+  * [6.x to 7.x](Upgrading-from-2019.2-to-2019.3)
+  * [7.x to 8.x](Upgrading-from-2019.3-to-2020.1)
+  * [8.x to 9.x-preview/10.x](Upgrading-from-2020.1-to-2020.2)
 * Volume Framework
   * [Volumes](Volumes)
   * [Volume Profiles](Volume-Profile)
@@ -40,6 +43,7 @@
       * [Physically Based Sky](Override-Physically-Based-Sky)
       * [Procedural Sky](Override-Procedural-Sky)
     * [Visual Environment](Override-Visual-Environment)
+  * [Volumes API](Volumes-API.md)
 * Render Pipeline Settings
   * [HDRP Asset](HDRP-Asset)
   * [Frame Settings](Frame-Settings)
@@ -55,11 +59,16 @@
   * [Mask Map and Detail Map](Mask-Map-and-Detail-Map)
   * [Material Type](Material-Type)
   * [Renderer and Material Priority](Renderer-And-Material-Priority)
+  * [Decal](Decal)
   * [Surface Type](Surface-Type)
   * Subsurface Scattering
     * [Subsurface Scattering Materials](Subsurface-Scattering)
     * [Diffusion Profile](Diffusion-Profile)
   * Shader List
+    * Autodesk Interactive
+      * [Autodesk Interactive Shader](Autodesk-Interactive-Shader)
+      * [Autodesk Interactive Masked Shader](Autodesk-Interactive-Shader-Masked)
+      * [Autodesk Interactive Transparent Shader](Autodesk-Interactive-Shader-Transparent)
     * [AxF Shader](AxF-Shader)
     * [Decal Shader](Decal-Shader)
     * [Layered Lit Shader](Layered-Lit-Shader)
@@ -134,6 +143,7 @@
     * [Overview](Authoring-LUTs)
     * [Authoring in Adobe Photoshop](LUT-Authoring-Photoshop)
     * [Authoring in DaVinci Resolve](LUT-Authoring-Resolve)
+  * [Propagating NaNs](Post-Processing-Propagating-NaNs)
 * Ray Tracing
   * [Getting Started with Ray Tracing](Ray-Tracing-Getting-Started)
   * Effects and Volume Overrides

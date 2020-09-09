@@ -156,7 +156,7 @@ void VFXSetupBuiltin(inout BuiltinData builtin,SurfaceData surface,float3 emissi
     BuiltinData builtinData; \
     VFXGetHDRPLitData(surfaceData,builtinData,i,normalWS,uvData); \
  \
-    EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surfaceData), i.VFX_VARYING_POSCS, outNormalBuffer); \
+    EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surfaceData), outNormalBuffer); \
 }
 
 #endif

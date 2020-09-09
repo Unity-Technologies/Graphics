@@ -185,14 +185,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     dstMaterial.SetFloat("_BlendMode", 0);
                     dstMaterial.SetFloat("_AlphaCutoffEnable", 0);
                     dstMaterial.SetFloat("_EnableBlendModePreserveSpecularLighting", 1);
-                    dstMaterial.renderQueue = HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Opaque, 0, false);
+                    dstMaterial.renderQueue = HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Opaque, 0, false, true);
                     break;
                 case 1: // Cutout
                     dstMaterial.SetFloat("_SurfaceType", 0);
                     dstMaterial.SetFloat("_BlendMode", 0);
                     dstMaterial.SetFloat("_AlphaCutoffEnable", 1);
                     dstMaterial.SetFloat("_EnableBlendModePreserveSpecularLighting", 1);
-                    dstMaterial.renderQueue = HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Opaque, 0, true);
+                    dstMaterial.renderQueue = HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Opaque, 0, true, true);
                     break;
                 case 2: // Fade -> Alpha with depth prepass + Disable preserve specular
                     dstMaterial.SetFloat("_SurfaceType", 1);
@@ -200,14 +200,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     dstMaterial.SetFloat("_AlphaCutoffEnable", 0);
                     dstMaterial.SetFloat("_EnableBlendModePreserveSpecularLighting", 0);
                     dstMaterial.SetFloat("_TransparentDepthPrepassEnable", 1);
-                    dstMaterial.renderQueue = HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Transparent, 0, false);
+                    dstMaterial.renderQueue = HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Transparent, 0, false, true);
                     break;
                 case 3: // Transparent -> Alpha
                     dstMaterial.SetFloat("_SurfaceType", 1);
                     dstMaterial.SetFloat("_BlendMode", 0);
                     dstMaterial.SetFloat("_AlphaCutoffEnable", 0);
                     dstMaterial.SetFloat("_EnableBlendModePreserveSpecularLighting", 1);
-                    dstMaterial.renderQueue = HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Transparent, 0, false);
+                    dstMaterial.renderQueue = HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Transparent, 0, false, true);
                     break;
             }
 

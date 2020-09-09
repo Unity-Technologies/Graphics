@@ -59,15 +59,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         [SerializeField]
         string m_CustomEditorGUI;
 
-        static NodeTypeCollection s_HDNodeTypes = NodeTypes.AllBuiltin + typeof(HDSceneColorNode)
-                                                                       + typeof(DiffusionProfileNode)
-                                                                       + typeof(ExposureNode)
-                                                                       + typeof(EmissionNode)
-                                                                       + typeof(ParallaxOcclusionMappingNode);
-
         public override bool IsNodeAllowedByTarget(Type nodeType)
         {
-            return s_HDNodeTypes.Contains(nodeType);
+            SRPFilterAttribute srpFilter = NodeClassCache.GetAttributeOnNodeType<SRPFilterAttribute>(nodeType);
+            return srpFilter == null || srpFilter.srpTypes.Contains(typeof(HDRenderPipeline));
         }
 
         public HDTarget()
@@ -685,7 +680,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Pragma.Target(ShaderModel.Target45) },
             { Pragma.Vertex("Vert") },
             { Pragma.Fragment("Frag") },
-            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.Playstation, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch}) },
+            { Pragma.OnlyRenderers(PragmaRenderers.GetHighEndPlatformArray()) },
         };
 
         public static PragmaCollection InstancedRenderingLayer = new PragmaCollection
@@ -783,124 +778,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 #region Keywords
     static class CoreKeywords
     {
-        public static KeywordCollection HDBaseNoCrossFade = new KeywordCollection
-        {
-            { CoreKeywordDescriptors.SurfaceTypeTransparent },
-            { CoreKeywordDescriptors.BlendMode },
-            { CoreKeywordDescriptors.DoubleSided, new FieldCondition(HDFields.Unlit, false) },
-            { CoreKeywordDescriptors.DisableDecals, new FieldCondition(HDFields.Unlit, false) },
-            { CoreKeywordDescriptors.DisableSSR, new FieldCondition(HDFields.Unlit, false) },
-            { CoreKeywordDescriptors.DisableSSRTransparent, new FieldCondition(HDFields.Unlit, false) },
-            // { CoreKeywordDescriptors.EnableGeometricSpecularAA, new FieldCondition(HDFields.Unlit, false) },
-            { CoreKeywordDescriptors.BlendModePreserveSpecularLighting, new FieldCondition(HDFields.Unlit, false) },
-            { CoreKeywordDescriptors.AddPrecomputedVelocity },
-            { CoreKeywordDescriptors.TransparentWritesMotionVector },
-            { CoreKeywordDescriptors.DepthOffset, new FieldCondition(HDFields.DepthOffset, true) },
-            { CoreKeywordDescriptors.FogOnTransparent },
-            { CoreKeywordDescriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true) },
-        };
-
-        public static KeywordCollection HDBase = new KeywordCollection
-        {
-            { CoreKeywordDescriptors.LodFadeCrossfade, new FieldCondition(Fields.LodCrossFade, true) },
-            { HDBaseNoCrossFade }
-        };
-
-        public static KeywordCollection Lightmaps = new KeywordCollection
-        {
-            { CoreKeywordDescriptors.Lightmap },
-            { CoreKeywordDescriptors.DirectionalLightmapCombined },
-            { CoreKeywordDescriptors.DynamicLightmap },
-        };
-
-        public static KeywordCollection LightmapsRaytracing = new KeywordCollection
-        {
-            { CoreKeywordDescriptors.Lightmap },
-            { CoreKeywordDescriptors.DirectionalLightmapCombined },
-        };
-
-        public static KeywordCollection WriteMsaaDepth = new KeywordCollection
-        {
-            { CoreKeywordDescriptors.WriteMsaaDepth },
-        };
-
-        public static KeywordCollection DebugDisplay = new KeywordCollection
-        {
-            { CoreKeywordDescriptors.DebugDisplay },
-        };
-
-        public static KeywordCollection DepthMotionVectorsNoNormal = new KeywordCollection
-        {
-            { HDBase },
-            { CoreKeywordDescriptors.WriteMsaaDepth },
-            { CoreKeywordDescriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true) },
-        };
-
-        public static KeywordCollection ForwardBase = new KeywordCollection
-        {
-            { HDBase },
-            { CoreKeywordDescriptors.DebugDisplay },
-            { Lightmaps },
-            { CoreKeywordDescriptors.ShadowsShadowmask },
-            { CoreKeywordDescriptors.Shadow },
-            { CoreKeywordDescriptors.ScreenSpaceShadow },
-            { CoreKeywordDescriptors.Decals },
-        };
-
-        public static KeywordCollection Forward = new KeywordCollection
-        {
-            { ForwardBase },
-            { CoreKeywordDescriptors.LightList },
-        };
-
-        public static KeywordCollection BackThenFrontTransparent = new KeywordCollection
-        {
-            { ForwardBase },
-        };
-
-        public static KeywordCollection RaytracingIndirect = new KeywordCollection
-        {
-            { HDBaseNoCrossFade },
-            { CoreKeywordDescriptors.DebugDisplay },
-            { LightmapsRaytracing },
-        };
-
-        public static KeywordCollection RaytracingIndirectUnlit = new KeywordCollection
-        {
-            { HDBaseNoCrossFade },
-            { CoreKeywordDescriptors.DebugDisplay },
-        };
-
-        public static KeywordCollection RaytracingForward = new KeywordCollection
-        {
-            { HDBaseNoCrossFade },
-            { CoreKeywordDescriptors.DebugDisplay },
-            { LightmapsRaytracing },
-        };
-
-        public static KeywordCollection RaytracingForwardUnlit = new KeywordCollection
-        {
-            { HDBaseNoCrossFade },
-            { CoreKeywordDescriptors.DebugDisplay },
-        };
-
         public static KeywordCollection RaytracingGBuffer = new KeywordCollection
         {
-            { HDBaseNoCrossFade },
-            { CoreKeywordDescriptors.DebugDisplay },
-            { LightmapsRaytracing },
             { CoreKeywordDescriptors.RaytraceMinimalGBuffer },
-        };
-
-        public static KeywordCollection RaytracingGBufferUnlit = new KeywordCollection
-        {
-            { HDBaseNoCrossFade },
-            { CoreKeywordDescriptors.DebugDisplay },
         };
 
         public static KeywordCollection RaytracingVisiblity = new KeywordCollection
         {
-            { HDBaseNoCrossFade },
             { CoreKeywordDescriptors.TransparentColorShadow },
         };
         
@@ -915,7 +799,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreKeywordDescriptors.SceneSelectionPass, 1 },
         };
 
-        public static DefineCollection DepthMotionVectors = new DefineCollection
+        public static DefineCollection DepthForwardOnly = new DefineCollection
         {
             { RayTracingNode.GetRayTracingKeyword(), 0 },
             { CoreKeywordDescriptors.WriteNormalBuffer, 1 },
@@ -946,7 +830,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { CoreKeywordDescriptors.HasLightloop, 1 },
             { RayTracingNode.GetRayTracingKeyword(), 0 },
-            { CoreKeywordDescriptors.LightList, 1 }, // BackThenFront Transparent use #define USE_CLUSTERED_LIGHTLIST 
+            // { CoreKeywordDescriptors.LightList, 1 }, // BackThenFront Transparent use #define USE_CLUSTERED_LIGHTLIST 
         };
     }
 #endregion
@@ -1024,6 +908,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kPassForwardUnlit = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl";
         public const string kPassConstant = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassConstant.hlsl";
 
+        public static IncludeCollection MinimalCorePregraph = new IncludeCollection
+        {
+            { kShaderVariables, IncludeLocation.Pregraph },
+            { kFragInputs, IncludeLocation.Pregraph },
+        };
+
         public static IncludeCollection CorePregraph = new IncludeCollection
         {
             { kTextureStack, IncludeLocation.Pregraph },        // TODO: put this on a conditional
@@ -1071,6 +961,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             displayName = "Write MSAA Depth",
             referenceName = "WRITE_MSAA_DEPTH",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static KeywordDescriptor WriteDecalBuffer = new KeywordDescriptor()
+        {
+            displayName = "Write Decal Buffer",
+            referenceName = "WRITE_DECAL_BUFFER",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
@@ -1173,7 +1072,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             displayName = "Has Lightloop",
             referenceName = "HAS_LIGHTLOOP",
             type = KeywordType.Boolean,
-            definition = KeywordDefinition.MultiCompile,
+            definition = KeywordDefinition.Predefined,
             scope = KeywordScope.Global,
         };
 

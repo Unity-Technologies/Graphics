@@ -16,6 +16,9 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public static void SetupBaseUnlitKeywords(this Material material)
         {
+            // First thing, be sure to have an up to date RenderQueue
+            material.ResetMaterialCustomRenderQueue();
+
             bool alphaTestEnable = material.HasProperty(kAlphaCutoffEnabled) && material.GetFloat(kAlphaCutoffEnabled) > 0.0f;
             CoreUtils.SetKeyword(material, "_ALPHATEST_ON", alphaTestEnable);
 

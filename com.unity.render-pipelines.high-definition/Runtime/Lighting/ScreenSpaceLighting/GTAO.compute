@@ -106,7 +106,7 @@ float3 GetPositionSampleVS(float2 positionSS, out float depth)
 float3 GetNormalVS(float4 normalBufferData)
 {
     NormalData normalData;
-    DecodeFromNormalBuffer(normalBufferData, 0, normalData);
+    DecodeFromNormalBuffer(normalBufferData, normalData);
     float3 normalVS = normalize(mul((float3x3)UNITY_MATRIX_V, normalData.normalWS));
     return float3(normalVS.xy, -normalVS.z);
 }
@@ -212,7 +212,7 @@ void GTAOMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     integral /= dirCount;
 
-    if (currDepth == UNITY_RAW_FAR_CLIP_VALUE)
+    if (currDepth == UNITY_RAW_FAR_CLIP_VALUE || integral < -1e-2f)
     {
         integral = 1;
     }

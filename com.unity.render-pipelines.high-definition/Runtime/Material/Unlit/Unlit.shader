@@ -216,6 +216,7 @@ Shader "HDRP/Unlit"
 
             #pragma multi_compile _ WRITE_MSAA_DEPTH
             // Note we don't need to define WRITE_NORMAL_BUFFER
+            // Note we don't need to define WRITE_DECAL_BUFFER
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
 
@@ -268,6 +269,7 @@ Shader "HDRP/Unlit"
 
             #pragma multi_compile _ WRITE_MSAA_DEPTH
             // Note we don't need to define WRITE_NORMAL_BUFFER
+            // Note we don't need to define WRITE_DECAL_BUFFER
 
             #define SHADERPASS SHADERPASS_MOTION_VECTORS
 

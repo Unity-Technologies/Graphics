@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.Universal
                     CommandBuffer cmd = CommandBufferPool.Get();
 
                     // Use legacy stereo instancing mode to have legacy XR code path configured
-                    cmd.SetSinglePassStereo(Application.platform == RuntimePlatform.Android ? SinglePassStereoMode.Multiview : SinglePassStereoMode.Instancing);
+                    cmd.SetSinglePassStereo(SystemInfo.supportsMultiview ? SinglePassStereoMode.Multiview : SinglePassStereoMode.Instancing);
                     context.ExecuteCommandBuffer(cmd);
                     cmd.Clear();
 

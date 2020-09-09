@@ -87,7 +87,7 @@ void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, PositionInputs p
 
         uint stripeSize = 8;
 
-        int lightLayers = (builtinData.renderingLayers & _DebugLightLayersMask) & 0xFF;
+        int lightLayers = builtinData.renderingLayers & _DebugLightLayersMask;
         uint layerId = 0, layerCount = countbits(lightLayers);
 
         result = float3(0, 0, 0);

@@ -17,23 +17,37 @@ namespace UnityEditor.Rendering.HighDefinition
     // of the material you must use Material UI Blocks, examples of doing so can be found in the classes UnlitGUI,
     // LitGUI or LayeredLitGUI.
 
-    abstract class HDShaderGUI : ShaderGUI
+    /// <summary>
+    /// Use this class to build your custom Shader GUI for HDRP.
+    /// You can use a class that inherits from HDShaderGUI in the Shader Graph Custom EditorGUI field.
+    /// </summary>
+    internal abstract class HDShaderGUI : ShaderGUI
     {
-        protected bool m_FirstFrame = true;
+        internal protected bool m_FirstFrame = true;
 
         // The following set of functions are call by the ShaderGraph
         // It will allow to display our common parameters + setup keyword correctly for them
+
         protected abstract void SetupMaterialKeywordsAndPassInternal(Material material);
 
+        /// <summary>
+        /// Unity calls this function when you assign a new shader to the material.
+        /// </summary>
+        /// <param name="material">The current material.</param>
+        /// <param name="oldShader">The shader the material currently uses.</param>
+        /// <param name="newShader">The new shader to assign to the material.</param>
         public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
         {
             base.AssignNewShaderToMaterial(material, oldShader, newShader);
 
-            ResetMaterialCustomRenderQueue(material);
-
             SetupMaterialKeywordsAndPassInternal(material);
         }
 
+        /// <summary>
+        /// Sets up the keywords and passes for the material. You must call this function after you change a property on a material to ensure it's validity.
+        /// </summary>
+        /// <param name="changed">GUI.changed is the usual value for this parameter. If this value is false, the function just exits.</param>
+        /// <param name="materials">The materials to perform the setup on.</param>
         protected void ApplyKeywordsAndPassesIfNeeded(bool changed, Material[] materials)
         {
             // !!! HACK !!!
@@ -51,6 +65,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Unity calls this function when it displays the GUI. This method is sealed so you cannot override it. To implement your custom GUI, use OnMaterialGUI instead.
+        /// </summary>
         public sealed override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             if (!(RenderPipelineManager.currentPipeline is HDRenderPipeline))
@@ -63,36 +80,21 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Implement your custom GUI in this function. To display a UI similar to HDRP shaders, use a MaterialUIBlock.
+        /// </summary>
+        /// <param name="materialEditor">The current material editor.</param>
+        /// <param name="props">The list of properties the material has.</param>
         protected abstract void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props);
-
-        protected static void ResetMaterialCustomRenderQueue(Material material)
-        {
-            HDRenderQueue.RenderQueueType targetQueueType;
-            switch (material.GetSurfaceType())
-            {
-                case SurfaceType.Opaque:
-                    targetQueueType = HDRenderQueue.GetOpaqueEquivalent(HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue));
-                    break;
-                case SurfaceType.Transparent:
-                    targetQueueType = HDRenderQueue.GetTransparentEquivalent(HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue));
-                    break;
-                default:
-                    throw new ArgumentException("Unknown SurfaceType");
-            }
-
-            // Decal doesn't have properties to compute the render queue 
-            if (material.HasProperty(kTransparentSortPriority) && material.HasProperty(kAlphaCutoffEnabled))
-            {
-                float sortingPriority = material.GetFloat(kTransparentSortPriority);
-                bool alphaTest = material.GetFloat(kAlphaCutoffEnabled) > 0.5f;
-                material.renderQueue = HDRenderQueue.ChangeType(targetQueueType, (int)sortingPriority, alphaTest);
-            }
-        }
 
         readonly static string[] floatPropertiesToSynchronize = {
             kUseSplitLighting
         };
 
+        /// <summary>
+        /// Synchronize a set of properties that Unity requires for Shader Graph materials to work correctly. This function is for Shader Graph only.
+        /// </summary>
+        /// <param name="material">The target material.</param>
         protected static void SynchronizeShaderGraphProperties(Material material)
         {
             var defaultProperties = new Material(material.shader);

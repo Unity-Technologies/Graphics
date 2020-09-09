@@ -205,6 +205,26 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// When enabled, HDRP uses a more accurate but slower physically based method to compute the depth of field effect.
+        /// </summary>
+        public bool physicallyBased
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                {
+                    return m_PhysicallyBased.value;
+                }
+                else
+                {
+                    int qualityLevel = (int)quality.levelAndOverride.level;
+                    return GetPostProcessingQualitySettings().DoFPhysicallyBased[qualityLevel];
+                }
+            }
+            set { m_PhysicallyBased.value = value; }
+        }
+
+        /// <summary>
         /// Specifies the resolution at which HDRP processes the depth of field effect.
         /// </summary>
         /// <seealso cref="DepthOfFieldResolution"/>
@@ -256,6 +276,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Specifies the resolution at which HDRP processes the depth of field effect.")]
         [SerializeField, FormerlySerializedAs("resolution")]
         DepthOfFieldResolutionParameter m_Resolution = new DepthOfFieldResolutionParameter(DepthOfFieldResolution.Half);
+
+        [SerializeField]
+        BoolParameter m_PhysicallyBased = new BoolParameter(false);
 
         /// <summary>
         /// Tells if the effect needs to be rendered or not.

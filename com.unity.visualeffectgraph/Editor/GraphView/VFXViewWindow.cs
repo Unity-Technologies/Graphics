@@ -154,6 +154,9 @@ namespace  UnityEditor.VFX.UI
         {
             VFXManagerEditor.CheckVFXManager();
 
+            if (m_ResourceHistory == null)
+                m_ResourceHistory = new List<VisualEffectResource>();
+
             graphView = new VFXView();
             graphView.StretchToParentSize();
             SetupFramingShortcutHandler(graphView);

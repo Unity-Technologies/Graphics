@@ -41,6 +41,16 @@ float SampleDepth(float2 UV, bool HalfRes)
     return LoadCameraDepth(pixelCoord);
 }
 
+float GetDepthCompareThreshold(float step, float rayStartZ, float rayOrthoZ)
+{
+    return abs(rayOrthoZ - rayStartZ) * _ContactShadowThickness * max(0.07, step);
+}
+
+bool CompareDepth(float depthDiff, float compareThreshold)
+{
+    return abs(compareThreshold - depthDiff) < compareThreshold;
+}
+
 
 bool ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirWS, float rayLength, uint2 positionSS, out float fade)
 {
@@ -50,7 +60,7 @@ bool ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirWS, float rayLengt
     uint taaEnabled = _TaaFrameInfo.w;
     float dither = InterleavedGradientNoise(positionSS, (_FrameCount % 8u) * taaEnabled) - ditherBias;
 
-    float3 rayStartWS = positionWS;
+    float3 rayStartWS = positionWS - positionWS * _ContactShadowBias;
     float3 rayEndWS = rayStartWS + rayDirWS * rayLength;
 
     float4 rayStartCS = TransformWorldToHClip(rayStartWS);
@@ -68,7 +78,7 @@ bool ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirWS, float rayLengt
     float3 rayDirCS = rayEndCS.xyz - rayStartCS.xyz;
 
     float step = 1.0f / _SampleCount;
-    float compareThreshold = abs(rayOrthoViewSpace.z - rayStartCS.z) * max(0.07f, step);
+    float compareThreshold = GetDepthCompareThreshold(step, rayStartCS.z, rayOrthoViewSpace.z);
 
     float occluded = 0.0f;
 
@@ -107,7 +117,7 @@ bool ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirWS, float rayLengt
 
         float depthDiff = sampleDepth - sampleAlongRay.z;
 
-        if (depthDiff > 0.0f && depthDiff < compareThreshold && sampleAlongRay.z > 0)
+        if (depthDiff > 0.0f && CompareDepth(depthDiff, compareThreshold) && sampleAlongRay.z > 0)
         {
             if (tracingHalfRes)
             {

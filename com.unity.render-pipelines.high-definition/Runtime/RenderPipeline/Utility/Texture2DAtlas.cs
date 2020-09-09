@@ -311,11 +311,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = 23*hash + texture.filterMode.GetHashCode();
                 hash = 23*hash + texture.anisoLevel.GetHashCode();
                 hash = 23*hash + texture.mipmapCount.GetHashCode();
-                hash = 23*hash + texture.updateCount.GetHashCode();
-
-                RenderTexture rt = texture as RenderTexture;
-                if (rt != null)
-                    hash = 23*hash + rt.updateCount.GetHashCode();
             }
 
             return hash;
@@ -352,13 +347,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 uint updateCount;
                 if (m_IsGPUTextureUpToDate.TryGetValue(key, out updateCount))
                 {
-                    m_IsGPUTextureUpToDate[key] = textureHash;
-                    if (rt.updateCount != textureHash)
+                    m_IsGPUTextureUpToDate[key] = updateCount;
+                    if (rt.updateCount != updateCount)
                         return true;
                 }
                 else
                 {
-                    m_IsGPUTextureUpToDate[key] = textureHash;
+                    m_IsGPUTextureUpToDate[key] = rt.updateCount;
                 }
             }
             // In case the texture settings/import settings have changed, we need to update it
@@ -386,11 +381,15 @@ namespace UnityEngine.Rendering.HighDefinition
             // Update the render texture if needed
             if (rtA != null || rtB != null)
             {
-                uint currentHash;
-                if (m_IsGPUTextureUpToDate.TryGetValue(key, out currentHash))
+                uint updateCount;
+                if (m_IsGPUTextureUpToDate.TryGetValue(key, out updateCount))
                 {
-                    m_IsGPUTextureUpToDate[key] = textureHash;
-                    if (textureHash != currentHash)
+                    m_IsGPUTextureUpToDate[key] = updateCount;
+                    if (rtA != null && rtB != null && Math.Min(rtA.updateCount, rtB.updateCount) != updateCount)
+                        return true;
+                    else if (rtA != null && rtA.updateCount != updateCount)
+                        return true;
+                    else if (rtB.updateCount != updateCount) // implicitly rtB != null
                         return true;
                 }
                 else

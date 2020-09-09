@@ -1,8 +1,9 @@
 #pragma target 4.5
 #define UNITY_MATERIAL_LIT
 
-#define NEEDS_NORMAL	defined(WRITE_NORMAL_BUFFER) || FORCE_NORMAL_VARYING || SHADERGRAPH_NEEDS_NORMAL_DEPTHONLY
+#define NEEDS_NORMAL	defined(WRITE_NORMAL_BUFFER) || defined(WRITE_DECAL_BUFFER) || FORCE_NORMAL_VARYING || SHADERGRAPH_NEEDS_NORMAL_DEPTHONLY
 #define NEEDS_TANGENT	USE_NORMAL_MAP || USE_NORMAL_BENDING || SHADERGRAPH_NEEDS_TANGENT_DEPTHONLY
+#define NEEDS_WORLDPOS	VFX_NEEDS_POSWS_INTERPOLATOR
 
 struct ps_input
 {
@@ -35,10 +36,13 @@ struct ps_input
 	#if USE_NORMAL_BENDING
 	float2 bentFactors : TEXCOORD5;
 	#endif
-	
+	#if NEEDS_WORLDPOS
+	float3 posWS : TEXCOORD6;
+	#endif
+		
 	#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
-	float4 cPosPrevious : TEXCOORD6;
-	float4 cPosNonJiterred : TEXCOORD7;
+	float4 cPosPrevious : TEXCOORD7;
+	float4 cPosNonJiterred : TEXCOORD8;
 	#endif
     
     ${VFXAdditionalInterpolantsDeclaration}
@@ -62,6 +66,9 @@ struct ps_input
 #endif
 #if NEEDS_TANGENT
 #define VFX_VARYING_TANGENT tangent
+#endif
+#if NEEDS_WORLDPOS
+#define VFX_VARYING_POSWS posWS
 #endif
 #if USE_NORMAL_MAP
 #define VFX_VARYING_NORMALSCALE normal.w

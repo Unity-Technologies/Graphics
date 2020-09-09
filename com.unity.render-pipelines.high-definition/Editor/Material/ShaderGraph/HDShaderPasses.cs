@@ -26,7 +26,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.ShaderGraphRaytracingHigh,
-                keywords = CoreKeywords.HDBase,
                 includes = GenerateIncludes(),
             };
 
@@ -91,7 +90,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = CoreRenderStates.SceneSelection,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2EditorSync,
                 defines = CoreDefines.SceneSelection,
-                keywords = CoreKeywords.HDBase,
                 includes = GenerateIncludes(),
             };
 
@@ -141,7 +139,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 renderStates = CoreRenderStates.ShadowCaster,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
-                keywords = CoreKeywords.HDBase,
                 includes = GenerateIncludes(),
             };
 
@@ -188,7 +185,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = CoreRenderStates.Meta,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.ShaderGraphRaytracingHigh,
-                keywords = CoreKeywords.HDBase,
                 includes = GenerateIncludes(),
             };
 
@@ -231,8 +227,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = GenerateRequiredFields(),
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV2Only,
-                defines = supportLighting ? CoreDefines.DepthMotionVectors : null,
-                keywords = CoreKeywords.DepthMotionVectorsNoNormal,
+                defines = supportLighting ? CoreDefines.DepthForwardOnly : null,
                 includes = GenerateIncludes(),
             };
 
@@ -311,7 +306,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = GenerateRenderState(),
                 defines = GenerateDefines(),
                 pragmas = CorePragmas.DotsInstancedInV2Only,
-                keywords = GenerateKeywords(),
                 includes = GenerateIncludes(),
             };
 
@@ -320,14 +314,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (!supportLighting)
                     return null;
 
-                var defines = new DefineCollection
-                {
-                    { RayTracingNode.GetRayTracingKeyword(), 0 },
-                };
+                var defines = new DefineCollection { Defines.raytracingHigh };
 
-                //  #define WRITE_NORMAL_BUFFER for forward
-                if (supportForward)
-                    defines.Add(CoreKeywordDescriptors.WriteNormalBuffer, 1);
+                //  #define WRITE_NORMAL_BUFFER for motion vector in forward case
+                // if (supportForward)
+                // {
+                //     defines.Add(CoreKeywordDescriptors.WriteNormalBuffer, 1);
+                // }                    
                 
                 return defines;
             }
@@ -349,22 +342,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 }
 
                 return renderState;
-            }
-
-            KeywordCollection GenerateKeywords()
-            {
-                var keywords = new KeywordCollection
-                {
-                    { CoreKeywords.HDBase },
-                    { CoreKeywordDescriptors.WriteMsaaDepth },
-                    { CoreKeywordDescriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true) },
-                };
-
-                // #pragma multi_compile _ WRITE_NORMAL_BUFFER for deferred
-                if (supportLighting && !supportForward)
-                    keywords.Add(CoreKeywordDescriptors.WriteNormalBuffer);
-                
-                return keywords;
             }
 
             IncludeCollection GenerateIncludes()
@@ -408,7 +385,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = CoreRenderStates.Forward,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = supportLighting ? CoreDefines.Forward : null,
-                keywords = supportLighting ? CoreKeywords.Forward : UnlitForwardKeywords,
                 includes = GenerateIncludes(),
 
                 virtualTextureFeedback = true,
@@ -458,13 +434,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-        public static KeywordCollection UnlitForwardKeywords = new KeywordCollection
-        {
-            { CoreKeywords.HDBase },
-            { CoreKeywordDescriptors.DebugDisplay },
-            { CoreKeywordDescriptors.Shadow, new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, true) },
-        };
-
 #endregion
 
 #region Back then front pass
@@ -484,7 +453,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = CoreRenderStates.TransparentBackface,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.BackThenFront,
-                keywords = supportLighting ? CoreKeywords.BackThenFrontTransparent : UnlitForwardKeywords,
                 includes = GenerateIncludes(),
             };
 
@@ -557,22 +525,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.TransparentDepthPrepass,
-                keywords = GenerateKeywords(),
                 includes = GenerateIncludes(),
             };
-
-            KeywordCollection GenerateKeywords()
-            {
-                KeywordCollection keywords = new KeywordCollection { CoreKeywords.HDBase };
-
-                // For now we can generate WriteNormalBuffer the way we want with SG generator
-                // as it require a conditional define. So instead it is hard coded in
-                // ShaderPass.template. Looks for SHADERPASS_TRANSPARENT_DEPTH_PREPASS in the file
-                //if (supportLighting)
-                //    keywords.Add(CoreKeywordDescriptors.WriteNormalBuffer);
-
-                return keywords;
-            }
 
             RenderStateCollection GenerateRenderState()
             {
@@ -668,7 +622,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.TransparentDepthPostpass,
-                keywords = CoreKeywords.HDBase,
                 includes = GenerateIncludes(),
             };
 
@@ -743,10 +696,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static KeywordCollection LitDepthOnlyKeywords = new KeywordCollection
         {
-            { CoreKeywords.HDBase },
-            { CoreKeywordDescriptors.WriteMsaaDepth },
             { CoreKeywordDescriptors.WriteNormalBuffer },
-            { CoreKeywordDescriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true) },
         };
 
 #endregion
@@ -777,12 +727,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static KeywordCollection GBufferKeywords = new KeywordCollection
         {
-            { CoreKeywords.HDBase },
-            { CoreKeywordDescriptors.DebugDisplay },
-            { CoreKeywords.Lightmaps },
-            { CoreKeywordDescriptors.ShadowsShadowmask },
             { CoreKeywordDescriptors.LightLayers },
-            { CoreKeywordDescriptors.Decals },
         };
 
         public static IncludeCollection GBufferIncludes = new IncludeCollection
@@ -829,7 +774,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = CoreRenderStates.Forward,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.Forward,
-                keywords = CoreKeywords.Forward,
                 includes = ForwardIncludes,
 
                 virtualTextureFeedback = true,
@@ -867,20 +811,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 renderStates = RayTracingPrepassRenderState,
-                pragmas = LitRaytracingPrepassPragmas,
+                pragmas = CorePragmas.Basic,
                 defines = CoreDefines.ShaderGraphRaytracingHigh,
-                keywords = CoreKeywords.HDBase,
                 includes = RayTracingPrepassIncludes,
             };
         }
-
-        public static PragmaCollection LitRaytracingPrepassPragmas = new PragmaCollection
-        {
-            { Pragma.Target(ShaderModel.Target45) },
-            { Pragma.Vertex("Vert") },
-            { Pragma.Fragment("Frag") },
-            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.Playstation, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch}) },
-        };
 
         public static IncludeCollection RayTracingPrepassIncludes = new IncludeCollection
         {
@@ -919,7 +854,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingIndirectDefines : null,
-                keywords = supportLighting ? CoreKeywords.RaytracingIndirect : CoreKeywords.RaytracingIndirectUnlit,
                 includes = GenerateIncludes(),
             };
 
@@ -1035,7 +969,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingForwardDefines : null,
-                keywords = supportLighting ? CoreKeywords.RaytracingForward : CoreKeywords.RaytracingForwardUnlit,
                 includes = GenerateIncludes(),
             };
 
@@ -1102,7 +1035,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingGBufferDefines : null,
-                keywords = supportLighting ? CoreKeywords.RaytracingGBuffer : CoreKeywords.RaytracingGBufferUnlit,
+                keywords = supportLighting ? CoreKeywords.RaytracingGBuffer : null,
                 includes = GenerateIncludes(),
             };
 
@@ -1163,7 +1096,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 //Collections
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingPathTracingDefines : null,
-                keywords = CoreKeywords.HDBaseNoCrossFade,
                 includes = GenerateIncludes(),
             };
 
@@ -1229,7 +1161,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 //Collections
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = RaytracingSubsurfaceDefines,
-                keywords = CoreKeywords.RaytracingForward,
                 includes = GenerateIncludes(),
             };
 

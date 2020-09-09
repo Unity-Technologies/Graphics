@@ -359,43 +359,33 @@ namespace UnityEditor.Rendering.HighDefinition
                 const int k_UnitMenuWidth = 80;
                 const int k_OffsetPerIndent = 15;
                 const int k_LabelFieldSeparator = 2;
-                float indentOffset = EditorGUI.indentLevel * k_OffsetPerIndent;
+                const int k_Offset = 1;
                 int oldIndentLevel = EditorGUI.indentLevel;
-                
-                var lineRect = EditorGUILayout.GetControlRect();
-                var labelRect = new Rect(lineRect.x, lineRect.y, EditorGUIUtility.labelWidth, lineRect.height);
-                var fieldRect = new Rect(labelRect.xMax + k_LabelFieldSeparator, lineRect.y, lineRect.width - labelRect.width - k_UnitMenuWidth - k_LabelFieldSeparator * 2, lineRect.height);
-                var unitMenu = new Rect(fieldRect.xMax + k_LabelFieldSeparator, lineRect.y, k_UnitMenuWidth, lineRect.height);
 
-                //We cannot had the shutterSpeedState as this is not a serialized property but a global edition mode.
-                //This imply that it will never go bold nor can be reverted in prefab overrides
-                EditorGUI.BeginProperty(labelRect, shutterSpeedContent, p.shutterSpeed);
-                EditorGUI.LabelField(labelRect, shutterSpeedContent);
-                EditorGUI.EndProperty();
+                // Don't take into account the indentLevel when rendering the units field
                 EditorGUI.indentLevel = 0;
 
+                var lineRect = EditorGUILayout.GetControlRect();
+                var fieldRect = new Rect(k_OffsetPerIndent + k_LabelFieldSeparator + k_Offset, lineRect.y, lineRect.width - k_UnitMenuWidth, lineRect.height);
+                var unitMenu = new Rect(fieldRect.xMax + k_LabelFieldSeparator, lineRect.y, k_UnitMenuWidth - k_LabelFieldSeparator, lineRect.height);
+
+                // We cannot had the shutterSpeedState as this is not a serialized property but a global edition mode.
+                // This imply that it will never go bold nor can be reverted in prefab overrides
+
                 m_ShutterSpeedState.value = (ShutterSpeedUnit)EditorGUI.Popup(unitMenu, (int)m_ShutterSpeedState.value, k_ShutterSpeedUnitNames);
-                
-                float previousShutterSpeed = p.shutterSpeed.floatValue;
-                if (previousShutterSpeed > 0f && m_ShutterSpeedState.value == ShutterSpeedUnit.OneOverSecond)
-                    previousShutterSpeed = 1f / previousShutterSpeed;
-                
+                // Reset the indent level
+                EditorGUI.indentLevel = oldIndentLevel;
+
                 EditorGUI.BeginProperty(fieldRect, shutterSpeedContent, p.shutterSpeed);
                 {
-                    EditorGUI.BeginChangeCheck();
-                    var newShutterSpeed = EditorGUI.FloatField(fieldRect, previousShutterSpeed);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        if (newShutterSpeed <= 0f)
-                            p.shutterSpeed.floatValue = 0f;
-                        else if (m_ShutterSpeedState.value == ShutterSpeedUnit.OneOverSecond)
-                            p.shutterSpeed.floatValue = 1f / newShutterSpeed;
-                        else
-                            p.shutterSpeed.floatValue = newShutterSpeed;
-                    }
+                    // if we we use (1 / second) units, then change the value for the display and then revert it back
+                    if (m_ShutterSpeedState.value == ShutterSpeedUnit.OneOverSecond && p.shutterSpeed.floatValue > 0)
+                        p.shutterSpeed.floatValue = 1.0f / p.shutterSpeed.floatValue;
+                    EditorGUI.PropertyField(fieldRect, p.shutterSpeed, shutterSpeedContent);
+                    if (m_ShutterSpeedState.value == ShutterSpeedUnit.OneOverSecond && p.shutterSpeed.floatValue > 0)
+                        p.shutterSpeed.floatValue = 1.0f / p.shutterSpeed.floatValue;
                 }
                 EditorGUI.EndProperty();
-                EditorGUI.indentLevel = oldIndentLevel;
 
                 using (var horizontal = new EditorGUILayout.HorizontalScope())
                 using (var propertyScope = new EditorGUI.PropertyScope(horizontal.rect, gateFitContent, cam.gateFit))
