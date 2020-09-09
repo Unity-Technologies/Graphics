@@ -101,13 +101,8 @@ def extra_perf_cmd(project_folder):
         f'git clone https://github.com/seanstolberg-unity/BoatAttack.git -b sophia/add-perf-tests-2 TestProjects/{project_folder}',
         f'Xcopy /E /I \"com.unity.render-pipelines.core\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.render-pipelines.core\" /Y',
         f'Xcopy /E /I \"com.unity.render-pipelines.universal\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.render-pipelines.universal\" /Y',
-        f'Xcopy /E /I \"com.unity.shadergraph\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.shadergraph\" /Y',
-        f'Xcopy /E /I \"com.unity.shaderanalysis\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.shaderanalysis\" /Y',
-        f'Xcopy /E /I \"com.unity.testing.graphics-performance\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.testing.graphics-performance\" /Y',
-        # the below is just a test until unity-config can handle it
-        f'git clone https://github.cds.internal.unity3d.com/unity/com.unity.test.performance.runtimesettings TestProjects/{project_folder}/Packages',
-        f'git clone https://github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager TestProjects/{project_folder}/Packages',
-        f'git clone https://github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup TestProjects/{project_folder}/Packages']
+        f'Xcopy /E /I \"com.unity.shadergraph\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.shadergraph\" /Y'
+        ]
     return perf_list
 
 def install_unity_config(project_folder):
@@ -115,7 +110,20 @@ def install_unity_config(project_folder):
         f'choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local',
         f'choco install unity-config',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.testframework.graphics@7.2.2-preview --project-path .',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .'
- 
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config add dependency com.unity.testframework.graphics@7.2.2-preview',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config add dependency com.unity.test-framework.performance@2.3.1-preview',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config add dependency com.unity.test.performance.runtimesettings@\"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.performance.runtimesettings.git\"',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config add dependency com.unity.test.metadata-manager@\"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git\"',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config add dependency com.unity.cli-project-setup@\"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git\"',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config add dependency com.unity.testing.graphics-performance@\"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git\"',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config add dependency com.unity.shaderanalysis@\"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git\"',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config add dependency com.unity.testing.graphics-performance@\"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git\"',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config add testable com.unity.testing.graphics-performance --project-path .',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable com.unity.testframework.graphics  --project-path .',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable com.unity.cli-project-setup  --project-path .',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable test.metadata-manager  --project-path .',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable unity.graphictests.performance.universal  --project-path .'
     ]
     return cmds
