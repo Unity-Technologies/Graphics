@@ -199,7 +199,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 TextureHandle denoisedRTGI = temporalFilter.Denoise(renderGraph, hdCamera, tfParameters, rtGIBuffer, historyBufferHF, depthPyramid, normalBuffer, motionVectorBuffer);
 
                 // Apply the diffuse denoiser
-                DiffuseDenoiserParameters ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, false, giSettings.denoiserRadius, giSettings.halfResolutionDenoiser);
+                DiffuseDenoiserParameters ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, false, giSettings.denoiserRadius, giSettings.halfResolutionDenoiser, giSettings.secondDenoiserPass);
                 rtGIBuffer = diffuseDenoiser.Denoise(renderGraph, hdCamera, ddParams, denoisedRTGI, depthPyramid, normalBuffer, rtGIBuffer);
 
                 // If the second pass is requested, do it otherwise blit
@@ -211,7 +211,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     denoisedRTGI = temporalFilter.Denoise(renderGraph, hdCamera, tfParameters, rtGIBuffer, historyBufferLF, depthPyramid, normalBuffer, motionVectorBuffer);
 
                     // Apply the diffuse denoiser
-                    ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, false, giSettings.secondDenoiserRadius, giSettings.halfResolutionDenoiser);
+                    ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, false, giSettings.denoiserRadius * 0.5f, giSettings.halfResolutionDenoiser, false);
                     rtGIBuffer = diffuseDenoiser.Denoise(renderGraph, hdCamera, ddParams, denoisedRTGI, depthPyramid, normalBuffer, rtGIBuffer);
                 }
 
