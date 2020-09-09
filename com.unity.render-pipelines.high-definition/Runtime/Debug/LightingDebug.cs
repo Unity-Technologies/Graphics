@@ -366,6 +366,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public TileClusterDebug tileClusterDebug = TileClusterDebug.None;
         /// <summary>Category for tile and cluster debug mode.</summary>
         public TileClusterCategoryDebug tileClusterDebugByCategory = TileClusterCategoryDebug.Punctual;
+        /// <summary>Cluster Debug mode.</summary>
+        public ClusterDebugMode clusterDebugMode = ClusterDebugMode.VisualizeOpaque;
+        /// <summary>Distance at which clusters will be visualized.</summary>
+        public float clusterDebugDistance = 1.0f;
 
         // Internal APIs
         internal bool IsDebugDisplayRemovePostprocess()

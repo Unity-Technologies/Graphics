@@ -158,18 +158,24 @@ float GetNumSamples(float radius, float maxRadius)
 
 float GetRingWeight(int index, float dR)
 {
-    if (index == 0) return 1;
-    float ringRadius = index * dR;
-    float ringArea = PI * ringRadius * ringRadius;
+    if (index == 0)
+    {
+        return 1.0f;
+    }
+    else
+    {
+        float ringRadius = index * dR;
+        float ringArea = PI * ringRadius * ringRadius;
 
-    float prevRingRadius = (index - 1) * dR;
-    float prevRingArea = PI * prevRingRadius * prevRingRadius;
+        float prevRingRadius = (index - 1) * dR;
+        float prevRingArea = PI * prevRingRadius * prevRingRadius;
 
-    ringArea = ringArea - prevRingArea;
+        ringArea = ringArea - prevRingArea;
 
-    float ringSamples = RING_DENSITY * index;
-    ringSamples = (index == 1) ? ringSamples + 1.0f : ringSamples;
-    return ringArea * rcp (ringSamples);
+        float ringSamples = RING_DENSITY * index;
+        ringSamples = (index == 1) ? ringSamples + 1.0f : ringSamples;
+        return ringArea * rcp(ringSamples);
+    }
 }
 
 [numthreads(GROUP_RES, GROUP_RES, 1)]
