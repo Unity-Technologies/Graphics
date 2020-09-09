@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.Universal
 
             cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
 
-            var gradientSky = (cameraData.visualSky.skySettings as GradientSky);
+            var gradientSky = (GradientSky)cameraData.visualSky.skySettings;
             m_GradientSkyMaterial.SetColor(_GradientBottom, gradientSky.bottom.value);
             m_GradientSkyMaterial.SetColor(_GradientMiddle, gradientSky.middle.value);
             m_GradientSkyMaterial.SetColor(_GradientTop, gradientSky.top.value);
@@ -51,16 +51,36 @@ namespace UnityEngine.Rendering.Universal
 
         public override SphericalHarmonicsL2 GetAmbientProbe(ref CameraData cameraData)
         {
-            var gradientSky = (cameraData.visualSky.skySettings as GradientSky);
+            var gradientSky = (GradientSky)cameraData.visualSky.skySettings;
 
-            // TODO: Figure out a proper way to calculate the SH. Support gradientDiffusion and sky intensity.
+            // TODO: Support sky intensity.
+
             var ambientProbe = new SphericalHarmonicsL2();
-            var middleColor = gradientSky.middle.value;
-            ambientProbe.AddAmbientLight(middleColor);
-            ambientProbe.AddDirectionalLight(Vector3.up, middleColor, -1f);
-            ambientProbe.AddDirectionalLight(Vector3.down, middleColor, -1f);
-            ambientProbe.AddDirectionalLight(Vector3.up, gradientSky.top.value, 1f);
-            ambientProbe.AddDirectionalLight(Vector3.down, gradientSky.bottom.value, 1f);
+            var gradientDiffusion = gradientSky.gradientDiffusion.value;
+            if (gradientDiffusion != 0f)
+            {
+                var isFlipped = gradientDiffusion < 0f;
+                if (isFlipped)
+                    gradientDiffusion *= -1f;
+
+                // TODO: Find a physically correct way to calculate irradiance for any gradientDiffusion.
+                // Magic numbers to get similar SH values for gradientDiffusion == 1 as in the built-in tri-light mode.
+                var middleColorWeightOnEquator = 0.833f / gradientDiffusion;
+                var middleColorWeightOnPoles = 0.656f / gradientDiffusion;
+
+                var topColor = gradientSky.top.value;
+                var middleColor = gradientSky.middle.value;
+                var bottomColor = gradientSky.bottom.value;
+
+                var equatorIrradiance = Color.Lerp((topColor + bottomColor) * 0.5f, middleColor, middleColorWeightOnEquator);
+                ambientProbe.AddAmbientLight(equatorIrradiance);
+                ambientProbe.AddDirectionalLight(Vector3.up, Color.Lerp(isFlipped ? bottomColor : topColor, middleColor, middleColorWeightOnPoles) - equatorIrradiance, 1f);
+                ambientProbe.AddDirectionalLight(Vector3.down, Color.Lerp(isFlipped ? topColor : bottomColor, middleColor, middleColorWeightOnPoles) - equatorIrradiance, 1f);
+            }
+            else
+            {
+                ambientProbe.AddAmbientLight(gradientSky.middle.value);
+            }
 
             return ambientProbe;
         }
