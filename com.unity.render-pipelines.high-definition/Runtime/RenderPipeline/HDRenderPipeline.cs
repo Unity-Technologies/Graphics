@@ -3052,8 +3052,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     var aovRequest = AOVRequest.NewDefault().SetRenderRequestMode(request.mode);
                     var aovBuffers = AOVBuffers.Color;
-                    if (request.mode == Camera.RenderRequestMode.DepthR ||
-                        request.mode == Camera.RenderRequestMode.WorldPositionRGB)
+                    if (request.mode == Camera.RenderRequestMode.Depth ||
+                        request.mode == Camera.RenderRequestMode.WorldPosition)
                         aovBuffers = AOVBuffers.Output;
 
                     requests.Add(
