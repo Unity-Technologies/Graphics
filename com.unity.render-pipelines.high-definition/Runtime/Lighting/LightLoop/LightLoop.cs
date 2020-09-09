@@ -338,7 +338,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // For regular reflection probes, we need to convolve with all the BSDF functions
-                GraphicsFormat probeCacheFormat = lightLoopSettings.reflectionProbeFormat == ReflectionProbeFormat.R11G11B10 ?
+                GraphicsFormat probeCacheFormat = lightLoopSettings.reflectionProbeFormat == ReflectionAndPlanarProbeFormat.R11G11B10 ?
                                                   GraphicsFormat.B10G11R11_UFloatPack32 : GraphicsFormat.R16G16B16A16_SFloat;
 
                 // BC6H requires CPP feature not yet available
