@@ -72,7 +72,7 @@ Shader "Hidden/HDRP/DownsampleDepth"
 
             float minDepth = MinDepth(depths);
         #if MIN_DOWNSAMPLE
-            outputDepth = MinDepth(depths);
+            outputDepth = minDepth;
         #elif CHECKERBOARD_DOWNSAMPLE
             outputDepth = (uint(input.positionCS.x + input.positionCS.y) & 1) > 0 ? minDepth : MaxDepth(depths);
         #endif
