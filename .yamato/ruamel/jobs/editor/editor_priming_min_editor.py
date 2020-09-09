@@ -32,11 +32,9 @@ class Editor_PrimingMinEditorJob():
         job.add_var_custom('DISPLAY', dss(":0"))
         job.add_var_upm_registry()
         job.add_commands([
-            f'sudo pip3 install pipenv --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple',# Remove when the image has this preinstalled.
-            f'python3 -m pipenv install --dev', 
-            f'pip install unity-downloader-cli --user --upgrade --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
             f'pwd',
-            f'pipenv run python3 .yamato/ruamel/jobs/editor/util/get_minimum_editor_version.py {tmp_revision_file}',
+            f'pip install unity-downloader-cli --user --upgrade --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
+            f'python3 .yamato/ruamel/jobs/editor/util/get_minimum_editor_version.py {tmp_revision_file}',
             f'unity-downloader-cli --source-file {tmp_revision_file} -c {platform_os} --wait --skip-download {"".join([f"-c {c} " for c in components])} > {PATH_UNITY_REVISION}',
             f'rm {tmp_revision_file}'])
         job.add_artifacts_unity_revision()
