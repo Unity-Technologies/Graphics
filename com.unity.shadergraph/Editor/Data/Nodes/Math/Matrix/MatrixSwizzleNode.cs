@@ -288,7 +288,7 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            int inputRowCount = useIdentity ? 4 : numInputRows;
+            int inputRowCount = useIdentity ? 2 : numInputRows;
 
             //get output row count
             int outputRowCount = 4;
