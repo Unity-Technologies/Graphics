@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed TAA issue and hardware dynamic resolution.
 - Fixed warning with area mesh (case 1268379)
 - Fixed an issue that lead to corrupted refraction in some scenarios on xbox.
+- Fixed issue in Material Postprocess which may fail due to empty SubAsset.
 
 ### Changed
 - The `CustomPassLoadCameraColor` and `CustomPassSampleCameraColor` functions now returns the correct color buffer when used in after post process instead of the color pyramid (which didn't had post processes).
