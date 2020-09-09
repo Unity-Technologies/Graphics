@@ -52,7 +52,11 @@ Shader "Hidden/HDRP/DownsampleDepth"
         }
 
 #ifdef OUTPUT_FIRST_MIP_OF_MIPCHAIN
-        RW_TEXTURE2D_X(float, _OutputTexture) : register(u2);
+    #ifdef SHADER_API_PSSL
+        RW_TEXTURE2D_X(float, _OutputTexture) : register(u0);
+    #else
+        RW_TEXTURE2D_X(float, _OutputTexture) : register(u1);
+    #endif
         float4 _DstOffset;
 #endif
 
@@ -68,7 +72,7 @@ Shader "Hidden/HDRP/DownsampleDepth"
 
             float minDepth = MinDepth(depths);
         #if MIN_DOWNSAMPLE
-            outputDepth = MinDepth(depths);
+            outputDepth = minDepth;
         #elif CHECKERBOARD_DOWNSAMPLE
             outputDepth = (uint(input.positionCS.x + input.positionCS.y) & 1) > 0 ? minDepth : MaxDepth(depths);
         #endif
