@@ -56,4 +56,4 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         logging.error('Usage: python3 %s [tmp_unity_revision_file_path]', sys.argv[0])
         exit(1)
-    sys.exit(main(sys.argv[1:]))
+    sys.exit(main(sys.argv[1]))
