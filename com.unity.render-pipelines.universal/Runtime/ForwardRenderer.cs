@@ -485,6 +485,9 @@ namespace UnityEngine.Rendering.Universal
             if (fullScreenDebugMode != FullScreenDebugMode.None )
             {
                 RenderTargetIdentifier debugBuffer;
+                float screenWidth = camera.pixelWidth;
+                float screenHeight = camera.pixelHeight;
+                float size = Mathf.Min(screenWidth, screenHeight);
                 Rect pixelRect = new Rect();
 
                 switch (fullScreenDebugMode)
@@ -498,11 +501,11 @@ namespace UnityEngine.Rendering.Universal
                     //     break;
                     case FullScreenDebugMode.AdditionalLightsShadowMap:
                         debugBuffer = m_AdditionalLightsShadowCasterPass.m_AdditionalLightsShadowmapTexture;
-                        pixelRect = new Rect(0, 0.5f * camera.pixelHeight, 0.5f * camera.pixelHeight, 0.5f * camera.pixelHeight);
+                        pixelRect = new Rect(screenWidth - size, screenHeight - size, size, size);
                         break;
                     case FullScreenDebugMode.MainLightShadowMap:
                         debugBuffer = m_MainLightShadowCasterPass.m_MainLightShadowmapTexture;
-                        pixelRect = new Rect(0, 0.5f * camera.pixelHeight, 0.5f * camera.pixelHeight, 0.5f * camera.pixelHeight);
+                        pixelRect = new Rect(screenWidth - size, screenHeight - size, size, size);
                         break;
                     default:
                         debugBuffer = m_OpaqueColor.Identifier();
