@@ -17,7 +17,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue that failed compilation when XR is disabled.
 - Fixed an issue where only one of the two lookdev views would update when changing the default lookdev volume profile
 - Fix Amplitude -> Min/Max parametrization conversion
- 
+- Fixed sky asserts with XR multipass
+- Fixed "Screen position out of view frustum" error when camera is at exactly the planar reflection probe location.
+- Fixed issue when undoing a change in diffuse profile list after deleting the volume profile.
+- Fixed a static lighting flickering issue caused by having an active planar probe in the scene while rendering inspector preview.
+- Fixed an issue where even when set to OnDemand, the sky lighting would still be updated when changing sky parameters.
+- Fixed TAA issue and hardware dynamic resolution.
+- Fixed warning with area mesh (case 1268379)
+- Fixed an issue that lead to corrupted refraction in some scenarios on xbox.
+
 ### Changed
 - The `CustomPassLoadCameraColor` and `CustomPassSampleCameraColor` functions now returns the correct color buffer when used in after post process instead of the color pyramid (which didn't had post processes).
 
