@@ -29,7 +29,7 @@ Shader "Hidden/Universal Render Pipeline/Sampling"
 
             float _SampleOffset;
 
-            half4 FragBoxDownsample(FullscreenVaryings input) : SV_Target
+            half4 FragBoxDownsample(Varyings input) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
