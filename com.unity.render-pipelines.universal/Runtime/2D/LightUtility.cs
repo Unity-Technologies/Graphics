@@ -87,6 +87,40 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return new Bounds {min = min, max = max};
         }
 
+        private static bool TestPivot(List<IntPoint> path, int activePoint, long lastPoint)
+        {
+            for (int i = activePoint; i < path.Count; ++i)
+            {
+                if (path[i].N > lastPoint)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static void FixPivots(List<IntPoint> path, int pathLength)
+        {
+            long pivotPoint = 0;
+
+            for (int i = 1; i < path.Count; ++i)
+            {
+                var prev = path[i - 1];
+                var curr = path[i];
+
+                if (prev.N > curr.N)
+                {
+                    var incr = TestPivot(path, i, pivotPoint);
+                    if (incr)
+                    {
+                        var test = path[i];
+                        test.N = (pivotPoint + 1) < pathLength ? (pivotPoint + 1) : (pathLength - 1);
+                        path[i] = test;
+                    }
+                }
+                pivotPoint = path[i].N;
+            }
+        }
+
         public static Bounds GenerateShapeMesh(Mesh mesh, Vector3[] shapePath, float falloffDistance)
         {
 
@@ -132,12 +166,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 path = solution[0];
                 path.Add(path[0]);
-                
+
+                // Fix path for Pivots.
+                FixPivots(path, convexPath.Length);
+
                 for (int i = 1; i < path.Count; ++i)
                 {
                     var prev = path[i - 1];
                     var curr = path[i];
-                    
+
                     var prevPoint = new float2(prev.X / kClipperScale, prev.Y / kClipperScale);
                     var currPoint = new float2(curr.X / kClipperScale, curr.Y / kClipperScale);
 

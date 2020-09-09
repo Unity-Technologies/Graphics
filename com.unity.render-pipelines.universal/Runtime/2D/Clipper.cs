@@ -3209,7 +3209,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private void IntersectPoint(TEdge edge1, TEdge edge2, out IntPoint ip)
         {
             ip = new IntPoint();
-            long x = 0;
+            long x = -1;
             if (edge1.Curr.N > edge2.Curr.N)
             {
                 if (edge2.Curr.N != -1)
