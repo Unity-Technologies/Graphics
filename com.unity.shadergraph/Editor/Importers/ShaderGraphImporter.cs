@@ -104,7 +104,8 @@ Shader ""Hidden/GraphErrorShader2""
 
             List<PropertyCollector.TextureInfo> configuredTextures;
             string path = ctx.assetPath;
-            var sourceAssetDependencyGUIDs = new HashSet<GUID>();
+
+            AssetCollection assetCollection = new AssetCollection();
 
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
             var graph = new GraphData
@@ -120,7 +121,7 @@ Shader ""Hidden/GraphErrorShader2""
             if (!graph.isOnlyVFXTarget)
 #endif
             {
-                var text = GetShaderText(path, out configuredTextures, sourceAssetDependencyGUIDs, graph);
+                var text = GetShaderText(path, out configuredTextures, assetCollection, graph);
 
 #if UNITY_2021_1_OR_NEWER
                 // 2021.1 or later is guaranteed to have the new version of this function
@@ -213,7 +214,7 @@ Shader ""Hidden/GraphErrorShader2""
             }
             ctx.AddObjectToAsset("SGInternal:Metadata", sgMetadata);
 
-            foreach (GUID sourceAssetDependencyGUID in sourceAssetDependencyGUIDs)
+            foreach (GUID sourceAssetDependencyGUID in assetCollection.assetSourceDependencyGUIDs)
             {
                 var assetPath = AssetDatabase.GUIDToAssetPath(sourceAssetDependencyGUID);
 
@@ -232,7 +233,7 @@ Shader ""Hidden/GraphErrorShader2""
             Debug.LogWarning("END Import Asset " + ctx.assetPath);
         }
 
-        internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, HashSet<GUID> sourceAssetDependencyGUIDs, GraphData graph)
+        internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, AssetCollection assetCollection, GraphData graph)
         {
             string shaderString = null;
             var shaderName = Path.GetFileNameWithoutExtension(path);
@@ -240,10 +241,9 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 if (!string.IsNullOrEmpty(graph.path))
                     shaderName = graph.path + "/" + shaderName;
-                var generator = new Generator(graph, graph.outputNode, GenerationMode.ForReals, shaderName);
+                var generator = new Generator(graph, graph.outputNode, GenerationMode.ForReals, shaderName, assetCollection);
                 shaderString = generator.generatedShader;
                 configuredTextures = generator.configuredTextures;
-                sourceAssetDependencyGUIDs.UnionWith(generator.assetDependencyGUIDs);
 
                 if (graph.messageManager.AnyError())
                 {
@@ -260,7 +260,7 @@ Shader ""Hidden/GraphErrorShader2""
 
             return shaderString ?? k_ErrorShader.Replace("Hidden/GraphErrorShader2", shaderName);
         }
-        internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, HashSet<GUID> sourceAssetDependencyGUIDs, out GraphData graph)
+        internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, AssetCollection assetCollection, out GraphData graph)
         {
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
             graph = new GraphData
@@ -271,7 +271,7 @@ Shader ""Hidden/GraphErrorShader2""
             graph.OnEnable();
             graph.ValidateGraph();
 
-            return GetShaderText(path, out configuredTextures, sourceAssetDependencyGUIDs, graph);
+            return GetShaderText(path, out configuredTextures, assetCollection, graph);
         }
 
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures)

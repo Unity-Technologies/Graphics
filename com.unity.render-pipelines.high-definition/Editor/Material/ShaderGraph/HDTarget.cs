@@ -93,7 +93,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             // Setup the Target
-            context.AddAssetDependencyGUID(kAssetGuid);
+            context.AddAssetSourceDependency(kAssetGuid);
 
             // Process SubTargets
             TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);

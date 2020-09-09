@@ -53,15 +53,15 @@ namespace UnityEditor.ShaderGraph
 
             // outputs
             ShaderStringBuilder result;
-            HashSet<GUID> sourceAssetDependencyGUIDs;
+            AssetCollection assetCollection;
 
-            public TemplatePreprocessor(ActiveFields activeFields, Dictionary<string, string> namedFragments, bool isDebug, string[] templatePaths, HashSet<GUID> sourceAssetDependencyGUIDs, ShaderStringBuilder outShaderCodeResult = null)
+            public TemplatePreprocessor(ActiveFields activeFields, Dictionary<string, string> namedFragments, bool isDebug, string[] templatePaths, AssetCollection assetCollection, ShaderStringBuilder outShaderCodeResult = null)
             {
                 this.activeFields = activeFields;
                 this.namedFragments = namedFragments;
                 this.isDebug = isDebug;
                 this.templatePaths = templatePaths;
-                this.sourceAssetDependencyGUIDs = sourceAssetDependencyGUIDs;
+                this.assetCollection = assetCollection;
                 this.result = outShaderCodeResult ?? new ShaderStringBuilder();
                 includedFiles = new HashSet<string>();
             }
@@ -78,11 +78,11 @@ namespace UnityEditor.ShaderGraph
                 {
                     includedFiles.Add(filePath);
 
-                    if (sourceAssetDependencyGUIDs != null)
+                    if (assetCollection != null)
                     {
                         GUID guid = AssetDatabase.GUIDFromAssetPath(filePath);
                         if (!guid.Empty())
-                            sourceAssetDependencyGUIDs.Add(guid);
+                            assetCollection.AddAssetSourceDependency(guid);
                     }
 
                     string[] templateLines = File.ReadAllLines(filePath);

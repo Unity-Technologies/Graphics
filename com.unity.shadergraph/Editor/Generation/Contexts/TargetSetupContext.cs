@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph
@@ -6,14 +7,14 @@ namespace UnityEditor.ShaderGraph
     internal class TargetSetupContext
     {
         public List<SubShaderDescriptor> subShaders { get; private set; }
-        public HashSet<GUID> assetDependencyGUIDs { get; private set; }
+        public AssetCollection assetCollection { get; private set; }
         public string defaultShaderGUI { get; private set; }
 
         // pass a HashSet to the constructor to have it gather asset dependency GUIDs
-        public TargetSetupContext(HashSet<GUID> assetDependencyGUIDs = null)
+        public TargetSetupContext(AssetCollection assetCollection = null)
         {
             subShaders = new List<SubShaderDescriptor>();
-            this.assetDependencyGUIDs = assetDependencyGUIDs;
+            this.assetCollection = assetCollection;
         }
 
         public void AddSubShader(SubShaderDescriptor subShader)
@@ -21,9 +22,14 @@ namespace UnityEditor.ShaderGraph
             subShaders.Add(subShader);
         }
 
-        public void AddAssetDependencyGUID(GUID guid)
+        public void AddAssetSourceDependency(GUID guid)
         {
-            assetDependencyGUIDs?.Add(guid);
+            assetCollection?.AddAssetSourceDependency(guid);
+        }
+
+        public void AddAssetArtifactDependency(GUID guid)
+        {
+            assetCollection?.AddAssetArtifactDependency(guid);
         }
 
         public void SetDefaultShaderGUI(string defaultShaderGUI)

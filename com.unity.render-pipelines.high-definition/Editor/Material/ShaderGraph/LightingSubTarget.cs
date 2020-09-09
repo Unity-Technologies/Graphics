@@ -41,7 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void Setup(ref TargetSetupContext context)
         {
-            context.AddAssetDependencyGUID(kTargetSourceCodeGuid);
+            context.AddAssetSourceDependency(kTargetSourceCodeGuid);
             base.Setup(ref context);
         }
 

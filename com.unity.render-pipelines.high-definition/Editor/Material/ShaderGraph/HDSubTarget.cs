@@ -88,8 +88,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void Setup(ref TargetSetupContext context)
         {
-            context.AddAssetDependencyGUID(kTargetSourceCodeGuid);
-            context.AddAssetDependencyGUID(subTargetAssetGuid);
+            context.AddAssetSourceDependency(kTargetSourceCodeGuid);
+            context.AddAssetSourceDependency(subTargetAssetGuid);
             context.SetDefaultShaderGUI(customInspector);
 
             if (migrationSteps.Migrate(this))

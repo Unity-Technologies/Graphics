@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void Setup(ref TargetSetupContext context)
         {
-            context.AddAssetDependencyGUID(kAssetGuid);
+            context.AddAssetSourceDependency(kAssetGuid);
             context.SetDefaultShaderGUI("ShaderGraph.PBRMasterGUI"); // TODO: This should be owned by URP
 
             // Process SubShaders

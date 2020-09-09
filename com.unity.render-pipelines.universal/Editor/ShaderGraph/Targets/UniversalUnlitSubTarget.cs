@@ -23,7 +23,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void Setup(ref TargetSetupContext context)
         {
-            context.AddAssetDependencyGUID(kAssetGuid);
+            context.AddAssetSourceDependency(kAssetGuid);
 
             // Process SubShaders
             SubShaderDescriptor[] subShaders = { SubShaders.Unlit, SubShaders.UnlitDOTS };

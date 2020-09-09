@@ -23,14 +23,13 @@ namespace UnityEditor.ShaderGraph
 
         ShaderStringBuilder m_Builder;
         List<PropertyCollector.TextureInfo> m_ConfiguredTextures;
-        HashSet<GUID> m_AssetDependencyGUIDs;
+        AssetCollection m_assetCollection;
 
         public string generatedShader => m_Builder.ToCodeBlock();
         public List<PropertyCollector.TextureInfo> configuredTextures => m_ConfiguredTextures;
-        public HashSet<GUID> assetDependencyGUIDs => m_AssetDependencyGUIDs;
         public List<BlockNode> blocks => m_Blocks;
 
-        public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name)
+        public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name, AssetCollection assetCollection)
         {
             m_GraphData = graphData;
             m_OutputNode = outputNode;
@@ -39,7 +38,7 @@ namespace UnityEditor.ShaderGraph
 
             m_Builder = new ShaderStringBuilder();
             m_ConfiguredTextures = new List<PropertyCollector.TextureInfo>();
-            m_AssetDependencyGUIDs = new HashSet<GUID>();
+            m_assetCollection = assetCollection;
 
             m_Blocks = graphData.GetNodes<BlockNode>().ToList();
             GetTargetImplementations();
@@ -137,7 +136,7 @@ namespace UnityEditor.ShaderGraph
 
                 for(int i = 0; i < m_Targets.Length; i++)
                 {
-                    TargetSetupContext context = new TargetSetupContext(m_AssetDependencyGUIDs);
+                    TargetSetupContext context = new TargetSetupContext(m_assetCollection); // m_AssetDependencyGUIDs);
 
                     // Instead of setup target, we can also just do get context
                     m_Targets[i].Setup(ref context);
@@ -789,7 +788,7 @@ namespace UnityEditor.ShaderGraph
 
             // Process Template
             var templatePreprocessor = new ShaderSpliceUtil.TemplatePreprocessor(activeFields, spliceCommands,
-                isDebug, sharedTemplateDirectories, m_AssetDependencyGUIDs);
+                isDebug, sharedTemplateDirectories, m_assetCollection);
             templatePreprocessor.ProcessTemplateFile(passTemplatePath);
             m_Builder.Concat(templatePreprocessor.GetShaderCode());
         }

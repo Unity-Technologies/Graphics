@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void Setup(ref TargetSetupContext context)
         {
-            context.AddAssetDependencyGUID(kAssetGuid);
+            context.AddAssetSourceDependency(kAssetGuid);
             context.AddSubShader(SubShaders.SpriteUnlit);
         }
 
