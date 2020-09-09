@@ -17,7 +17,7 @@ You can choose between three rendering modes:
 | ------------------- | ------------------------------------------------------------ |
 | **Forward**         | HDRP calculates the lighting in a single pass when rendering each individual GameObject. |
 | **Deferred**        | HDRP renders the Material properties of every GameObject visible on screen into a GBuffer. HDRP then processes the lighting for every pixel in the frame. |
-| **Both**            | Use the [Frame Settings](Frame-Settings.md) to change between **Forward** and **Deferred** rendering mode on a per Camera and Reflection Probe basis at runtime. Selecting this increases Project [build time](#BuildTime). |
+| **Both**            | Use the [Frame Settings](Frame-Settings.md) to change between **Forward** and **Deferred** rendering mode on a per Camera basis. Selecting this increases Project [build time](#BuildTime). |
 
 If you select **Both**, you can set a rendering mode for all Cameras to use by default, and also override this default rendering mode at runtime for a specific Camera. For example, you can use Forward mode for a Planar Reflection Probe and then render your main Camera using Deferred mode. 
 

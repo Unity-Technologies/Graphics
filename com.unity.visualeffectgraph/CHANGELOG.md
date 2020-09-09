@@ -131,6 +131,7 @@ The version number for this package has increased due to a version update of a r
 - Subgraphs are not in hardcoded categories anymore : updated default subgraph templates + Samples to add meaningful categories.
 - Fix creation of StringPropertyRM
 - Enum fields having headers show the header in the inspector as well.
+- Handle correctly disabled alphaTreshold material slot in shaderGraph.
 
 ## [7.1.1] - 2019-09-05
 ### Added
