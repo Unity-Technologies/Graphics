@@ -95,7 +95,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     return true;
             }
 
-            return false;
+            return (path[activePoint].N == -1);
         }
 
         private static void FixPivots(List<IntPoint> path, int pathLength)
@@ -113,14 +113,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     if (incr)
                     {
                         var test = path[i];
-                        test.N = (pivotPoint + 1) < pathLength ? (pivotPoint + 1) : (pathLength - 1);
+                        test.N = (pivotPoint + 1) < pathLength ? (pivotPoint + 1) : 0;
                         path[i] = test;
                     }
                 }
                 pivotPoint = path[i].N;
             }
 
-            for (int i = 1; i < path.Count; ++i)
+            for (int i = 1; i < path.Count;)
             {
                 var prev = path[i - 1];
                 var curr = path[i];
@@ -130,6 +130,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     IntPoint ins = path[i];
                     ins.N = (ins.N - 1);
                     path.Insert(i, ins);
+                }
+                else
+                {
+                    i++;
                 }
             }
         }
@@ -155,7 +159,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             inner[ix++] = inner[0];
 
             var tess = new Tess();
-            tess.AddContour(inner, ContourOrientation.Original);
+            tess.AddContour(inner, ContourOrientation.CounterClockwise);
             var bounds = Tessellate(tess, ElementType.Polygons, indices, vertices, ref vcount, ref icount);
 
             // Create falloff geometry
@@ -173,7 +177,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             ClipperOffset clipOffset = new ClipperOffset();
             clipOffset.ArcTolerance = 300.0f;
             clipOffset.AddPath(path, JoinType.jtRound, EndType.etClosedPolygon);
-            clipOffset.Execute(ref solution, kClipperScale * falloffDistance);
+            clipOffset.Execute(ref solution, kClipperScale * falloffDistance, path.Count);
 
             if (solution.Count > 0)
             {

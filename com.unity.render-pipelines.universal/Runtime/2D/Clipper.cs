@@ -1484,6 +1484,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
+        //
+        public int LastIndex
+        {
+            get;
+            set;
+        }
+        
         //------------------------------------------------------------------------------
 
         public bool ReverseSolution
@@ -3209,30 +3216,37 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private void IntersectPoint(TEdge edge1, TEdge edge2, out IntPoint ip)
         {
             ip = new IntPoint();
-            long x = -1;
+            long pivotPoint = -1;
+            bool isClamp = (edge2.Curr.N > 0 && edge2.Curr.N < LastIndex) && (edge1.Curr.N > 0 && edge1.Curr.N < LastIndex);
             if (edge1.Curr.N > edge2.Curr.N)
             {
                 if (edge2.Curr.N != -1)
                 {
-                    x = (edge1.Curr.N > 0) ? edge1.Curr.N - 1 : 0;
+                    if (isClamp)
+                    {
+                        pivotPoint = (edge1.Curr.N > 0) ? edge1.Curr.N - 1 : 0;
+                    }
                 }
                 else
                 {
-                    x = edge1.Curr.N;
+                    pivotPoint = edge1.Curr.N;
                 }
             }
             else
             {
                 if (edge1.Curr.N != -1)
                 {
-                    x = edge2.Curr.N;
+                    if (isClamp)
+                    {
+                        pivotPoint = edge2.Curr.N;
+                    }
                 }
                 else
                 {
-                    x = (edge2.Curr.N > 0) ? edge2.Curr.N - 1 : 0;
+                    pivotPoint = (edge2.Curr.N > 0) ? edge2.Curr.N - 1 : 0;
                 }
             }
-            ip.N = x;
+            ip.N = pivotPoint;
             double b1, b2;
             //nb: with very large coordinate values, it's possible for SlopesEqual() to
             //return false but for the edge.Dx value be equal due to double precision rounding.
@@ -4945,7 +4959,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        public void Execute(ref Paths solution, double delta)
+        public void Execute(ref Paths solution, double delta, int inputSize)
         {
             solution.Clear();
             FixOrientations();
@@ -4953,6 +4967,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             //now clean up 'corners' ...
             Clipper clpr = new Clipper();
             clpr.AddPaths(m_destPolys, PolyType.ptSubject, true);
+            clpr.LastIndex = inputSize - 1;
             if (delta > 0)
             {
                 clpr.Execute(ClipType.ctUnion, solution,
