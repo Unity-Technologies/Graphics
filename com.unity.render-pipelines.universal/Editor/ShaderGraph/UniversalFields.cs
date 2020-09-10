@@ -23,12 +23,21 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static FieldDescriptor NormalDropOffTS =       new FieldDescriptor(string.Empty, "NormalDropOffTS",        "_NORMAL_DROPOFF_TS 1");
         public static FieldDescriptor NormalDropOffOS =       new FieldDescriptor(string.Empty, "NormalDropOffOS",        "_NORMAL_DROPOFF_OS 1");
         public static FieldDescriptor NormalDropOffWS =       new FieldDescriptor(string.Empty, "NormalDropOffWS",        "_NORMAL_DROPOFF_WS 1");
+
+
+#endregion
+
+// Fields that act only as a condition for RenderState etc.
+#region ConditionalFields
+public static FieldDescriptor BlendAlphaPreserveSpecular = new FieldDescriptor(string.Empty, "Blend",       "");
+public static FieldDescriptor BlendAddPreserveSpecular   = new FieldDescriptor(string.Empty, "PreserveSpecular",       "");
 #endregion
 
 // A predicate is field that has a matching template command, for example: $<name> <content>
 // It is only used to enable/disable <content> in the tempalate
 #region Predicates
         public static FieldDescriptor PreserveSpecular =      new FieldDescriptor(string.Empty, "PreserveSpecular",       "_PRESERVE_SPECULAR 1");
+
         //public static FieldDescriptor PredicateClearCoat =    new FieldDescriptor(string.Empty, "ClearCoat", "_CLEARCOAT 1");
 #endregion
     }

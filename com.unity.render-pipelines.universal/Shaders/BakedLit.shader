@@ -43,6 +43,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma shader_feature_local _NORMALMAP
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature_local_fragment _ALPHAMODULATE_ON
             #pragma shader_feature_local_fragment _PRESERVE_SPECULAR
 
             // -------------------------------------
@@ -57,8 +58,9 @@ Shader "Universal Render Pipeline/Baked Lit"
             // Lighting include is needed because of GI
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitForwardPass.hlsl"
 
-            struct Attributes
+            /*struct Attributes
             {
                 float4 positionOS       : POSITION;
                 float2 uv               : TEXCOORD0;
@@ -144,7 +146,7 @@ Shader "Universal Render Pipeline/Baked Lit"
                 alpha = OutputAlpha(alpha, _Surface);
 
                 return half4(color, alpha);
-            }
+            }*/
             ENDHLSL
         }
 
@@ -278,6 +280,8 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma shader_feature_local _ _NORMALMAP
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature_local_fragment _ALPHAMODULATE_ON
+            #pragma shader_feature_local_fragment _PRESERVE_SPECULAR
 
             // -------------------------------------
             // Unity defined keywords
@@ -289,8 +293,9 @@ Shader "Universal Render Pipeline/Baked Lit"
             // Lighting include is needed because of GI
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitForwardPass.hlsl"
 
-            struct Attributes
+           /* struct Attributes
             {
                 float4 positionOS       : POSITION;
                 float2 uv               : TEXCOORD0;
@@ -376,7 +381,7 @@ Shader "Universal Render Pipeline/Baked Lit"
                 alpha = OutputAlpha(alpha, _Surface);
 
                 return half4(color, alpha);
-            }
+            }*/
             ENDHLSL
         }
 

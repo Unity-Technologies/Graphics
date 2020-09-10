@@ -91,11 +91,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Surface Type & Blend Mode
             // These must be set per SubTarget as Sprite SubTargets override them
             context.AddField(UniversalFields.SurfaceOpaque,       target.surfaceType == SurfaceType.Opaque);
-            context.AddField(UniversalFields.SurfaceTransparent,  target.surfaceType != SurfaceType.Opaque);
-            context.AddField(UniversalFields.BlendAdd,            target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Additive);
-            context.AddField(Fields.BlendAlpha,                    target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Alpha);
-            context.AddField(UniversalFields.BlendMultiply,       target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Multiply);
-            context.AddField(UniversalFields.BlendPremultiply,    target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Premultiply);
+            if (target.surfaceType != SurfaceType.Opaque)
+            {
+                context.AddField(UniversalFields.SurfaceTransparent,  true);
+                context.AddField(UniversalFields.BlendAdd,                   target.alphaMode == AlphaMode.Additive && !target.preserveSpecular);
+                context.AddField(UniversalFields.BlendAddPreserveSpecular,   target.alphaMode == AlphaMode.Additive && target.preserveSpecular);
+                context.AddField(Fields.BlendAlpha,                          target.alphaMode == AlphaMode.Alpha    && !target.preserveSpecular);
+                context.AddField(UniversalFields.BlendAlphaPreserveSpecular, target.alphaMode == AlphaMode.Alpha    && target.preserveSpecular);
+                context.AddField(UniversalFields.BlendMultiply,              target.alphaMode == AlphaMode.Multiply && !target.preserveSpecular);
+                context.AddField(UniversalFields.BlendPremultiply,           target.alphaMode == AlphaMode.Premultiply);
+            }
 
             // Lit
             context.AddField(UniversalFields.NormalDropOffOS,     normalDropOffSpace == NormalDropOffSpace.Object);

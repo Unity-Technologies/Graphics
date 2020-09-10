@@ -129,9 +129,17 @@ half4 LitPassFragmentSimple(Varyings input) : SV_Target
     half alpha = diffuseAlpha.a * _BaseColor.a;
     AlphaDiscard(alpha, _Cutoff);
 
-    #ifdef _ALPHAPREMULTIPLY_ON
-        diffuse *= alpha;
+#if defined(_PRESERVE_SPECULAR)
+    #if defined(_ALPHAPREMULTIPLY_ON)
+        // NOTE: src diffuse has alpha multiplied.
+    #else
+    diffuse *= alpha;
     #endif
+#endif
+
+#if defined(_ALPHAMODULATE_ON)
+    diffuse = lerp(1, diffuse, alpha);
+#endif
 
     half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
     half3 emission = SampleEmission(uv, _EmissionColor.rgb, TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap));

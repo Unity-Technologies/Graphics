@@ -67,6 +67,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             // Material Keywords
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature_local_fragment _ALPHAMODULATE_ON
             #pragma shader_feature_local_fragment _PRESERVE_SPECULAR
             #pragma shader_feature_local_fragment _ _SPECGLOSSMAP _SPECULAR_COLOR
             #pragma shader_feature_local_fragment _GLOSSINESS_FROM_BASE_ALPHA
@@ -316,6 +317,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             // Material Keywords
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature_local_fragment _ALPHAMODULATE_ON
             #pragma shader_feature_local_fragment _ _SPECGLOSSMAP _SPECULAR_COLOR
             #pragma shader_feature_local_fragment _GLOSSINESS_FROM_BASE_ALPHA
             #pragma shader_feature_local _NORMALMAP

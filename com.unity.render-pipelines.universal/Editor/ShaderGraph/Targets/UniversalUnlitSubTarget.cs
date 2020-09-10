@@ -43,11 +43,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Surface Type & Blend Mode
             // These must be set per SubTarget as Sprite SubTargets override them
             context.AddField(UniversalFields.SurfaceOpaque,       target.surfaceType == SurfaceType.Opaque);
-            context.AddField(UniversalFields.SurfaceTransparent,  target.surfaceType != SurfaceType.Opaque);
-            context.AddField(UniversalFields.BlendAdd,            target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Additive);
-            context.AddField(Fields.BlendAlpha,                   target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Alpha);
-            context.AddField(UniversalFields.BlendMultiply,       target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Multiply);
-            context.AddField(UniversalFields.BlendPremultiply,    target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Premultiply);
+            if (target.surfaceType != SurfaceType.Opaque)
+            {
+                context.AddField(UniversalFields.SurfaceTransparent,  true);
+                context.AddField(UniversalFields.BlendAdd,                   target.alphaMode == AlphaMode.Additive && !target.preserveSpecular);
+                context.AddField(UniversalFields.BlendAddPreserveSpecular,   target.alphaMode == AlphaMode.Additive && target.preserveSpecular);
+                context.AddField(Fields.BlendAlpha,                          target.alphaMode == AlphaMode.Alpha    && !target.preserveSpecular);
+                context.AddField(UniversalFields.BlendAlphaPreserveSpecular, target.alphaMode == AlphaMode.Alpha    && target.preserveSpecular);
+                context.AddField(UniversalFields.BlendMultiply,              target.alphaMode == AlphaMode.Multiply && !target.preserveSpecular);
+                context.AddField(UniversalFields.BlendPremultiply,           target.alphaMode == AlphaMode.Premultiply);
+            }
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -77,6 +82,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 target.alphaMode = (AlphaMode)evt.newValue;
                 onChange();
             });
+
+            // Hide checkbox for Preserve Specular if unsupported blend mode
+            if (target.alphaMode != AlphaMode.Multiply)
+            {
+                context.AddProperty("Preserve Specular", new Toggle() { value = target.preserveSpecular }, (evt) =>
+                {
+                    if (Equals(target.preserveSpecular, evt.newValue))
+                        return;
+
+                    registerUndo("Change Preserve Specular");
+                    target.preserveSpecular = evt.newValue;
+                    onChange();
+                });
+            }
 
             context.AddProperty("Alpha Clip", new Toggle() { value = target.alphaClip }, (evt) =>
             {
@@ -139,6 +158,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 get
                 {
+                    // TODO: does this actually even work???
+                    // PassDescriptor is a class (Reference) and we take a new reference of global static class UnlitPasses.Unlit.
+                    // And set one of it's collections (also class/reference) into second thing, while a PassCollection above
+                    // has reference to the passes, which we just modified?
                     var unlit = UnlitPasses.Unlit;
                     var shadowCaster = CorePasses.ShadowCaster;
                     var depthOnly = CorePasses.DepthOnly;

@@ -6,8 +6,8 @@
     return packedOutput;
 }
 
-half4 frag(PackedVaryings packedInput) : SV_TARGET 
-{    
+half4 frag(PackedVaryings packedInput) : SV_TARGET
+{
     Varyings unpacked = UnpackVaryings(packedInput);
     UNITY_SETUP_INSTANCE_ID(unpacked);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(unpacked);
@@ -24,8 +24,16 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
         half alpha = 1;
     #endif
 
-#ifdef _ALPHAPREMULTIPLY_ON
-    surfaceDescription.BaseColor *= surfaceDescription.Alpha;
+#if defined(_PRESERVE_SPECULAR)
+    #if defined(_ALPHAPREMULTIPLY_ON)
+    // NOTE: src color has alpha multiplied.
+    #else
+        surfaceDescription.BaseColor *= surfaceDescription.Alpha;
+    #endif
+#endif
+
+#if defined(_ALPHAMODULATE_ON)
+    surfaceDescription.BaseColor = lerp(1, surfaceDescription.BaseColor, surfaceDescription.Alpha);
 #endif
 
     return half4(surfaceDescription.BaseColor, alpha);

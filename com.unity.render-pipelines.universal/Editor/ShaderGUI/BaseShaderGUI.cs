@@ -489,7 +489,7 @@ namespace UnityEditor
                     BlendMode blendMode = (BlendMode) material.GetFloat("_Blend");
 
                     bool preserveSpecular = (material.HasProperty("_PreserveSpecular") && material.GetFloat("_PreserveSpecular") > 0) && blendMode != BlendMode.Multiply;
-                    bool needOffScreenBlendFactor = false;
+                    bool offScreenAccumulateAlpha = false;    // TODO:
 
                     // Clear blend keyword state.
                     material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
@@ -499,9 +499,10 @@ namespace UnityEditor
                     if (preserveSpecular)
                         material.EnableKeyword("_PRESERVE_SPECULAR");
 
-                    var SrcBlendA = UnityEngine.Rendering.BlendMode.One;
-                    if (needOffScreenBlendFactor)
-                        SrcBlendA = UnityEngine.Rendering.BlendMode.Zero;
+                    // When doing off-screen transparency accumulation, we change blend factors as described here: https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+                    var srcBlendA = UnityEngine.Rendering.BlendMode.One;
+                    if (offScreenAccumulateAlpha)
+                        srcBlendA = UnityEngine.Rendering.BlendMode.Zero;
 
 
                     // Specific Transparent Mode Settings
@@ -521,7 +522,7 @@ namespace UnityEditor
                                 material.SetInt("_SrcBlend", (int) UnityEngine.Rendering.BlendMode.SrcAlpha);
                                 material.SetInt("_DstBlend", (int) UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                             }
-                            material.SetInt("_SrcBlendA", (int) SrcBlendA);
+                            material.SetInt("_SrcBlendA", (int) srcBlendA);
                             material.SetInt("_DstBlendA", (int) UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                             break;
 
@@ -529,7 +530,7 @@ namespace UnityEditor
                             material.SetInt("_SrcBlend", (int) UnityEngine.Rendering.BlendMode.One);
                             material.SetInt("_DstBlend", (int) UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                             // Alpha channel blended the same way as in the straight alpha blending.
-                            material.SetInt("_SrcBlendA", (int) SrcBlendA);
+                            material.SetInt("_SrcBlendA", (int) srcBlendA);
                             material.SetInt("_DstBlendA", (int) UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                             material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
                             break;
@@ -546,17 +547,17 @@ namespace UnityEditor
                                 material.SetInt("_SrcBlend", (int) UnityEngine.Rendering.BlendMode.SrcAlpha);
                                 material.SetInt("_DstBlend", (int) UnityEngine.Rendering.BlendMode.One);
                             }
-                            material.SetInt("_SrcBlendA", (int) SrcBlendA);
+                            material.SetInt("_SrcBlendA", (int) srcBlendA);
                             material.SetInt("_DstBlendA", (int) UnityEngine.Rendering.BlendMode.One);
                             break;
 
                         case BlendMode.Multiply:
-                            material.SetInt("_SrcBlend", (int) UnityEngine.Rendering.BlendMode.DstColor);
-                            material.SetInt("_DstBlend", (int) UnityEngine.Rendering.BlendMode.Zero);
+                            material.SetInt("_SrcBlend", (int) UnityEngine.Rendering.BlendMode.Zero);
+                            material.SetInt("_DstBlend", (int) UnityEngine.Rendering.BlendMode.SrcColor);
                             material.EnableKeyword("_ALPHAMODULATE_ON");
                             // TODO: what would make the most sense
-                            material.SetInt("_SrcBlendA", (int) UnityEngine.Rendering.BlendMode.DstAlpha);
-                            material.SetInt("_DstBlendA", (int) UnityEngine.Rendering.BlendMode.Zero);
+                            material.SetInt("_SrcBlendA", (int) UnityEngine.Rendering.BlendMode.Zero);
+                            material.SetInt("_DstBlendA", (int) UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                             break;
                     }
 

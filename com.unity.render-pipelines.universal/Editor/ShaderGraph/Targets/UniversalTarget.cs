@@ -447,8 +447,43 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #endregion
 
 #region RenderStates
-    static class CoreRenderStates
+    internal static class CoreRenderStates
+    {
+        // Generic way to build blendstate, should match BaseShaderGUI.SetupMaterialBlendMode()
+        /*public static RenderStateDescriptor GetBlendState(AlphaMode blendMode, bool preserveSpecular, bool offScreenAccumulateAlpha)
+        {
+            Blend srcBlendA = Blend.One;
+            if (offScreenAccumulateAlpha)
+                srcBlendA = Blend.Zero;
+
+            // Specific Transparent Mode Settings
+            switch (blendMode)
             {
+                case AlphaMode.Alpha:
+                    // Lift alpha multiply from ROP to shader by setting pre-multiplied _SrcBlend mode
+                    // i.e. _PRESERVE_SPECULAR implies _ALPHAPREMULTIPLY_ON but that isn't its purpose.
+                    // Source is expected to be straight color, no alpha pre-multiplication.
+                    if (preserveSpecular)
+                        return RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, srcBlendA, Blend.OneMinusSrcAlpha);
+                    return RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, srcBlendA, Blend.OneMinusSrcAlpha);
+
+                case AlphaMode.Premultiply:
+                    return RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, srcBlendA, Blend.OneMinusSrcAlpha);
+
+                case AlphaMode.Additive:
+                    // Similar to alpha blend. Lift alpha from ROP to shader by setting "pre-multiplied" _SrcBlend mode.
+                    if (preserveSpecular)
+                        return RenderState.Blend(Blend.One, Blend.One, srcBlendA, Blend.One);
+                    return RenderState.Blend(Blend.SrcAlpha, Blend.One, srcBlendA, Blend.One);
+
+                case AlphaMode.Multiply:
+                    return RenderState.Blend(Blend.DstColor, Blend.Zero, Blend.DstAlpha, Blend.Zero);
+
+                default:
+                    return RenderState.Blend(Blend.One, Blend.Zero, Blend.One, Blend.Zero);
+            }
+        }*/
+
         public static readonly RenderStateCollection Default = new RenderStateCollection
         {
             {RenderState.ZTest(ZTest.LEqual)},
@@ -459,8 +494,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(UniversalFields.SurfaceOpaque, true) },
             { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(Fields.BlendAlpha, true) },
             { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(UniversalFields.BlendPremultiply, true) },
-            { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(UniversalFields.BlendAdd, true) },
+            { RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One), new FieldCondition(UniversalFields.BlendAdd, true) },
             { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(UniversalFields.BlendMultiply, true) },
+
+            // TODO: doesn't scale we need another set for offscreen alpha accumulation (with BlendAlphaSrcFactor = Zero)
+            { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(UniversalFields.BlendAlphaPreserveSpecular, true) },
+            { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(UniversalFields.BlendAddPreserveSpecular, true) },
         };
 
         public static readonly RenderStateCollection ShadowCasterMeta = new RenderStateCollection
@@ -473,7 +512,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(Fields.BlendAlpha, true) },
             { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(UniversalFields.BlendPremultiply, true) },
             { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(UniversalFields.BlendAdd, true) },
-            { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(UniversalFields.BlendMultiply, true) },
+            { RenderState.Blend(Blend.Zero, Blend.SrcColor, Blend.Zero, Blend.One), new FieldCondition(UniversalFields.BlendMultiply, true) },
+
+            { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(UniversalFields.BlendAlphaPreserveSpecular, true) },
+            { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(UniversalFields.BlendAddPreserveSpecular, true) }
         };
 
         public static readonly RenderStateCollection DepthOnly = new RenderStateCollection
@@ -483,11 +525,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { RenderState.Cull(Cull.Back), new FieldCondition(Fields.DoubleSided, false) },
             { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
             { RenderState.ColorMask("ColorMask 0") },
+
+            // TODO: why do we need blend for depth only?
             { RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(UniversalFields.SurfaceOpaque, true) },
             { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(Fields.BlendAlpha, true) },
             { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(UniversalFields.BlendPremultiply, true) },
             { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(UniversalFields.BlendAdd, true) },
-            { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(UniversalFields.BlendMultiply, true) },
+            { RenderState.Blend(Blend.Zero, Blend.SrcColor, Blend.Zero, Blend.One), new FieldCondition(UniversalFields.BlendMultiply, true) },
+
+            { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(UniversalFields.BlendAlphaPreserveSpecular, true) },
+            { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(UniversalFields.BlendAddPreserveSpecular, true) }
         };
 
         public static readonly RenderStateCollection DepthNormalsOnly = new RenderStateCollection
@@ -500,7 +547,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(Fields.BlendAlpha, true) },
             { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(UniversalFields.BlendPremultiply, true) },
             { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(UniversalFields.BlendAdd, true) },
-            { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(UniversalFields.BlendMultiply, true) },
+            { RenderState.Blend(Blend.Zero, Blend.SrcColor, Blend.Zero, Blend.One), new FieldCondition(UniversalFields.BlendMultiply, true) },
+
+            { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(UniversalFields.BlendAlphaPreserveSpecular, true) },
+            { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(UniversalFields.BlendAddPreserveSpecular, true) }
         };
     }
 #endregion
