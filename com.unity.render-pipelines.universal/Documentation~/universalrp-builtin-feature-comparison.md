@@ -39,7 +39,7 @@ This table provides an overview of the current features supported in the Univers
 | Vertex Lights                                                | Yes                                                          | Yes                                                          |
 | SH Lights                                                    | Yes                                                          | In research                                                  |
 | ***Realtime Shadows***                                       |                                                              |                                                              |
-| *Light Types*<br/>Directional<br/>Spot<br/>Point<br/>Area    | <br/>Yes<br/>Yes<br/>Yes<br/>Not supported                   | <br/>Yes - only 1<br/>Yes<br/>In research<br/>Not supported |
+| *Light Types*<br/>Directional<br/>Spot<br/>Point<br/>Area    | <br/>Yes<br/>Yes<br/>Yes<br/>Not supported                   | <br/>Yes - only 1<br/>Yes<br/>Yes<br/>Not supported |
 | *Shadow Projection*<br/>Stable Fit<br/>Close Fit             | <br/>Yes<br/>Yes                                             | <br/>Yes<br>In research                                      |
 | *Shadow Cascades*<br/>Number of Cascades<br/>Control by Percentage<br/>Control by Distance | <br/>1, 2 or 4<br/>Yes<br/>Not supported                     | <br/>1, 2 or 4<br/>Yes<br/>In research                       |
 | *Shadow Resolve Type*<br/>Lighting Pass<br/>Screen Space Pass | <br/>Yes<br/>Yes                                             | <br/>Yes<br/>Yes                                             |
