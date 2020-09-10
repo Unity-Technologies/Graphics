@@ -43,6 +43,12 @@ namespace UnityEngine.Rendering.Universal
         {
             if (data)
             {
+                if (occlusionMeshMaterial != null)
+                    CoreUtils.Destroy(occlusionMeshMaterial);
+
+                if (mirrorViewMaterial != null)
+                    CoreUtils.Destroy(mirrorViewMaterial);
+
                 occlusionMeshMaterial = CoreUtils.CreateEngineMaterial(data.shaders.xrOcclusionMeshPS);
                 mirrorViewMaterial = CoreUtils.CreateEngineMaterial(data.shaders.xrMirrorViewPS);
             }
@@ -302,7 +308,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal void Cleanup()
+        internal void Dispose()
         {
             CoreUtils.Destroy(occlusionMeshMaterial);
             CoreUtils.Destroy(mirrorViewMaterial);
