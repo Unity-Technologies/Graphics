@@ -68,6 +68,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that lead to corrupted refraction in some scenarios on xbox.
 - Fixed for light loop scalarization not happening. 
 - Fixed issue with stencil not being set in rendergraph mode.
+- Fixed lod bias value used by the LODGroup Component
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
