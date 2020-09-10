@@ -29,12 +29,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
             DoSlider(sliderRect, value, m_Descriptor.sliderRange);
 
-            foreach (var r in m_Descriptor.valueRanges)
+            if (m_Descriptor.hasMarkers)
             {
-                var markerValue = r.value.y;
-                var markerPosition = GetPositionOnSlider(markerValue);
-                var markerTooltip = r.content.tooltip;
-                DoSliderMarker(sliderRect, markerPosition, markerValue, markerTooltip);
+                foreach (var r in m_Descriptor.valueRanges)
+                {
+                    var markerValue = r.value.y;
+                    var markerPosition = GetPositionOnSlider(markerValue);
+                    var markerTooltip = r.content.tooltip;
+                    DoSliderMarker(sliderRect, markerPosition, markerValue, markerTooltip);
+                }
             }
 
             var level = CurrentRange(value.floatValue);
@@ -206,7 +209,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         float ExponentialSlider(Rect rect, float value)
         {
-            var internalValue = GUI.HorizontalSlider(rect, ValueToSlider(value), 0f, 1f);
+            var internalValue = GUI.HorizontalSlider(rect, ValueToSlider(value), 0f, 1f, GUI.skin.horizontalSlider, GUI.skin.horizontalSliderThumb);
 
             return SliderToValue(internalValue);
         }
