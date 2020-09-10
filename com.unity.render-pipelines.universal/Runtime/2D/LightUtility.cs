@@ -59,14 +59,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
 
         static Bounds Tessellate(Tess tess, ElementType boundaryType, NativeArray<ushort> indices,
-            NativeArray<ParametricLightMeshVertex> vertices, ref int vcount, ref int icount)
+            NativeArray<ParametricLightMeshVertex> vertices, Color c, ref int vcount, ref int icount)
         {
             tess.Tessellate(WindingRule.NonZero, boundaryType, 3);
 
             var iout = tess.Elements.Select(i => i);
             var vout = tess.Vertices.Select(v =>
-                new ParametricLightMeshVertex() { position =
-                    new float3(v.Position.X, v.Position.Y, 0), color = v.Data != null ? (Color)v.Data : Color.white });
+                new ParametricLightMeshVertex() { position =  new float3(v.Position.X, v.Position.Y, 0), color = c });
 
             var min = new float3(float.MaxValue, float.MaxValue, 0);
             var max = new float3(float.MinValue, float.MinValue, 0);
@@ -76,7 +75,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 min = math.min(min, v.position);
                 max = math.max(max, v.position);
-                vertices[vcount++] = new ParametricLightMeshVertex { position = v.position, color = v.color };
+                vertices[vcount++] = v;
             }
 
             foreach (var i in iout)
@@ -127,8 +126,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 if (curr.N - prev.N > 1)
                 {
-                    IntPoint ins = path[i];
-                    ins.N = (ins.N - 1);
+                    IntPoint ins = prev;
+                    ins.X = (prev.X + curr.X) / 2;
+                    ins.Y = (prev.Y + curr.Y) / 2;
+                    ins.N++;
                     path.Insert(i, ins);
                 }
                 else
@@ -155,19 +156,22 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var innerShapeVertexCount = convexPath.Length;
             var inner = new ContourVertex[innerShapeVertexCount + 1];
             for (var i = 0; i < innerShapeVertexCount; ++i)
-                inner[ix++] = new ContourVertex() { Position = new Vec3() { X = convexPath[i].x, Y = convexPath[i].y, Z = 0 }, Data = meshInteriorColor };
+                inner[ix++] = new ContourVertex() { Position = new Vec3() { X = convexPath[i].x, Y = convexPath[i].y, Z = 0 } };
             inner[ix++] = inner[0];
 
             var tess = new Tess();
             tess.AddContour(inner, ContourOrientation.CounterClockwise);
-            var bounds = Tessellate(tess, ElementType.Polygons, indices, vertices, ref vcount, ref icount);
+            var bounds = Tessellate(tess, ElementType.Polygons, indices, vertices, meshInteriorColor, ref vcount, ref icount);
 
             // Create falloff geometry
             List<IntPoint> path = new List<IntPoint>();
+            var scramblePntRand = new System.Random();
             for (var i = 0; i < innerShapeVertexCount; ++i)
             {
+
                 var newPoint = new Vector2(inner[i].Position.X, inner[i].Position.Y) * kClipperScale;
-                var addPoint = new IntPoint((System.Int64) newPoint.x, (System.Int64) newPoint.y);
+                var addPoint = new IntPoint((System.Int64) (newPoint.x + scramblePntRand.Next(10)),
+                    (System.Int64) (newPoint.y +  + scramblePntRand.Next(10)));
                 addPoint.N = i;
                 path.Add(addPoint);
             }
