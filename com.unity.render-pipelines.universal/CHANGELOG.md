@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ParticlesUnlit shader to use fog color instead of always black. [case 1264585]
 - Fixed issue that caused some properties in the camera to not be bolded and highlighted when edited in prefab mode. [case 1230082](https://issuetracker.unity3d.com/issues/urp-camera-prefab-fields-render-type-renderer-background-type-are-not-bolded-and-highlighted-when-edited-in-prefab-mode)
 - Fixed issue where blur would sometimes flicker [case 1224915](https://issuetracker.unity3d.com/issues/urp-bloom-effect-flickers-when-using-integrated-post-processing-feature-set)
+- Fixed an issue in where the camera inspector didn't refresh properly when changing pipeline in graphic settings. [case 1222668](https://issuetracker.unity3d.com/issues/urp-camera-properties-not-refreshing-on-adding-or-removing-urp-pipeline-in-the-graphics-setting)
 - Fixed depth of field to work with dynamic resolution. [case 1225467](https://issuetracker.unity3d.com/issues/dynamic-resolution-rendering-error-when-using-depth-of-field-in-urp)
 - Fixed FXAA, SSAO, Motion Blur to work with dynamic resolution.
 - Fixed an issue where Pixel lighting variants were stripped in builds if another URP asset had Additional Lights set to Per Vertex [case 1263514](https://issuetracker.unity3d.com/issues/urp-all-pixel-lighting-variants-are-stripped-in-build-if-at-least-one-urp-asset-has-additional-lights-set-to-per-vertex)
