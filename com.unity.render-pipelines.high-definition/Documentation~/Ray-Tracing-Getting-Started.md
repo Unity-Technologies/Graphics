@@ -156,6 +156,15 @@ To enable ray tracing for a specific Camera:
 2. In the **General** section, enable **Custom Frame Settings**. This exposes Frame Settings just for this Camera.
 3. in the **Rendering** section, enable **Ray Tracing**.
 
+<a name="FinalSetup-BuildSettings"></a>
+
+#### Build settings
+
+To build your Project to a Unity Player, ray tracing requires that the build uses 64 bits architecture. To set your build to use 64 bits architecture:
+
+1. Open the Build Settings window (menu: **File > Build Settings**).
+2. From the **Architecture** drop-down, select **x86_64**.
+
 <a name="RayTracingEffectsOverview"></a>
 
 ## Ray tracing effects overview
