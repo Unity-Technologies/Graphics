@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed regression from 8.x.x that increased launch times on Android with GLES3. [case 1269119](https://issuetracker.unity3d.com/issues/android-launch-times-increased-x4-from-urp-8-dot-1-0-to-urp-10-dot-0-0-preview-dot-26)
 - Fixed an issue with a render texture failing assertion when chosing an invalid format. [case 1222676](https://issuetracker.unity3d.com/issues/the-error-occurs-when-a-render-texture-which-has-a-certain-color-format-is-applied-to-the-cameras-output-target)
 - Fixed an issue that caused the unity_CameraToWorld matrix to have z flipped values. [case 1257518](https://issuetracker.unity3d.com/issues/parameter-unity-cameratoworld-dot-13-23-33-is-inverted-when-using-universal-rp-7-dot-4-1-and-newer)
+- Fixed ShaderVariants to be included from URP assets that are referenced in scene. [case 1273445](https://issuetracker.unity3d.com/issues/urp-assets-set-in-graphics-settings-on-runtime-are-not-taken-into-account-when-building-an-application)
 
 ## [10.0.0] - 2019-06-10
 ### Added

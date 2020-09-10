@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
+using UnityEngine.SceneManagement;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -303,6 +304,8 @@ namespace UnityEditor.Rendering.Universal
         private static void FetchAllSupportedFeatures()
         {
             List<UniversalRenderPipelineAsset> urps = new List<UniversalRenderPipelineAsset>();
+
+            // Get urps from quality and graphics settings
             urps.Add(GraphicsSettings.defaultRenderPipeline as UniversalRenderPipelineAsset);
             for(int i = 0; i < QualitySettings.names.Length; i++)
             {
@@ -316,6 +319,41 @@ namespace UnityEditor.Rendering.Universal
                 if (urp != null)
                 {
                     _supportedFeatures |= GetSupportedShaderFeatures(urp);
+                }
+            }
+
+            // Get urps that are referenced in build scenes
+            // We have to do this as we allow assigning urp at runtime
+            FetchSupportedFeaturesFromReferencedInScene(urps);
+        }
+
+        private static void FetchSupportedFeaturesFromReferencedInScene(List<UniversalRenderPipelineAsset> urps)
+        {
+            var hashedUrps = new HashSet<string>();
+
+            // Hash all urps for faster finding
+            var urpGUIDs = AssetDatabase.FindAssets("t:UniversalRenderPipelineAsset");
+            foreach (var urpGUID in urpGUIDs)
+            {
+                var urpPath = AssetDatabase.GUIDToAssetPath(urpGUID);
+                hashedUrps.Add(urpPath);
+            }
+
+            foreach (var scene in EditorBuildSettings.scenes)
+            {
+                if (!scene.enabled)
+                    continue;
+
+                var dependencyPaths = AssetDatabase.GetDependencies(scene.path);
+
+                foreach (var dependencyPath in dependencyPaths)
+                {
+                    if (hashedUrps.Contains(dependencyPath))
+                    {
+                        var urp = AssetDatabase.LoadAssetAtPath(dependencyPath, typeof(UniversalRenderPipelineAsset)) as UniversalRenderPipelineAsset;
+                        Debug.Log($@"ADDING {dependencyPath} {urp}");
+                        urps.Add(urp);
+                    }
                 }
             }
         }
