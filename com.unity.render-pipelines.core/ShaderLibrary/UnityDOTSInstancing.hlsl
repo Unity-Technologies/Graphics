@@ -3,6 +3,8 @@
 
 #ifdef UNITY_DOTS_INSTANCING_ENABLED
 
+#define UNITY_DOTS_TRANSFORMS
+
 /*
 Here's a bit of python code to generate these repetitive typespecs without
 a lot of C macro magic
@@ -148,6 +150,16 @@ uint GetDOTSInstanceIndex()
     return unity_DOTSVisibleInstances[unity_InstanceID].VisibleData.x;
 }
 
+uint GetDOTSTransformOffset()
+{
+    return unity_DOTSVisibleInstances[unity_InstanceID].VisibleData.y & 0x7fffffff;
+}
+
+bool GetDOTSTransformIsStatic()
+{
+    return (unity_DOTSVisibleInstances[unity_InstanceID].VisibleData.y & 0x80000000) == 0;
+}
+
 uint ComputeDOTSInstanceDataAddress(uint metadata, uint stride)
 {
     uint isOverridden = metadata & 0x80000000;
@@ -206,9 +218,8 @@ float4x4 LoadDOTSInstancedData_float4x4(uint metadata)
 }
 float4x4 LoadDOTSInstancedData(float4x4 dummy, uint metadata) { return LoadDOTSInstancedData_float4x4(metadata); }
 
-float4x4 LoadDOTSInstancedData_float4x4_from_float3x4(uint metadata)
+float4x4 LoadDOTSInstancedMatrix_float4x4_from_float3x4(uint address)
 {
-    uint address = ComputeDOTSInstanceDataAddress(metadata, 3 * 16);
     float4 p1 = asfloat(unity_DOTSInstanceData.Load4(address + 0 * 16));
     float4 p2 = asfloat(unity_DOTSInstanceData.Load4(address + 1 * 16));
     float4 p3 = asfloat(unity_DOTSInstanceData.Load4(address + 2 * 16));
@@ -219,6 +230,32 @@ float4x4 LoadDOTSInstancedData_float4x4_from_float3x4(uint metadata)
         p1.z, p2.y, p3.x, p3.w,
         0.0,  0.0,  0.0,  1.0
     );
+}
+
+float4x4 LoadDOTSInstancedData_float4x4_from_float3x4(uint metadata)
+{
+    uint address = ComputeDOTSInstanceDataAddress(metadata, 3 * 16);
+    return LoadDOTSInstancedMatrix_float4x4_from_float3x4(address);
+}
+
+float4x4 LoadDOTSInstancedMatrixLocalToWorld()
+{
+    // LocalToWorld is the first matrix, stored in float3x4
+    return LoadDOTSInstancedMatrix_float4x4_from_float3x4(GetDOTSTransformOffset() + 0 * 16);
+}
+
+float4x4 LoadDOTSInstancedMatrixWorldToLocal()
+{
+    // WorldToLocal is the second matrix, stored in float3x4
+    return LoadDOTSInstancedMatrix_float4x4_from_float3x4(GetDOTSTransformOffset() + 3 * 16);
+}
+
+float4x4 LoadDOTSInstancedMatrixLocalToWorldPrevFrame()
+{
+    // If the transform is static, use the current frame matrix as the previous frame matrix.
+    // If the transform is not static, use the third matrix.
+    uint prevFrameOffset = GetDOTSTransformIsStatic() ? 0 : (6 * 16);
+    return LoadDOTSInstancedMatrix_float4x4_from_float3x4(GetDOTSTransformOffset() + prevFrameOffset);
 }
 
 float2x4 LoadDOTSInstancedData_float2x4(uint metadata)
