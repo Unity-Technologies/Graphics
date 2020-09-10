@@ -291,33 +291,27 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!s_LightUnitSliderMap.TryGetValue(unit, out var lightUnitSlider))
                 return;
 
-            var prevIndentLevel = EditorGUI.indentLevel;
-            EditorGUI.indentLevel = 0;
+            using (new EditorGUI.IndentLevelScope(-EditorGUI.indentLevel))
             {
                 lightUnitSlider.Draw(rect, value);
             }
-            EditorGUI.indentLevel = prevIndentLevel;
         }
 
         public void DrawExposureSlider(SerializedProperty value, Rect rect)
         {
-            var prevIndentLevel = EditorGUI.indentLevel;
-            EditorGUI.indentLevel = 0;
+            using (new EditorGUI.IndentLevelScope(-EditorGUI.indentLevel))
             {
                 s_ExposureSlider.Draw(rect, value);
             }
-            EditorGUI.indentLevel = prevIndentLevel;
         }
 
         public void DrawTemperatureSlider(LightEditor.Settings settings, SerializedProperty value, Rect rect)
         {
-            var prevIndentLevel = EditorGUI.indentLevel;
-            EditorGUI.indentLevel = 0;
+            using (new EditorGUI.IndentLevelScope(-EditorGUI.indentLevel))
             {
                 s_TemperatureSlider.SetLightSettings(settings);
                 s_TemperatureSlider.Draw(rect, value);
             }
-            EditorGUI.indentLevel = prevIndentLevel;
         }
     }
 }
