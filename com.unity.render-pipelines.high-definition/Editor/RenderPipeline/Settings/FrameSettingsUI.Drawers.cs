@@ -223,9 +223,6 @@ namespace UnityEditor.Rendering.HighDefinition
             area.AmmendInfo(FrameSettingsField.Postprocess, overrideable: () => (frameSettingType != FrameSettingsRenderType.CustomOrBakedReflection &&
                                                                                 frameSettingType != FrameSettingsRenderType.RealtimeReflection));
 
-            area.AmmendInfo(FrameSettingsField.ExposureControl, overrideable: () => (frameSettingType != FrameSettingsRenderType.CustomOrBakedReflection &&
-                                                                    frameSettingType != FrameSettingsRenderType.RealtimeReflection));
-
             area.AmmendInfo(
                 FrameSettingsField.LODBiasMode,
                 overridedDefaultValue: LODBiasMode.FromQualitySettings,
