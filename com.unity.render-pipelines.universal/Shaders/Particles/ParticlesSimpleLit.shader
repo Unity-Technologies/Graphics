@@ -259,6 +259,8 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
+            #pragma target 2.0
+
             #pragma vertex vert
             #pragma fragment frag
             #pragma shader_feature_local_fragment _ALPHATEST_ON
