@@ -174,8 +174,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             // Generate Bevels.
             List<List<IntPoint>> solution = new List<List<IntPoint>>();
-            ClipperOffset clipOffset = new ClipperOffset();
-            clipOffset.ArcTolerance = 300.0f;
+            ClipperOffset clipOffset = new ClipperOffset(144.0f);
             clipOffset.AddPath(path, JoinType.jtRound, EndType.etClosedPolygon);
             clipOffset.Execute(ref solution, kClipperScale * falloffDistance, path.Count);
 

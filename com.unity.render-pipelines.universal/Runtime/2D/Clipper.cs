@@ -38,16 +38,14 @@
 *                                                                              *
 *******************************************************************************/
 
-//use_int32: When enabled 32bit ints are used instead of 64bit ints. This
-//improve performance but coordinate values are limited to the range +/- 46340
-//#define use_int32
+// Changes introduced. (Venkify).
+// * Ability to query Normals along the generated path wrt pivot.
+// * Additional information that is helpful if the path needs Tessellation.
+// * Above functionality has been tested against single path Offset.
+// * Removed unused/unsupported code.
 
-//use_xyz: adds a Z member to IntPoint. Adds a minor cost to performance.
-//#define use_xyz
-
-//use_lines: Enables open path clipping. Adds a very minor cost to performance.
+// use_lines: Enables open path clipping. Adds a very minor cost to performance.
 #define use_lines
-
 
 using System;
 using System.Collections.Generic;
@@ -57,12 +55,8 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
-#if use_int32
-    using cInt = Int32;
-#else
-    using cInt = Int64;
-#endif
 
+    using ClipInt = Int64;
     using Path = List<IntPoint>;
     using Paths = List<List<IntPoint>>;
 
@@ -351,41 +345,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
     public struct IntPoint
     {
-        public cInt N;
-        public cInt X;
-        public cInt Y;
+        public ClipInt N;
+        public ClipInt X;
+        public ClipInt Y;
         public double NX;
         public double NY;
-#if use_xyz
-        public cInt Z;
-        public double NZ;
 
-        public IntPoint(cInt x, cInt y, cInt z = 0)
-        {
-            this.X = x; this.Y = y; this.Z = z;
-            this.NX = 0; this.NY = 0; this.NZ = 0;
-        }
-
-        public IntPoint(double x, double y, double z = 0)
-        {
-            this.X = (cInt)x; this.Y = (cInt)y; this.Z = (cInt)z;
-            this.NX = 0; this.NY = 0; this.NZ = 0;
-        }
-
-        public IntPoint(DoublePoint dp)
-        {
-            this.X = (cInt)dp.X; this.Y = (cInt)dp.Y; this.Z = 0;
-            this.NX = 0; this.NY = 0; this.NZ = 0;
-        }
-
-        public IntPoint(IntPoint pt)
-        {
-            this.X = pt.X; this.Y = pt.Y; this.Z = pt.Z;
-            this.NX = pt.NX; this.NY = pt.NY; this.NY = pt.NZ;
-        }
-
-#else
-        public IntPoint(cInt X, cInt Y)
+        public IntPoint(ClipInt X, ClipInt Y)
         {
             this.X = X; this.Y = Y;
             this.NX = 0; this.NY = 0;
@@ -394,7 +360,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public IntPoint(double x, double y)
         {
-            this.X = (cInt)x; this.Y = (cInt)y;
+            this.X = (ClipInt)x; this.Y = (ClipInt)y;
             this.NX = 0; this.NY = 0;
             this.N = -1;
         }
@@ -405,8 +371,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             this.NX = pt.NX; this.NY = pt.NY;
             this.N = pt.N;
         }
-
-#endif
 
         public static bool operator==(IntPoint a, IntPoint b)
         {
@@ -438,12 +402,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
     public struct IntRect
     {
-        public cInt left;
-        public cInt top;
-        public cInt right;
-        public cInt bottom;
+        public ClipInt left;
+        public ClipInt top;
+        public ClipInt right;
+        public ClipInt bottom;
 
-        public IntRect(cInt l, cInt t, cInt r, cInt b)
+        public IntRect(ClipInt l, ClipInt t, ClipInt r, ClipInt b)
         {
             this.left = l; this.top = t;
             this.right = r; this.bottom = b;
@@ -465,7 +429,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     //see http://glprogramming.com/red/chapter11.html
     public enum PolyFillType { pftEvenOdd, pftNonZero, pftPositive, pftNegative };
 
-    public enum JoinType { jtSquare, jtRound, jtMiter };
+    public enum JoinType { jtRound };
     public enum EndType { etClosedPolygon, etClosedLine, etOpenButt, etOpenSquare, etOpenRound };
 
     internal enum EdgeSide { esLeft, esRight };
@@ -504,7 +468,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     {
         public int Compare(IntersectNode node1, IntersectNode node2)
         {
-            cInt i = node2.Pt.Y - node1.Pt.Y;
+            ClipInt i = node2.Pt.Y - node1.Pt.Y;
             if (i > 0) return 1;
             else if (i < 0) return -1;
             else return 0;
@@ -513,7 +477,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
     internal class LocalMinima
     {
-        internal cInt Y;
+        internal ClipInt Y;
         internal TEdge LeftBound;
         internal TEdge RightBound;
         internal LocalMinima Next;
@@ -521,13 +485,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
     internal class Scanbeam
     {
-        internal cInt Y;
+        internal ClipInt Y;
         internal Scanbeam Next;
     };
 
     internal class Maxima
     {
-        internal cInt X;
+        internal ClipInt X;
         internal Maxima Next;
         internal Maxima Prev;
     };
@@ -568,13 +532,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal const double tolerance = 1.0E-20;
         internal static bool near_zero(double val) {return (val > -tolerance) && (val < tolerance); }
 
-#if use_int32
-        public const cInt loRange = 0x7FFF;
-        public const cInt hiRange = 0x7FFF;
-#else
-        public const cInt loRange = 0x3FFFFFFF;
-        public const cInt hiRange = 0x3FFFFFFFFFFFFFFFL;
-#endif
+        public const ClipInt loRange = 0x3FFFFFFF;
+        public const ClipInt hiRange = 0x3FFFFFFFFFFFFFFFL;
 
         internal LocalMinima m_MinimaList;
         internal LocalMinima m_CurrentLM;
@@ -594,9 +553,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
         //------------------------------------------------------------------------------
 
-        public void Swap(ref cInt val1, ref cInt val2)
+        public void Swap(ref ClipInt val1, ref ClipInt val2)
         {
-            cInt tmp = val1;
+            ClipInt tmp = val1;
             val1 = val2;
             val2 = tmp;
         }
@@ -666,8 +625,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 return Int128.Int128Mul(e1.Delta.Y, e2.Delta.X) ==
                     Int128.Int128Mul(e1.Delta.X, e2.Delta.Y);
             else
-                return (cInt)(e1.Delta.Y) * (e2.Delta.X) ==
-                    (cInt)(e1.Delta.X) * (e2.Delta.Y);
+                return (ClipInt)(e1.Delta.Y) * (e2.Delta.X) ==
+                    (ClipInt)(e1.Delta.X) * (e2.Delta.Y);
         }
 
         //------------------------------------------------------------------------------
@@ -680,7 +639,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     Int128.Int128Mul(pt1.X - pt2.X, pt2.Y - pt3.Y);
             else
                 return
-                    (cInt)(pt1.Y - pt2.Y) * (pt2.X - pt3.X) - (cInt)(pt1.X - pt2.X) * (pt2.Y - pt3.Y) == 0;
+                    (ClipInt)(pt1.Y - pt2.Y) * (pt2.X - pt3.X) - (ClipInt)(pt1.X - pt2.X) * (pt2.Y - pt3.Y) == 0;
         }
 
         //------------------------------------------------------------------------------
@@ -693,7 +652,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     Int128.Int128Mul(pt1.X - pt2.X, pt3.Y - pt4.Y);
             else
                 return
-                    (cInt)(pt1.Y - pt2.Y) * (pt3.X - pt4.X) - (cInt)(pt1.X - pt2.X) * (pt3.Y - pt4.Y) == 0;
+                    (ClipInt)(pt1.Y - pt2.Y) * (pt3.X - pt4.X) - (ClipInt)(pt1.X - pt2.X) * (pt3.Y - pt4.Y) == 0;
         }
 
         //------------------------------------------------------------------------------
@@ -1150,7 +1109,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        internal Boolean PopLocalMinima(cInt Y, out LocalMinima current)
+        internal Boolean PopLocalMinima(ClipInt Y, out LocalMinima current)
         {
             current = m_CurrentLM;
             if (m_CurrentLM != null && m_CurrentLM.Y == Y)
@@ -1169,9 +1128,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             //progression of the bounds - ie so their xbots will align with the
             //adjoining lower edge. [Helpful in the ProcessHorizontal() method.]
             Swap(ref e.Top.X, ref e.Bot.X);
-#if use_xyz
-            Swap(ref e.Top.Z, ref e.Bot.Z);
-#endif
         }
 
         //------------------------------------------------------------------------------
@@ -1229,7 +1185,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        internal void InsertScanbeam(cInt Y)
+        internal void InsertScanbeam(ClipInt Y)
         {
             //single-linked list: sorted descending, ignoring dups.
             if (m_Scanbeam == null)
@@ -1259,7 +1215,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        internal Boolean PopScanbeam(out cInt Y)
+        internal Boolean PopScanbeam(out ClipInt Y)
         {
             if (m_Scanbeam == null)
             {
@@ -1426,11 +1382,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private List<Join> m_Joins;
         private List<Join> m_GhostJoins;
         private bool m_UsingPolyTree;
-#if use_xyz
-        public delegate void ZFillCallback(IntPoint bot1, IntPoint top1,
-            IntPoint bot2, IntPoint top2, ref IntPoint pt);
-        public ZFillCallback ZFillFunction { get; set; }
-#endif
+
         public Clipper(int InitOptions = 0) : base() //constructor
         {
             m_Scanbeam = null;
@@ -1447,14 +1399,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
             ReverseSolution = (ioReverseSolution & InitOptions) != 0;
             StrictlySimple = (ioStrictlySimple & InitOptions) != 0;
             PreserveCollinear = (ioPreserveCollinear & InitOptions) != 0;
-#if use_xyz
-            ZFillFunction = null;
-#endif
         }
 
         //------------------------------------------------------------------------------
 
-        private void InsertMaxima(cInt X)
+        private void InsertMaxima(ClipInt X)
         {
             //double-linked list: sorted ascending, ignoring dups.
             Maxima newMax = new Maxima();
@@ -1490,7 +1439,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             get;
             set;
         }
-        
+
         //------------------------------------------------------------------------------
 
         public bool ReverseSolution
@@ -1604,7 +1553,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 m_SortedEdges = null;
                 m_Maxima = null;
 
-                cInt botY, topY;
+                ClipInt botY, topY;
                 if (!PopScanbeam(out botY)) return false;
                 InsertLocalMinimaIntoAEL(botY);
                 while (PopScanbeam(out topY) || LocalMinimaPending())
@@ -1677,23 +1626,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_GhostJoins.Add(j);
         }
 
-        //------------------------------------------------------------------------------
-
-#if use_xyz
-        internal void SetZ(ref IntPoint pt, TEdge e1, TEdge e2)
-        {
-            if (pt.Z != 0 || ZFillFunction == null) return;
-            else if (pt == e1.Bot) pt.Z = e1.Bot.Z;
-            else if (pt == e1.Top) pt.Z = e1.Top.Z;
-            else if (pt == e2.Bot) pt.Z = e2.Bot.Z;
-            else if (pt == e2.Top) pt.Z = e2.Top.Z;
-            else ZFillFunction(e1.Bot, e1.Top, e2.Bot, e2.Top, ref pt);
-        }
-
-        //------------------------------------------------------------------------------
-#endif
-
-        private void InsertLocalMinimaIntoAEL(cInt botY)
+        private void InsertLocalMinimaIntoAEL(ClipInt botY)
         {
             LocalMinima lm;
             while (PopLocalMinima(botY, out lm))
@@ -2214,8 +2147,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             if (prevE != null && prevE.OutIdx >= 0 && prevE.Top.Y < pt.Y && e.Top.Y < pt.Y)
             {
-                cInt xPrev = TopX(prevE, pt.Y);
-                cInt xE = TopX(e, pt.Y);
+                ClipInt xPrev = TopX(prevE, pt.Y);
+                ClipInt xE = TopX(e, pt.Y);
                 if ((xPrev == xE) && (e.WindDelta != 0) && (prevE.WindDelta != 0) &&
                     SlopesEqual(new IntPoint(xPrev, pt.Y), prevE.Top, new IntPoint(xE, pt.Y), e.Top, m_UseFullRange))
                 {
@@ -2288,7 +2221,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private bool HorzSegmentsOverlap(cInt seg1a, cInt seg1b, cInt seg2a, cInt seg2b)
+        private bool HorzSegmentsOverlap(ClipInt seg1a, ClipInt seg1b, ClipInt seg2a, ClipInt seg2b)
         {
             if (seg1a > seg1b) Swap(ref seg1a, ref seg1b);
             if (seg2a > seg2b) Swap(ref seg2a, ref seg2b);
@@ -2586,10 +2519,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             bool e1Contributing = (e1.OutIdx >= 0);
             bool e2Contributing = (e2.OutIdx >= 0);
 
-#if use_xyz
-            SetZ(ref pt, e1, e2);
-#endif
-
 #if use_lines
             //if either edge is on an OPEN path ...
             if (e1.WindDelta == 0 || e2.WindDelta == 0)
@@ -2735,7 +2664,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             else if ((e1Wc == 0 || e1Wc == 1) && (e2Wc == 0 || e2Wc == 1))
             {
                 //neither edge is currently contributing ...
-                cInt e1Wc2, e2Wc2;
+                ClipInt e1Wc2, e2Wc2;
                 switch (e1FillType2)
                 {
                     case PolyFillType.pftPositive: e1Wc2 = e1.WindCnt2; break;
@@ -2806,7 +2735,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        void GetHorzDirection(TEdge HorzEdge, out Direction Dir, out cInt Left, out cInt Right)
+        void GetHorzDirection(TEdge HorzEdge, out Direction Dir, out ClipInt Left, out ClipInt Right)
         {
             if (HorzEdge.Bot.X < HorzEdge.Top.X)
             {
@@ -2827,7 +2756,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private void ProcessHorizontal(TEdge horzEdge)
         {
             Direction dir;
-            cInt horzLeft, horzRight;
+            ClipInt horzLeft, horzRight;
             bool IsOpen = horzEdge.WindDelta == 0;
 
             GetHorzDirection(horzEdge, out dir, out horzLeft, out horzRight);
@@ -2899,11 +2828,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                     if (horzEdge.OutIdx >= 0 && !IsOpen) //note: may be done multiple times
                     {
-#if use_xyz
-                        if (dir == Direction.dLeftToRight) SetZ(ref e.Curr, horzEdge, e);
-                        else SetZ(ref e.Curr, e, horzEdge);
-#endif
-
                         op1 = AddOutPt(horzEdge, e.Curr);
                         TEdge eNextHorz = m_SortedEdges;
                         while (eNextHorz != null)
@@ -3063,7 +2987,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private bool ProcessIntersections(cInt topY)
+        private bool ProcessIntersections(ClipInt topY)
         {
             if (m_ActiveEdges == null) return true;
             try
@@ -3087,7 +3011,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private void BuildIntersectList(cInt topY)
+        private void BuildIntersectList(ClipInt topY)
         {
             if (m_ActiveEdges == null) return;
 
@@ -3197,14 +3121,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        internal static cInt Round(double value)
+        internal static ClipInt Round(double value)
         {
-            return value < 0 ? (cInt)(value - 0.5) : (cInt)(value + 0.5);
+            return value < 0 ? (ClipInt)(value - 0.5) : (ClipInt)(value + 0.5);
         }
 
         //------------------------------------------------------------------------------
 
-        private static cInt TopX(TEdge edge, cInt currentY)
+        private static ClipInt TopX(TEdge edge, ClipInt currentY)
         {
             if (currentY == edge.Top.Y)
                 return edge.Top.X;
@@ -3320,7 +3244,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private void ProcessEdgesAtTopOfScanbeam(cInt topY)
+        private void ProcessEdgesAtTopOfScanbeam(ClipInt topY)
         {
             TEdge e = m_ActiveEdges;
             while (e != null)
@@ -3357,11 +3281,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     {
                         e.Curr.X = TopX(e, topY);
                         e.Curr.Y = topY;
-#if use_xyz
-                        if (e.Top.Y == topY) e.Curr.Z = e.Top.Z;
-                        else if (e.Bot.Y == topY) e.Curr.Z = e.Bot.Z;
-                        else e.Curr.Z = 0;
-#endif
                     }
                     //When StrictlySimple and 'e' is being touched by another edge, then
                     //make sure both edges have a vertex here ...
@@ -3373,9 +3292,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             (ePrev.WindDelta != 0))
                         {
                             IntPoint ip = new IntPoint(e.Curr);
-#if use_xyz
-                            SetZ(ref ip, ePrev, e);
-#endif
                             OutPt op = AddOutPt(ePrev, ip);
                             OutPt op2 = AddOutPt(e, ip);
                             AddJoin(op, op2, ip); //StrictlySimple (type-3) join
@@ -3663,7 +3579,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        bool GetOverlap(cInt a1, cInt a2, cInt b1, cInt b2, out cInt Left, out cInt Right)
+        bool GetOverlap(ClipInt a1, ClipInt a2, ClipInt b1, ClipInt b2, out ClipInt Left, out ClipInt Right)
         {
             if (a1 < a2)
             {
@@ -3842,7 +3758,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     op2b = op2b.Next;
                 if (op2b.Next == op2 || op2b.Next == op1) return false; //a flat 'polygon'
 
-                cInt Left, Right;
+                ClipInt Left, Right;
                 //Op1 -. Op1b & Op2 -. Op2b are the extremites of the horizontal edges
                 if (!GetOverlap(op1.Pt.X, op1b.Pt.X, op2.Pt.X, op2b.Pt.X, out Left, out Right))
                     return false;
@@ -3988,12 +3904,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             //returns 0 if false, +1 if true, -1 if pt ON polygon boundary
             int result = 0;
             OutPt startOp = op;
-            cInt ptx = pt.X, pty = pt.Y;
-            cInt poly0x = op.Pt.X, poly0y = op.Pt.Y;
+            ClipInt ptx = pt.X, pty = pt.Y;
+            ClipInt poly0x = op.Pt.X, poly0y = op.Pt.Y;
             do
             {
                 op = op.Next;
-                cInt poly1x = op.Pt.X, poly1y = op.Pt.Y;
+                ClipInt poly1x = op.Pt.X, poly1y = op.Pt.Y;
 
                 if (poly1y == pty)
                 {
@@ -4640,21 +4556,18 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private Path m_destPoly;
         private List<DoublePoint> m_normals = new List<DoublePoint>();
         private double m_delta, m_sinA, m_sin, m_cos;
-        private double m_miterLim, m_StepsPerRad;
+        private double m_StepsPerRad;
 
         private IntPoint m_lowest;
         private PolyNode m_polyNodes = new PolyNode();
 
         public double ArcTolerance { get; set; }
-        public double MiterLimit { get; set; }
 
         private const double two_pi = Math.PI * 2;
         private const double def_arc_tolerance = 0.25;
 
-        public ClipperOffset(
-            double miterLimit = 2.0, double arcTolerance = def_arc_tolerance)
+        public ClipperOffset(double arcTolerance = def_arc_tolerance)
         {
-            MiterLimit = miterLimit;
             ArcTolerance = arcTolerance;
             m_lowest.X = -1;
         }
@@ -4669,9 +4582,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        internal static cInt Round(double value)
+        internal static ClipInt Round(double value)
         {
-            return value < 0 ? (cInt)(value - 0.5) : (cInt)(value + 0.5);
+            return value < 0 ? (ClipInt)(value - 0.5) : (ClipInt)(value + 0.5);
         }
 
         //------------------------------------------------------------------------------
@@ -4790,10 +4703,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 return;
             }
 
-            //see offset_triginometry3.svg in the documentation folder ...
-            if (MiterLimit > 2) m_miterLim = 2 / (MiterLimit * MiterLimit);
-            else m_miterLim = 0.5;
-
             double y;
             if (ArcTolerance <= 0.0)
                 y = def_arc_tolerance;
@@ -4899,13 +4808,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     if (node.m_endtype == EndType.etOpenButt)
                     {
                         int j = len - 1;
-                        pt1 = new IntPoint((cInt)Round(m_srcPoly[j].X + m_normals[j].X *
-                                    delta), (cInt)Round(m_srcPoly[j].Y + m_normals[j].Y * delta));
+                        pt1 = new IntPoint((ClipInt)Round(m_srcPoly[j].X + m_normals[j].X *
+                                    delta), (ClipInt)Round(m_srcPoly[j].Y + m_normals[j].Y * delta));
                         pt1.NX = m_normals[j].X;    pt1.NY = m_normals[j].Y;
                         pt1.N = j;
                         m_destPoly.Add(pt1);
-                        pt1 = new IntPoint((cInt)Round(m_srcPoly[j].X - m_normals[j].X *
-                                    delta), (cInt)Round(m_srcPoly[j].Y - m_normals[j].Y * delta));
+                        pt1 = new IntPoint((ClipInt)Round(m_srcPoly[j].X - m_normals[j].X *
+                                    delta), (ClipInt)Round(m_srcPoly[j].Y - m_normals[j].Y * delta));
                         pt1.NX = -m_normals[j].X;    pt1.NY = -m_normals[j].Y;
                         pt1.N = j;
                         m_destPoly.Add(pt1);
@@ -4934,12 +4843,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                     if (node.m_endtype == EndType.etOpenButt)
                     {
-                        pt1 = new IntPoint((cInt)Round(m_srcPoly[0].X - m_normals[0].X * delta),
-                                (cInt)Round(m_srcPoly[0].Y - m_normals[0].Y * delta));
+                        pt1 = new IntPoint((ClipInt)Round(m_srcPoly[0].X - m_normals[0].X * delta),
+                                (ClipInt)Round(m_srcPoly[0].Y - m_normals[0].Y * delta));
                         pt1.NX = -m_normals[0].X; pt1.NY = -m_normals[0].Y; pt1.N = 0;
                         m_destPoly.Add(pt1);
-                        pt1 = new IntPoint((cInt)Round(m_srcPoly[0].X + m_normals[0].X * delta),
-                                (cInt)Round(m_srcPoly[0].Y + m_normals[0].Y * delta));
+                        pt1 = new IntPoint((ClipInt)Round(m_srcPoly[0].X + m_normals[0].X * delta),
+                                (ClipInt)Round(m_srcPoly[0].Y + m_normals[0].Y * delta));
                         pt1.NX = m_normals[0].X; pt1.NY = m_normals[0].Y; pt1.N = 0;
                         m_destPoly.Add(pt1);
                     }
@@ -5075,14 +4984,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             else
                 switch (jointype)
                 {
-                    case JoinType.jtMiter:
-                    {
-                        double r = 1 + (m_normals[j].X * m_normals[k].X +
-                                        m_normals[j].Y * m_normals[k].Y);
-                        if (r >= m_miterLim) DoMiter(j, k, r); else DoSquare(j, k);
-                        break;
-                    }
-                    case JoinType.jtSquare: DoSquare(j, k); break;
                     case JoinType.jtRound: DoRound(j, k); break;
                 }
             k = j;
