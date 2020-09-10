@@ -113,10 +113,10 @@ namespace UnityEditor.VFX.Block
         protected override bool needDirectionWrite { get { return true; } }
         protected override bool supportsVolumeSpawning { get { return false; } }
 
-        private static VFXExpression BuildRandomUIntPerParticle(VFXExpression max)
+        private VFXExpression BuildRandomUIntPerParticle(VFXExpression max, int id)
         {
             //TODO : Add support of proper integer random
-            var rand = VFXOperatorUtility.BuildRandom(VFXSeedMode.PerParticle, false);
+            var rand = VFXOperatorUtility.BuildRandom(VFXSeedMode.PerParticle, false, new RandId(this, id));
             VFXExpression r = new VFXExpressionCastFloatToUint(rand * new VFXExpressionCastUintToFloat(max));
             r = VFXOperatorUtility.ApplyAddressingMode(r, max, VFXOperatorUtility.SequentialAddressingMode.Clamp);
             return r;
@@ -166,18 +166,18 @@ namespace UnityEditor.VFX.Block
                 {
                     if (placementMode == SampleMesh.PlacementMode.Vertex)
                     {
-                        index = BuildRandomUIntPerParticle(meshVertexCount);
+                        index = BuildRandomUIntPerParticle(meshVertexCount, 0);
                     }
                     else if (placementMode == SampleMesh.PlacementMode.Edge)
                     {
-                        index = BuildRandomUIntPerParticle(meshIndexCount);
-                        coordinate = VFXOperatorUtility.BuildRandom(VFXSeedMode.PerParticle, false);
+                        index = BuildRandomUIntPerParticle(meshIndexCount, 1);
+                        coordinate = VFXOperatorUtility.BuildRandom(VFXSeedMode.PerParticle, false, new RandId(this, 2));
                     }
                     else if (placementMode == SampleMesh.PlacementMode.Surface)
                     {
-                        index = BuildRandomUIntPerParticle(meshIndexCount / threeUint);
-                        var x = VFXOperatorUtility.BuildRandom(VFXSeedMode.PerParticle, false);
-                        var y = VFXOperatorUtility.BuildRandom(VFXSeedMode.PerParticle, false);
+                        index = BuildRandomUIntPerParticle(meshIndexCount / threeUint, 3);
+                        var x = VFXOperatorUtility.BuildRandom(VFXSeedMode.PerParticle, false, new RandId(this, 4));
+                        var y = VFXOperatorUtility.BuildRandom(VFXSeedMode.PerParticle, false, new RandId(this, 5));
                         coordinate = new VFXExpressionCombine(x, y);
                     }
                 }
