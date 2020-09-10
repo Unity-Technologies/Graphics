@@ -74,7 +74,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.CliSetup" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
             paths:
@@ -229,7 +229,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_fast-trunk:
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.CliSetup" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
             paths:
@@ -386,7 +386,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_CUSTOM-REVISION:
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.CliSetup" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
             paths:
