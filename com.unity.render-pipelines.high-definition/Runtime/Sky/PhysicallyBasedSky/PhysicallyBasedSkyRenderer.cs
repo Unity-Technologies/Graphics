@@ -368,9 +368,10 @@ namespace UnityEngine.Rendering.HighDefinition
             var pbrSky = builtinParams.skySettings as PhysicallyBasedSky;
 
             float R    = pbrSky.GetPlanetaryRadius();
-            float D    = Mathf.Max(pbrSky.airMaximumAltitude.value, pbrSky.aerosolMaximumAltitude.value);
+            float D    = pbrSky.GetMaximumAltitude();
             float airH = pbrSky.GetAirScaleHeight();
             float aerH = pbrSky.GetAerosolScaleHeight();
+            float aerA = pbrSky.GetAerosolAnisotropy();
             float iMul = GetSkyIntensity(pbrSky, builtinParams.debugSettings);
 
             Vector2 expParams = ComputeExponentialInterpolationParams(pbrSky.horizonZenithShift.value);
@@ -381,8 +382,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ConstantBuffer._RcpAtmosphericDepth       = 1.0f / D;
 
             m_ConstantBuffer._AtmosphericRadius         = R + D;
-            m_ConstantBuffer._AerosolAnisotropy         = pbrSky.aerosolAnisotropy.value;
-            m_ConstantBuffer._AerosolPhasePartConstant  = CornetteShanksPhasePartConstant(pbrSky.aerosolAnisotropy.value);
+            m_ConstantBuffer._AerosolAnisotropy         = aerA;
+            m_ConstantBuffer._AerosolPhasePartConstant  = CornetteShanksPhasePartConstant(aerA);
             m_ConstantBuffer._Unused                    = 0.0f; // Warning fix
             m_ConstantBuffer._Unused2                   = 0.0f; // Warning fix
 
@@ -451,6 +452,8 @@ namespace UnityEngine.Rendering.HighDefinition
             float r = cameraToPlanetCenter.magnitude;
             cameraPos = planetCenter - Mathf.Max(R, r) * cameraToPlanetCenter.normalized;
 
+            bool simpleEarthMode = pbrSky.type.value == PhysicallyBasedSkyModel.EarthSimple;
+
             CommandBuffer cmd = builtinParams.commandBuffer;
 
             // Precomputation is done, shading is next.
@@ -472,7 +475,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int hasGroundAlbedoTexture = 0;
 
-            if (pbrSky.groundColorTexture.value != null)
+            if (pbrSky.groundColorTexture.value != null && !simpleEarthMode)
             {
                 hasGroundAlbedoTexture = 1;
                 s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._GroundAlbedoTexture, pbrSky.groundColorTexture.value);
@@ -481,7 +484,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int hasGroundEmissionTexture = 0;
 
-            if (pbrSky.groundEmissionTexture.value != null)
+            if (pbrSky.groundEmissionTexture.value != null && !simpleEarthMode)
             {
                 hasGroundEmissionTexture = 1;
                 s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._GroundEmissionTexture,    pbrSky.groundEmissionTexture.value);
@@ -491,7 +494,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int hasSpaceEmissionTexture = 0;
 
-            if (pbrSky.spaceEmissionTexture.value != null)
+            if (pbrSky.spaceEmissionTexture.value != null && !simpleEarthMode)
             {
                 hasSpaceEmissionTexture = 1;
                 s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._SpaceEmissionTexture,    pbrSky.spaceEmissionTexture.value);
