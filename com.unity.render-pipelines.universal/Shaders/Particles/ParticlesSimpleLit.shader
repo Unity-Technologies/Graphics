@@ -85,7 +85,6 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             // -------------------------------------
@@ -141,7 +140,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles
             #pragma target 2.0
 
             // -------------------------------------
@@ -197,7 +196,6 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             Cull Off
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             // -------------------------------------
@@ -231,7 +229,6 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             Cull Off
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             // -------------------------------------
@@ -262,7 +259,6 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             #pragma vertex vert
