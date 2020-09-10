@@ -51,7 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
     //-----------------------------------------------------------------------------
 
     [GenerateHLSL]
-    internal enum BoundedEntityCategory // Defines the order in which all BoundedEntity-related things are sorted
+    internal enum BoundedEntityCategory // Defines the sorting order
     {
         PunctualLight,
         AreaLight,
@@ -62,89 +62,176 @@ namespace UnityEngine.Rendering.HighDefinition
         None = Count // Unbounded
     }
 
-    internal class BoundedEntityCollection // Collection of lists
+    internal class BoundedEntityCollection
     {
         public const int k_EntityIndexBitCount = 16;
         public const int k_EntityMaxCount      = (1 << k_EntityIndexBitCount) - 1;
 
-        // 1x list per category.
-        public List<LightData>     punctualLightData;
-        public List<LightData>     areaLightData;
-        public List<EnvLightData>  reflectionProbeData;
-        public List<DecalData>     decalData;
-        public List<DensityVolume> densityVolumeData;
-
-        // 1x list per view (all categories in one).
-        public List<FiniteLightBound>[] entityBoundsPerView;
-
-        // 1x list for entites of all categories. Assumes that all XR views have the same view matrix.
-        // Must use a raw array for QuickSort. See also: BoundedEntitySortingKeyLayout.
-        public ulong[] entitySortKeys;
-
-        public int[] entityCountPerCategory = new int[(int)BoundedEntityCategory.Count];
-
-        public int punctualLightCount   { get { return entityCountPerCategory[(int)BoundedEntityCategory.PunctualLight];   } set { entityCountPerCategory[(int)BoundedEntityCategory.PunctualLight]   = value; } }
-        public int areaLightCount       { get { return entityCountPerCategory[(int)BoundedEntityCategory.AreaLight];       } set { entityCountPerCategory[(int)BoundedEntityCategory.AreaLight]       = value; } }
-        public int reflectionProbeCount { get { return entityCountPerCategory[(int)BoundedEntityCategory.ReflectionProbe]; } set { entityCountPerCategory[(int)BoundedEntityCategory.ReflectionProbe] = value; } }
-        public int decalCount           { get { return entityCountPerCategory[(int)BoundedEntityCategory.Decal];           } set { entityCountPerCategory[(int)BoundedEntityCategory.Decal]           = value; } }
-        public int densityVolumeCount   { get { return entityCountPerCategory[(int)BoundedEntityCategory.DensityVolume];   } set { entityCountPerCategory[(int)BoundedEntityCategory.DensityVolume]   = value; } }
-        public int totalEntityCount;    // Running counter, incremented as we fill 'entitySortKeys'
-
-        public bool VerifyLightCount()
+        public BoundedEntityCollection(int xrViewCount)
         {
-            int debugCount = 0;
+            Debug.Assert(xrViewCount > 0);
 
-            for (int i = 0; i < (int)BoundedEntityCategory.Count; i++)
+            for (int i = 0, n = (int)BoundedEntityCategory.Count; i < n; i++)
             {
-                debugCount += entityCountPerCategory[i];
+                m_EntityCountPerCategory[i] = 0;
             }
 
-            return debugCount == totalEntityCount;
-        }
+            m_TotalEntityCount = 0;
 
-        /* ---------------------------- Methods ---------------------------- */
+            m_Views = new ViewDependentData[xrViewCount];
 
-        public BoundedEntityCollection()
-        {
-            int xrViewCount = TextureXR.slices;
-
-            punctualLightData   = new List<LightData>();
-            areaLightData       = new List<LightData>();
-            reflectionProbeData = new List<EnvLightData>();
-            decalData           = new List<DecalData>();
-            densityVolumeData   = new List<DensityVolume>();
-
-            entityBoundsPerView = new List<FiniteLightBound>[xrViewCount];
-
-            for (int i = 0; i < xrViewCount; i++)
-                entityBoundsPerView[i] = new List<FiniteLightBound>();
-
-            // We don't know the size, and reallocation is a pain, so preallocate the max size.
-            entitySortKeys = new ulong[k_EntityMaxCount];
-
-            for (int i = 0; i < (int)BoundedEntityCategory.Count; i++)
+            for (int i = 0, n = xrViewCount; i < n; i++)
             {
-                entityCountPerCategory[i] = 0;
-            }
+                m_Views[i] = new ViewDependentData();
 
-            totalEntityCount = 0;
+                m_Views[i].punctualLightData   = new List<LightData>();
+                m_Views[i].areaLightData       = new List<LightData>();
+                m_Views[i].reflectionProbeData = new List<EnvLightData>();
+                m_Views[i].decalData           = new List<DecalData>();
+                m_Views[i].densityVolumeData   = new List<DensityVolume>();
+                m_Views[i].entityBounds        = new List<FiniteLightBound>();
+
+                // We can't use a List, we don't know the size, and reallocation is a pain, so preallocate the max size.
+                m_Views[i].entitySortKeys      = new ulong[k_EntityMaxCount];
+            }
         }
 
         public void Clear()
         {
-            punctualLightData.Clear();
-            areaLightData.Clear();
-            reflectionProbeData.Clear();
-            decalData.Clear();
-            densityVolumeData.Clear();
-
-            for (int i = 0; i < (int)BoundedEntityCategory.Count; i++)
+            for (int i = 0, n = (int)BoundedEntityCategory.Count; i < n; i++)
             {
-                entityCountPerCategory[i] = 0;
+                m_EntityCountPerCategory[i] = 0;
             }
 
-            totalEntityCount = 0;
+            m_TotalEntityCount = 0;
+
+            for (int i = 0, n = m_Views.Length; i < n; i++)
+            {
+                m_Views[i].punctualLightData.Clear();
+                m_Views[i].areaLightData.Clear();
+                m_Views[i].reflectionProbeData.Clear();
+                m_Views[i].decalData.Clear();
+                m_Views[i].densityVolumeData.Clear();
+                m_Views[i].entityBounds.Clear();
+
+                // Since we reset 'm_TotalEntityCount', we can leave 'entitySortKeys' alone.
+            }
         }
+
+        public int GetEntityCount(BoundedEntityCategory category)
+        {
+            return m_EntityCountPerCategory[(int)category];
+        }
+
+        public void AddEntitySortKey(int viewIndex, BoundedEntityCategory category, ulong key)
+        {
+            Debug.Assert(0 <= viewIndex && viewIndex < m_Views.Length);
+
+            // We could decode the category from the key, but it is probably not worth the effort.
+            m_Views[viewIndex].entitySortKeys[m_TotalEntityCount] = key;
+            m_EntityCountPerCategory[(int)category]++;
+            m_TotalEntityCount++;
+        }
+
+        public ulong GetEntitySortKey(int viewIndex, int keyIndex)
+        {
+            return m_Views[viewIndex].entitySortKeys[keyIndex];
+        }
+
+        // Returns an offset for the 'entitySortKeys' array.
+        // Assumes the array has been sorted prior to making this call.
+        public int GetEntitySortKeyArrayOffset(BoundedEntityCategory category)
+        {
+            int s = 0;
+
+            for (int i = 0, n = (int)category; i < n; i++)
+            {
+                s += m_EntityCountPerCategory[i];
+            }
+
+            return s;
+        }
+
+        public void Sort()
+        {
+            Debug.Assert(GetEntitySortKeyArrayOffset(BoundedEntityCategory.Count) == m_TotalEntityCount);
+
+            for (int i = 0, n = m_Views.Length; i < n; i++)
+            {
+                // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory.
+                CoreUnsafeUtils.QuickSort(m_Views[i].entitySortKeys, 0, m_TotalEntityCount - 1);
+            }
+        }
+
+        // These must be added in the sorted order! TODO: how to enforce this?
+        public void AddEntityData(int viewIndex, BoundedEntityCategory category, LightData entityData)
+        {
+            if (category == BoundedEntityCategory.PunctualLight)
+            {
+                m_Views[viewIndex].punctualLightData.Add(entityData);
+            }
+            else if (category == BoundedEntityCategory.AreaLight)
+            {
+                m_Views[viewIndex].areaLightData.Add(entityData);
+            }
+            else
+            {
+                Debug.Assert(false);
+            }
+        }
+
+        // These must be added in the sorted order! TODO: how to enforce this?
+        public void AddEntityData(int viewIndex, BoundedEntityCategory category, EnvLightData entityData)
+        {
+            Debug.Assert(category == BoundedEntityCategory.ReflectionProbe);
+            m_Views[viewIndex].reflectionProbeData.Add(entityData);
+        }
+
+        // These must be added in the sorted order! TODO: how to enforce this?
+        public void AddEntityData(int viewIndex, BoundedEntityCategory category, DecalData entityData)
+        {
+            Debug.Assert(category == BoundedEntityCategory.Decal);
+            m_Views[viewIndex].decalData.Add(entityData);
+        }
+
+        // These must be added in the sorted order! TODO: how to enforce this?
+        public void AddEntityData(int viewIndex, BoundedEntityCategory category, DensityVolume entityData)
+        {
+            Debug.Assert(category == BoundedEntityCategory.DensityVolume);
+            m_Views[viewIndex].densityVolumeData.Add(entityData);
+        }
+
+        // These must be added in the sorted order! TODO: how to enforce this?
+        public void AddEntityBounds(int viewIndex, BoundedEntityCategory category, FiniteLightBound entityBounds)
+        {
+            m_Views[viewIndex].entityBounds.Add(entityBounds);
+        }
+
+        /* ------------------------------ Private interface ------------------------------ */
+
+        // The entity count is the same for all views.
+        int[] m_EntityCountPerCategory = new int[(int)BoundedEntityCategory.Count];
+        int   m_TotalEntityCount; // Prefix sum of the array above
+
+        // We sort entities by depth, which makes the order of items in the Lists view-dependent.
+        struct ViewDependentData
+        {
+            // One list per BoundedEntityCategory (sorted by category).
+            public List<LightData>     punctualLightData;
+            public List<LightData>     areaLightData;
+            public List<EnvLightData>  reflectionProbeData;
+            public List<DecalData>     decalData;
+            public List<DensityVolume> densityVolumeData;
+
+            // 1x list for all entites (sorted by category).
+            public List<FiniteLightBound> entityBounds;
+
+            // 1x list for entites of all categories. We have to use a raw array for QuickSort.
+            // See also: BoundedEntitySortingKeyLayout.
+            public ulong[] entitySortKeys;
+        }
+
+        ViewDependentData[] m_Views; // 1x view unless it is an XR application
     }
 
     [GenerateHLSL]
@@ -204,9 +291,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 boxAxisX; // Scaled by the extents (half-size)
         public Vector3 boxAxisY; // Scaled by the extents (half-size)
         public Vector3 boxAxisZ; // Scaled by the extents (half-size)
-        public Vector3 center;   // Center of the bounds (box) in camera space
+        public Vector3 center;   // Center of the boudning box in the view space
         public float   scaleXY;  // Scale applied to the top of the box to turn it into a truncated pyramid (X = Y)
-        public float   radius;   // Bounding sphere
+        public float   radius;   // Bounding sphere (only used for point lights)
     };
 
     [GenerateHLSL]
@@ -288,7 +375,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public HDLightType              lightType;
         public BoundedEntityCategory    lightCategory;
         public GPULightType             gpuLightType;
-        public int                      fixedPointLogDepth;
         public float                    distanceToCamera;
         public float                    lightDistanceFade;
         public bool                     isBakedShadowMask;
@@ -542,7 +628,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static readonly Matrix4x4 s_FlipMatrixLHSRHS = Matrix4x4.Scale(new Vector3(1, 1, -1));
 
-        Matrix4x4 GetWorldToViewMatrix(HDCamera hdCamera, int viewIndex)
+        static Matrix4x4 GetWorldToViewMatrix(HDCamera hdCamera, int viewIndex)
         {
             var viewMatrix = (hdCamera.xr.enabled ? hdCamera.xr.GetViewMatrix(viewIndex) : hdCamera.camera.worldToCameraMatrix);
 
@@ -614,11 +700,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // internal LightList m_lightList;
 
-        internal BoundedEntityCollection    m_BoundedEntityCollection; // Per-tile light lists
+        internal BoundedEntityCollection    m_BoundedEntityCollection; // Per-tile lists
 
-        internal List<DirectionalLightData> m_DirectionalLightData;    // Global light list
+        internal List<DirectionalLightData> m_DirectionalLightData;    // Global list
         internal List<int>                  m_DirectionalLightIndices;
-        internal int                        m_DirectionalLightCount;
 
         // int m_TotalLightCount = 0;
         // int m_densityVolumeCount = 0;
@@ -840,8 +925,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var lightLoopSettings = asset.currentPlatformRenderPipelineSettings.lightLoopSettings;
 
-            m_BoundedEntityCollection = new BoundedEntityCollection();
+            int xrViewCount = TextureXR.slices;
+
+            m_BoundedEntityCollection = new BoundedEntityCollection(xrViewCount);
             m_DirectionalLightData    = new List<DirectionalLightData>();
+            m_DirectionalLightIndices = new List<int>();
 
             m_DebugViewTilesMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugViewTilesPS);
             m_DebugHDShadowMapMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugHDShadowMapPS);
@@ -1645,7 +1733,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // TODO: we should be able to do this calculation only with LightData without VisibleLight light, but for now pass both
-        void GetLightVolumeDataAndBound(BoundedEntityCategory lightCategory, GPULightType gpuLightType,
+        FiniteLightBound GetLightVolumeDataAndBound(BoundedEntityCategory lightCategory, GPULightType gpuLightType,
             VisibleLight light, LightData lightData, Vector3 lightDimensions, Matrix4x4 worldToView, int viewIndex)
         {
             // Then Culling side
@@ -1817,8 +1905,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.Assert(false, "TODO: encountered an unknown GPULightType.");
             }
 
-            m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
-            m_lightList.lightsPerView[viewIndex].lightVolumes.Add(lightVolumeData);
+            // m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
+
+            // Don't need this
+            // m_lightList.lightsPerView[viewIndex].lightVolumes.Add(lightVolumeData);
+
+            return bound;
         }
 
         internal bool GetEnvLightData(CommandBuffer cmd, HDCamera hdCamera, in ProcessedProbeData processedProbe, ref EnvLightData envLightData)
@@ -1944,7 +2036,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        void GetEnvLightVolumeDataAndBound(HDProbe probe, GPULightType lightType, Matrix4x4 worldToView, int viewIndex)
+        FiniteLightBound GetEnvLightVolumeDataAndBound(HDProbe probe, GPULightType lightType, Matrix4x4 worldToView, int viewIndex)
         {
             var bound = new FiniteLightBound();
             var lightVolumeData = new LightVolumeData();
@@ -1963,9 +2055,9 @@ namespace UnityEngine.Rendering.HighDefinition
             lightVolumeData.lightCategory = (uint)BoundedEntityCategory.ReflectionProbe;
             lightVolumeData.featureFlags = (uint)LightFeatureFlags.Env;
 
-            switch (lightType)
+            switch (probe.influenceVolume.shape)
             {
-                case GPULightType.ReflectionSphere:
+                case InfluenceShape.Sphere:
                 {
                     lightVolumeData.lightPos = influencePositionVS;
                     lightVolumeData.radiusSq = influenceExtents.x * influenceExtents.x;
@@ -1981,7 +2073,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     bound.radius   = influenceExtents.x;
                     break;
                 }
-                case GPULightType.ReflectionBox:
+                case InfluenceShape.Box:
                 {
                     bound.center = influencePositionVS;
                     bound.boxAxisX = influenceExtents.x * influenceRightVS;
@@ -2001,13 +2093,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightVolumeData.boxInvRange.Set(1.0f / k_BoxCullingExtentThreshold.x, 1.0f / k_BoxCullingExtentThreshold.y, 1.0f / k_BoxCullingExtentThreshold.z);
                     break;
                 }
-                case GPULightType.ReflectionPlanar:
-                {
-                    // Why are we adding planar reflection to the light list???
-                    // Makes no sense. Crash.
-                    Debug.Assert(false);
-                    break;
-                }
                 default:
                 {
                     Debug.Assert(false, "Encountered an unhandled case of a switch statement.");
@@ -2015,11 +2100,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
-            m_lightList.lightsPerView[viewIndex].lightVolumes.Add(lightVolumeData);
+            //m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
+            //m_lightList.lightsPerView[viewIndex].lightVolumes.Add(lightVolumeData);
+
+            return bound;
         }
 
-        void AddBoxVolumeDataAndBound(OrientedBBox obb, BoundedEntityCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, int viewIndex)
+        FiniteLightBound AddBoxVolumeDataAndBound(OrientedBBox obb, BoundedEntityCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, int viewIndex)
         {
             var bound      = new FiniteLightBound();
             var volumeData = new LightVolumeData();
@@ -2051,8 +2138,10 @@ namespace UnityEngine.Rendering.HighDefinition
             volumeData.boxInnerDist = extents - k_BoxCullingExtentThreshold; // We have no blend range, but the culling code needs a small EPS value for some reason???
             volumeData.boxInvRange.Set(1.0f / k_BoxCullingExtentThreshold.x, 1.0f / k_BoxCullingExtentThreshold.y, 1.0f / k_BoxCullingExtentThreshold.z);
 
-            m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
-            m_lightList.lightsPerView[viewIndex].lightVolumes.Add(volumeData);
+            // m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
+            // m_lightList.lightsPerView[viewIndex].lightVolumes.Add(volumeData);
+
+            return bound;
             }
 
         internal int GetCurrentShadowCount()
@@ -2179,7 +2268,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Debug.Assert(Mathf.Abs(1 - sqMag) < 32 * FLT_EPS);
         }
 
-        static Vector3 ComputeWorldSpaceCoordsOfCentroidOfBoundedEntity(Light light)
+        static Vector3 ComputeWorldSpaceCentroidOfBoundedEntity(Light light)
         {
             // Most lights are "centered" by nature.
             Vector3 centroidWS = light.transform.position;
@@ -2202,20 +2291,17 @@ namespace UnityEngine.Rendering.HighDefinition
             return centroidWS;
         }
 
-        static Vector3 ComputeWorldSpaceCoordsOfCentroidOfBoundedEntity(HDProbe probe)
+        static Vector3 ComputeWorldSpaceCentroidOfBoundedEntity(HDProbe probe)
         {
-            Vector3 centroidWS = (Vector3)probe.influenceToWorld.GetColumn(3);
-
-            return centroidWS;
+            return (Vector3)probe.influenceToWorld.GetColumn(3);
         }
 
-        static float ComputeLinearDepth(Vector3 positionWS, Camera camera)
+        static float ComputeLinearDepth(Vector3 positionWS, HDCamera hdCamera, int viewIndex)
         {
-            Vector3 positionRWS = positionWS - camera.transform.position;
+            Matrix4x4 viewMatrix = GetWorldToViewMatrix(hdCamera, viewIndex); // Non-RWS
+            Vector3   positionVS = viewMatrix.MultiplyPoint(positionWS);
 
-            AssertUnitLength(camera.transform.forward);
-
-            return Vector3.Dot(camera.transform.forward, positionRWS);
+            return positionVS.z;
         }
 
         // 'w' is the linear depth (Z coordinate of the view-space position).
@@ -2223,12 +2309,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // We consider the distance to the near plane n ≈ 0, since that plane may be oblique.
         static int ComputeFixedPointLogDepth(float w, float f, int numBits = 16)
         {
-            const float FLT_EPS = 5.960464478e-8f;
-
             // z = Log[w/n] / Log[f/n]
             // Undefined for (w < n, so we must clamp). This should not affect the efficiency of Z-binning.
             // Still need the distance to the near plane in order for the math to work.
-            const float n = FLT_EPS;
+            // Setting it too low will quickly consume the availabl bits. 0.1 is a safe value.
+            const float n = 0.1f;
+
+            f = Math.Max(n, f);
 
             float x = Mathf.Max(1, w * (1/n));
             float z = Log2f(x) / Log2f(f * (1/n));
@@ -2254,7 +2341,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (processedData.lightCategory != BoundedEntityCategory.None)
             {
-                float w = ComputeLinearDepth(ComputeWorldSpaceCoordsOfCentroidOfBoundedEntity(lightComponent), hdCamera.camera);
+                float w = ComputeLinearDepth(ComputeWorldSpaceCentroidOfBoundedEntity(lightComponent), hdCamera.camera);
                 processedData.fixedPointLogDepth = ComputeFixedPointLogDepth(w, hdCamera.camera.farClipPlane);
             }
 
@@ -2283,7 +2370,7 @@ namespace UnityEngine.Rendering.HighDefinition
             layout.categoryBitCount           = CeilLog2i((int)BoundedEntityCategory.Count);
             layout.fixedPointLogDepthBitCount = 16;
             layout.lightTypeBitCount          = CeilLog2i((int)GPULightType.Count);
-            layout.indexBitCount              = 16;
+            layout.indexBitCount              = BoundedEntityCollection.k_EntityIndexBitCount;
             layout.totalBitCount              = layout.categoryBitCount
                                               + layout.fixedPointLogDepthBitCount
                                               + layout.lightTypeBitCount
@@ -2356,21 +2443,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!contributesToLighting)
                     continue;
 
-                // Do NOT process lights beyond the specified limit!
+                // Do NOT process lights beyond the specified limits!
                 switch (processedData.lightCategory)
                 {
                     case BoundedEntityCategory.None: // Unbounded
                         Debug.Assert(processedData.gpuLightType == GPULightType.Directional);
-                        if (!debugDisplaySettings.data.lightingDebugSettings.showDirectionalLight || m_DirectionalLightCount >= m_MaxDirectionalLightsOnScreen) continue;
-                        m_DirectionalLightCount++;
+                        if (!debugDisplaySettings.data.lightingDebugSettings.showDirectionalLight || m_DirectionalLightIndices.Count >= m_MaxDirectionalLightsOnScreen) continue;
                         break;
                     case BoundedEntityCategory.PunctualLight:
-                        if (!debugDisplaySettings.data.lightingDebugSettings.showPunctualLight || m_BoundedEntityCollection.punctualLightCount >= m_MaxPunctualLightsOnScreen) continue;
-                        m_BoundedEntityCollection.punctualLightCount++;
+                        if (!debugDisplaySettings.data.lightingDebugSettings.showPunctualLight || m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.PunctualLight) >= m_MaxPunctualLightsOnScreen) continue;
                         break;
                     case BoundedEntityCategory.AreaLight:
-                        if (!debugDisplaySettings.data.lightingDebugSettings.showAreaLight || m_BoundedEntityCollection.areaLightCount >= m_MaxAreaLightsOnScreen) continue;
-                        m_BoundedEntityCollection.areaLightCount++;
+                        if (!debugDisplaySettings.data.lightingDebugSettings.showAreaLight || m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.AreaLight) >= m_MaxAreaLightsOnScreen) continue;
                         break;
                     default:
                         break;
@@ -2398,7 +2482,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    m_BoundedEntityCollection.entitySortKeys[m_BoundedEntityCollection.totalEntityCount++] = GenerateBoundedEntitySortingKey(lightIndex, processedData.lightCategory, processedData.fixedPointLogDepth, (int)processedData.gpuLightType);
+                    int xrViewCount = hdCamera.viewCount;
+
+                    for (int viewIndex = 0; viewIndex < xrViewCount; viewIndex++)
+                    {
+                        float w   = ComputeLinearDepth(ComputeWorldSpaceCentroidOfBoundedEntity(light.light), hdCamera, viewIndex);
+                        int   d   = ComputeFixedPointLogDepth(w, hdCamera.camera.farClipPlane); // Assume XR uses the same far plane for all views
+                        ulong key = GenerateBoundedEntitySortingKey(lightIndex, processedData.lightCategory, d, (int)processedData.gpuLightType);
+
+                        m_BoundedEntityCollection.AddEntitySortKey(viewIndex, processedData.lightCategory, key);
+                    }
                 }
 
                 includedLightCount++;
@@ -2407,7 +2500,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return includedLightCount;
         }
 
-        void PrepareGPULightdata(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults)
+        void PrepareGPULightData(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults)
         {
             Vector3 camPosWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
 
@@ -2440,7 +2533,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // 2. Go through all lights, convert them to GPU format.
             // Simultaneously create data for culling (LightVolumeData and FiniteLightBound)
 
-            for (int sortIndex = 0; sortIndex < m_DirectionalLightCount; sortIndex++)
+            for (int sortIndex = 0, indexCount = m_DirectionalLightIndices.Count; sortIndex < indexCount; sortIndex++)
             {
                 int lightIndex = m_DirectionalLightIndices[sortIndex];
 
@@ -2485,90 +2578,80 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DirectionalLightData.Add(lightData);
             }
 
-            // Sanity check
-            Debug.Assert(m_DirectionalLightData.Count == m_DirectionalLightCount);
+            Debug.Assert(m_DirectionalLightData.Count == m_DirectionalLightIndices.Count);
 
-            // Go through both categories together (to make the existing code work).
-            int punctualAndAreaLightCount = m_BoundedEntityCollection.punctualLightCount
-                                          + m_BoundedEntityCollection.areaLightCount;
+            int xrViewCount = hdCamera.viewCount;
 
-            // We start with 0 because the of the order of items within the 'BoundedEntityCategory' enum.
-            // Rearranging the order of the categories will break this code!
-            for (int sortIndex = 0; sortIndex < punctualAndAreaLightCount; ++sortIndex)
+            for (int viewIndex = 0; viewIndex < xrViewCount; viewIndex++)
             {
-                BoundedEntitySortingKeyLayout layout = GeBoundedEntitySortingKeyLayoutLayout();
+                // Go through both categories at the same time (to make the existing code work).
+                int start = m_BoundedEntityCollection.GetEntitySortKeyArrayOffset(BoundedEntityCategory.PunctualLight);
+                int count = m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.PunctualLight)
+                          + m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.AreaLight);
 
-                // In 1. we have already classify and sorted the light, we need to use this sorted order here
-                ulong sortKey = m_BoundedEntityCollection.entitySortKeys[sortIndex];
+                Debug.Assert(((int)BoundedEntityCategory.AreaLight - (int)BoundedEntityCategory.PunctualLight) == 1);
 
-                BoundedEntityCategory category     = (BoundedEntityCategory)((sortKey >> layout.categoryOffset)  & ((1ul << layout.categoryBitCount)  - 1));
-                GPULightType          gpuLightType = (GPULightType)         ((sortKey >> layout.lightTypeOffset) & ((1ul << layout.lightTypeBitCount) - 1));
-                int                   lightIndex   = (int)                  ((sortKey >> layout.indexOffset)     & ((1ul << layout.indexBitCount)     - 1));
-
-                var light = cullResults.visibleLights[lightIndex];
-                var lightComponent = light.light;
-                ProcessedLightData processedData = m_ProcessedLightData[lightIndex];
-
-                m_enableBakeShadowMask = m_enableBakeShadowMask || processedData.isBakedShadowMask;
-
-                // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning HDUtils.s_DefaultHDAdditionalLightData
-                var additionalLightData = processedData.additionalLightData;
-
-                int shadowIndex = -1;
-
-                // Manage shadow requests
-                if (additionalLightData.WillRenderShadowMap())
+                for (int sortIndex = start; sortIndex < (start + count); ++sortIndex)
                 {
-                    int shadowRequestCount;
-                    shadowIndex = additionalLightData.UpdateShadowRequest(hdCamera, m_ShadowManager, hdShadowSettings, light, cullResults, lightIndex, m_CurrentDebugDisplaySettings.data.lightingDebugSettings, out shadowRequestCount);
+                    BoundedEntitySortingKeyLayout layout = GeBoundedEntitySortingKeyLayoutLayout();
 
-#if UNITY_EDITOR
-                    if ((m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowDebugUseSelection
-                            || m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow)
-                        && UnityEditor.Selection.activeGameObject == lightComponent.gameObject)
+                    // In 1. we have already classify and sorted the light, we need to use this sorted order here
+                    ulong sortKey = m_BoundedEntityCollection.GetEntitySortKey(viewIndex, sortIndex);
+
+                    var category     = (BoundedEntityCategory)((sortKey >> layout.categoryOffset)  & ((1ul << layout.categoryBitCount)  - 1));
+                    var gpuLightType = (GPULightType)         ((sortKey >> layout.lightTypeOffset) & ((1ul << layout.lightTypeBitCount) - 1));
+                    var lightIndex   = (int)                  ((sortKey >> layout.indexOffset)     & ((1ul << layout.indexBitCount)     - 1));
+
+                    Debug.Assert(category == BoundedEntityCategory.PunctualLight || category == BoundedEntityCategory.AreaLight);
+
+                    var light = cullResults.visibleLights[lightIndex];
+                    var lightComponent = light.light;
+                    ProcessedLightData processedData = m_ProcessedLightData[lightIndex];
+
+                    m_enableBakeShadowMask = m_enableBakeShadowMask || processedData.isBakedShadowMask;
+
+                    // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning HDUtils.s_DefaultHDAdditionalLightData
+                    var additionalLightData = processedData.additionalLightData;
+
+                    int shadowIndex = -1;
+
+                    // Manage shadow requests
+                    if (additionalLightData.WillRenderShadowMap())
                     {
-                        m_DebugSelectedLightShadowIndex = shadowIndex;
-                        m_DebugSelectedLightShadowCount = shadowRequestCount;
+                        int shadowRequestCount;
+                        shadowIndex = additionalLightData.UpdateShadowRequest(hdCamera, m_ShadowManager, hdShadowSettings, light, cullResults, lightIndex, m_CurrentDebugDisplaySettings.data.lightingDebugSettings, out shadowRequestCount);
+
+                    #if UNITY_EDITOR
+                        if ((m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowDebugUseSelection
+                                || m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow)
+                            && UnityEditor.Selection.activeGameObject == lightComponent.gameObject)
+                        {
+                            m_DebugSelectedLightShadowIndex = shadowIndex;
+                            m_DebugSelectedLightShadowCount = shadowRequestCount;
+                        }
+                    #endif
                     }
-#endif
-                }
 
-                Vector3 lightDimensions = new Vector3(); // X = length or width, Y = height, Z = range (depth)
+                    Vector3 lightDimensions = new Vector3(); // X = length or width, Y = height, Z = range (depth)
 
-                // Punctual, area, projector lights - the rendering side.
-                var lightData = GetLightData(cmd, hdCamera, hdShadowSettings, light, lightComponent, lightIndex, shadowIndex, contactShadowScalableSetting, ref lightDimensions, ref m_ScreenSpaceShadowIndex, ref m_ScreenSpaceShadowChannelSlot);
+                    // Punctual, area, projector lights - the rendering side.
+                    LightData lightData = GetLightData(cmd, hdCamera, hdShadowSettings, light, lightComponent, lightIndex, shadowIndex, contactShadowScalableSetting, ref lightDimensions, ref m_ScreenSpaceShadowIndex, ref m_ScreenSpaceShadowChannelSlot);
 
-                // Then culling side. Must be call in this order as we pass the created Light data to the function
-                for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
-                {
-                    GetLightVolumeDataAndBound(category, gpuLightType, light, lightData, lightDimensions, m_WorldToViewMatrices[viewIndex], viewIndex);
-                }
+                    // Then culling side. Must be call in this order as we pass the created Light data to the function
+                    FiniteLightBound bounds = GetLightVolumeDataAndBound(category, gpuLightType, light, lightData, lightDimensions, m_WorldToViewMatrices[viewIndex], viewIndex);
 
-                // We make the light position camera-relative as late as possible in order
-                // to allow the preceding code to work with the absolute world space coordinates.
-                if (ShaderConfig.s_CameraRelativeRendering != 0)
-                {
-                    // Caution: 'LightData.positionWS' is camera-relative after this point.
-                    lightData.positionRWS -= camPosWS;
-                }
+                    // We make the light position camera-relative as late as possible in order
+                    // to allow the preceding code to work with the absolute world space coordinates.
+                    if (ShaderConfig.s_CameraRelativeRendering != 0)
+                    {
+                        // Caution: 'LightData.positionWS' is camera-relative after this point.
+                        lightData.positionRWS -= camPosWS;
+                    }
 
-                switch (category)
-                {
-                    case BoundedEntityCategory.PunctualLight:
-                        m_BoundedEntityCollection.punctualLightData.Add(lightData);
-                        break;
-                    case BoundedEntityCategory.AreaLight:
-                        m_BoundedEntityCollection.areaLightData.Add(lightData);
-                        break;
-                    default:
-                        Debug.Assert(false, "Encountered an unhandled case of a switch statement.");
-                        break;
+                    m_BoundedEntityCollection.AddEntityData(viewIndex, category, lightData);
+                    m_BoundedEntityCollection.AddEntityBounds(viewIndex, category, bounds);
                 }
             }
-
-            // Sanity check
-            Debug.Assert(m_BoundedEntityCollection.punctualLightData.Count == m_BoundedEntityCollection.punctualLightCount);
-            Debug.Assert(m_BoundedEntityCollection.areaLightData.Count     == m_BoundedEntityCollection.areaLightCount);
         }
 
         bool TrivialRejectProbe(in ProcessedProbeData processedProbe, HDCamera hdCamera)
@@ -2664,22 +2747,24 @@ namespace UnityEngine.Rendering.HighDefinition
                         continue;
                     }
 
-                    GPULightType lightType = (processedData.hdProbe.influenceVolume.shape == InfluenceShape.Box) ? GPULightType.ReflectionBox
-                                                                                                                 : GPULightType.ReflectionSphere;
                     // Sorting by volume is no longer possible
                     // var logVolume = CalculateProbeLogVolume(probe.bounds);
 
-                    float w = ComputeLinearDepth(ComputeWorldSpaceCoordsOfCentroidOfBoundedEntity(processedData.hdProbe), hdCamera.camera);
-                    int fixedPointLogDepth = ComputeFixedPointLogDepth(w, hdCamera.camera.farClipPlane);
+                    int xrViewCount = hdCamera.viewCount;
 
-                    m_BoundedEntityCollection.entitySortKeys[m_BoundedEntityCollection.reflectionProbeCount++] = GenerateBoundedEntitySortingKey(probeIndex, BoundedEntityCategory.ReflectionProbe, fixedPointLogDepth, (int)lightType);
+                    for (int viewIndex = 0; viewIndex < xrViewCount; viewIndex++)
+                    {
+                        float w   = ComputeLinearDepth(ComputeWorldSpaceCentroidOfBoundedEntity(processedData.hdProbe), hdCamera, viewIndex);
+                        int   d   = ComputeFixedPointLogDepth(w, hdCamera.camera.farClipPlane); // Assume XR uses the same far plane for all views
+                        ulong key = GenerateBoundedEntitySortingKey(probeIndex, BoundedEntityCategory.ReflectionProbe, d, (int)GPULightType.CubemapReflection);
+
+                        m_BoundedEntityCollection.AddEntitySortKey(viewIndex, BoundedEntityCategory.ReflectionProbe, key);
+                    }
 
                     includedProbeCount++;
                 }
             }
 
-            // TODO: why are we sorting these?
-            // They aren't supposed to go into the light list...
             if (enablePlanarProbes)
             {
                 for (int planarProbeIndex = 0; (planarProbeIndex < hdProbeCullingResults.visibleProbes.Count) && (includedProbeCount < maxProbeCount); planarProbeIndex++)
@@ -2692,62 +2777,73 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (!aovRequest.IsLightEnabled(probe.gameObject))
                         continue;
 
-                    //var lightVolumeType = LightVolumeType.Box;
-                    //if (probe.influenceVolume.shape == InfluenceShape.Sphere)
-                    //    lightVolumeType = LightVolumeType.Sphere;
-                    // WTF? Makes no sense for planar reflection...
-                    GPULightType lightType = GPULightType.ReflectionPlanar;
-
                     // Sorting by volume is no longer possible
                     // var logVolume = CalculateProbeLogVolume(probe.bounds);
 
-                    // int fixedPointLogDepth = 0;
+                    int xrViewCount = hdCamera.viewCount;
 
-                    // Skip planar probes for now since the code makes no sense.
-                    // m_BoundedEntityCollection.entitySortKeys[m_BoundedEntityCollection.reflectionProbeCount++] = GenerateBoundedEntitySortingKey(planarProbeIndex, BoundedEntityCategory.ReflectionProbe, fixedPointLogDepth, (int)lightType);
+                    for (int viewIndex = 0; viewIndex < xrViewCount; viewIndex++)
+                    {
+                        float w   = ComputeLinearDepth(ComputeWorldSpaceCentroidOfBoundedEntity(processedData.hdProbe), hdCamera, viewIndex);
+                        int   d   = ComputeFixedPointLogDepth(w, hdCamera.camera.farClipPlane); // Assume XR uses the same far plane for all views
+                        ulong key = GenerateBoundedEntitySortingKey(planarProbeIndex, BoundedEntityCategory.ReflectionProbe, d, (int)GPULightType.PlanarReflection);
 
-                    // includedProbeCount++;
+                        m_BoundedEntityCollection.AddEntitySortKey(viewIndex, BoundedEntityCategory.ReflectionProbe, key);
+                    }
+
+                    includedProbeCount++;
                 }
             }
 
             return includedProbeCount;
         }
 
-        void PrepareGPUProbeData(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults, HDProbeCullingResults hdProbeCullingResults, int processedLightCount)
+        void PrepareGPUProbeData(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults, HDProbeCullingResults hdProbeCullingResults)
         {
             Vector3 camPosWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
 
-            for (int sortIndex = 0; sortIndex < processedLightCount; ++sortIndex)
+            int xrViewCount = hdCamera.viewCount;
+
+            for (int viewIndex = 0; viewIndex < xrViewCount; viewIndex++)
             {
-                BoundedEntitySortingKeyLayout layout = GeBoundedEntitySortingKeyLayoutLayout();
+                int start = m_BoundedEntityCollection.GetEntitySortKeyArrayOffset(BoundedEntityCategory.ReflectionProbe);
+                int count = m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.ReflectionProbe);
 
-                // In 1. we have already classify and sorted the light, we need to use this sorted order here
-                ulong sortKey = m_BoundedEntitySortKeys[sortIndex];
-
-                GPULightType gpuLightType = (GPULightType)((sortKey >> layout.lightTypeOffset) & ((1ul << layout.lightTypeBitCount) - 1));
-                int          probeIndex   = (int)         ((sortKey >> layout.indexOffset)     & ((1ul << layout.indexBitCount)     - 1));
-
-                ProcessedProbeData processedProbe = (gpuLightType == GPULightType.ReflectionPlanar) ? m_ProcessedPlanarProbeData[probeIndex]
-                                                                                                    : m_ProcessedReflectionProbeData[probeIndex];
-                EnvLightData envLightData = new EnvLightData();
-
-                if (GetEnvLightData(cmd, hdCamera, processedProbe, ref envLightData))
+                for (int sortIndex = start; sortIndex < (start + count); ++sortIndex)
                 {
-                    // it has been filled
-                    m_lightList.envLights.Add(envLightData);
+                    BoundedEntitySortingKeyLayout layout = GeBoundedEntitySortingKeyLayoutLayout();
 
-                    for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
+                    // In 1. we have already classify and sorted the light, we need to use this sorted order here
+                    ulong sortKey = m_BoundedEntityCollection.GetEntitySortKey(viewIndex, sortIndex);
+
+                    var category     = (BoundedEntityCategory)((sortKey >> layout.categoryOffset)  & ((1ul << layout.categoryBitCount)  - 1));
+                    var gpuLightType = (GPULightType)         ((sortKey >> layout.lightTypeOffset) & ((1ul << layout.lightTypeBitCount) - 1));
+                    var probeIndex   = (int)                  ((sortKey >> layout.indexOffset)     & ((1ul << layout.indexBitCount)     - 1));
+
+                    Debug.Assert(category == BoundedEntityCategory.ReflectionProbe);
+
+                    ProcessedProbeData processedProbe = (gpuLightType == GPULightType.PlanarReflection) ? m_ProcessedPlanarProbeData[probeIndex]
+                                                                                                        : m_ProcessedReflectionProbeData[probeIndex];
+                    EnvLightData envLightData = new EnvLightData();
+
+                    if (GetEnvLightData(cmd, hdCamera, processedProbe, ref envLightData))
                     {
                         var worldToView = GetWorldToViewMatrix(hdCamera, viewIndex);
-                        GetEnvLightVolumeDataAndBound(processedProbe.hdProbe, gpuLightType, worldToView, viewIndex);
+                        FiniteLightBound bounds = GetEnvLightVolumeDataAndBound(processedProbe.hdProbe, gpuLightType, worldToView, viewIndex);
+
+                        // We make the light position camera-relative as late as possible in order
+                        // to allow the preceding code to work with the absolute world space coordinates.
+                        if (ShaderConfig.s_CameraRelativeRendering != 0)
+                        {
+                            // Caution: 'EnvLightData.positionRWS' is camera-relative after this point.
+                            envLightData.capturePositionRWS -= camPosWS;
+                            envLightData.influencePositionRWS -= camPosWS;
+                            envLightData.proxyPositionRWS -= camPosWS;
+                        }
+
+                        m_BoundedEntityCollection.AddEntityData(viewIndex, BoundedEntityCategory.ReflectionProbe, envLightData);
+                        m_BoundedEntityCollection.AddEntityBounds(viewIndex, BoundedEntityCategory.ReflectionProbe, bounds);
                     }
-
-                    // We make the light position camera-relative as late as possible in order
-                    // to allow the preceding code to work with the absolute world space coordinates.
-                    UpdateEnvLighCameraRelativetData(ref envLightData, camPosWS);
-
-                    int last = m_lightList.envLights.Count - 1;
-                    m_lightList.envLights[last] = envLightData;
                 }
             }
         }
@@ -2773,12 +2869,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DebugSelectedLightShadowIndex = -1;
                 m_DebugSelectedLightShadowCount = 0;
 
-                // Step 1: Fill BoundedEntityCollection.entitySortKeys.
-                // Step 2: Sort BoundedEntityCollection.entitySortKeys once.
-                // Step 3: Fill BoundedEntityCollection.*Data
+                int xrViewCount = hdCamera.viewCount;
+
+                // Step 1: Fill m_BoundedEntityCollection.entitySortKeys and m_DirectionalLightIndices.
+                // Step 2: Sort m_BoundedEntityCollection.
+                // Step 3: Fill m_BoundedEntityCollection.*Data (in the sorted order!) and m_DirectionalLightData.
+                // Step 4: Upload the data to the GPU.
                 m_BoundedEntityCollection.Clear();
                 m_DirectionalLightData.Clear();
-                m_DirectionalLightCount = 0;
+                m_DirectionalLightIndices.Clear();
 
                 // We must clear the shadow requests before checking if they are any visible light because we would have requests from the last frame executed in the case where we don't see any lights
                 m_ShadowManager.Clear();
@@ -2798,6 +2897,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_CurrentScreenSpaceShadowData[i].valid = false;
                 }
 
+                /* ---------------------------- Step 1 ---------------------------- */
+                // Do not pre-process per view...
+
                 // Note: Light with null intensity/Color are culled by the C++, no need to test it here
                 if (cullResults.visibleLights.Length != 0)
                 {
@@ -2809,50 +2911,54 @@ namespace UnityEngine.Rendering.HighDefinition
                     PreprocessVisibleProbes(hdCamera, cullResults, hdProbeCullingResults, aovRequest);
                 }
 
-                m_BoundedEntityCollection.decalCount = Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen);
+                int decalCount = Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen);
 
-                for (int i = 0, n = m_BoundedEntityCollection.decalCount; i < n; i++)
+                for (int decalIndex = 0; decalIndex < decalCount; decalIndex++)
                 {
-                    float w = DecalSystem.m_Bounds[i].center.z;
-                    int fixedPointLogDepth = ComputeFixedPointLogDepth(w, hdCamera.camera.farClipPlane);
+                    Vector3 centroidVS = DecalSystem.m_Bounds[decalIndex].center; // Computed for the first eye, I guess? Confirm...
 
-                    m_BoundedEntityCollection.entitySortKeys[m_BoundedEntityCollection.totalEntityCount++] = GenerateBoundedEntitySortingKey(i, BoundedEntityCategory.Decal, fixedPointLogDepth);
+                    for (int viewIndex = 0; viewIndex < xrViewCount; viewIndex++)
+                    {
+                        float w = centroidVS.z;
+
+                        if (viewIndex > 0) // This is quite suboptimal...
+                        {
+                            Matrix4x4 viewMatrixEye0 = GetWorldToViewMatrix(hdCamera, 0); // Non-RWS
+                            Vector3   centroidWS     = viewMatrixEye0.inverse.MultiplyPoint(centroidVS);
+
+                            w = ComputeLinearDepth(centroidWS, hdCamera, viewIndex);
+                        }
+
+                        int   d   = ComputeFixedPointLogDepth(w, hdCamera.camera.farClipPlane); // Assume XR uses the same far plane for all views
+                        ulong key = GenerateBoundedEntitySortingKey(decalIndex, BoundedEntityCategory.Decal, d);
+
+                        m_BoundedEntityCollection.AddEntitySortKey(viewIndex, BoundedEntityCategory.Decal, key);
+                    }
                 }
 
-                m_BoundedEntityCollection.densityVolumeCount = (densityVolumes.bounds != null) ? densityVolumes.bounds.Count : 0;
+                int densityVolumeCount = (densityVolumes.bounds != null) ? densityVolumes.bounds.Count : 0;
 
-                for (int i = 0, n = m_BoundedEntityCollection.densityVolumeCount; i < n; i++)
+                for (int densityVolumeIndex = 0; densityVolumeIndex < densityVolumeCount; densityVolumeIndex++)
                 {
-                    float w = ComputeLinearDepth(densityVolumes.bounds[i].center, hdCamera.camera);
-                    int fixedPointLogDepth = ComputeFixedPointLogDepth(w, hdCamera.camera.farClipPlane);
+                    for (int viewIndex = 0; viewIndex < xrViewCount; viewIndex++)
+                    {
+                        float w   = ComputeLinearDepth(densityVolumes.bounds[densityVolumeIndex].center, hdCamera, viewIndex);
+                        int   d   = ComputeFixedPointLogDepth(w, hdCamera.camera.farClipPlane); // Assume XR uses the same far plane for all views
+                        ulong key = GenerateBoundedEntitySortingKey(densityVolumeIndex, BoundedEntityCategory.DensityVolume, d);
 
-                    m_BoundedEntityCollection.entitySortKeys[m_BoundedEntityCollection.totalEntityCount++] = GenerateBoundedEntitySortingKey(i, BoundedEntityCategory.DensityVolume, fixedPointLogDepth);
+                        m_BoundedEntityCollection.AddEntitySortKey(viewIndex, BoundedEntityCategory.DensityVolume, key);
+                    }
                 }
 
-                Debug.Assert(m_BoundedEntityCollection.VerifyLightCount());
+                /* ---------------------------- Step 2 ---------------------------- */
+                m_BoundedEntityCollection.Sort();
 
-                // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory.
-                CoreUnsafeUtils.QuickSort(m_BoundedEntityCollection.entitySortKeys, 0, m_BoundedEntityCollection.totalEntityCount - 1);
-
-                m_TotalLightCount = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_densityVolumeCount;
-                Debug.Assert(m_TotalLightCount == m_lightList.lightsPerView[0].bounds.Count);
-                Debug.Assert(m_TotalLightCount == m_lightList.lightsPerView[0].lightVolumes.Count);
-
-                // Aggregate the remaining views into the first entry of the list (view 0)
-                for (int viewIndex = 1; viewIndex < hdCamera.viewCount; ++viewIndex)
-                {
-                    Debug.Assert(m_lightList.lightsPerView[viewIndex].bounds.Count == m_TotalLightCount);
-                    m_lightList.lightsPerView[0].bounds.AddRange(m_lightList.lightsPerView[viewIndex].bounds);
-
-                    Debug.Assert(m_lightList.lightsPerView[viewIndex].lightVolumes.Count == m_TotalLightCount);
-                    m_lightList.lightsPerView[0].lightVolumes.AddRange(m_lightList.lightsPerView[viewIndex].lightVolumes);
-                }
-
+                /* ---------------------------- Step 3 ---------------------------- */
 
                 // Note: Light with null intensity/Color are culled by the C++, no need to test it here
                 if (cullResults.visibleLights.Length != 0)
                 {
-                    PrepareGPULightdata(cmd, hdCamera, cullResults, processedLightCount);
+                    PrepareGPULightData(cmd, hdCamera, cullResults);
 
                     // Update the compute buffer with the shadow request datas
                     m_ShadowManager.PrepareGPUShadowDatas(cullResults, hdCamera);
@@ -2862,19 +2968,47 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (cullResults.visibleReflectionProbes.Length != 0 || hdProbeCullingResults.visibleProbes.Count != 0)
                 {
-                    PrepareGPUProbeData(cmd, hdCamera, cullResults, hdProbeCullingResults, processedProbesCount);
+                    PrepareGPUProbeData(cmd, hdCamera, cullResults, hdProbeCullingResults);
                 }
 
-                for (int i = 0, n = m_BoundedEntityCollection.decalCount; i < n; i++)
+                // Decals.
+                for (int viewIndex = 0; viewIndex < xrViewCount; viewIndex++)
                 {
-                    for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
+                    int start = m_BoundedEntityCollection.GetEntitySortKeyArrayOffset(BoundedEntityCategory.Decal);
+                    int count = m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.Decal);
+
+                    for (int sortIndex = start; sortIndex < (start + count); ++sortIndex)
                     {
-                        m_lightList.lightsPerView[viewIndex].bounds.Add(DecalSystem.m_Bounds[i]);
-                        m_lightList.lightsPerView[viewIndex].lightVolumes.Add(DecalSystem.m_LightVolumes[i]);
+                        BoundedEntitySortingKeyLayout layout = GeBoundedEntitySortingKeyLayoutLayout();
+
+                        ulong sortKey = m_BoundedEntityCollection.GetEntitySortKey(viewIndex, sortIndex);
+
+                        var category   = (BoundedEntityCategory)((sortKey >> layout.categoryOffset) & ((1ul << layout.categoryBitCount) - 1));
+                        var decalIndex = (int)                  ((sortKey >> layout.indexOffset)    & ((1ul << layout.indexBitCount)    - 1));
+
+                        Debug.Assert(category == BoundedEntityCategory.Decal);
+
+                        FiniteLightBound bounds = DecalSystem.m_Bounds[decalIndex];
+
+                        if (viewIndex > 0) // This is quite suboptimal...
+                        {
+                            Matrix4x4 viewMatrixEye0     = GetWorldToViewMatrix(hdCamera, 0);        
+                            Matrix4x4 viewMatrixEyeI     = GetWorldToViewMatrix(hdCamera, viewIndex);
+                            Matrix4x4 viewTransferMatrix = viewMatrixEyeI * viewMatrixEye0.inverse;
+
+                            bounds.boxAxisX = viewTransferMatrix.MultiplyVector(bounds.boxAxisX);
+                            bounds.boxAxisY = viewTransferMatrix.MultiplyVector(bounds.boxAxisY);
+                            bounds.boxAxisZ = viewTransferMatrix.MultiplyVector(bounds.boxAxisZ);
+                            bounds.center   = viewTransferMatrix.MultiplyPoint(bounds.center);
+                        }
+
+                        m_BoundedEntityCollection.AddEntityData(viewIndex, BoundedEntityCategory.Decal, DecalSystem.m_DecalDatas[decalIndex]);
+                        m_BoundedEntityCollection.AddEntityBounds(viewIndex, BoundedEntityCategory.Decal, bounds);
                     }
                 }
 
-                for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
+                // Density volumes.
+                for (int viewIndex = 0; viewIndex < xrViewCount; viewIndex++)
                 {
                     Matrix4x4 worldToViewCR = GetWorldToViewMatrix(hdCamera, viewIndex);
 
@@ -2884,13 +3018,41 @@ namespace UnityEngine.Rendering.HighDefinition
                         worldToViewCR.SetColumn(3, new Vector4(0, 0, 0, 1));
                     }
 
-                    for (int i = 0, n = m_BoundedEntityCollection.densityVolumeCount; i < n; i++)
+                    int start = m_BoundedEntityCollection.GetEntitySortKeyArrayOffset(BoundedEntityCategory.DensityVolume);
+                    int count = m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.DensityVolume);
+
+                    for (int sortIndex = start; sortIndex < (start + count); ++sortIndex)
                     {
+                        BoundedEntitySortingKeyLayout layout = GeBoundedEntitySortingKeyLayoutLayout();
+
+                        ulong sortKey = m_BoundedEntityCollection.GetEntitySortKey(viewIndex, sortIndex);
+
+                        var category           = (BoundedEntityCategory)((sortKey >> layout.categoryOffset) & ((1ul << layout.categoryBitCount) - 1));
+                        var densityVolumeIndex = (int)                  ((sortKey >> layout.indexOffset)    & ((1ul << layout.indexBitCount)    - 1));
+
+                        Debug.Assert(category == BoundedEntityCategory.DensityVolume);
+
+
                         // Density volumes are not lights and therefore should not affect light classification.
                         LightFeatureFlags featureFlags = 0;
-                        AddBoxVolumeDataAndBound(densityVolumes.bounds[i], BoundedEntityCategory.DensityVolume, featureFlags, worldToViewCR, viewIndex);
+                        FiniteLightBound bounds = AddBoxVolumeDataAndBound(densityVolumes.bounds[densityVolumeIndex], BoundedEntityCategory.DensityVolume, featureFlags, worldToViewCR, viewIndex);
+
+                        m_BoundedEntityCollection.AddEntityData(viewIndex, BoundedEntityCategory.DensityVolume, DecalSystem.m_DecalDatas[densityVolumeIndex]);
+                        m_BoundedEntityCollection.AddEntityBounds(viewIndex, BoundedEntityCategory.DensityVolume, bounds);
                     }
                 }
+
+                //// Aggregate the remaining views into the first entry of the list (view 0)
+                //for (int viewIndex = 1; viewIndex < hdCamera.viewCount; ++viewIndex)
+                //{
+                //    Debug.Assert(m_lightList.lightsPerView[viewIndex].bounds.Count == m_TotalLightCount);
+                //    m_lightList.lightsPerView[0].bounds.AddRange(m_lightList.lightsPerView[viewIndex].bounds);
+
+                //    Debug.Assert(m_lightList.lightsPerView[viewIndex].lightVolumes.Count == m_TotalLightCount);
+                //    m_lightList.lightsPerView[0].lightVolumes.AddRange(m_lightList.lightsPerView[viewIndex].lightVolumes);
+                //}
+
+                /* ---------------------------- Step 4 ---------------------------- */
 
                 UpdateDataBuffers();
 
@@ -2933,17 +3095,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (hdLightData.areaLightShape == AreaLightShape.Rectangle)
                         m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.areaLightCookie);
                     break;
-            }
-        }
-
-        internal void UpdateEnvLighCameraRelativetData(ref EnvLightData envLightData, Vector3 camPosWS)
-        {
-            if (ShaderConfig.s_CameraRelativeRendering != 0)
-            {
-                // Caution: 'EnvLightData.positionRWS' is camera-relative after this point.
-                envLightData.capturePositionRWS -= camPosWS;
-                envLightData.influencePositionRWS -= camPosWS;
-                envLightData.proxyPositionRWS -= camPosWS;
             }
         }
 

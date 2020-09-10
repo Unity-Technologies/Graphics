@@ -20,9 +20,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Currently not supported in real time (just use for reference)
         Disc,
         // Sphere,
-        ReflectionSphere,
-        ReflectionBox,
-        ReflectionPlanar,
+        CubemapReflection,
+        PlanarReflection,
         Count
     };
 
