@@ -124,7 +124,7 @@ namespace UnityEngine.Rendering.Universal
 
         protected override void Render(ScriptableRenderContext renderContext, List<Camera> cameras)
         {
-            BeginFrameRendering(renderContext, cameras);
+            BeginContextRendering(renderContext, cameras);
 
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
@@ -152,7 +152,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            EndFrameRendering(renderContext, cameras);
+            EndContextRendering(renderContext, cameras);
         }
 
         /// <summary>
