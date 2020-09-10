@@ -1,6 +1,6 @@
 abv: # specify the editor versions for which to create the expression trigger for all_project_ci job
   trigger_editors:
-    - fast-trunk
+    - trunk
   projects:
     - name: Universal
     - name: ShaderGraph
@@ -55,7 +55,7 @@ smoke_test: # specifications for smoke tests
     - playmode
     - editmode
 trunk_verification: # jobs to include in trunk verification job
-  dependencies:
+  dependencies:          
     - project: Universal
       platform: Win
       api: DX11

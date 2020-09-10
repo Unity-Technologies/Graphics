@@ -42,6 +42,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 for (var i = 0; i < shapeEditor.pointCount; ++i)
                     pointsProperty.GetArrayElementAtIndex(i).vector3Value = shapeEditor.GetPoint(i).position;
 
+                ((Light2D)(serializedObject.targetObject)).UpdateMesh();
+
                 // This is untracked right now...
                 serializedObject.ApplyModifiedProperties();
             }
@@ -561,12 +563,16 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             serializedObject.Update();
 
+            var meshChanged = false;
             Rect lightTypeRect = EditorGUILayout.GetControlRect();
             EditorGUI.BeginProperty(lightTypeRect, GUIContent.none, m_LightType);
             EditorGUI.BeginChangeCheck();
             int newLightType = EditorGUI.Popup(lightTypeRect, Styles.generalLightType, m_LightType.intValue, Styles.lightTypeOptions);
             if (EditorGUI.EndChangeCheck())
+            {
                 m_LightType.intValue = newLightType;
+                meshChanged = true;
+            }
             EditorGUI.EndProperty();
 
             switch (m_LightType.intValue)
@@ -604,7 +610,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             if (m_LightType.intValue != (int)Light2D.LightType.Global)
             {
-                
+
                 EditorGUILayout.PropertyField(m_UseNormalMap, Styles.generalUseNormalMap);
 
                 if (m_UseNormalMap.boolValue)
@@ -633,7 +639,11 @@ namespace UnityEditor.Experimental.Rendering.Universal
             }
 
             AnalyticsTrackChanges(serializedObject);
-            serializedObject.ApplyModifiedProperties();
+            if (serializedObject.ApplyModifiedProperties())
+            {
+                if(meshChanged)
+                    lightObject.UpdateMesh();
+            }
         }
 
     }
