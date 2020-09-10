@@ -351,7 +351,6 @@ namespace UnityEditor.Rendering.Universal
                     if (hashedUrps.Contains(dependencyPath))
                     {
                         var urp = AssetDatabase.LoadAssetAtPath(dependencyPath, typeof(UniversalRenderPipelineAsset)) as UniversalRenderPipelineAsset;
-                        Debug.Log($@"ADDING {dependencyPath} {urp}");
                         urps.Add(urp);
                     }
                 }
