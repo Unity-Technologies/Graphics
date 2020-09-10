@@ -269,18 +269,18 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal GraphicsFormat GetGBufferFormat(int index)
         {
-            if (index == GBufferAlbedoIndex)
-                return GraphicsFormat.R8G8B8A8_SRGB;    // albedo          albedo          albedo          materialFlags       (sRGB rendertarget)
-            else if (index == GBufferSpecularMetallicIndex)
-                return GraphicsFormat.R8G8B8A8_SRGB;    // specular        specular        specular        [unused]        (sRGB rendertarget)
+            if (index == GBufferAlbedoIndex) // sRGB albedo, materialFlags
+                return QualitySettings.activeColorSpace == ColorSpace.Linear ? GraphicsFormat.R8G8B8A8_SRGB : GraphicsFormat.R8G8B8A8_UNorm;
+            else if (index == GBufferSpecularMetallicIndex) // sRGB specular, [unused]
+                return QualitySettings.activeColorSpace == ColorSpace.Linear ? GraphicsFormat.R8G8B8A8_SRGB : GraphicsFormat.R8G8B8A8_UNorm;    
             else if (index == GBufferNormalSmoothnessIndex)
                 return this.AccurateGbufferNormals ? GraphicsFormat.R8G8B8A8_UNorm : GraphicsFormat.R8G8B8A8_SNorm; // normal normal normal packedSmoothness
-            else if (index == GBufferLightingIndex)
-                return GraphicsFormat.None;             // Emissive+baked: Most likely B10G11R11_UFloatPack32 or R16G16B16A16_SFloat
-            else if (index == GbufferDepthIndex)
-                return GraphicsFormat.R32_SFloat;       // Render-pass on mobiles: reading back real depth-buffer is either inefficient (Arm Vulkan) or impossible (Metal).
-            else if (index == GBufferShadowMask)
-                return GraphicsFormat.R8G8B8A8_UNorm;   // Optional: shadow mask is outputed in mixed lighting subtractive mode for non-static meshes only
+            else if (index == GBufferLightingIndex) // Emissive+baked: Most likely B10G11R11_UFloatPack32 or R16G16B16A16_SFloat
+                return GraphicsFormat.None;
+            else if (index == GbufferDepthIndex) // Render-pass on mobiles: reading back real depth-buffer is either inefficient (Arm Vulkan) or impossible (Metal).
+                return GraphicsFormat.R32_SFloat;
+            else if (index == GBufferShadowMask) // Optional: shadow mask is outputed in mixed lighting subtractive mode for non-static meshes only
+                return GraphicsFormat.R8G8B8A8_UNorm;
             else
                 return GraphicsFormat.None;
         }
