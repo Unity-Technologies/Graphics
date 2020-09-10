@@ -529,7 +529,7 @@ namespace UnityEditor.VFX
             return combine;
         }
 
-        static public VFXExpression BuildRandom(VFXSeedMode seedMode, bool constant, VFXExpression seed = null)
+        static public VFXExpression BuildRandom(VFXSeedMode seedMode, bool constant, RandId randId, VFXExpression seed = null)
         {
             if (seedMode == VFXSeedMode.PerParticleStrip || constant)
             {
@@ -537,7 +537,7 @@ namespace UnityEditor.VFX
                     throw new ArgumentNullException("seed");
                 return FixedRandom(seed, seedMode);
             }
-            return new VFXExpressionRandom(seedMode == VFXSeedMode.PerParticle);
+            return new VFXExpressionRandom(seedMode == VFXSeedMode.PerParticle, randId);
         }
 
         static public VFXExpression FixedRandom(uint hash, VFXSeedMode mode)
