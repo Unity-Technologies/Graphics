@@ -1,6 +1,7 @@
 using UnityEngine;
-using UnityEditor.AssetImporters;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
+using UnityEditor.AssetImporters;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -19,6 +20,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public void OnPreprocessMaterialDescription(MaterialDescription description, Material material, AnimationClip[] clips)
         {
+            if (GraphicsSettings.currentRenderPipeline.GetType() != typeof(HDRenderPipelineAsset))
+                return;
+
             if (IsAutodeskInteractiveMaterial(description))
             {
                 float floatProperty;

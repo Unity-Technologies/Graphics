@@ -1,6 +1,7 @@
 using UnityEditor.Experimental;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 #if UNITY_2020_2_OR_NEWER
 using UnityEditor.AssetImporters;
 #else
@@ -49,6 +50,9 @@ namespace UnityEditor.Rendering.Universal
 
         public void OnPreprocessMaterialDescription(MaterialDescription description, Material material, AnimationClip[] clips)
         {
+            if (GraphicsSettings.currentRenderPipeline.GetType() != typeof(UniversalRenderPipelineAsset))
+                return;
+
             if (Is3DsMaxPhysicalMaterial(description))
             {
                 CreateFrom3DsPhysicalMaterial(description, material, clips);

@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.IO;
 using UnityEngine;
 using UnityEditor.AssetImporters;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
@@ -23,6 +24,9 @@ namespace UnityEditor.Rendering.Universal
 
         public void OnPreprocessMaterialDescription(MaterialDescription description, Material material, AnimationClip[] clips)
         {
+            if (GraphicsSettings.currentRenderPipeline.GetType() != typeof(UniversalRenderPipelineAsset))
+                return;
+
             var lowerCasePath = Path.GetExtension(assetPath).ToLower();
             if (lowerCasePath != ".3ds")
                 return;

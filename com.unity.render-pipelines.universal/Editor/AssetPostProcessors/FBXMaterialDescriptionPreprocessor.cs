@@ -1,6 +1,7 @@
 using System.IO;
 using UnityEditor.AssetImporters;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
@@ -21,6 +22,9 @@ namespace UnityEditor.Rendering.Universal
 
         public void OnPreprocessMaterialDescription(MaterialDescription description, Material material, AnimationClip[] clips)
         {
+            if (GraphicsSettings.currentRenderPipeline.GetType() != typeof(UniversalRenderPipelineAsset))
+                return;
+
             var lowerCaseExtension = Path.GetExtension(assetPath).ToLower();
             if (lowerCaseExtension != ".fbx" && lowerCaseExtension != ".obj" && lowerCaseExtension != ".blend" && lowerCaseExtension != ".mb" && lowerCaseExtension != ".ma" && lowerCaseExtension != ".max")
                 return;
