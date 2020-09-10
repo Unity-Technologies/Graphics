@@ -201,7 +201,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new LightUnitSliderUIRange(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures.iconOvercastSky,   LightUnitTooltips.k_TemperatureCloudySky,      new Vector2(6500,  10000)),
                 new LightUnitSliderUIRange(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures.iconDirectSunlight,LightUnitTooltips.k_TemperatureDirectSunlight, new Vector2(3500,   6500)),
                 new LightUnitSliderUIRange(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures.iconExterior,      LightUnitTooltips.k_TemperatureArtificial,     new Vector2(2500,   3500)),
-                new LightUnitSliderUIRange(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures.iconCandle,        LightUnitTooltips.k_ExposureMoonlitSky,        new Vector2(1500,   2500)),
+                new LightUnitSliderUIRange(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures.iconCandle,        LightUnitTooltips.k_TemperatureCandle,        new Vector2(1500,   2500)),
             };
         }
     }
