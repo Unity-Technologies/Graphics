@@ -312,7 +312,10 @@ namespace UnityEngine.Rendering.Universal
             // Dispose all renderer features...
             for (int i = 0; i < m_RendererFeatures.Count; ++i)
             {
-                rendererFeatures[i]?.Dispose();
+                if (rendererFeatures[i] == null)
+                    continue;
+
+                rendererFeatures[i].Dispose();
             }
 
             Dispose(true);
