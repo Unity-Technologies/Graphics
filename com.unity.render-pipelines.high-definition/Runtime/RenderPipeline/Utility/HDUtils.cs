@@ -670,20 +670,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static bool IsQuaternionValid(Quaternion q)
             => (q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]) > float.Epsilon;
 
-        // Note: If you add new platform in this function, think about adding support in IsSupportedBuildTarget() function below
-        internal static bool IsSupportedGraphicDevice(GraphicsDeviceType graphicDevice)
-        {
-            return (graphicDevice == GraphicsDeviceType.Direct3D11 ||
-                    graphicDevice == GraphicsDeviceType.Direct3D12 ||
-                    graphicDevice == GraphicsDeviceType.PlayStation4 ||
-                    graphicDevice == GraphicsDeviceType.XboxOne ||
-                    graphicDevice == GraphicsDeviceType.XboxOneD3D12 ||
-                    graphicDevice == GraphicsDeviceType.Metal ||
-                    graphicDevice == GraphicsDeviceType.Vulkan
-                    // Switch isn't supported currently (19.3)
-                    /* || graphicDevice == GraphicsDeviceType.Switch */);
-        }
-
         internal static void CheckRTCreated(RenderTexture rt)
         {
             // In some cases when loading a project for the first time in the editor, the internal resource is destroyed.
@@ -716,6 +702,19 @@ namespace UnityEngine.Rendering.HighDefinition
                                ComputeViewportLimit(viewportSize.y, bufferSize.y)); // Limit(y)
         }
 
+        // Note: If you add new platform in this function, think about adding support in IsSupportedBuildTarget() function below
+        internal static bool IsSupportedGraphicDevice(GraphicsDeviceType graphicDevice)
+        {
+            return (graphicDevice == GraphicsDeviceType.Direct3D11 ||
+                    graphicDevice == GraphicsDeviceType.Direct3D12 ||
+                    graphicDevice == GraphicsDeviceType.PlayStation4 ||
+                    graphicDevice == GraphicsDeviceType.XboxOne ||
+                    graphicDevice == GraphicsDeviceType.XboxOneD3D12 ||
+                    graphicDevice == GraphicsDeviceType.Metal ||
+                    graphicDevice == GraphicsDeviceType.Vulkan
+                    // Switch isn't supported currently (19.3)
+                    /* || graphicDevice == GraphicsDeviceType.Switch */);
+        }
 
 #if UNITY_EDITOR
         // This function can't be in HDEditorUtils because we need it in HDRenderPipeline.cs (and HDEditorUtils is in an editor asmdef)
@@ -728,9 +727,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     buildTarget == UnityEditor.BuildTarget.StandaloneOSX ||
                     buildTarget == UnityEditor.BuildTarget.WSAPlayer ||
                     buildTarget == UnityEditor.BuildTarget.XboxOne ||
-                    buildTarget == UnityEditor.BuildTarget.PS4 ||
-                    buildTarget == UnityEditor.BuildTarget.iOS ||
-                    buildTarget == UnityEditor.BuildTarget.Switch);
+                    buildTarget == UnityEditor.BuildTarget.PS4 /* ||
+                    buildTarget == UnityEditor.BuildTarget.iOS || // IOS isn't supported
+                    buildTarget == UnityEditor.BuildTarget.Switch*/ ); // Switch isn't supported
         }
 
         internal static bool AreGraphicsAPIsSupported(UnityEditor.BuildTarget target, out GraphicsDeviceType unsupportedGraphicDevice)
@@ -763,6 +762,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 default:
                     return OperatingSystemFamily.Other;
             }
+        }
+
+        internal static bool IsSupportedBuildTargetAndDevice(UnityEditor.BuildTarget activeBuildTarget, out GraphicsDeviceType unsupportedGraphicDevice)
+        {
+            unsupportedGraphicDevice = SystemInfo.graphicsDeviceType;
+
+            // If the build target matches the operating system of the editor
+            // and if the graphic api is chosen automatically, then only the system's graphic device type matters
+            // otherwise, we need to iterate over every graphic api available in the list to track every non-supported APIs
+            // if the build target does not match the editor OS, then we have to check using the graphic api list
+            bool autoAPI = UnityEditor.PlayerSettings.GetUseDefaultGraphicsAPIs(activeBuildTarget) && (SystemInfo.operatingSystemFamily == HDUtils.BuildTargetToOperatingSystemFamily(activeBuildTarget));
+
+            if (autoAPI ? HDUtils.IsSupportedGraphicDevice(SystemInfo.graphicsDeviceType) : HDUtils.AreGraphicsAPIsSupported(activeBuildTarget, out unsupportedGraphicDevice)
+                && HDUtils.IsSupportedBuildTarget(activeBuildTarget)
+                && HDUtils.IsOperatingSystemSupported(SystemInfo.operatingSystem))
+                return true;
+
+            return false;
         }
 
 #endif
@@ -1090,19 +1107,27 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
-        internal static void DisplayUnsupportedAPIMessage(string graphicAPI = null)
+        internal static void DisplayUnsupportedAPIMessage(string graphicAPI)
         {
             // If we are in the editor they are many possible targets that does not matches the current OS so we use the active build target instead
 #if UNITY_EDITOR
             var buildTarget = UnityEditor.EditorUserBuildSettings.activeBuildTarget;
             string currentPlatform = buildTarget.ToString();
-            graphicAPI = graphicAPI ?? UnityEditor.PlayerSettings.GetGraphicsAPIs(buildTarget).First().ToString();
 #else
             string currentPlatform = SystemInfo.operatingSystem;
-            graphicAPI = graphicAPI ?? SystemInfo.graphicsDeviceType.ToString();
 #endif
 
-            string msg = "Platform " + currentPlatform + " with device " + graphicAPI + " is not supported with High Definition Render Pipeline, no rendering will occur";
+            string msg = "Platform " + currentPlatform + " with graphic API " + graphicAPI + " is not supported with High Definition Render Pipeline, please change the platform/device to a compatible one\n or remove incompatible graphics APIs from the graphics API list in Project Settings -> Player, no rendering will occur.";
+
+            // Display more information to the users when it should have use Metal instead of OpenGL
+            if (graphicAPI.StartsWith("OpenGL"))
+            {
+                if (SystemInfo.operatingSystem.StartsWith("Mac"))
+                    msg += " Use Metal graphic API instead.";
+                else if (SystemInfo.operatingSystem.StartsWith("Windows"))
+                    msg += " Use Vulkan graphic API instead.";
+            }
+
             DisplayUnsupportedMessage(msg);
         }
 
