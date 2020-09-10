@@ -2258,7 +2258,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             if (m_EnableRenderGraph)
-                m_RenderGraph.PurgeUnusedResources();
+                m_RenderGraph.EndFrame();
             m_XRSystem.ReleaseFrame();
             UnityEngine.Rendering.RenderPipeline.EndFrameRendering(renderContext, cameras);
         }

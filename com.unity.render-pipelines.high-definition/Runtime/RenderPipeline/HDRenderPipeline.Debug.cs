@@ -126,6 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     in BuildGPULightListOutput  lightLists,
                                     in ShadowResult             shadowResult)
         {
+            // TODO RENDERGRAPH: Split this into several passes to not run them if unneeded... Currently this wrongly extends a lot of resources lifetime.
             using (var builder = renderGraph.AddRenderPass<RenderDebugOverlayPassData>("DebugOverlay", out var passData))
             {
                 passData.debugParameters = debugParameters;
