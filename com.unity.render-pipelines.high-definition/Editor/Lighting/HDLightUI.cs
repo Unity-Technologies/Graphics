@@ -644,7 +644,33 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         EditorGUI.indentLevel += 1;
                         EditorGUILayout.PropertyField(serialized.settings.color, s_Styles.colorFilter);
-                        SliderWithTexture(s_Styles.colorTemperature, serialized.settings.colorTemperature, serialized.settings);
+
+                        // Light unit slider
+                        const int k_ValueUnitSeparator = 2;
+                        var lineRect = EditorGUILayout.GetControlRect();
+                        var labelRect = lineRect;
+                        labelRect.width = EditorGUIUtility.labelWidth;
+                        EditorGUI.LabelField(labelRect, s_Styles.colorTemperature);
+
+                        var temperatureSliderRect = lineRect;
+                        temperatureSliderRect.x += EditorGUIUtility.labelWidth + k_ValueUnitSeparator;
+                        temperatureSliderRect.width -= EditorGUIUtility.labelWidth + k_ValueUnitSeparator;
+                        s_LightUnitSliderUIDrawer.DrawTemperatureSlider(serialized.settings, serialized.settings.colorTemperature, temperatureSliderRect);
+
+                        // Value and unit label
+                        // Match const defined in EditorGUI.cs
+                        const int k_IndentPerLevel = 15;
+                        const int k_UnitWidth = 100 + k_IndentPerLevel;
+                        int indent = k_IndentPerLevel * EditorGUI.indentLevel;
+                        Rect valueRect = EditorGUILayout.GetControlRect();
+                        valueRect.width += indent - k_ValueUnitSeparator - k_UnitWidth;
+                        Rect unitRect = valueRect;
+                        unitRect.x += valueRect.width - indent + k_ValueUnitSeparator;
+                        unitRect.width = k_UnitWidth + .5f;
+
+                        EditorGUI.PropertyField(valueRect, serialized.settings.colorTemperature, s_Styles.empty);
+                        EditorGUI.Popup(unitRect, 0, new[] {"Kelvin"});
+
                         EditorGUI.indentLevel -= 1;
                     }
                     else
