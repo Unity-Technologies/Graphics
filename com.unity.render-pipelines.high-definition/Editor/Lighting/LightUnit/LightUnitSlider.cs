@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
+﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
-using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -192,7 +187,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public ExponentialLightUnitSlider(LightUnitSliderUIDescriptor descriptor) : base(descriptor)
         {
-            var halfValue = 10000f; // TODO: Compute the median
+            var halfValue = 300; // TODO: Compute the median
             PrepareExponentialConstraints(m_Descriptor.sliderRange.x, halfValue, m_Descriptor.sliderRange.y);
         }
 
@@ -208,7 +203,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         float ExponentialSlider(Rect rect, float value)
         {
-            float internalValue = GUI.HorizontalSlider(rect, ValueToSlider(value), 0f, 1f);
+            var internalValue = GUI.HorizontalSlider(rect, ValueToSlider(value), 0f, 1f, GUI.skin.horizontalSlider, GUI.skin.horizontalSliderThumb);
 
             return SliderToValue(internalValue);
         }
@@ -216,12 +211,55 @@ namespace UnityEditor.Rendering.HighDefinition
 
     class TemperatureSlider : LightUnitSlider
     {
-        public TemperatureSlider(LightUnitSliderUIDescriptor descriptor) : base(descriptor)
-        {
+        private LightEditor.Settings m_Settings;
 
+        private readonly float m_MinKelvin;
+        private readonly float m_MaxKelvin;
+
+        private static Texture2D s_KelvinGradientTexture;
+
+        static Texture2D GetKelvinGradientTexture(LightEditor.Settings settings)
+        {
+            if (s_KelvinGradientTexture == null)
+            {
+                var kelvinTexture = (Texture2D)typeof(LightEditor.Settings).GetField("m_KelvinGradientTexture", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(settings);
+
+                // This seems to be the only way to gamma-correct the internal gradient tex (aside from drawing it manually).
+                var kelvinTextureLinear = new Texture2D(kelvinTexture.width, kelvinTexture.height, TextureFormat.RGBA32, true);
+                kelvinTextureLinear.SetPixels(kelvinTexture.GetPixels());
+                kelvinTextureLinear.Apply();
+
+                s_KelvinGradientTexture = kelvinTextureLinear;
+            }
+
+            return s_KelvinGradientTexture;
         }
 
+        public TemperatureSlider(LightUnitSliderUIDescriptor descriptor) : base(descriptor)
+        {
+            m_MinKelvin = (float)typeof(LightEditor.Settings).GetField("kMinKelvin", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).GetRawConstantValue();
+            m_MaxKelvin = (float)typeof(LightEditor.Settings).GetField("kMaxKelvin", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).GetRawConstantValue();
+        }
 
+        public void SetLightSettings(LightEditor.Settings settings)
+        {
+            m_Settings = settings;
+        }
+
+        protected override void DoSlider(Rect rect, SerializedProperty value, Vector2 range)
+        {
+            SliderWithTextureNoTexField(value, rect, m_Settings);
+        }
+
+        // Note: We could use the internal SliderWithTexture, however: the internal slider func forces a text-field (and no ability to opt-out of it).
+        void SliderWithTextureNoTexField(SerializedProperty value, Rect rect, LightEditor.Settings settings)
+        {
+            GUI.DrawTexture(rect, GetKelvinGradientTexture(settings));
+
+            var sliderBorder = new GUIStyle("ColorPickerSliderBackground");
+            var sliderThumb = new GUIStyle("ColorPickerHorizThumb");
+            value.floatValue = GUI.HorizontalSlider(rect, value.floatValue, m_MinKelvin, m_MaxKelvin, sliderBorder, sliderThumb);
+        }
     }
 
     internal class LightUnitSliderUIDrawer
@@ -271,11 +309,12 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.indentLevel = prevIndentLevel;
         }
 
-        public void DrawTemperatureSlider(SerializedProperty value, Rect rect)
+        public void DrawTemperatureSlider(LightEditor.Settings settings, SerializedProperty value, Rect rect)
         {
             var prevIndentLevel = EditorGUI.indentLevel;
             EditorGUI.indentLevel = 0;
             {
+                s_TemperatureSlider.SetLightSettings(settings);
                 s_TemperatureSlider.Draw(rect, value);
             }
             EditorGUI.indentLevel = prevIndentLevel;
