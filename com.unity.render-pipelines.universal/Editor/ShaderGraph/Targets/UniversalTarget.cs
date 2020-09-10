@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -49,6 +50,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public const string kPipelineTag = "UniversalPipeline";
         public const string kLitMaterialTypeTag = "\"UniversalMaterialType\" = \"Lit\"";
         public const string kUnlitMaterialTypeTag = "\"UniversalMaterialType\" = \"Unlit\"";
+
+        internal const string kTemplatePath = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates/";
+        internal const string kTemplateFilePath = kTemplatePath + "UniversalShaderPass.template";
 
         // SubTarget
         List<SubTarget> m_SubTargets;
@@ -337,7 +341,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             useInPreview = true,
 
             // Template
-            passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+            passTemplatePath = UniversalTarget.kTemplateFilePath,
             sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
             // Port Mask
@@ -362,7 +366,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             lightMode = "ShadowCaster",
 
             // Template
-            passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+            passTemplatePath = UniversalTarget.kTemplateFilePath,
             sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
             // Port Mask
@@ -444,13 +448,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
 #region RenderStates
     static class CoreRenderStates
-    {
+            {
         public static readonly RenderStateCollection Default = new RenderStateCollection
         {
-            { RenderState.ZTest(ZTest.LEqual) },
-            { RenderState.ZWrite(ZWrite.On), new FieldCondition(UniversalFields.SurfaceOpaque, true) },
-            { RenderState.ZWrite(ZWrite.Off), new FieldCondition(UniversalFields.SurfaceTransparent, true) },
-            { RenderState.Cull(Cull.Back), new FieldCondition(Fields.DoubleSided, false) },
+            {RenderState.ZTest(ZTest.LEqual)},
+            {RenderState.ZWrite(ZWrite.On), new FieldCondition(UniversalFields.SurfaceOpaque, true)},
+            {RenderState.ZWrite(ZWrite.Off), new FieldCondition(UniversalFields.SurfaceTransparent, true)},
+            {RenderState.Cull(Cull.Back), new FieldCondition(Fields.DoubleSided, false)},
             { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
             { RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(UniversalFields.SurfaceOpaque, true) },
             { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(Fields.BlendAlpha, true) },

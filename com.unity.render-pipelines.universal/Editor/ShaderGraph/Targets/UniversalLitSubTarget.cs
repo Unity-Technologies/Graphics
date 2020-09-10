@@ -381,7 +381,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 useInPreview = true,
 
                 // Template
-                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                passTemplatePath = UniversalTarget.kTemplateFilePath,
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port Mask
@@ -409,7 +409,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 useInPreview = true,
 
                 // Template
-                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                passTemplatePath = UniversalTarget.kTemplateFilePath,
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port Mask
@@ -437,7 +437,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 lightMode = "UniversalGBuffer",
 
                 // Template
-                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                passTemplatePath = UniversalTarget.kTemplateFilePath,
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port Mask
@@ -464,7 +464,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 lightMode = "Meta",
 
                 // Template
-                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                passTemplatePath = UniversalTarget.kTemplateFilePath,
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port Mask
@@ -490,7 +490,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 lightMode = "Universal2D",
 
                 // Template
-                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                passTemplatePath = UniversalTarget.kTemplateFilePath,
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port Mask
@@ -516,7 +516,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 useInPreview = false,
 
                 // Template
-                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                passTemplatePath = UniversalTarget.kTemplateFilePath,
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port Mask

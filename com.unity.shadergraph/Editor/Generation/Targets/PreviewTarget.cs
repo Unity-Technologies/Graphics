@@ -46,7 +46,7 @@ namespace UnityEditor.ShaderGraph
                 passes = new PassCollection { Passes.Preview },
             };
         }
-        
+
         static class Passes
         {
             public static PassDescriptor Preview = new PassDescriptor()
@@ -56,7 +56,7 @@ namespace UnityEditor.ShaderGraph
                 useInPreview = true,
 
                 // Templates
-                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),    // TODO: should be really using SRP specific preview
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Collections
