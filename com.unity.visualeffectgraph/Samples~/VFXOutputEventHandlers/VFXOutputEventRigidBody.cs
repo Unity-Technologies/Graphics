@@ -7,6 +7,7 @@ namespace UnityEngine.VFX.Utility
     [RequireComponent(typeof(VisualEffect))]
     public class VFXOutputEventRigidBody : VFXOutputEventHandler
     {
+        public override bool canExecuteInEditor => false;
         public enum Space
         {
             Local,

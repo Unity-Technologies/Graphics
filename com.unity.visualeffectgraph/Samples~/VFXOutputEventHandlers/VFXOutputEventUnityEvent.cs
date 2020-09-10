@@ -6,6 +6,8 @@ namespace UnityEngine.VFX.Utility
     [RequireComponent(typeof(VisualEffect))]
     public class VFXOutputEventUnityEvent : VFXOutputEventHandler
     {
+        public override bool canExecuteInEditor => false;
+
         public UnityEvent onEvent;
         public override void OnVFXOutputEvent(VFXEventAttribute eventAttribute)
         {

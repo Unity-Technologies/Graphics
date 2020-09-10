@@ -4,6 +4,7 @@ namespace UnityEngine.VFX.Utility
     [RequireComponent(typeof(VisualEffect))]
     public abstract class VFXOutputEventHandler : MonoBehaviour
     {
+        public abstract bool canExecuteInEditor { get; }
         public bool executeInEditor = true;
 
         public ExposedProperty outputEvent = "OutputEvent";
@@ -28,7 +29,9 @@ namespace UnityEngine.VFX.Utility
 
         void OnOutputEventRecieved(VFXOutputEventArgs args)
         {
-            if (Application.isEditor && !executeInEditor && !Application.isPlaying)
+            if (Application.isEditor
+                && !Application.isPlaying
+                && (!executeInEditor || !canExecuteInEditor))
                 return;
 
             if (args.nameId == outputEvent)

@@ -7,6 +7,8 @@ namespace UnityEngine.VFX.Utility
     [RequireComponent(typeof(VisualEffect))]
     public class VFXOutputEventRerouteVFXEvent : VFXOutputEventHandler
     {
+        public override bool canExecuteInEditor => true;
+
         [SerializeField]
         [Tooltip("The Visual Effect to Reroute the event to")]
         protected VisualEffect targetVisualEffect;

@@ -4,8 +4,10 @@ namespace UnityEngine.VFX.Utility
 {
     [ExecuteAlways]
     [RequireComponent(typeof(VisualEffect))]
-    public class VFXOutputEventPrefabSpawn : VFXOutputEventHandler
+    class VFXOutputEventPrefabSpawn : VFXOutputEventHandler
     {
+        public override bool canExecuteInEditor => true;
+
         public uint instanceCount
         {
             get { return m_InstanceCount; }
@@ -86,9 +88,13 @@ namespace UnityEngine.VFX.Utility
 #endif
         }
 
+        public void ReloadPrefab()
+        {
+            DisposeInstances();
+            ResetInstances();
+        }
 
-
-        private void ResetInstances()
+        void ResetInstances()
         {
             if (m_PrefabToSpawn == null || m_InstanceCount == 0)
             {
