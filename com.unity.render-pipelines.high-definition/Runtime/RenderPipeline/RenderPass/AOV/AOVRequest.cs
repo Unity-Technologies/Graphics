@@ -187,54 +187,60 @@ namespace UnityEngine.Rendering.HighDefinition
                     throw new ArgumentException("Unknown DebugFullScreen");
             }
 
-
-            switch (m_RequestMode)
+            if (m_RequestMode != Camera.RenderRequestMode.None)
             {
-                case Camera.RenderRequestMode.None:
-                    break;
-                case Camera.RenderRequestMode.ObjectId:
-                    //@TODO:
-                    break;
-                case Camera.RenderRequestMode.Depth:
-                    debug.SetFullScreenDebugMode(FullScreenDebugMode.DepthPyramid);
-                    break;
-                case Camera.RenderRequestMode.VertexNormal:
-                    debug.SetDebugViewVarying(DebugViewVarying.VertexNormalWS);
-                    break;
-                case Camera.RenderRequestMode.WorldPosition:
-                    debug.SetFullScreenDebugMode(FullScreenDebugMode.WorldSpacePosition);
-                    break;
-                case Camera.RenderRequestMode.EntityId:
-                    //@TODO:
-                    break;
-                case Camera.RenderRequestMode.BaseColor:
-                    //@TODO: This should perform metallic / specular conversion
-                    debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.Albedo);
-                    break;
-                case Camera.RenderRequestMode.SpecularColor:
-                    debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.Specular);
-                    break;
-                case Camera.RenderRequestMode.Metallic:
-                    debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.Metal);
-                    break;
-                case Camera.RenderRequestMode.Emission:
-                    debug.SetDebugLightingMode(DebugLightingMode.EmissiveLighting);
-                    break;
-                case Camera.RenderRequestMode.Normal:
-                    debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.Normal);
-                    break;
-                case Camera.RenderRequestMode.Smoothness:
-                    debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.Smoothness);
-                    break;
-                case Camera.RenderRequestMode.Occlusion:
-                    debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.AmbientOcclusion);
-                    break;
-                case Camera.RenderRequestMode.DiffuseColor:
-                    //@TODO: This should perform metallic / specular conversion
-                    debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.Albedo);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(m_RequestMode), m_RequestMode, null);
+                debug.SetAllowSRGBConversion(false);
+
+                switch (m_RequestMode)
+                {
+                    case Camera.RenderRequestMode.ObjectId:
+                        //@TODO:
+                        break;
+                    case Camera.RenderRequestMode.Depth:
+                        debug.SetFullScreenDebugMode(FullScreenDebugMode.DepthPyramid);
+                        break;
+                    case Camera.RenderRequestMode.VertexNormal:
+                        debug.SetDebugViewVarying(DebugViewVarying.VertexNormalWS);
+                        break;
+                    case Camera.RenderRequestMode.WorldPosition:
+                        debug.SetFullScreenDebugMode(FullScreenDebugMode.WorldSpacePosition);
+                        break;
+                    case Camera.RenderRequestMode.EntityId:
+                        //@TODO:
+                        break;
+                    case Camera.RenderRequestMode.BaseColor:
+                        //@TODO: This should perform metallic / specular conversion
+                        debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.Albedo);
+                        break;
+                    case Camera.RenderRequestMode.SpecularColor:
+                        debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.Specular);
+                        break;
+                    case Camera.RenderRequestMode.Metallic:
+                        debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.Metal);
+                        break;
+                    case Camera.RenderRequestMode.Emission:
+                        debug.SetDebugLightingMode(DebugLightingMode.EmissiveLighting);
+                        break;
+                    case Camera.RenderRequestMode.Normal:
+                        debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.Normal);
+                        break;
+                    case Camera.RenderRequestMode.Smoothness:
+                        debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.Smoothness);
+                        break;
+                    case Camera.RenderRequestMode.Occlusion:
+                        debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.AmbientOcclusion);
+                        break;
+                    case Camera.RenderRequestMode.DiffuseColor:
+                        //@TODO: This should perform metallic / specular conversion
+                        debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.Albedo);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(m_RequestMode), m_RequestMode, null);
+                }
+            }
+            else
+            {
+                debug.SetAllowSRGBConversion(true);
             }
         }
     }

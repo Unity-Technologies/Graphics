@@ -119,7 +119,7 @@ Shader "Hidden/HDRP/DebugViewMaterialGBuffer"
                     // TEMP!
                     // For now, the final blit in the backbuffer performs an sRGB write
                     // So in the meantime we apply the inverse transform to linear data to compensate.
-                    if (!needLinearToSRGB)
+                    if (!needLinearToSRGB && _DebugAllowsRGBConversion)
                         result = SRGBToLinear(max(0, result));
 
                     return float4(result, 1.0);

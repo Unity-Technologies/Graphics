@@ -763,7 +763,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // We always need this target because there could be a custom pass in after post process mode.
                 // In that case, we need to do the flip y after this pass.
-                m_IntermediateAfterPostProcessBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, useDynamicScale: true, name: "AfterPostProcess"); // Needs to be FP16 because output target might be HDR
+                m_IntermediateAfterPostProcessBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), useDynamicScale: true, name: "AfterPostProcess"); // Needs to be FP16 because output target might be HDR
             }
         }
 
@@ -3075,10 +3075,10 @@ namespace UnityEngine.Rendering.HighDefinition
             var previousRT = RenderTexture.active;
             RenderTexture.active = null;
             if (m_IntermediateAfterPostProcessBufferFloat == null)
-                m_IntermediateAfterPostProcessBufferFloat = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), useDynamicScale: true, name: "AfterPostProcessFloat");
+                m_IntermediateAfterPostProcessBufferFloat = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, useDynamicScale: true, name: "AfterPostProcessFloat");
 
             var previousPostprocessBuffer = m_IntermediateAfterPostProcessBuffer;
-            m_IntermediateAfterPostProcessBuffer = previousPostprocessBuffer;
+            m_IntermediateAfterPostProcessBuffer = m_IntermediateAfterPostProcessBufferFloat;
 
             try
             {
@@ -4975,6 +4975,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._ColorPickerMode = (int)m_CurrentDebugDisplaySettings.GetDebugColorPickerMode();
                 cb._DebugFullScreenMode = (int)m_CurrentDebugDisplaySettings.data.fullScreenDebugMode;
                 cb._DebugProbeVolumeMode = (int)m_CurrentDebugDisplaySettings.GetProbeVolumeDebugMode();
+                cb._DebugAllowsRGBConversion = m_CurrentDebugDisplaySettings.GetAllowSRGBConversion() ? 1 : 0;
 
 #if UNITY_EDITOR
                 cb._MatcapMixAlbedo = HDRenderPipelinePreferences.matcapViewMixAlbedo ? 1 : 0;
