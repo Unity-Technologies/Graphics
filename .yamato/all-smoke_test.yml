@@ -12,15 +12,6 @@ All_Smoke_Test_trunk:
          rerun: on-new-revision
       -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_trunk
          rerun: on-new-revision
-All_Smoke_Test_fast-trunk:
-    name: All Smoke_Test CI - fast-trunk
-    dependencies:
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_editmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_fast-trunk
-         rerun: on-new-revision
 All_Smoke_Test_CUSTOM-REVISION:
     name: All Smoke_Test CI - CUSTOM-REVISION
     dependencies:

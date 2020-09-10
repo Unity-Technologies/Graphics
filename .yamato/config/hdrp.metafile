@@ -15,7 +15,6 @@ platforms:
       - DX12
       - Vulkan
     overrides:
-      #copycmd: jnhuytfrdfghjkiuhytfrdfghjk
       agents_project:
         # default: package_ci_mac
         default:
@@ -67,7 +66,7 @@ all:
     - platform: OSX
       api: Metal
       test_platforms:
-        - Standalone
+        # - Standalone
         - playmode
     - platform: Linux
       api: Vulkan

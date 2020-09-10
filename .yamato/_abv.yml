@@ -20,6 +20,8 @@ all_project_ci_trunk:
          rerun: on-new-revision
       -  path: .yamato/all-vfx_urp.yml#All_VFX_URP_trunk
          rerun: on-new-revision
+    triggers:
+        expression: pull_request.target eq "master" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*", ".github/**/*", "Tools/**/*"]
 all_project_ci_nightly_trunk:
     name: _Nightly ABV against trunk
     dependencies:
@@ -69,46 +71,6 @@ trunk_verification_trunk:
       -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_trunk
          rerun: on-new-revision
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_trunk
-         rerun: on-new-revision
-all_project_ci_fast-trunk:
-    name: _ABV for SRP repository - fast-trunk
-    dependencies:
-      -  path: .yamato/_projectcontext.yml#all_package_ci_project_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/all-smoke_test.yml#All_Smoke_Test_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/all-universal.yml#All_Universal_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/all-shadergraph.yml#All_ShaderGraph_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/all-hdrp.yml#All_HDRP_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/all-vfx_hdrp.yml#All_VFX_HDRP_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/all-vfx_urp.yml#All_VFX_URP_fast-trunk
-         rerun: on-new-revision
-    triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*", ".github/**/*", "Tools/**/*"]
-trunk_verification_fast-trunk:
-    name: Trunk verification - fast-trunk
-    dependencies:
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_fast-trunk
          rerun: on-new-revision
 all_project_ci_CUSTOM-REVISION:
     name: _ABV for SRP repository - CUSTOM-REVISION

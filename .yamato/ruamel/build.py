@@ -11,7 +11,7 @@ from jobs.abv.yml_abv import create_abv_ymls
 from jobs.preview_publish.yml_pb import create_preview_publish_ymls
 from jobs.templates.yml_template import create_template_ymls
 
-root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
+root_dir = os.path.dirname(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 yamato_dir = os.path.join(root_dir,'.yamato')
 config_dir = os.path.join(yamato_dir,'config')
 comment = ''' 
@@ -21,8 +21,9 @@ comment = '''
 \n'''
 
 shared = {}
+latest_editor_versions = {}
 yml_files = {}
-
+       
 def yml_load(filepath):
     with open(filepath) as f:
         return yaml.load(f)
@@ -57,7 +58,7 @@ def add_comments():
 
 def get_metafile(metafile_name, unfold_agents_root_keys=[], unfold_test_platforms_root_keys=[]):
     metafile = yml_load(metafile_name)
-    return format_metafile(metafile, shared, unfold_agents_root_keys, unfold_test_platforms_root_keys)
+    return format_metafile(metafile, shared, latest_editor_versions, unfold_agents_root_keys, unfold_test_platforms_root_keys)
 
 
 if __name__== "__main__":
@@ -68,12 +69,13 @@ if __name__== "__main__":
     yaml.indent(offset=2, mapping=4, sequence=5)
 
     # clear directory from existing yml files, not to have old duplicates etc
-    old_yml_files = glob.glob(os.path.join(yamato_dir,'**/*.yml'), recursive=True)
+    old_yml_files = glob.glob(os.path.join(yamato_dir,'*.yml'), recursive=True)
     for f in old_yml_files:
         os.remove(f)
 
     # read shared file
     shared = yml_load(os.path.join(config_dir,'__shared.metafile'))
+    latest_editor_versions = yml_load(os.path.join(config_dir,'_latest_editor_versions.metafile'))
 
     # create editor
     print(f'Running: editor')
