@@ -348,6 +348,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public ClipInt N;
         public ClipInt X;
         public ClipInt Y;
+        public ClipInt D;
         public double NX;
         public double NY;
 
@@ -355,21 +356,21 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             this.X = X; this.Y = Y;
             this.NX = 0; this.NY = 0;
-            this.N = -1;
+            this.N = -1; this.D = 0;
         }
-
+        
         public IntPoint(double x, double y)
         {
             this.X = (ClipInt)x; this.Y = (ClipInt)y;
             this.NX = 0; this.NY = 0;
-            this.N = -1;
+            this.N = -1; this.D = 0;
         }
 
         public IntPoint(IntPoint pt)
         {
             this.X = pt.X; this.Y = pt.Y;
             this.NX = pt.NX; this.NY = pt.NY;
-            this.N = pt.N;
+            this.N = pt.N; this.D = pt.D;
         }
 
         public static bool operator==(IntPoint a, IntPoint b)
@@ -3171,6 +3172,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 }
             }
             ip.N = pivotPoint;
+            ip.D = 1;
             double b1, b2;
             //nb: with very large coordinate values, it's possible for SlopesEqual() to
             //return false but for the edge.Dx value be equal due to double precision rounding.

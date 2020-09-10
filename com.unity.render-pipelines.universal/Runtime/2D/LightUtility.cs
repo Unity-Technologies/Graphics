@@ -99,7 +99,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private static void FixPivots(List<IntPoint> path, int pathLength)
         {
-            long pivotPoint = 0;
+            long pivotPoint = path[0].N;
 
             for (int i = 1; i < path.Count; ++i)
             {
@@ -113,6 +113,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     {
                         var test = path[i];
                         test.N = (pivotPoint + 1) < pathLength ? (pivotPoint + 1) : 0;
+                        test.D = 2;
                         path[i] = test;
                     }
                 }
@@ -130,6 +131,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     ins.X = (prev.X + curr.X) / 2;
                     ins.Y = (prev.Y + curr.Y) / 2;
                     ins.N++;
+                    ins.D = 3;
                     path.Insert(i, ins);
                 }
                 else
