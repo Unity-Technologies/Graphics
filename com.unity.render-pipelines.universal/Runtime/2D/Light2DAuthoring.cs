@@ -28,7 +28,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
         
         // Rough shape only used in Inspector for quick preview. 
-        static List<Vector2> GetFalloffShape(Vector3[] shapePath)
+        static List<Vector2> GetExtrusionDir(Vector3[] shapePath)
         {
             var extrusionDir = new List<Vector2>();
             for (var i = 0; i < shapePath.Length; ++i)
@@ -67,7 +67,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal List<Vector2> GetFalloffShape()
         {
             var shape = new List<Vector2>();
-            var extrusionDir = GetFalloffShape(m_ShapePath);
+            var extrusionDir = GetExtrusionDir(m_ShapePath);
             for (var i = 0; i < m_ShapePath.Length; i++)
             {
                 shape.Add(new Vector2
