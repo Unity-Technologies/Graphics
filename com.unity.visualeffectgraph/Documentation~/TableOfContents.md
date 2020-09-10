@@ -27,5 +27,11 @@
   * [Point Caches](PointCaches.md)
   * [Point Cache Bake Tool](PointCacheBakeTool.md)
   * [Spawner Callbacks](SpawnerCallbacks.md)
+* Node Library
+  * Context
+  * Operator
+    * Camera
+      * [Viewport to World Point](Operator-ViewportToWorldPoint.md)
+      * [World to Viewport Point](Operator-WorldToViewportPoint.md)
 * Reference
   * [Standard Attributes](Reference-Attributes.md)
