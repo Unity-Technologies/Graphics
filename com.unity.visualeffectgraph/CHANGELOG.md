@@ -6,8 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.1.0] - 2019-08-04
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Added
+- Sample vertices of a transformed skinned mesh with Position (Skinned Mesh) and Sample Skinned Mesh operator.
+- Placement option (Vertex, Edge, Surface) in Sample Mesh & Skinned Mesh, allows triangle sampling.
+
+### Fixed
+- Sample Mesh Color when value is stored as float.
 
 ## [10.0.0] - 2019-06-10
 ### Added
