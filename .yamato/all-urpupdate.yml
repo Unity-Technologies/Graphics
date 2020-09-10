@@ -12,15 +12,6 @@ All_URPUpdate_trunk:
          rerun: on-new-revision
       -  path: .yamato/all-urpupdate_top_asset_store.yml#All_URPUpdate_Top_Asset_Store_trunk
          rerun: on-new-revision
-All_URPUpdate_fast-trunk:
-    name: All URPUpdate CI - fast-trunk
-    dependencies:
-      -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_editmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_playmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/all-urpupdate_top_asset_store.yml#All_URPUpdate_Top_Asset_Store_fast-trunk
-         rerun: on-new-revision
 All_URPUpdate_CUSTOM-REVISION:
     name: All URPUpdate CI - CUSTOM-REVISION
     dependencies:

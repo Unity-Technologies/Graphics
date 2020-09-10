@@ -535,7 +535,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection DOTSDefault = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target45) },
-            { Pragma.ExcludeRenderers(new[]{ Platform.D3D9, Platform.GLES }) },
+            { Pragma.ExcludeRenderers(new[]{ Platform.GLES, Platform.GLES3, Platform.GLCore }) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
@@ -543,7 +543,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection DOTSInstanced = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target45) },
-            { Pragma.ExcludeRenderers(new[]{ Platform.D3D9, Platform.GLES }) },
+            { Pragma.ExcludeRenderers(new[]{ Platform.GLES, Platform.GLES3, Platform.GLCore }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.DOTSInstancing },
             { Pragma.Vertex("vert") },
@@ -553,7 +553,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection DOTSForward = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target45) },
-            { Pragma.ExcludeRenderers(new[]{ Platform.D3D9, Platform.GLES }) },
+            { Pragma.ExcludeRenderers(new[]{ Platform.GLES, Platform.GLES3, Platform.GLCore }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
             { Pragma.DOTSInstancing },
@@ -564,7 +564,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection DOTSGBuffer = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target45) },
-            { Pragma.ExcludeRenderers(new[]{ Platform.D3D9, Platform.GLES }) },
+            { Pragma.ExcludeRenderers(new[]{ Platform.GLES, Platform.GLES3, Platform.GLCore }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
             { Pragma.DOTSInstancing },

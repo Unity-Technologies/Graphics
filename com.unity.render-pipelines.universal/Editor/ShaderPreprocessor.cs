@@ -26,6 +26,7 @@ namespace UnityEditor.Rendering.Universal
         DeferredWithoutAccurateGbufferNormals = (1 << 10),
         ScreenSpaceOcclusion = (1 << 11)
     }
+
     internal class ShaderPreprocessor : IPreprocessShaders
     {
         public static readonly string kPassNameGBuffer = "GBuffer";
@@ -33,6 +34,10 @@ namespace UnityEditor.Rendering.Universal
 #if PROFILE_BUILD
         private const string k_ProcessShaderTag = "OnProcessShader";
 #endif
+        // Event callback to report shader stripping info. Form:
+        // ReportShaderStrippingData(Shader shader, ShaderSnippetData data, int currentVariantCount, double strippingTime)
+        internal static event Action<Shader, ShaderSnippetData, int, double> shaderPreprocessed;
+        private static readonly System.Diagnostics.Stopwatch m_stripTimer = new System.Diagnostics.Stopwatch();
 
         ShaderKeyword m_MainLightShadows = new ShaderKeyword(ShaderKeywordStrings.MainLightShadows);
         ShaderKeyword m_AdditionalLightsVertex = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
@@ -97,15 +102,22 @@ namespace UnityEditor.Rendering.Universal
             if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isAdditionalLightShadow)
                 return true;
 
-            // Additional light are shaded per-vertex. Strip additional lights per-pixel and shadow variants
+
+            // Additional light are shaded per-vertex or per-pixel.
+            bool isFeaturePerPixelLightingEnabled = IsFeatureEnabled(features, ShaderFeatures.AdditionalLights);
+            bool isFeaturePerVertexLightingEnabled = IsFeatureEnabled(features, ShaderFeatures.VertexLighting);
             bool isAdditionalLightPerPixel = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel);
-            if (IsFeatureEnabled(features, ShaderFeatures.VertexLighting) &&
-                (isAdditionalLightPerPixel || isAdditionalLightShadow))
+            bool isAdditionalLightPerVertex = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsVertex);
+
+            // Strip if Per-Pixel lighting is NOT used in the project and the
+            // Per-Pixel (_ADDITIONAL_LIGHTS) or additional shadows (_ADDITIONAL_LIGHT_SHADOWS)
+            // variants are enabled in the shader.
+            if (!isFeaturePerPixelLightingEnabled && (isAdditionalLightPerPixel || isAdditionalLightShadow))
                 return true;
 
-            // No additional lights
-            if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLights) &&
-                (isAdditionalLightPerPixel || isAdditionalLightShadow || compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsVertex)))
+            // Strip if Per-Vertex lighting is NOT used in the project and the
+            // Per-Vertex (_ADDITIONAL_LIGHTS_VERTEX) variant is enabled in the shader.
+            if (!isFeaturePerVertexLightingEnabled && isAdditionalLightPerVertex)
                 return true;
 
             // Screen Space Occlusion
@@ -216,6 +228,8 @@ namespace UnityEditor.Rendering.Universal
 
             int prevVariantCount = compilerDataList.Count;
 
+            m_stripTimer.Start();
+
             var inputShaderVariantCount = compilerDataList.Count;
             for (int i = 0; i < inputShaderVariantCount;)
             {
@@ -241,9 +255,14 @@ namespace UnityEditor.Rendering.Universal
                 m_TotalVariantsOutputCount += compilerDataList.Count;
                 LogShaderVariants(shader, snippetData, urpAsset.shaderVariantLogLevel, prevVariantCount, compilerDataList.Count);
             }
+            m_stripTimer.Stop();
+            double stripTimeMs = m_stripTimer.Elapsed.TotalMilliseconds;
+            m_stripTimer.Reset();
+
 #if PROFILE_BUILD
             Profiler.EndSample();
 #endif
+            shaderPreprocessed?.Invoke(shader, snippetData, prevVariantCount, stripTimeMs);
         }
     }
     class ShaderBuildPreprocessor : IPreprocessBuildWithReport
@@ -311,7 +330,6 @@ namespace UnityEditor.Rendering.Universal
 
             if (pipelineAsset.additionalLightsRenderingMode == LightRenderingMode.PerVertex)
             {
-                shaderFeatures |= ShaderFeatures.AdditionalLights;
                 shaderFeatures |= ShaderFeatures.VertexLighting;
             }
             else if (pipelineAsset.additionalLightsRenderingMode == LightRenderingMode.PerPixel)
