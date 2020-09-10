@@ -319,8 +319,7 @@ namespace UnityEditor.VFX.Operator
 
             //Loop triangle
             var loop = VFXOperatorUtility.Modulo(nextIndex, threeUint);
-            //TODOPAUL : Remove float cast
-            var predicat = new VFXExpressionCondition(UnityEngine.VFX.VFXValueType.Float, VFXCondition.NotEqual, new VFXExpressionCastUintToFloat(loop), VFXOperatorUtility.ZeroExpression[UnityEngine.VFX.VFXValueType.Float]);
+            var predicat = new VFXExpressionCondition(UnityEngine.VFX.VFXValueType.Uint32, VFXCondition.NotEqual, loop, VFXOperatorUtility.ZeroExpression[UnityEngine.VFX.VFXValueType.Uint32]);
             nextIndex = new VFXExpressionBranch(predicat, nextIndex, nextIndex - threeUint);
 
             var sampledIndex_A = new VFXExpressionSampleIndex(mesh, index, meshIndexFormat);
