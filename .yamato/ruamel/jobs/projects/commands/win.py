@@ -98,7 +98,7 @@ def _get_extra_utr_arg(project_folder):
 
 def extra_perf_cmd(project_folder):   
     perf_list = [
-        f'git clone https://github.com/seanstolberg-unity/BoatAttack.git -b sophia/add-perf-tests-2 TestProjects/{project_folder}',
+        f'git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/{project_folder}',
         f'Xcopy /E /I \"com.unity.render-pipelines.core\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.render-pipelines.core\" /Y',
         f'Xcopy /E /I \"com.unity.render-pipelines.universal\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.render-pipelines.universal\" /Y',
         f'Xcopy /E /I \"com.unity.shadergraph\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.shadergraph\" /Y'

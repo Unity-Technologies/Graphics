@@ -17,7 +17,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_counters_trunk:
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_trunk
          rerun: on-new-revision
     commands:
-      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b sophia/add-perf-tests-2 TestProjects/BoatAttack
+      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
@@ -53,7 +53,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_trunk:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
          rerun: on-new-revision
     commands:
-      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b sophia/add-perf-tests-2 TestProjects/BoatAttack
+      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
@@ -96,7 +96,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_memory_trunk:
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_trunk
          rerun: on-new-revision
     commands:
-      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b sophia/add-perf-tests-2 TestProjects/BoatAttack
+      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
@@ -132,7 +132,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_trunk:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
          rerun: on-new-revision
     commands:
-      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b sophia/add-perf-tests-2 TestProjects/BoatAttack
+      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
@@ -172,7 +172,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_counters_fast-trunk:
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_fast-trunk
          rerun: on-new-revision
     commands:
-      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b sophia/add-perf-tests-2 TestProjects/BoatAttack
+      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
@@ -208,7 +208,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_fast-trunk:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
          rerun: on-new-revision
     commands:
-      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b sophia/add-perf-tests-2 TestProjects/BoatAttack
+      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
@@ -251,7 +251,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_memory_fast-trunk:
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_fast-trunk
          rerun: on-new-revision
     commands:
-      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b sophia/add-perf-tests-2 TestProjects/BoatAttack
+      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
@@ -287,7 +287,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_fast-trunk:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
          rerun: on-new-revision
     commands:
-      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b sophia/add-perf-tests-2 TestProjects/BoatAttack
+      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
@@ -328,7 +328,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_counters_CUSTOM-REVISIO
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_CUSTOM-REVISION
          rerun: always
     commands:
-      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b sophia/add-perf-tests-2 TestProjects/BoatAttack
+      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
@@ -365,7 +365,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_CUSTOM-REVISION:
       -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
     commands:
-      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b sophia/add-perf-tests-2 TestProjects/BoatAttack
+      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
@@ -409,7 +409,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_memory_CUSTOM-REVISION:
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_CUSTOM-REVISION
          rerun: always
     commands:
-      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b sophia/add-perf-tests-2 TestProjects/BoatAttack
+      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
@@ -446,7 +446,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_CUSTOM-REVISION:
       -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
     commands:
-      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b sophia/add-perf-tests-2 TestProjects/BoatAttack
+      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests-2 TestProjects/BoatAttack
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
