@@ -43,6 +43,27 @@ namespace UnityEditor.VFX
             return VFXValue.Constant(matrix);
         }
 
+        sealed protected override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            /* Detect special case (not sure it's the right place) */
+            var posReduce = reducedParents[0];
+            var rotReduce = reducedParents[1];
+            var scaleReduce = reducedParents[2];
+
+            var zeroF3 = VFXOperatorUtility.ZeroExpression[VFXValueType.Float3];
+            var oneF3 = VFXOperatorUtility.OneExpression[VFXValueType.Float3];
+
+            if (posReduce == zeroF3 && scaleReduce == oneF3)
+            {
+                if (rotReduce is VFXExpressionExtractAnglesFromMatrix)
+                {
+                    //TODOPAUL : Actually, could be properly detected with an early
+                }
+            }
+
+            return base.Reduce(reducedParents);
+        }
+
         public override string GetCodeString(string[] parents)
         {
             return string.Format("GetTRSMatrix({0}, {1}, {2})", parents[0], parents[1], parents[2]);

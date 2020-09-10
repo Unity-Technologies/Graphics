@@ -382,11 +382,13 @@ namespace UnityEditor.VFX
 
         static VFXExpression RemoveTranslatePart(VFXExpression matrix)
         {
+            /* TODOPAUL Remove this (or replace with a proper extract rotation operator)
             var i = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(0));
             var j = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(1));
             var k = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(2));
             var o = VFXValue.Constant(new Vector4(0, 0, 0, 1));
-            return new VFXExpressionVector4sToMatrix(i, j, k, o);
+            return new VFXExpressionVector4sToMatrix(i, j, k, o);*/
+            return matrix;
         }
 
         static protected VFXExpression ConvertSpace(VFXExpression input, SpaceableType spaceType, VFXCoordinateSpace space)
@@ -423,7 +425,7 @@ namespace UnityEditor.VFX
             }
             else if (spaceType == SpaceableType.Euler)
             {
-                //TODOPAUL : It can be reduced
+                //TODOPAUL : It can be simplify
                 var zeroF3 = VFXOperatorUtility.ZeroExpression[VFXValueType.Float3];
                 var oneF3 = VFXOperatorUtility.OneExpression[VFXValueType.Float3];
                 VFXExpression rotationMatrix = new VFXExpressionTRSToMatrix(zeroF3, input, oneF3);
@@ -432,7 +434,7 @@ namespace UnityEditor.VFX
             }
             else if (spaceType == SpaceableType.Scale)
             {
-                //TODOPAUL : Cover this by test
+                //TODOPAUL : Cover this by a test
                 var extractScale = new VFXExpressionExtractScaleFromMatrix(matrix);
                 input = input * extractScale;
             }

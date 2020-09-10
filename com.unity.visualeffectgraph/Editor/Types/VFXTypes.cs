@@ -138,6 +138,8 @@ namespace UnityEditor.VFX
     {
         [Tooltip("Sets the center of the cone."), VFXSpace(SpaceableType.Position)]
         public Vector3 center;
+        [Tooltip("Set the Euler rotation of the cone."), VFXSpace(SpaceableType.Euler)]
+        public Vector3 angles;
         [Min(0.0f), Tooltip("Sets the base radius of the cone.")]
         public float radius0;
         [Min(0.0f), Tooltip("Sets the top radius of the cone.")]
@@ -154,7 +156,7 @@ namespace UnityEditor.VFX
         [Tooltip("Sets the center of the cone."), VFXSpace(SpaceableType.Position)]
         public Vector3 center;
         [Tooltip("Set the Euler rotation of the cone."), VFXSpace(SpaceableType.Euler)]
-        public Vector3 angle;
+        public Vector3 angles;
 
         [Min(0.0f), Tooltip("Sets the base radius of the cone.")]
         public float radius0;
@@ -171,7 +173,6 @@ namespace UnityEditor.VFX
             radius1 = 0.1f,
             height = 1.0f,
             arc = 2.0f * Mathf.PI,
-            angle = new Vector3(0.0f, 0.0f, 0.0f),
         };
     }
 

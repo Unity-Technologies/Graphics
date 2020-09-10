@@ -81,9 +81,15 @@ namespace UnityEditor.VFX.Block
                 var oneF3 = VFXOperatorUtility.OneExpression[VFXValueType.Float3];
 
                 VFXExpression rotationMatrix = new VFXExpressionTRSToMatrix(zeroF3, eulerAngle, oneF3);
-                //TODOPAUL : track parent of euler angle to detect potential shortcut
+                //TODOPAUL : track parent of euler angle to detect potential shortcut (in reduction I Guess)
 
                 //TODOPAUL Can be simplified using matrix composition.
+                //TODOPAUL Check side effect of this axisInverter
+                VFXExpression axisInverter = VFXValue.Constant(new Matrix4x4(   new Vector4(1, 0, 0, 0),
+                                                                                new Vector4(0, 0, 1, 0),
+                                                                                new Vector4(0, 1, 0, 0),
+                                                                                new Vector4(0, 0, 0, 1)));
+                rotationMatrix = new VFXExpressionTransformMatrix(rotationMatrix, axisInverter);
                 var translateMatrix = new VFXExpressionTRSToMatrix(center, zeroF3, oneF3);
                 var matrix = new VFXExpressionTransformMatrix(translateMatrix, rotationMatrix);
                 yield return new VFXNamedExpression(matrix, "transformMatrix");
