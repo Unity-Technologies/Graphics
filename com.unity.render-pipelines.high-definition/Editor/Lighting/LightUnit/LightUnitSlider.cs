@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -156,9 +157,11 @@ namespace UnityEditor.Rendering.HighDefinition
             value.floatValue = GUI.HorizontalSlider(rect, value.floatValue, range.x, range.y, GUI.skin.horizontalSlider, GUI.skin.horizontalSliderThumb);
         }
 
+        static float Remap(float v, float x0, float y0, float x1 = 0f, float y1 = 1f) => x1 + (v - x0) * (y1 - x1) / (y0 - x0);
+
         protected virtual float GetPositionOnSlider(float value)
         {
-            return value / m_Descriptor.sliderRange.y;
+            return Remap(value, m_Descriptor.sliderRange.x, m_Descriptor.sliderRange.y);
         }
     }
 
@@ -203,7 +206,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         float ExponentialSlider(Rect rect, float value)
         {
-            var internalValue = GUI.HorizontalSlider(rect, ValueToSlider(value), 0f, 1f, GUI.skin.horizontalSlider, GUI.skin.horizontalSliderThumb);
+            var internalValue = GUI.HorizontalSlider(rect, ValueToSlider(value), 0f, 1f);
 
             return SliderToValue(internalValue);
         }
@@ -212,9 +215,6 @@ namespace UnityEditor.Rendering.HighDefinition
     class TemperatureSlider : LightUnitSlider
     {
         private LightEditor.Settings m_Settings;
-
-        private readonly float m_MinKelvin;
-        private readonly float m_MaxKelvin;
 
         private static Texture2D s_KelvinGradientTexture;
 
@@ -235,11 +235,7 @@ namespace UnityEditor.Rendering.HighDefinition
             return s_KelvinGradientTexture;
         }
 
-        public TemperatureSlider(LightUnitSliderUIDescriptor descriptor) : base(descriptor)
-        {
-            m_MinKelvin = (float)typeof(LightEditor.Settings).GetField("kMinKelvin", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).GetRawConstantValue();
-            m_MaxKelvin = (float)typeof(LightEditor.Settings).GetField("kMaxKelvin", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).GetRawConstantValue();
-        }
+        public TemperatureSlider(LightUnitSliderUIDescriptor descriptor) : base(descriptor) {}
 
         public void SetLightSettings(LightEditor.Settings settings)
         {
@@ -248,17 +244,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected override void DoSlider(Rect rect, SerializedProperty value, Vector2 range)
         {
-            SliderWithTextureNoTexField(value, rect, m_Settings);
+            SliderWithTextureNoTextField(rect, value, range, m_Settings);
         }
 
         // Note: We could use the internal SliderWithTexture, however: the internal slider func forces a text-field (and no ability to opt-out of it).
-        void SliderWithTextureNoTexField(SerializedProperty value, Rect rect, LightEditor.Settings settings)
+        void SliderWithTextureNoTextField(Rect rect, SerializedProperty value, Vector2 range, LightEditor.Settings settings)
         {
             GUI.DrawTexture(rect, GetKelvinGradientTexture(settings));
 
             var sliderBorder = new GUIStyle("ColorPickerSliderBackground");
             var sliderThumb = new GUIStyle("ColorPickerHorizThumb");
-            value.floatValue = GUI.HorizontalSlider(rect, value.floatValue, m_MinKelvin, m_MaxKelvin, sliderBorder, sliderThumb);
+            value.floatValue = GUI.HorizontalSlider(rect, value.floatValue, range.x, range.y, sliderBorder, sliderThumb);
         }
     }
 
