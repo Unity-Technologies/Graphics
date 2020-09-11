@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xr.enabled)
                 return xr.GetProjMatrix(viewIndex);
-#endif      
+#endif
             return m_ProjectionMatrix;
         }
 
@@ -233,13 +233,13 @@ namespace UnityEngine.Rendering.Universal
         public Vector4 attenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation (for SpotLights)
         public Vector3 spotDirection;   // for spotLights
         public int lightIndex;
-    }    
+    }
 
     internal static class ShaderPropertyId
     {
         public static readonly int glossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
         public static readonly int subtractiveShadowColor = Shader.PropertyToID("_SubtractiveShadowColor");
-        
+
         public static readonly int ambientSkyColor = Shader.PropertyToID("unity_AmbientSky");
         public static readonly int ambientEquatorColor = Shader.PropertyToID("unity_AmbientEquator");
         public static readonly int ambientGroundColor = Shader.PropertyToID("unity_AmbientGround");
@@ -249,7 +249,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int cosTime = Shader.PropertyToID("_CosTime");
         public static readonly int deltaTime = Shader.PropertyToID("unity_DeltaTime");
         public static readonly int timeParameters = Shader.PropertyToID("_TimeParameters");
-        
+
         public static readonly int scaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
         public static readonly int worldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
         public static readonly int screenParams = Shader.PropertyToID("_ScreenParams");
@@ -329,6 +329,13 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _POINT = "_POINT";
         public static readonly string _DEFERRED_ADDITIONAL_LIGHT_SHADOWS = "_DEFERRED_ADDITIONAL_LIGHT_SHADOWS";
         public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
+        public static readonly string LIGHTMAP_ON = "LIGHTMAP_ON";
+        public static readonly string _ALPHATEST_ON = "_ALPHATEST_ON";
+        public static readonly string DIRLIGHTMAP_COMBINED = "DIRLIGHTMAP_COMBINED";
+        public static readonly string _DETAIL_MULX2 = "_DETAIL_MULX2";
+        public static readonly string _DETAIL_SCALED = "_DETAIL_SCALED";
+        public static readonly string _CLEARCOAT = "_CLEARCOAT";
+        public static readonly string _CLEARCOATMAP = "_CLEARCOATMAP";
 
         // XR
         public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";
@@ -417,21 +424,8 @@ namespace UnityEngine.Rendering.Universal
                 desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
                 desc.width = (int)((float)desc.width * renderScale);
                 desc.height = (int)((float)desc.height * renderScale);
-            }
-            else
-            {
-                desc = camera.targetTexture.descriptor;
-            }
 
-            if (camera.targetTexture != null)
-            {
-                desc.colorFormat = camera.targetTexture.descriptor.colorFormat;
-                desc.depthBufferBits = camera.targetTexture.descriptor.depthBufferBits;
-                desc.msaaSamples = camera.targetTexture.descriptor.msaaSamples;
-                desc.sRGB = camera.targetTexture.descriptor.sRGB;
-            }
-            else
-            {
+
                 GraphicsFormat hdrFormat;
                 if (!needsAlpha && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
                     hdrFormat = GraphicsFormat.B10G11R11_UFloatPack32;
@@ -444,6 +438,15 @@ namespace UnityEngine.Rendering.Universal
                 desc.depthBufferBits = 32;
                 desc.msaaSamples = msaaSamples;
                 desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
+            }
+            else
+            {
+                desc = camera.targetTexture.descriptor;
+                // SystemInfo.SupportsRenderTextureFormat(camera.targetTexture.descriptor.colorFormat)
+                // will assert on R8_SINT since it isn't a valid value of RenderTextureFormat.
+                // If this is fixed then we can implement debug statement to the user explaining why some
+                // RenderTextureFormats available resolves in a black render texture when no warning or error
+                // is given.
             }
 
             desc.enableRandomWrite = false;
@@ -627,6 +630,31 @@ namespace UnityEngine.Rendering.Universal
 
     internal enum URPProfileId
     {
+        // CPU
+        UniversalRenderTotal,
+        UpdateVolumeFramework,
+        RenderCameraStack,
+
+        // GPU
+        AdditionalLightsShadow,
+        ColorGradingLUT,
+        CopyColor,
+        CopyDepth,
+        DepthNormalPrepass,
+        DepthPrepass,
+
+        // DrawObjectsPass
+        DrawOpaqueObjects,
+        DrawTransparentObjects,
+
+        // RenderObjectsPass
+        //RenderObjects,
+
+        MainLightShadow,
+        ResolveShadows,
+        SSAO,
+
+        // PostProcessPass
         StopNaNs,
         SMAA,
         GaussianDepthOfField,
@@ -635,5 +663,7 @@ namespace UnityEngine.Rendering.Universal
         PaniniProjection,
         UberPostProcess,
         Bloom,
+
+        FinalBlit
     }
 }
