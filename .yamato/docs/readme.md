@@ -84,6 +84,16 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
     - Renamed `merge-to-target` to `merge-revisions`, and `merge-from-target` to `target-to-ci`
     
     - ![Editor pinning flow](editor_pinning.png)
+- Running editor pinning locally:
+  - Update job: `python .yamato\ruamel\editor_pinning\update_revisions.py --target-branch [localbranch] --local`
+    - _--local_ flag specifies that no git pull/push/commit gets executed
+    - _--target-branch_ would usually correspond to CI branch, but when running locally, just set it to the one you have checked out locally
+    - This job updates `_latest_editor_versions.metafile` locally, and also runs `build.py` again to regenerate all ymls with the updated revisions. You can either keep all of the latest revisions, or only the ones you want, and rerun ymls. Once ready, merge like normal PR (i.e. no need to run the merge_revisions job)
+  - Merge job: `python .yamato\ruamel\editor_pinning\merge_revisions.py --target-branch [targetbranch] --local --revision [git sha]`
+    - _--local_ flag skips checkout/pull of the target branch (but still makes commit on the currently checkout branch, if there is something to commit)
+    - _--target-branch_ the target branch into which the revisions get merged to from the ci branch (after jobs passed on ci branch, when CI context used). But due to the local flag, this branch won't get checked out/pulled.
+    - _--revision_ the git SHA of the updated revisions commit (the one made on the ci branch by update job). The job runs `git diff HEAD..[revision] -- [path]`, i.e. diff between the current checked out branch vs that SHA (revision). (The _path_ corresponds to yml files or the latest editor versions metafile, but this is already setup within the job). Therefore the merge job only cares about these two paths, and will not merge other changes. This works, because in general, if merge job gets triggered, then CI branch is 1 commit ahead of target branch (which is the updated revisions commit).
+    - In general there is no need to run this file locally. It is only handy when wanting to test the script for syntax errors/functionality etc.
 
 
 # FAQ
