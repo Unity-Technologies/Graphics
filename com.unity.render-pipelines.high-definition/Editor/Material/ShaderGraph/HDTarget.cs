@@ -62,7 +62,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override bool IsNodeAllowedByTarget(Type nodeType)
         {
             SRPFilterAttribute srpFilter = NodeClassCache.GetAttributeOnNodeType<SRPFilterAttribute>(nodeType);
-            return srpFilter == null || srpFilter.srpTypes.Contains(typeof(HDRenderPipeline));
+            NeverAllowedByTargetAttribute neverAllowed = NodeClassCache.GetAttributeOnNodeType<NeverAllowedByTargetAttribute>(nodeType);
+            return (srpFilter == null || srpFilter.srpTypes.Contains(typeof(HDRenderPipeline))) && neverAllowed == null;
         }
 
         public HDTarget()

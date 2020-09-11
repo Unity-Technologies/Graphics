@@ -210,6 +210,7 @@ namespace UnityEditor.ShaderGraph.Serialization
             }
         }
 
+        [NeverAllowedByTarget]
         class UnknownNodeType : AbstractMaterialNode
         {
             public string jsonData;
@@ -243,8 +244,7 @@ namespace UnityEditor.ShaderGraph.Serialization
 
             public override void ValidateNode()
             {
-                isValid = false;
-                SetOverrideActiveState(ActiveState.ExplicitInactive, false);
+                base.ValidateNode();
                 owner.AddValidationError(objectId, "This node type could not be found. No function will be generated in the shader.", ShaderCompilerMessageSeverity.Warning);
             }
         }

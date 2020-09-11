@@ -13,6 +13,7 @@ using UnityEditor.ShaderGraph.Serialization;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
+    [NeverAllowedByTarget]
     class LegacyUnknownTypeNode : AbstractMaterialNode
     {
         public string serializedType;
