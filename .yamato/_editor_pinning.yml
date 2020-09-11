@@ -4,7 +4,7 @@
 # Read more under .yamato/docs/readme.md 
 
 editor-pinning-target-to-ci:
-    name: Merge master to ci/editor-pinning
+    name: Merge yamato/update-unity-versions-ep to yamato/update-unity-versions-ep-ci
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -15,16 +15,16 @@ editor-pinning-target-to-ci:
       -  echo $GIT_BRANCH
       -  |5-
 
-                     if [[ "$GIT_BRANCH" != "master" ]]; then
-                         echo "Should run on 'master' but is running on '$GIT_BRANCH'"
+                     if [[ "$GIT_BRANCH" != "yamato/update-unity-versions-ep" ]]; then
+                         echo "Should run on 'yamato/update-unity-versions-ep' but is running on '$GIT_BRANCH'"
                          exit 1
                      fi
       -  git fetch
-      -  git checkout master
-      -  git checkout ci/editor-pinning
+      -  git checkout yamato/update-unity-versions-ep
+      -  git checkout yamato/update-unity-versions-ep-ci
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  git merge master --ff
+      -  git merge yamato/update-unity-versions-ep --ff
       -  git push
 editor-pinning-update:
     name: Update pinned editor versions
@@ -43,21 +43,21 @@ editor-pinning-update:
       -  sudo apt-get install yamato-parser -y
       -  |5-
 
-                     if [[ "$GIT_BRANCH" != "master" ]]; then
-                         echo "Should run on 'master' but is running on '$GIT_BRANCH'"
+                     if [[ "$GIT_BRANCH" != "yamato/update-unity-versions-ep" ]]; then
+                         echo "Should run on 'yamato/update-unity-versions-ep' but is running on '$GIT_BRANCH'"
                          exit 1
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/ruamel/editor_pinning/update_revisions.py --target-branch ci/editor-pinning --force-push
+      -  pipenv run python3 .yamato/ruamel/editor_pinning/update_revisions.py --target-branch yamato/update-unity-versions-ep-ci --force-push
     dependencies:
       -  .yamato/_editor_pinning.yml#editor-pinning-target-to-ci
     triggers:
         recurring:
-          -  branch: master
+          -  branch: yamato/update-unity-versions-ep
              frequency: 0 * * ?
 editor-pinning-merge-revisions-trunk:
-    name: Merge editor revisions to master [trunk] [manual]
+    name: Merge editor revisions to yamato/update-unity-versions-ep [trunk] [manual]
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -73,15 +73,15 @@ editor-pinning-merge-revisions-trunk:
       -  sudo apt-get install yamato-parser -y
       -  |5-
 
-                     if [[ "$GIT_BRANCH" != "ci/editor-pinning" ]]; then
-                         echo "Should run on 'ci/editor-pinning' but is running on '$GIT_BRANCH'"
+                     if [[ "$GIT_BRANCH" != "yamato/update-unity-versions-ep-ci" ]]; then
+                         echo "Should run on 'yamato/update-unity-versions-ep-ci' but is running on '$GIT_BRANCH'"
                          exit 1
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch master --track trunk
+      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch yamato/update-unity-versions-ep --track trunk
 editor-pinning-merge-revisions-trunk-abv:
-    name: Merge editor revisions to master[trunk] [ABV]
+    name: Merge editor revisions to yamato/update-unity-versions-ep[trunk] [ABV]
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -97,19 +97,19 @@ editor-pinning-merge-revisions-trunk-abv:
       -  sudo apt-get install yamato-parser -y
       -  |5-
 
-                     if [[ "$GIT_BRANCH" != "ci/editor-pinning" ]]; then
-                         echo "Should run on 'ci/editor-pinning' but is running on '$GIT_BRANCH'"
+                     if [[ "$GIT_BRANCH" != "yamato/update-unity-versions-ep-ci" ]]; then
+                         echo "Should run on 'yamato/update-unity-versions-ep-ci' but is running on '$GIT_BRANCH'"
                          exit 1
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch master --track trunk
+      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch yamato/update-unity-versions-ep --track trunk
     dependencies:
       -  .yamato/_abv.yml#all_project_ci_trunk
     triggers:
-        expression: push.branch eq "ci/editor-pinning" AND push.changes.any match "**/_latest_editor_versions_trunk.metafile"
+        expression: push.branch eq "yamato/update-unity-versions-ep-ci" AND push.changes.any match "**/_latest_editor_versions_trunk.metafile"
 editor-pinning-merge-revisions-2020.2:
-    name: Merge editor revisions to master [2020.2] [manual]
+    name: Merge editor revisions to yamato/update-unity-versions-ep [2020.2] [manual]
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -125,15 +125,15 @@ editor-pinning-merge-revisions-2020.2:
       -  sudo apt-get install yamato-parser -y
       -  |5-
 
-                     if [[ "$GIT_BRANCH" != "ci/editor-pinning" ]]; then
-                         echo "Should run on 'ci/editor-pinning' but is running on '$GIT_BRANCH'"
+                     if [[ "$GIT_BRANCH" != "yamato/update-unity-versions-ep-ci" ]]; then
+                         echo "Should run on 'yamato/update-unity-versions-ep-ci' but is running on '$GIT_BRANCH'"
                          exit 1
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch master --track 2020.2
+      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch yamato/update-unity-versions-ep --track 2020.2
 editor-pinning-merge-revisions-2020.2-abv:
-    name: Merge editor revisions to master[2020.2] [ABV]
+    name: Merge editor revisions to yamato/update-unity-versions-ep[2020.2] [ABV]
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -149,14 +149,14 @@ editor-pinning-merge-revisions-2020.2-abv:
       -  sudo apt-get install yamato-parser -y
       -  |5-
 
-                     if [[ "$GIT_BRANCH" != "ci/editor-pinning" ]]; then
-                         echo "Should run on 'ci/editor-pinning' but is running on '$GIT_BRANCH'"
+                     if [[ "$GIT_BRANCH" != "yamato/update-unity-versions-ep-ci" ]]; then
+                         echo "Should run on 'yamato/update-unity-versions-ep-ci' but is running on '$GIT_BRANCH'"
                          exit 1
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch master --track 2020.2
+      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch yamato/update-unity-versions-ep --track 2020.2
     dependencies:
       -  .yamato/_abv.yml#all_project_ci_2020.2
     triggers:
-        expression: push.branch eq "ci/editor-pinning" AND push.changes.any match "**/_latest_editor_versions_2020.2.metafile"
+        expression: push.branch eq "yamato/update-unity-versions-ep-ci" AND push.changes.any match "**/_latest_editor_versions_2020.2.metafile"
