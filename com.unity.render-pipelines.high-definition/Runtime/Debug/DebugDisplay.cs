@@ -759,7 +759,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (data.averageProfilerTimingsOverASecond)
             {
-                // Find the right accumulated dictionary and add it there if not existing yet.
+                // Find the right accumulated dictionary
                 var accumulatedDictionary = type == DebugProfilingType.CPU ? m_AccumulatedCPUTiming :
                                             type == DebugProfilingType.InlineCPU ? m_AccumulatedInlineCPUTiming :
                                             m_AccumulatedGPUTiming;
