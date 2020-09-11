@@ -172,8 +172,8 @@ namespace UnityEngine.Rendering.HighDefinition
             //Texture has been updated notify the manager
             bool updated = previousVolumeMask != parameters.volumeMask;
 #if UNITY_EDITOR
-            int newMashHash = parameters.volumeMask.imageContentsHash.GetHashCode();
-            updated |= newMashHash != volumeMaskHash;
+            int newMaskHash = parameters.volumeMask.imageContentsHash.GetHashCode();
+            updated |= newMaskHash != volumeMaskHash;
 #endif
 
             if (updated)
@@ -181,7 +181,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 NotifyUpdatedTexure();
                 previousVolumeMask = parameters.volumeMask;
 #if UNITY_EDITOR
-            volumeMaskHash = newMashHash;
+                volumeMaskHash = newMaskHash;
 #endif
             }
 
