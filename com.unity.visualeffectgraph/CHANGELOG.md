@@ -5,9 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [10.1.0] - 2019-08-04
-
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Added
+- New WorldToViewportPoint operator
+- New ViewportToWorldPoint operator
 
 ## [10.0.0] - 2019-06-10
 ### Added
@@ -45,6 +45,7 @@ The version number for this package has increased due to a version update of a r
 - Mesh and lit mesh outputs can now have up to 4 differents meshes that can be set per Particle (Experimental)
 - Screen space per particle LOD on mesh and lit mesh outputs (Experimental)
 - Compare operator can take int and uint as inputs
+- New operator : Sample Signed distance field
 
 ### Fixed
 - Moved VFX Event Tester Window visibility to Component Play Controls SceneView Window
@@ -132,14 +133,19 @@ The version number for this package has increased due to a version update of a r
 - Subgraphs are not in hardcoded categories anymore : updated default subgraph templates + Samples to add meaningful categories.
 - Fix creation of StringPropertyRM
 - Enum fields having headers show the header in the inspector as well.
+- Handle correctly disabled alphaTreshold material slot in shaderGraph.
 - Fix for node window staying when clicking elsewhere
 - Make VisualEffect created from the GameObject menu have unique names [Case 1262989](https://issuetracker.unity3d.com/product/unity/issues/guid/1262989/)
 - Missing System Seed in new dynamic built-in operator.
 - Prefab highlight missing for initial event name toggle [Case 1263012](https://issuetracker.unity3d.com/product/unity/issues/guid/1263012/)
+- Correctly frame the whole graph, when opening the Visual Effect Editor
+- Optimize display of inspector when there is a lot of exposed VFX properties.
 - fixes the user created vfx default resources that were ignored unless loaded
 - fix crash when creating a loop in subgraph operators [Case 1251523](https://issuetracker.unity3d.com/product/unity/issues/guid/1251523/)
+- fix issue with multiselection and objectfields [Case 1250378](https://issuetracker.unity3d.com/issues/vfx-removing-texture-asset-while-multiediting-working-incorrectly)
 - Normals with non uniform scales are correctly computed [Case 1246989](https://issuetracker.unity3d.com/product/unity/issues/guid/1246989/)
 - Fix exposed Texture2DArray and Cubemap types from shader graph not being taken into account in Output Mesh [Case 1265221](https://issuetracker.unity3d.com/product/unity/issues/guid/1265221/)
+- Allow world position usage in shaderGraph plugged into an alpha/opacity output [Case 1259511](https://issuetracker.unity3d.com/product/unity/issues/guid/1259511/)
 
 ## [7.1.1] - 2019-09-05
 ### Added
