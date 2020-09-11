@@ -691,7 +691,10 @@ namespace UnityEditor.Rendering.Universal
         void DrawCameraType(CameraRenderType camType)
         {
             EditorGUI.BeginChangeCheck();
-            int selCameraType = EditorGUILayout.IntPopup(Styles.cameraType, (int)camType, Styles.m_CameraTypeNames.ToArray(), Styles.additionalDataCameraTypeOptions);
+            Rect controlRect = EditorGUILayout.GetControlRect(true);
+            EditorGUI.BeginProperty(controlRect, Styles.cameraType, m_AdditionalCameraDataCameraTypeProp);
+            int selCameraType = EditorGUI.IntPopup(controlRect, Styles.cameraType, (int)camType, Styles.m_CameraTypeNames.ToArray(), Styles.additionalDataCameraTypeOptions);
+            EditorGUI.EndProperty();
             if (EditorGUI.EndChangeCheck())
             {
                 m_AdditionalCameraDataCameraTypeProp.intValue = selCameraType;
@@ -706,8 +709,12 @@ namespace UnityEditor.Rendering.Universal
             BackgroundType backgroundType = GetBackgroundType((CameraClearFlags) settings.clearFlags.intValue);
 
             EditorGUI.BeginChangeCheck();
-            BackgroundType selectedType = (BackgroundType)EditorGUILayout.IntPopup(Styles.backgroundType, (int)backgroundType,
+            Rect controlRect = EditorGUILayout.GetControlRect(true);
+            EditorGUI.BeginProperty(controlRect, Styles.backgroundType, settings.clearFlags);
+
+            BackgroundType selectedType = (BackgroundType)EditorGUI.IntPopup(controlRect, Styles.backgroundType, (int)backgroundType,
                 Styles.cameraBackgroundType, Styles.cameraBackgroundValues);
+            EditorGUI.EndProperty();
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -824,7 +831,13 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUI.BeginChangeCheck();
 
-            int selectedRenderer = EditorGUILayout.IntPopup(Styles.rendererType, selectedRendererOption, m_UniversalRenderPipeline.rendererDisplayList, UniversalRenderPipeline.asset.rendererIndexList);
+            Rect controlRect = EditorGUILayout.GetControlRect(true);
+            EditorGUI.BeginProperty(controlRect, Styles.rendererType, m_AdditionalCameraDataRendererProp);
+
+            EditorGUI.showMixedValue = m_AdditionalCameraDataRendererProp.hasMultipleDifferentValues;
+            int selectedRenderer = EditorGUI.IntPopup(controlRect, Styles.rendererType, selectedRendererOption, m_UniversalRenderPipeline.rendererDisplayList, UniversalRenderPipeline.asset.rendererIndexList);
+
+            EditorGUI.EndProperty();
             if (!m_UniversalRenderPipeline.ValidateRendererDataList())
             {
                 EditorGUILayout.HelpBox(Styles.noRendererError, MessageType.Error);
