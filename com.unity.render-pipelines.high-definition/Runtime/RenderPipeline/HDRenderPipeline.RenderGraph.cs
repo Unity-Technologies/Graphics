@@ -465,6 +465,16 @@ namespace UnityEngine.Rendering.HighDefinition
             HDShadowManager.ReadShadowResult(shadowResult, builder);
         }
 
+        void BindGlobalLightListBuffers(ForwardPassData data, RenderGraphContext ctx)
+        {
+            ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, data.lightListBuffer);
+            // Next two are only for cluster rendering. PerTileLogBaseTweak is only when using depth buffer so can be invalid as well.
+            if (data.perVoxelOffset.IsValid())
+                ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vLayeredOffsetsBuffer, data.perVoxelOffset);
+            if (data.perTileLogBaseTweak.IsValid())
+                ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_logBaseBuffer, data.perTileLogBaseTweak);
+        }
+
         // Guidelines: In deferred by default there is no opaque in forward. However it is possible to force an opaque material to render in forward
         // by using the pass "ForwardOnly". In this case the .shader should not have "Forward" but only a "ForwardOnly" pass.
         // It must also have a "DepthForwardOnly" and no "DepthOnly" pass as forward material (either deferred or forward only rendering) have always a depth pass.
@@ -523,6 +533,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int i = 0; i < data.renderTargetCount; ++i)
                         mrt[i] = data.renderTarget[i];
 
+                    BindGlobalLightListBuffers(data, context);
                     BindDBufferGlobalData(data.dbuffer, context);
                     BindGlobalLightingBuffers(data.lightingBuffers, context.cmd);
 
@@ -611,8 +622,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (data.decalsEnabled)
                         DecalSystem.instance.SetAtlas(context.cmd); // for clustered decals
 
-                    context.cmd.SetGlobalBuffer(HDShaderIDs.g_vLayeredOffsetsBuffer, data.perVoxelOffset);
-                    context.cmd.SetGlobalBuffer(HDShaderIDs.g_logBaseBuffer, data.perTileLogBaseTweak);
+                    BindGlobalLightListBuffers(data, context);
+
                     context.cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, data.transparentSSRLighting);
                     context.cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting, data.volumetricLighting);
 
