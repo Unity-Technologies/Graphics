@@ -2,7 +2,7 @@
 # To add new Unity Editor tracks, the script needs to be updated.
 
 
-editor_version_names:
+editor_version_names: 
 - 2020.2_latest_internal
 - 2020.2_latest_public
 - 2020.2_staging

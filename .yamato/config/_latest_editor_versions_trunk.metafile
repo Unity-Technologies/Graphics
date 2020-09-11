@@ -2,7 +2,7 @@
 # To add new Unity Editor tracks, the script needs to be updated.
 
 
-editor_version_names:
+editor_version_names: 
 - trunk_latest_internal
 - trunk_latest_public
 - trunk_staging
