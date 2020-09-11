@@ -46,35 +46,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [Serializable, ReloadGroup]
         public sealed class TextureResources
         {
-            // Light Unit Icons
-            [Reload("Editor/RenderPipelineResources/Texture/LightUnitIcons/AreaExterior.png")]
-            public Texture2D iconAreaExterior;
-            [Reload("Editor/RenderPipelineResources/Texture/LightUnitIcons/BrightSky.png")]
-            public Texture2D iconBrightSky;
-            [Reload("Editor/RenderPipelineResources/Texture/LightUnitIcons/Candle.png")]
-            public Texture2D iconCandle;
-            [Reload("Editor/RenderPipelineResources/Texture/LightUnitIcons/ClearSky.png")]
-            public Texture2D iconClearSky;
-            [Reload("Editor/RenderPipelineResources/Texture/LightUnitIcons/Decorative.png")]
-            public Texture2D iconDecorative;
-            [Reload("Editor/RenderPipelineResources/Texture/LightUnitIcons/DecorativeArea.png")]
-            public Texture2D iconDecorativeArea;
-            [Reload("Editor/RenderPipelineResources/Texture/LightUnitIcons/DirectSunlight.png")]
-            public Texture2D iconDirectSunlight;
-            [Reload("Editor/RenderPipelineResources/Texture/LightUnitIcons/Exterior.png")]
-            public Texture2D iconExterior;
-            [Reload("Editor/RenderPipelineResources/Texture/LightUnitIcons/Interior.png")]
-            public Texture2D iconInterior;
-            [Reload("Editor/RenderPipelineResources/Texture/LightUnitIcons/InteriorArea.png")]
-            public Texture2D iconInteriorArea;
-            [Reload("Editor/RenderPipelineResources/Texture/LightUnitIcons/MoonlessNight.png")]
-            public Texture2D iconMoonlessNight;
-            [Reload("Editor/RenderPipelineResources/Texture/LightUnitIcons/MoonlitSky.png")]
-            public Texture2D iconMoonlitSky;
-            [Reload("Editor/RenderPipelineResources/Texture/LightUnitIcons/OvercastSky.png")]
-            public Texture2D iconOvercastSky;
-            [Reload("Editor/RenderPipelineResources/Texture/LightUnitIcons/SunriseSunset.png")]
-            public Texture2D iconSunriseSunset;
         }
 
         [Serializable, ReloadGroup]
