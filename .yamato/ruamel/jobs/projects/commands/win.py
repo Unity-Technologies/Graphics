@@ -41,7 +41,7 @@ def cmd_standalone(project_folder, platform, api, test_platform):
 
 def cmd_standalone_build(project_folder, platform, api, test_platform):
     utr_args = utr_standalone_build_flags("Windows64")
-    utr_args.extend(test_platform["extra_utr_flags"])
+    utr_args.extend(test_platform["extra_utr_flags_build"])
     utr_args.extend(['--extra-editor-arg="-executemethod"', f'--extra-editor-arg="CustomBuild.BuildWindows{api["name"]}Linear"'])
     
     return _cmd_base(project_folder, platform["components"], utr_args)

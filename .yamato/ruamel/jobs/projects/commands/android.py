@@ -70,7 +70,7 @@ def cmd_standalone(project_folder, platform, api, test_platform):
 def cmd_standalone_build(project_folder, platform, api, test_platform):
 
     utr_args = utr_standalone_build_flags(platform_spec='', platform='Android', testproject=f'{TEST_PROJECTS_DIR}\\{project_folder}', player_save_path=PATH_PLAYERS, editor_location='WindowsEditor', timeout=1200)
-    utr_args.extend(test_platform["extra_utr_flags"])
+    utr_args.extend(test_platform["extra_utr_flags_build"])
     utr_args.extend(['--scripting-backend=il2cpp'])
 
     if api["name"].lower() =='vulkan':

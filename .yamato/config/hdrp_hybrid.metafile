@@ -16,6 +16,8 @@ test_platforms:
   - type: Standalone
     extra_utr_flags:
       - --compilation-errors-as-warnings
+    extra_utr_flags_build:
+      - --compilation-errors-as-warnings
 platforms:
   - name: Win
     apis:

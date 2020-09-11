@@ -27,7 +27,7 @@ def cmd_standalone(project_folder, platform, api, test_platform):
 def cmd_standalone_build(project_folder, platform, api, test_platform):
 
     utr_args = utr_standalone_build_flags(platform_spec='', platform='iOS', testproject=f'{TEST_PROJECTS_DIR}/{project_folder}', player_save_path=PATH_PLAYERS, timeout=None)
-    utr_args.extend(test_platform["extra_utr_flags"])
+    utr_args.extend(test_platform["extra_utr_flags_build"])
 
     components = platform["components"]
     return [
