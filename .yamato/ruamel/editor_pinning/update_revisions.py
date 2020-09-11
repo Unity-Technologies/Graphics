@@ -226,8 +226,8 @@ def parse_args(flags):
                         'CI on commit.')
     parser.add_argument('--yamato-parser', required=False,
                         help='The yamato-parser executable to use (if specified)')
-    parser.add_argument('--force-push', action='store_true',
-                        help='If --force flag should be used for `git push`.')
+    # parser.add_argument('--force-push', action='store_true',
+    #                     help='If --force flag should be used for `git push`.')
     parser.add_argument('-v', '--verbose', default=False, action='store_true', required=False,
                         help='Print verbose output for debugging purposes.')
     args = parser.parse_args(flags)

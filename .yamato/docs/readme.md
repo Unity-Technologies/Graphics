@@ -85,6 +85,7 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
     
     - ![Editor pinning flow](editor_pinning.png)
 - Running editor pinning locally:
+  - Make sure you have the latest version of unity-downloader-cli
   - Update job: `python .yamato\ruamel\editor_pinning\update_revisions.py --target-branch [localbranch] --local`
     - _--local_ flag specifies that no git pull/push/commit gets executed
     - _--target-branch_ would usually correspond to CI branch, but when running locally, just set it to the one you have checked out locally
