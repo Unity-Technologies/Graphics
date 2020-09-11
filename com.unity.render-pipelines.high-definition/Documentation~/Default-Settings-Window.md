@@ -14,9 +14,10 @@ The HDRP Default Settings tab is part of the Project Settings window. To get to 
 | Property                         | Description                                                  |
 | -------------------------------- | ------------------------------------------------------------ |
 | Render Pipeline Resources        | Stores references to Shaders and Materials that HDRP uses.  When you build your Unity Project, HDRP embeds all of the resources that this Asset references. It allows you to set up multiple render pipelines in a Unity Project and, when you build the Project, Unity only embeds Shaders and Materials relevant for that pipeline. This is the Scriptable Render Pipeline equivalent of Unity’s Resources folder mechanism. When you create a new HDRP Asset, Unity also creates one of these and references it in the new HDRP Asset automatically. |
+| Render Pipeline Ray Tracing Resources        | Stores references to Shaders and Materials that HDRP uses for Ray Tracing. Having these resources in a seperate asset file then the main pipeline resources allows HDRP to use less memory for applciations that don't support ray tracing. |
 | Render Pipeline Editor Resources | Stores reference resources for the Editor only. Unity does not include these when you build your Unity Project.  When you create an HDRP Asset, Unity creates an HDRP Resources Asset, and the new HDRP Asset references it automatically. |
 | Shader Variant Log Level         | Use the drop-down to select what information HDRP logs about Shader variants when you build your Unity Project. • Disabled: HDRP doesn’t log any Shader variant information.• Only HDRP Shaders: Only log Shader variant information for HDRP Shaders.• All Shaders: Log Shader variant information for every Shader type. |
-| Light Layer Names                | The name displayed on Lights and Meshes when using [Light Layers](Light-Layers.md).. |
+| Light Layer Names                | The name displayed on Lights and Meshes when using [Light Layers](Light-Layers.md). |
 | Decal Layer Names                | The name displayed on decals and Meshes when using [Decal Layers](Decal.md). |
 
 
