@@ -7,7 +7,7 @@ namespace UnityEngine.VFX.Utility
         public abstract bool canExecuteInEditor { get; }
         public bool executeInEditor = true;
 
-        public ExposedProperty outputEvent = "OutputEvent";
+        public ExposedProperty outputEvent = "On Received Event";
 
         protected VisualEffect m_VisualEffect { private set; get; }
 

@@ -39,15 +39,17 @@ namespace UnityEditor.VFX.Utility
             }
 
             serializedObject.Update();
-            EditorGUI.BeginChangeCheck();
 
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.LabelField("Prefab Instances", EditorStyles.boldLabel);
 
             using(new EditorGUI.IndentLevelScope(1))
             {
                 using(new GUILayout.HorizontalScope())
                 {
+
                     EditorGUILayout.PropertyField(m_PrefabToSpawn);
+
                     using(new EditorGUI.DisabledGroupScope(m_PrefabToSpawn.objectReferenceValue == null))
                     {
                         if (GUILayout.Button("Reload", EditorStyles.miniButton, GUILayout.Width(64)))
@@ -68,7 +70,6 @@ namespace UnityEditor.VFX.Utility
                 EditorGUILayout.PropertyField(useAngle);
                 EditorGUILayout.PropertyField(useScale);
                 EditorGUILayout.PropertyField(useLifetime);
-
             }
 
             // Help box
@@ -83,6 +84,25 @@ Attribute Usage:
 
             if (EditorGUI.EndChangeCheck())
             {
+                if(m_PrefabToSpawn.objectReferenceValue != null)
+                {
+                    GameObject prefab = m_PrefabToSpawn.objectReferenceValue as GameObject;
+                    GameObject self = m_PrefabSpawnHandler.gameObject;
+
+                    while(self != null)
+                    {
+                        if(self.transform == prefab.transform)
+                        {
+                            m_PrefabToSpawn.objectReferenceValue = null;
+                        }
+
+                        if (self.transform.parent != null)
+                            self = self.transform.parent.gameObject;
+                        else
+                            self = null;
+                    }
+                }
+
                 serializedObject.ApplyModifiedProperties();
                 m_PrefabSpawnHandler.ReloadPrefab();
             }

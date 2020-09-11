@@ -7,6 +7,8 @@ namespace UnityEngine.VFX.Utility
     [RequireComponent(typeof(VisualEffect))]
     public class VFXOutputEventCMCameraShake : VFXOutputEventHandler
     {
+        public override bool canExecuteInEditor => true;
+
         public enum Space
         {
             Local,
