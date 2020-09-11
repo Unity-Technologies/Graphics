@@ -53,4 +53,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicsTests/Shadergraph/Shadow/102_ShadergraphShadow.unity
     guid: b5fab92e71d9dd747b87a111d703bd95
+  - enabled: 1
+    path: Assets/_WIP_Transform_GraphicTest.unity
+    guid: c2b6826b8849bd94e8346fda72c7b8e0
   m_configObjects: {}

@@ -382,13 +382,12 @@ namespace UnityEditor.VFX
 
         static VFXExpression RemoveTranslatePart(VFXExpression matrix)
         {
-            /* TODOPAUL Remove this (or replace with a proper extract rotation operator)
+            //TODOPAUL Remove this (or replace with a proper extract rotation operator)
             var i = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(0));
             var j = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(1));
             var k = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(2));
             var o = VFXValue.Constant(new Vector4(0, 0, 0, 1));
-            return new VFXExpressionVector4sToMatrix(i, j, k, o);*/
-            return matrix;
+            return new VFXExpressionVector4sToMatrix(i, j, k, o);
         }
 
         static protected VFXExpression ConvertSpace(VFXExpression input, SpaceableType spaceType, VFXCoordinateSpace space)

@@ -70,9 +70,6 @@ namespace UnityEditor.VFX.Block
                 VFXExpression slope = new VFXExpressionATan(tanSlope);
                 yield return new VFXNamedExpression(new VFXExpressionCombine(new VFXExpression[] { new VFXExpressionSin(slope), new VFXExpressionCos(slope) }), "sincosSlope");
 
-                var slotSpace = inputSlots[0].space;
-                var systemSpace = ((VFXDataParticle)GetData()).space;
-
                 VFXExpression center = inputSlots[0][0].GetExpression();
 
                 var eulerAngle = inputSlots[0][1].GetExpression();
@@ -82,7 +79,6 @@ namespace UnityEditor.VFX.Block
 
                 VFXExpression rotationMatrix = new VFXExpressionTRSToMatrix(zeroF3, eulerAngle, oneF3);
                 //TODOPAUL : track parent of euler angle to detect potential shortcut (in reduction I Guess)
-
                 //TODOPAUL Can be simplified using matrix composition.
                 //TODOPAUL Check side effect of this axisInverter
                 VFXExpression axisInverter = VFXValue.Constant(new Matrix4x4(   new Vector4(1, 0, 0, 0),
