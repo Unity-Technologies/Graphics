@@ -21,19 +21,56 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Keep in sync with shader define USE_CBUFFER_FOR_TILELIST
         // Keep in sync with shader define USE_CBUFFER_FOR_LIGHTDATA
         // Keep in sync with shader define USE_CBUFFER_FOR_LIGHTLIST
-#if UNITY_SWITCH
+        private static bool IsOpenGL => (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore
+                                         || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2
+                                         || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3);
+
         // Constant buffers are used for data that a repeatedly fetched by shaders.
         // Structured buffers are used for data only consumed once.
-        public static bool kUseCBufferForDepthRange = false;
-        public static bool kUseCBufferForTileList = false;
-        public static bool kUseCBufferForLightData = true;
-        public static bool kUseCBufferForLightList = false;
-#else
-        public static bool kUseCBufferForDepthRange = false;
-        public static bool kUseCBufferForTileList = false;
-        public static bool kUseCBufferForLightData = true;
-        public static bool kUseCBufferForLightList = false;
-#endif
+        internal static bool UseCBufferForDepthRange
+        {
+            get
+            {
+                #if UNITY_SWITCH
+                    return false;
+                #else
+                    return IsOpenGL;
+                #endif
+            }
+        }
+
+        internal static bool UseCBufferForTileList
+        {
+            get
+            {
+                #if UNITY_SWITCH
+                    return false;
+                #else
+                    return IsOpenGL;
+                #endif
+            }
+        }
+
+        internal static bool UseCBufferForLightData
+        {
+            get
+            {
+                return true;
+            }
+        }
+
+        internal static bool UseCBufferForLightList
+        {
+            get
+            {
+                #if UNITY_SWITCH
+                    return false;
+                #else
+                    return IsOpenGL;
+                #endif
+            }
+        }
+
         // Keep in sync with PREFERRED_CBUFFER_SIZE.
         public const int kPreferredCBufferSize = 64 * 1024;
         public const int kPreferredStructuredBufferSize = 128 * 1024;
@@ -287,10 +324,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_StencilDeferredMaterial = stencilDeferredMaterial;
 
             // Compute some platform limits.
-            m_MaxDepthRangePerBatch = (DeferredConfig.kUseCBufferForDepthRange ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / sizeof(uint);
-            m_MaxTilesPerBatch = (DeferredConfig.kUseCBufferForTileList ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / System.Runtime.InteropServices.Marshal.SizeOf(typeof(TileData));
-            m_MaxPunctualLightPerBatch = (DeferredConfig.kUseCBufferForLightData ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualLightData));
-            m_MaxRelLightIndicesPerBatch = (DeferredConfig.kUseCBufferForLightList ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / sizeof(uint);
+            m_MaxDepthRangePerBatch = (DeferredConfig.UseCBufferForDepthRange ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / sizeof(uint);
+            m_MaxTilesPerBatch = (DeferredConfig.UseCBufferForTileList ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / System.Runtime.InteropServices.Marshal.SizeOf(typeof(TileData));
+            m_MaxPunctualLightPerBatch = (DeferredConfig.UseCBufferForLightData ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualLightData));
+            m_MaxRelLightIndicesPerBatch = (DeferredConfig.UseCBufferForLightList ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / sizeof(uint);
 
             m_Tilers = new DeferredTiler[DeferredConfig.kTilerDepth];
             m_TileDataCapacities = new int[DeferredConfig.kTilerDepth];
@@ -699,7 +736,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 int tileY = 0;
                 int tileYIncrement =
-                    (DeferredConfig.kUseCBufferForDepthRange
+                    (DeferredConfig.UseCBufferForDepthRange
                         ? DeferredConfig.kPreferredCBufferSize
                         : DeferredConfig.kPreferredStructuredBufferSize) / (tileXCount * 4);
 
@@ -721,10 +758,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     ComputeBuffer _depthRanges =
                         DeferredShaderData.instance.ReserveBuffer<uint>(m_MaxDepthRangePerBatch,
-                            DeferredConfig.kUseCBufferForDepthRange);
+                            DeferredConfig.UseCBufferForDepthRange);
                     _depthRanges.SetData(depthRanges, 0, 0, depthRanges.Length);
 
-                    if (DeferredConfig.kUseCBufferForDepthRange)
+                    if (DeferredConfig.UseCBufferForDepthRange)
                         cmd.SetGlobalConstantBuffer(_depthRanges, ShaderConstants.UDepthRanges, 0,
                             m_MaxDepthRangePerBatch * 4);
                     else
@@ -979,9 +1016,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 int lightCount = 0;
                 int relLightIndices = 0;
 
-                ComputeBuffer _tileList = DeferredShaderData.instance.ReserveBuffer<TileData>(m_MaxTilesPerBatch, DeferredConfig.kUseCBufferForTileList);
-                ComputeBuffer _punctualLightBuffer = DeferredShaderData.instance.ReserveBuffer<PunctualLightData>(m_MaxPunctualLightPerBatch, DeferredConfig.kUseCBufferForLightData);
-                ComputeBuffer _relLightList = DeferredShaderData.instance.ReserveBuffer<uint>(m_MaxRelLightIndicesPerBatch, DeferredConfig.kUseCBufferForLightList);
+                ComputeBuffer _tileList = DeferredShaderData.instance.ReserveBuffer<TileData>(m_MaxTilesPerBatch, DeferredConfig.UseCBufferForTileList);
+                ComputeBuffer _punctualLightBuffer = DeferredShaderData.instance.ReserveBuffer<PunctualLightData>(m_MaxPunctualLightPerBatch, DeferredConfig.UseCBufferForLightData);
+                ComputeBuffer _relLightList = DeferredShaderData.instance.ReserveBuffer<uint>(m_MaxRelLightIndicesPerBatch, DeferredConfig.UseCBufferForLightList);
 
                 NativeArray<uint4> tileList = new NativeArray<uint4>(m_MaxTilesPerBatch * sizeof_vec4_TileData, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
                 NativeArray<uint4> punctualLightBuffer = new NativeArray<uint4>(m_MaxPunctualLightPerBatch * sizeof_vec4_PunctualLightData, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
@@ -1029,14 +1066,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                             if (tileListIsFull)
                             {
                                 _tileList.SetData(tileList, 0, 0, tileList.Length); // Must pass complete array (restriction for binding Unity Constant Buffers)
-                                _tileList = DeferredShaderData.instance.ReserveBuffer<TileData>(m_MaxTilesPerBatch, DeferredConfig.kUseCBufferForTileList);
+                                _tileList = DeferredShaderData.instance.ReserveBuffer<TileData>(m_MaxTilesPerBatch, DeferredConfig.UseCBufferForTileList);
                                 tileCount = 0;
                             }
 
                             if (lightBufferIsFull)
                             {
                                 _punctualLightBuffer.SetData(punctualLightBuffer, 0, 0, punctualLightBuffer.Length);
-                                _punctualLightBuffer = DeferredShaderData.instance.ReserveBuffer<PunctualLightData>(m_MaxPunctualLightPerBatch, DeferredConfig.kUseCBufferForLightData);
+                                _punctualLightBuffer = DeferredShaderData.instance.ReserveBuffer<PunctualLightData>(m_MaxPunctualLightPerBatch, DeferredConfig.UseCBufferForLightData);
                                 lightCount = 0;
 
                                 // If punctualLightBuffer was reset, then all lights in the current tile must be added.
@@ -1049,7 +1086,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                             if (relLightListIsFull)
                             {
                                 _relLightList.SetData(relLightList, 0, 0, relLightList.Length);
-                                _relLightList = DeferredShaderData.instance.ReserveBuffer<uint>(m_MaxRelLightIndicesPerBatch, DeferredConfig.kUseCBufferForLightList);
+                                _relLightList = DeferredShaderData.instance.ReserveBuffer<uint>(m_MaxRelLightIndicesPerBatch, DeferredConfig.UseCBufferForLightList);
                                 relLightIndices = 0;
                             }
 
@@ -1132,17 +1169,17 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     DrawCall dc = drawCalls[i];
 
-                    if (DeferredConfig.kUseCBufferForTileList)
+                    if (DeferredConfig.UseCBufferForTileList)
                         cmd.SetGlobalConstantBuffer(dc.tileList, ShaderConstants.UTileList, 0, dc.tileListSize);
                     else
                         cmd.SetGlobalBuffer(ShaderConstants._TileList, dc.tileList);
 
-                    if (DeferredConfig.kUseCBufferForLightData)
+                    if (DeferredConfig.UseCBufferForLightData)
                         cmd.SetGlobalConstantBuffer(dc.punctualLightBuffer, ShaderConstants.UPunctualLightBuffer, 0, dc.punctualLightBufferSize);
                     else
                         cmd.SetGlobalBuffer(ShaderConstants._PunctualLightBuffer, dc.punctualLightBuffer);
 
-                    if (DeferredConfig.kUseCBufferForLightList)
+                    if (DeferredConfig.UseCBufferForLightList)
                         cmd.SetGlobalConstantBuffer(dc.relLightList, ShaderConstants.URelLightList, 0, dc.relLightListSize);
                     else
                         cmd.SetGlobalBuffer(ShaderConstants._RelLightList, dc.relLightList);
