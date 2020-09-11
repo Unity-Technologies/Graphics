@@ -37,7 +37,13 @@ namespace UnityEngine.Rendering.HighDefinition
         SsrTracing,
         SsrReprojection,
         PrepareForTransparentSsr,
-        SsgiPass,
+
+        // SSGI
+        SSGITrace,
+        SSGIDenoise,
+        SSGIUpscale,
+        SSGIPass,
+
         ForwardEmissive,
         ForwardOpaque,
         ForwardOpaqueDebug,
@@ -222,6 +228,14 @@ namespace UnityEngine.Rendering.HighDefinition
         ProbeVolumeDebug,
         BuildGPULightListProbeVolumes,
         PushProbeVolumeLightListGlobalParameters,
+
+        AOVExecute,
+        // Enum AOVBuffers
+        AOVOutput,
+        AOVColor,
+        AOVDepthStencil,
+        AOVNormals,
+        AOVMotionVectors,
 
 #if ENABLE_VIRTUALTEXTURES
         VTFeedbackClear,
