@@ -82,6 +82,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 passes = new PassCollection
                 {
                     { SpriteUnlitPasses.Unlit },
+                    { SpriteUnlitPasses.Forward },
                 },
             };
         }
@@ -114,6 +115,33 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas = CorePragmas._2DDefault,
                 includes = SpriteUnlitIncludes.Unlit,
             };
+
+            public static PassDescriptor Forward = new PassDescriptor
+            {
+                // Definition
+                displayName = "Sprite Forward",
+                referenceName = "SHADERPASS_SPRITEFORWARD",
+                lightMode = "UniversalForward",
+                useInPreview = true,
+
+                // Template
+                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = SpriteUnlitBlockMasks.FragmentForward,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                requiredFields = SpriteUnlitRequiredFields.Forward,
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                // Conditional State
+                renderStates = CoreRenderStates.Default,
+                pragmas = CorePragmas._2DDefault,
+                includes = SpriteUnlitIncludes.Forward,
+            };
         }
 #endregion
 
@@ -121,6 +149,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         static class SpriteUnlitBlockMasks
         {
             public static BlockFieldDescriptor[] Fragment = new BlockFieldDescriptor[]
+            {
+                BlockFields.SurfaceDescription.BaseColor,
+                BlockFields.SurfaceDescriptionLegacy.SpriteColor,
+                BlockFields.SurfaceDescription.Alpha,
+            };
+
+            public static BlockFieldDescriptor[] FragmentForward = new BlockFieldDescriptor[]
             {
                 BlockFields.SurfaceDescription.BaseColor,
                 BlockFields.SurfaceDescriptionLegacy.SpriteColor,
@@ -134,8 +169,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             public static FieldCollection Unlit = new FieldCollection()
             {
-                StructFields.Attributes.color,
-                StructFields.Attributes.uv0,
+                StructFields.Varyings.color,
+                StructFields.Varyings.texCoord0,
+            };
+
+            public static FieldCollection Forward = new FieldCollection()
+            {
                 StructFields.Varyings.color,
                 StructFields.Varyings.texCoord0,
             };
@@ -146,6 +185,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         static class SpriteUnlitIncludes
         {
             const string kSpriteUnlitPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteUnlitPass.hlsl";
+            const string kSpriteForwardPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteForwardPass.hlsl";
 
             public static IncludeCollection Unlit = new IncludeCollection
             {
@@ -156,6 +196,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
                 { kSpriteUnlitPass, IncludeLocation.Postgraph },
+            };
+
+            public static IncludeCollection Forward = new IncludeCollection
+            {
+                // Pre-graph
+                { CoreIncludes.CorePregraph },
+                { CoreIncludes.ShaderGraphPregraph },
+
+                // Post-graph
+                { CoreIncludes.CorePostgraph },
+                { kSpriteForwardPass, IncludeLocation.Postgraph },
             };
         }
 #endregion
