@@ -113,13 +113,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 deferredParameters.rayBinning = false;
             }
 
-            deferredParameters.globalCB = m_ShaderVariablesRayTracingCB;
-            deferredParameters.globalCB._RaytracingIntensityClamp = settings.clampValue;
-            deferredParameters.globalCB._RaytracingPreExposition = 1;
-            deferredParameters.globalCB._RaytracingDiffuseRay = 1;
-            deferredParameters.globalCB._RaytracingIncludeSky = 1;
-            deferredParameters.globalCB._RaytracingRayMaxLength = settings.rayLength;
-            deferredParameters.globalCB._RayTracingDiffuseLightingOnly = deferredParameters.diffuseLightingOnly ? 1 : 0;
+            // Make a copy of the previous values that were defined in the CB
+            deferredParameters.raytracingCB = m_ShaderVariablesRayTracingCB;
+            // Override the ones we need to
+            deferredParameters.raytracingCB._RaytracingIntensityClamp = settings.clampValue;
+            deferredParameters.raytracingCB._RaytracingPreExposition = 1;
+            deferredParameters.raytracingCB._RaytracingIncludeSky = 1;
+            deferredParameters.raytracingCB._RaytracingPreExposition = 1;
+            deferredParameters.raytracingCB._RaytracingRayMaxLength = settings.rayLength;
+            deferredParameters.raytracingCB._RayTracingDiffuseLightingOnly = 1;
 
             return deferredParameters;
         }
@@ -462,9 +464,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRayTracingTextureParam(qrtidParameters.indirectDiffuseRT, HDShaderIDs._SkyTexture, qrtidParameters.skyTexture);
 
             // Update global constant buffer
+            qrtidParameters.shaderVariablesRayTracingCB._RaytracingIntensityClamp = qrtidParameters.clampValue;
+            qrtidParameters.shaderVariablesRayTracingCB._RaytracingIncludeSky = 1;
             qrtidParameters.shaderVariablesRayTracingCB._RaytracingRayMaxLength = qrtidParameters.rayLength;
             qrtidParameters.shaderVariablesRayTracingCB._RaytracingNumSamples = qrtidParameters.sampleCount;
-            qrtidParameters.shaderVariablesRayTracingCB._RaytracingIntensityClamp = qrtidParameters.clampValue;
             qrtidParameters.shaderVariablesRayTracingCB._RaytracingMaxRecursion = qrtidParameters.bounceCount;
             qrtidParameters.shaderVariablesRayTracingCB._RayTracingDiffuseLightingOnly = 1;
             ConstantBuffer.PushGlobal(cmd, qrtidParameters.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
