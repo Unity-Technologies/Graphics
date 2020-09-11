@@ -2370,6 +2370,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             ApplyDebugDisplaySettings(hdCamera, cmd);
 
+            if (DebugManager.instance.displayRuntimeUI
+#if UNITY_EDITOR
+                    || DebugManager.instance.displayEditorUI
+    #endif
+                )
+                m_CurrentDebugDisplaySettings.UpdateAveragedProfilerTimings();
+
             SetupCameraProperties(hdCamera, renderContext, cmd);
 
             // TODO: Find a correct place to bind these material textures

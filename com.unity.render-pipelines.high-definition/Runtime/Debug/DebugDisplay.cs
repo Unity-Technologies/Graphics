@@ -152,6 +152,26 @@ namespace UnityEngine.Rendering.HighDefinition
         static bool needsRefreshingCameraFreezeList = true;
 
         List<ProfilingSampler> m_RecordedSamplers = new List<ProfilingSampler>();
+
+        // Accumulate values to avg over one second.
+        class AccumulatedTiming
+        {
+            public float accumulatedValue = 0;
+            public float lastAverage = 0;
+
+            internal void UpdateLastAverage(int frameCount)
+            {
+                lastAverage = accumulatedValue / frameCount;
+                accumulatedValue = 0.0f;
+            }
+        }
+        Dictionary<string, AccumulatedTiming> m_AccumulatedGPUTiming = new Dictionary<string, AccumulatedTiming>();
+        Dictionary<string, AccumulatedTiming> m_AccumulatedCPUTiming = new Dictionary<string, AccumulatedTiming>();
+        Dictionary<string, AccumulatedTiming> m_AccumulatedInlineCPUTiming = new Dictionary<string, AccumulatedTiming>();
+        float m_TimeSinceLastAvgValue = 0.0f;
+        int m_AccumulatedFrames = 0;
+        const float k_AccumulationTimeInSeconds = 1.0f;
+
         List<ProfilingSampler> m_RecordedSamplersRT = new List<ProfilingSampler>();
         enum DebugProfilingType
         {
@@ -179,6 +199,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public int fullScreenContactShadowLightIndex = 0;
             /// <summary>XR single pass test mode.</summary>
             public bool xrSinglePassTestMode = false;
+            /// <summary>Whether to display the average timings every second.</summary>
+            public bool averageProfilerTimingsOverASecond = false;
 
             /// <summary>Current material debug settings.</summary>
             public MaterialDebugSettings materialDebugSettings = new MaterialDebugSettings();
@@ -733,16 +755,49 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RecordedSamplersRT.Clear();
         }
 
+        float GetSamplerTiming(DebugProfilingType type, ProfilingSampler sampler)
+        {
+            if (data.averageProfilerTimingsOverASecond)
+            {
+                // Find the right accumulated dictionary and add it there if not existing yet.
+                var accumulatedDictionary = type == DebugProfilingType.CPU ? m_AccumulatedCPUTiming :
+                                            type == DebugProfilingType.InlineCPU ? m_AccumulatedInlineCPUTiming :
+                                            m_AccumulatedGPUTiming;
+
+                AccumulatedTiming accTiming = null;
+                if (accumulatedDictionary.TryGetValue(sampler.name, out accTiming))
+                    return accTiming.lastAverage;
+            }
+            else
+            {
+                return (type == DebugProfilingType.CPU) ? sampler.cpuElapsedTime : ((type == DebugProfilingType.GPU) ? sampler.gpuElapsedTime : sampler.inlineCpuElapsedTime);
+            }
+
+            return 0.0f;
+        }
+
         ObservableList<DebugUI.Widget> BuildProfilingSamplerList(DebugProfilingType type)
         {
             var result = new ObservableList<DebugUI.Widget>();
+
+            // Find the right accumulated dictionary and add it there if not existing yet.
+            var accumulatedDictionary = type == DebugProfilingType.CPU ? m_AccumulatedCPUTiming :
+                                        type == DebugProfilingType.InlineCPU ? m_AccumulatedInlineCPUTiming :
+                                        m_AccumulatedGPUTiming;
+
+
             foreach (var sampler in m_RecordedSamplers)
             {
                 sampler.enableRecording = true;
+                if (!accumulatedDictionary.ContainsKey(sampler.name))
+                {
+                    accumulatedDictionary.Add(sampler.name, new AccumulatedTiming());
+                }
+
                 result.Add(new DebugUI.Value
                 {
                     displayName = sampler.name,
-                    getter = () => string.Format("{0:F2}", (type == DebugProfilingType.CPU) ? sampler.cpuElapsedTime : ((type == DebugProfilingType.GPU) ? sampler.gpuElapsedTime : sampler.inlineCpuElapsedTime)),
+                    getter = () => string.Format("{0:F2}", GetSamplerTiming(type, sampler)),
                     refreshRate = 1.0f / 5.0f
                 });
             }
@@ -753,18 +808,76 @@ namespace UnityEngine.Rendering.HighDefinition
         ObservableList<DebugUI.Widget> BuildProfilingSamplerListRT(DebugProfilingType type)
         {
             var result = new ObservableList<DebugUI.Widget>();
+
+            // Find the right accumulated dictionary and add it there if not existing yet.
+            var accumulatedDictionary = type == DebugProfilingType.CPU ? m_AccumulatedCPUTiming :
+                                        type == DebugProfilingType.InlineCPU ? m_AccumulatedInlineCPUTiming :
+                                        m_AccumulatedGPUTiming;
+
+
             foreach (var sampler in m_RecordedSamplersRT)
             {
                 sampler.enableRecording = true;
+                if (!accumulatedDictionary.ContainsKey(sampler.name))
+                {
+                    accumulatedDictionary.Add(sampler.name, new AccumulatedTiming());
+                }
+
                 result.Add(new DebugUI.Value
                 {
                     displayName = sampler.name,
-                    getter = () => string.Format("{0:F2}", (type == DebugProfilingType.CPU) ? sampler.cpuElapsedTime : ((type == DebugProfilingType.GPU) ? sampler.gpuElapsedTime : sampler.inlineCpuElapsedTime)),
+                    getter = () => string.Format("{0:F2}", GetSamplerTiming(type, sampler)),
                     refreshRate = 1.0f / 5.0f
                 });
             }
 
             return result;
+        }
+
+        void UpdateListOfAveragedProfilerTimings(List<ProfilingSampler> samplers, bool needUpdatingAverages)
+        {
+            foreach (var sampler in samplers)
+            {
+                // Accumulate.
+                AccumulatedTiming accCPUTiming = null;
+                if (m_AccumulatedCPUTiming.TryGetValue(sampler.name, out accCPUTiming))
+                    accCPUTiming.accumulatedValue += sampler.cpuElapsedTime;
+
+                AccumulatedTiming accInlineCPUTiming = null;
+                if (m_AccumulatedInlineCPUTiming.TryGetValue(sampler.name, out accInlineCPUTiming))
+                    accInlineCPUTiming.accumulatedValue += sampler.inlineCpuElapsedTime;
+
+                AccumulatedTiming accGPUTiming = null;
+                if (m_AccumulatedGPUTiming.TryGetValue(sampler.name, out accGPUTiming))
+                    accGPUTiming.accumulatedValue += sampler.gpuElapsedTime;
+
+                if (needUpdatingAverages)
+                {
+                    if (accCPUTiming != null)
+                        accCPUTiming.UpdateLastAverage(m_AccumulatedFrames);
+                    if (accInlineCPUTiming != null)
+                        accInlineCPUTiming.UpdateLastAverage(m_AccumulatedFrames);
+                    if (accGPUTiming != null)
+                        accGPUTiming.UpdateLastAverage(m_AccumulatedFrames);
+                }
+            }
+        }
+
+        internal void UpdateAveragedProfilerTimings()
+        {
+            m_TimeSinceLastAvgValue += Time.unscaledDeltaTime;
+            m_AccumulatedFrames++;
+            bool needUpdatingAverages = m_TimeSinceLastAvgValue >= k_AccumulationTimeInSeconds;
+
+            UpdateListOfAveragedProfilerTimings(m_RecordedSamplers, needUpdatingAverages);
+            UpdateListOfAveragedProfilerTimings(m_RecordedSamplersRT, needUpdatingAverages);
+
+            if (needUpdatingAverages)
+            {
+                m_TimeSinceLastAvgValue = 0.0f;
+                m_AccumulatedFrames = 0;
+            }
+
         }
 
         void RegisterDisplayStatsDebug()
@@ -775,6 +888,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
             EnableProfilingRecorders();
+            list.Add(new DebugUI.BoolField { displayName = "Update every second with average", getter = () => data.averageProfilerTimingsOverASecond, setter = value => data.averageProfilerTimingsOverASecond = value });
             list.Add(new DebugUI.Foldout("CPU timings (Command Buffers)", BuildProfilingSamplerList(DebugProfilingType.CPU)));
             list.Add(new DebugUI.Foldout("GPU timings", BuildProfilingSamplerList(DebugProfilingType.GPU)));
             if (HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportRayTracing ?? true)
