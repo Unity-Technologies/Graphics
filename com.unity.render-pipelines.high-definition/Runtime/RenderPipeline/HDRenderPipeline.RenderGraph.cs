@@ -465,7 +465,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDShadowManager.ReadShadowResult(shadowResult, builder);
         }
 
-        void BindGlobalLightListBuffers(ForwardPassData data, RenderGraphContext ctx)
+        static void BindGlobalLightListBuffers(ForwardPassData data, RenderGraphContext ctx)
         {
             ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, data.lightListBuffer);
             // Next two are only for cluster rendering. PerTileLogBaseTweak is only when using depth buffer so can be invalid as well.
