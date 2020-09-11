@@ -2,7 +2,6 @@ abv: # specify the editor versions for which to create the expression trigger fo
   trigger_editors:
     - trunk
   projects:
-    - name: Smoke_Test
     - name: Universal
     - name: ShaderGraph
     - name: HDRP
@@ -11,7 +10,14 @@ abv: # specify the editor versions for which to create the expression trigger fo
 nightly:
   allowed_editors: # specify the editor versions for which to create nightly jobs
     - trunk
-  extra_dependencies: # additional project jobs to run nightly (in addition to ABV and smoke tests)
+  extra_dependencies: # additional project jobs to run nightly (in addition to ABV)
+    - project: Smoke_Test
+      platform: Win
+      api: DX11
+      test_platforms:
+        - playmode
+        - editmode
+        - Standalone
     - project: Universal
       platform: Android
       api: OpenGLES3
