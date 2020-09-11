@@ -137,9 +137,9 @@ void AlphaDiscard(real alpha, real cutoff, real offset = 0.0h)
     #endif
 }
 
-half OutputAlpha(half outputAlpha)
+half OutputAlpha(half outputAlpha, half surfaceType = 0.0)
 {
-    return saturate(outputAlpha + _DrawObjectPassData.a);
+    return surfaceType == 1 ? outputAlpha : 1.0;
 }
 
 // A word on normalization of normals:

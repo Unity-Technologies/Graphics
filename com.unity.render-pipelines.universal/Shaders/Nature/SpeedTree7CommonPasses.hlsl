@@ -158,7 +158,7 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
         return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit);
     #else
         color.rgb = MixFog(color.rgb, inputData.fogCoord);
-        color.a = OutputAlpha(color.a);
+        color.a = OutputAlpha(color.a, _Surface);
         return color;
     #endif
 }
