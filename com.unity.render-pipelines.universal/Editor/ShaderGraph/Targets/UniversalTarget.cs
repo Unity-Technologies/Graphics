@@ -154,8 +154,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override bool IsNodeAllowedByTarget(Type nodeType)
         {
             SRPFilterAttribute srpFilter = NodeClassCache.GetAttributeOnNodeType<SRPFilterAttribute>(nodeType);
-            NeverAllowedByTargetAttribute neverAllowed = NodeClassCache.GetAttributeOnNodeType<NeverAllowedByTargetAttribute>(nodeType);
-            return (srpFilter == null || srpFilter.srpTypes.Contains(typeof(UniversalRenderPipeline))) && neverAllowed == null;
+            bool worksWithThisSrp = srpFilter == null || srpFilter.srpTypes.Contains(typeof(UniversalRenderPipeline));
+            return worksWithThisSrp && base.IsNodeAllowedByTarget(nodeType);
         }
         public override void Setup(ref TargetSetupContext context)
         {
