@@ -32,6 +32,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return changed;
         }
 
+        private enum PivotType
+        {
+            PivotBase,
+            PivotCurve,
+            PivotIntersect,
+            PivotSkip,
+            PivotClip
+        };
+        
         private struct ParametricLightMeshVertex
         {
             public float3 position;
@@ -85,10 +94,40 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return (path[activePoint].N == -1);
         }
 
-        static void FixPivots(List<IntPoint> path, int pathLength)
+        // Ensure that we get a valid path from 0.
+        static List<IntPoint> SortPivots(List<IntPoint> path)
         {
-            long pivotPoint = path[0].N;
+            var min = path[0].N;
+            var max = path[0].N;
+            var minIndex = 0;
+            bool newMin = true;
+            for (int i = 1; i < path.Count; ++i)
+            {
+                if (max > path[i].N && newMin && path[i].N != -1)
+                {
+                    min = max = path[i].N;
+                    minIndex = i;
+                    newMin = false;
+                }
+                else if (path[i].N >= max)
+                {
+                    max = path[i].N;
+                    newMin = true;
+                }
+            }
 
+            List<IntPoint> sorted = new List<IntPoint>();
+            sorted.AddRange(path.GetRange(minIndex, (path.Count - minIndex)));
+            sorted.AddRange(path.GetRange(0, minIndex));
+            return sorted;
+        }
+        
+        // Ensure that all points eliminated due to overlaps and intersections are accounted for Tessellation.
+        static List<IntPoint> FixPivots(List<IntPoint> pathInput, int pathLength)
+        {
+            var path = SortPivots(pathInput);
+            long pivotPoint = path[0].N;
+            
             // Connect Points for Overlaps.
             for (int i = 1; i < path.Count; ++i)
             {
@@ -100,33 +139,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     var incr = TestPivot(path, i, pivotPoint);
                     if (incr)
                     {
-                        var test = path[i];
+                        var test = curr;
                         test.N = (pivotPoint + 1) < pathLength ? (pivotPoint + 1) : 0;
-                        test.D = 2;
+                        test.D = 3;
                         path[i] = test;
                     }
                 }
                 pivotPoint = path[i].N;
             }
 
-            // Connect Points for Clipped Pivots.
-            for (int i = 1; i < path.Count;)
-            {
-                var prev = path[i - 1];
-                var curr = path[i];
-
-                if (curr.N - prev.N > 1)
-                {
-                    IntPoint ins = prev;
-                    ins.N++;
-                    ins.D = 3;
-                    path.Insert(i, ins);
-                }
-                else
-                {
-                    i++;
-                }
-            }
+            return path;
         }
 
         public static Bounds GenerateShapeMesh(Mesh mesh, Vector3[] shapePath, float falloffDistance)
@@ -159,10 +181,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var pointNoise = new System.Random();
             for (var i = 0; i < innerShapeVertexCount; ++i)
             {
+                var pnx = 0;// pointNoise.Next(10);
+                var pny = 0;// pointNoise.Next(10);
                 var newPoint = new Vector2(inner[i].Position.X, inner[i].Position.Y) * kClipperScale;
-                var addPoint = new IntPoint((System.Int64) (newPoint.x + pointNoise.Next(10)),
-                    (System.Int64) (newPoint.y + pointNoise.Next(10)));
-                addPoint.N = i;
+                var addPoint = new IntPoint((System.Int64) (newPoint.x + pnx),(System.Int64) (newPoint.y + pny));
+                addPoint.N = i; addPoint.D = -1;
                 path.Add(addPoint);
             }
 
@@ -174,12 +197,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             if (solution.Count > 0)
             {
+                // Fix path for Pivots.                
                 path = solution[0];
-                path.Add(path[0]);
+                path = FixPivots(path, shapePath.Length);
+                path.Add(path[0]);                
 
-                // Fix path for Pivots.
-                FixPivots(path, shapePath.Length);
-                
                 // Tessellate.
                 var prev = path[0];
                 var prevIndex = prev.N == -1 ? 0 : prev.N;

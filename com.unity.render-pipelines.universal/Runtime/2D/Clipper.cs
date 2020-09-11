@@ -431,7 +431,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     public enum PolyFillType { pftEvenOdd, pftNonZero, pftPositive, pftNegative };
 
     public enum JoinType { jtRound };
-    public enum EndType { etClosedPolygon, etClosedLine, etOpenButt, etOpenSquare, etOpenRound };
+    public enum EndType { etClosedPolygon, etClosedLine };
 
     internal enum EdgeSide { esLeft, esRight };
     internal enum Direction { dRightToLeft, dLeftToRight };
@@ -3171,9 +3171,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     pivotPoint = (edge2.Curr.N > 0) ? edge2.Curr.N - 1 : 0;
                 }
             }
-            ip.N = pivotPoint;
-            ip.D = 1;
-            double b1, b2;
+            ip.D = 2; ip.N = isClamp ? pivotPoint : -1; 
+
             //nb: with very large coordinate values, it's possible for SlopesEqual() to
             //return false but for the edge.Dx value be equal due to double precision rounding.
             if (edge1.Dx == edge2.Dx)
@@ -3182,7 +3181,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 ip.X = TopX(edge1, ip.Y);
                 return;
             }
-
+            
+            double b1, b2;
             if (edge1.Delta.X == 0)
             {
                 ip.X = edge1.Bot.X;
@@ -4805,32 +4805,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     int k = 0;
                     for (int j = 1; j < len - 1; ++j)
                         OffsetPoint(j, ref k, node.m_jointype);
-
-                    IntPoint pt1;
-                    if (node.m_endtype == EndType.etOpenButt)
-                    {
-                        int j = len - 1;
-                        pt1 = new IntPoint((ClipInt)Round(m_srcPoly[j].X + m_normals[j].X *
-                                    delta), (ClipInt)Round(m_srcPoly[j].Y + m_normals[j].Y * delta));
-                        pt1.NX = m_normals[j].X;    pt1.NY = m_normals[j].Y;
-                        pt1.N = j;
-                        m_destPoly.Add(pt1);
-                        pt1 = new IntPoint((ClipInt)Round(m_srcPoly[j].X - m_normals[j].X *
-                                    delta), (ClipInt)Round(m_srcPoly[j].Y - m_normals[j].Y * delta));
-                        pt1.NX = -m_normals[j].X;    pt1.NY = -m_normals[j].Y;
-                        pt1.N = j;
-                        m_destPoly.Add(pt1);
-                    }
-                    else
+                    
                     {
                         int j = len - 1;
                         k = len - 2;
                         m_sinA = 0;
                         m_normals[j] = new DoublePoint(-m_normals[j].X, -m_normals[j].Y);
-                        if (node.m_endtype == EndType.etOpenSquare)
-                            DoSquare(j, k);
-                        else
-                            DoRound(j, k);
+                        DoRound(j, k);
                     }
 
                     //re-build m_normals ...
@@ -4842,26 +4823,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     k = len - 1;
                     for (int j = k - 1; j > 0; --j)
                         OffsetPoint(j, ref k, node.m_jointype);
-
-                    if (node.m_endtype == EndType.etOpenButt)
-                    {
-                        pt1 = new IntPoint((ClipInt)Round(m_srcPoly[0].X - m_normals[0].X * delta),
-                                (ClipInt)Round(m_srcPoly[0].Y - m_normals[0].Y * delta));
-                        pt1.NX = -m_normals[0].X; pt1.NY = -m_normals[0].Y; pt1.N = 0;
-                        m_destPoly.Add(pt1);
-                        pt1 = new IntPoint((ClipInt)Round(m_srcPoly[0].X + m_normals[0].X * delta),
-                                (ClipInt)Round(m_srcPoly[0].Y + m_normals[0].Y * delta));
-                        pt1.NX = m_normals[0].X; pt1.NY = m_normals[0].Y; pt1.N = 0;
-                        m_destPoly.Add(pt1);
-                    }
-                    else
+                    
                     {
                         k = 1;
                         m_sinA = 0;
-                        if (node.m_endtype == EndType.etOpenSquare)
-                            DoSquare(0, 1);
-                        else
-                            DoRound(0, 1);
+                        DoRound(0, 1);
                     }
                     m_destPolys.Add(m_destPoly);
                 }
@@ -4960,7 +4926,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 {
                     var item = new IntPoint(Round(m_srcPoly[j].X + m_normals[k].X * m_delta),
                         Round(m_srcPoly[j].Y + m_normals[k].Y * m_delta));
-                    item.NX = m_normals[k].X; item.NY = m_normals[k].Y; item.N = j;
+                    item.NX = m_normals[k].X; item.NY = m_normals[k].Y; item.N = j;  item.D = 1;
                     m_destPoly.Add(item);
                     return;
                 }
@@ -4976,11 +4942,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 pt.NX = m_normals[k].X; pt.NY = m_normals[k].Y;
                 m_destPoly.Add(pt);
                 pt = m_srcPoly[j];
-                pt.NX = m_normals[k].X; pt.NY = m_normals[k].Y; pt.N = j;
+                pt.NX = m_normals[k].X; pt.NY = m_normals[k].Y; pt.N = j; pt.D = 1;
                 m_destPoly.Add(pt);
                 pt = new IntPoint(Round(m_srcPoly[j].X + m_normals[j].X * m_delta),
                     Round(m_srcPoly[j].Y + m_normals[j].Y * m_delta));
-                pt.NX = m_normals[j].X; pt.NY = m_normals[j].Y; pt.N = j;
+                pt.NX = m_normals[j].X; pt.NY = m_normals[j].Y; pt.N = j; pt.D = 1;
                 m_destPoly.Add(pt);
             }
             else
@@ -5034,7 +5000,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 var pt = new IntPoint(
                     Round(m_srcPoly[j].X + X * m_delta),
                     Round(m_srcPoly[j].Y + Y * m_delta));
-                pt.NX = X; pt.NY = Y; pt.N = j;
+                pt.NX = X; pt.NY = Y; pt.N = j; pt.D = 1;
                 m_destPoly.Add(pt);
                 X2 = X;
                 X = X * m_cos - m_sin * Y;
@@ -5044,7 +5010,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var pt1 = new IntPoint(
                 Round(m_srcPoly[j].X + m_normals[j].X * m_delta),
                 Round(m_srcPoly[j].Y + m_normals[j].Y * m_delta));
-            pt1.NX = m_normals[j].X; pt1.NY = m_normals[j].Y; pt1.N = j;
+            pt1.NX = m_normals[j].X; pt1.NY = m_normals[j].Y; pt1.N = j; pt1.D = 1;
             m_destPoly.Add(pt1);
         }
 
