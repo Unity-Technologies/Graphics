@@ -172,7 +172,7 @@ namespace UnityEditor.Rendering.HighDefinition
         private static class LightUnitIcon
         {
             static string GetLightUnitIconPath() => HDUtils.GetHDRenderPipelinePath() +
-                                                    "/Editor/RenderPipelineResources/Texture/LightUnitIcons/Tmp/";
+                                                    "/Editor/RenderPipelineResources/Texture/LightUnitIcons/";
 
             // Note: We do not use the editor resource loading mechanism for light unit icons because we need to skin the icon correctly for the editor theme.
             // Maybe the resource reloader can be improved to support icon loading (thus supporting skinning)?
