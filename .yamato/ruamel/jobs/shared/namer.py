@@ -20,11 +20,11 @@ def editor_job_id_update_ABV():
 def editor_job_id_target_to_ci():
     return 'editor-pinning-target-to-ci'
 
-def editor_job_id_merge_revisions():
-    return 'editor-pinning-merge-revisions'
+def editor_job_id_merge_revisions(editor_track):
+    return f'editor-pinning-merge-revisions-{editor_track}'
 
-def editor_job_id_merge_revisions_ABV():
-    return 'editor-pinning-merge-revisions-abv'
+def editor_job_id_merge_revisions_ABV(editor_track):
+    return f'editor-pinning-merge-revisions-{editor_track}-abv'
 
 # package specific
 def packages_filepath():

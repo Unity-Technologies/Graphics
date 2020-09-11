@@ -17,7 +17,7 @@ def verify_changed_files(editor_versions_file, commit_hash, working_dir):
 
     assert editor_versions_file in filenames, f'Cannot find {editor_versions_file} in {filenames}'
     filenames.remove(editor_versions_file)
-    assert all(filename.startswith(EXPECTATIONS_PATH) or filename.endswith('.yml') for filename in filenames), (
+    assert all('_latest_editor_versions' in filename or filename.endswith('.yml') for filename in filenames), (
         f'Found other files than {editor_versions_file}, .yml, and expectation files in {filenames}')
 
 
@@ -74,6 +74,7 @@ def parse_args(flags):
     parser.add_argument('--config', required=False, default=DEFAULT_CONFIG_FILE,
                         help=f'Configuration YAML file to use. Default: {DEFAULT_CONFIG_FILE}')
     parser.add_argument("--revision", required=True)
+    parser.add_argument("--track", required=True)
     parser.add_argument("--working-dir", required=False,
                         help='Working directory (optional). If omitted the root '
                         'of the repo will be used.')
@@ -91,7 +92,7 @@ def main(argv):
     logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
     args = parse_args(argv)
     config = load_config(args.config)
-    editor_versions_file = config['editor_versions_file']
+    editor_versions_file = config['editor_versions_file'].replace('TRACK',str(args.track))
 
     try:
         working_dir = args.working_dir or os.path.abspath(

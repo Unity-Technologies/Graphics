@@ -56,8 +56,8 @@ editor-pinning-update:
         recurring:
           -  branch: master
              frequency: 0 * * ?
-editor-pinning-merge-revisions:
-    name: Merge editor revisions to master [manual]
+editor-pinning-merge-revisions-trunk:
+    name: Merge editor revisions to master [trunk] [manual]
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -79,9 +79,9 @@ editor-pinning-merge-revisions:
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch master
-editor-pinning-merge-revisions-abv:
-    name: Merge editor revisions to master [ABV]
+      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch master --track trunk
+editor-pinning-merge-revisions-trunk-abv:
+    name: Merge editor revisions to master[trunk] [ABV]
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -103,8 +103,60 @@ editor-pinning-merge-revisions-abv:
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch master
+      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch master --track trunk
     dependencies:
       -  .yamato/_abv.yml#all_project_ci_trunk
     triggers:
-        expression: push.branch eq "ci/editor-pinning" AND push.changes.any match "**/_latest_editor_versions.metafile"
+        expression: push.branch eq "ci/editor-pinning" AND push.changes.any match "**/_latest_editor_versions_trunk.metafile"
+editor-pinning-merge-revisions-2020.2:
+    name: Merge editor revisions to master [2020.2] [manual]
+    agent:
+        type: Unity::VM
+        image: package-ci/ubuntu:stable
+        flavor: b1.small
+    variables:
+        CI: true
+    commands:
+      -  sudo pip3 install pipenv --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+      -  python3 -m pipenv install --dev
+      -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
+      -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
+      -  sudo apt-get update
+      -  sudo apt-get install yamato-parser -y
+      -  |5-
+
+                     if [[ "$GIT_BRANCH" != "ci/editor-pinning" ]]; then
+                         echo "Should run on 'ci/editor-pinning' but is running on '$GIT_BRANCH'"
+                         exit 1
+                     fi
+      -  git config --global user.name "noreply@unity3d.com"
+      -  git config --global user.email "noreply@unity3d.com"
+      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch master --track 2020.2
+editor-pinning-merge-revisions-2020.2-abv:
+    name: Merge editor revisions to master[2020.2] [ABV]
+    agent:
+        type: Unity::VM
+        image: package-ci/ubuntu:stable
+        flavor: b1.small
+    variables:
+        CI: true
+    commands:
+      -  sudo pip3 install pipenv --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+      -  python3 -m pipenv install --dev
+      -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
+      -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
+      -  sudo apt-get update
+      -  sudo apt-get install yamato-parser -y
+      -  |5-
+
+                     if [[ "$GIT_BRANCH" != "ci/editor-pinning" ]]; then
+                         echo "Should run on 'ci/editor-pinning' but is running on '$GIT_BRANCH'"
+                         exit 1
+                     fi
+      -  git config --global user.name "noreply@unity3d.com"
+      -  git config --global user.email "noreply@unity3d.com"
+      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch master --track 2020.2
+    dependencies:
+      -  .yamato/_abv.yml#all_project_ci_2020.2
+    triggers:
+        expression: push.branch eq "ci/editor-pinning" AND push.changes.any match "**/_latest_editor_versions_2020.2.metafile"

@@ -7,7 +7,7 @@ from ..shared.yml_job import YMLJob
 class Editor_PinningMergeRevisionsJob():
     
     def __init__(self, editor, agent, target_branch, target_branch_editor_ci):
-        self.job_id = editor_job_id_merge_revisions()
+        self.job_id = editor_job_id_merge_revisions(editor["track"])
         self.yml_job = self.get_job_definition(editor, agent, target_branch, target_branch_editor_ci)
         self.yml = self.yml_job.get_yml()
 
@@ -29,12 +29,12 @@ class Editor_PinningMergeRevisionsJob():
             fi'''),# This should never run on anything other than stable. If you try it then it will fail
             f'git config --global user.name "noreply@unity3d.com"', # TODO
             f'git config --global user.email "noreply@unity3d.com"', # TODO
-            f'pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch { target_branch }'
+            f'pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch { target_branch } --track {editor["track"]}'
         ]
         
         # construct job
         job = YMLJob()
-        job.set_name(f'Merge editor revisions to {target_branch} [manual]')
+        job.set_name(f'Merge editor revisions to {target_branch} [{editor["track"]}] [manual]')
         job.set_agent(agent)
         job.add_var_custom('CI', True)
         job.add_commands(commands)

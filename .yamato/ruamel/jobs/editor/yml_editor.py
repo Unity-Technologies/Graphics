@@ -30,13 +30,17 @@ def create_editor_yml(metafile):
     job = Editor_PinningUpdateJob(metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"])
     yml[job.job_id] = job.yml
 
-    # manual 
-    job = Editor_PinningMergeRevisionsJob(metafile["target_editor"], metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"])
-    yml[job.job_id] = job.yml 
-    
-    # ci flow
-    job = Editor_PinningMergeRevisionsABVJob(metafile["target_editor"], metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"])
-    yml[job.job_id] = job.yml 
+    for editor in metafile['editors']:
+        if str(editor['track']).lower()=='custom-revision':
+            continue
+        
+        # manual 
+        job = Editor_PinningMergeRevisionsJob(editor, metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"])
+        yml[job.job_id] = job.yml 
+            
+        # ci flow
+        job = Editor_PinningMergeRevisionsABVJob(editor, metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"])
+        yml[job.job_id] = job.yml 
 
 
     yml_files[editor_pinning_filepath()] = yml
