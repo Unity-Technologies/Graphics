@@ -52,12 +52,12 @@ namespace UnityEditor.VFX
 
             var zeroF3 = VFXOperatorUtility.ZeroExpression[VFXValueType.Float3];
             var oneF3 = VFXOperatorUtility.OneExpression[VFXValueType.Float3];
-
             if (posReduce == zeroF3 && scaleReduce == oneF3)
             {
                 if (rotReduce is VFXExpressionExtractAnglesFromMatrix)
                 {
-                    //TODOPAUL : Actually, could be properly detected with an early
+                    var sourceMatrix = rotReduce.parents[0];
+                    return VFXOperatorUtility.GetRotationMatrixFromTRS(sourceMatrix);
                 }
             }
 
