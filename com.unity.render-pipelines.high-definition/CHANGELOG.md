@@ -71,6 +71,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed for post process being overridable in reflection probes even though it is not supported.
 - Fixed RTGI in performance mode when light layers are enabled on the asset.
 - Fixed SSS materials appearing black in matcap mode.
+- Fixed for lookdev library field not being refreshed upon opening a library from the environment library inspector.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
