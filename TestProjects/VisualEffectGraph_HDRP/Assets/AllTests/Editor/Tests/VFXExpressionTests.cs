@@ -283,6 +283,26 @@ namespace UnityEditor.VFX.Test
             Assert.IsAssignableFrom(typeof(VFXExpressionAdd), reducedAfterLink);
             Assert.IsAssignableFrom(typeof(VFXValue<uint>), reducedAfterLinkCPUEvaluation);
         }
+
+        [Test]
+        public void CheckExpressionRandomEquality()
+        {
+            var obj0 = new object();
+            var obj1 = new object();
+
+            var exp0 = new VFXExpressionRandom(true, new RandId(obj0));
+            var exp1 = new VFXExpressionRandom(true, new RandId(obj0));
+            var exp2 = new VFXExpressionRandom(false, new RandId(obj0));
+            var exp3 = new VFXExpressionRandom(true, new RandId(obj1));
+            var exp4 = new VFXExpressionRandom(true, new RandId(obj0, 1));
+
+            Assert.AreEqual(exp0, exp1);
+            Assert.AreEqual(exp0.GetHashCode(), exp1.GetHashCode());
+
+            Assert.AreNotEqual(exp0, exp2);
+            Assert.AreNotEqual(exp0, exp3);
+            Assert.AreNotEqual(exp0, exp4);
+        }
     }
 }
 #endif
