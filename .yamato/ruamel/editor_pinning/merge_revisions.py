@@ -60,9 +60,10 @@ def get_commit_message(git_hash):
     return git_cmd(f'log --format=%B -n 1 {git_hash}')
 
 
-def commit_and_push(commit_msg, working_dir, development_mode=False):
+def commit_and_push(commit_msg, working_dir, track, development_mode=False):
+    commit_msg = f'{commit_msg}'
     if not development_mode:
-        git_cmd(['commit', '-m', commit_msg], working_dir)
+        git_cmd(['commit', '-m', f'[{str(track)}] {commit_msg}'], working_dir)
         git_cmd('pull --ff-only', working_dir)
         git_cmd('push', working_dir)
 
@@ -110,7 +111,7 @@ def main(argv):
             if args.yamato_parser:
                 regenerate_expectations(args.yamato_parser, working_dir)
             commit_msg = get_commit_message(args.revision)
-            commit_and_push(commit_msg, working_dir, args.local)
+            commit_and_push(commit_msg, working_dir, args.track, args.local)
         else:
             logging.info('No revision changes to merge. Exiting successfully without any '
                          'commit/push.')
