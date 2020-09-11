@@ -212,12 +212,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added API to check if a Camera, Light or ReflectionProbe is compatible with HDRP.
 - Added path tracing test scene for normal mapping.
 - Added missing API documentation.
-- Added a new mode to cluster visualization debug where users can see a slice instead of the cluster on opaque objects.
-- Added ray traced reflection support for the render graph version of the pipeline.
-- Added render graph support of RTAO and required denoisers.
-- Added render graph support of RTGI.
-- Supporting RTSSS and Recursive Rendering in the render graph mode.
-- Supporting directional RT and screen space shadow for render graph.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -808,22 +802,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed multiple volumes, planar reflection, and decal projector position when creating them from the menu.
 - Reduced the number of global keyword used in deferredTile.shader
 - Fixed incorrect processing of Ambient occlusion probe (9% error was introduced)
-- Fixed CoatMask block appearing when creating lit master node (case 1264632)
-- Fixed issue with SceneEV100 debug mode indicator when rescaling the window.
-- Fixed issue with PCSS filter being wrong on first frame. 
-- Fixed issue with emissive mesh for area light not appearing in playmode if Reload Scene option is disabled in Enter Playmode Settings.
-- Fixed issue when Reflection Probes are set to OnEnable and are never rendered if the probe is enabled when the camera is farther than the probe fade distance. 
-- Fixed issue with sun icon being clipped in the look dev window. 
-- Fixed error about layers when disabling emissive mesh for area lights.
-- Fix issue when the user deletes the composition graph or .asset in runtime (case 1263319)
-- Fixed assertion failure when changing resolution to compositor layers after using AOVs (case 1265023) 
-- Fixed flickering layers in graphics compositor (case 1264552)
-- Fix issue causing the editor field not updating the disc area light radius.
-- Fixed issues that lead to cookie atlas to be updated every frame even if cached data was valid.
-- Fixed an issue where world space UI was not emitted for reflection cameras in HDRP
-- Fixed an issue with cookie texture atlas that would cause realtime textures to always update in the atlas even when the content did not change.
-- Fixed an issue where only one of the two lookdev views would update when changing the default lookdev volume profile.
-- Fixed a bug related to light cluster invalidation.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -1000,8 +978,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the DXR wizard steps.
 - Preparation pass for RTSSS to be supported by render graph.
 - Changed the color space of EmissiveColorLDR property on all shader. Was linear but should have been sRGB. Auto upgrade script handle the conversion.
-- Add tooltips with the full name of the (graphics) compositor properties to properly show large names that otherwise are clipped by the UI (case 1263590)
-- Composition profile .asset files cannot be manually edited/reset by users (to avoid breaking things - case 1265631)
 
 ## [7.1.1] - 2019-09-05
 
