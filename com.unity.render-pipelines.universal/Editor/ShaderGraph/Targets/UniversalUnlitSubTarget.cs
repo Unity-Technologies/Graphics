@@ -84,7 +84,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             });
 
             // Hide checkbox for Preserve Specular if unsupported blend mode
-            if (target.alphaMode != AlphaMode.Multiply)
+            if (target.surfaceType == SurfaceType.Transparent && target.alphaMode != AlphaMode.Multiply)
             {
                 context.AddProperty("Preserve Specular", new Toggle() { value = target.preserveSpecular }, (evt) =>
                 {

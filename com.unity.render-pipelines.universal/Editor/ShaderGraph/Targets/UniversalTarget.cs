@@ -137,7 +137,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public bool preserveSpecular
         {
             // preserveSpecular for multiply blend-mode is not supported
-            get => m_PreserveSpecular && m_AlphaMode != AlphaMode.Multiply;
+            get => surfaceType == SurfaceType.Transparent && alphaMode != AlphaMode.Multiply && m_PreserveSpecular;
             set => m_PreserveSpecular = value;
         }
 
@@ -175,7 +175,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Setup the Target
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
 
-            // Setup the actƒive SubTarget
+            // Setup the active SubTarget
             TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
             m_ActiveSubTarget.value.target = this;
             m_ActiveSubTarget.value.Setup(ref context);

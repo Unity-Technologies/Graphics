@@ -312,7 +312,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             Name "ForwardLit"
             Tags{"LightMode" = "UniversalForward"}
 
-            Blend[_SrcBlend][_DstBlend]
+            Blend[_SrcBlend][_DstBlend], [_SrcBlendA][_DstBlendA]
             ZWrite[_ZWrite]
             Cull[_Cull]
 

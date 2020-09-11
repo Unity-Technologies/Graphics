@@ -12,6 +12,8 @@ Shader "Universal Render Pipeline/Unlit"
         [HideInInspector] _AlphaClip("__clip", Float) = 0.0
         [HideInInspector] _SrcBlend("Src", Float) = 1.0
         [HideInInspector] _DstBlend("Dst", Float) = 0.0
+        [HideInInspector] _SrcBlendA("__srcA", Float) = 1.0
+        [HideInInspector] _DstBlendA("__dstA", Float) = 0.0
         [HideInInspector] _ZWrite("ZWrite", Float) = 1.0
         [HideInInspector] _Cull("__cull", Float) = 2.0
         [HideInInspector] _PreserveSpecular("__preserve_specular", Float) = 1.0
@@ -29,7 +31,7 @@ Shader "Universal Render Pipeline/Unlit"
         Tags {"RenderType" = "Opaque" "IgnoreProjector" = "True" "RenderPipeline" = "UniversalPipeline" "ShaderModel"="4.5"}
         LOD 100
 
-        Blend [_SrcBlend][_DstBlend]
+        Blend [_SrcBlend][_DstBlend], [_SrcBlendA][_DstBlendA]
         ZWrite [_ZWrite]
         Cull [_Cull]
 
@@ -113,7 +115,7 @@ Shader "Universal Render Pipeline/Unlit"
         Tags {"RenderType" = "Opaque" "IgnoreProjector" = "True" "RenderPipeline" = "UniversalPipeline" "ShaderModel"="2.0"}
         LOD 100
 
-        Blend [_SrcBlend][_DstBlend]
+        Blend [_SrcBlend][_DstBlend], [_SrcBlendA][_DstBlendA]
         ZWrite [_ZWrite]
         Cull [_Cull]
 

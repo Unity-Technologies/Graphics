@@ -58,8 +58,17 @@ inline void InitializeSimpleLitSurfaceData(float2 uv, out SurfaceData outSurface
     AlphaDiscard(outSurfaceData.alpha, _Cutoff);
 
     outSurfaceData.albedo = albedoAlpha.rgb * _BaseColor.rgb;
-#ifdef _ALPHAPREMULTIPLY_ON
+
+#if defined(_PRESERVE_SPECULAR)
+    #if defined(_ALPHAPREMULTIPLY_ON)
+        // NOTE: src diffuse has alpha multiplied.
+    #else
     outSurfaceData.albedo *= outSurfaceData.alpha;
+    #endif
+#endif
+
+#if defined(_ALPHAMODULATE_ON)
+    outSurfaceData.albedo = lerp(1, outSurfaceData.albedo, outSurfaceData.alpha);
 #endif
 
     half4 specularSmoothness = SampleSpecularSmoothness(uv, outSurfaceData.alpha, _SpecColor, TEXTURE2D_ARGS(_SpecGlossMap, sampler_SpecGlossMap));

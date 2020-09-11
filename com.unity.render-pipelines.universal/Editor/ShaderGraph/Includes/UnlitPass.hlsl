@@ -1,4 +1,4 @@
-﻿PackedVaryings vert(Attributes input)
+PackedVaryings vert(Attributes input)
 {
     Varyings output = (Varyings)0;
     output = BuildVaryings(input);
@@ -28,12 +28,12 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     #if defined(_ALPHAPREMULTIPLY_ON)
     // NOTE: src color has alpha multiplied.
     #else
-        surfaceDescription.BaseColor *= surfaceDescription.Alpha;
+        surfaceDescription.BaseColor *= alpha;
     #endif
 #endif
 
 #if defined(_ALPHAMODULATE_ON)
-    surfaceDescription.BaseColor = lerp(1, surfaceDescription.BaseColor, surfaceDescription.Alpha);
+    surfaceDescription.BaseColor = lerp(1, surfaceDescription.BaseColor, alpha);
 #endif
 
     return half4(surfaceDescription.BaseColor, alpha);
