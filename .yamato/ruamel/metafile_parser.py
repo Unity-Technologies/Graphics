@@ -84,6 +84,9 @@ def _unfold_test_platforms(metafile, shared, root_keys=[]):
         for tp in target_dict.get("test_platforms", []):
             tp["name"] = tp["type"] if not tp.get("name") else tp.get("name")
             tp["extra_utr_flags"] = [] if not tp.get("extra_utr_flags") else tp.get("extra_utr_flags")
+            
+            if tp["type"].lower()=="standalone":
+                tp["extra_utr_flags_build"] = [] if not tp.get("extra_utr_flags_build") else tp.get("extra_utr_flags_build")
             test_platforms.append(tp)
 
         target_dict['test_platforms'] = test_platforms

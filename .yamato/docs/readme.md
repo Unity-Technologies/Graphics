@@ -50,18 +50,19 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
 
 ### Custom test platforms:
 - There are 3 base test platforms to choose from: standalone (build), playmode, editmode. These can be extended by renaming them, and/or adding additional utr on top of existing ones. Their corresponding base UTR flags are found in `ruamel/jobs/shared/utr_utils.py`
+- If name not specified, name it set to type. Name is used for creating Yamato job ids and excluding testplatforms. If setting up e.g. two playmode types with different flags, renaming must be used, otherwise (due to matching job id) one job overrides the other.
 - If a specific platform requires flags different from what is marked in `utr_utils.py`, they are to be configured in the corresponding platform cmd file. Either _a)_ override flag value with the optional parameters _b)_ cancel the flag by overriding with `None` (make sure the function expects such value for such flag though), or _c)_ append additional platform specific flags to the utr_flags list 
 - Exclude testplatforms for platforms by specifying the testplatform NAME (not type) in `__shared.metafile`
-- Example: extending the default playmode for a specific project performance tests
+- Example: extending the default playmode for a specific project performance tests (this takes base playmode flags, and appends these for all platforms, unless specified otherwise in platform cmd file.) Note: when adding extra args to a standalone job, build flags can be specified separately by `extra_utr_flags_build` (scroll down to see project metafile docs)
   ```
     - type: playmode
-    name: playmode_perf_build
-    extra_utr_flags:
-      - --scripting-backend=il2cpp
-      - --timeout=1200
-      - --performance-project-id=URP_Performance
-      - --testfilter=Build
-      - --suite=Editor
+      name: playmode_perf_build
+      extra_utr_flags:
+        - --scripting-backend=il2cpp
+        - --timeout=1200
+        - --performance-project-id=URP_Performance
+        - --testfilter=Build
+        - --suite=Editor
   ```
   If this platform should not be included eg for IPhone, then specify it in `__shared.metafile` like
   ```
@@ -75,7 +76,6 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
         - ...
         - playmode_perf_build
   ```
-- 
 
 
 ### Other changes to metafiles
@@ -401,6 +401,8 @@ test_platforms:
   - type:Standalone
     extra_utr_flags: # specify additional utr flags to run for this project and test platform
       - --some-extra-utr-flag
+    extra_utr_flags_build:
+      - --some-extra-utr-flag # additional utr flags for build (only available for standalone type)
   - type:playmode
   - type:editmode
   - type: playmode # custom testplatform: specify the 'base' type, name it to what you want, and add any additional flags
