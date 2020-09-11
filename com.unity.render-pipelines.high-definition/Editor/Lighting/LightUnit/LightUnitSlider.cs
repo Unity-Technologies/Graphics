@@ -5,6 +5,9 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Formats the provided descriptor into a linear slider with contextual slider markers, tooltips, and icons.
+    /// </summary>
     class LightUnitSlider
     {
         static class SliderConfig
@@ -16,7 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public const float k_ThumbTooltipSize   = 10;
         }
 
-        protected LightUnitSliderUIDescriptor m_Descriptor;
+        protected readonly LightUnitSliderUIDescriptor m_Descriptor;
 
         public LightUnitSlider(LightUnitSliderUIDescriptor descriptor)
         {
@@ -108,7 +111,7 @@ namespace UnityEditor.Rendering.HighDefinition
             markerTooltipRect.height *= markerTooltipRectScale;
             markerTooltipRect.x      -= (markerTooltipRect.width  * 0.5f) - 1;
             markerTooltipRect.y      -= (markerTooltipRect.height * 0.5f) - 1;
-            EditorGUI.LabelField(markerTooltipRect, GetLightUnitTooltip(tooltip, value));
+            EditorGUI.LabelField(markerTooltipRect, GetLightUnitTooltip(tooltip, value, m_Descriptor.unitName));
         }
 
         void DoIcon(Rect rect, GUIContent icon, float range)
@@ -118,7 +121,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.DrawTextureTransparent(rect, icon.image);
             GUI.color = oldColor;
 
-            EditorGUI.LabelField(rect, GetLightUnitTooltip(icon.tooltip, range));
+            EditorGUI.LabelField(rect, GetLightUnitTooltip(icon.tooltip, range, m_Descriptor.unitName));
         }
 
         void DoThumbTooltip(Rect rect, float position, float value, string tooltip)
@@ -136,10 +139,10 @@ namespace UnityEditor.Rendering.HighDefinition
             // Horizontally place tooltip on the wheel,
             thumbMarkerRect.x  = rect.x + (rect.width - size) * position;
 
-            EditorGUI.LabelField(thumbMarkerRect, GetLightUnitTooltip(tooltip, value));
+            EditorGUI.LabelField(thumbMarkerRect, GetLightUnitTooltip(tooltip, value, m_Descriptor.unitName));
         }
 
-        GUIContent GetLightUnitTooltip(string baseTooltip, float value)
+        static GUIContent GetLightUnitTooltip(string baseTooltip, float value, string unit)
         {
             string formatValue;
 
@@ -150,24 +153,35 @@ namespace UnityEditor.Rendering.HighDefinition
             else
                 formatValue = value.ToString("#.0");
 
-            string tooltip = baseTooltip + " - " + formatValue + " " + m_Descriptor.unitName;
+            string tooltip = baseTooltip + " - " + formatValue + " " + unit;
 
             return new GUIContent(string.Empty, tooltip);
         }
 
+        /// <summary>
+        /// Draws a linear slider mapped to the min/max value range. Override this for different slider behavior (texture background, power).
+        /// </summary>
         protected virtual void DoSlider(Rect rect, SerializedProperty value, Vector2 range)
         {
-            value.floatValue = GUI.HorizontalSlider(rect, value.floatValue, range.x, range.y, GUI.skin.horizontalSlider, GUI.skin.horizontalSliderThumb);
+            value.floatValue = GUI.HorizontalSlider(rect, value.floatValue, range.x, range.y);
         }
 
+        // Remaps value in the domain { Min0, Max0 } to { Min1, Max1 } (by default, normalizes it to (0, 1).
         static float Remap(float v, float x0, float y0, float x1 = 0f, float y1 = 1f) => x1 + (v - x0) * (y1 - x1) / (y0 - x0);
 
+        /// <summary>
+        /// Maps a light unit value onto the slider. Keeps in sync placement of markers and tooltips with the slider power.
+        /// Override this in case of non-linear slider.
+        /// </summary>
         protected virtual float GetPositionOnSlider(float value)
         {
             return Remap(value, m_Descriptor.sliderRange.x, m_Descriptor.sliderRange.y);
         }
     }
 
+    /// <summary>
+    /// Formats the provided descriptor into an exponential slider with contextual slider markers, tooltips, and icons.
+    /// </summary>
     class ExponentialLightUnitSlider : LightUnitSlider
     {
         private Vector3 m_ExponentialConstraints;
@@ -215,6 +229,9 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 
+    /// <summary>
+    /// Formats the provided descriptor into a temperature unit slider with contextual slider markers, tooltips, and icons.
+    /// </summary>
     class TemperatureSlider : LightUnitSlider
     {
         private LightEditor.Settings m_Settings;
@@ -263,31 +280,31 @@ namespace UnityEditor.Rendering.HighDefinition
 
     internal class LightUnitSliderUIDrawer
     {
-        static Dictionary<LightUnit, LightUnitSlider> s_LightUnitSliderMap;
-        static LightUnitSlider s_ExposureSlider;
-        static TemperatureSlider s_TemperatureSlider;
+        static Dictionary<LightUnit, LightUnitSlider> k_LightUnitSliderMap;
+        static LightUnitSlider k_ExposureSlider;
+        static TemperatureSlider k_TemperatureSlider;
 
         static LightUnitSliderUIDrawer()
         {
-            s_LightUnitSliderMap = new Dictionary<LightUnit, LightUnitSlider>
+            k_LightUnitSliderMap = new Dictionary<LightUnit, LightUnitSlider>
             {
-                { LightUnit.Lux,     new ExponentialLightUnitSlider(LightUnitSliderDescriptors.k_LuxDescriptor)     },
-                { LightUnit.Lumen,   new ExponentialLightUnitSlider(LightUnitSliderDescriptors.k_LumenDescriptor)   },
-                { LightUnit.Candela, new ExponentialLightUnitSlider(LightUnitSliderDescriptors.k_CandelaDescriptor) },
-                { LightUnit.Ev100,   new ExponentialLightUnitSlider(LightUnitSliderDescriptors.k_EV100Descriptor)   },
-                { LightUnit.Nits,    new ExponentialLightUnitSlider(LightUnitSliderDescriptors.k_NitsDescriptor)    },
+                { LightUnit.Lux,     new ExponentialLightUnitSlider(LightUnitSliderDescriptors.LuxDescriptor)     },
+                { LightUnit.Lumen,   new ExponentialLightUnitSlider(LightUnitSliderDescriptors.LumenDescriptor)   },
+                { LightUnit.Candela, new ExponentialLightUnitSlider(LightUnitSliderDescriptors.CandelaDescriptor) },
+                { LightUnit.Ev100,   new ExponentialLightUnitSlider(LightUnitSliderDescriptors.EV100Descriptor)   },
+                { LightUnit.Nits,    new ExponentialLightUnitSlider(LightUnitSliderDescriptors.NitsDescriptor)    },
             };
 
             // Exposure is in EV100, but we load a separate due to the different icon set.
-            s_ExposureSlider = new LightUnitSlider(LightUnitSliderDescriptors.k_ExposureDescriptor);
+            k_ExposureSlider = new LightUnitSlider(LightUnitSliderDescriptors.ExposureDescriptor);
 
             // Kelvin is not classified internally as a light unit so we handle it independently as well.
-            s_TemperatureSlider = new TemperatureSlider(LightUnitSliderDescriptors.k_TemperatureDescriptor);
+            k_TemperatureSlider = new TemperatureSlider(LightUnitSliderDescriptors.TemperatureDescriptor);
         }
 
         public void Draw(LightUnit unit, SerializedProperty value, Rect rect)
         {
-            if (!s_LightUnitSliderMap.TryGetValue(unit, out var lightUnitSlider))
+            if (!k_LightUnitSliderMap.TryGetValue(unit, out var lightUnitSlider))
                 return;
 
             using (new EditorGUI.IndentLevelScope(-EditorGUI.indentLevel))
@@ -300,7 +317,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             using (new EditorGUI.IndentLevelScope(-EditorGUI.indentLevel))
             {
-                s_ExposureSlider.Draw(rect, value);
+                k_ExposureSlider.Draw(rect, value);
             }
         }
 
@@ -308,8 +325,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             using (new EditorGUI.IndentLevelScope(-EditorGUI.indentLevel))
             {
-                s_TemperatureSlider.SetLightSettings(settings);
-                s_TemperatureSlider.Draw(rect, value);
+                k_TemperatureSlider.SetLightSettings(settings);
+                k_TemperatureSlider.Draw(rect, value);
             }
         }
     }

@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         readonly static ExpandedState<Expandable, Light> k_ExpandedState = new ExpandedState<Expandable, Light>(~(-1), "HDRP");
 
-        readonly static LightUnitSliderUIDrawer s_LightUnitSliderUIDrawer = new LightUnitSliderUIDrawer();
+        readonly static LightUnitSliderUIDrawer k_LightUnitSliderUIDrawer = new LightUnitSliderUIDrawer();
 
         public static readonly CED.IDrawer Inspector;
 
@@ -612,7 +612,7 @@ namespace UnityEditor.Rendering.HighDefinition
             lightUnitSliderRect.width -= EditorGUIUtility.labelWidth + k_ValueUnitSeparator;
 
             LightUnit lightUnit = serialized.lightUnit.GetEnumValue<LightUnit>();
-            s_LightUnitSliderUIDrawer.Draw(lightUnit, serialized.intensity, lightUnitSliderRect);
+            k_LightUnitSliderUIDrawer.Draw(lightUnit, serialized.intensity, lightUnitSliderRect);
 
             // We use PropertyField to draw the value to keep the handle at left of the field
             // This will apply the indent again thus we need to remove it time for alignment
@@ -655,7 +655,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         var temperatureSliderRect = lineRect;
                         temperatureSliderRect.x += EditorGUIUtility.labelWidth + k_ValueUnitSeparator;
                         temperatureSliderRect.width -= EditorGUIUtility.labelWidth + k_ValueUnitSeparator;
-                        s_LightUnitSliderUIDrawer.DrawTemperatureSlider(serialized.settings, serialized.settings.colorTemperature, temperatureSliderRect);
+                        k_LightUnitSliderUIDrawer.DrawTemperatureSlider(serialized.settings, serialized.settings.colorTemperature, temperatureSliderRect);
 
                         // Value and unit label
                         // Match const defined in EditorGUI.cs
