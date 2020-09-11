@@ -20,28 +20,28 @@ def _cmd_base(project_folder, components, utr_flags):
     ]
 
 
-def cmd_editmode(project_folder, platform, api, test_platform_args):
+def cmd_editmode(project_folder, platform, api, test_platform):
 
     utr_args = utr_editmode_flags(
         testproject=f'/Users/bokken/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}',
         editor_location=f'/Users/bokken/.Editor',
         artifacts_path=f'/Users/bokken/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}/{PATH_TEST_RESULTS}'
     )
-    utr_args.extend(test_platform_args)
+    utr_args.extend(test_platform["extra_utr_flags"])
     return  _cmd_base(project_folder, platform["components"], utr_args)
 
-def cmd_playmode(project_folder, platform, api, test_platform_args):
+def cmd_playmode(project_folder, platform, api, test_platform):
 
     utr_args = utr_playmode_flags(
         testproject=f'/Users/bokken/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}',
         editor_location=f'/Users/bokken/.Editor',
         artifacts_path=f'/Users/bokken/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}/{PATH_TEST_RESULTS}'
     )
-    utr_args.extend(test_platform_args)
+    utr_args.extend(test_platform["extra_utr_flags"])
     return  _cmd_base(project_folder, platform["components"], utr_args)
 
 
-def cmd_standalone(project_folder, platform, api, test_platform_args):
+def cmd_standalone(project_folder, platform, api, test_platform):
 
     utr_args = utr_standalone_not_split_flags(
         platform='Standalone',
@@ -51,9 +51,9 @@ def cmd_standalone(project_folder, platform, api, test_platform_args):
         artifacts_path=f'/Users/bokken/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}/{PATH_TEST_RESULTS}',
         timeout=2400
     )
-    utr_args.extend(test_platform_args)
+    utr_args.extend(test_platform["extra_utr_flags"])
     return  _cmd_base(project_folder, platform["components"], utr_args)
 
 
-def cmd_standalone_build(project_folder, platform, api, test_platform_args):
+def cmd_standalone_build(project_folder, platform, api, test_platform):
     raise Exception('osx_metal: standalone_split set to true but build commands not specified')

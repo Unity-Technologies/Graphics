@@ -11,19 +11,19 @@ def _cmd_base(project_folder, components, utr_flags):
     ]
 
 
-def cmd_editmode(project_folder, platform, api, test_platform_args):
+def cmd_editmode(project_folder, platform, api, test_platform):
     utr_args = utr_editmode_flags()
-    utr_args.extend(test_platform_args)
+    utr_args.extend(test_platform["extra_utr_flags"])
     return  _cmd_base(project_folder, platform["components"], utr_args)
 
 
-def cmd_playmode(project_folder, platform, api, test_platform_args):
+def cmd_playmode(project_folder, platform, api, test_platform):
     utr_args = utr_playmode_flags()
-    utr_args.extend(test_platform_args)
+    utr_args.extend(test_platform["extra_utr_flags"])
     return  _cmd_base(project_folder, platform["components"], utr_args)
 
-def cmd_standalone(project_folder, platform, api, test_platform_args):
+def cmd_standalone(project_folder, platform, api, test_platform):
     raise Exception("OSX_OpenGlCore standalone should not be called")
 
-def cmd_standalone_build(project_folder, platform, api, test_platform_args):
+def cmd_standalone_build(project_folder, platform, api, test_platform):
     raise Exception("OSX_OpenGlCore standalone should not be called")

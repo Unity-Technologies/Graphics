@@ -15,7 +15,7 @@ class Project_StandaloneBuildJob():
 
         project_folder = project.get("folder_standalone", project["folder"])
         cmd = get_cmd(platform["name"], api, 'standalone_build', "")
-        job = _job(project["name"], 'standalone_build', editor, platform, api, cmd(project_folder, platform, api, test_platform["extra_utr_flags"]))
+        job = _job(project["name"], 'standalone_build', editor, platform, api, cmd(project_folder, platform, api, test_platform))
         
         job.add_artifacts_players()
         return job

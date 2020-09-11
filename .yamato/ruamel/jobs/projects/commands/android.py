@@ -7,17 +7,51 @@ def _cmd_base(project_folder, components):
     return [    ]
 
 
-def cmd_editmode(project_folder, platform, api, test_platform_args):
-    raise Exception('android [editmode]: only standalone available')
+def cmd_editmode(project_folder, platform, api, test_platform):    
+    utr_args = utr_editmode_flags( testproject=f'{TEST_PROJECTS_DIR}\{project_folder}',editor_location='WindowsEditor')
+    utr_args.extend(test_platform["extra_utr_flags"])
+    if test_platform["name"].lower()=='playmode_perf_build':
+        utr_args.append('--platform=Android')
+
+    base = [ 
+        f'curl -s {UTR_INSTALL_URL}.bat --output utr.bat',
+        f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
+        f'unity-downloader-cli --source-file %YAMATO_SOURCE_DIR%/{PATH_UNITY_REVISION} -p WindowsEditor {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only',
+        f'%ANDROID_SDK_ROOT%\platform-tools\\adb.exe connect %BOKKEN_DEVICE_IP%',
+        f'powershell %ANDROID_SDK_ROOT%\platform-tools\\adb.exe devices',
+        f'NetSh Advfirewall set allprofiles state off',
+        pss(f'''
+        set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+        utr {" ".join(utr_args)}'''),
+        f'start %ANDROID_SDK_ROOT%\platform-tools\\adb.exe kill-server'
+        ]
+    return base
 
 
-def cmd_playmode(project_folder, platform, api, test_platform_args):
-    raise Exception('android [playmode]: only standalone available')
+def cmd_playmode(project_folder, platform, api, test_platform):
+    utr_args = utr_playmode_flags(testproject=f'{TEST_PROJECTS_DIR}\{project_folder}',editor_location='WindowsEditor')
+    utr_args.extend(test_platform["extra_utr_flags"])
+    if test_platform["name"].lower()=='playmode_perf_build':
+        utr_args.append('--platform=Android')
 
-def cmd_standalone(project_folder, platform, api, test_platform_args):
+    base = [ 
+        f'curl -s {UTR_INSTALL_URL}.bat --output utr.bat',
+        f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
+        f'unity-downloader-cli --source-file %YAMATO_SOURCE_DIR%/{PATH_UNITY_REVISION} -p WindowsEditor {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only',
+        f'%ANDROID_SDK_ROOT%\platform-tools\\adb.exe connect %BOKKEN_DEVICE_IP%',
+        f'powershell %ANDROID_SDK_ROOT%\platform-tools\\adb.exe devices',
+        f'NetSh Advfirewall set allprofiles state off',
+        pss(f'''
+        set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+        utr {" ".join(utr_args)}'''),
+        f'start %ANDROID_SDK_ROOT%\platform-tools\\adb.exe kill-server'
+        ]
+    return base
+
+def cmd_standalone(project_folder, platform, api, test_platform):
     
     utr_args = utr_standalone_split_flags(platform_spec='', platform='Android', testproject=f'{TEST_PROJECTS_DIR}\{project_folder}', player_load_path=PATH_PLAYERS, player_conn_ip=None)
-    utr_args.extend(test_platform_args)
+    utr_args.extend(test_platform["extra_utr_flags"])
     utr_args.extend(['--scripting-backend=il2cpp', f'--editor-location=WindowsEditor'])
 
 
@@ -33,10 +67,10 @@ def cmd_standalone(project_folder, platform, api, test_platform_args):
         ]
 
         
-def cmd_standalone_build(project_folder, platform, api, test_platform_args):
+def cmd_standalone_build(project_folder, platform, api, test_platform):
 
-    utr_args = utr_standalone_build_flags(platform_spec='', platform='Android', testproject=f'{TEST_PROJECTS_DIR}\\{project_folder}', player_save_path=PATH_PLAYERS, editor_location='WindowsEditor', timeout=1800)
-    utr_args.extend(test_platform_args)
+    utr_args = utr_standalone_build_flags(platform_spec='', platform='Android', testproject=f'{TEST_PROJECTS_DIR}\\{project_folder}', player_save_path=PATH_PLAYERS, editor_location='WindowsEditor', timeout=1200)
+    utr_args.extend(test_platform["extra_utr_flags"])
     utr_args.extend(['--scripting-backend=il2cpp'])
 
     if api["name"].lower() =='vulkan':

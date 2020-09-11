@@ -26,7 +26,7 @@ class Project_StandaloneJob():
 
         project_folder = project.get("folder_standalone", project["folder"])
         cmd = get_cmd(platform["name"], api, 'standalone', "") 
-        job = _job(project["name"], test_platform["name"], editor, platform, api, cmd(project_folder, platform, api, test_platform["extra_utr_flags"]))
+        job = _job(project["name"], test_platform["name"], editor, platform, api, cmd(project_folder, platform, api, test_platform))
 
         if build_job is not None:
 
