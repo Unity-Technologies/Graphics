@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that caused the unity_CameraToWorld matrix to have z flipped values. [case 1257518](https://issuetracker.unity3d.com/issues/parameter-unity-cameratoworld-dot-13-23-33-is-inverted-when-using-universal-rp-7-dot-4-1-and-newer)
 - Fixed not using the local skybox on the camera game object when the Skybox Material property in the Lighting window was set to null.
 - Fixed an issue where, if URP was not in use, you would sometimes get errors about 2D Lights when going through the menus.
+- Fixed GC when using XR single-pass automated tests.
 
 ## [10.0.0] - 2019-06-10
 ### Added
