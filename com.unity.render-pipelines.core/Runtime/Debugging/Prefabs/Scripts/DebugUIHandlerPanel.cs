@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.UI
         internal void SetPanel(DebugUI.Panel panel)
         {
             m_Panel = panel;
-            nameLabel.text = "< " + panel.displayName + " >";
+            nameLabel.text = panel.displayName;
         }
 
         internal DebugUI.Panel GetPanel()
@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.UI
 
         public void SelectPreviousItem()
         {
-            Canvas.SelectPreviousPanel();   
+            Canvas.SelectPreviousPanel();
         }
 
         // TODO: Jumps around with foldouts and the likes, fix me

@@ -181,7 +181,7 @@ namespace UnityEngine.Rendering.UI
             if (index < 0)
                 index = 0;
 
-            valueLabel.text = "< " + m_Field.enumNames[index].text + " >";
+            valueLabel.text = m_Field.enumNames[index].text;
         }
     }
 }
