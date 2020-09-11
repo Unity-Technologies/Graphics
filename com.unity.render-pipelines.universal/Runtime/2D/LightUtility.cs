@@ -206,6 +206,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 var prev = path[0];
                 var prevIndex = prev.N == -1 ? 0 : prev.N;
                 var prevPoint = new float2(prev.X / kClipperScale, prev.Y / kClipperScale);
+                var innerIndices = new ushort[innerShapeVertexCount];
+                
+                // Inner Vertices. (These may or may not be part of the created path. Beware!!)
+                for (int i = 0; i < innerShapeVertexCount; ++i)
+                {
+                    vertices[vcount++] = new ParametricLightMeshVertex()
+                    {
+                        position = new float3(inner[i].Position.X, inner[i].Position.Y, 0),
+                        color = meshInteriorColor
+                    };
+                    innerIndices[i] = (ushort)(vcount - 1);
+                }
+                
                 var saveIndex = (ushort)vcount;
                 vertices[vcount++] = new ParametricLightMeshVertex()
                 {
@@ -219,43 +232,20 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     var currPoint = new float2(curr.X / kClipperScale, curr.Y / kClipperScale);
                     var currIndex = curr.N == -1 ? 0 : curr.N;
 
+                    vertices[vcount++] = new ParametricLightMeshVertex()
+                    {
+                        position = new float3(currPoint.x, currPoint.y, 0),
+                        color = meshExteriorColor
+                    };
+                    
                     if (prevIndex != currIndex)
                     {
-                        vertices[vcount++] = new ParametricLightMeshVertex()
-                        {
-                            position = new float3(inner[prevIndex].Position.X, inner[prevIndex].Position.Y, 0),
-                            color = meshInteriorColor
-                        };
-                        vertices[vcount++] = new ParametricLightMeshVertex()
-                        {
-                            position = new float3(inner[currIndex].Position.X, inner[currIndex].Position.Y, 0),
-                            color = meshInteriorColor
-                        };
-                        vertices[vcount++] = new ParametricLightMeshVertex()
-                        {
-                            position = new float3(currPoint.x, currPoint.y, 0),
-                            color = meshExteriorColor
-                        };
-
-                        indices[icount++] = (ushort)(vcount - 3);
-                        indices[icount++] = (ushort)(vcount - 2);
+                        indices[icount++] = innerIndices[prevIndex];
+                        indices[icount++] = innerIndices[currIndex];
                         indices[icount++] = (ushort)(vcount - 1);
                     }
-                    else
-                    {
-                        vertices[vcount++] = new ParametricLightMeshVertex()
-                        {
-                            position = new float3(inner[prevIndex].Position.X, inner[prevIndex].Position.Y, 0),
-                            color = meshInteriorColor
-                        };
-                        vertices[vcount++] = new ParametricLightMeshVertex()
-                        {
-                            position = new float3(currPoint.x, currPoint.y, 0),
-                            color = meshExteriorColor
-                        };
-                    }
 
-                    indices[icount++] = (ushort)(prevIndex != currIndex ? (vcount - 3) : (vcount - 2));
+                    indices[icount++] = innerIndices[prevIndex];
                     indices[icount++] = saveIndex;
                     indices[icount++] = saveIndex = (ushort)(vcount - 1);
                     prevIndex = currIndex;
