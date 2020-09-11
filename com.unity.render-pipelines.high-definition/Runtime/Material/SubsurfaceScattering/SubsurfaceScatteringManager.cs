@@ -272,7 +272,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
                 return;
 
-            BuildCoarseStencilAndResolveIfNeeded(hdCamera, cmd);
+            BuildCoarseStencilAndResolveIfNeeded(hdCamera, cmd, resolveOnly:false);
 
             var settings = hdCamera.volumeStack.GetComponent<SubSurfaceScattering>();
 

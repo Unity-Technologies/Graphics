@@ -7,9 +7,12 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.cs.hlsl"
 #endif
 
+#ifndef SCALARIZE_LIGHT_LOOP
 // We perform scalarization only for forward rendering as for deferred loads will already be scalar since tiles will match waves and therefore all threads will read from the same tile.
 // More info on scalarization: https://flashypixels.wordpress.com/2018/11/10/intro-to-gpu-scalarization-part-2-scalarize-all-the-lights/
 #define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
+#endif
+
 
 //-----------------------------------------------------------------------------
 // LightLoop
@@ -252,7 +255,11 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         while (v_lightListOffset < lightCount)
         {
             v_lightIdx = FetchIndex(lightStart, v_lightListOffset);
+#if SCALARIZE_LIGHT_LOOP
             uint s_lightIdx = ScalarizeElementIndex(v_lightIdx, fastPath);
+#else
+            uint s_lightIdx = v_lightIdx;
+#endif
             if (s_lightIdx == -1)
                 break;
 

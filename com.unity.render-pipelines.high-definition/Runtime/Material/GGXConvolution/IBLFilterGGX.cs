@@ -196,13 +196,14 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_PlanarReflectionFilterTex0 == null || m_PlanarReflectionFilterTex0.rt.width < texWidth)
             {
                 var hdPipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
+                var probeFormat = (GraphicsFormat)hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
                 // We re-allocate them all
                 RTHandles.Release(m_PlanarReflectionFilterTex0);
                 RTHandles.Release(m_PlanarReflectionFilterTex1);
                 RTHandles.Release(m_PlanarReflectionFilterDepthTex0);
                 RTHandles.Release(m_PlanarReflectionFilterDepthTex1);
-                m_PlanarReflectionFilterTex0 = RTHandles.Alloc(texWidth, texHeight, TextureXR.slices, colorFormat: (GraphicsFormat)hdPipeline.currentPlatformRenderPipelineSettings.colorBufferFormat, enableRandomWrite: true, useDynamicScale: false, useMipMap: true, name: "PlanarReflectionTextureIntermediate0");
-                m_PlanarReflectionFilterTex1 = RTHandles.Alloc(texWidth, texHeight, TextureXR.slices, colorFormat: (GraphicsFormat)hdPipeline.currentPlatformRenderPipelineSettings.colorBufferFormat, enableRandomWrite: true, useDynamicScale: false, useMipMap: false, name: "PlanarReflectionTextureIntermediate1");
+                m_PlanarReflectionFilterTex0 = RTHandles.Alloc(texWidth, texHeight, TextureXR.slices, colorFormat: probeFormat, enableRandomWrite: true, useDynamicScale: false, useMipMap: true, name: "PlanarReflectionTextureIntermediate0");
+                m_PlanarReflectionFilterTex1 = RTHandles.Alloc(texWidth, texHeight, TextureXR.slices, colorFormat: probeFormat, enableRandomWrite: true, useDynamicScale: false, useMipMap: false, name: "PlanarReflectionTextureIntermediate1");
                 m_PlanarReflectionFilterDepthTex0 = RTHandles.Alloc(texWidth, texHeight, TextureXR.slices, colorFormat: GraphicsFormat.R32_SFloat, enableRandomWrite: true, useDynamicScale: false, useMipMap: true, name: "PlanarReflectionTextureIntermediateDepth0");
                 m_PlanarReflectionFilterDepthTex1 = RTHandles.Alloc(texWidth, texHeight, TextureXR.slices, colorFormat: GraphicsFormat.R32_SFloat, enableRandomWrite: true, useDynamicScale: false, useMipMap: false, name: "PlanarReflectionTextureIntermediateDepth1");
             }

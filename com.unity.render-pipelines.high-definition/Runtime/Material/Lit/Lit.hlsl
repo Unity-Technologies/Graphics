@@ -1580,14 +1580,21 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             // Evaluate the diffuse part
             // Polygon irradiance in the transformed configuration.
             float4x3 LD = mul(lightVerts, preLightData.ltcTransformDiffuse);
-            ltcValue  = PolygonIrradiance(LD);
+            float3 formFactorD;
+#ifdef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
+            formFactorD = PolygonFormFactor(LD);
+            ltcValue = PolygonIrradianceFromVectorFormFactor(formFactorD);
+#else
+            ltcValue = PolygonIrradiance(LD, formFactorD);
+#endif
             ltcValue *= lightData.diffuseDimmer;
 
             // Only apply cookie if there is one
             if ( lightData.cookieMode != COOKIEMODE_NONE )
             {
-                // Compute the cookie data for the diffuse term
-                float3 formFactorD =  PolygonFormFactor(LD);
+#ifndef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
+                formFactorD = PolygonFormFactor(LD);
+#endif
                 ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LD, formFactorD);
             }
 
@@ -1628,14 +1635,22 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             // Evaluate the specular part
             // Polygon irradiance in the transformed configuration.
             float4x3 LS = mul(lightVerts, preLightData.ltcTransformSpecular);
-            ltcValue  = PolygonIrradiance(LS);
+            float3 formFactorS;
+#ifdef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
+            formFactorS = PolygonFormFactor(LS);
+            ltcValue = PolygonIrradianceFromVectorFormFactor(formFactorS);
+#else
+            ltcValue = PolygonIrradiance(LS);
+#endif
             ltcValue *= lightData.specularDimmer;
 
             // Only apply cookie if there is one
             if ( lightData.cookieMode != COOKIEMODE_NONE)
             {
                 // Compute the cookie data for the specular term
-                float3 formFactorS =  PolygonFormFactor(LS);
+#ifndef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
+                formFactorS =  PolygonFormFactor(LS);
+#endif
                 ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LS, formFactorS);
             }
 
