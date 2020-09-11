@@ -328,9 +328,9 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
     half3 brdfDiffuse = albedo * oneMinusReflectivity;
     half3 specColor = albedo;
     #if defined(_PRESERVE_SPECULAR) && defined(_ALPHAPREMULTIPLY_ON)
-    // Assume input albedo/color is premultiplied by alpha
-    // Divide by alpha to get the original albedo for specular color
-    specColor /= (alpha + HALF_MIN);
+    // Assume input (albedo/color) is in premultiplied format (multiplied by alpha)
+    // Divide by alpha to get the original albedo for specular color computation
+    specColor = saturate(specColor / (alpha + 0.001));
     #endif
     half3 brdfSpecular = lerp(kDieletricSpec.rgb, specColor, metallic);
 #endif
@@ -721,7 +721,7 @@ half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
         brdf += brdfData.specular * DirectBRDFSpecular(brdfData, normalWS, lightDirectionWS, viewDirectionWS);
 
 #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
-        // Clear coat evaluates the specular a second timw and has some common terms with the base specular.
+        // Clear coat evaluates the specular a second time and has some common terms with the base specular.
         // We rely on the compiler to merge these and compute them only once.
         half brdfCoat = kDielectricSpec.r * DirectBRDFSpecular(brdfDataClearCoat, normalWS, lightDirectionWS, viewDirectionWS);
 
