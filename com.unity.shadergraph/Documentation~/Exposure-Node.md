@@ -2,7 +2,13 @@
 
 The Exposure Node allows you to get the Camera's exposure value from the current or previous frame.
 
-## Output port
+## Render pipeline compatability
+
+| **Node** | **Universal Render Pipeline (URP)** | **High Definition Render Pipeline (HDRP)** |
+| -------- | ----------------------------------- | ------------------------------------------ |
+| Exposure | No                                  | Yes                                        |
+
+## Ports
 
 | name | **Direction** | type | description |
 |--- | --- | --- | --- |
