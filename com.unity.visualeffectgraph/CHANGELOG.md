@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - New WorldToViewportPoint operator
 - New ViewportToWorldPoint operator
+- Harmonized position, direction and velocity composition modes for position (shape, sequential, depth) and Velocity from Direction & Speed blocks
+
+### Fixed
+- Addressing for mirror and clamp modes in sequential operators and blocks
 
 ## [10.0.0] - 2019-06-10
 ### Added
@@ -146,13 +150,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Normals with non uniform scales are correctly computed [Case 1246989](https://issuetracker.unity3d.com/product/unity/issues/guid/1246989/)
 - Fix exposed Texture2DArray and Cubemap types from shader graph not being taken into account in Output Mesh [Case 1265221](https://issuetracker.unity3d.com/product/unity/issues/guid/1265221/)
 - Allow world position usage in shaderGraph plugged into an alpha/opacity output [Case 1259511](https://issuetracker.unity3d.com/product/unity/issues/guid/1259511/)
-- Harmonized position, direction and velocity composition modes for position (shape, sequential, depth) and Velocity from Direction & Speed blocks
 
 ## [7.1.1] - 2019-09-05
 ### Added
 - Moved High Definition templates and includes to com.unity.render-pipelines.high-definition package
-- Navigati- Harmonized position, direction and velocity composition modes for position (shape, sequential, depth) and Velocity from Direction & Speed blocks
-on commands for subgraph.
+- Navigation commands for subgraph.
 - Allow choosing the place to save vfx subgraph.
 - Particle strips for trails and ribbons. (Experimental)
 - Shadergraph integration into vfx. (Experimental)
