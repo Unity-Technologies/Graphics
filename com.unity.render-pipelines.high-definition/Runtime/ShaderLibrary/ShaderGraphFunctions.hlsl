@@ -43,7 +43,7 @@ float3 shadergraph_HDLoadSceneColor(float2 uv, float lod)
     float2 screenScale = float2(_ScreenSize.x / width0, _ScreenSize.y / height0);
 #if defined(BLIT_PASS)
     float2 lodScale = float2(widthLod / width0, heightLod / height0);
-    return LoadCameraColor(uv * lodScale * screenScale, lod) * GetInverseCurrentExposureMultiplier();
+    return LoadCameraColor(uv * lodScale * screenScale, lod);
 #else
 #if defined(REQUIRE_OPAQUE_TEXTURE) && defined(_SURFACE_TYPE_TRANSPARENT) && defined(SHADERPASS) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT) 
     // We always remove the pre-exposure when we sample the scene color
