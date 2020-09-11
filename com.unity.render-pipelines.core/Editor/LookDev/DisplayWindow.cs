@@ -533,7 +533,11 @@ namespace UnityEditor.Rendering.LookDev
             }
         }
 
-        void IViewDisplayer.Repaint() => Repaint();
+        void IViewDisplayer.Repaint()
+        {
+            RefreshLibraryDisplay();
+            Repaint();
+        }
 
         void ApplyLayout(Layout value)
         {
