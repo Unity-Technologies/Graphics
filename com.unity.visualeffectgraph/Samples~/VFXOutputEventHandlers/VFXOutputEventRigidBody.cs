@@ -21,7 +21,7 @@ namespace UnityEngine.VFX.Utility
         [Tooltip("The Rigid body to apply a force On")]
         public Rigidbody rigidBody;
         [Tooltip("The Space VFX Attributes values are expressed")]
-        public Space AttributeSpace = Space.Local;
+        public Space attributeSpace = Space.Local;
 
         public enum RigidBodyEventType
         {
@@ -40,7 +40,7 @@ namespace UnityEngine.VFX.Utility
             var position = eventAttribute.GetVector3(kPosition);
             var size = eventAttribute.GetFloat(kSize);
             var velocity = eventAttribute.GetVector3(kVelocity);
-            if(AttributeSpace == Space.Local)
+            if(attributeSpace == Space.Local)
             {
 
                 position = transform.localToWorldMatrix.MultiplyPoint(position);

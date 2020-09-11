@@ -68,7 +68,18 @@ namespace UnityEditor.VFX.Utility
                 EditorGUILayout.PropertyField(useAngle);
                 EditorGUILayout.PropertyField(useScale);
                 EditorGUILayout.PropertyField(useLifetime);
+
             }
+
+            // Help box
+            HelpBox("Help", @"Spawns prefab from a managed pool of prefabs of given instance count. Event attributes can be caught in prefabs by using VFXOutputEventPrefabAttributeHandler scripts in the prefab.
+
+Attribute Usage:
+ - position : spawns prefab at given position
+ - angle : spawns prefab at given angle
+ - scale : spawns prefab at given scale
+ - lifetime : destroys prefab after given lifetime
+");
 
             if (EditorGUI.EndChangeCheck())
             {

@@ -41,7 +41,7 @@ namespace UnityEngine.VFX.Utility
 
             if (referenceAsset != targetVisualEffect.visualEffectAsset)
                 UpdateEventAttribute();
-            
+
             cachedEventAttribute.CopyValuesFrom(eventAttribute);
 
             if (targetVisualEffect != null)

@@ -25,7 +25,7 @@ namespace UnityEngine.VFX.Utility
             set { m_ParentInstances = value; ResetInstances(); }
         }
 
-        [Header("Prefab Instances")]
+
         [SerializeField, Tooltip("The maximum number of prefabs that can be active at a time")]
         protected uint m_InstanceCount = 5;
         [SerializeField, Tooltip("The prefab to enable upon event received. Prefabs are created as hidden and stored in a pool, upon enabling this behavior. Upon receiving an event a prefab from the pool is enabled and will be disabled when reaching its lifetime.")]
@@ -33,7 +33,6 @@ namespace UnityEngine.VFX.Utility
         [SerializeField, Tooltip("Whether to attach prefab instances to current game object. Use this setting to treat position and angle attributes as local space.")]
         protected bool m_ParentInstances;
 
-        [Header("Event Attribute Usage")]
         [Tooltip("Whether to use the position attribute to set prefab position on spawn")]
         public bool usePosition = true;
         [Tooltip("Whether to use the angle attribute to set prefab rotation on spawn")]
