@@ -77,6 +77,10 @@ namespace UnityEditor.Rendering.HighDefinition
             iconRect.width = EditorGUIUtility.singleLineHeight;
         }
 
+        private static Color k_DarkThemeColor = new Color32(196, 196, 196, 255);
+        private static Color k_LiteThemeColor = new Color32(85, 85, 85, 255);
+        static Color GetMarkerColor() => EditorGUIUtility.isProSkin ? k_DarkThemeColor : k_LiteThemeColor;
+
         void DoSliderMarker(Rect rect, float position, float value, string tooltip)
         {
             const float width  = SliderConfig.k_MarkerWidth;
@@ -102,7 +106,7 @@ namespace UnityEditor.Rendering.HighDefinition
             markerRect.x = Mathf.Clamp(markerRect.x, min, max);
 
             // Draw marker by manually drawing the rect, and an empty label with the tooltip.
-            EditorGUI.DrawRect(markerRect, Color.white);
+            EditorGUI.DrawRect(markerRect, GetMarkerColor());
 
             // Scale the marker tooltip for easier discovery
             const float markerTooltipRectScale = SliderConfig.k_MarkerTooltipScale;
