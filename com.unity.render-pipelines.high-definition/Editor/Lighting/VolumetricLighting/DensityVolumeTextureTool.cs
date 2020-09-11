@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering
 
         private int tileSize = 0;
 
-        private static GUIContent windowTitle = new GUIContent("Create Density Volume Texture");
+        private static GUIContent windowTitle = new GUIContent("Density Volume Texture");
         private static GUIContent textureLabel = new GUIContent("Slice Texture");
         private static GUIContent tileSizeLabel = new GUIContent("Texture Slice Size", "Dimensions for the 3D Texture in pixels.  Width, Height and Depth are all the same size");
         private static GUIContent createLabel = new GUIContent("Create 3D Texture");
