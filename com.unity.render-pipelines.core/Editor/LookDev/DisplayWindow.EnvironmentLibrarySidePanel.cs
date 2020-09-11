@@ -250,6 +250,7 @@ namespace UnityEditor.Rendering.LookDev
 
         void RefreshLibraryDisplay()
         {
+            m_LibraryField.SetValueWithoutNotify(LookDev.currentContext.environmentLibrary);
             int itemMax = LookDev.currentContext.environmentLibrary?.Count ?? 0;
             if (itemMax == 0 || m_EnvironmentList.selectedIndex == -1)
             {
