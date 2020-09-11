@@ -88,6 +88,11 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     ZERO_INITIALIZE(BuiltinData, builtinData);
     uint  featureFlags = UINT_MAX;
     DecodeFromGBuffer(currentCoord, featureFlags, bsdfData, builtinData);
+    builtinData.renderingLayers = DEFAULT_LIGHT_LAYERS;
+    builtinData.shadowMask0 = 1.0;
+    builtinData.shadowMask1 = 1.0;
+    builtinData.shadowMask2 = 1.0;
+    builtinData.shadowMask3 = 1.0;
 
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
