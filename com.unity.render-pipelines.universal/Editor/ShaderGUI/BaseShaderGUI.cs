@@ -557,7 +557,7 @@ namespace UnityEditor
                             material.EnableKeyword("_ALPHAMODULATE_ON");
                             // TODO: what would make the most sense
                             material.SetInt("_SrcBlendA", (int) UnityEngine.Rendering.BlendMode.Zero);
-                            material.SetInt("_DstBlendA", (int) UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                            material.SetInt("_DstBlendA", (int) UnityEngine.Rendering.BlendMode.One);
                             break;
                     }
 
