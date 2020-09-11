@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89305aa391d1c5141bbe1628d930a2c5, type: 3}
+  m_Name: Tutorials
+  m_EditorClassIdentifier: 
+  HeaderBackground: {fileID: 0}
+  Title:
+    m_Untranslated: Title
+  ProjectName:
+    m_Untranslated: Project name
+  Description:
+    m_Untranslated: Description
+  ProjectLayout: {fileID: 0}
+  Sections:
+  - OrderInView: 0
+    Heading:
+      m_Untranslated: Outdoor Platform
+    Text:
+      m_Untranslated: Tutorial description
+    LinkText: 
+    Url: 
+    AuthorizedUrl: 0
+    Image: {fileID: 0}
+    Tutorial: {fileID: 11400000, guid: d1d6bc7cc5451084d81d1ade2dc84164, type: 2}
