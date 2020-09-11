@@ -60,6 +60,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Shader Preprocessor strips gbuffer shader variants if DeferredRenderer is not in the list of renderers in any Scriptable Pipeline Assets.
 - Added an option to enable/disable Adaptive Performance when the Adaptive Performance package is available in the project.
 - Added support for 3DsMax's 2021 Simplified Physical Material from FBX files in the Model Importer.
+- Added GI to SpeedTree
 - Added support for DXT5nm-style normal maps on Android, iOS and tvOS
 - Added stencil override support for deferred renderer.
 - Added a warning message when a renderer is used with an unsupported graphics API, as the deferred renderer does not officially support GL-based platforms.
