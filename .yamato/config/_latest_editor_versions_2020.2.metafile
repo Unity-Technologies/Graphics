@@ -11,7 +11,7 @@ editor_version_names:
 editor_versions:
   2020.2_latest_internal:
     android:
-      revision: ef376aff2859
+      revision: ef376aff2858 
       version: 2020.2.0b3
     ios:
       revision: ef376aff2859

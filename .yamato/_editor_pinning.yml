@@ -81,7 +81,7 @@ editor-pinning-merge-revisions-trunk:
       -  git config --global user.email "noreply@unity3d.com"
       -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch yamato/update-unity-versions-ep --track trunk
 editor-pinning-merge-revisions-trunk-abv:
-    name: Merge editor revisions to yamato/update-unity-versions-ep[trunk] [ABV]
+    name: Merge editor revisions to yamato/update-unity-versions-ep [trunk] [ABV]
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -133,7 +133,7 @@ editor-pinning-merge-revisions-2020.2:
       -  git config --global user.email "noreply@unity3d.com"
       -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch yamato/update-unity-versions-ep --track 2020.2
 editor-pinning-merge-revisions-2020.2-abv:
-    name: Merge editor revisions to yamato/update-unity-versions-ep[2020.2] [ABV]
+    name: Merge editor revisions to yamato/update-unity-versions-ep [2020.2] [ABV]
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
