@@ -168,5 +168,5 @@ protected override void Execute(CustomPassContext ctx) { ... }
 
 ## Density Volume Mask Texture
 
-Previously, Density Mask Textures needed the __Density Volume Texture Tool__ in the __Window > Rendering__ menu to be converted from a 2D flipbook format to the 3D format required by the Density Volume Component.
-With Unity 20202.2, this can be done directly through the __Texture Importer__. To see the detailed steps on how to use the importer, refer to the [Density Volume documentation](Density-Volume.md).
+Previously, to convert a 2D flipbook texture to the 3D format Density Mask Textures require, you needed to use the __Density Volume Texture Tool__ in the __Window > Rendering__ menu.
+From Unity 2020.2, you can now do this conversion directly through the __Texture Importer__. For information on how to use the importer to convert the flipbook texture, see the [Density Volume documentation](Density-Volume.md).
