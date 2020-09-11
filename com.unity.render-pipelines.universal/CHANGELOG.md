@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue that caused some properties in the camera to not be bold and highlighted when edited in prefab mode. [case 1230082](https://issuetracker.unity3d.com/issues/urp-camera-prefab-fields-render-type-renderer-background-type-are-not-bolded-and-highlighted-when-edited-in-prefab-mode)
 - Fixed an issue that impacted MSAA performance on iOS/Metal [case 1219054](https://issuetracker.unity3d.com/issues/urp-ios-msaa-has-a-bigger-negative-impact-on-performance-when-using-urp-compared-to-built-in-rp)
 - Fixed division by zero in `V_SmithJointGGX` function.
+- Fixed an issue where transparent meshes were rendered opaque when using custom render passes [case 1262887](https://issuetracker.unity3d.com/issues/urp-transparent-meshes-are-rendered-as-opaques-when-using-lit-shader-with-custom-render-pass)
 
 ## [8.2.0] - 2020-07-08
 
