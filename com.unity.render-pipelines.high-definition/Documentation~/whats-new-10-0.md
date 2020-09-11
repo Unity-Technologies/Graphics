@@ -219,9 +219,15 @@ You can now control the texture mapping mode for all textures in the [AxF Shader
 
 For more information about this improvement, see [AxF Shader](AxF-Shader.md).
 
-### Contact Shadows Improvements
+### Contact shadows improvements
 
-More control is given for contact shadows, in particular now a bias can be set to avoid self intersection issues and a new thickness parameter is introduced to fill gaps that can be left by contact shadows. 
+More options are now available for [contact shadows](Override-Contact-Shadows.md). You can now set a bias to avoid self-intersection issues as well as use a new thickness property to fill gaps that contact shadows can leave.
+
+### Light component user experience
+
+![](Images/NewLightUX.png)
+
+The [Light component](Light-Component.md) now includes a visualization to help you set the intensity of your lights using [physical light units](Physical-Light-Units.md).
 
 ### Exposure
 
