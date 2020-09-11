@@ -12,9 +12,15 @@ class ABV_AllProjectCiJob():
     def get_job_definition(self, editor, projects, abv_trigger_editors, target_branch): 
     
         # define dependencies
-        dependencies = [{
-            'path': f'{projectcontext_filepath()}#{projectcontext_job_id_test_all(editor["track"])}',
-            'rerun': editor["rerun_strategy"]}]
+        dependencies = [
+            {
+                'path': f'{projectcontext_filepath()}#{projectcontext_job_id_test_all(editor["track"])}',
+                'rerun': editor["rerun_strategy"]
+            },
+            {
+                'path': f'{templates_filepath()}#{template_job_id_test_all(editor["track"])}',
+                'rerun': editor["rerun_strategy"]
+            }]
 
         for project in projects:
             dependencies.append({

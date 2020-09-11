@@ -68,6 +68,8 @@ all_project_ci_trunk:
     dependencies:
       -  path: .yamato/_projectcontext.yml#all_package_ci_project_trunk
          rerun: on-new-revision
+      -  path: .yamato/_templates.yml#all_template_ci_trunk
+         rerun: on-new-revision
       -  path: .yamato/all-universal.yml#All_Universal_trunk
          rerun: on-new-revision
       -  path: .yamato/all-shadergraph.yml#All_ShaderGraph_trunk
@@ -211,6 +213,8 @@ all_project_ci_CUSTOM-REVISION:
     name: _ABV for SRP repository - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/_projectcontext.yml#all_package_ci_project_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/_templates.yml#all_template_ci_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-universal.yml#All_Universal_CUSTOM-REVISION
          rerun: always
