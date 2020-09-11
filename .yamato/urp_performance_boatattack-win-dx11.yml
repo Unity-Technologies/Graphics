@@ -30,7 +30,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_counters_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.cli-project-setup@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testing.graphics-performance@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.shaderanalysis@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
-      -  cd TestProjects/BoatAttack && unity-config project add dependency unity.graphictests.performance.universal@"ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  cd TestProjects/BoatAttack && unity-config project add dependency unity.graphictests.performance.universal@"ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git#46a6d6f6c32b22af27de119d6a144a2ba730ee49"
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
@@ -68,13 +68,13 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.cli-project-setup@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testing.graphics-performance@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.shaderanalysis@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
-      -  cd TestProjects/BoatAttack && unity-config project add dependency unity.graphictests.performance.universal@"ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  cd TestProjects/BoatAttack && unity-config project add dependency unity.graphictests.performance.universal@"ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git#46a6d6f6c32b22af27de119d6a144a2ba730ee49"
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.CliSetup" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="EditorTests.CliSetup" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
             paths:
@@ -109,7 +109,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_memory_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.cli-project-setup@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testing.graphics-performance@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.shaderanalysis@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
-      -  cd TestProjects/BoatAttack && unity-config project add dependency unity.graphictests.performance.universal@"ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  cd TestProjects/BoatAttack && unity-config project add dependency unity.graphictests.performance.universal@"ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git#46a6d6f6c32b22af27de119d6a144a2ba730ee49"
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
@@ -147,7 +147,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.cli-project-setup@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testing.graphics-performance@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.shaderanalysis@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
-      -  cd TestProjects/BoatAttack && unity-config project add dependency unity.graphictests.performance.universal@"ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  cd TestProjects/BoatAttack && unity-config project add dependency unity.graphictests.performance.universal@"ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git#46a6d6f6c32b22af27de119d6a144a2ba730ee49"
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
@@ -185,7 +185,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_counters_fast-trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.cli-project-setup@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testing.graphics-performance@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.shaderanalysis@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
-      -  cd TestProjects/BoatAttack && unity-config project add dependency unity.graphictests.performance.universal@"ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  cd TestProjects/BoatAttack && unity-config project add dependency unity.graphictests.performance.universal@"ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git#46a6d6f6c32b22af27de119d6a144a2ba730ee49"
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
@@ -223,13 +223,13 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_fast-trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.cli-project-setup@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testing.graphics-performance@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.shaderanalysis@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
-      -  cd TestProjects/BoatAttack && unity-config project add dependency unity.graphictests.performance.universal@"ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  cd TestProjects/BoatAttack && unity-config project add dependency unity.graphictests.performance.universal@"ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git#46a6d6f6c32b22af27de119d6a144a2ba730ee49"
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.CliSetup" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="EditorTests.CliSetup" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
             paths:
@@ -264,7 +264,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_memory_fast-trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.cli-project-setup@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testing.graphics-performance@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.shaderanalysis@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
-      -  cd TestProjects/BoatAttack && unity-config project add dependency unity.graphictests.performance.universal@"ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  cd TestProjects/BoatAttack && unity-config project add dependency unity.graphictests.performance.universal@"ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git#46a6d6f6c32b22af27de119d6a144a2ba730ee49"
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
@@ -302,7 +302,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_fast-trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.cli-project-setup@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testing.graphics-performance@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.shaderanalysis@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
-      -  cd TestProjects/BoatAttack && unity-config project add dependency unity.graphictests.performance.universal@"ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  cd TestProjects/BoatAttack && unity-config project add dependency unity.graphictests.performance.universal@"ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git#46a6d6f6c32b22af27de119d6a144a2ba730ee49"
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
@@ -341,7 +341,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_counters_CUSTOM-REVISIO
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.cli-project-setup@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testing.graphics-performance@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.shaderanalysis@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
-      -  cd TestProjects/BoatAttack && unity-config project add dependency unity.graphictests.performance.universal@"ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  cd TestProjects/BoatAttack && unity-config project add dependency unity.graphictests.performance.universal@"ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git#46a6d6f6c32b22af27de119d6a144a2ba730ee49"
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
@@ -380,13 +380,13 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_CUSTOM-REVISION:
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.cli-project-setup@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testing.graphics-performance@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.shaderanalysis@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
-      -  cd TestProjects/BoatAttack && unity-config project add dependency unity.graphictests.performance.universal@"ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  cd TestProjects/BoatAttack && unity-config project add dependency unity.graphictests.performance.universal@"ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git#46a6d6f6c32b22af27de119d6a144a2ba730ee49"
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.CliSetup" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="EditorTests.CliSetup" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
             paths:
@@ -422,7 +422,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_memory_CUSTOM-REVISION:
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.cli-project-setup@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testing.graphics-performance@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.shaderanalysis@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
-      -  cd TestProjects/BoatAttack && unity-config project add dependency unity.graphictests.performance.universal@"ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  cd TestProjects/BoatAttack && unity-config project add dependency unity.graphictests.performance.universal@"ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git#46a6d6f6c32b22af27de119d6a144a2ba730ee49"
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
@@ -461,7 +461,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_CUSTOM-REVISION:
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.cli-project-setup@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.testing.graphics-performance@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.shaderanalysis@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
-      -  cd TestProjects/BoatAttack && unity-config project add dependency unity.graphictests.performance.universal@"ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  cd TestProjects/BoatAttack && unity-config project add dependency unity.graphictests.performance.universal@"ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git#46a6d6f6c32b22af27de119d6a144a2ba730ee49"
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .

@@ -89,7 +89,7 @@ def cmd_standalone_build_performance(project_folder, platform, api, test_platfor
         base.extend(unity_config)
 
     base.extend([
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.CliSetup" --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS} --timeout=1200 --player-save-path=../../{PATH_PLAYERS} --build-only'
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="EditorTests.CliSetup" --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS} --timeout=1200 --player-save-path=../../{PATH_PLAYERS} --build-only'
     ])
     return base
 
@@ -115,7 +115,7 @@ def install_unity_config(project_folder):
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.cli-project-setup@\"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git\"',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.testing.graphics-performance@\"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git\"',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.shaderanalysis@\"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git\"',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency unity.graphictests.performance.universal@\"ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git\"',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency unity.graphictests.performance.universal@\"ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git#46a6d6f6c32b22af27de119d6a144a2ba730ee49\"',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable com.unity.testing.graphics-performance --project-path .',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable com.unity.cli-project-setup  --project-path .',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .',
