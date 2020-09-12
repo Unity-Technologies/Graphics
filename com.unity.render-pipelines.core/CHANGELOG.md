@@ -4,42 +4,12 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [8.3.0] - 2020-07-23
-
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
-
-## [8.2.0] - 2020-07-08
-
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
-
-## [8.1.0] - 2020-04-21
-
-### Added
-- Add tooltips in LookDev's toolbar.
-
-### Fixed
-- Fixed issue when LookDev window is opened and the CoreRP Package is updated to a newer version.
-- Fixed copy/pasting of Volume Components when loading a new scene
-- Fix LookDev's camera button layout.
-- Fix LookDev's layout vanishing on domain reload.
-- Fixed null reference exception in LookDev when setting the SRP to one not implementing LookDev (case 1245086)
-- Fix LookDev's undo/redo on EnvironmentLibrary (case 1234725)
-- Fixed a wrong condition in CameraSwitcher, potentially causing out of bound exceptions.
-- Fixed issue with blue line in prefabs for volume mode.
-- Fix hierarchicalbox gizmo outside facing check in symetry or homothety mode no longer move the center
-
-## [8.0.1] - 2020-02-25
-
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
-
-## [8.0.0] - 2020-02-25
+## [9.0.0] - 2020-07-09
 
 ### Added
 - Add rough version of ContextualMenuDispatcher to solve conflict amongst SRP.
 - Add api documentation for TextureCombiner.
+- Add tooltips in LookDev's toolbar.
 
 ### Fixed
 - Fixed compile errors for platforms with no VR support
@@ -60,11 +30,19 @@ The version number for this package has increased due to a version update of a r
 - Fix LookDev EnvironmentLibrary tab when asset is deleted
 - Fix LookDev used Cubemap when asset is deleted
 - Fixed the definition of `rcp()` for GLES2.
+- Fixed copy/pasting of Volume Components when loading a new scene
 - Fix LookDev issue when adding a GameObject containing a Volume into the LookDev's view.
 - Fixed duplicated entry for com.unity.modules.xr in the runtime asmdef file
 - Fixed the texture curve being destroyed from another thread than main (case 1211754)
 - Fixed unreachable code in TextureXR.useTexArray
 - Fixed GC pressure caused by `VolumeParameter<T>.GetHashCode()`
+- Fixed issue when LookDev window is opened and the CoreRP Package is updated to a newer version.
+- Fix LookDev's camera button layout.
+- Fix LookDev's layout vanishing on domain reload.
+- Fixed issue with the shader TransformWorldToHClipDir function computing the wrong result.
+- Fixed division by zero in `V_SmithJointGGX` function.
+- Fixed null reference exception in LookDev when setting the SRP to one not implementing LookDev (case 1245086)
+- Fix LookDev's undo/redo on EnvironmentLibrary (case 1234725)
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.
@@ -74,6 +52,8 @@ The version number for this package has increased due to a version update of a r
 - Replaced calls to deprecated PlayerSettings.virtualRealitySupported property.
 - Enable RWTexture2D, RWTexture2DArray, RWTexture3D in gles 3.1
 - Updated macros to be compatible with the new shader preprocessor.
+- Updated shaders to be compatible with Microsoft's DXC.
+- Changed CommandBufferPool.Get() to create an unnamed CommandBuffer. (No profiling markers)
 
 ## [7.1.1] - 2019-09-05
 

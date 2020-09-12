@@ -38,22 +38,18 @@ namespace UnityEditor.VFX
         [SerializeField]
         private SerializableType m_serializedType;
 
-        [SerializeField]
-        public VFXPropertyAttribute[] attributes;
+        [NonSerialized]
+        public VFXPropertyAttributes attributes;
 
-        public VFXProperty(Type type, string name, params VFXPropertyAttribute[] attributes)
+        public VFXProperty(Type type, string name, VFXPropertyAttributes attributes)
         {
             m_serializedType = type;
             this.name = name;
             this.attributes = attributes;
         }
 
-        public VFXProperty(FieldInfo info)
-        {
-            name = info.Name;
-            m_serializedType = info.FieldType;
-            attributes = VFXPropertyAttribute.Create(info.GetCustomAttributes(true));
-        }
+        public VFXProperty(Type type, string name, params object[] attributes) : this(type,name, new VFXPropertyAttributes(attributes)) {}
+        public VFXProperty(FieldInfo info) : this(info.FieldType, info.Name, new VFXPropertyAttributes(info.GetCustomAttributes(true))) {}
 
         public override int GetHashCode()
         {

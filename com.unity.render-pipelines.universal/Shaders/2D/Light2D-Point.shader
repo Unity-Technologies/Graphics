@@ -37,9 +37,9 @@ Shader "Hidden/Light2D-Point"
             struct Varyings
             {
                 float4  positionCS      : SV_POSITION;
-                float2  uv              : TEXCOORD0;
-                float2	lookupUV        : TEXCOORD2;  // This is used for light relative direction
-                float2	lookupNoRotUV   : TEXCOORD3;  // This is used for screen relative direction of a light
+                half2   uv              : TEXCOORD0;
+                half2	lookupUV        : TEXCOORD2;  // This is used for light relative direction
+                half2	lookupNoRotUV   : TEXCOORD3;  // This is used for screen relative direction of a light
 
                 NORMALS_LIGHTING_COORDS(TEXCOORD4, TEXCOORD5)
                 SHADOW_COORDS(TEXCOORD6)
@@ -52,11 +52,11 @@ Shader "Hidden/Light2D-Point"
 
             TEXTURE2D(_FalloffLookup);
             SAMPLER(sampler_FalloffLookup);
-            float _FalloffIntensity;
+            half _FalloffIntensity;
 
             TEXTURE2D(_LightLookup);
             SAMPLER(sampler_LightLookup);
-            float4 _LightLookup_TexelSize;
+            half4 _LightLookup_TexelSize;
 
             NORMALS_LIGHTING_VARIABLES
             SHADOW_VARIABLES

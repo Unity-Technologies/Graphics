@@ -4,7 +4,7 @@
 
 bool IntersectPlane(float3 ray_origin, float3 ray_dir, float3 pos, float3 normal, out float t)
 {
-	float denom = dot(normal, ray_dir); 
+	float denom = dot(normal, ray_dir);
 	if (abs(denom) > PLANE_INTERSECTION_EPSILON)
 	{ 
 	    float3 d = pos - ray_origin;
@@ -24,7 +24,7 @@ struct SphQuad
     float S;
 };
 
-void SphQuadInit(float3 s, float3 ex, float3 ey, float3 o, inout SphQuad squad)
+void SphQuadInit(float3 s, float3 ex, float3 ey, float3 o, out SphQuad squad)
 {
     squad.o = o;
 

@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.Universal
         const string m_ProfilerTag = "Copy Depth for Scene View";
         int m_ScaleBiasId = Shader.PropertyToID("_ScaleBiasRT");
 
+        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
 
         public SceneViewDepthCopyPass(RenderPassEvent evt, Material copyDepthMaterial)
         {
@@ -31,27 +32,33 @@ namespace UnityEngine.Rendering.Universal
 
             // Restore Render target for additional editor rendering.
             // Note: Scene view camera always perform depth prepass
-            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
-            CoreUtils.SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget);
-            cmd.SetGlobalTexture("_CameraDepthAttachment", source.Identifier());
-            cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
-            // Blit has logic to flip projection matrix when rendering to render texture.
-            // Currently the y-flip is handled in CopyDepthPass.hlsl by checking _ProjectionParams.x
-            // If you replace this Blit with a Draw* that sets projection matrix double check
-            // to also update shader.
-            // scaleBias.x = flipSign
-            // scaleBias.y = scale
-            // scaleBias.z = bias
-            // scaleBias.w = unused
-            ref CameraData cameraData = ref renderingData.cameraData;
-            float flipSign = (cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
-            Vector4 scaleBias = (flipSign < 0.0f) ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f) : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
-            cmd.SetGlobalVector(m_ScaleBiasId, scaleBias);
+            CommandBuffer cmd = CommandBufferPool.Get();
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            {
+                CoreUtils.SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget);
+                cmd.SetGlobalTexture("_CameraDepthAttachment", source.Identifier());
+                cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
+                cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
+                cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
+                cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
+                // Blit has logic to flip projection matrix when rendering to render texture.
+                // Currently the y-flip is handled in CopyDepthPass.hlsl by checking _ProjectionParams.x
+                // If you replace this Blit with a Draw* that sets projection matrix double check
+                // to also update shader.
+                // scaleBias.x = flipSign
+                // scaleBias.y = scale
+                // scaleBias.z = bias
+                // scaleBias.w = unused
+                ref CameraData cameraData = ref renderingData.cameraData;
+                float flipSign = (cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
+                Vector4 scaleBias = (flipSign < 0.0f)
+                    ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
+                    : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
+                cmd.SetGlobalVector(m_ScaleBiasId, scaleBias);
 
-            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
+            }
+
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

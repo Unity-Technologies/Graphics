@@ -1,0 +1,108 @@
+#pragma kernel TileGenPass  GEN_PASS
+
+#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+#pragma multi_compile _ SCATTERING
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MotionBlurTileCommon.hlsl"
+
+#if USE_WAVE_INTRINSICS
+
+#define LDS_SIZE  (TILE_SIZE * TILE_SIZE) / WAVE_SIZE
+
+#else
+
+#define LDS_SIZE TILE_SIZE * TILE_SIZE
+
+#endif
+
+groupshared float gs_minMotionVec[LDS_SIZE];
+groupshared uint gs_maxMotionVec[LDS_SIZE];
+
+// Returns min motionVec length in x, max motionVec in zw
+float3 ParallelReduction(uint gid, uint threadIdx, float2 motionVec)
+{
+    uint packedMotionVec = PackMotionVec(motionVec);
+    float motionVecLength = MotionVecLengthFromEncoded(motionVec);
+    float minMotionVecLen = 0.0f;
+    uint  maxMotionVecPacked = 0.0f;
+
+#if USE_WAVE_INTRINSICS // This works only with multiple of 8 for TILE_SIZE.
+
+    uint waveCount = ((TILE_SIZE * TILE_SIZE) / WAVE_SIZE);
+
+    // Find min/max for this wave and store it in LDS. 
+    float waveMin = WaveActiveMin(motionVecLength);
+    uint waveMax = WaveActiveMax(packedMotionVec);
+
+    uint waveIDInGroup = gid / WAVE_SIZE;
+    if (WaveIsFirstLane())
+    {
+        gs_minMotionVec[waveIDInGroup] = waveMin;
+        gs_maxMotionVec[waveIDInGroup] = waveMax;
+    }
+
+    // We have values for all the waves, let's sync. 
+    GroupMemoryBarrierWithGroupSync();
+
+    if (threadIdx == 0)
+    {
+        // Find min and max across waves.
+        minMotionVecLen = gs_minMotionVec[0];
+        maxMotionVecPacked = gs_maxMotionVec[0];
+        for (uint i = 1u; i < waveCount; ++i)
+        {
+            minMotionVecLen = min(minMotionVecLen, gs_minMotionVec[i]);
+            maxMotionVecPacked = max(maxMotionVecPacked, gs_maxMotionVec[i]);
+        }
+    }
+#else
+    gs_minMotionVec[threadIdx] = motionVecLength;
+    gs_maxMotionVec[threadIdx] = packedMotionVec;
+
+    GroupMemoryBarrierWithGroupSync();
+
+
+    UNITY_UNROLL
+    for (uint s = (TILE_SIZE * TILE_SIZE) / 2u; s > 0u; s >>= 1u)
+    {
+        if (threadIdx < s)
+        {
+            gs_minMotionVec[threadIdx] = min(gs_minMotionVec[threadIdx], gs_minMotionVec[threadIdx + s]);
+            gs_maxMotionVec[threadIdx] = max(gs_maxMotionVec[threadIdx], gs_maxMotionVec[threadIdx + s]);
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    maxMotionVecPacked = gs_maxMotionVec[0];
+    minMotionVecLen = gs_minMotionVec[0];
+
+#endif
+    float2 unpackedMaxMotionVec = UnpackMotionVec(maxMotionVecPacked);
+    return float3(minMotionVecLen, unpackedMaxMotionVec);
+}
+
+
+[numthreads(TILE_SIZE, TILE_SIZE,1)]
+void TileGenPass(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID: SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(id.z);
+    uint threadIdx = groupThreadId.y * TILE_SIZE + groupThreadId.x;
+
+    float2 motionVec = LOAD_TEXTURE2D_X(_MotionVecAndDepth, id.xy).xy;
+
+    float3 minMaxMotionVec = ParallelReduction(gid, threadIdx, motionVec);
+    float minMotionVecLength = minMaxMotionVec.x;
+    float2 maxMotionVec = minMaxMotionVec.yz;
+
+    if (threadIdx == 0)
+    {
+#ifdef SCATTERING
+        _TileToScatterMax[COORD_TEXTURE2D_X(groupID.xy)] = PackMotionVec(maxMotionVec);
+        _TileToScatterMin[COORD_TEXTURE2D_X(groupID.xy)] = f32tof16(minMotionVecLength);
+#else
+        _TileMinMaxMotionVec[COORD_TEXTURE2D_X(groupID.xy)] = float3(maxMotionVec.x, maxMotionVec.y, minMotionVecLength);
+#endif
+    }
+
+}

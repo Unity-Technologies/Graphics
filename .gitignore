@@ -19,6 +19,7 @@
 *.csproj
 *.exe
 *.ini
+*.log
 *.map
 *.mdb
 *.npmrc
@@ -30,12 +31,9 @@
 *.sublime-workspace
 *.suo
 *.userprefs
-*.log
 .npmrc
 ShaderGraph/DebugOutput.meta
 ShaderGraph/DebugOutput/**
 ShaderGraph/Testing/IntegrationTests/.Failed
 TestProjects/*/ProjectSettings/ProjectVersion.txt
-
-TestProjects/VisualEffectGraph_HDRP/GraphViz/
 node_modules

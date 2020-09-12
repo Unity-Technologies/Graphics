@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor.Experimental.AssetImporters;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -19,13 +20,20 @@ namespace UnityEditor.ShaderGraph
             this.value = value;
         }
     }
-    
+
+    class SubGraphData : JsonObject
+    {
+        public List<JsonData<AbstractShaderProperty>> inputs = new List<JsonData<AbstractShaderProperty>>();
+        public List<JsonData<ShaderKeyword>> keywords = new List<JsonData<ShaderKeyword>>();
+        public List<JsonData<AbstractShaderProperty>> nodeProperties = new List<JsonData<AbstractShaderProperty>>();
+        public List<JsonData<MaterialSlot>> outputs = new List<JsonData<MaterialSlot>>();
+        public List<JsonData<Target>> unsupportedTargets = new List<JsonData<Target>>();
+    }
+
     class SubGraphAsset : ScriptableObject, ISerializationCallbackReceiver
     {
         public bool isValid;
 
-        public bool isRecursive;
-        
         public long processedAt;
 
         public string functionName;
@@ -42,55 +50,90 @@ namespace UnityEditor.ShaderGraph
 
         public List<FunctionPair> functions = new List<FunctionPair>();
 
-        [NonSerialized]
-        public List<AbstractShaderProperty> inputs = new List<AbstractShaderProperty>();
-        
-        [SerializeField]
-        List<SerializationHelper.JSONSerializedElement> m_SerializedInputs = new List<SerializationHelper.JSONSerializedElement>();
+        public List<string> vtFeedbackVariables = new List<string>();
 
-        [NonSerialized]
-        public List<ShaderKeyword> keywords = new List<ShaderKeyword>();
-        
-        [SerializeField]
-        List<SerializationHelper.JSONSerializedElement> m_SerializedKeywords = new List<SerializationHelper.JSONSerializedElement>();
-        
-        [NonSerialized]
-        public List<AbstractShaderProperty> nodeProperties = new List<AbstractShaderProperty>();
-        
-        [SerializeField]
-        List<SerializationHelper.JSONSerializedElement> m_SerializedProperties = new List<SerializationHelper.JSONSerializedElement>();
-        
-        [NonSerialized]
-        public List<MaterialSlot> outputs = new List<MaterialSlot>();
-        
-        [SerializeField]
-        List<SerializationHelper.JSONSerializedElement> m_SerializedOutputs = new List<SerializationHelper.JSONSerializedElement>();
+        private SubGraphData m_SubGraphData;
 
-        public List<string> children = new List<string>();
+        [SerializeField]
+        private SerializationHelper.JSONSerializedElement m_SerializedSubGraphData;
 
-        public List<string> descendents = new List<string>();
+        public DataValueEnumerable<AbstractShaderProperty> inputs => m_SubGraphData.inputs.SelectValue();
+
+        public DataValueEnumerable<ShaderKeyword> keywords => m_SubGraphData.keywords.SelectValue();
+
+        public DataValueEnumerable<AbstractShaderProperty> nodeProperties => m_SubGraphData.nodeProperties.SelectValue();
+
+        public DataValueEnumerable<MaterialSlot> outputs => m_SubGraphData.outputs.SelectValue();
+
+        public DataValueEnumerable<Target> unsupportedTargets => m_SubGraphData.unsupportedTargets.SelectValue();
+
+        public List<string> children = new List<string>();          // guids of direct USED SUBGRAPH file dependencies
+
+        public List<string> descendents = new List<string>();       // guids of ALL file dependencies at any level
 
         public ShaderStageCapability effectiveShaderStage;
-        
+
         public ConcretePrecision graphPrecision;
 
         public ConcretePrecision outputPrecision;
-        
+
+        public void WriteData(IEnumerable<AbstractShaderProperty> inputs, IEnumerable<ShaderKeyword> keywords, IEnumerable<AbstractShaderProperty> nodeProperties, IEnumerable<MaterialSlot> outputs, IEnumerable<Target> unsupportedTargets)
+        {
+            if(m_SubGraphData == null)
+            {
+                m_SubGraphData = new SubGraphData();
+            }
+            m_SubGraphData.inputs.Clear();
+            m_SubGraphData.keywords.Clear();
+            m_SubGraphData.nodeProperties.Clear();
+            m_SubGraphData.outputs.Clear();
+            m_SubGraphData.unsupportedTargets.Clear();
+
+            foreach(var input in inputs)
+            {
+                m_SubGraphData.inputs.Add(input);
+            }
+
+            foreach(var keyword in keywords)
+            {
+                m_SubGraphData.keywords.Add(keyword);
+            }
+
+            foreach(var nodeProperty in nodeProperties)
+            {
+                m_SubGraphData.nodeProperties.Add(nodeProperty);
+            }
+
+            foreach(var output in outputs)
+            {
+                m_SubGraphData.outputs.Add(output);
+            }
+
+            foreach(var unsupportedTarget in unsupportedTargets)
+            {
+                m_SubGraphData.unsupportedTargets.Add(unsupportedTarget);
+            }
+            var json = MultiJson.Serialize(m_SubGraphData);
+            m_SerializedSubGraphData = new SerializationHelper.JSONSerializedElement() { JSONnodeData = json };
+            m_SubGraphData = null;
+        }
+
         public void OnBeforeSerialize()
         {
-            m_SerializedInputs = SerializationHelper.Serialize<AbstractShaderProperty>(inputs);
-            m_SerializedKeywords = SerializationHelper.Serialize<ShaderKeyword>(keywords);
-            m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(nodeProperties);
-            m_SerializedOutputs = SerializationHelper.Serialize<MaterialSlot>(outputs);
         }
 
         public void OnAfterDeserialize()
         {
-            var typeSerializationInfos = GraphUtil.GetLegacyTypeRemapping();
-            inputs = SerializationHelper.Deserialize<AbstractShaderProperty>(m_SerializedInputs, typeSerializationInfos);
-            keywords = SerializationHelper.Deserialize<ShaderKeyword>(m_SerializedKeywords, typeSerializationInfos);
-            nodeProperties = SerializationHelper.Deserialize<AbstractShaderProperty>(m_SerializedProperties, typeSerializationInfos);
-            outputs = SerializationHelper.Deserialize<MaterialSlot>(m_SerializedOutputs, typeSerializationInfos);
+
+        }
+
+        public void LoadGraphData()
+        {
+            m_SubGraphData = new SubGraphData();
+            if(!String.IsNullOrEmpty(m_SerializedSubGraphData.JSONnodeData))
+            {
+                MultiJson.Deserialize(m_SubGraphData, m_SerializedSubGraphData.JSONnodeData);
+            }
         }
     }
 }

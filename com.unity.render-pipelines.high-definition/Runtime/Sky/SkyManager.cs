@@ -230,7 +230,7 @@ namespace UnityEngine.Rendering.HighDefinition
             hdCamera.UpdateCurrentSky(this);
         }
 
-        public void SetGlobalSkyData(CommandBuffer cmd, HDCamera hdCamera)
+        void SetGlobalSkyData(CommandBuffer cmd, HDCamera hdCamera)
         {
             if (IsCachedContextValid(hdCamera.lightingSky))
             {
@@ -820,24 +820,20 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
             if ((ambientMode == SkyAmbientMode.Static || forceStaticUpdate) && hdCamera.camera.cameraType != CameraType.Preview)
             {
-                m_StaticLightingSky.skySettings = staticLightingSky != null ? staticLightingSky.skySettings : null;
-                UpdateEnvironment(hdCamera, renderContext, m_StaticLightingSky, sunLight, m_StaticSkyUpdateRequired, true, true, SkyAmbientMode.Static, frameIndex, cmd);
-                m_StaticSkyUpdateRequired = false;
+                if (staticLightingSky != null)
+                {
+                    m_StaticLightingSky.skySettings = staticLightingSky.skySettings;
+                    UpdateEnvironment(hdCamera, renderContext, m_StaticLightingSky, sunLight, m_StaticSkyUpdateRequired, true, true, SkyAmbientMode.Static, frameIndex, cmd);
+                    m_StaticSkyUpdateRequired = false;
+                }
             }
 
             m_UpdateRequired = false;
 
+            SetGlobalSkyData(cmd, hdCamera);
+
             var reflectionTexture = GetReflectionTexture(hdCamera.lightingSky);
             cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, reflectionTexture);
-
-            if (IsLightingSkyValid(hdCamera))
-            {
-                cmd.SetGlobalInt(HDShaderIDs._EnvLightSkyEnabled, 1);
-            }
-            else
-            {
-                cmd.SetGlobalInt(HDShaderIDs._EnvLightSkyEnabled, 0);
-            }
         }
 
         internal void UpdateBuiltinParameters(SkyUpdateContext skyContext, HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)

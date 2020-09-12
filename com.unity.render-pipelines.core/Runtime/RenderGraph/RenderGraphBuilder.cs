@@ -8,7 +8,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     /// </summary>
     public struct RenderGraphBuilder : IDisposable
     {
-        RenderGraph.RenderPass      m_RenderPass;
+        RenderGraphPass             m_RenderPass;
         RenderGraphResourceRegistry m_Resources;
         bool                        m_Disposed;
 
@@ -20,13 +20,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <param name="input">The Texture resource to use as a color render target.</param>
         /// <param name="index">Index for multiple render target usage.</param>
         /// <returns>An updated resource handle to the input resource.</returns>
-        public RenderGraphMutableResource UseColorBuffer(in RenderGraphMutableResource input, int index)
+        public TextureHandle UseColorBuffer(TextureHandle input, int index)
         {
-            if (input.type != RenderGraphResourceType.Texture)
-                throw new ArgumentException("Trying to write to a resource that is not a texture or is invalid.");
+            CheckTransientTexture(input);
 
             m_RenderPass.SetColorBuffer(input, index);
-            m_Resources.UpdateTextureFirstWrite(input, m_RenderPass.index);
             return input;
         }
 
@@ -36,16 +34,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <param name="input">The Texture resource to use as a depth buffer during the pass.</param>
         /// <param name="flags">Specify the access level for the depth buffer. This allows you to say whether you will read from or write to the depth buffer, or do both.</param>
         /// <returns>An updated resource handle to the input resource.</returns>
-        public RenderGraphMutableResource UseDepthBuffer(in RenderGraphMutableResource input, DepthAccess flags)
+        public TextureHandle UseDepthBuffer(TextureHandle input, DepthAccess flags)
         {
-            if (input.type != RenderGraphResourceType.Texture)
-                throw new ArgumentException("Trying to write to a resource that is not a texture or is invalid.");
+            CheckTransientTexture(input);
 
             m_RenderPass.SetDepthBuffer(input, flags);
-            if ((flags | DepthAccess.Read) != 0)
-                m_Resources.UpdateTextureLastRead(input, m_RenderPass.index);
-            if ((flags | DepthAccess.Write) != 0)
-                m_Resources.UpdateTextureFirstWrite(input, m_RenderPass.index);
             return input;
         }
 
@@ -54,12 +47,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="input">The Texture resource to read from during the pass.</param>
         /// <returns>An updated resource handle to the input resource.</returns>
-        public RenderGraphResource ReadTexture(in RenderGraphResource input)
+        public TextureHandle ReadTexture(TextureHandle input)
         {
-            if (input.type != RenderGraphResourceType.Texture)
-                throw new ArgumentException("Trying to read a resource that is not a texture or is invalid.");
-            m_RenderPass.resourceReadList.Add(input);
-            m_Resources.UpdateTextureLastRead(input, m_RenderPass.index);
+            CheckTransientTexture(input);
+
+            m_RenderPass.AddTextureRead(input);
             return input;
         }
 
@@ -68,14 +60,39 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="input">The Texture resource to write to during the pass.</param>
         /// <returns>An updated resource handle to the input resource.</returns>
-        public RenderGraphMutableResource WriteTexture(in RenderGraphMutableResource input)
+        public TextureHandle WriteTexture(TextureHandle input)
         {
-            if (input.type != RenderGraphResourceType.Texture)
-                throw new ArgumentException("Trying to write to a resource that is not a texture or is invalid.");
+            CheckTransientTexture(input);
+
             // TODO: Manage resource "version" for debugging purpose
-            m_RenderPass.resourceWriteList.Add(input);
-            m_Resources.UpdateTextureFirstWrite(input, m_RenderPass.index);
+            m_RenderPass.AddTextureWrite(input);
             return input;
+        }
+
+        /// <summary>
+        /// Create a new Render Graph Texture resource.
+        /// This texture will only be available for the current pass and will be assumed to be both written and read so users don't need to add explicit read/write declarations.
+        /// </summary>
+        /// <param name="desc">Texture descriptor.</param>
+        /// <returns>A new transient TextureHandle.</returns>
+        public TextureHandle CreateTransientTexture(in TextureDesc desc)
+        {
+            var result = m_Resources.CreateTexture(desc, 0, m_RenderPass.index);
+            m_RenderPass.AddTransientTexture(result);
+            return result;
+        }
+
+        /// <summary>
+        /// Create a new Render Graph Texture resource using the descriptor from another texture.
+        /// </summary>
+        /// <param name="texture">Texture from which the descriptor should be used.</param>
+        /// <returns>A new transient TextureHandle.</returns>
+        public TextureHandle CreateTransientTexture(TextureHandle texture)
+        {
+            var desc = m_Resources.GetTextureResourceDesc(texture);
+            var result = m_Resources.CreateTexture(desc, 0, m_RenderPass.index);
+            m_RenderPass.AddTransientTexture(result);
+            return result;
         }
 
         /// <summary>
@@ -83,11 +100,31 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="input">The Renderer List resource to use during the pass.</param>
         /// <returns>An updated resource handle to the input resource.</returns>
-        public RenderGraphResource UseRendererList(in RenderGraphResource input)
+        public RendererListHandle UseRendererList(RendererListHandle input)
         {
-            if (input.type != RenderGraphResourceType.RendererList)
-                throw new ArgumentException("Trying use a resource that is not a renderer list.");
-            m_RenderPass.usedRendererListList.Add(input);
+            m_RenderPass.UseRendererList(input);
+            return input;
+        }
+
+        /// <summary>
+        /// Specify a Compute Buffer resource to read from during the pass.
+        /// </summary>
+        /// <param name="input">The Compute Buffer resource to read from during the pass.</param>
+        /// <returns>An updated resource handle to the input resource.</returns>
+        public ComputeBufferHandle ReadComputeBuffer(ComputeBufferHandle input)
+        {
+            m_RenderPass.AddBufferRead(input);
+            return input;
+        }
+
+        /// <summary>
+        /// Specify a Compute Buffer resource to write to during the pass.
+        /// </summary>
+        /// <param name="input">The Compute Buffer resource to write to during the pass.</param>
+        /// <returns>An updated resource handle to the input resource.</returns>
+        public ComputeBufferHandle WriteComputeBuffer(ComputeBufferHandle input)
+        {
+            m_RenderPass.AddBufferWrite(input);
             return input;
         }
 
@@ -99,7 +136,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <param name="renderFunc">Render function for the pass.</param>
         public void SetRenderFunc<PassData>(RenderFunc<PassData> renderFunc) where PassData : class, new()
         {
-            ((RenderGraph.RenderPass<PassData>)m_RenderPass).renderFunc = renderFunc;
+            ((RenderGraphPass<PassData>)m_RenderPass).renderFunc = renderFunc;
         }
 
         /// <summary>
@@ -108,7 +145,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <param name="value">Set to true to enable asynchronous compute.</param>
         public void EnableAsyncCompute(bool value)
         {
-            m_RenderPass.enableAsyncCompute = value;
+            m_RenderPass.EnableAsyncCompute(value);
         }
 
         /// <summary>
@@ -121,7 +158,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         #endregion
 
         #region Internal Interface
-        internal RenderGraphBuilder(RenderGraph.RenderPass renderPass, RenderGraphResourceRegistry resources)
+        internal RenderGraphBuilder(RenderGraphPass renderPass, RenderGraphResourceRegistry resources)
         {
             m_RenderPass = renderPass;
             m_Resources = resources;
@@ -134,6 +171,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 return;
 
             m_Disposed = true;
+        }
+
+        void CheckTransientTexture(TextureHandle input)
+        {
+            if (input.transientPassIndex != -1 && input.transientPassIndex != m_RenderPass.index)
+            {
+                throw new ArgumentException($"Trying to use a transient texture (pass index {input.transientPassIndex}) in a different pass (pass index {m_RenderPass.index}.");
+            }
         }
         #endregion
     }

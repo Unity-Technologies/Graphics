@@ -86,7 +86,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             // In case of camera stacking we need to take the viewport rect from base camera
             Rect pixelRect = renderingData.cameraData.pixelRect;
             float cameraAspect = (float) pixelRect.width / (float) pixelRect.height;
-            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
+
+            // NOTE: Do NOT mix ProfilingScope with named CommandBuffers i.e. CommandBufferPool.Get("name").
+            // Currently there's an issue which results in mismatched markers.
+            CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 if (m_CameraSettings.overrideCamera && cameraData.isStereoEnabled)

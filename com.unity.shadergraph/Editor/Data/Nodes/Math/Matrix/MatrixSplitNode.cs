@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.Graphing.Util;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -125,11 +126,8 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public override void ValidateNode()
+        public override void EvaluateDynamicMaterialSlots()
         {
-            var isInError = false;
-            var errorMessage = k_validationErrorMessage;
-
             var dynamicInputSlotsToCompare = DictionaryPool<DynamicVectorMaterialSlot, ConcreteSlotValueType>.Get();
             var skippedDynamicSlots = ListPool<DynamicVectorMaterialSlot>.Get();
 
@@ -157,7 +155,7 @@ namespace UnityEditor.ShaderGraph
 
                     // get the output details
                     var outputSlotRef = edges[0].outputSlot;
-                    var outputNode = owner.GetNodeFromGuid(outputSlotRef.nodeGuid);
+                    var outputNode = outputSlotRef.node;
                     if (outputNode == null)
                         continue;
 
@@ -204,8 +202,12 @@ namespace UnityEditor.ShaderGraph
 
                 tempSlots.Clear();
                 GetInputSlots(tempSlots);
-                var inputError = tempSlots.Any(x => x.hasError);
-
+                bool inputError = tempSlots.Any(x => x.hasError);
+                if (inputError)
+                {
+                    owner.AddConcretizationError(objectId, string.Format("Node {0} had input error", objectId));
+                    hasError = true;
+                }
                 // configure the output slots now
                 // their slotType will either be the default output slotType
                 // or the above dynanic slotType for dynamic nodes
@@ -234,24 +236,17 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
 
-                isInError |= inputError;
+
                 tempSlots.Clear();
                 GetOutputSlots(tempSlots);
-                isInError |= tempSlots.Any(x => x.hasError);
+                if(tempSlots.Any(x => x.hasError))
+                {
+                    owner.AddConcretizationError(objectId, string.Format("Node {0} had output error", objectId));
+                    hasError = true;
+                }
             }
 
-            isInError |= CalculateNodeHasError(ref errorMessage);
-            isInError |= ValidateConcretePrecision(ref errorMessage);
-            hasError = isInError;
-
-            if (isInError)
-            {
-                ((GraphData) owner).AddValidationError(tempId, errorMessage);
-            }
-            else
-            {
-                ++version;
-            }
+            CalculateNodeHasError();
 
             ListPool<DynamicVectorMaterialSlot>.Release(skippedDynamicSlots);
             DictionaryPool<DynamicVectorMaterialSlot, ConcreteSlotValueType>.Release(dynamicInputSlotsToCompare);

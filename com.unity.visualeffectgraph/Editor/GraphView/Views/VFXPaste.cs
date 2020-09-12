@@ -39,7 +39,7 @@ namespace UnityEditor.VFX.UI
             s_Instance.DoPaste(viewController, center, data, view, groupNode, nodesInTheSameOrder);
         }
 
-        public static void PasteBlocks(VFXViewController viewController, object data, VFXContext targetModelContext, int targetIndex, List<VFXBlockController> blocksInTheSameOrder)
+        public static void PasteBlocks(VFXViewController viewController, object data, VFXContext targetModelContext, int targetIndex, List<VFXBlockController> blocksInTheSameOrder = null)
         {
             if (s_Instance == null)
                 s_Instance = new VFXPaste();

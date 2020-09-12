@@ -94,6 +94,17 @@ namespace UnityEditor.Rendering.HighDefinition
         Triplanar
     }
 
+    internal enum UVEmissiveMapping
+    {
+        UV0,
+        UV1,
+        UV2,
+        UV3,
+        Planar,
+        Triplanar,
+        SameAsBase
+    }
+
     internal enum HeightmapParametrization
     {
         MinMax = 0,

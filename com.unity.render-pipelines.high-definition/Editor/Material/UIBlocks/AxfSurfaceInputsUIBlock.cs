@@ -20,10 +20,6 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public const string header = "Surface Inputs";
 
-            public static GUIContent    mappingModeText = new GUIContent("Mapping Mode");
-            public static GUIContent    planarSpaceText = new GUIContent("Planar Space");
-
-            public static GUIContent    materialTilingOffsetText = new GUIContent("Main Tiling & Offset");
             /////////////////////////////////////////////////////////////////////////////////////////////////
             // SVBRDF Parameters
             public static GUIContent    diffuseColorMapText = new GUIContent("Diffuse Color");
@@ -114,20 +110,10 @@ namespace UnityEditor.Rendering.HighDefinition
             SCHLICK,            // Schlick's Approximation (1994)
         }
         static readonly string[]    SvbrdfFresnelVariantNames = Enum.GetNames(typeof(SvbrdfFresnelVariant));
-        static readonly string[]    MappingModeNames = Enum.GetNames(typeof(AxFMappingMode));
 
         /////////////////////////////////////////////////////////////////////////////////////////////////
         // Generic Parameters
-
-        static string               m_MappingModeText = "_MappingMode";
-        MaterialProperty  m_MappingMode = null;
-
-        static string               m_MappingMaskText = "_MappingMask";
-        MaterialProperty  m_MappingMask = null;
-
-        static string               m_PlanarSpaceText = "_PlanarSpace";
-        MaterialProperty  m_PlanarSpace = null;
-
+        
         MaterialProperty  m_MaterialTilingOffset = null;
         MaterialProperty  m_DiffuseColorMapST = null;
         MaterialProperty  m_SpecularColorMapST = null;
@@ -248,10 +234,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void LoadMaterialProperties()
         {
-            m_MappingMode = FindProperty(m_MappingModeText);
-            m_MappingMask = FindProperty(m_MappingMaskText);
-            m_PlanarSpace = FindProperty(m_PlanarSpaceText);
-
             m_MaterialTilingOffset = FindProperty(m_MaterialTilingOffsetText);
     
             m_DiffuseColorMapST = FindProperty(m_DiffuseColorMapText + tilingOffsetPropNameSuffix);
@@ -362,27 +344,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawAxfSurfaceOptionsGUI()
         {
-            //materialEditor.ShaderProperty(m_MappingMode, Styles.mappingModeText);
-            EditorGUI.BeginChangeCheck();
-            float val = EditorGUILayout.Popup(Styles.mappingModeText, (int)m_MappingMode.floatValue, MappingModeNames);
-            if (EditorGUI.EndChangeCheck())
-            {
-                Material material = materialEditor.target as Material;
-                Undo.RecordObject(material, "Change Mapping Mode");
-                m_MappingMode.floatValue = val;
-            }
-
-            AxFMappingMode mappingMode = (AxFMappingMode)m_MappingMode.floatValue;
-            m_MappingMask.vectorValue = AxFGUI.AxFMappingModeToMask(mappingMode);
-
-            if (mappingMode >= AxFMappingMode.PlanarXY)
-            {
-                ++EditorGUI.indentLevel;
-                materialEditor.ShaderProperty(m_PlanarSpace, Styles.planarSpaceText);
-                --EditorGUI.indentLevel;
-            }
-
-            materialEditor.ShaderProperty(m_MaterialTilingOffset, Styles.materialTilingOffsetText);
+            materialEditor.ShaderProperty(m_MaterialTilingOffset, "Main Tiling & Offset");
 
             AxfBrdfType AxF_BRDFType = (AxfBrdfType)m_AxF_BRDFType.floatValue;
             AxF_BRDFType = (AxfBrdfType)EditorGUILayout.Popup("BRDF Type", (int)AxF_BRDFType, AxfBrdfTypeNames);
@@ -484,7 +446,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     BRDFVariants |= ((uint)wardVariant) << 2;
                     BRDFVariants |= ((uint)blinnVariant) << 4;
 
-//                    cmd.SetGlobalFloat( HDShaderIDs._TexturingModeFlags, *(float*) &texturingModeFlags );
                     m_SVBRDF_BRDFType.floatValue = (float)BRDFType;
                     m_SVBRDF_BRDFVariants.floatValue = (float)BRDFVariants;
 
@@ -548,8 +509,6 @@ namespace UnityEditor.Rendering.HighDefinition
                         --EditorGUI.indentLevel;
                         clearcoatRefraction = EditorGUILayout.Toggle("Enable Refraction", clearcoatRefraction);
                     }
-
-//                    cmd.SetGlobalFloat( HDShaderIDs._TexturingModeFlags, *(float*) &texturingModeFlags );
 
                     --EditorGUI.indentLevel;
                     break;

@@ -42,6 +42,31 @@ namespace UnityEngine.Rendering.HighDefinition
             SSRMaxRaySteps[(int)ScalableSettingLevelParameter.Level.Low] = 16;
             SSRMaxRaySteps[(int)ScalableSettingLevelParameter.Level.Medium] = 32;
             SSRMaxRaySteps[(int)ScalableSettingLevelParameter.Level.High] = 64;
+
+            /* Screen Space Global Illumination */
+            SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.Low] = 24;
+            SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.Medium] = 32;
+            SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.High] = 64;
+
+            SSGIResolution[(int)ScalableSettingLevelParameter.Level.Low] = false;
+            SSGIResolution[(int)ScalableSettingLevelParameter.Level.Medium] = true;
+            SSGIResolution[(int)ScalableSettingLevelParameter.Level.High] = true;
+
+            SSGIRadius[(int)ScalableSettingLevelParameter.Level.Low] = 0.5f;
+            SSGIRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 3.0f;
+            SSGIRadius[(int)ScalableSettingLevelParameter.Level.High] = 5.0f;
+
+            SSGIFullResolution[(int)ScalableSettingLevelParameter.Level.Low] = false;
+            SSGIFullResolution[(int)ScalableSettingLevelParameter.Level.Medium] = true;
+            SSGIFullResolution[(int)ScalableSettingLevelParameter.Level.High] = true;
+
+            SSGIClampValue[(int)ScalableSettingLevelParameter.Level.Low] = 0.5f;
+            SSGIClampValue[(int)ScalableSettingLevelParameter.Level.Medium] = 0.8f;
+            SSGIClampValue[(int)ScalableSettingLevelParameter.Level.High] = 1.0f;
+
+            SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.Low] = 2;
+            SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 5;
+            SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.High] = 7;
         }
 
         internal static GlobalLightingQualitySettings NewDefault() => new GlobalLightingQualitySettings();
@@ -65,6 +90,20 @@ namespace UnityEngine.Rendering.HighDefinition
         // Screen Space Reflections
         /// <summary>Maximum number of rays for Screen Space Reflection for each quality level.</summary>
         public int[] SSRMaxRaySteps = new int[s_QualitySettingCount];
+
+        // Screen Space Global Illumination
+        [System.NonSerialized]
+        public int[] SSGIRaySteps = new int[s_QualitySettingCount];
+        [System.NonSerialized]
+        public bool[] SSGIResolution = new bool[s_QualitySettingCount];
+        [System.NonSerialized]
+        public float[] SSGIRadius = new float[s_QualitySettingCount];
+        [System.NonSerialized]
+        public bool[] SSGIFullResolution = new bool[s_QualitySettingCount];
+        [System.NonSerialized]
+        public float[] SSGIClampValue = new float[s_QualitySettingCount];
+        [System.NonSerialized]
+        public int[] SSGIFilterRadius = new int[s_QualitySettingCount];
 
         // TODO: Volumetric fog quality
 

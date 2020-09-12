@@ -86,6 +86,9 @@ namespace UnityEditor.VFX
                 if (exp.IsAny(Flags.NotCompilableOnCPU))
                     return false;
 
+                if (!Has(VFXExpressionContextOption.CPUEvaluation) && exp.IsAny(Flags.InvalidConstant))
+                    return false;
+
                 if (!exp.Is(Flags.Value) && reducedParents.Length == 0) // not a value
                     return false;
 

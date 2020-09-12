@@ -31,7 +31,7 @@
 //#define DEBUG_HIDE_COAT
 //-----------------------------------------------------------------------------
 
-#define NdotVMinCosSpread 0.0001 // ie this is the value used by ClampNdotV 
+#define NdotVMinCosSpread 0.0001 // ie this is the value used by ClampNdotV
 
 #ifdef CLEAR_COAT_PERCEPTUAL_ROUGHNESS
 #undef CLEAR_COAT_PERCEPTUAL_ROUGHNESS
@@ -71,15 +71,6 @@
 #    define IF_FLAKES_JUST_BTF(a) (a)
 #endif
 
-#ifdef _MAPPING_TRIPLANAR
-#    define NB_FLAKES_RND_SHIFTS 3
-#    define FLAKES_SHIFT_IDX_PLANAR_ZY (0)
-#    define FLAKES_SHIFT_IDX_PLANAR_XZ (1)
-#    define FLAKES_SHIFT_IDX_PLANAR_XY (2)
-#else
-#    define NB_FLAKES_RND_SHIFTS 1
-#endif
-
 // Define this to sample the environment maps/LTC samples for each lobe, instead of a single sample with an average lobe
 #define USE_COOK_TORRANCE_MULTI_LOBES   1
 #define MAX_CT_LOBE_COUNT 3
@@ -89,43 +80,6 @@
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
-
-void FillFlakesBSDFData(SurfaceData surfaceData, inout BSDFData bsdfData)
-{
-#ifdef _MAPPING_TRIPLANAR
-    bsdfData.flakesUVZY = surfaceData.flakesUVZY;
-    bsdfData.flakesUVXZ = surfaceData.flakesUVXZ;
-    bsdfData.flakesUVXY = surfaceData.flakesUVXY;
-    bsdfData.flakesMipLevelZY = surfaceData.flakesMipLevelZY;
-    bsdfData.flakesMipLevelXZ = surfaceData.flakesMipLevelXZ;
-    bsdfData.flakesMipLevelXY = surfaceData.flakesMipLevelXY;
-    bsdfData.flakesTriplanarWeights = surfaceData.flakesTriplanarWeights;
-
-    bsdfData.flakesDdxZY = surfaceData.flakesDdxZY;
-    bsdfData.flakesDdyZY = surfaceData.flakesDdyZY;
-    bsdfData.flakesDdxXZ = surfaceData.flakesDdxXZ;
-    bsdfData.flakesDdyXZ = surfaceData.flakesDdyXZ;
-    bsdfData.flakesDdxXY = surfaceData.flakesDdxXY;
-    bsdfData.flakesDdyXY = surfaceData.flakesDdyXY;
-#else
-    // NOTE: When not triplanar UVZY has one uv set or one planar coordinate set,
-    // and this planar coordinate set isn't necessarily ZY, we just reuse this field
-    // as a common one.
-    bsdfData.flakesUVZY = surfaceData.flakesUVZY;
-    bsdfData.flakesMipLevelZY = surfaceData.flakesMipLevelZY;
-    bsdfData.flakesDdxZY = surfaceData.flakesDdxZY;
-    bsdfData.flakesDdyZY = surfaceData.flakesDdyZY;
-    bsdfData.flakesUVXZ = 0;
-    bsdfData.flakesUVXY = 0;
-    bsdfData.flakesMipLevelXZ = 0;
-    bsdfData.flakesMipLevelXY = 0;
-    bsdfData.flakesTriplanarWeights = 0;
-    bsdfData.flakesDdxXZ = 0;
-    bsdfData.flakesDdyXZ = 0;
-    bsdfData.flakesDdxXY = 0;
-    bsdfData.flakesDdyXY = 0;
-#endif
-}
 
 // AxF splits the chromaticity and f0 from the usual "SpecularColor" convention
 // to just be a chromatic f0.
@@ -569,7 +523,7 @@ float Fresnel0ToIorSafe(float fresnel0)
     // we always do conversion as if top has an IOR of 1.0, as the f0 is assumed
     // measured and baked-in, ie to be evaluated as-is, with whatever was specified
     // for the top in the rest of the AxF.
-    return Fresnel0ToIor(min(0.999, fresnel0)); 
+    return Fresnel0ToIor(min(0.999, fresnel0));
 }
 
 //----------------------------------------------------------------------
@@ -622,7 +576,7 @@ float3  GetBRDFColor(float thetaH, float thetaD)
     // [ Update1:
     // Enable this path: in short, the color table seems fully defined in the sample tried like X-Rite_12-PTF_Blue-Violet_NR.axf,
     // and while acos() yields values up to PI, negative input values shouldn't be used
-    // for cos(thetaH) (under horizon) and for cos(thetaD), it shouldn't even be possible. 
+    // for cos(thetaH) (under horizon) and for cos(thetaD), it shouldn't even be possible.
     // ]
 
     float2  UV = float2(2.0 * thetaH / PI, 2.0 * thetaD / PI);
@@ -638,7 +592,7 @@ float3  GetBRDFColor(float thetaH, float thetaD)
     // as when thetaH > 0, in the worst case when phiD = 0, thetaD must be <= (PI/2 - thetaH)
     // ie when thetaH = PI/2 and phiD = 0, thetaD must be 0,
     // while all values from 0 to PI/2 of thetaD are possible if phiD = PI/2.
-    // (This is the reason the phiD = PI/2 "slice" contains more information on the BSDF, 
+    // (This is the reason the phiD = PI/2 "slice" contains more information on the BSDF,
     // see also s2012_pbs_disney_brdf_notes_v3.pdf p4-5)
     //
     // But with only thetaH and thetaD indexing the table, phiD is ignored, and the
@@ -732,7 +686,7 @@ float   OrenNayar(in float3 n, in float3 v, in float3 l, in float roughness)
 BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 {
     BSDFData    bsdfData;
-    ZERO_INITIALIZE(BSDFData, bsdfData);
+    //  ZERO_INITIALIZE(BSDFData, data);
 
     bsdfData.ambientOcclusion = surfaceData.ambientOcclusion;
     bsdfData.specularOcclusion = surfaceData.specularOcclusion;
@@ -757,12 +711,14 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.clearcoatIOR = surfaceData.clearcoatIOR;
 
     // Useless but pass along anyway
-    FillFlakesBSDFData(surfaceData, bsdfData);
+    bsdfData.flakesUV = surfaceData.flakesUV;
+    bsdfData.flakesMipLevel = surfaceData.flakesMipLevel;
 
     //-----------------------------------------------------------------------------
 #elif defined(_AXF_BRDF_TYPE_CAR_PAINT)
     bsdfData.diffuseColor = surfaceData.diffuseColor;
-    FillFlakesBSDFData(surfaceData, bsdfData);
+    bsdfData.flakesUV = surfaceData.flakesUV;
+    bsdfData.flakesMipLevel = surfaceData.flakesMipLevel;
     bsdfData.clearcoatColor = 1.0;  // Not provided, assume white...
     bsdfData.clearcoatIOR = surfaceData.clearcoatIOR;
     bsdfData.clearcoatNormalWS = HasClearcoat() ? surfaceData.clearcoatNormalWS : surfaceData.normalWS;
@@ -802,7 +758,7 @@ struct PreLightData
     float   iblPerceptualRoughness;
     float3  specularFGD;
     float   diffuseFGD;
-#elif defined(_AXF_BRDF_TYPE_CAR_PAINT) 
+#elif defined(_AXF_BRDF_TYPE_CAR_PAINT)
 #if !defined(USE_COOK_TORRANCE_MULTI_LOBES)
     float   iblPerceptualRoughness;     // Use this to store an average lobe roughness
     float3  specularCTFGDSingleLobe;
@@ -854,52 +810,9 @@ uint    SampleFlakesLUT(uint index)
     //    return pipoLUT[min(11, _index)];
 }
 
-float3  SamplesFlakes(float2 offsets[NB_FLAKES_RND_SHIFTS], uint sliceIndex, BSDFData bsdfData)
+float3  SamplesFlakes(float2 UV, uint sliceIndex, float mipLevel)
 {
-    // We can't use SAMPLE_TEXTURE2D_ARRAY, the compiler can't unroll in that case, and the lightloop is built with unroll
-    // That's why we calculate gradients or LOD earlier.
-    // TODO: The LOD code path (useFlakesMipLevel == true) is kept for a possible performance/appearance trade-off 
-    // (less VGPR for LOD) and also for (future) raytracing, it is easier to substitute an approximate single LOD value
-    // than a full 2x2 Jacobian.
-    float3 val = 0;
-    bool useFlakesMipLevel = all(bsdfData.flakesDdxZY == (float2)0); // should be known statically!
-
-#ifdef _MAPPING_TRIPLANAR
-    val += bsdfData.flakesTriplanarWeights.x * 
-           (useFlakesMipLevel ?
-             SAMPLE_TEXTURE2D_ARRAY_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
-                                        bsdfData.flakesUVZY + offsets[FLAKES_SHIFT_IDX_PLANAR_ZY],
-                                        sliceIndex, bsdfData.flakesMipLevelZY).xyz
-           : SAMPLE_TEXTURE2D_ARRAY_GRAD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
-                                         bsdfData.flakesUVZY + offsets[FLAKES_SHIFT_IDX_PLANAR_ZY],
-                                         sliceIndex, bsdfData.flakesDdxZY, bsdfData.flakesDdyZY).xyz );
-
-    val += bsdfData.flakesTriplanarWeights.y * 
-           (useFlakesMipLevel ?
-             SAMPLE_TEXTURE2D_ARRAY_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
-                                        bsdfData.flakesUVXZ + offsets[FLAKES_SHIFT_IDX_PLANAR_XZ],
-                                        sliceIndex, bsdfData.flakesMipLevelXZ).xyz
-           : SAMPLE_TEXTURE2D_ARRAY_GRAD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
-                                         bsdfData.flakesUVXZ + offsets[FLAKES_SHIFT_IDX_PLANAR_XZ],
-                                         sliceIndex, bsdfData.flakesDdxXZ, bsdfData.flakesDdyXZ).xyz );
-    val += bsdfData.flakesTriplanarWeights.z * 
-           (useFlakesMipLevel ?
-             SAMPLE_TEXTURE2D_ARRAY_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
-                                        bsdfData.flakesUVXY + offsets[FLAKES_SHIFT_IDX_PLANAR_XY],
-                                        sliceIndex, bsdfData.flakesMipLevelXY).xyz
-           : SAMPLE_TEXTURE2D_ARRAY_GRAD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
-                                         bsdfData.flakesUVXY + offsets[FLAKES_SHIFT_IDX_PLANAR_XY],
-                                         sliceIndex, bsdfData.flakesDdxXY, bsdfData.flakesDdyXY).xyz );
-    val *= _CarPaint2_BTFFlakeMapScale;
-#else
-    val = _CarPaint2_BTFFlakeMapScale * 
-          (useFlakesMipLevel ?
-            SAMPLE_TEXTURE2D_ARRAY_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
-                                       bsdfData.flakesUVZY + offsets[0], sliceIndex, bsdfData.flakesMipLevelZY).xyz
-          : SAMPLE_TEXTURE2D_ARRAY_GRAD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
-                                        bsdfData.flakesUVZY + offsets[0], sliceIndex, bsdfData.flakesDdxZY, bsdfData.flakesDdyZY).xyz );
-#endif
-    return val;
+    return _CarPaint2_BTFFlakeMapScale * SAMPLE_TEXTURE2D_ARRAY_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap, UV, sliceIndex, mipLevel).xyz;
 }
 
 //
@@ -907,6 +820,9 @@ float3  SamplesFlakes(float2 offsets[NB_FLAKES_RND_SHIFTS], uint sliceIndex, BSD
 //
 float3  CarPaint_BTF(float thetaH, float thetaD, BSDFData bsdfData)
 {
+    float2  UV = bsdfData.flakesUV;
+    float   mipLevel = bsdfData.flakesMipLevel;
+
     // thetaH sampling defines the angular sampling, i.e. angular flake lifetime
     float   binIndexH = _CarPaint2_FlakeNumThetaF * (2.0 * thetaH / PI) + 0.5; // TODO: doc says to use NumThetaF for both, check if this isn't a typo
     float   binIndexD = _CarPaint2_FlakeNumThetaF * (2.0 * thetaD / PI) + 0.5;
@@ -920,9 +836,8 @@ float3  CarPaint_BTF(float thetaH, float thetaD, BSDFData bsdfData)
     float   thetaD_weight = binIndexD - thetaD_low;
 
     // To allow lower thetaD samplings while preserving flake lifetime, "virtual" thetaD patches are generated by shifting existing ones
-    // NB_FLAKES_RND_SHIFTS = 1 if not triplanar; otherwise this is in case we want a randomization that takes planar coordinate index into account
-    float2   offset_l[NB_FLAKES_RND_SHIFTS] = (float2[NB_FLAKES_RND_SHIFTS])0;
-    float2   offset_h[NB_FLAKES_RND_SHIFTS] = (float2[NB_FLAKES_RND_SHIFTS])0;
+    float2   offset_l = 0;
+    float2   offset_h = 0;
 
     // Organization of the flake BTF slice array and LUT:
     //
@@ -993,8 +908,8 @@ float3  CarPaint_BTF(float thetaH, float thetaD, BSDFData bsdfData)
     //        //
     //        // WARNING: double check SDK but our original code was wrong in that case:
     //        //
-    //        // Note that in that case, thetaD_low can be == to thetaD_high, 
-    //        // eg with 
+    //        // Note that in that case, thetaD_low can be == to thetaD_high,
+    //        // eg with
     //        //         _CarPaint_numThetaI = 7,
     //        //         _CarPaint_numThetaF = 12,
     //        //         original thetaD_low = 2 (and thus original thetaD_high = 3).
@@ -1004,7 +919,7 @@ float3  CarPaint_BTF(float thetaH, float thetaD, BSDFData bsdfData)
     //        //
     //        // Again in our original code, we systematically took thetaD_high == thetaD_low + 1 when
     //        // verifying the indexing limit using for LUT1:
-    //        // 
+    //        //
     //        // uint    LUT0 = SampleFlakesLUT(thetaD_low);
     //        // uint    LUT1 = SampleFlakesLUT(thetaD_high);
     //        // uint    LUT2 = SampleFlakesLUT(thetaD_high + 1);
@@ -1028,10 +943,8 @@ float3  CarPaint_BTF(float thetaH, float thetaD, BSDFData bsdfData)
     // Access flake texture - make sure to stay in the correct slices (no slip over)
     if (thetaD_low < _CarPaint2_FlakeMaxThetaI)
     {
-        // These are spatial UVs, we let SampleFlakes deal with them in case of triplanar,
-        // and just submit the random shift offsets (TODO "virtual" angular patches)
-        //float2  UVl = UV + offset_l;
-        //float2  UVh = UV + offset_h;
+        float2  UVl = UV + offset_l;
+        float2  UVh = UV + offset_h;
 
         uint    LUT0 = SampleFlakesLUT(thetaD_low);
         uint    LUT1 = SampleFlakesLUT(thetaD_high);
@@ -1041,10 +954,10 @@ float3  CarPaint_BTF(float thetaH, float thetaD, BSDFData bsdfData)
 
         if (LUT0 + thetaH_low < LUT0_limit)
         {
-            H0_D0 = SamplesFlakes(offset_l, LUT0 + thetaH_low, bsdfData);
+            H0_D0 = SamplesFlakes(UVl, LUT0 + thetaH_low, mipLevel);
             if (LUT0 + thetaH_high < LUT0_limit)
             {
-                H1_D0 = SamplesFlakes(offset_l, LUT0 + thetaH_high, bsdfData);
+                H1_D0 = SamplesFlakes(UVl, LUT0 + thetaH_high, mipLevel);
             }
         }
         // else it means that the calculated index for that thetaD_low and the thetaH_low
@@ -1061,10 +974,10 @@ float3  CarPaint_BTF(float thetaH, float thetaD, BSDFData bsdfData)
         {
             if (LUT1 + thetaH_low < LUT2)
             {
-                H0_D1 = SamplesFlakes(offset_h, LUT1 + thetaH_low, bsdfData);
+                H0_D1 = SamplesFlakes(UVh, LUT1 + thetaH_low, mipLevel);
                 if (LUT1 + thetaH_high < LUT2)
                 {
-                    H1_D1 = SamplesFlakes(offset_h, LUT1 + thetaH_high, bsdfData);
+                    H1_D1 = SamplesFlakes(UVh, LUT1 + thetaH_high, mipLevel);
                 }
             }
             // else, same thing as our comment above
@@ -1082,8 +995,8 @@ float3 FindAverageBaseLobeDirOnTop(BSDFData bsdfData, PreLightData preLightData,
 {
     float3 outDir;
 
-#if 0 
-    // simple test: eg for carpaint or any material without any normal maps, this should give the same 
+#if 0
+    // simple test: eg for carpaint or any material without any normal maps, this should give the same
     // fetch alignment as just using the view reflected on top:
     float3 vRefractedBottomReflected = reflect(-preLightData.viewWS_UnderCoat, bsdfData.normalWS);
     outDir = Refract(-vRefractedBottomReflected, -bsdfData.clearcoatNormalWS, bsdfData.clearcoatIOR);
@@ -1098,11 +1011,11 @@ float3 FindAverageBaseLobeDirOnTop(BSDFData bsdfData, PreLightData preLightData,
     //outDir = Refract(-vRefractedBottomReflected, -bsdfData.clearcoatNormalWS, bsdfData.clearcoatIOR);
     //return outDir;
 
-    // Now whether the direction was past the critical angle nor not, refract while making sure that 
+    // Now whether the direction was past the critical angle nor not, refract while making sure that
     // in case of TIR, we just output an horizon grazing direction:
-    
+
     //to debug when actually TIR happened:
-    float3 incomingSaturated; 
+    float3 incomingSaturated;
     float rayIntensity;
     outDir = RefractSaturateToTIR(-vRefractedBottomReflected, -bsdfData.clearcoatNormalWS, bsdfData.clearcoatIOR, rayIntensity, incomingSaturated);
     lobeDirUndercoat = -incomingSaturated; // incoming is away from the top interface from under the surface so *-1 to reverse quadrant.
@@ -1159,7 +1072,7 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
     // @TODO => Anisotropic IBL?
     // TODO_SL
     preLightData.iblPerceptualRoughness = RoughnessToPerceptualRoughness(GetScalarRoughnessFromAnisoRoughness(bsdfData.roughness.x, bsdfData.roughness.y));
-    
+
     // todo_fresnel: TOCHECK: Make BRDF and FGD for env. consistent with dirac lights for HasFresnelTerm() handling:
     // currently, we only check it for Ward and its variants.
     float3 tempF0 = HasFresnelTerm() ? bsdfData.fresnelF0.rrr : 1.0;
@@ -1175,8 +1088,7 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
         preLightData.iblPerceptualRoughness = PerceptualRoughnessBeckmannToGGX(preLightData.iblPerceptualRoughness);
         break;
 
-    case 1: //Phong
-    case 4: //Blinn-Phong : just approximate with Cook-Torrance which uses a Beckmann distribution
+    // case 1: // @TODO: Support Blinn-Phong FGD?
     case 2:
         GetPreIntegratedFGDCookTorranceAndLambert(NdotV_UnderCoat, preLightData.iblPerceptualRoughness, tempF0, preLightData.specularFGD, preLightData.diffuseFGD, specularReflectivity);
         preLightData.specularFGD *= GetPreIntegratedFGDCookTorranceSampleMutiplier();
@@ -1186,6 +1098,8 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
     case 3:
         GetPreIntegratedFGDGGXAndLambert(NdotV_UnderCoat, preLightData.iblPerceptualRoughness, tempF0, preLightData.specularFGD, preLightData.diffuseFGD, specularReflectivity);
         break;
+
+     // case 4: // @TODO: Support Blinn-Phong FGD?
 
     default:    // Use GGX by default
         GetPreIntegratedFGDGGXAndLambert(NdotV_UnderCoat, preLightData.iblPerceptualRoughness, tempF0, preLightData.specularFGD, preLightData.diffuseFGD, specularReflectivity);
@@ -1295,8 +1209,8 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
     // captured by a high res normal map with the problems that this implies.
     // So instead we have a pseudo BTF that is the "left overs" that the CT lobes don't fit, indexed
     // by two angles (which is theoretically a problem, see comments in GetBRDFColor).
-    // If we wanted to add more variations on top, here we could consider 
-    // a pre-integrated FGD for flakes. 
+    // If we wanted to add more variations on top, here we could consider
+    // a pre-integrated FGD for flakes.
     // If we assume very low roughness like the coat, we could also approximate it as being a Fresnel
     // term like for coatFGD below.
     // If the f0 is already very high though (metallic flakes), the variations won't be substantial.
@@ -1345,7 +1259,7 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
     switch ((_SVBRDF_BRDFType >> 1) & 7)
     {
     // Warning: all these LTC_MATRIX_INDEX_ are the same for now, and fitted for GGX, hence the code
-    // above that selected the UVs all used a preLightData.iblPerceptualRoughness value that used a 
+    // above that selected the UVs all used a preLightData.iblPerceptualRoughness value that used a
     // conversion formula for Beckmann NDF (exp) based BRDFs
     // (see switch ((_SVBRDF_BRDFType >> 1) & 7) above and usage of PerceptualRoughnessBeckmannToGGX)
     //
@@ -1355,6 +1269,14 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
     case 1: // BLINN-PHONG
     case 4: // PHONG;
     {
+        // According to https://computergraphics.stackexchange.com/questions/1515/what-is-the-accepted-method-of-converting-shininess-to-roughness-and-vice-versa
+        //  float   exponent = 2/roughness^4 - 2;
+        //
+        float   exponent = PerceptualRoughnessToRoughness(preLightData.iblPerceptualRoughness);
+        float   roughness = pow(max(0.0, 2.0 / (exponent + 2)), 1.0 / 4.0);
+        // todo_modes todo_pseudorefract: cant use undercoat like that
+        //float2  UV = LTCGetSamplingUV(NdotV_UnderCoat, RoughnessToPerceptualRoughness(roughness));
+        float2  UV = LTCGetSamplingUV(NdotV_Clearcoat, RoughnessToPerceptualRoughness(roughness));
         preLightData.ltcTransformSpecular = LTCSampleMatrix(UV, LTC_MATRIX_INDEX_COOK_TORRANCE);
         break;
     }
@@ -1474,12 +1396,8 @@ void    ComputeClearcoatReflectionAndExtinction_UsePreLightData(inout float3 vie
 // This define allow to say that we implement a ModifyBakedDiffuseLighting function to be call in PostInitBuiltinData
 #define MODIFY_BAKED_DIFFUSE_LIGHTING
 
-void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData surfaceData, inout BuiltinData builtinData)
+void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, inout BuiltinData builtinData)
 {
-    // To get the data we need to do the whole process - compiler should optimize everything
-    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
-    PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
-
     // Note: When baking reflection probes, we approximate the diffuse with the fresnel0
 #ifdef _AXF_BRDF_TYPE_SVBRDF
     builtinData.bakeDiffuseLighting *= GetDiffuseIndirectDimmer() * preLightData.diffuseFGD * GetDiffuseOrDefaultColor(bsdfData, _ReplaceDiffuseForIndirect).rgb;
@@ -1546,14 +1464,14 @@ float3 ComputeWard(float3 H, float LdotH, float NdotL, float NdotV, PreLightData
     float2  roughness = max(0.0001, bsdfData.roughness.xy);
     //if (bsdfData.roughness.y == 0.0) bsdfData.specularColor = float3(1,0,0);
 
-    if (roughness.x * roughness.y <= 0.0001 && tsH.z < 1.0) 
+    if (roughness.x * roughness.y <= 0.0001 && tsH.z < 1.0)
     {
         return 0;
     }
-    
+
     float   N = exp(-Sq(rotH.x / roughness.x) - Sq(rotH.y / roughness.y));
     N /= max(0.0001, PI * roughness.x * roughness.y);
-    //N /= (PI * roughness.x * roughness.y);    
+    //N /= (PI * roughness.x * roughness.y);
 
     switch ((_SVBRDF_BRDFVariants >> 2) & 3)
     {
@@ -1567,8 +1485,7 @@ float3 ComputeWard(float3 H, float LdotH, float NdotL, float NdotV, PreLightData
 
 float3  ComputeBlinnPhong(float3 H, float LdotH, float NdotL, float NdotV, PreLightData preLightData, BSDFData bsdfData)
 {
-    // See AxFGetRoughnessFromSpecularLobeTexture in AxFData
-    float2  exponents = 2 * rcp(max(0.0001,(bsdfData.roughness.xy*bsdfData.roughness.xy))) - 2;
+    float2  exponents = exp2(bsdfData.roughness.xy);
 
     // Evaluate normal distribution function
     float3  tsH = float3(dot(H, bsdfData.tangentWS), dot(H, bsdfData.biTangentWS), dot(H, bsdfData.normalWS));
@@ -2092,7 +2009,7 @@ DirectLighting  EvaluateBSDF_Line(  LightLoopContext lightLoopContext,
     thetaH = acos(clamp(NdotH, 0, 1));
     thetaD = acos(clamp(VdotH, 0, 1));
 #else
-    // Just use the same assumptions as for environments 
+    // Just use the same assumptions as for environments
     // (already calculated thetaH and thetaD above)
 #endif
     //now already in rebuilt specularFGD: lighting.specular *= GetBRDFColor(thetaH, thetaD);
@@ -2109,7 +2026,7 @@ DirectLighting  EvaluateBSDF_Line(  LightLoopContext lightLoopContext,
     ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformFlakes);
     ltcValue *= lightData.specularDimmer;
 
-    lighting.specular += ltcValue * preLightData.singleFlakesComponent;
+    lighting.specular += ltcValue * preLightData.singleFlakesComponent; //preLightData.flakesFGD * CarPaint_BTF(thetaH, thetaD, bsdfData);
 
 #endif
 
@@ -2297,7 +2214,7 @@ DirectLighting  EvaluateBSDF_Rect(LightLoopContext lightLoopContext,
 
     // Evaluate a BRDF color response in specular direction
     // We project the point onto the area light's plane using the reflected view direction and recompute the light direction from this position
-    // TODO_dir: 
+    // TODO_dir:
 #if 0
     float3  bestLightWS_Specular = ComputeBestLightDirection_Rectangle(lightPositionRWS, preLightData.iblDominantDirectionWS_BottomLobeOnTop, lightData);
 
@@ -2311,7 +2228,7 @@ DirectLighting  EvaluateBSDF_Rect(LightLoopContext lightLoopContext,
     thetaH = acos(clamp(NdotH, 0, 1));
     thetaD = acos(clamp(VdotH, 0, 1));
 #else
-    // Just use the same assumptions as for environments 
+    // Just use the same assumptions as for environments
     // (already calculated thetaH and thetaD above)
 #endif
 
@@ -2325,7 +2242,7 @@ DirectLighting  EvaluateBSDF_Rect(LightLoopContext lightLoopContext,
     ltcValue = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformFlakes));
     ltcValue *= lightData.specularDimmer;
 
-    lighting.specular += ltcValue * preLightData.singleFlakesComponent;
+    lighting.specular += ltcValue * preLightData.singleFlakesComponent; //preLightData.flakesFGD * CarPaint_BTF(thetaH, thetaD, bsdfData);
 
 #endif
 
@@ -2466,7 +2383,7 @@ float GetEnvMipLevel(EnvLightData lightData, float iblPerceptualRoughness)
     if (IsEnvIndexTexture2D(lightData.envIndex))
     {
         // Empirical remapping
-        iblMipLevel = PlanarPerceptualRoughnessToMipmapLevel(iblPerceptualRoughness, _ColorPyramidScale.z);
+        iblMipLevel = PlanarPerceptualRoughnessToMipmapLevel(iblPerceptualRoughness, _ColorPyramidLodCount);
     }
     else
     {
@@ -2524,7 +2441,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 #if defined(_AXF_BRDF_TYPE_SVBRDF)
     float3  envLighting = 0.0;
 
-    
+
     float   NdotV = ClampNdotV(preLightData.NdotV_UnderCoat);
     // Here we use bsdfData.clearcoatNormalWS: if there's no coat, bsdfData.clearcoatNormalWS == bsdfData.normalWS anyway.
     // The reason is that, normally, since GetModifiedEnvSamplingDir (off-specular effect) is roughness dependent,
@@ -2566,7 +2483,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float3  envLighting = 0.0;
 
     // A part of this BRDF depends on thetaH and thetaD and should thus have entered
-    // the split sum pre-integration. We do a further approximation by pulling those 
+    // the split sum pre-integration. We do a further approximation by pulling those
     // terms out and evaluating them in the specular dominant direction,
     // for BRDFColor and flakes, see GetPreLightData.
 
@@ -2602,6 +2519,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // Sample flakes
     //TODO_FLAKES
     float   flakesMipLevel = 0;   // Flakes are supposed to be perfect mirrors
+    //envLighting += preLightData.flakesFGD * CarPaint_BTF(thetaH, thetaD, bsdfData) * SampleEnv(lightLoopContext, lightData.envIndex, lightWS_UnderCoat, flakesMipLevel, lightData.rangeCompressionFactorCompensation).xyz;
     envLighting += preLightData.singleFlakesComponent * SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, flakesMipLevel, lightData.rangeCompressionFactorCompensation).xyz;
 
     #else // USE_COOK_TORRANCE_MULTI_LOBES
@@ -2617,6 +2535,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     envLighting = preLightData.specularCTFGDSingleLobe * GetSpecularIndirectDimmer();
     //TODO_FLAKES
+    //envLighting += preLightData.flakesFGD * CarPaint_BTF(thetaH, thetaD, bsdfData);
     envLighting += preLightData.singleFlakesComponent;
     envLighting *= preLD.xyz;
     weight *= preLD.w; // Used by planar reflection to discard pixel
@@ -2641,7 +2560,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         EvaluateLight_EnvIntersection(positionWS, bsdfData.clearcoatNormalWS, lightData, _influenceShapeType, lightWS_Clearcoat, unusedWeight);
 
         // Attenuate environment lighting under the clearcoat by the complement to the Fresnel term
-        //todo_energy: 
+        //todo_energy:
         envLighting *= 1.0 - preLightData.coatFGD;
         //envLighting *= Sq(1.0 - preLightData.coatFGD);
 
@@ -2694,7 +2613,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 //
 // WIP
 //
-// todo/tocheck_envsampling, envsampling_test, todotodo, 
+// todo/tocheck_envsampling, envsampling_test, todotodo,
 // todo_dir todo_modes todo_pseudorefract
 // todo_energy
 // todo_fresnel

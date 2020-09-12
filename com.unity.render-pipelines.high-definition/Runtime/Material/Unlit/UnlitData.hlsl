@@ -23,6 +23,18 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Builtin Data
     ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
     builtinData.opacity = alpha;
+    
+#ifdef _ALPHATEST_ON
+    // Used for sharpening by alpha to mask
+    builtinData.alphaClipTreshold = _AlphaCutoff;
+#endif
+
+#if defined(DEBUG_DISPLAY)
+    // Light Layers are currently not used for the Unlit shader (because it is not lit)
+    // But Unlit objects do cast shadows according to their rendering layer mask, which is what we want to
+    // display in the light layers visualization mode, therefore we need the renderingLayers
+    builtinData.renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
+#endif
 
 #ifdef _EMISSIVE_COLOR_MAP
     builtinData.emissiveColor = SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, TRANSFORM_TEX(input.texCoord0.xy, _EmissiveColorMap)).rgb * _EmissiveColor;

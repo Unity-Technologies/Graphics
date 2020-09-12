@@ -202,7 +202,7 @@ namespace UnityEditor.VFX.UI
                     t => new Descriptor()
                     {
                         modelDescriptor = t.path,
-                        category = "Operator/" + t.category,
+                        category = "Operator/Subgraph Operator/" + t.category,
                         name = t.name
                     }
                 ));

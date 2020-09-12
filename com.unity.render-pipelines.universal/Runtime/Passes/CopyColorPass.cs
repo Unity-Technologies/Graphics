@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         private RenderTargetIdentifier source { get; set; }
         private RenderTargetHandle destination { get; set; }
         const string m_ProfilerTag = "Copy Color";
+        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
 
         /// <summary>
         /// Create the CopyColorPass
@@ -42,9 +43,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_DownsamplingMethod = downsampling;
         }
 
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescripor)
+        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            RenderTextureDescriptor descriptor = cameraTextureDescripor;
+            RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
             descriptor.msaaSamples = 1;
             descriptor.depthBufferBits = 0;
             if (m_DownsamplingMethod == Downsampling._2xBilinear)
@@ -70,11 +71,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return;
             }
 
-            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
-            RenderTargetIdentifier opaqueColorRT = destination.Identifier();
-
-            switch (m_DownsamplingMethod)
+            CommandBuffer cmd = CommandBufferPool.Get();
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
+                RenderTargetIdentifier opaqueColorRT = destination.Identifier();
+
+                switch (m_DownsamplingMethod)
+                {
                 case Downsampling.None:
                     Blit(cmd, source, opaqueColorRT);
                     break;
@@ -88,13 +91,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 case Downsampling._4xBilinear:
                     Blit(cmd, source, opaqueColorRT);
                     break;
+                }
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
 
         /// <inheritdoc/>
-        public override void FrameCleanup(CommandBuffer cmd)
+        public override void OnCameraCleanup(CommandBuffer cmd)
         {
             if (cmd == null)
                 throw new ArgumentNullException("cmd");

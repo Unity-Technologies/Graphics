@@ -206,6 +206,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator CreateComponent_And_Graph_Modify_It_To_Generate_Expected_Exception()
         {
             var graph = CreateGraph_And_System();
+
             yield return null;
 
             while (m_mainObject.GetComponent<VisualEffect>() != null)
@@ -213,6 +214,7 @@ namespace UnityEditor.VFX.Test
             var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
             vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
             Assert.DoesNotThrow(() => VisualEffectUtility.GetSpawnerState(vfxComponent, 0));
+
             yield return null;
 
             //Plug a GPU instruction on bounds, excepting an exception while recompiling

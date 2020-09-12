@@ -7,6 +7,7 @@ namespace UnityEditor.ShaderGraph
         static class Keys
         {
             internal const string variantLimit = "UnityEditor.ShaderGraph.VariantLimit";
+            internal const string autoAddRemoveBlocks = "UnityEditor.ShaderGraph.AutoAddRemoveBlocks";
         }
 
         static bool m_Loaded = false;
@@ -23,6 +24,13 @@ namespace UnityEditor.ShaderGraph
                     onVariantLimitChanged();
                 TrySave(ref m_VariantLimit, value, Keys.variantLimit); 
             }
+        }
+
+        static bool m_AutoAddRemoveBlocks = true;
+        internal static bool autoAddRemoveBlocks
+        {
+            get => m_AutoAddRemoveBlocks;
+            set => TrySave(ref m_AutoAddRemoveBlocks, value, Keys.autoAddRemoveBlocks);
         }
 
         static ShaderGraphPreferences()
@@ -44,6 +52,9 @@ namespace UnityEditor.ShaderGraph
             if (!m_Loaded)
                 Load();
 
+            var previousLabelWidth = EditorGUIUtility.labelWidth;
+            EditorGUIUtility.labelWidth = 256;
+
             EditorGUILayout.Space();
 
             EditorGUI.BeginChangeCheck ();
@@ -52,11 +63,21 @@ namespace UnityEditor.ShaderGraph
             {
                 variantLimit = variantLimitValue;
             }
+
+            EditorGUI.BeginChangeCheck ();
+            var autoAddRemoveBlocksValue = EditorGUILayout.Toggle("Automatically Add and Remove Block Nodes", autoAddRemoveBlocks);
+            if (EditorGUI.EndChangeCheck ()) 
+            {
+                autoAddRemoveBlocks = autoAddRemoveBlocksValue;
+            }
+
+            EditorGUIUtility.labelWidth = previousLabelWidth;
         }
 
         static void Load()
         {
             m_VariantLimit = EditorPrefs.GetInt(Keys.variantLimit, 128);
+            m_AutoAddRemoveBlocks = EditorPrefs.GetBool(Keys.autoAddRemoveBlocks, true);
 
             m_Loaded = true;
         }

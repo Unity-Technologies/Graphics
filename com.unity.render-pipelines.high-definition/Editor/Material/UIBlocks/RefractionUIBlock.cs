@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class RefractionUIBlock : MaterialUIBlock
     {
-        protected static class Styles
+        internal static class Styles
         {
             public static string refractionModelText = "Refraction Model";
             public static GUIContent refractionIorText = new GUIContent("Index Of Refraction", "Controls the index of refraction for this Material.");

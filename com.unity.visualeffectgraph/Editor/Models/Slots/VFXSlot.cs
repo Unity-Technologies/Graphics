@@ -21,7 +21,11 @@ namespace UnityEditor.VFX
         public VFXProperty property     { get { return m_Property; } }
         public override string name     { get { return m_Property.name; } }
 
-        private FieldInfo m_FieldInfoCache;
+
+        FieldInfo m_FieldInfoCache;
+
+        [System.NonSerialized]
+        object m_CachedValue;
 
         public object value
         {
@@ -29,10 +33,9 @@ namespace UnityEditor.VFX
             {
                 try
                 {
-                    object slotValue = null;
                     if (IsMasterSlot())
                     {
-                        slotValue = GetMasterData().m_Value.Get();
+                        m_CachedValue = GetMasterData().m_Value.Get();
                     }
                     else
                     {
@@ -44,21 +47,21 @@ namespace UnityEditor.VFX
                             m_FieldInfoCache = type.GetField(name);
                         }
 
-                        slotValue = m_FieldInfoCache.GetValue(parentValue);
+                        m_CachedValue = m_FieldInfoCache.GetValue(parentValue);
                     }
 
-                    if (slotValue == null && !typeof(UnityEngine.Object).IsAssignableFrom(property.type))
+                    if (m_CachedValue == null && !typeof(UnityEngine.Object).IsAssignableFrom(property.type))
                     {
                         Debug.Log("null value in slot of type" + property.type.UserFriendlyName());
                     }
-                    return slotValue;
                 }
                 catch (Exception e)
                 {
                     Debug.LogErrorFormat("Exception while getting value for slot {0} of type {1}: {2}\n{3}", name, GetType(), e, e.StackTrace);
                     // TODO Initialize to default value (try to call static default static method defaultValue from type)
-                    return null;
+                    m_CachedValue = null;
                 }
+                return m_CachedValue;
             }
             set
             {
@@ -361,7 +364,10 @@ namespace UnityEditor.VFX
                 m_Value = new VFXSerializableObject(property.type, value),
             };
 
-            slot.PropagateToChildren(s => s.SetMasterSlotAndData(slot, null));
+            slot.PropagateToChildren(s => {
+                s.m_MasterSlot = slot;
+                s.m_MasterData = null;
+            });
 
             slot.m_MasterData = masterData;
             slot.UpdateDefaultExpressionValue();
@@ -703,18 +709,10 @@ namespace UnityEditor.VFX
                 owner.Invalidate(this, cause);
         }
 
-        public void UpdateAttributes(VFXPropertyAttribute[] attributes,bool notify)
+        public void UpdateAttributes(VFXPropertyAttributes attributes)
         {
-            if (notify)
-            {
-                if (!VFXPropertyAttribute.IsEqual(m_Property.attributes, attributes))
-                {
-                    m_Property.attributes = attributes;
-                    Invalidate(InvalidationCause.kUIChangedTransient); // TODO This will trigger a setDirty while it shouldn't as property attributes are not serialized
-                }         
-            }
-            else // fast path without comparison
-                m_Property.attributes = attributes;
+            m_FieldInfoCache = null; // this is call by syncslot. at this point the type of our master slot might have changed.
+            m_Property.attributes = attributes;
         }
 
         protected override void OnAdded()
@@ -722,7 +720,11 @@ namespace UnityEditor.VFX
             base.OnAdded();
 
             var parent = GetParent();
-            PropagateToChildren(s => s.SetMasterSlotAndData(parent.m_MasterSlot, null));
+            PropagateToChildren(s =>
+            {
+                s.m_MasterData = null;
+                s.m_MasterSlot = parent.m_MasterSlot;
+            });
         }
 
         protected override void OnRemoved()
@@ -736,7 +738,10 @@ namespace UnityEditor.VFX
                 m_Space = (VFXCoordinateSpace)int.MaxValue,
             };
 
-            PropagateToChildren(s => s.SetMasterSlotAndData(this, null));
+            PropagateToChildren(s => {
+                s.m_MasterData = null;
+                s.m_MasterSlot = this;
+            });
             m_MasterData = masterData;
         }
 
@@ -988,7 +993,7 @@ namespace UnityEditor.VFX
 
         public void SetOutExpression(VFXExpression exp, HashSet<VFXSlot> toInvalidate, VFXCoordinateSpace convertToSpace = (VFXCoordinateSpace)int.MaxValue)
         {
-            exp = VFXPropertyAttribute.ApplyToExpressionGraph(m_Property.attributes, exp);
+            exp = m_Property.attributes.ApplyToExpressionGraph(exp);
             if (convertToSpace != (VFXCoordinateSpace)int.MaxValue)
             {
                 exp = ConvertSpace(exp, this, convertToSpace);
@@ -1158,13 +1163,6 @@ namespace UnityEditor.VFX
             public VFXModel m_Owner;
             public VFXSerializableObject m_Value;
             public VFXCoordinateSpace m_Space; //can be undefined
-        }
-
-        private void SetMasterSlotAndData(VFXSlot masterSlot, MasterData masterData)
-        {
-            m_MasterSlot = masterSlot;
-            m_MasterData = masterData;
-            m_FieldInfoCache = null; // Invalidate cache as it's based on hierarchy
         }
 
         [SerializeField]

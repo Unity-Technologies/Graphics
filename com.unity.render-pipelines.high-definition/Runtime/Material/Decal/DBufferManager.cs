@@ -3,7 +3,7 @@ using UnityEngine.Experimental.Rendering;
 namespace UnityEngine.Rendering.HighDefinition
 {
     class DBufferManager : MRTBufferManager
-    {       
+    {
         ComputeBuffer   m_PropertyMaskBuffer;
         int m_PropertyMaskBufferSize;
         ComputeShader   m_ClearPropertyMaskBufferShader;
@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public void AllocResolutionDependentBuffers(HDCamera hdCamera, int width, int height)
-        {   
+        {
             m_PropertyMaskBufferSize = ((width + 7) / 8) * ((height + 7) / 8);
             m_PropertyMaskBufferSize = ((m_PropertyMaskBufferSize + 63) / 64) * 64; // round off to nearest multiple of 64 for ease of use in CS
             m_PropertyMaskBuffer = new ComputeBuffer(m_PropertyMaskBufferSize, 4);
@@ -88,7 +88,6 @@ namespace UnityEngine.Rendering.HighDefinition
         override public void DestroyBuffers()
         {
             base.DestroyBuffers();
-            ReleaseResolutionDependentBuffers();
         }
 
         public void BindBlackTextures(CommandBuffer cmd)

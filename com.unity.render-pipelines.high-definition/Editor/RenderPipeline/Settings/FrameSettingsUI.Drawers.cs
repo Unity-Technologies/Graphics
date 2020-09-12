@@ -1,8 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
-using UnityEditor.Rendering;
-using Utilities;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -45,11 +44,6 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 
-    interface IDefaultFrameSettingsType
-    {
-        FrameSettingsRenderType GetFrameSettingsType();
-    }
-
     partial class FrameSettingsUI
     {
         enum Expandable
@@ -68,7 +62,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 CED.Group((serialized, owner) =>
                 {
                     lastBoxRect = EditorGUILayout.BeginVertical("box");
-                    
+
                     // Add dedicated scope here and on each FrameSettings field to have the contextual menu on everything
                     Rect rect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
                     using (new SerializedFrameSettings.TitleDrawingScope(rect, FrameSettingsUI.frameSettingsHeaderContent, serialized))
@@ -137,9 +131,14 @@ namespace UnityEditor.Rendering.HighDefinition
         static FrameSettings GetDefaultFrameSettingsFor(Editor owner)
         {
             HDRenderPipelineAsset hdrpAsset = GetHDRPAssetFor(owner);
-            return owner is IDefaultFrameSettingsType getType
-                ? hdrpAsset.GetDefaultFrameSettings(getType.GetFrameSettingsType())
-                : hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+            if (owner is IHDProbeEditor)
+            {
+                if ((owner as IHDProbeEditor).GetTarget(owner.target).mode == ProbeSettings.Mode.Realtime)
+                    return hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.RealtimeReflection);
+                else
+                    return hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.CustomOrBakedReflection);
+            }
+            return hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
         }
 
         static void Drawer_SectionRenderingSettings(SerializedFrameSettings serialized, Editor owner, bool withOverride)
@@ -214,7 +213,6 @@ namespace UnityEditor.Rendering.HighDefinition
             area.AmmendInfo(FrameSettingsField.RayTracing, overrideable: () => hdrpSettings.supportRayTracing);
             area.AmmendInfo(FrameSettingsField.MotionVectors, overrideable: () => hdrpSettings.supportMotionVectors);
             area.AmmendInfo(FrameSettingsField.ObjectMotionVectors, overrideable: () => hdrpSettings.supportMotionVectors);
-            area.AmmendInfo(FrameSettingsField.TransparentsWriteMotionVector, overrideable: () => hdrpSettings.supportMotionVectors);
             area.AmmendInfo(FrameSettingsField.Decals, overrideable: () => hdrpSettings.supportDecals);
             area.AmmendInfo(FrameSettingsField.Distortion, overrideable: () => hdrpSettings.supportDistortion);
 
@@ -282,7 +280,38 @@ namespace UnityEditor.Rendering.HighDefinition
             area.AmmendInfo(FrameSettingsField.Shadowmask, overrideable: () => hdrpSettings.supportShadowMask);
             area.AmmendInfo(FrameSettingsField.SSR, overrideable: () => hdrpSettings.supportSSR);
             area.AmmendInfo(FrameSettingsField.SSAO, overrideable: () => hdrpSettings.supportSSAO);
-            area.AmmendInfo(FrameSettingsField.SubsurfaceScattering, overrideable: () => hdrpSettings.supportSubsurfaceScattering);
+
+            // SSS
+            area.AmmendInfo(
+                FrameSettingsField.SubsurfaceScattering,
+                overridedDefaultValue: hdrpSettings.supportSubsurfaceScattering,
+                overrideable: () => hdrpSettings.supportSubsurfaceScattering
+            );
+            area.AmmendInfo(
+                FrameSettingsField.SssQualityMode,
+                overridedDefaultValue: SssQualityMode.FromQualitySettings,
+                customGetter: () => serialized.sssQualityMode.GetEnumValue<SssQualityMode>(),
+                customSetter: v  => serialized.sssQualityMode.SetEnumValue((SssQualityMode)v),
+                customOverrideable: () => hdrpSettings.supportSubsurfaceScattering
+                                       && (serialized.IsEnabled(FrameSettingsField.SubsurfaceScattering) ?? false)
+            );
+            area.AmmendInfo(FrameSettingsField.SssQualityLevel,
+                overridedDefaultValue: ScalableLevel3ForFrameSettingsUIOnly.Low,
+                customGetter:       () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.sssQualityLevel.intValue, // 3 levels
+                customSetter:       v  => serialized.sssQualityLevel.intValue = Math.Max(0, Math.Min((int)v, 2)),    // Levels 0-2
+                customOverrideable: () => hdrpSettings.supportSubsurfaceScattering
+                                       && (serialized.IsEnabled(FrameSettingsField.SubsurfaceScattering) ?? false)
+                                       && (serialized.sssQualityMode.GetEnumValue<SssQualityMode>() == SssQualityMode.FromQualitySettings)
+            );
+            area.AmmendInfo(FrameSettingsField.SssCustomSampleBudget,
+                overridedDefaultValue: (int)DefaultSssSampleBudgetForQualityLevel.Low,
+                customGetter:       () => serialized.sssCustomSampleBudget.intValue,
+                customSetter:       v  => serialized.sssCustomSampleBudget.intValue = Math.Max(1, Math.Min((int)v, (int)DefaultSssSampleBudgetForQualityLevel.Max)),
+                customOverrideable: () => hdrpSettings.supportSubsurfaceScattering
+                                       && (serialized.IsEnabled(FrameSettingsField.SubsurfaceScattering) ?? false)
+                                       && (serialized.sssQualityMode.GetEnumValue<SssQualityMode>() != SssQualityMode.FromQualitySettings)
+            );
+
             area.AmmendInfo(FrameSettingsField.Volumetrics, overrideable: () => hdrpSettings.supportVolumetrics);
             area.AmmendInfo(FrameSettingsField.ReprojectionForVolumetrics, overrideable: () => hdrpSettings.supportVolumetrics);
             area.AmmendInfo(FrameSettingsField.LightLayers, overrideable: () => hdrpSettings.supportLightLayers);

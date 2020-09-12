@@ -64,3 +64,13 @@ This example shows how the **Blade Count** and **Curvature** properties affect t
 * On the right side, there is a five blade iris that is wide open; producing a circular bokeh.
 
 ![](Images/Post-ProcessingDepthofField2.png)
+
+## Path-traced depth of field
+
+If you enable [path tracing](Ray-Tracing-Path-Tracing) and set **Focus Mode** to **Use Physical Camera**, HDRP computes depth of field directly during path tracing instead of as a post-processing effect.
+
+Path-traced depth of field produces images without any artifacts, apart from noise when using insufficient path-tracing samples. To reduce the noise level, increase the number of samples from the [Path Tracing](Ray-Tracing-Path-Tracing) settings and/or de-noise the final frame.
+
+HDRP computes path-traced depth of field at full resolution and ignores any quality settings from the Volume.
+
+![](Images/Path-traced-DoF.png)

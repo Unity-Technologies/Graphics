@@ -196,6 +196,23 @@ namespace UnityEngine.Rendering.HighDefinition
             return Matrix4x4.Transpose(worldToViewMatrix.transpose * viewSpaceRasterTransform);
         }
 
+        // Scale and bias to transform unnormalized viewport/pixel coordinates to normalized device coordinates
+        internal static Vector4 ComputeInverseViewportScaleBias(HDCamera hdCamera)
+        {
+            float verticalFoV = hdCamera.camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
+            Vector2 lensShift = hdCamera.camera.GetGateFittedLensShift();
+
+            float aspectRatio = hdCamera.camera.aspect < 0 ? hdCamera.screenSize.x * hdCamera.screenSize.w : hdCamera.camera.aspect;
+            float tanHalfVertFoV = Mathf.Tan(0.5f * verticalFoV);
+
+            // See the comment in ComputePixelCoordToWorldSpaceViewDirectionMatrix for the derivation
+            return new Vector4(
+                -2.0f * hdCamera.screenSize.z * tanHalfVertFoV * aspectRatio,
+                -2.0f * hdCamera.screenSize.w * tanHalfVertFoV,
+                (1.0f - 2.0f * lensShift.x) * tanHalfVertFoV * aspectRatio,
+                (1.0f - 2.0f * lensShift.y) * tanHalfVertFoV);
+        }
+
         internal static float ComputZPlaneTexelSpacing(float planeDepth, float verticalFoV, float resolutionY)
         {
             float tanHalfVertFoV = Mathf.Tan(0.5f * verticalFoV);
@@ -337,7 +354,6 @@ namespace UnityEngine.Rendering.HighDefinition
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
             CoreUtils.SetRenderTarget(commandBuffer, colorBuffer);
-            commandBuffer.SetGlobalVector(HDShaderIDs._RTHandleScale, colorBuffer.rtHandleProperties.rtHandleScale);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
@@ -356,7 +372,6 @@ namespace UnityEngine.Rendering.HighDefinition
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
             CoreUtils.SetRenderTarget(commandBuffer, colorBuffer, depthStencilBuffer);
-            commandBuffer.SetGlobalVector(HDShaderIDs._RTHandleScale, colorBuffer.rtHandleProperties.rtHandleScale);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
@@ -375,7 +390,6 @@ namespace UnityEngine.Rendering.HighDefinition
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
             CoreUtils.SetRenderTarget(commandBuffer, colorBuffers, depthStencilBuffer);
-            commandBuffer.SetGlobalVector(HDShaderIDs._RTHandleScale, depthStencilBuffer.rtHandleProperties.rtHandleScale);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
@@ -508,10 +522,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // This function is NOT fast, but it is illustrative, and can be optimized later.
             public void ComputePackedMipChainInfo(Vector2Int viewportSize)
             {
-                // No work needed.
-                if (viewportSize == mipLevelSizes[0])
-                    return;
-
                 textureSize = viewportSize;
                 mipLevelSizes[0] = viewportSize;
                 mipLevelOffsets[0] = Vector2Int.zero;
@@ -596,20 +606,30 @@ namespace UnityEngine.Rendering.HighDefinition
                 rt.Create();
         }
 
-        internal static Vector4 ComputeUvScaleAndLimit(Vector2Int viewportResolution, Vector2Int bufferSize)
+        internal static float ComputeViewportScale(int viewportSize, int bufferSize)
         {
-            Vector2 rcpBufferSize = new Vector2(1.0f / bufferSize.x, 1.0f / bufferSize.y);
+            float rcpBufferSize = 1.0f / bufferSize;
 
-            // vp_scale = vp_dim / tex_dim.
-            Vector2 uvScale = new Vector2(viewportResolution.x * rcpBufferSize.x,
-                                          viewportResolution.y * rcpBufferSize.y);
-
-            // clamp to (vp_dim - 0.5) / tex_dim.
-            Vector2 uvLimit = new Vector2((viewportResolution.x - 0.5f) * rcpBufferSize.x,
-                                          (viewportResolution.y - 0.5f) * rcpBufferSize.y);
-
-            return new Vector4(uvScale.x, uvScale.y, uvLimit.x, uvLimit.y);
+            // Scale by (vp_dim / buf_dim).
+            return viewportSize * rcpBufferSize;
         }
+
+        internal static float ComputeViewportLimit(int viewportSize, int bufferSize)
+        {
+            float rcpBufferSize = 1.0f / bufferSize;
+
+            // Clamp to (vp_dim - 0.5) / buf_dim.
+            return (viewportSize - 0.5f) * rcpBufferSize;
+        }
+
+        internal static Vector4 ComputeViewportScaleAndLimit(Vector2Int viewportSize, Vector2Int bufferSize)
+        {
+            return new Vector4(ComputeViewportScale(viewportSize.x, bufferSize.x),  // Scale(x)
+                               ComputeViewportScale(viewportSize.y, bufferSize.y),  // Scale(y)
+                               ComputeViewportLimit(viewportSize.x, bufferSize.x),  // Limit(x)
+                               ComputeViewportLimit(viewportSize.y, bufferSize.y)); // Limit(y)
+        }
+
 
 #if UNITY_EDITOR
         // This function can't be in HDEditorUtils because we need it in HDRenderPipeline.cs (and HDEditorUtils is in an editor asmdef)
@@ -759,12 +779,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return executed;
         }
 
-        internal static bool PostProcessIsFinalPass()
+        internal static bool PostProcessIsFinalPass(HDCamera hdCamera)
         {
             // Post process pass is the final blit only when not in developer mode.
             // In developer mode, we support a range of debug rendering that needs to occur after post processes.
             // In order to simplify writing them, we don't Y-flip in the post process pass but add a final blit at the end of the frame.
-            return !Debug.isDebugBuild;
+            return !Debug.isDebugBuild && !WillCustomPassBeExecuted(hdCamera, CustomPassInjectionPoint.AfterPostProcess);
         }
 
         // These two convertion functions are used to store GUID assets inside materials,

@@ -1,6 +1,9 @@
 #pragma kernel RaytracingReflectionsFullRes
 #pragma kernel RaytracingReflectionsHalfRes
 
+#pragma kernel RaytracingReflectionsTransparentFullRes
+#pragma kernel RaytracingReflectionsTransparentHalfRes
+
 // Include and define the shader pass
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 #define SHADERPASS SHADERPASS_RAYTRACING
@@ -127,6 +130,63 @@ void RaytracingReflectionsHalfRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
 }
 
 [numthreads(RAYTRACING_REFLECTIONS_TILE_SIZE, RAYTRACING_REFLECTIONS_TILE_SIZE, 1)]
+void RaytracingReflectionsTransparentHalfRes(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Compute the pixel position to process
+    uint2 halfResCoord = groupId * RAYTRACING_REFLECTIONS_TILE_SIZE + groupThreadId;
+
+    // Pick which subpixel we will be launching our effects from
+    float subPixelSample = GetBNDSequenceSample(halfResCoord, _RaytracingFrameIndex, 3);
+    int subPixel =  clamp((int)(subPixelSample * 4.0), 0, 3);
+    uint2 shift = HalfResIndexToCoordinateShift[subPixel];
+
+    // Pixel where we will store the result of the raytracing
+    uint2 outputCoord = halfResCoord * 2;
+
+    // Pixel coordinate in full res of the pixel that we will be using for our computation
+    uint2 sourceCoord = outputCoord + shift;
+
+    // Read the depth value
+    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, sourceCoord).r;
+
+    // In the second texture, we store the sampled direction and the invPDF of the sample
+    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(outputCoord)] = float4(0.0, 0.0, 0.0, -1.0);
+
+    // This point is part of the background, we don't really care
+    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
+        return;
+
+    // Does this pixel have SSS?
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, sourceCoord));
+    if ((stencilValue & _SsrStencilBit) == 0)
+        return;
+
+    // Convert this to a world space position 
+    PositionInputs posInput = GetPositionInput(sourceCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    float distanceToCamera = length(posInput.positionWS);
+    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
+
+    // Compute the incident vector on the surfaces
+    float3 viewWS = normalize(_WorldSpaceCameraPos - positionWS);
+
+    // Decode the world space normal
+    NormalData normalData;
+    DecodeFromNormalBuffer(sourceCoord, normalData);
+
+    // If this value is beyond the smoothness that we allow, no need to compute it
+    if (_RaytracingReflectionMinSmoothness > PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness))
+        return;
+
+    // Compute the reflected direction
+    float3 reflectionDir = reflect(-viewWS, normalData.normalWS);
+
+    // In the second texture, we store the sampled direction and the invPDF of the sample
+    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(outputCoord)] = float4(reflectionDir, 1.0);
+}
+
+[numthreads(RAYTRACING_REFLECTIONS_TILE_SIZE, RAYTRACING_REFLECTIONS_TILE_SIZE, 1)]
 void RaytracingReflectionsFullRes(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
@@ -207,4 +267,50 @@ void RaytracingReflectionsFullRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
 
     // Write the output ray data
     _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(sampleDir, 1.0 / samplePDF);
+}
+
+[numthreads(RAYTRACING_REFLECTIONS_TILE_SIZE, RAYTRACING_REFLECTIONS_TILE_SIZE, 1)]
+void RaytracingReflectionsTransparentFullRes(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Compute the pixel position to process
+    uint2 currentCoord = groupId * RAYTRACING_REFLECTIONS_TILE_SIZE + groupThreadId;
+
+    // Clear the output color texture
+    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, -1.0f);
+
+    // Read the depth value
+    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
+
+    // This point is part of the background, we don't really care
+    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
+        return;
+
+    // Does this pixel have SSS?
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord));
+    if ((stencilValue & _SsrStencilBit) == 0)
+        return;
+
+    // Convert this to a world space position
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    float distanceToCamera = length(posInput.positionWS);
+    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
+
+    // Compute the incident vector on the surfaces
+    float3 viewWS = normalize(_WorldSpaceCameraPos - positionWS);
+
+    // Decode the world space normal
+    NormalData normalData;
+    DecodeFromNormalBuffer(currentCoord, normalData);
+
+    // If this value is beyond the smothness that we allow, no need to compute it
+    if (_RaytracingReflectionMinSmoothness > PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness))
+        return;
+
+    // Compute the reflected direction
+    float3 reflectionDir = reflect(-viewWS, normalData.normalWS);
+
+    // Write the output ray data
+    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(reflectionDir, 1.0);
 }

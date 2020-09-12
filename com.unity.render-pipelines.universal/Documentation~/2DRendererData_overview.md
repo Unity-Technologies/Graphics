@@ -11,3 +11,17 @@ This option is enabled by default. Clear this option to disable the Depth/[Stenc
 ## Post-processing Data
 
 Unity automatically assigns a default Asset to this property that contains the resources (such as Textures and Shaders) that the post-processing effects require. If you want to use your own post-processing Shaders or lookup Textures, replace the default Asset.
+
+## Default Material Type
+
+![The 2D Renderer Data Asset property settings](Images/2D/Default_Material_Type.png)
+
+Unity assigns a Material of the selected __Default Material Type__ to Sprites when they are created. The available options have the following properties and functions.
+
+__Lit__:  Unity assigns a Material with the Lit type (default Material: Sprite-Lit-Default). 2D Lights affect Materials of this type. 
+
+__Unlit__: Unity assigns a Material with the Unlit type (default Material:  Sprite-Lit-Default). 2D Lights do not affect Materials of this type.
+
+__Custom__: Unity assigns a Material with the Custom type. When you select this  option, Unity shows the __Default Custom Material__ box. Assign the desired Material to this box.
+
+![The 2D Renderer Data Asset property settings](Images/2D/Default_Custom_Material.png)

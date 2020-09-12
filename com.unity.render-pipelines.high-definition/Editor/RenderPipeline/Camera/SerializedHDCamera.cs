@@ -22,6 +22,12 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty antialiasing;
         public SerializedProperty SMAAQuality;
         public SerializedProperty taaSharpenStrength;
+        public SerializedProperty taaHistorySharpening;
+        public SerializedProperty taaAntiFlicker;
+        public SerializedProperty taaMotionVectorRejection;
+        public SerializedProperty taaAntiRinging;
+        public SerializedProperty taaQualityLevel;
+
         public SerializedProperty dithering;
         public SerializedProperty stopNaNs;
         public SerializedProperty clearColorMode;
@@ -68,6 +74,13 @@ namespace UnityEditor.Rendering.HighDefinition
             antialiasing = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.antialiasing);
             SMAAQuality = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.SMAAQuality);
             taaSharpenStrength = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaSharpenStrength);
+            taaQualityLevel = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.TAAQuality);
+            taaHistorySharpening = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaHistorySharpening);
+            taaAntiFlicker = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaAntiFlicker);
+            taaMotionVectorRejection = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaMotionVectorRejection);
+            taaAntiRinging = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaAntiHistoryRinging);
+            taaQualityLevel = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.TAAQuality);
+
             dithering = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.dithering);
             stopNaNs = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.stopNaNs);
             clearColorMode = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.clearColorMode);

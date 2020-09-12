@@ -148,7 +148,9 @@ namespace UnityEditor.ShaderGraph.Internal
                 rangeValues = rangeValues,
                 enumType = enumType,
                 enumNames = enumNames,
-                enumValues = enumValues
+                enumValues = enumValues,
+                precision = precision,
+                gpuInstanced = gpuInstanced,
             };
         }
     }

@@ -1,0 +1,177 @@
+#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+#pragma kernel TileNeighbourhood                   NEIGHBOURHOOD_PASS
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MotionBlurTileCommon.hlsl"
+
+#pragma multi_compile _ SCATTERING
+
+#ifdef SCATTERING
+
+// TODO: Consider a conservative line rasterization.
+// Line drawing algorithms.
+#if 0
+void Bresenham(int2 center, float2 lineToDraw, uint centerInfo)
+{
+    int2 maxCoords = int2(_TileTargetSize.xy - 1);
+
+    // Determine start and end point of the line. Forward
+    int2 startPoint = center;
+    int2 endPoint = int2(ceil(startPoint.x + lineToDraw.x), ceil(startPoint.y + lineToDraw.y));
+    endPoint = clamp(endPoint, int2(0, 0), maxCoords);
+
+    int2 delta = int2(abs(startPoint - endPoint));
+    int2 steps = int2(startPoint.x < endPoint.x ? 1 : -1, startPoint.y < endPoint.y ? 1 : -1);
+    int tMax = (delta.x > delta.y ? delta.x : -delta.y) / 2;
+
+    int x = startPoint.x;
+    int y = startPoint.y;
+
+    for (int i = 0; i < 32; ++i)
+    {
+        if (x >= endPoint.x && y >= endPoint.y)
+        {
+            break;
+        }
+        if (tMax > -delta.x)
+        {
+            tMax -= delta.y;
+            x += steps.x;
+        }
+        if (tMax < delta.y)
+        {
+            tMax += delta.x;
+            y += steps.y;
+        }
+
+        InterlockedMax(_TileToScatterMax[int2(x, y)], uint(centerInfo));
+    }
+}
+#endif
+
+void DDA(int2 center, float2 lineToDraw, uint centerInfo)
+{
+    int2 maxCoords = int2(_TileTargetSize.xy);
+
+    int2 startPoint = center;
+    int2 endPoint = int2(ceil(startPoint.x + lineToDraw.x), ceil(startPoint.y + lineToDraw.y));
+    endPoint = clamp(endPoint, int2(0, 0), maxCoords);
+
+    bool permute = false;
+    if (abs(lineToDraw.x) < abs(lineToDraw.y))
+    {
+        permute = true;
+        lineToDraw = lineToDraw.yx;
+        startPoint = startPoint.yx;
+        endPoint = endPoint.yx;
+    }
+    float dirSign = sign(lineToDraw.x);
+
+    float invDeltaX = dirSign / lineToDraw.x;
+    float2 step = float2(dirSign, lineToDraw.y * invDeltaX);
+
+    float end = endPoint.x * dirSign;
+    float2 currPoint = startPoint;
+
+    const int maxIter = 64;
+    for (int i = 0; ((currPoint.x * dirSign) <= end) && (i < maxIter); ++i)
+    {
+        currPoint += step;
+        float2 hitPixel = permute ? currPoint.yx : currPoint;
+        hitPixel = clamp(hitPixel, 0, _TileTargetSize.xy);
+        InterlockedMax(_TileToScatterMax[COORD_TEXTURE2D_X(ceil(hitPixel))], uint(centerInfo));
+    }
+}
+
+#define USE_NEIGHBOURHOOD_MIN 1
+[numthreads(8, 8, 1)]
+void TileNeighbourhood(uint3 dispatchID : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+{
+#ifndef SHADER_API_METAL
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchID.z);
+    int2 id = dispatchID.xy;
+    int2 maxCoords = int2(_TileTargetSize.xy - 1);
+
+    if (any(id > maxCoords)) return;
+
+    // Sample the motionVec at this tile.
+    uint packedTileInfo = _TileToScatterMax[COORD_TEXTURE2D_X(id)];
+    float minMotionVec = _TileToScatterMin[COORD_TEXTURE2D_X(id)];
+
+    float2 MotionVecData = UnpackMotionVec(packedTileInfo);
+
+    // Covert to a per pixel motionVec.
+    float2 maxMotionVectorInTiles = DecodeMotionVectorFromPacked(MotionVecData.xy) *  _TileTargetSize.xy * 0.5f;
+
+    // If the central motionVec is small, no need to spread it.
+    if (MotionVecLengthInPixelsFromEncoded(MotionVecData) > 0.5f)
+    {
+        // Spread Forward
+        DDA(id, maxMotionVectorInTiles, packedTileInfo);
+        // Spread Backward
+        DDA(id, -maxMotionVectorInTiles, packedTileInfo);
+    }
+
+    // TODO: We need to find a better min motionVec determination.
+#if USE_NEIGHBOURHOOD_MIN
+// Find min of the tile in the 1-ring neighbourhood? This is incorrect, but might be worth perf wise. 
+    float v0 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(-1, 1), int2(0, 0), maxCoords))];
+    float v1 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(0, 1), int2(0, 0), maxCoords))];
+    float v2 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(1, 1), int2(0, 0), maxCoords))];
+
+    float v3 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(-1, 0), int2(0, 0), maxCoords))];
+    float v4 = minMotionVec;
+    float v5 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(1, 0), int2(0, 0), maxCoords))];
+
+    float v6 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(-1, -1), int2(0, 0), maxCoords))];
+    float v7 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(0, -1), int2(0, 0), maxCoords))];
+    float v8 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(1, -1), int2(0, 0), maxCoords))];
+
+    float minMotionVec0 = Min3(v0, v1, v2);
+    float minMotionVec1 = Min3(v3, v4, v5);
+    float minMotionVec2 = Min3(v6, v7, v8);
+    minMotionVec = Min3(minMotionVec0, minMotionVec1, minMotionVec2);
+#endif
+    _TileToScatterMin[COORD_TEXTURE2D_X(id)] = minMotionVec;
+#endif
+}
+
+
+#else // SCATTERING
+
+RW_TEXTURE2D_X(float3, _TileMaxNeighbourhood);
+
+[numthreads(8, 8, 1)]
+void TileNeighbourhood(uint3 dispatchID : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchID.z);
+    int2 id = dispatchID.xy;
+    int2 maxCoords = int2(_TileTargetSize.xy - 1);
+
+    float3 centralSample = _TileMinMaxMotionVec[COORD_TEXTURE2D_X(id.xy + uint2(0, 0))].xyz;
+
+    float3 v0 = _TileMinMaxMotionVec[COORD_TEXTURE2D_X(clamp(id.xy + int2(-1, 1), int2(0, 0), maxCoords))].xyz;
+    float3 v1 = _TileMinMaxMotionVec[COORD_TEXTURE2D_X(clamp(id.xy + int2(0, 1), int2(0, 0), maxCoords))].xyz;
+    float3 v2 = _TileMinMaxMotionVec[COORD_TEXTURE2D_X(clamp(id.xy + int2(1, 1), int2(0, 0), maxCoords))].xyz;
+
+    float3 v3 = _TileMinMaxMotionVec[COORD_TEXTURE2D_X(clamp(id.xy + int2(-1, 0), int2(0, 0), maxCoords))].xyz;
+    float3 v4 = centralSample.xyz;
+    float3 v5 = _TileMinMaxMotionVec[COORD_TEXTURE2D_X(clamp(id.xy + int2(1, 0), int2(0, 0), maxCoords))].xyz;
+
+    float3 v6 = _TileMinMaxMotionVec[COORD_TEXTURE2D_X(clamp(id.xy + int2(-1, -1), int2(0, 0), maxCoords))].xyz;
+    float3 v7 = _TileMinMaxMotionVec[COORD_TEXTURE2D_X(clamp(id.xy + int2(0, -1), int2(0, 0), maxCoords))].xyz;
+    float3 v8 = _TileMinMaxMotionVec[COORD_TEXTURE2D_X(clamp(id.xy + int2(1, -1), int2(0, 0), maxCoords))].xyz;
+
+
+    float2 maxMotionVec0 = MaxMotionVec(v0.xy, MaxMotionVec(v1.xy, v2.xy));
+    float2 maxMotionVec1 = MaxMotionVec(v3.xy, MaxMotionVec(v4.xy, v5.xy));
+    float2 maxMotionVec2 = MaxMotionVec(v6.xy, MaxMotionVec(v7.xy, v8.xy));
+
+    float minMotionVec0 = Min3(v0.z, v1.z, v2.z);
+    float minMotionVec1 = Min3(v3.z, v4.z, v5.z);
+    float minMotionVec2 = Min3(v6.z, v7.z, v8.z);
+
+
+    _TileMaxNeighbourhood[COORD_TEXTURE2D_X(id.xy)] = float3(MaxMotionVec(maxMotionVec0, MaxMotionVec(maxMotionVec1, maxMotionVec2)), Min3(minMotionVec0, minMotionVec1, minMotionVec2));
+}
+
+#endif

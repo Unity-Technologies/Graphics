@@ -106,8 +106,8 @@ ${VFXPassForwardDefine}
         
         ${SHADERGRAPH_PIXEL_CALL_FORWARD}
         
-        #if HAS_SHADERGRAPH_PARAM_COLOR
-            o.color.rgb = OUTSG.${SHADERGRAPH_PARAM_COLOR}.rgb;
+        #if HAS_SHADERGRAPH_PARAM_BASECOLOR
+            o.color.rgb = OUTSG.${SHADERGRAPH_PARAM_BASECOLOR}.rgb;
         #endif
         
         #if HAS_SHADERGRAPH_PARAM_ALPHA 

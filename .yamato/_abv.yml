@@ -75,7 +75,7 @@ all_smoke_tests_2020.1:
 all_project_ci_2020.1:
     name: _ABV for SRP repository - 2020.1
     dependencies:
-      -  path: .yamato/_projectcontext.yml#all_package_ci_project_2020.1
+      -  path: .yamato/_packages.yml#all_package_ci_2020.1
          rerun: on-new-revision
       -  path: .yamato/all-universal.yml#All_Universal_2020.1
          rerun: on-new-revision
@@ -102,9 +102,11 @@ all_project_ci_nightly_2020.1:
          rerun: on-new-revision
       -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_2020.1
          rerun: on-new-revision
+      -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_2020.1
+         rerun: on-new-revision
     triggers:
         recurring:
-          -  branch: 8.x.x/release
+          -  branch: 9.x.x/release
              frequency: 0 * * ?
 trunk_verification_2020.1:
     name: Trunk verification - 2020.1
@@ -199,7 +201,7 @@ all_smoke_tests_fast-2020.1:
 all_project_ci_fast-2020.1:
     name: _ABV for SRP repository - fast-2020.1
     dependencies:
-      -  path: .yamato/_projectcontext.yml#all_package_ci_project_fast-2020.1
+      -  path: .yamato/_packages.yml#all_package_ci_fast-2020.1
          rerun: on-new-revision
       -  path: .yamato/all-universal.yml#All_Universal_fast-2020.1
          rerun: on-new-revision
@@ -212,7 +214,7 @@ all_project_ci_fast-2020.1:
       -  path: .yamato/all-vfx_urp.yml#All_VFX_URP_fast-2020.1
          rerun: on-new-revision
     triggers:
-        expression: pull_request.target eq "8.x.x/release" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*", ".github/**/*", "Tools/**/*"]
+        expression: pull_request.target eq "9.x.x/release" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*", ".github/**/*", "Tools/**/*"]
 trunk_verification_fast-2020.1:
     name: Trunk verification - fast-2020.1
     dependencies:
@@ -311,7 +313,7 @@ all_smoke_tests_CUSTOM-REVISION:
 all_project_ci_CUSTOM-REVISION:
     name: _ABV for SRP repository - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/_projectcontext.yml#all_package_ci_project_CUSTOM-REVISION
+      -  path: .yamato/_packages.yml#all_package_ci_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-universal.yml#All_Universal_CUSTOM-REVISION
          rerun: always

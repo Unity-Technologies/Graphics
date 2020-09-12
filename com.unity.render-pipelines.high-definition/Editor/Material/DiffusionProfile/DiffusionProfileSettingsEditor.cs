@@ -101,7 +101,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(profile.scatteringDistance, s_Styles.profileScatteringDistance);
 
                 using (new EditorGUI.DisabledScope(true))
-                    EditorGUILayout.FloatField(s_Styles.profileMaxRadius, profile.objReference.maxRadius);
+                    EditorGUILayout.FloatField(s_Styles.profileMaxRadius, profile.objReference.filterRadius);
 
                 EditorGUILayout.Slider(profile.ior, 1.0f, 2.0f, s_Styles.profileIor);
                 EditorGUILayout.PropertyField(profile.worldScale, s_Styles.profileWorldScale);
@@ -150,12 +150,10 @@ namespace UnityEditor.Rendering.HighDefinition
         void RenderPreview(Profile profile)
         {
             var obj = profile.objReference;
-            float r = obj.maxRadius;
-            var S = obj.shapeParam;
-            var T = (Vector4)profile.transmissionTint.colorValue;
-            var R = profile.thicknessRemap.vector2Value;
+            float r = obj.filterRadius;
+            var   S = obj.shapeParam;
 
-            m_ProfileMaterial.SetFloat(HDShaderIDs._MaxRadius, r);
+            m_ProfileMaterial.SetFloat( HDShaderIDs._MaxRadius,  r);
             m_ProfileMaterial.SetVector(HDShaderIDs._ShapeParam, S);
 
             // Draw the profile.
@@ -167,9 +165,9 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.LabelField(s_Styles.transmittancePreview2, EditorStyles.centeredGreyMiniLabel);
             EditorGUILayout.Space();
 
-            m_TransmittanceMaterial.SetVector(HDShaderIDs._ShapeParam, S);
-            m_TransmittanceMaterial.SetVector(HDShaderIDs._TransmissionTint, T);
-            m_TransmittanceMaterial.SetVector(HDShaderIDs._ThicknessRemap, R);
+            m_TransmittanceMaterial.SetVector(HDShaderIDs._ShapeParam,       S);
+            m_TransmittanceMaterial.SetVector(HDShaderIDs._TransmissionTint, obj.transmissionTint);
+            m_TransmittanceMaterial.SetVector(HDShaderIDs._ThicknessRemap,   obj.thicknessRemap);
 
             // Draw the transmittance graph.
             EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(16f, 16f), profile.transmittanceRT, m_TransmittanceMaterial, ScaleMode.ScaleToFit, 16f);

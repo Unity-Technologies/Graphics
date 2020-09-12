@@ -1,4 +1,4 @@
-#pragma kernel KMain
+﻿#pragma kernel KMain
 #pragma kernel KInitialize
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -7,7 +7,7 @@
 #define A_GPU 1
 #define A_HLSL 1
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/ffx_a.hlsl"
+#include "ffx_a.h"
 // two elements:
 // [0] = const0 
 // [1] = const1
@@ -42,7 +42,7 @@ void WritePix(AU2 gxy, AF4 casPix)
 	_OutputTexture[COORD_TEXTURE2D_X(gxy)] = casPix;
 }
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/ffx_cas.hlsl"
+#include "ffx_cas.h"
 
 
 [numthreads(64, 1, 1)]

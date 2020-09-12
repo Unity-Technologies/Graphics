@@ -1,6 +1,7 @@
 using UnityEditor.AssetImporters;
 using UnityEngine;
 using UnityEditor.Experimental.AssetImporters;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -29,11 +30,140 @@ namespace UnityEditor.Rendering.HighDefinition
             return classIdA == 1030429932 && classIdB == -559038463;
         }
 
+        static bool Is3DsMaxSimplifiedPhysicalMaterial(MaterialDescription description)
+        {
+            float classIdA;
+            float classIdB;
+            float useGlossiness;
+            description.TryGetProperty("ClassIDa", out classIdA);
+            description.TryGetProperty("ClassIDb", out classIdB);
+            description.TryGetProperty("useGlossiness", out useGlossiness);
+
+            return classIdA == -804315648 && classIdB == -1099438848 && useGlossiness == 2.0f;
+        }
+
         public void OnPreprocessMaterialDescription(MaterialDescription description, Material material, AnimationClip[] clips)
         {
             if (Is3DsMaxPhysicalMaterial(description))
             {
                 CreateFrom3DsPhysicalMaterial(description, material, clips);
+            }
+            else if (Is3DsMaxSimplifiedPhysicalMaterial(description))
+            {
+                CreateFrom3DsSimplifiedPhysicalMaterial(description, material, clips);
+            }
+        }
+
+        void CreateFrom3DsSimplifiedPhysicalMaterial(MaterialDescription description, Material material, AnimationClip[] clips)
+        {
+            float floatProperty;
+            Vector4 vectorProperty;
+            TexturePropertyDescription textureProperty;
+
+            description.TryGetProperty("basecolor", out vectorProperty);
+            bool hasTransparencyScalar = vectorProperty.w != 1.0f;
+            var hasTransparencyMap = description.TryGetProperty("opacity_map", out textureProperty);
+            bool isTransparent = hasTransparencyMap | hasTransparencyScalar;
+
+
+            Shader shader;
+            if (isTransparent)
+                shader = GraphicsSettings.currentRenderPipeline.autodeskInteractiveTransparentShader;
+            else
+                shader = GraphicsSettings.currentRenderPipeline.autodeskInteractiveShader;
+
+            if (shader == null)
+                return;
+
+            material.shader = shader;
+            foreach (var clip in clips)
+            {
+                clip.ClearCurves();
+            }
+
+            if (hasTransparencyMap)
+            {
+                material.SetFloat("_UseOpacityMap", 1.0f);
+                material.SetTexture("_OpacityMap", textureProperty.texture);
+            }
+            else if (hasTransparencyScalar)
+            {
+                material.SetFloat("_Opacity", vectorProperty.w);
+            }
+
+            if (description.TryGetProperty("basecolor", out vectorProperty))
+                material.SetColor("_Color", vectorProperty);
+
+            if (description.TryGetProperty("emit_color", out vectorProperty))
+                material.SetColor("_EmissionColor", vectorProperty);
+
+            if (description.TryGetProperty("roughness", out floatProperty))
+                material.SetFloat("_Glossiness", floatProperty);
+
+            if (description.TryGetProperty("metalness", out floatProperty))
+                material.SetFloat("_Metallic", floatProperty);
+
+            if (description.TryGetProperty("base_color_map", out textureProperty))
+            {
+                material.SetTexture("_MainTex", textureProperty.texture);
+                material.SetFloat("_UseColorMap", 1.0f);
+                material.SetColor("_UvTiling", new Vector4(textureProperty.scale.x, textureProperty.scale.y, 0.0f, 0.0f));
+                material.SetColor("_UvOffset", new Vector4(textureProperty.offset.x, textureProperty.offset.y, 0.0f, 0.0f));
+            }
+            else
+            {
+                material.SetFloat("_UseColorMap", 0.0f);
+            }
+
+            if (description.TryGetProperty("norm_map", out textureProperty))
+            {
+                material.SetTexture("_BumpMap", textureProperty.texture);
+                material.SetFloat("_UseNormalMap", 1.0f);
+            }
+            else
+            {
+                material.SetFloat("_UseNormalMap", 0.0f);
+            }
+
+            if (description.TryGetProperty("roughness_map", out textureProperty))
+            {
+                material.SetTexture("_SpecGlossMap", textureProperty.texture);
+                material.SetFloat("_UseRoughnessMap", 1.0f);
+            }
+            else
+            {
+                material.SetFloat("_UseRoughnessMap", 0.0f);
+            }
+
+            if (description.TryGetProperty("metalness_map", out textureProperty))
+            {
+                material.SetTexture("_MetallicGlossMap", textureProperty.texture);
+                material.SetFloat("_UseMetallicMap", 1.0f);
+            }
+            else
+            {
+                material.SetFloat("_UseMetallicMap", 0.0f);
+            }
+
+            if (description.TryGetProperty("emit_color_map", out textureProperty))
+            {
+                material.SetTexture("_EmissionMap", textureProperty.texture);
+                material.SetFloat("_UseEmissiveMap", 1.0f);
+            }
+            else
+            {
+                material.SetFloat("_UseEmissiveMap", 0.0f);
+            }
+
+            if (description.TryGetProperty("ao_map", out textureProperty))
+            {
+                var tex = AssetDatabase.LoadAssetAtPath<Texture>(textureProperty.relativePath);
+                material.SetTexture("AoMap", tex);
+                material.SetFloat("UseAoMap", 1.0f);
+            }
+            else
+            {
+                material.SetFloat("UseAoMap", 0.0f);
             }
         }
 

@@ -129,7 +129,7 @@ MonoBehaviour:
   m_GraphVersion: 4
   m_saved: 1
   m_SubgraphDependencies: []
-  m_CategoryPath: Math/Arithmetic
+  m_CategoryPath: 
 --- !u!114 &3
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -658,8 +658,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     input.texCoord1 = ((_UVMappingMask0.y + _UVMappingMask1.y + _UVMappingMask2.y + _UVMappingMask3.y + _UVDetailsMappingMask0.y + _UVDetailsMappingMask1.y + _UVDetailsMappingMask2.y + _UVDetailsMappingMask3.y) > 0) ? input.texCoord1 : 0;
 #endif
 
-// Don't dither if displaced tessellation (we're fading out the displacement instead to match the next LOD)
-#if !defined(SHADER_STAGE_RAY_TRACING) && !defined(_TESSELLATION_DISPLACEMENT)
+#ifndef SHADER_STAGE_RAY_TRACING
 #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
     LODDitheringTransition(ComputeFadeMaskSeed(V, posInput.positionSS), unity_LODFade.x);
 #endif
@@ -817,7 +816,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, input.tangentToWorld[2], _SpecularAAScreenSpaceVariance, _SpecularAAThreshold);
 #endif
 
-    GetBuiltinData(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
+    GetBuiltinData(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, layerTexCoord.base0, builtinData);
+
+#ifdef _ALPHATEST_ON
+    // Used for sharpening by alpha to mask
+    builtinData.alphaClipTreshold = _AlphaCutoff;
+#endif
 
     RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
 }

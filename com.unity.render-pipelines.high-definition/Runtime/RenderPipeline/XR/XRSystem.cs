@@ -76,12 +76,17 @@ namespace UnityEngine.Rendering.HighDefinition
         	if (GraphicsSettings.currentRenderPipeline == null)
                 return;
 
+        #if UNITY_2020_2_OR_NEWER
+            SubsystemManager.GetSubsystems(displayList);
+        #else
             SubsystemManager.GetInstances(displayList);
+        #endif
 
             for (int i = 0; i < displayList.Count; i++)
             {
                 displayList[i].disableLegacyRenderer = true;
                 displayList[i].sRGB = true;
+                displayList[i].textureLayout = XRDisplaySubsystem.TextureLayout.Texture2DArray;
             }
         }
 #endif
@@ -164,7 +169,12 @@ namespace UnityEngine.Rendering.HighDefinition
         bool RefreshXrSdk()
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
+
+        #if UNITY_2020_2_OR_NEWER
+            SubsystemManager.GetSubsystems(displayList);
+        #else
             SubsystemManager.GetInstances(displayList);
+        #endif
 
             if (displayList.Count > 0)
             {

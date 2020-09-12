@@ -180,8 +180,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
 			    //Shader pass list
                 EditorGUI.PropertyField(rect, m_ShaderPasses, Styles.shaderPassFilter, true);
                 rect.y += EditorGUI.GetPropertyHeight(m_ShaderPasses);
-			    EditorGUI.indentLevel--;
-		    }
+                EditorGUI.indentLevel--;
+            }
 	    }
 
 	    void DoMaterialOverride(ref Rect rect)

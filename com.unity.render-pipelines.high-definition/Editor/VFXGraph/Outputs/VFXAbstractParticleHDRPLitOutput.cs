@@ -105,7 +105,7 @@ namespace UnityEditor.VFX
         public class StandardProperties
         {
             [Range(0, 1), Tooltip("Controls the scale factor for the particle’s metallicity.")]
-            public float metallic = 0.0f;
+            public float metallic = 0.5f;
         }
 
         public class SpecularColorProperties

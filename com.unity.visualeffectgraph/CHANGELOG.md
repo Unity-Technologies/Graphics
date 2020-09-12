@@ -4,70 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [8.3.0] - 2020-07-23
-
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
-
-## [8.2.0] - 2020-07-08
-
-### Added
-- Allow filtering enums in VFXModels' VFXSettings.
-- Added Degrees / Radians conversion subgraphs in samples
-
-### Fixed
-- Remove some shader warnings
-- Fixed Sample Flipbbook Texture File Names
-- Fix visual effect graph when a subgraph or shader graph dependency changes
-- Support of flag settings in model inspector
-- height of initial event name.
-- fix colorfield height.
-- fix for capacity change for locked asset.
-- fix null value not beeing assignable to slot.
-- Prevent capacity from being 0 [Case 1233044](https://issuetracker.unity3d.com/product/unity/issues/guid/1233044/)
-- Fix for dragged parameters order when there are categories
-- Avoid NullReferenceException in Previous Position Binder" component. [Case 1242351](https://issuetracker.unity3d.com/product/unity/issues/guid/1242351/)
-- Don't show the blocks window when context cant have blocks
-- Prevent from creating a context in VisualEffectSugraphOperator by draggingfrom an output slot.
-- Avoid NullReferenceException when VisualEffectAsset is null if VFXPropertyBinder [Case 1219061](https://issuetracker.unity3d.com/product/unity/issues/guid/1219061/)
-- Missing Reset function in VFXPropertyBinder [Case 1219063](https://issuetracker.unity3d.com/product/unity/issues/guid/1219063/)
-- Fix issue with strips outputs that could cause too many vertices to be renderered
-- SpawnIndex attribute returns correct value in update and outputs contexts
-- Disable Reset option in context menu for all VFXObject [Case 1251519](https://issuetracker.unity3d.com/product/unity/issues/guid/1251519/) & [Case 1251533](https://issuetracker.unity3d.com/product/unity/issues/guid/1251533/)
-- Avoid other NullReferenceException using property binders
-- Fix culture issues when generating attributes defines in shaders [Case 1222819](https://issuetracker.unity3d.com/product/unity/issues/guid/1222819/)
-- Move the VFXPropertyBinder from Update to LateUpdate [Case 1254340](https://issuetracker.unity3d.com/product/unity/issues/guid/1254340/)
-- Properties in blackboard are now exposed by default
-- Dissociated Colors for bool, uint and int
-- De-nicified attribute name (conserve case) in Set Custom Attribute title
-- Changed the default "No Asset" message when opening the visual effect graph window
-- Subgraphs are not in hardcoded categories anymore : updated default subgraph templates + Samples to add meaningful categories.
-- Enum fields having headers show the header in the inspector as well.
-- Fix incorrect propagation on expression flags [Case 1246738](https://issuetracker.unity3d.com/product/unity/issues/guid/1246738/)
-
-## [8.1.0] - 2020-04-21
-
-### Fixed
-- renamed soft particle fade distance, made attributes adding text, add in tooltip not label
-- Fix for nesting of VFXSubgraphContexts
-- Runtime compilation now compiles correctly when constant folding several texture ports that reference the same texture [Case 1193602](https://issuetracker.unity3d.com/issues/output-shader-errors-when-compiling-the-runtime-shader-of-a-lit-output-with-exposed-but-unassigned-additional-maps)
-- NullReferenceException while assigning a null pCache [Case 1222491](https://issuetracker.unity3d.com/issues/pointcache-nullrefexception-when-compiling-an-effect-with-a-pcache-without-an-assigned-asset)
-- Add message in inspector for unreachable properties due to VisualEffectAsset stored in AssetBundle [Case 1193602](https://issuetracker.unity3d.com/product/unity/issues/guid/1203616/)
-- pCache importer and exporter tool was keeping a lock on texture or pCache files [Case 1185677](https://issuetracker.unity3d.com/product/unity/issues/guid/1185677/)
-- Age particles checkbox was incorrectly hidden [Case 1221557](https://issuetracker.unity3d.com/product/unity/issues/guid/1221557/)
-- Convert inline to exposed property / Quick expose property sets correct default value in parent
-- Handle correctly direction, position & vector types in AppendVector operator [Case 1111867](https://issuetracker.unity3d.com/product/unity/issues/guid/1111867/)
-- Fix various bugs in Position (Cone) block [Case 1111053](https://issuetracker.unity3d.com/product/unity/issues/guid/1111053/)
-- Fix space issues with blocks and operators taking a camera as input
-- Generated shaderName are now consistent with displayed system names
-- Don't lose SRP output specific data when SRP package is not present
-
-## [8.0.1] - 2020-02-25
-
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
-
-## [8.0.0] - 2020-02-25
+## [9.0.0] - 2020-07-09
 
 ### Added
 - Tooltips for Attributes
@@ -88,6 +25,8 @@ The version number for this package has increased due to a version update of a r
 - Noise evaluation now performed on CPU when possible
 - Range and Min attributes support on int and uint parameters
 - New Construct Matrix from Vector4 operator
+- Allow filtering enums in VFXModels' VFXSettings.
+- Sample vertices of a mesh with the Position (Mesh) block and the Sample Mesh operator
 
 ### Fixed
 - Moved VFX Event Tester Window visibility to Component Play Controls SceneView Window
@@ -134,6 +73,26 @@ The version number for this package has increased due to a version update of a r
 - Fix yamato error : check vfx manager on domain reload instead of vfx import.
 - Filter out unrelevant events from event desc while compiling
 - Missing Packing.hlsl include while using an unlit shadergraph.
+- Fix for nesting of VFXSubgraphContexts.
+- Runtime compilation now compiles correctly when constant folding several texture ports that reference the same texture [Case 1193602](https://issuetracker.unity3d.com/issues/output-shader-errors-when-compiling-the-runtime-shader-of-a-lit-output-with-exposed-but-unassigned-additional-maps)
+- Fix compilation error in runtime mode when Speed Range is 0 in Attribute By Speed block [Case 1118665](https://issuetracker.unity3d.com/issues/vfx-shader-errors-are-thrown-when-quad-outputs-speed-range-is-set-to-zero)
+- NullReferenceException while assigning a null pCache [Case 1222491](https://issuetracker.unity3d.com/issues/pointcache-nullrefexception-when-compiling-an-effect-with-a-pcache-without-an-assigned-asset)
+- Add message in inspector for unreachable properties due to VisualEffectAsset stored in AssetBundle [Case 1193602](https://issuetracker.unity3d.com/product/unity/issues/guid/1203616/)
+- pCache importer and exporter tool was keeping a lock on texture or pCache files [Case 1185677](https://issuetracker.unity3d.com/product/unity/issues/guid/1185677/)
+- Convert inline to exposed property / Quick expose property sets correct default value in parent
+- Age particles checkbox was incorrectly hidden [Case 1221557](https://issuetracker.unity3d.com/product/unity/issues/guid/1221557/)
+- Fix various bugs in Position (Cone) block [Case 1111053] (https://issuetracker.unity3d.com/product/unity/issues/guid/1111053/)
+- Handle correctly direction, position & vector types in AppendVector operator [Case 1111867](https://issuetracker.unity3d.com/product/unity/issues/guid/1111867/)
+- Fix space issues with blocks and operators taking a camera as input
+- Generated shaderName are now consistent with displayed system names
+- Remove some shader warnings
+- Fixed Sample Flipbook Texture File Names
+- Don't lose SRP output specific data when SRP package is not present
+- Support of flag settings in model inspector
+- height of initial event name.
+- fix colorfield height.
+- fix for capacity change for locked asset.
+- fix null value not beeing assignable to slot.
 
 ## [7.1.1] - 2019-09-05
 ### Added

@@ -1,0 +1,12 @@
+{
+    "name": "com.unity.shaderanalysis",
+    "description": "Shader analysis utility to evaluate performance of shaders.",
+    "version": "1.0.0",
+    "unity": "2020.1",
+    "displayName": "Shader Analysis",
+    "dependencies": {
+    },
+    "keywords":[
+    ],
+    "samples" : []
+}

@@ -31,24 +31,10 @@
     // There are also a lot of utility function you can use inside Common.hlsl and Color.hlsl,
     // you can check them out in the source code of the core SRP package.
 
-    float4 FullScreenPass(Varyings varyings, out float outputDepth : SV_Depth) : SV_Target
+    float4 FullScreenPass(Varyings varyings) : SV_Target
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(varyings);
-        float depth = LoadCameraDepth(varyings.positionCS.xy);
-        PositionInputs posInput = GetPositionInput(varyings.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
-        float3 viewDirection = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
-        float4 color = float4(0.0, 0.0, 0.0, 0.0);
-
-        // Load the camera color buffer at the mip 0 if we're not at the before rendering injection point
-        if (_CustomPassInjectionPoint != CUSTOMPASSINJECTIONPOINT_BEFORE_RENDERING)
-            color = float4(CustomPassLoadCameraColor(varyings.positionCS.xy, 0), 1);
-
-        // Add your custom pass code here
-        outputDepth = 0.063;
-
-        // Fade value allow you to increase the strength of the effect while the camera gets closer to the custom pass volume
-        float f = 1 - abs(_FadeValue * 2 - 1);
-        return float4(color.rgb + f, color.a);
+        return float4(1, 1, 0, 1);
     }
 
     ENDHLSL

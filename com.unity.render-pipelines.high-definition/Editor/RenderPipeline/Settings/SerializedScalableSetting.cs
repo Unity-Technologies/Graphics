@@ -154,7 +154,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 // Let's first compute what is the width of the label of this scalable setting level
 				// We make sure that the label doesn't go beyond the space available for this scalable setting level
-				var labelWidth = Mathf.Clamp(CalcPrefixLabelWidth(subLabels[index], (GUIStyle)null), 0, num);
+                var labelWidth = Mathf.Clamp(CalcPrefixLabelWidth(subLabels[index], (GUIStyle)null), 0, num);
 
                 // Draw the Label at the expected position
                 EditorGUI.LabelField(new Rect(position.x + pixelShift, position.y, labelWidth, position.height), subLabels[index]);

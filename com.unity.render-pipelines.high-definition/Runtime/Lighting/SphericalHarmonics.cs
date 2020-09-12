@@ -1,3 +1,5 @@
+using System;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     struct ZonalHarmonicsL2
@@ -25,6 +27,24 @@ namespace UnityEngine.Rendering.HighDefinition
             zh.coeffs[0] = 0.282095f;
             zh.coeffs[1] = 0.293162f * g * (4.0f + (g * g)) / (2.0f + (g * g));
             zh.coeffs[2] = (0.126157f + 1.44179f * (g * g) + 0.324403f * (g * g) * (g * g)) / (2.0f + (g * g));
+        }
+    }
+
+    [Serializable]
+    [GenerateHLSL]
+    internal struct SphericalHarmonicsL1
+    {
+        public Vector4 shAr;
+        public Vector4 shAg;
+        public Vector4 shAb;
+
+        public static SphericalHarmonicsL1 GetNeutralValues()
+        {
+            SphericalHarmonicsL1 sh;
+            sh.shAr = Vector4.zero;
+            sh.shAg = Vector4.zero;
+            sh.shAb = Vector4.zero;
+            return sh;
         }
     }
 

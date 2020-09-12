@@ -23,14 +23,15 @@ public class #SCRIPTNAME# : ScriptableRendererFeature
         {
         }
 
-        /// Cleanup any allocated resources that were created during the execution of this render pass.
-        public override void FrameCleanup(CommandBuffer cmd)
+        // Cleanup any allocated resources that were created during the execution of this render pass.
+        public override void OnCameraCleanup(CommandBuffer cmd)
         {
         }
     }
 
     CustomRenderPass m_ScriptablePass;
 
+    /// <inheritdoc/>
     public override void Create()
     {
         m_ScriptablePass = new CustomRenderPass();

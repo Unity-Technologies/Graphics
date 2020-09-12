@@ -19,12 +19,32 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         static readonly int s_DrawObjectPassDataPropID = Shader.PropertyToID("_DrawObjectPassData");
 
+        public DrawObjectsPass(string profilerTag, ShaderTagId[] shaderTagIds, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
+        {
+            m_ProfilerTag = profilerTag;
+            m_ProfilingSampler = new ProfilingSampler(profilerTag);
+            foreach (ShaderTagId sid in shaderTagIds)
+                m_ShaderTagIdList.Add(sid);
+            renderPassEvent = evt;
+            m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
+            m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
+            m_IsOpaque = opaque;
+
+            if (stencilState.enabled)
+            {
+                m_RenderStateBlock.stencilReference = stencilReference;
+                m_RenderStateBlock.mask = RenderStateMask.Stencil;
+                m_RenderStateBlock.stencilState = stencilState;
+            }
+        }
+
         public DrawObjectsPass(string profilerTag, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
         {
             m_ProfilerTag = profilerTag;
             m_ProfilingSampler = new ProfilingSampler(profilerTag);
             m_ShaderTagIdList.Add(new ShaderTagId("SRPDefaultUnlit"));
             m_ShaderTagIdList.Add(new ShaderTagId("UniversalForward"));
+            m_ShaderTagIdList.Add(new ShaderTagId("UniversalForwardOnly"));
             m_ShaderTagIdList.Add(new ShaderTagId("LightweightForward"));
             renderPassEvent = evt;
 
@@ -43,7 +63,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
+            // NOTE: Do NOT mix ProfilingScope with named CommandBuffers i.e. CommandBufferPool.Get("name").
+            // Currently there's an issue which results in mismatched markers.
+            CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 // Global render pass data containing various settings.

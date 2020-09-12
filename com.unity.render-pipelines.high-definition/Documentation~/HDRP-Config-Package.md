@@ -6,7 +6,6 @@ For example, you can use it to:
 
 * Enable [ray tracing](Ray-Tracing-Getting-Started.html).
 * Enable [camera-relative rendering](Camera-Relative-Rendering.html).
-* Control the shadow filtering mode for deferred rendering.
 
 ## Using the HDRP Config package
 
@@ -36,7 +35,7 @@ To ensure that the two files are synchronized, you should follow the first metho
 <a name="Example"></a>
 ### Example
 
-You can use the method described above to change the shadow filtering mode for the [Lit Shader](Lit-Shader.html) in deferred mode:
+You can use the method described above to disable [Camera-Relative rendering](Camera-Relative-Rendering.html):
 
-1. In the **ShaderConfig.cs** file, set **DeferredShadowFiltering** to **HDShadowFilteringQuality.High**.
-2. Generate the **ShaderConfig.cs.hlsl** file (**Edit > RenderPipeline > Generate Include Files**). Now, in the **ShaderConfig.cs.hlsl** file, the **SHADEROPTIONS_DEFERRED_SHADOW_FILTERING** define should be set to **2** (**#define SHADEROPTIONS_DEFERRED_SHADOW_FILTERING (2)**).
+1. In the **ShaderConfig.cs** file, set **CameraRelativeRendering** to **0**.
+2. Generate the **ShaderConfig.cs.hlsl** file (**Edit > RenderPipeline > Generate Include Files**). Now, in the **ShaderConfig.cs.hlsl** file, the **SHADEROPTIONS_CAMERA_RELATIVE_RENDERING** define should be set to **0** 

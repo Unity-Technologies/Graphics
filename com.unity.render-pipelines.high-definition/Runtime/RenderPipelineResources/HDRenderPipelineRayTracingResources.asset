@@ -38,10 +38,14 @@ MonoBehaviour:
     type: 3}
   subSurfaceRayTracing: {fileID: 4807578003741378534, guid: b29a18f967c92364492508dddf78cff7,
     type: 3}
+  subSurfaceRayTracingCS: {fileID: 7200000, guid: 4e5684a8dba46fe42a47642f9b0a6b89,
+    type: 3}
   temporalFilterCS: {fileID: 7200000, guid: 741979ff70f7bd6489fbcb464280ecff, type: 3}
   simpleDenoiserCS: {fileID: 7200000, guid: 74a980f1da9a4f842996035350fe756c, type: 3}
   diffuseDenoiserCS: {fileID: 7200000, guid: b4ed2382141619f40af1f743a84ccaea, type: 3}
   reflectionDenoiserCS: {fileID: 7200000, guid: 1b12fb238086d0f49983b4aa72768349,
+    type: 3}
+  diffuseShadowDenoiserCS: {fileID: 7200000, guid: 9af806eab5889a74dad838edc9b07d07,
     type: 3}
   gBufferRaytracingRT: {fileID: 4807578003741378534, guid: e4c61a77b91f35845bbb546b848b18e5,
     type: 3}
@@ -53,3 +57,5 @@ MonoBehaviour:
   countTracedRays: {fileID: 7200000, guid: e1f3fa867f1dfbd4ab7dd4d39d2b96d8, type: 3}
   reflectionFilterMapping: {fileID: 2800000, guid: 82eec49626a00b047ba86244607816c8,
     type: 3}
+  shadowFilterMapping: {fileID: 11700000, guid: 98a5a16e4aad05b4b8e1c1af5f8e9fba,
+    type: 2}

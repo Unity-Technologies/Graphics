@@ -41,12 +41,12 @@ float4 VFXCalcPixelOutputForward(const SurfaceData surfaceData, const BuiltinDat
     // The index stored in this buffer could either be
     //   - a gBufferIndex (always stored in _DebugViewMaterialArray[1] as only one supported)
     //   - a property index which is different for each kind of material even if reflecting the same thing (see MaterialSharedProperty)
-    int bufferSize = int(_DebugViewMaterialArray[0]);
+    int bufferSize = _DebugViewMaterialArray[0].x;
     // Loop through the whole buffer
     // Works because GetSurfaceDataDebug will do nothing if the index is not a known one
     for (int index = 1; index <= bufferSize; index++)
     {
-        int indexMaterialProperty = int(_DebugViewMaterialArray[index]);
+        int indexMaterialProperty = _DebugViewMaterialArray[index].x;
         if (indexMaterialProperty != 0)
         {
             float3 result = float3(1.0, 0.0, 1.0);
@@ -54,7 +54,7 @@ float4 VFXCalcPixelOutputForward(const SurfaceData surfaceData, const BuiltinDat
 
             GetPropertiesDataDebug(indexMaterialProperty, result, needLinearToSRGB);
             //GetVaryingsDataDebug(indexMaterialProperty, input, result, needLinearToSRGB);
-            GetBuiltinDataDebug(indexMaterialProperty, builtinData, result, needLinearToSRGB);
+            GetBuiltinDataDebug(indexMaterialProperty, builtinData, posInput, result, needLinearToSRGB);
             GetSurfaceDataDebug(indexMaterialProperty, surfaceData, result, needLinearToSRGB);
             GetBSDFDataDebug(indexMaterialProperty, bsdfData, result, needLinearToSRGB);
 
@@ -89,14 +89,14 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
 
     uint2 tileIndex = uint2(i.VFX_VARYING_POSCS.xy) / GetTileSize();
     VFXGetHDRPLitData(surfaceData,builtinData,bsdfData,preLightData,i,normalWS,uvData,tileIndex);
-    
+
     float3 posRWS = VFXGetPositionRWS(i);
 	PositionInputs posInput = GetPositionInput(i.VFX_VARYING_POSCS.xy, _ScreenSize.zw, i.VFX_VARYING_POSCS.z, i.VFX_VARYING_POSCS.w, posRWS, tileIndex);
-    
+
     return VFXCalcPixelOutputForward(surfaceData,builtinData,preLightData, bsdfData, posInput, posRWS);
 }
 
-            
+
 #else
 
 
@@ -108,19 +108,19 @@ float4 VFXGetPixelOutputForwardShaderGraph(SurfaceData surfaceData, BuiltinData 
     float3 posRWS = VFXGetPositionRWS(i);
 	float4 posSS = i.VFX_VARYING_POSCS;
 	PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS, tileIndex);
-    
+
     PreLightData preLightData = (PreLightData)0;
 	BSDFData bsdfData = (BSDFData)0;
     bsdfData = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);
-    
+
     preLightData = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);
     preLightData.diffuseFGD = 1.0f;
-    
+
     float3 emissive = builtinData.emissiveColor;
     InitBuiltinData(posInput, builtinData.opacity, surfaceData.normalWS, -surfaceData.normalWS, (float4)0, (float4)0, builtinData);
     builtinData.emissiveColor = emissive;
     PostInitBuiltinData(GetWorldSpaceNormalizeViewDir(posInput.positionWS), posInput,surfaceData, builtinData);
-    
+
     return VFXCalcPixelOutputForward(surfaceData,builtinData,preLightData, bsdfData, posInput, posRWS);
 }
 #endif

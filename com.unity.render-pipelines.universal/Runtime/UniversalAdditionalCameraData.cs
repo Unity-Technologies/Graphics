@@ -113,15 +113,12 @@ namespace UnityEngine.Rendering.Universal
     [ImageEffectAllowedInSceneView]
     [MovedFrom("UnityEngine.Rendering.LWRP")] public class UniversalAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver
     {
-        [Tooltip("If enabled shadows will render for this camera.")]
         [FormerlySerializedAs("renderShadows"), SerializeField]
         bool m_RenderShadows = true;
 
-        [Tooltip("If enabled depth texture will render for this camera bound as _CameraDepthTexture.")]
         [SerializeField]
         CameraOverrideOption m_RequiresDepthTextureOption = CameraOverrideOption.UsePipelineSettings;
 
-        [Tooltip("If enabled opaque color texture will render for this camera and bound as _CameraOpaqueTexture.")]
         [SerializeField]
         CameraOverrideOption m_RequiresOpaqueTextureOption = CameraOverrideOption.UsePipelineSettings;
 

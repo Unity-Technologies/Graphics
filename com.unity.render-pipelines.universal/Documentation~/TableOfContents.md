@@ -8,7 +8,6 @@
   * [The Universal Render Pipeline Asset](universalrp-asset.md)
 * [Upgrade guides](upgrade-guides.md)
   * [Upgrading to URP 9.0.x](upgrade-guide-9-0-x.md)
-  * [Upgrading to URP 8.2.0](upgrade-guide-8-2-0.md)
   * [Upgrading to URP 8.1.0](upgrade-guide-8-1-0.md)
   * [Upgrading to URP 8.0.0](upgrade-guide-8-0-0.md)
   * [Upgrading to URP 7.4.0](upgrade-guide-7-4-0.md)
@@ -62,12 +61,6 @@
   * [Particles Unlit](particles-unlit-shader.md)
   * [Upgrading shaders from Built-in](upgrading-your-shaders.md)
   * [Shader stripping](shader-stripping.md)
-  * [Writing custom shaders](writing-custom-shaders-urp.md)
-    * [Creating a sample scene](writing-shaders-urp-basic-prerequisites.md)
-    * [URP basic unlit shader](writing-shaders-urp-basic-unlit-structure.md)    
-    * [URP unlit shader with color input](writing-shaders-urp-unlit-color.md)
-    * [Drawing a texture](writing-shaders-urp-unlit-texture.md)
-    * [Visualizing normal vectors](writing-shaders-urp-unlit-normals.md)
 
 * [Customizing URP](customizing-urp.md)
   * [beginCameraRendering event](using-begincamerarendering.md)
@@ -80,12 +73,12 @@
   * [Lights 2D properties](2DLightProperties.md)
 
     * [Light types](LightTypes.md)
+  * [2D Shadows](2DShadows.md)
   * [Configuring the 2D Renderer Asset](2DRendererData_overview.md)
 
     * [HDR emulation scale](HDREmulationScale.md)
     * [Light Blend Styles](LightBlendStyles.md)
     
-    * [2D Shadows](2DShadows.md)
   * [2D Renderer and Shader Graph](ShaderGraph.md)
   * [2D Pixel Perfect](2d-pixelperfect.md)
     * [Cinemachine Pixel Perfect extension](pixel-cinemachine.md)
@@ -93,3 +86,5 @@
 * [Building for consoles](Building-For-Consoles.md)
   
 * [Frequently asked questions (FAQ)](faq.md)
+
+* [Feature comparison with the Built-in Render Pipeline](universalrp-builtin-feature-comparison.md)

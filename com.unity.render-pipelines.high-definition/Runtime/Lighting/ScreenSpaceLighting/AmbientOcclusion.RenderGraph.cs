@@ -5,16 +5,16 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     partial class AmbientOcclusionSystem
     {
-        RenderGraphMutableResource CreateAmbientOcclusionTexture(RenderGraph renderGraph)
+        TextureHandle CreateAmbientOcclusionTexture(RenderGraph renderGraph)
         {
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { enableRandomWrite = true, colorFormat = GraphicsFormat.R8_UNorm, name = "Ambient Occlusion" }, HDShaderIDs._AmbientOcclusionTexture);
         }
 
-        public RenderGraphResource Render(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphResource depthPyramid, RenderGraphResource motionVectors, int frameCount)
+        public TextureHandle Render(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle motionVectors, int frameCount)
         {
             var settings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
 
-            RenderGraphResource result;
+            TextureHandle result;
             // AO has side effects (as it uses an imported history buffer)
             // So we can't rely on automatic pass stripping. This is why we have to be explicit here.
             if (IsActive(hdCamera, settings))
@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                   historyRT.referenceSize.y * historyRT.scaleFactor.y);
                     var rtScaleForHistory = hdCamera.historyRTHandleProperties.rtHandleScale;
 
-                    var aoParameters = PrepareRenderAOParameters(hdCamera, renderGraph.rtHandleProperties, historySize * rtScaleForHistory, frameCount);
+                    var aoParameters = PrepareRenderAOParameters(hdCamera, historySize * rtScaleForHistory, frameCount);
 
                     var packedData = RenderAO(renderGraph, aoParameters, depthPyramid);
                     result = DenoiseAO(renderGraph, aoParameters, motionVectors, packedData, currentHistory, outputHistory);
@@ -45,12 +45,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class RenderAOPassData
         {
-            public RenderAOParameters           parameters;
-            public RenderGraphMutableResource   packedData;
-            public RenderGraphResource          depthPyramid;
+            public RenderAOParameters   parameters;
+            public TextureHandle        packedData;
+            public TextureHandle        depthPyramid;
         }
 
-        RenderGraphResource RenderAO(RenderGraph renderGraph, in RenderAOParameters parameters, RenderGraphResource depthPyramid)
+        TextureHandle RenderAO(RenderGraph renderGraph, in RenderAOParameters parameters, TextureHandle depthPyramid)
         {
             using (var builder = renderGraph.AddRenderPass<RenderAOPassData>("GTAO Horizon search and integration", out var passData, ProfilingSampler.Get(HDProfileId.HorizonSSAO)))
             {
@@ -75,23 +75,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class DenoiseAOPassData
         {
-            public RenderAOParameters           parameters;
-            public RenderGraphResource          packedData;
-            public RenderGraphMutableResource   packedDataBlurred;
-            public RenderGraphResource          currentHistory;
-            public RenderGraphMutableResource   outputHistory;
-            public RenderGraphMutableResource   denoiseOutput;
-            public RenderGraphResource          motionVectors;
+            public RenderAOParameters   parameters;
+            public TextureHandle        packedData;
+            public TextureHandle        packedDataBlurred;
+            public TextureHandle        currentHistory;
+            public TextureHandle        outputHistory;
+            public TextureHandle        denoiseOutput;
+            public TextureHandle        motionVectors;
         }
 
-        RenderGraphResource DenoiseAO(  RenderGraph                 renderGraph,
-                                        in RenderAOParameters       parameters,
-                                        RenderGraphResource         motionVectors,
-                                        RenderGraphResource         aoPackedData,
-                                        RenderGraphMutableResource  currentHistory,
-                                        RenderGraphMutableResource  outputHistory)
+        TextureHandle DenoiseAO(    RenderGraph             renderGraph,
+                                    in RenderAOParameters   parameters,
+                                    TextureHandle           motionVectors,
+                                    TextureHandle           aoPackedData,
+                                    TextureHandle           currentHistory,
+                                    TextureHandle           outputHistory)
         {
-            RenderGraphResource denoiseOutput;
+            TextureHandle denoiseOutput;
 
             using (var builder = renderGraph.AddRenderPass<DenoiseAOPassData>("Denoise GTAO", out var passData))
             {
@@ -102,8 +102,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.parameters = parameters;
                 passData.packedData = builder.ReadTexture(aoPackedData);
                 passData.motionVectors = builder.ReadTexture(motionVectors);
-                passData.packedDataBlurred = builder.WriteTexture(renderGraph.CreateTexture(
-                    new TextureDesc(Vector2.one * scaleFactor, true, true) { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, name = "AO Packed blurred data" } ));
+                passData.packedDataBlurred = builder.CreateTransientTexture(
+                    new TextureDesc(Vector2.one * scaleFactor, true, true) { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, name = "AO Packed blurred data" } );
                 passData.currentHistory = builder.ReadTexture(currentHistory); // can also be written on first frame, but since it's an imported resource, it doesn't matter in term of lifetime.
                 passData.outputHistory = builder.WriteTexture(outputHistory);
 
@@ -137,12 +137,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class UpsampleAOPassData
         {
-            public RenderAOParameters           parameters;
-            public RenderGraphResource          input;
-            public RenderGraphMutableResource   output;
+            public RenderAOParameters   parameters;
+            public TextureHandle        input;
+            public TextureHandle        output;
         }
 
-        RenderGraphResource UpsampleAO(RenderGraph renderGraph, in RenderAOParameters parameters, RenderGraphResource input)
+        TextureHandle UpsampleAO(RenderGraph renderGraph, in RenderAOParameters parameters, TextureHandle input)
         {
             using (var builder = renderGraph.AddRenderPass<UpsampleAOPassData>("Upsample GTAO", out var passData, ProfilingSampler.Get(HDProfileId.UpSampleSSAO)))
             {

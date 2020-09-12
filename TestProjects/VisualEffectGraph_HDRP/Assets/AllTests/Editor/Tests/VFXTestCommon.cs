@@ -23,9 +23,8 @@ namespace UnityEditor.VFX.Test
             System.IO.Directory.CreateDirectory(tempBasePath);
 
             var asset = VisualEffectAssetEditorUtility.CreateNewAsset(tempFilePath);
-            VisualEffectResource resource = asset.GetResource(); // force resource creation
-            VFXGraph graph = ScriptableObject.CreateInstance<VFXGraph>();
-            graph.visualEffectResource = resource;
+            VisualEffectResource resource = asset.GetOrCreateResource(); // force resource creation
+            VFXGraph graph = resource.GetOrCreateGraph();
             return graph;
         }
 
