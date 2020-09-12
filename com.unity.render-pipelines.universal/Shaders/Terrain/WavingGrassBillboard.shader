@@ -125,7 +125,6 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass
             Cull Off
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             #pragma vertex DepthNormalOnlyVertex
