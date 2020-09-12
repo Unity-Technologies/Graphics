@@ -119,7 +119,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Private Variables
             private ScreenSpaceAmbientOcclusionSettings m_CurrentSettings;
-            private ProfilingSampler m_ProfilingSampler = new ProfilingSampler("SSAO.Execute()");
+            private ProfilingSampler m_ProfilingSampler = ProfilingSampler.Get(URPProfileId.SSAO);
             private RenderTargetIdentifier m_SSAOTexture1Target = new RenderTargetIdentifier(s_SSAOTexture1ID, 0, CubemapFace.Unknown, -1);
             private RenderTargetIdentifier m_SSAOTexture2Target = new RenderTargetIdentifier(s_SSAOTexture2ID, 0, CubemapFace.Unknown, -1);
             private RenderTargetIdentifier m_SSAOTexture3Target = new RenderTargetIdentifier(s_SSAOTexture3ID, 0, CubemapFace.Unknown, -1);
@@ -131,7 +131,6 @@ namespace UnityEngine.Rendering.Universal
 
             // Statics
             private static readonly int s_BaseMapID = Shader.PropertyToID("_BaseMap");
-            private static readonly int s_ScaleBiasID = Shader.PropertyToID("_ScaleBiasRt");
             private static readonly int s_SSAOParamsID = Shader.PropertyToID("_SSAOParams");
             private static readonly int s_SSAOTexture1ID = Shader.PropertyToID("_SSAO_OcclusionTexture1");
             private static readonly int s_SSAOTexture2ID = Shader.PropertyToID("_SSAO_OcclusionTexture2");
@@ -258,18 +257,7 @@ namespace UnityEngine.Rendering.Universal
                 using (new ProfilingScope(cmd, m_ProfilingSampler))
                 {
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, true);
-
-                    // Blit has logic to flip projection matrix when rendering to render texture.
-                    // Currently the y-flip is handled in CopyDepthPass.hlsl by checking _ProjectionParams.x
-                    // If you replace this Blit with a Draw* that sets projection matrix double check
-                    // to also update shader.
-                    // scaleBias.x = flipSign
-                    // scaleBias.y = scale
-                    // scaleBias.z = bias
-                    // scaleBias.w = unused
-                    float flipSign = (renderingData.cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
-                    Vector4 scaleBias = (flipSign < 0.0f) ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f) : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
-                    cmd.SetGlobalVector(s_ScaleBiasID, scaleBias);
+                    PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
 
                     // Execute the SSAO
                     Render(cmd, m_SSAOTexture1Target, ShaderPasses.AO);
