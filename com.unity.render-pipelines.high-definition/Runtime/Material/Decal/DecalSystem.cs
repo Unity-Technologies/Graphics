@@ -481,11 +481,21 @@ namespace UnityEngine.Rendering.HighDefinition
                     ? data.drawDistance
                     : instance.DrawDistance;
                 m_CachedDrawDistances[index].y = data.fadeScale;
-                // Do a remap in the shader. dot() / (end - start) - start / (end - start);
-                float angleStart = data.startAngleFade * Mathf.Deg2Rad;
-                float angleEnd = data.endAngleFade * Mathf.Deg2Rad;
-                m_CachedAngleFade[index].x = 1.0f / (angleEnd - angleStart);
-                m_CachedAngleFade[index].y = -angleStart / (angleEnd - angleStart);
+                // Do a remap in the shader. 1.0 - saturate((dot() - start) / (end - start))
+                // x = 1.0 / (end - start), y = -start / (end - start)
+                if (data.startAngleFade == 180.0f) // angle fade is disabled
+                {
+                    m_CachedAngleFade[index].x = 0.0f;
+                    m_CachedAngleFade[index].y = 0.0f;
+                }
+                else
+                {
+                    float angleStart = data.startAngleFade / 180.0f;
+                    float angleEnd = data.endAngleFade / 180.0f;
+                    var val = Mathf.Max(0.0001f, angleEnd - angleStart);
+                    m_CachedAngleFade[index].x = 1.0f / (val);
+                    m_CachedAngleFade[index].y = -angleStart / (val);
+                }
                 m_CachedUVScaleBias[index] = data.uvScaleBias;
                 m_CachedAffectsTransparency[index] = data.affectsTransparency;
                 m_CachedLayerMask[index] = data.layerMask;
@@ -704,8 +714,10 @@ namespace UnityEngine.Rendering.HighDefinition
                             decalToWorldBatch[instanceCount] = m_CachedDecalToWorld[decalIndex];
                             normalToWorldBatch[instanceCount] = m_CachedNormalToWorld[decalIndex];
                             float fadeFactor = m_CachedFadeFactor[decalIndex] * Mathf.Clamp((cullDistance - distanceToDecal) / (cullDistance * (1.0f - m_CachedDrawDistances[decalIndex].y)), 0.0f, 1.0f);
-                            normalToWorldBatch[instanceCount].m03 = fadeFactor * m_Blend;   // vector3 rotation matrix so bottom row and last column can be used for other data to save space
-                            //normalToWorldBatch[instanceCount].m13 = 0.0; // Note: We have a free slot here if we need to store something
+                            // NormalToWorldBatchis a Matrix4x4x but is a Rotation matrix so bottom row and last column can be used for other data to save space
+                            normalToWorldBatch[instanceCount].m03 = fadeFactor * m_Blend;
+                            normalToWorldBatch[instanceCount].m13 = m_CachedAngleFade[decalIndex].x;
+                            normalToWorldBatch[instanceCount].m23 = m_CachedAngleFade[decalIndex].y;
                             normalToWorldBatch[instanceCount].SetRow(3, m_CachedUVScaleBias[decalIndex]);
                             decalLayerMaskBatch[instanceCount] = (int)m_CachedDecalLayerMask[decalIndex];
 

@@ -4,17 +4,17 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
 
-void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out DecalSurfaceData surfaceData)
+void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, float angleFadeFactor, out DecalSurfaceData surfaceData)
 {
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
     // With inspector version of decal we can use instancing to get normal to world access
     float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
-    float fadeFactor = clamp(normalToWorld[0][3], 0.0f, 1.0f);
+    float fadeFactor = clamp(normalToWorld[0][3], 0.0f, 1.0f) * angleFadeFactor;
     float2 scale = float2(normalToWorld[3][0], normalToWorld[3][1]);
     float2 offset = float2(normalToWorld[3][2], normalToWorld[3][3]);
 	float2 texCoords = input.texCoord0.xy * scale + offset;
 #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_MESH)
-	float fadeFactor = _DecalBlend;
+	float fadeFactor = _DecalBlend.x;
 	float2 texCoords = input.texCoord0.xy;
 #endif
 

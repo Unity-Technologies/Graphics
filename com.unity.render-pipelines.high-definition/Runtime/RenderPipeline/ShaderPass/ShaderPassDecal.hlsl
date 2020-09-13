@@ -38,20 +38,22 @@ void Frag(  PackedVaryingsToPS packedInput,
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
     DecalSurfaceData surfaceData;
     float clipValue = 1.0;
+    float angleFadeFactor = 1.0;
 
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)    
 
 	float depth = LoadCameraDepth(input.positionSS.xy);
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
+    // Decal layer mask accepted by the receiving material
+    DecalPrepassData material;
+    ZERO_INITIALIZE(DecalPrepassData, material);
     if (_EnableDecalLayers)
     {
         // Clip the decal if it does not pass the decal layer mask of the receiving material.
         // Decal layer of the decal
         uint decalLayerMask = uint(UNITY_ACCESS_INSTANCED_PROP(Decal, _DecalLayerMaskFromDecal).x);
 
-        // Decal layer mask accepted by the receiving material
-        DecalPrepassData material;
         DecodeFromDecalPrepass(posInput.positionSS, material);
 
         if ((decalLayerMask & material.decalLayerMask) == 0)
@@ -86,6 +88,29 @@ void Frag(  PackedVaryingsToPS packedInput,
     input.texCoord3.xy = positionDS.xz;
 
     float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+
+    // Check if this decal projector require angle fading
+    float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
+    float2 angleFade = float2(normalToWorld[1][3], normalToWorld[2][3]);
+
+    if (angleFade.x > 0.0f) // if angle fade is enabled
+    {
+        float dotAngle = 0.0f;
+        if (_EnableDecalLayers)
+        {
+            dotAngle = dot(material.geomNormalWS, normalToWorld[2]);
+        }
+        else
+        {
+            // recover vertex normal from (incomplete) depth buffer could have various aritfacts at edge geometry (in particular
+            // as we don't render a full depth buffer depends on context)
+            float3 vtxNormal = cross(normalize(ddx(posInput.positionWS)), normalize(ddy(posInput.positionWS)));
+            dotAngle = dot(material.geomNormalWS, normalToWorld[2]);
+        }
+
+        angleFadeFactor = 1.0 - saturate(dotAngle * angleFade.x + angleFade.y);
+    }
+
 #else // Decal mesh
     // input.positionSS is SV_Position
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS.xyz, uint2(0, 0));
@@ -98,7 +123,7 @@ void Frag(  PackedVaryingsToPS packedInput,
     #endif
 #endif
 
-    GetSurfaceData(input, V, posInput, surfaceData);
+    GetSurfaceData(input, V, posInput, angleFadeFactor, surfaceData);
 
 #if ((SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)) && defined(SHADER_API_METAL)
     } // if (clipValue > 0.0)
