@@ -77,6 +77,44 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
+        [Range(0, 180)]
+        private float m_StartAngleFade = 180.0f;
+        /// <summary>
+        /// Angle between decal backward orientation and vertex normal of receiving surface at which the Decal start to fade off.
+        /// </summary>
+        public float startAngleFade
+        {
+            get
+            {
+                return m_StartAngleFade;
+            }
+            set
+            {
+                m_StartAngleFade = Mathf.Clamp(value, 0.0f, 180.0f);
+                OnValidate();
+            }
+        }
+
+        [SerializeField]
+        [Range(0, 180)]
+        private float m_EndAngleFade = 180.0f;
+        /// <summary>
+        /// Angle between decal backward orientation and vertex normal of receiving surface at which the Decal end to fade off.
+        /// </summary>
+        public float endAngleFade
+        {
+            get
+            {
+                return m_EndAngleFade;
+            }
+            set
+            {
+                m_EndAngleFade = Mathf.Clamp(value, m_StartAngleFade, 180.0f);
+                OnValidate();
+            }
+        }
+
+        [SerializeField]
         private Vector2 m_UVScale = new Vector2(1, 1);
         /// <summary>
         /// Tilling of the UV of the projected texture.
@@ -250,8 +288,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             Matrix4x4 sizeOffset = Matrix4x4.Translate(decalOffset) * Matrix4x4.Scale(decalSize);
-            m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance,
-                m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer,
+            m_Handle = DecalSystem.instance.AddDecal(m_Material, position, rotation, Vector3.one, sizeOffset, m_DrawDistance,
+                m_FadeScale, uvScaleBias, m_AffectsTransparency, gameObject.layer,
                 gameObject.sceneCullingMask, m_FadeFactor, decalLayerMask);
             m_OldMaterial = m_Material;
 
@@ -274,8 +312,8 @@ namespace UnityEngine.Rendering.HighDefinition
             else if (m_Handle == null)
             {
                 Matrix4x4 sizeOffset = Matrix4x4.Translate(decalOffset) * Matrix4x4.Scale(decalSize);
-                m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance,
-                    m_FadeScale,  uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer,
+                m_Handle = DecalSystem.instance.AddDecal(m_Material, position, rotation, Vector3.one, sizeOffset, m_DrawDistance,
+                    m_FadeScale,  uvScaleBias, m_AffectsTransparency, gameObject.layer,
                     gameObject.sceneCullingMask, m_FadeFactor, decalLayerMask);
             }
             else
@@ -323,8 +361,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (m_Material != null)
                     {
-                        m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance,
-                            m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer,
+                        m_Handle = DecalSystem.instance.AddDecal(m_Material, position, rotation, Vector3.one, sizeOffset, m_DrawDistance,
+                            m_FadeScale, uvScaleBias, m_AffectsTransparency, gameObject.layer,
                             gameObject.sceneCullingMask, m_FadeFactor, decalLayerMask);
 
                         if (!DecalSystem.IsHDRenderPipelineDecal(m_Material.shader)) // non HDRP/decal shaders such as shader graph decal do not affect transparency

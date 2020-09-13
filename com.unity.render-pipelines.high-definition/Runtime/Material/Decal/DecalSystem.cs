@@ -504,8 +504,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     layerMask, sceneLayerMask, fadeFactor, decalLayerMask);
             }
 
-            public DecalHandle AddDecal(Matrix4x4 localToWorld, Quaternion rotation, Matrix4x4 sizeOffset, float drawDistance,
-                float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, int materialID,
+            public DecalHandle AddDecal(int materialID, Matrix4x4 localToWorld, Quaternion rotation, Matrix4x4 sizeOffset, float drawDistance,
+                float fadeScale, Vector4 uvScaleBias, bool affectsTransparency,
                 int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerEnum decalLayerMask)
             {
                 // increase array size if no space left
@@ -939,8 +939,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        DecalHandle AddDecal(Matrix4x4 localToWorld, Quaternion rotation, Matrix4x4 sizeOffset, float drawDistance,
-            float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, Material material,
+        DecalHandle AddDecal(Material material, Matrix4x4 localToWorld, Quaternion rotation, Matrix4x4 sizeOffset, float drawDistance,
+            float fadeScale, Vector4 uvScaleBias, bool affectsTransparency,
             int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerEnum decalLayerMask)
         {
             SetupMipStreamingSettings(material, true);
@@ -952,27 +952,27 @@ namespace UnityEngine.Rendering.HighDefinition
                 decalSet = new DecalSet(material);
                 m_DecalSets.Add(key, decalSet);
             }
-            return decalSet.AddDecal(localToWorld, rotation, sizeOffset, drawDistance,
-                fadeScale, uvScaleBias, affectsTransparency, key,
+            return decalSet.AddDecal(key, localToWorld, rotation, sizeOffset, drawDistance,
+                fadeScale, uvScaleBias, affectsTransparency,
                 layerMask, sceneLayerMask, fadeFactor, decalLayerMask);
         }
 
 
-        public DecalHandle AddDecal(Vector3 position, Quaternion rotation, Vector3 scale, Matrix4x4 sizeOffset, float drawDistance,
-            float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, Material material,
+        public DecalHandle AddDecal(Material material, Vector3 position, Quaternion rotation, Vector3 scale, Matrix4x4 sizeOffset, float drawDistance,
+            float fadeScale, Vector4 uvScaleBias, bool affectsTransparency,
             int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerEnum decalLayerMask)
         {
-            return AddDecal(Matrix4x4.TRS(position, rotation, scale), rotation, sizeOffset, drawDistance,
-                fadeScale, uvScaleBias, affectsTransparency, material,
+            return AddDecal(material, Matrix4x4.TRS(position, rotation, scale), rotation, sizeOffset, drawDistance,
+                fadeScale, uvScaleBias, affectsTransparency, 
                 layerMask, sceneLayerMask, fadeFactor, decalLayerMask);
         }
 
-        public DecalHandle AddDecal(Transform transform, Matrix4x4 sizeOffset, float drawDistance,
-            float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, Material material,
+        public DecalHandle AddDecal(Material material, Transform transform, Matrix4x4 sizeOffset, float drawDistance,
+            float fadeScale, Vector4 uvScaleBias, bool affectsTransparency,
             int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerEnum decalLayerMask)
         {
-            return AddDecal(transform.localToWorldMatrix, transform.rotation, sizeOffset, drawDistance,
-                fadeScale, uvScaleBias, affectsTransparency, material,
+            return AddDecal(material, transform.localToWorldMatrix, transform.rotation, sizeOffset, drawDistance,
+                fadeScale, uvScaleBias, affectsTransparency, 
                 layerMask, sceneLayerMask, fadeFactor, decalLayerMask);
         }
 

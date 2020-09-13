@@ -14,6 +14,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_MaterialProperty;
         SerializedProperty m_DrawDistanceProperty;
         SerializedProperty m_FadeScaleProperty;
+        SerializedProperty m_StartAngleFadeProperty;
+        SerializedProperty m_EndAngleFadeProperty;   
         SerializedProperty m_UVScaleProperty;
         SerializedProperty m_UVBiasProperty;
         SerializedProperty m_AffectsTransparencyProperty;
@@ -117,6 +119,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_MaterialProperty = serializedObject.FindProperty("m_Material");
             m_DrawDistanceProperty = serializedObject.FindProperty("m_DrawDistance");
             m_FadeScaleProperty = serializedObject.FindProperty("m_FadeScale");
+            m_StartAngleFadeProperty = serializedObject.FindProperty("m_StartAngleFade");
+            m_EndAngleFadeProperty = serializedObject.FindProperty("m_EndAngleFade");
             m_UVScaleProperty = serializedObject.FindProperty("m_UVScale");
             m_UVBiasProperty = serializedObject.FindProperty("m_UVBias");
             m_AffectsTransparencyProperty = serializedObject.FindProperty("m_AffectsTransparency");
@@ -363,6 +367,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     m_DrawDistanceProperty.floatValue = 0f;
 
                 EditorGUILayout.PropertyField(m_FadeScaleProperty, k_FadeScaleContent);
+                EditorGUILayout.PropertyField(m_StartAngleFadeProperty, k_StartAngleFadeContent);
+                if (EditorGUI.EndChangeCheck() && m_StartAngleFadeProperty.floatValue > m_EndAngleFadeProperty.floatValue)
+                    m_EndAngleFadeProperty.floatValue = m_StartAngleFadeProperty.floatValue;
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(m_EndAngleFadeProperty, k_EndAngleFadeContent);
+                if (EditorGUI.EndChangeCheck() && m_EndAngleFadeProperty.floatValue < m_StartAngleFadeProperty.floatValue)
+                    m_StartAngleFadeProperty.floatValue = m_EndAngleFadeProperty.floatValue;
                 EditorGUILayout.PropertyField(m_UVScaleProperty, k_UVScaleContent);
                 EditorGUILayout.PropertyField(m_UVBiasProperty, k_UVBiasContent);
                 EditorGUILayout.PropertyField(m_FadeFactor, k_FadeFactorContent);
