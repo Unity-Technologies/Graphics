@@ -98,7 +98,7 @@ def _get_extra_utr_arg(project_folder):
 
 def extra_perf_cmd(project_folder):   
     perf_list = [
-        f'git clone https://github.com/seanstolberg-unity/BoatAttack.git -b sophia/add-perf-tests-2 TestProjects/{project_folder}',
+        f'git clone https://github.com/seanstolberg-unity/BoatAttack.git -b performance/urp TestProjects/{project_folder}',
         f'Xcopy /E /I \"com.unity.render-pipelines.core\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.render-pipelines.core\" /Y',
         f'Xcopy /E /I \"com.unity.render-pipelines.universal\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.render-pipelines.universal\" /Y',
         f'Xcopy /E /I \"com.unity.shadergraph\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.shadergraph\" /Y'
@@ -110,12 +110,13 @@ def install_unity_config(project_folder):
         f'choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local',
         f'choco install unity-config',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test.performance.runtimesettings@\"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.performance.runtimesettings.git\"',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test.metadata-manager@\"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git\"',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.cli-project-setup@\"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git\"',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.testing.graphics-performance@\"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git\"',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"com.unity.test.performance.runtimesettings@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.performance.runtimesettings.git\"',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git\"',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"com.unity.cli-project-setup@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git\"',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git\"',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.shaderanalysis@\"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git\"',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency unity.graphictests.performance.universal@\"ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git#46a6d6f6c32b22af27de119d6a144a2ba730ee49\"',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git\"',
+		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"com.unity.test-framework@1.2.1-preview.1\"',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable com.unity.testing.graphics-performance --project-path .',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable com.unity.cli-project-setup  --project-path .',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .',
