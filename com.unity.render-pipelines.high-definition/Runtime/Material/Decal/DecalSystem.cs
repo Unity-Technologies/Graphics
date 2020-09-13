@@ -481,6 +481,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     ? data.drawDistance
                     : instance.DrawDistance;
                 m_CachedDrawDistances[index].y = data.fadeScale;
+                // Do a remap in the shader. dot() / (end - start) - start / (end - start);
+                float angleStart = data.startAngleFade * Mathf.Deg2Rad;
+                float angleEnd = data.endAngleFade * Mathf.Deg2Rad;
+                m_CachedAngleFade[index].x = 1.0f / (angleEnd - angleStart);
+                m_CachedAngleFade[index].y = -angleStart / (angleEnd - angleStart);
                 m_CachedUVScaleBias[index] = data.uvScaleBias;
                 m_CachedAffectsTransparency[index] = data.affectsTransparency;
                 m_CachedLayerMask[index] = data.layerMask;
@@ -502,6 +507,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     Matrix4x4[] newCachedTransforms = new Matrix4x4[m_DecalsCount + kDecalBlockSize];
                     Matrix4x4[] newCachedNormalToWorld = new Matrix4x4[m_DecalsCount + kDecalBlockSize];
                     Vector2[] newCachedDrawDistances = new Vector2[m_DecalsCount + kDecalBlockSize];
+                    Vector2[] newCachedAngleFade = new Vector2[m_DecalsCount + kDecalBlockSize];
                     Vector4[] newCachedUVScaleBias = new Vector4[m_DecalsCount + kDecalBlockSize];
                     bool[] newCachedAffectsTransparency = new bool[m_DecalsCount + kDecalBlockSize];
                     int[] newCachedLayerMask = new int[m_DecalsCount + kDecalBlockSize];
@@ -514,6 +520,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_CachedDecalToWorld.CopyTo(newCachedTransforms, 0);
                     m_CachedNormalToWorld.CopyTo(newCachedNormalToWorld, 0);
                     m_CachedDrawDistances.CopyTo(newCachedDrawDistances, 0);
+                    m_CachedAngleFade.CopyTo(newCachedAngleFade, 0);
                     m_CachedUVScaleBias.CopyTo(newCachedUVScaleBias, 0);
                     m_CachedAffectsTransparency.CopyTo(newCachedAffectsTransparency, 0);
                     m_CachedLayerMask.CopyTo(newCachedLayerMask, 0);
@@ -525,6 +532,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_CachedDecalToWorld = newCachedTransforms;
                     m_CachedNormalToWorld = newCachedNormalToWorld;
                     m_CachedDrawDistances = newCachedDrawDistances;
+                    m_CachedAngleFade = newCachedAngleFade;
                     m_CachedUVScaleBias = newCachedUVScaleBias;
                     m_CachedAffectsTransparency = newCachedAffectsTransparency;
                     m_CachedLayerMask = newCachedLayerMask;
@@ -552,6 +560,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CachedDecalToWorld[removeAtIndex] = m_CachedDecalToWorld[m_DecalsCount - 1];
                 m_CachedNormalToWorld[removeAtIndex] = m_CachedNormalToWorld[m_DecalsCount - 1];
                 m_CachedDrawDistances[removeAtIndex] = m_CachedDrawDistances[m_DecalsCount - 1];
+                m_CachedAngleFade[removeAtIndex] = m_CachedAngleFade[m_DecalsCount - 1];
                 m_CachedUVScaleBias[removeAtIndex] = m_CachedUVScaleBias[m_DecalsCount - 1];
                 m_CachedAffectsTransparency[removeAtIndex] = m_CachedAffectsTransparency[m_DecalsCount - 1];
                 m_CachedLayerMask[removeAtIndex] = m_CachedLayerMask[m_DecalsCount - 1];
@@ -708,7 +717,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 m_DecalDatas[m_DecalDatasCount].baseColor = m_BaseColor;
                                 m_DecalDatas[m_DecalDatasCount].blendParams = m_BlendParams;
                                 m_DecalDatas[m_DecalDatasCount].remappingAOS = m_RemappingAOS;
-                                m_DecalDatas[m_DecalDatasCount].scalingMBAndAngle = new Vector4(m_ScalingMB.x, m_ScalingMB.y, 0.0f, 0.0f);
+                                m_DecalDatas[m_DecalDatasCount].scalingMBAndAngle = new Vector4(m_ScalingMB.x, m_ScalingMB.y, m_CachedAngleFade[decalIndex].x, m_CachedAngleFade[decalIndex].y);
                                 m_DecalDatas[m_DecalDatasCount].decalLayerMask = (uint)m_CachedDecalLayerMask[decalIndex];
 
                                 // we have not allocated the textures in atlas yet, so only store references to them
@@ -858,6 +867,7 @@ namespace UnityEngine.Rendering.HighDefinition
             private Matrix4x4[] m_CachedDecalToWorld = new Matrix4x4[kDecalBlockSize];
             private Matrix4x4[] m_CachedNormalToWorld = new Matrix4x4[kDecalBlockSize];
             private Vector2[] m_CachedDrawDistances = new Vector2[kDecalBlockSize]; // x - draw distance, y - fade scale
+            private Vector2[] m_CachedAngleFade = new Vector2[kDecalBlockSize]; // x - scale fade, y - bias fade
             private Vector4[] m_CachedUVScaleBias = new Vector4[kDecalBlockSize]; // xy - scale, zw bias
             private bool[] m_CachedAffectsTransparency = new bool[kDecalBlockSize];
             private int[] m_CachedLayerMask = new int[kDecalBlockSize];

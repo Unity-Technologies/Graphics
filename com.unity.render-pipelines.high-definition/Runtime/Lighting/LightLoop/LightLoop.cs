@@ -1727,12 +1727,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector3 vy = yAxisVS;
                 Vector3 vz = zAxisVS;
 
-                const float pi = 3.1415926535897932384626433832795f;
-                const float degToRad = (float)(pi / 180.0);
-
                 var sa = light.spotAngle;
-                var cs = Mathf.Cos(0.5f * sa * degToRad);
-                var si = Mathf.Sin(0.5f * sa * degToRad);
+                var cs = Mathf.Cos(0.5f * sa * Mathf.Deg2Rad);
+                var si = Mathf.Sin(0.5f * sa * Mathf.Deg2Rad);
 
                 if (gpuLightType == GPULightType.ProjectorPyramid)
                 {
