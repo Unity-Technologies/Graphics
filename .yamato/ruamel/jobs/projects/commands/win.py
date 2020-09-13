@@ -89,7 +89,7 @@ def cmd_standalone_build_performance(project_folder, platform, api, test_platfor
         base.extend(unity_config)
 
     base.extend([
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="EditorTests.CliSetup" --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS} --timeout=1200 --player-save-path=../../{PATH_PLAYERS} --build-only'
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}  --timeout=1200 --player-save-path=../../{PATH_PLAYERS} --build-only'
     ])
     return base
 
