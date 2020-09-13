@@ -404,17 +404,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     // convert to float
                     m_BlendParams.z = (float)affectFlags;
 
-                    m_ScalingMAB = new Vector4(0.0f, 0.0f, m_Material.GetFloat("_DecalMaskMapBlueScale"), 0.0f);
+                    m_ScalingMB = new Vector2(0.0f, m_Material.GetFloat("_DecalMaskMapBlueScale"));
                     // If we have a texture, we use the remapping parameter, otherwise we use the regular one and the default texture is white
                     if (m_Material.GetTexture("_MaskMap"))
                     {
                         m_RemappingAOS = new Vector4(m_Material.GetFloat("_AORemapMin"), m_Material.GetFloat("_AORemapMax"), m_Material.GetFloat("_SmoothnessRemapMin"), m_Material.GetFloat("_SmoothnessRemapMax"));
-                        m_ScalingMAB.x = m_Material.GetFloat("_MetallicScale");
+                        m_ScalingMB.x = m_Material.GetFloat("_MetallicScale");
                     }
                     else
                     {
                         m_RemappingAOS = new Vector4(m_Material.GetFloat("_AO"), m_Material.GetFloat("_AO"), m_Material.GetFloat("_Smoothness"), m_Material.GetFloat("_Smoothness"));
-                        m_ScalingMAB.x = m_Material.GetFloat("_Metallic");
+                        m_ScalingMB.x = m_Material.GetFloat("_Metallic");
                     }
 
                     // For HDRP/Decal, pass are always present but can be enabled/disabled
@@ -708,7 +708,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 m_DecalDatas[m_DecalDatasCount].baseColor = m_BaseColor;
                                 m_DecalDatas[m_DecalDatasCount].blendParams = m_BlendParams;
                                 m_DecalDatas[m_DecalDatasCount].remappingAOS = m_RemappingAOS;
-                                m_DecalDatas[m_DecalDatasCount].scalingMAB = m_ScalingMAB;
+                                m_DecalDatas[m_DecalDatasCount].scalingMBAndAngle = new Vector4(m_ScalingMB.x, m_ScalingMB.y, 0.0f, 0.0f);
                                 m_DecalDatas[m_DecalDatasCount].decalLayerMask = (uint)m_CachedDecalLayerMask[decalIndex];
 
                                 // we have not allocated the textures in atlas yet, so only store references to them
@@ -869,7 +869,7 @@ namespace UnityEngine.Rendering.HighDefinition
             private float m_Blend = 0.0f;
             private Vector4 m_BaseColor;
             private Vector4 m_RemappingAOS;
-            private Vector4 m_ScalingMAB; // metal, base color alpha, mask map blue
+            private Vector2 m_ScalingMB; // metal, mask map blue
             private Vector3 m_BlendParams;
 
             private bool m_IsHDRenderPipelineDecal;

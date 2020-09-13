@@ -270,6 +270,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Matrix4x4 sizeOffset;
             public float drawDistance;
             public float fadeScale;
+            public float startAngleFade;
+            public float endAngleFade;
             public Vector4 uvScaleBias;
             public bool affectsTransparency;
             public int layerMask;
@@ -287,6 +289,8 @@ namespace UnityEngine.Rendering.HighDefinition
             data.sizeOffset = Matrix4x4.Translate(decalOffset) * Matrix4x4.Scale(decalSize);
             data.drawDistance = m_DrawDistance;
             data.fadeScale = m_FadeScale;
+            data.startAngleFade = m_StartAngleFade;
+            data.endAngleFade = m_EndAngleFade;
             data.uvScaleBias = uvScaleBias;
             data.affectsTransparency = m_AffectsTransparency;
             data.layerMask = gameObject.layer;
