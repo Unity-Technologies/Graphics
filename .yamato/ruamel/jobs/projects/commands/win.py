@@ -109,7 +109,12 @@ def install_unity_config(project_folder):
     cmds = [
         f'choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local',
         f'choco install unity-config',
+		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project set registry candidates --project-path .',
+		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project set enable-lock-file true',
+		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project remove dependency com.unity.render-pipelines.universal',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .',
+		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .',
+		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"com.unity.test.performance.runtimesettings@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.performance.runtimesettings.git\"',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git\"',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"com.unity.cli-project-setup@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git\"',
