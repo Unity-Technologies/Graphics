@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
+using System.Runtime.InteropServices;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -51,7 +52,7 @@ namespace UnityEngine.Rendering.HighDefinition
     //-----------------------------------------------------------------------------
 
     [GenerateHLSL]
-    internal enum BoundedEntityCategory // Defines the sorting order
+    internal enum BoundedEntityCategory // Defines the sorting order (takes priority over sorting by depth)
     {
         PunctualLight,
         AreaLight,
@@ -62,18 +63,21 @@ namespace UnityEngine.Rendering.HighDefinition
         None = Count // Unbounded
     }
 
-    internal class BoundedEntityCollection
+    internal class BoundedEntityCollection // Used for tiled lighting
     {
-        public const int k_EntityIndexBitCount = 16;
-        public const int k_EntityMaxCount      = (1 << k_EntityIndexBitCount) - 1;
-
-        public BoundedEntityCollection(int xrViewCount)
+        // 'xrViewCount' and 'maxEntityCountPerCategory' control the size of the memory allocation.
+        public BoundedEntityCollection(int xrViewCount, int[] maxEntityCountPerCategory)
         {
             Debug.Assert(xrViewCount > 0);
+            Debug.Assert(maxEntityCountPerCategory.Length == (int)BoundedEntityCategory.Count);
+
+            int totalEntityCountLimit = 0;
 
             for (int i = 0, n = (int)BoundedEntityCategory.Count; i < n; i++)
             {
                 m_EntityCountPerCategory[i] = 0;
+
+                totalEntityCountLimit += maxEntityCountPerCategory[i];
             }
 
             m_TotalEntityCount = 0;
@@ -88,15 +92,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_Views[i].areaLightData       = new List<LightData>();
                 m_Views[i].reflectionProbeData = new List<EnvLightData>();
                 m_Views[i].decalData           = new List<DecalData>();
-                m_Views[i].densityVolumeData   = new List<DensityVolume>();
+                m_Views[i].densityVolumeData   = new List<DensityVolumeEngineData>();
                 m_Views[i].entityBounds        = new List<FiniteLightBound>();
-
-                // We can't use a List, we don't know the size, and reallocation is a pain, so preallocate the max size.
-                m_Views[i].entitySortKeys      = new ulong[k_EntityMaxCount];
+                m_Views[i].entitySortKeys      = new ulong[totalEntityCountLimit];
             }
+
+            for (int i = 0, n = (int)BoundedEntityCategory.Count; i < n; i++)
+            {
+                m_EntityDataBufferPerCategory[i] = new ComputeBuffer(maxEntityCountPerCategory[i] * xrViewCount, s_EntityDataSizesPerCategory[i]);
+            }
+
+            m_EntityBoundsBuffer = new ComputeBuffer(totalEntityCountLimit * xrViewCount, Marshal.SizeOf(typeof(FiniteLightBound)));
         }
 
-        public void Clear()
+        // Reset the counters.
+        public void Reset()
         {
             for (int i = 0, n = (int)BoundedEntityCategory.Count; i < n; i++)
             {
@@ -116,6 +126,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Since we reset 'm_TotalEntityCount', we can leave 'entitySortKeys' alone.
             }
+
+            // No need to clear ComputeBuffers, we will just overwrite the contents.
+        }
+
+        // Release the resources that are NOT automatically managed by C#.
+        // TODO: call this somewhere.
+        public void Release()
+        {
+            for (int i = 0, n = (int)BoundedEntityCategory.Count; i < n; i++)
+            {
+                CoreUtils.SafeRelease(m_EntityDataBufferPerCategory[i]);
+            }
+
+            CoreUtils.SafeRelease(m_EntityBoundsBuffer);
         }
 
         public int GetEntityCount(BoundedEntityCategory category)
@@ -164,15 +188,15 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // These must be added in the sorted order! TODO: how to enforce this?
-        public void AddEntityData(int viewIndex, BoundedEntityCategory category, LightData entityData)
+        public void AddEntityData(int viewIndex, BoundedEntityCategory category, LightData data)
         {
             if (category == BoundedEntityCategory.PunctualLight)
             {
-                m_Views[viewIndex].punctualLightData.Add(entityData);
+                m_Views[viewIndex].punctualLightData.Add(data);
             }
             else if (category == BoundedEntityCategory.AreaLight)
             {
-                m_Views[viewIndex].areaLightData.Add(entityData);
+                m_Views[viewIndex].areaLightData.Add(data);
             }
             else
             {
@@ -181,47 +205,106 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // These must be added in the sorted order! TODO: how to enforce this?
-        public void AddEntityData(int viewIndex, BoundedEntityCategory category, EnvLightData entityData)
+        public void AddEntityData(int viewIndex, BoundedEntityCategory category, EnvLightData data)
         {
             Debug.Assert(category == BoundedEntityCategory.ReflectionProbe);
-            m_Views[viewIndex].reflectionProbeData.Add(entityData);
+            m_Views[viewIndex].reflectionProbeData.Add(data);
         }
 
         // These must be added in the sorted order! TODO: how to enforce this?
-        public void AddEntityData(int viewIndex, BoundedEntityCategory category, DecalData entityData)
+        public void AddEntityData(int viewIndex, BoundedEntityCategory category, DecalData data)
         {
             Debug.Assert(category == BoundedEntityCategory.Decal);
-            m_Views[viewIndex].decalData.Add(entityData);
+            m_Views[viewIndex].decalData.Add(data);
         }
 
         // These must be added in the sorted order! TODO: how to enforce this?
-        public void AddEntityData(int viewIndex, BoundedEntityCategory category, DensityVolume entityData)
+        public void AddEntityData(int viewIndex, BoundedEntityCategory category, DensityVolumeEngineData data)
         {
             Debug.Assert(category == BoundedEntityCategory.DensityVolume);
-            m_Views[viewIndex].densityVolumeData.Add(entityData);
+            m_Views[viewIndex].densityVolumeData.Add(data);
         }
 
         // These must be added in the sorted order! TODO: how to enforce this?
-        public void AddEntityBounds(int viewIndex, BoundedEntityCategory category, FiniteLightBound entityBounds)
+        public void AddEntityBounds(int viewIndex, BoundedEntityCategory category, FiniteLightBound bounds)
         {
-            m_Views[viewIndex].entityBounds.Add(entityBounds);
+            m_Views[viewIndex].entityBounds.Add(bounds);
+        }
+
+        public void CopyEntityDataToComputeBuffers()
+        {
+            int totalCount = 0;
+
+            for (int c = 0; c < (int)BoundedEntityCategory.Count; c++)
+            {
+                var category = (BoundedEntityCategory)c;
+                int count    = GetEntityCount(category);
+
+                totalCount += count;
+
+                // For each category, concatenate lists of all views.
+                for (int i = 0, n = m_Views.Length; i < n; i++)
+                {
+                    switch (category)
+                    {
+                        case BoundedEntityCategory.PunctualLight:
+                            Debug.Assert(m_Views[i].punctualLightData.Count == count);
+                            m_EntityDataBufferPerCategory[c].SetData(m_Views[i].punctualLightData,   0, i * count, count);
+                            break;
+                        case BoundedEntityCategory.AreaLight:
+                            Debug.Assert(m_Views[i].areaLightData.Count == count);
+                            m_EntityDataBufferPerCategory[c].SetData(m_Views[i].areaLightData,       0, i * count, count);
+                            break;
+                        case BoundedEntityCategory.ReflectionProbe:
+                            Debug.Assert(m_Views[i].reflectionProbeData.Count == count);
+                            m_EntityDataBufferPerCategory[c].SetData(m_Views[i].reflectionProbeData, 0, i * count, count);
+                            break;
+                        case BoundedEntityCategory.Decal:
+                            Debug.Assert(m_Views[i].decalData.Count == count);
+                            m_EntityDataBufferPerCategory[c].SetData(m_Views[i].decalData,           0, i * count, count);
+                            break;
+                        case BoundedEntityCategory.DensityVolume:
+                            Debug.Assert(m_Views[i].densityVolumeData.Count == count);
+                            m_EntityDataBufferPerCategory[c].SetData(m_Views[i].densityVolumeData,   0, i * count, count);
+                            break;
+                        default:
+                            Debug.Assert(false);
+                            break;
+                    }
+                }
+            }
+
+            for (int i = 0, n = m_Views.Length; i < n; i++)
+            {
+                Debug.Assert(m_Views[i].entityBounds.Count == totalCount);
+                m_EntityBoundsBuffer.SetData(m_Views[i].entityBounds, 0, i * totalCount, totalCount);
+            }
         }
 
         /* ------------------------------ Private interface ------------------------------ */
+
+        static int[] s_EntityDataSizesPerCategory = new int[(int)BoundedEntityCategory.Count] // Can't make it const in C#...
+        {
+             Marshal.SizeOf(typeof(LightData)),              // BoundedEntityCategory.PunctualLight
+             Marshal.SizeOf(typeof(LightData)),              // BoundedEntityCategory.AreaLight
+             Marshal.SizeOf(typeof(EnvLightData)),           // BoundedEntityCategory.ReflectionProbe
+             Marshal.SizeOf(typeof(DecalData)),              // BoundedEntityCategory.Decal
+             Marshal.SizeOf(typeof(DensityVolumeEngineData)) // BoundedEntityCategory.DensityVolume
+        };
 
         // The entity count is the same for all views.
         int[] m_EntityCountPerCategory = new int[(int)BoundedEntityCategory.Count];
         int   m_TotalEntityCount; // Prefix sum of the array above
 
-        // We sort entities by depth, which makes the order of items in the Lists view-dependent.
+        // We sort entities by depth, which makes the order of items in these lists view-dependent.
         struct ViewDependentData
         {
-            // One list per BoundedEntityCategory (sorted by category).
-            public List<LightData>     punctualLightData;
-            public List<LightData>     areaLightData;
-            public List<EnvLightData>  reflectionProbeData;
-            public List<DecalData>     decalData;
-            public List<DensityVolume> densityVolumeData;
+            // 1x list per category.
+            public List<LightData>               punctualLightData;
+            public List<LightData>               areaLightData;
+            public List<EnvLightData>            reflectionProbeData;
+            public List<DecalData>               decalData;
+            public List<DensityVolumeEngineData> densityVolumeData;
 
             // 1x list for all entites (sorted by category).
             public List<FiniteLightBound> entityBounds;
@@ -232,6 +315,12 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         ViewDependentData[] m_Views; // 1x view unless it is an XR application
+
+        // 1x list per category (we concatenate lists of all views).
+        ComputeBuffer[] m_EntityDataBufferPerCategory = new ComputeBuffer[(int)BoundedEntityCategory.Count];
+
+        // 1x list for all entites (sorted by category, we concatenate lists of all views).
+        ComputeBuffer m_EntityBoundsBuffer;
     }
 
     [GenerateHLSL]
@@ -418,6 +507,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_MaxPunctualLightsOnScreen;
         int m_MaxAreaLightsOnScreen;
         int m_MaxDecalsOnScreen;
+        int m_MaxDensityVolumesOnScreen = 1024; // TODO
         int m_MaxLightsOnScreen;
         int m_MaxEnvLightsOnScreen;
         int m_MaxPlanarReflectionOnScreen;
@@ -490,31 +580,37 @@ namespace UnityEngine.Rendering.HighDefinition
         internal class LightLoopLightData
         {
             public ComputeBuffer    directionalLightData { get; private set; }
-            public ComputeBuffer    lightData { get; private set; }
+            public ComputeBuffer    punctualLightData { get; private set; }
+            public ComputeBuffer    areaLightData { get; private set; }
             public ComputeBuffer    envLightData { get; private set; }
             public ComputeBuffer    decalData { get; private set; }
+            public ComputeBuffer    densityVolumeData { get; private set; }
 
-            public void Initialize(int directionalCount, int punctualCount, int areaLightCount, int envLightCount, int decalCount)
+            public void Initialize(int xrViewCount, int directionalCount, int punctualCount, int areaLightCount, int envLightCount, int decalCount, int densityVolumeCount)
             {
-                directionalLightData = new ComputeBuffer(directionalCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLightData)));
-                lightData = new ComputeBuffer(punctualCount + areaLightCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
-                envLightData = new ComputeBuffer(envLightCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
-                decalData = new ComputeBuffer(decalCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DecalData)));
+                directionalLightData = new ComputeBuffer(directionalCount * xrViewCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLightData)));
+                punctualLightData = new ComputeBuffer(punctualCount * xrViewCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
+                areaLightData = new ComputeBuffer(areaLightCount * xrViewCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
+                envLightData = new ComputeBuffer(envLightCount * xrViewCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
+                decalData = new ComputeBuffer(decalCount * xrViewCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DecalData)));
+                densityVolumeData = new ComputeBuffer(densityVolumeCount * xrViewCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DensityVolumeEngineData)));
             }
 
             public void Cleanup()
             {
                 CoreUtils.SafeRelease(directionalLightData);
-                CoreUtils.SafeRelease(lightData);
+                CoreUtils.SafeRelease(punctualLightData);
+                CoreUtils.SafeRelease(areaLightData);
                 CoreUtils.SafeRelease(envLightData);
                 CoreUtils.SafeRelease(decalData);
+                CoreUtils.SafeRelease(densityVolumeData);
             }
         }
 
         class TileAndClusterData
         {
-            public ComputeBuffer lightVolumeDataBuffer;
-            public ComputeBuffer convexBoundsBuffer;
+            //public ComputeBuffer lightVolumeDataBuffer;
+            //public ComputeBuffer convexBoundsBuffer;
             public ComputeBuffer AABBBoundsBuffer;
             public ComputeBuffer lightList;
             public ComputeBuffer tileList;
@@ -613,7 +709,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // TODO: Remove the internal
         internal LightLoopTextureCaches m_TextureCaches = new LightLoopTextureCaches();
         // TODO: Remove the internal
-        internal LightLoopLightData m_LightLoopLightData = new LightLoopLightData();
+        //internal LightLoopLightData m_LightLoopLightData = new LightLoopLightData();
         TileAndClusterData m_TileAndClusterData = new TileAndClusterData();
 
         // This control if we use cascade borders for directional light by default
@@ -699,11 +795,11 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // internal LightList m_lightList;
-
-        internal BoundedEntityCollection    m_BoundedEntityCollection; // Per-tile lists
-
         internal List<DirectionalLightData> m_DirectionalLightData;    // Global list
         internal List<int>                  m_DirectionalLightIndices;
+        internal ComputeBuffer              m_DirectionalLightDataBuffer;
+
+        internal BoundedEntityCollection    m_BoundedEntityCollection; // Per-tile (and per-view) lists
 
         // int m_TotalLightCount = 0;
         // int m_densityVolumeCount = 0;
@@ -925,12 +1021,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var lightLoopSettings = asset.currentPlatformRenderPipelineSettings.lightLoopSettings;
 
-            int xrViewCount = TextureXR.slices;
-
-            m_BoundedEntityCollection = new BoundedEntityCollection(xrViewCount);
-            m_DirectionalLightData    = new List<DirectionalLightData>();
-            m_DirectionalLightIndices = new List<int>();
-
             m_DebugViewTilesMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugViewTilesPS);
             m_DebugHDShadowMapMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugHDShadowMapPS);
             m_DebugBlitMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugBlitQuad);
@@ -976,8 +1066,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_TextureCaches.Initialize(asset, defaultResources, iBLFilterBSDFArray);
             // All the allocation of the compute buffers need to happened after the kernel finding in order to avoid the leak loop when a shader does not compile or is not available
-            m_LightLoopLightData.Initialize(m_MaxDirectionalLightsOnScreen, m_MaxPunctualLightsOnScreen, m_MaxAreaLightsOnScreen, m_MaxEnvLightsOnScreen, m_MaxDecalsOnScreen);
             m_TileAndClusterData.Initialize();
+
+            int xrViewCount = TextureXR.slices;
+
+            int[] maxBoundedEntityCounts = new int[(int)BoundedEntityCategory.Count];
+            maxBoundedEntityCounts[(int)BoundedEntityCategory.PunctualLight]   = m_MaxPunctualLightsOnScreen;
+            maxBoundedEntityCounts[(int)BoundedEntityCategory.AreaLight]       = m_MaxAreaLightsOnScreen;
+            maxBoundedEntityCounts[(int)BoundedEntityCategory.ReflectionProbe] = m_MaxEnvLightsOnScreen;
+            maxBoundedEntityCounts[(int)BoundedEntityCategory.Decal]           = m_MaxDecalsOnScreen;
+            maxBoundedEntityCounts[(int)BoundedEntityCategory.DensityVolume]   = m_MaxDensityVolumesOnScreen;
+
+            m_DirectionalLightData       = new List<DirectionalLightData>();
+            m_DirectionalLightIndices    = new List<int>();
+            m_DirectionalLightDataBuffer = new ComputeBuffer(m_MaxDirectionalLightsOnScreen, Marshal.SizeOf(typeof(DirectionalLightData)));
+            m_BoundedEntityCollection    = new BoundedEntityCollection(xrViewCount, maxBoundedEntityCounts);
 
             // OUTPUT_SPLIT_LIGHTING - SHADOWS_SHADOWMASK - DEBUG_DISPLAY
             m_deferredLightingMaterial = new Material[8];
@@ -1067,8 +1170,10 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_DefaultTexture2DArray);
             CoreUtils.Destroy(m_DefaultTextureCube);
 
+            CoreUtils.SafeRelease(m_DirectionalLightDataBuffer);
+            m_BoundedEntityCollection.Release();
+
             m_TextureCaches.Cleanup();
-            m_LightLoopLightData.Cleanup();
             m_TileAndClusterData.Cleanup();
 
             LightLoopReleaseResolutionDependentBuffers();
@@ -2339,18 +2444,14 @@ namespace UnityEngine.Rendering.HighDefinition
             EvaluateGPULightType(processedData.additionalLightData.type, processedData.additionalLightData.spotLightShape, processedData.additionalLightData.areaLightShape,
                                  ref processedData.lightCategory, ref processedData.gpuLightType);
 
-            if (processedData.lightCategory != BoundedEntityCategory.None)
-            {
-                float w = ComputeLinearDepth(ComputeWorldSpaceCentroidOfBoundedEntity(lightComponent), hdCamera.camera);
-                processedData.fixedPointLogDepth = ComputeFixedPointLogDepth(w, hdCamera.camera.farClipPlane);
-            }
-
             processedData.lightDistanceFade = processedData.gpuLightType == GPULightType.Directional ? 1.0f : HDUtils.ComputeLinearDistanceFade(processedData.distanceToCamera, additionalLightData.fadeDistance);
             processedData.isBakedShadowMask = IsBakedShadowMaskLight(lightComponent);
         }
 
         internal struct BoundedEntitySortingKeyLayout
         {
+            public const int k_EntityIndexBitCount = 16;
+
             public int categoryBitCount;
             public int fixedPointLogDepthBitCount;
             public int lightTypeBitCount;
@@ -2370,7 +2471,7 @@ namespace UnityEngine.Rendering.HighDefinition
             layout.categoryBitCount           = CeilLog2i((int)BoundedEntityCategory.Count);
             layout.fixedPointLogDepthBitCount = 16;
             layout.lightTypeBitCount          = CeilLog2i((int)GPULightType.Count);
-            layout.indexBitCount              = BoundedEntityCollection.k_EntityIndexBitCount;
+            layout.indexBitCount              = BoundedEntitySortingKeyLayout.k_EntityIndexBitCount;
             layout.totalBitCount              = layout.categoryBitCount
                                               + layout.fixedPointLogDepthBitCount
                                               + layout.lightTypeBitCount
@@ -2875,9 +2976,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Step 2: Sort m_BoundedEntityCollection.
                 // Step 3: Fill m_BoundedEntityCollection.*Data (in the sorted order!) and m_DirectionalLightData.
                 // Step 4: Upload the data to the GPU.
-                m_BoundedEntityCollection.Clear();
                 m_DirectionalLightData.Clear();
                 m_DirectionalLightIndices.Clear();
+                m_BoundedEntityCollection.Reset();
 
                 // We must clear the shadow requests before checking if they are any visible light because we would have requests from the last frame executed in the case where we don't see any lights
                 m_ShadowManager.Clear();
@@ -2936,7 +3037,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                int densityVolumeCount = (densityVolumes.bounds != null) ? densityVolumes.bounds.Count : 0;
+                int densityVolumeCount = (densityVolumes.bounds != null) ? Math.Min(densityVolumes.bounds.Count, m_MaxDensityVolumesOnScreen) : 0;
 
                 for (int densityVolumeIndex = 0; densityVolumeIndex < densityVolumeCount; densityVolumeIndex++)
                 {
@@ -2992,7 +3093,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         if (viewIndex > 0) // This is quite suboptimal...
                         {
-                            Matrix4x4 viewMatrixEye0     = GetWorldToViewMatrix(hdCamera, 0);        
+                            Matrix4x4 viewMatrixEye0     = GetWorldToViewMatrix(hdCamera, 0);
                             Matrix4x4 viewMatrixEyeI     = GetWorldToViewMatrix(hdCamera, viewIndex);
                             Matrix4x4 viewTransferMatrix = viewMatrixEyeI * viewMatrixEye0.inverse;
 
@@ -3037,7 +3138,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         LightFeatureFlags featureFlags = 0;
                         FiniteLightBound bounds = AddBoxVolumeDataAndBound(densityVolumes.bounds[densityVolumeIndex], BoundedEntityCategory.DensityVolume, featureFlags, worldToViewCR, viewIndex);
 
-                        m_BoundedEntityCollection.AddEntityData(viewIndex, BoundedEntityCategory.DensityVolume, DecalSystem.m_DecalDatas[densityVolumeIndex]);
+                        m_BoundedEntityCollection.AddEntityData(viewIndex, BoundedEntityCategory.DensityVolume, densityVolumes.density[densityVolumeIndex]);
                         m_BoundedEntityCollection.AddEntityBounds(viewIndex, BoundedEntityCategory.DensityVolume, bounds);
                     }
                 }
@@ -3054,7 +3155,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 /* ---------------------------- Step 4 ---------------------------- */
 
-                UpdateDataBuffers();
+                m_DirectionalLightDataBuffer.SetData(m_DirectionalLightData);
+                m_BoundedEntityCollection.CopyEntityDataToComputeBuffers();
 
                 cmd.SetGlobalInt(HDShaderIDs._EnvLightIndexShift, m_lightList.lights.Count);
                 cmd.SetGlobalInt(HDShaderIDs._DecalIndexShift, m_lightList.lights.Count + m_lightList.envLights.Count);
@@ -3610,18 +3712,6 @@ namespace UnityEngine.Rendering.HighDefinition
             PushLightDataGlobalParams(globalParams, cmd);
         }
 
-        void UpdateDataBuffers()
-        {
-            m_LightLoopLightData.directionalLightData.SetData(m_lightList.directionalLights);
-            m_LightLoopLightData.lightData.SetData(m_lightList.lights);
-            m_LightLoopLightData.envLightData.SetData(m_lightList.envLights);
-            m_LightLoopLightData.decalData.SetData(DecalSystem.m_DecalDatas, 0, 0, Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen)); // don't add more than the size of the buffer
-
-            // These two buffers have been set in Rebuild(). At this point, view 0 contains combined data from all views
-            m_TileAndClusterData.convexBoundsBuffer.SetData(m_lightList.lightsPerView[0].bounds);
-            m_TileAndClusterData.lightVolumeDataBuffer.SetData(m_lightList.lightsPerView[0].lightVolumes);
-        }
-
         static HDAdditionalLightData GetHDAdditionalLightData(Light light)
         {
             HDAdditionalLightData add = null;
@@ -3711,7 +3801,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Directional lights are made available immediately after PrepareLightsForGPU for the PBR sky.
                 // cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, param.lightData.directionalLightData);
                 // cmd.SetGlobalInt(HDShaderIDs._DirectionalLightCount, param.lightList.directionalLights.Count);
-                cmd.SetGlobalBuffer(HDShaderIDs._LightDatas, param.lightData.lightData);
+                cmd.SetGlobalBuffer(HDShaderIDs._LightDatas, param.lightData.punctualLightData);
                 cmd.SetGlobalInt(HDShaderIDs._PunctualLightCount, param.lightList.punctualLightCount);
                 cmd.SetGlobalInt(HDShaderIDs._AreaLightCount, param.lightList.areaLightCount);
                 cmd.SetGlobalBuffer(HDShaderIDs._EnvLightDatas, param.lightData.envLightData);
@@ -3903,7 +3993,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeBufferParam(parameters.contactShadowsCS, parameters.kernel, HDShaderIDs._DirectionalLightDatas, lightLoopLightData.directionalLightData);
 
             // Send light list to the compute
-            cmd.SetComputeBufferParam(parameters.contactShadowsCS, parameters.kernel, HDShaderIDs._LightDatas, lightLoopLightData.lightData);
+            cmd.SetComputeBufferParam(parameters.contactShadowsCS, parameters.kernel, HDShaderIDs._LightDatas, lightLoopLightData.punctualLightData);
             cmd.SetComputeBufferParam(parameters.contactShadowsCS, parameters.kernel, HDShaderIDs.g_vLightListGlobal, tileAndClusterData.lightList);
 
             cmd.SetComputeTextureParam(parameters.contactShadowsCS, parameters.kernel, parameters.depthTextureParameterName, depthTexture);
@@ -3922,7 +4012,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetRayTracingBufferParam(parameters.contactShadowsRTS, HDShaderIDs._DirectionalLightDatas, lightLoopLightData.directionalLightData);
 
                 // Send light list to the compute
-                cmd.SetRayTracingBufferParam(parameters.contactShadowsRTS, HDShaderIDs._LightDatas, lightLoopLightData.lightData);
+                cmd.SetRayTracingBufferParam(parameters.contactShadowsRTS, HDShaderIDs._LightDatas, lightLoopLightData.punctualLightData);
                 cmd.SetRayTracingBufferParam(parameters.contactShadowsRTS, HDShaderIDs.g_vLightListGlobal, tileAndClusterData.lightList);
 
                 cmd.SetRayTracingTextureParam(parameters.contactShadowsRTS, HDShaderIDs._DepthTexture, depthTexture);
