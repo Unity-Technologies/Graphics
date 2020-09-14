@@ -39,6 +39,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField]
         bool m_UseDepthStencilBuffer = true;
 
+        [SerializeField]
+        bool m_UseCameraSortingLayersTexture = false;
+
+        [SerializeField]
+        int  m_CameraSortingLayersTextureBound;
+
         [SerializeField, Reload("Shaders/2D/Light2D-Shape.shader")]
         Shader m_ShapeLightShader = null;
 
@@ -110,6 +116,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 shadowMaterials = new Material[totalMaterials];
             if(removeSelfShadowMaterials == null || removeSelfShadowMaterials.Length == 0)
                 removeSelfShadowMaterials = new Material[totalMaterials];
+
+            
         }
 
         // transient data
