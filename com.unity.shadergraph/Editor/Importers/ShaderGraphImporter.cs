@@ -79,7 +79,6 @@ Shader ""Hidden/GraphErrorShader2""
         [SuppressMessage("ReSharper", "UnusedMember.Local")]
         static string[] GatherDependenciesFromSourceFile(string assetPath)
         {
-            Debug.LogWarning("Gather Dependencies " + assetPath);
             try
             {
                 AssetCollection assetCollection = new AssetCollection();
@@ -93,7 +92,6 @@ Shader ""Hidden/GraphErrorShader2""
                     if (asset.Value.HasFlag(AssetCollection.Flags.ArtifactDependency))
                     {
                         var dependencyPath = AssetDatabase.GUIDToAssetPath(asset.Key);
-                        Debug.Log("Artifact: " + asset.Key + " " + dependencyPath);
 
                         // it is unfortunate that we can't declare these dependencies unless they have a path...
                         // I asked AssetDatabase team for GatherDependenciesFromSourceFileByGUID()
@@ -101,7 +99,6 @@ Shader ""Hidden/GraphErrorShader2""
                             dependencyPaths.Add(dependencyPath);
                     }
                 }
-                Debug.LogWarning("END Gather Dependencies " + assetPath);
                 return dependencyPaths.ToArray();
             }
             catch (Exception e)
@@ -113,7 +110,6 @@ Shader ""Hidden/GraphErrorShader2""
 
         public override void OnImportAsset(AssetImportContext ctx)
         {
-            Debug.LogWarning("Import ShaderGraph " + ctx.assetPath);
             var oldShader = AssetDatabase.LoadAssetAtPath<Shader>(ctx.assetPath);
             if (oldShader != null)
                 ShaderUtil.ClearShaderMessages(oldShader);
@@ -236,7 +232,6 @@ Shader ""Hidden/GraphErrorShader2""
                     var dependencyPath = AssetDatabase.GUIDToAssetPath(asset.Key);
                     if (!string.IsNullOrEmpty(dependencyPath))
                     {
-                        Debug.Log("ExportPackage: " + asset.Key + " " + dependencyPath);
                         sgMetadata.assetDependencies.Add(
                             AssetDatabase.LoadAssetAtPath(dependencyPath, typeof(UnityEngine.Object)));
                     }
@@ -251,9 +246,8 @@ Shader ""Hidden/GraphErrorShader2""
                 {
                     ctx.DependsOnSourceAsset(asset.Key);
 
-                    // TODO: I think I can get rid of this stuff below
+                    // I'm not sure if this warning below is actually used or not, keeping it to be safe
                     var assetPath = AssetDatabase.GUIDToAssetPath(asset.Key);
-                    Debug.Log("SourceAsset: " + asset.Key + " " + assetPath);
 
                     // Ensure that dependency path is relative to project
                     if (!string.IsNullOrEmpty(assetPath) && !assetPath.StartsWith("Packages/") && !assetPath.StartsWith("Assets/"))
@@ -267,13 +261,10 @@ Shader ""Hidden/GraphErrorShader2""
                 // on GUIDs that don't exist in the project.  For both of those reasons, we re-declare the dependencies here.
                 if (asset.Value.HasFlag(AssetCollection.Flags.ArtifactDependency))
                 {
-                    var assetPath = AssetDatabase.GUIDToAssetPath(asset.Key);
-                    Debug.Log("Artifact: " + asset.Key + " " + assetPath);
                     ctx.DependsOnArtifact(asset.Key);
                 }
             }
 
-            Debug.LogWarning("END Import ShaderGraph " + ctx.assetPath);
         }
 
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, AssetCollection assetCollection, GraphData graph)
