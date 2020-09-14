@@ -148,9 +148,11 @@ public class UniversalGraphicsTests
         //Light layers (Enable when feature is done)
         //"018_LightLayers",
 
-        //Camera stacking (Enable when feature is done)
-        //"111_CameraStackMSAA",
-        //"123_CameraStackingClear",
+        //Camera stacking (014 still fails)
+        "111_CameraStackMSAA",
+        "123_CameraStackingClear",
+        //"014_CameraMulti_MiniMap",
+        "015_CameraMulti_FPSCam",
 
         //Deferred-only test scenes
         "010_AdditionalLightsSorted_Deferred"
