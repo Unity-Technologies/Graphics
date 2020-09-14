@@ -29,7 +29,7 @@ Universal_OSX_Metal_Standalone_trunk:
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/UniversalGraphicsTest/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest/test-results/ TestProjects/UniversalGraphicsTest/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP:/Users/bokken/.config/unity3d/CompanyName/ProductName/Player.log TestProjects/UniversalGraphicsTest/test-results/PlayerLogFromMachine.log
+                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP:"~/Library/Logs/Company Name/Product Name/Player.log" TestProjects/UniversalGraphicsTest/test-results/PlayerLogFromMachine.log
                  exit $UTR_RESULT
     artifacts:
         logs:
