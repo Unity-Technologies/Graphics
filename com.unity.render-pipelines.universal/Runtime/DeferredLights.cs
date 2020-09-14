@@ -366,6 +366,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Hold all shaders for stencil-volume deferred shading.
         Material m_StencilDeferredMaterial;
 
+        // Avoid memory allocations.
+        Matrix4x4[] m_ScreenToWorld = new Matrix4x4[2];
+
         ProfilingSampler m_ProfilingSamplerDeferredTiledPass = new ProfilingSampler(k_DeferredTiledPass);
         ProfilingSampler m_ProfilingSamplerDeferredStencilPass = new ProfilingSampler(k_DeferredStencilPass);
         ProfilingSampler m_ProfilingSamplerDeferredFogPass = new ProfilingSampler(k_DeferredFogPass);
@@ -1065,7 +1068,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 #else
             int eyeCount = 1;
 #endif
-            Matrix4x4[] screenToWorld = new Matrix4x4[2]; // deferred shaders expects 2 elements
+            Matrix4x4[] screenToWorld = m_ScreenToWorld; // deferred shaders expects 2 elements
 
             for (int eyeIndex = 0; eyeIndex < eyeCount; eyeIndex++)
             {
