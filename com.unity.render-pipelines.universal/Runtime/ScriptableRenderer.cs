@@ -100,7 +100,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cameraData">CameraData containing camera matrices information.</param>
         void SetPerCameraShaderVariables(CommandBuffer cmd, ref CameraData cameraData)
         {
-            using var profScope = UniversalProfilingCache.GetGPUScope(cmd, "SetPerCameraShaderVariables");
+            using var profScope = UniversalProfilingCache.GetGPUCPUScope(cmd, "SetPerCameraShaderVariables");
 
             Camera camera = cameraData.camera;
 
@@ -403,12 +403,13 @@ namespace UnityEngine.Rendering.Universal
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                using (UniversalProfilingCache.GetGPUScope(cmd, "Sort Render Passes"))
+                using (UniversalProfilingCache.GetGPUCPUScope(cmd, "Sort Render Passes"))
                 {
                     // Sort the render pass queue
                     SortStable(m_ActiveRenderPassQueue);
                 }
 
+                // TODO: the whole block range code should be refactored into a class that enforces this behavior.
                 // Upper limits for each block. Each block will contains render passes with events below the limit.
                 NativeArray<RenderPassEvent> blockEventLimits = new NativeArray<RenderPassEvent>(k_RenderPassBlockCount, Allocator.Temp);
                 blockEventLimits[RenderPassBlock.BeforeRendering] = RenderPassEvent.BeforeRenderingPrepasses;
@@ -424,12 +425,18 @@ namespace UnityEngine.Rendering.Universal
                 FillBlockRanges(blockEventLimits, blockRanges);
                 blockEventLimits.Dispose();
 
-                using (UniversalProfilingCache.GetGPUScope(cmd, "SetupLights"))
+                NativeArray<int> blockRangeLengths = new NativeArray<int>(blockRanges.Length, Allocator.Temp);
+                for (int i = 0; i < blockRanges.Length - 1; i++)
+                {
+                    blockRangeLengths[i] = blockRanges[i + 1] - blockRanges[i];
+                }
+
+                using (UniversalProfilingCache.GetGPUCPUScope(cmd, "SetupLights"))
                 {
                     SetupLights(context, ref renderingData);
                 }
 
-                using (UniversalProfilingCache.GetGPUScope(cmd, "ExecuteBlock: Before"))
+                using (UniversalProfilingCache.GetGPUCPUScope(cmd, nameof(RenderPassBlock.BeforeRendering)))
                 {
                     // Before Render Block. This render blocks always execute in mono rendering.
                     // Camera is not setup. Lights are not setup.
@@ -437,24 +444,27 @@ namespace UnityEngine.Rendering.Universal
                     ExecuteBlock(RenderPassBlock.BeforeRendering, blockRanges, context, ref renderingData);
                 }
 
-                // This is still required because of the following reasons:
-                // - Camera billboard properties.
-                // - Camera frustum planes: unity_CameraWorldClipPlanes[6]
-                // - _ProjectionParams.x logic is deep inside GfxDevice
-                // NOTE: The only reason we have to call this here and not at the beginning (before shadows)
-                // is because this need to be called for each eye in multi pass VR.
-                // The side effect is that this will override some shader properties we already setup and we will have to
-                // reset them.
-                context.SetupCameraProperties(camera);
-                SetCameraMatrices(cmd, ref cameraData, true);
+                using (UniversalProfilingCache.GetGPUCPUScope(cmd, "Setup Camera"))
+                {
+                    // This is still required because of the following reasons:
+                    // - Camera billboard properties.
+                    // - Camera frustum planes: unity_CameraWorldClipPlanes[6]
+                    // - _ProjectionParams.x logic is deep inside GfxDevice
+                    // NOTE: The only reason we have to call this here and not at the beginning (before shadows)
+                    // is because this need to be called for each eye in multi pass VR.
+                    // The side effect is that this will override some shader properties we already setup and we will have to
+                    // reset them.
+                    context.SetupCameraProperties(camera);
+                    SetCameraMatrices(cmd, ref cameraData, true);
 
-                // Reset shader time variables as they were overridden in SetupCameraProperties. If we don't do it we might have a mismatch between shadows and main rendering
-                SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
+                    // Reset shader time variables as they were overridden in SetupCameraProperties. If we don't do it we might have a mismatch between shadows and main rendering
+                    SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
 
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
             //Triggers dispatch per camera, all global parameters should have been setup at this stage.
             VFX.VFXManager.ProcessCameraCommand(camera, cmd);
 #endif
+                }
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
@@ -463,24 +473,28 @@ namespace UnityEngine.Rendering.Universal
 
                 // In the opaque and transparent blocks the main rendering executes.
 
-                using (UniversalProfilingCache.GetGPUScope(cmd, "ExecuteBlock: Opaque"))
+                // Opaque blocks...
+                if (blockRangeLengths[RenderPassBlock.MainRenderingOpaque] > 0)
                 {
-                    // Opaque blocks...
+                    //using var profScope = UniversalProfilingCache.GetGPUScope(cmd, "ExecuteBlock: Opaque");
+                    using var profScope = UniversalProfilingCache.GetGPUCPUScope(cmd, nameof(RenderPassBlock.MainRenderingOpaque));
                     ExecuteBlock(RenderPassBlock.MainRenderingOpaque, blockRanges, context, ref renderingData);
                 }
 
-                using (UniversalProfilingCache.GetGPUScope(cmd, "ExecuteBlock: Transparent"))
+                // Transparent blocks...
+                if (blockRangeLengths[RenderPassBlock.MainRenderingTransparent] > 0)
                 {
-                    // Transparent blocks...
+                    using var profScope = UniversalProfilingCache.GetGPUCPUScope(cmd, nameof(RenderPassBlock.MainRenderingTransparent));
                     ExecuteBlock(RenderPassBlock.MainRenderingTransparent, blockRanges, context, ref renderingData);
                 }
 
                 // Draw Gizmos...
                 DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
 
-                using (UniversalProfilingCache.GetGPUScope(cmd, "ExecuteBlock: After"))
+                // In this block after rendering drawing happens, e.g, post processing, video player capture.
+                if (blockRangeLengths[RenderPassBlock.AfterRendering] > 0)
                 {
-                    // In this block after rendering drawing happens, e.g, post processing, video player capture.
+                    using var profScope = UniversalProfilingCache.GetGPUCPUScope(cmd, nameof(RenderPassBlock.AfterRendering));
                     ExecuteBlock(RenderPassBlock.AfterRendering, blockRanges, context, ref renderingData);
                 }
 
@@ -491,6 +505,7 @@ namespace UnityEngine.Rendering.Universal
 
                 InternalFinishRendering(context, cameraData.resolveFinalTarget);
                 blockRanges.Dispose();
+                blockRangeLengths.Dispose();
             }
 
             context.ExecuteCommandBuffer(cmd);
@@ -559,7 +574,7 @@ namespace UnityEngine.Rendering.Universal
 
         void ClearRenderingState(CommandBuffer cmd)
         {
-            using var profScope = UniversalProfilingCache.GetGPUScope(cmd, "ClearRenderingState");
+            using var profScope = UniversalProfilingCache.GetGPUCPUScope(cmd, "ClearRenderingState");
 
             // Reset per-camera shader keywords. They are enabled depending on which render passes are executed.
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadows);
@@ -605,7 +620,6 @@ namespace UnityEngine.Rendering.Universal
 
         void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass, ref RenderingData renderingData)
         {
-            // TODO: pass cmd here?
             using var profScope = new ProfilingScope(null, renderPass.profilingSampler);
 
             ref CameraData cameraData = ref renderingData.cameraData;
@@ -613,7 +627,6 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get();
 
             // Track CPU only as GPU markers for this scope was "too noisy".
-            //using (new ProfilingScope(cmd, m_ProfilingSetRenderTarget))
             using (UniversalProfilingCache.GetCPUScope(UniversalProfilingCache.RenderPass.Configure))
             {
                 renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
@@ -940,7 +953,7 @@ namespace UnityEngine.Rendering.Universal
         void InternalStartRendering(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (UniversalProfilingCache.GetGPUScope(cmd,"InternalStartRendering"))
+            using (UniversalProfilingCache.GetGPUCPUScope(cmd,"InternalStartRendering"))
             {
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
                 {
@@ -955,7 +968,7 @@ namespace UnityEngine.Rendering.Universal
         void InternalFinishRendering(ScriptableRenderContext context, bool resolveFinalTarget)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (UniversalProfilingCache.GetGPUScope(cmd,"InternalFinishRendering"))
+            using (UniversalProfilingCache.GetGPUCPUScope(cmd,"InternalFinishRendering"))
             {
 
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)

@@ -35,8 +35,7 @@ namespace UnityEngine.Rendering.Universal
     internal static class UniversalProfilingCache
     {
         private static Dictionary<string, ProfilingSampler> m_StringSamplerCache = new Dictionary<string, ProfilingSampler>();
-        private static Dictionary<int, ProfilingSampler>    m_IntSamplerCache    = new Dictionary<int, ProfilingSampler>();
-        private static Dictionary<int, ProfilingSampler>    m_CameraSamplerCache = new Dictionary<int, ProfilingSampler>();
+        private static Dictionary<int, ProfilingSampler>    m_HashSamplerCache   = new Dictionary<int, ProfilingSampler>();
 
         // A static (fast) fallback profiling name.
         public static readonly ProfilingSampler m_UnknownSampler = new ProfilingSampler("Unknown");
@@ -50,20 +49,20 @@ namespace UnityEngine.Rendering.Universal
         // Creates a ProfilingScope for immediate CPU profiling only.
         // "Inl_" CPU time outside of any command buffers.
         // TODO: should we add a verbosity level? something like GetCPUScope(string name, ProfilingVerbosity verbosity = default)
-        public static ProfilingScope GetCPUScope(string scopeName)
+        public static ProfilingScope GetCPUScope(ProfilingSampler scopeSampler)
         {
-            return new ProfilingScope(null, TryGetOrAddSampler(scopeName));
+            return new ProfilingScope(null, scopeSampler);
         }
 
         // Creates a ProfilingScope for GPU and CPU profiling into a command buffer.
         // Which show the GPU and the CPU time for executing the command buffer.
         // Also creates "Inl_" CPU time scope outside of the command buffer.
-        public static ProfilingScope GetGPUScope(CommandBuffer cmd, string scopeName)
+        public static ProfilingScope GetGPUCPUScope(CommandBuffer cmd, ProfilingSampler scopeSampler)
         {
-            return new ProfilingScope(cmd, TryGetOrAddSampler(scopeName));
+            return new ProfilingScope(cmd, scopeSampler);
         }
 
-        // Creates an "immediate" CPU scope named by an enum.
+        // Creates an enum named "immediate" CPU scope.
         // Use 'URPProfileId' enum type to track the scope in the performance test framework.
         public static ProfilingScope GetCPUScope<TEnum>(TEnum scopeId)
             where TEnum : Enum
@@ -71,34 +70,46 @@ namespace UnityEngine.Rendering.Universal
             return new ProfilingScope(null, ProfilingSampler.Get(scopeId));
         }
 
-        // Creates a GPU + CPU scope named by an enum into a command buffer.
+        // Creates an enum named GPU + CPU scope into a command buffer.
         // Use 'URPProfileId' enum type to track the scope in the performance test framework.
-        public static ProfilingScope GetGPUScope<TEnum>(CommandBuffer cmd, TEnum scopeId)
+        public static ProfilingScope GetGPUCPUScope<TEnum>(CommandBuffer cmd, TEnum scopeId)
             where TEnum : Enum
         {
             return new ProfilingScope(cmd, ProfilingSampler.Get(scopeId));
         }
 
-        // Creates an "immediate" CPU scope using a existing sampler
-        public static ProfilingScope GetCPUScope(ProfilingSampler scopeSampler)
+        // Creates a cached string named "immediate" CPU scope
+        public static ProfilingScope GetCPUScope(string scopeName)
         {
-            return new ProfilingScope(null, scopeSampler);
+            return new ProfilingScope(null, TryGetOrAddSampler(scopeName));
         }
 
-        // Creates a GPU + CPU scope into a command buffer using existing sampler
-        public static ProfilingScope GetGPUScope(CommandBuffer cmd, ProfilingSampler scopeSampler)
+        // Creates a cached string named GPU + CPU scope into a command buffer
+        public static ProfilingScope GetGPUCPUScope(CommandBuffer cmd, string scopeName)
         {
-            return new ProfilingScope(cmd, scopeSampler);
+            return new ProfilingScope(cmd, TryGetOrAddSampler(scopeName));
         }
 
-        // CPU "immediate" scope using a separate key (any object hash) and two-part dynamic name of form "categoryName + detailName".
+        // Creates a cached "immediate" CPU scope using a reflected method
+        public static ProfilingScope GetCPUScope(System.Reflection.MethodBase method)
+        {
+            return new ProfilingScope(null, TryGetOrAddSampler(method));
+        }
+
+        // Creates a cached GPU + CPU scope into a command buffer using a reflected method
+        public static ProfilingScope GetGPUCPUScope(CommandBuffer cmd, System.Reflection.MethodBase method)
+        {
+            return new ProfilingScope(cmd, TryGetOrAddSampler(method));
+        }
+
+        // Creates a cached CPU "immediate" scope using a a generic hash key and two-part dynamic name of form "categoryName.detailName".
         public static ProfilingScope GetCPUScope(int hashKey, string categoryName, string detailName)
         {
             return new ProfilingScope(null, TryGetOrAddSampler(hashKey, categoryName, detailName));
         }
 
-        // GPU + CPU command-buffer scope using a separate key (any object hash) and two-part dynamic name of form "categoryName + detailName".
-        public static ProfilingScope GetGPUScope(CommandBuffer cmd, int hashKey, string categoryName, string detailName)
+        // Creates a cached GPU + CPU command-buffer scope using a generic hash key and two-part dynamic name of form "categoryName.detailName".
+        public static ProfilingScope GetGPUCPUScope(CommandBuffer cmd, int hashKey, string categoryName, string detailName)
         {
             return new ProfilingScope(cmd, TryGetOrAddSampler(hashKey, categoryName, detailName));
         }
@@ -144,15 +155,32 @@ namespace UnityEngine.Rendering.Universal
                 return m_UnknownSampler;
             #else
                 ProfilingSampler ps = null;
-                bool exists = m_IntSamplerCache.TryGetValue(hashKey, out ps);
+                bool exists = m_HashSamplerCache.TryGetValue(hashKey, out ps);
                 if (!exists)
                 {
-                    ps = new ProfilingSampler( categoryName + detailName);
-                    m_IntSamplerCache.Add(hashKey, ps);
+                    ps = new ProfilingSampler( categoryName + "." + detailName);
+                    m_HashSamplerCache.Add(hashKey, ps);
                 }
 
                 return ps;
             #endif
+        }
+
+        // Get a cached ProfilingSampler from reflected method
+        public static ProfilingSampler TryGetOrAddSampler(System.Reflection.MethodBase method)
+        {
+            ProfilingSampler ps = null;
+            var hashKey = method.GetHashCode();
+            bool exists = m_HashSamplerCache.TryGetValue(hashKey, out ps);
+            if (!exists)
+            {
+                // NOTE: everything except hashKey in methodBase allocates!
+                var type = method.ReflectedType;
+                ps = new ProfilingSampler( (type == null ? "" : type.Name) + "." + method.Name);
+                m_HashSamplerCache.Add(hashKey, ps);
+            }
+
+            return ps;
         }
 
         // Specialization for camera loop to avoid allocations.
@@ -160,12 +188,12 @@ namespace UnityEngine.Rendering.Universal
         {
             ProfilingSampler ps = null;
             int cameraId = camera.GetHashCode();
-            bool exists = m_CameraSamplerCache.TryGetValue(cameraId, out ps);
+            bool exists = m_HashSamplerCache.TryGetValue(cameraId, out ps);
             if (!exists)
             {
                 // NOTE: camera.name allocates
                 ps = new ProfilingSampler( "RenderSingleCamera: " + camera.name);
-                m_CameraSamplerCache.Add(cameraId, ps);
+                m_HashSamplerCache.Add(cameraId, ps);
             }
 
             return ps;
@@ -427,7 +455,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 renderer.Clear(cameraData.renderType);
 
-                using (UniversalProfilingCache.GetGPUScope( cmd, UniversalProfilingCache.Renderer.SetupCullingParameters))
+                using (UniversalProfilingCache.GetGPUCPUScope( cmd, UniversalProfilingCache.Renderer.SetupCullingParameters))
                 {
                     renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
                 }
@@ -451,7 +479,7 @@ namespace UnityEngine.Rendering.Universal
                     ApplyAdaptivePerformance(ref renderingData);
 #endif
 
-                using (UniversalProfilingCache.GetGPUScope(cmd, UniversalProfilingCache.Renderer.Setup))
+                using (UniversalProfilingCache.GetGPUCPUScope(cmd, UniversalProfilingCache.Renderer.Setup))
                 {
                     renderer.Setup(context, ref renderingData);
                 }
