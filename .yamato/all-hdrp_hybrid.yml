@@ -10,13 +10,6 @@ All_HDRP_Hybrid_trunk:
          rerun: on-new-revision
       -  path: .yamato/hdrp_hybrid-win-dx11.yml#HDRP_Hybrid_Win_DX11_playmode_XR_trunk
          rerun: on-new-revision
-All_HDRP_Hybrid_fast-trunk:
-    name: All HDRP_Hybrid CI - fast-trunk
-    dependencies:
-      -  path: .yamato/hdrp_hybrid-win-dx11.yml#HDRP_Hybrid_Win_DX11_playmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp_hybrid-win-dx11.yml#HDRP_Hybrid_Win_DX11_playmode_XR_fast-trunk
-         rerun: on-new-revision
 All_HDRP_Hybrid_CUSTOM-REVISION:
     name: All HDRP_Hybrid CI - CUSTOM-REVISION
     dependencies:
