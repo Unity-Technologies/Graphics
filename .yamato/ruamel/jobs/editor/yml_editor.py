@@ -11,14 +11,39 @@ def create_editor_yml(metafile):
 
     yml_files = {}
 
+    #### editor priming jobs
     yml = {}
     for platform in metafile["platforms"]:
         for editor in metafile['editors']:
-            job = Editor_PrimingJob(platform, editor, metafile["agent"])
+            job = Editor_PrimingJob(platform, editor, metafile["editor_priming_agent"])
             yml[job.job_id] = job.yml
         
         job = Editor_PrimingMinEditorJob(platform, metafile["editor_priming_agent"])
         yml[job.job_id] = job.yml
 
-    yml_files[editor_filepath()] = yml
+    yml_files[editor_priming_filepath()] = yml
+
+
+    #### editor pinning jobs
+    yml = {}
+
+    # sync job
+    job = Editor_PinningTargetToCIJob(metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"])
+    yml[job.job_id] = job.yml 
+
+    job = Editor_PinningUpdateJob(metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"])
+    yml[job.job_id] = job.yml
+
+    # manual 
+    job = Editor_PinningMergeRevisionsJob(metafile["target_editor"], metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"])
+    yml[job.job_id] = job.yml 
+    
+    # ci flow
+    job = Editor_PinningMergeRevisionsABVJob(metafile["target_editor"], metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"])
+    yml[job.job_id] = job.yml 
+
+
+    yml_files[editor_pinning_filepath()] = yml
+
+
     return yml_files
