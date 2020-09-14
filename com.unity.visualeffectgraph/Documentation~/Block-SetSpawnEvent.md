@@ -14,16 +14,16 @@ This Block is compatible with the following Contexts:
 
 | **Input**       | **Type** | **Description**                                              |
 | --------------- | -------- | ------------------------------------------------------------ |
-| **Attribute**   | Enum     | **(Inspector)** Specifies the attribute to set the value for. The list of options contains |
+| **Attribute**   | Enum     | **(Inspector)** Specifies the attribute to set the value for. |
 | **Random Mode** | Enum     | **(Inspector)** Determines whether and how the system randomises the value of the attribute. The options are:<br/>&#8226; **Off**: Does not calculate a random value for the attribute. Uses the value you provide in the input directly.<br/>&#8226; **Per Component**: Calculates a random value for each of the attribute's components.<br/>&#8226; **Uniform**: Calculates a single random value and uses it for all of the attribute's components. |
 
 ## Block properties
 
-| **Input**            | **Type**                 | **Description**                                              |
-| -------------------- | ------------------------ | ------------------------------------------------------------ |
-| **<Attribute name>** | Depends on the attribute | The value to set the attribute.                              |
-| **Min**              | Depends on the attribute | The minimum value this Block can set the attribute to.<br/>This property only appears if you set **Random Mode** to **Per Component** or **Uniform**. |
-| **Max**              | Depends on the attribute | The maximum value this Block can set the attribute to.<br/>This property only appears if you set **Random Mode** to **Per Component** or **Uniform**. |
+| **Input**             | **Type**                 | **Description**                                              |
+| --------------------- | ------------------------ | ------------------------------------------------------------ |
+| **\<Attribute name>** | Depends on the attribute | The value to set the attribute.<br/>This property only appears if you set **Random Mode** to **Off**. |
+| **Min**               | Depends on the attribute | The minimum value this Block can set the attribute to.<br/>This property only appears if you set **Random Mode** to **Per Component** or **Uniform**. |
+| **Max**               | Depends on the attribute | The maximum value this Block can set the attribute to.<br/>This property only appears if you set **Random Mode** to **Per Component** or **Uniform**. |
 
 
 ## Remarks
