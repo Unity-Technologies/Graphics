@@ -304,7 +304,7 @@ MonoBehaviour:
       perChannelMask: 1
     postProcessSettings:
       m_LutSize: 32
-      lutFormat: 52
+      lutFormat: 48
       bufferFormat: 74
     dynamicResolutionSettings:
       enabled: 0

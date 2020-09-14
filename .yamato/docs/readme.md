@@ -67,6 +67,30 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
     - Each of these files contains functions for 3 commandsets (for standalone, standalone_build, not_standalone), which are then used according to which job is being created. 
     - The mapping of which commands to use for which platform is done under _cmd_mapper.py. This also makes it easy to switch the set of commands for a specific platform, such as to switch to new split built/test, without completely losing the old solution.
 
+## Editor priming vs editor pinning
+- Editor priming:
+    - Gets the editor in a separate job to save on the compute resources, stores the editor version in a .txt file which is then picked up by the parent job which calls unity-downloader-cli
+    - Still used for custom-revision jobs, because we don't want to hold on to expensive compute resources the job itself requires, while waiting for the editor 
+- Editor pinning:
+    - Updates editor revisions (`config/_latest_editor_versions.metafile`) on a nightly basis, on the condition that ABV passes. All our jobs (ABV, nightly etc) use revisions from this file (specifically `[track]_latest_internal`). This way, if e.g. trunk breaks, it is discovered by the nightly update job (and revisions for this platform won't be updated), and we continue using the latest working revision, until a new working one becomes available.
+    - Merge job postfixed with ABV refer to the automated flow (branch trigger + ABV dependency). The one without ABV is for manual run (no triggers or ABV dependency), in case ABV blocks us from updating revisions
+    - What to pay attention to (especially when setting up on another branch): target and ci branches are correct, last revision is correct, ci branch exists (should be created manually by branching out from target)
+    - Renamed `merge-to-target` to `merge-revisions`, and `merge-from-target` to `target-to-ci`
+    
+    - ![Editor pinning flow](editor_pinning.png)
+- Running editor pinning locally:
+  - Make sure you have the latest version of unity-downloader-cli
+  - Update job: `python .yamato\ruamel\editor_pinning\update_revisions.py --target-branch [localbranch] --local`
+    - _--local_ flag specifies that no git pull/push/commit gets executed
+    - _--target-branch_ would usually correspond to CI branch, but when running locally, just set it to the one you have checked out locally
+    - This job updates `_latest_editor_versions.metafile` locally, and also runs `build.py` again to regenerate all ymls with the updated revisions. You can either keep all of the latest revisions, or only the ones you want, and rerun ymls. Once ready, merge like normal PR (i.e. no need to run the merge_revisions job)
+  - Merge job: `python .yamato\ruamel\editor_pinning\merge_revisions.py --target-branch [targetbranch] --local --revision [git sha]`
+    - _--local_ flag skips checkout/pull of the target branch (but still makes commit on the currently checkout branch, if there is something to commit)
+    - _--target-branch_ the target branch into which the revisions get merged to from the ci branch (after jobs passed on ci branch, when CI context used). But due to the local flag, this branch won't get checked out/pulled.
+    - _--revision_ the git SHA of the updated revisions commit (the one made on the ci branch by update job). The job runs `git diff HEAD..[revision] -- [path]`, i.e. diff between the current checked out branch vs that SHA (revision). (The _path_ corresponds to yml files or the latest editor versions metafile, but this is already setup within the job). Therefore the merge job only cares about these two paths, and will not merge other changes. This works, because in general, if merge job gets triggered, then CI branch is 1 commit ahead of target branch (which is the updated revisions commit).
+    - In general there is no need to run this file locally. It is only handy when wanting to test the script for syntax errors/functionality etc.
+
+
 # FAQ
 
 - How is Nightly ABV set up (all_project_ci_nightly)? Nightly contains the normal ABV (all_project_ci), smoke tests, plus any additional jobs specified in the _abv.metafile under nightly extra dependencies.
