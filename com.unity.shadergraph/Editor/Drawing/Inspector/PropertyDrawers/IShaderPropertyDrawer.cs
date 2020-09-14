@@ -23,4 +23,4 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
     {
         internal void HandlePropertyField(PropertySheet propertySheet, PreChangeValueCallback preChangeValueCallback, PostChangeValueCallback postChangeValueCallback);
     }
-}
+} 
