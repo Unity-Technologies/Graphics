@@ -84,12 +84,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
         }
 
-        static readonly GUID kTargetSourceCodeGuid = new GUID("c09e6e9062cbd5a48900c48a0c2ed1c2");  // HDSubTarget.cs
+        static readonly GUID kSourceCodeGuid = new GUID("c09e6e9062cbd5a48900c48a0c2ed1c2");  // HDSubTarget.cs
 
         public override void Setup(ref TargetSetupContext context)
         {
-            context.AddAssetSourceDependency(kTargetSourceCodeGuid);
-            context.AddAssetSourceDependency(subTargetAssetGuid);
+            context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
+            context.AddAssetDependency(subTargetAssetGuid, AssetCollection.Flags.SourceDependency);
             context.SetDefaultShaderGUI(customInspector);
 
             if (migrationSteps.Migrate(this))

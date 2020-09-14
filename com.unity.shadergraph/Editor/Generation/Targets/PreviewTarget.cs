@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph
 {
     sealed class PreviewTarget : Target
     {
-        static readonly GUID kAssetGuid = new GUID("7464b9fcde08e5645a16b9b8ae1e573c"); // PreviewTarget.cs
+        static readonly GUID kSourceCodeGuid = new GUID("7464b9fcde08e5645a16b9b8ae1e573c"); // PreviewTarget.cs
 
         public PreviewTarget()
         {
@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void Setup(ref TargetSetupContext context)
         {
-            context.AddAssetSourceDependency(kAssetGuid);       // not sure if Artifact Dependencies work on .cs files...
+            context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             context.AddSubShader(SubShaders.Preview);
         }
 

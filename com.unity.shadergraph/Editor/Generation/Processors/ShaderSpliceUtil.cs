@@ -82,7 +82,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         GUID guid = AssetDatabase.GUIDFromAssetPath(filePath);
                         if (!guid.Empty())
-                            assetCollection.AddAssetSourceDependency(guid);
+                            assetCollection.AddAssetDependency(guid, AssetCollection.Flags.SourceDependency);
                     }
 
                     string[] templateLines = File.ReadAllLines(filePath);

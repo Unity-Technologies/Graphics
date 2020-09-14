@@ -49,11 +49,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return hash;
         }
 
-        static readonly GUID kTargetSourceCodeGuid = new GUID("f4df7e8f9b8c23648ae50cbca0221e47"); // SurfaceSubTarget.cs
+        static readonly GUID kSourceCodeGuid = new GUID("f4df7e8f9b8c23648ae50cbca0221e47"); // SurfaceSubTarget.cs
 
         public override void Setup(ref TargetSetupContext context)
         {
-            context.AddAssetSourceDependency(kTargetSourceCodeGuid);
+            context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             base.Setup(ref context);
         }
 

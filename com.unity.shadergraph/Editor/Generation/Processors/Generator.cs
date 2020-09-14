@@ -136,7 +136,7 @@ namespace UnityEditor.ShaderGraph
 
                 for(int i = 0; i < m_Targets.Length; i++)
                 {
-                    TargetSetupContext context = new TargetSetupContext(m_assetCollection); // m_AssetDependencyGUIDs);
+                    TargetSetupContext context = new TargetSetupContext(m_assetCollection);
 
                     // Instead of setup target, we can also just do get context
                     m_Targets[i].Setup(ref context);

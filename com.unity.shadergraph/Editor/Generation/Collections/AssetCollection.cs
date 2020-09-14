@@ -9,23 +9,39 @@ namespace UnityEditor.ShaderGraph
     // this data is used to automatically re-import the shadergraphs or subgraphs when any of the tracked files change
     public class AssetCollection
     {
-        public HashSet<GUID> assetSourceDependencyGUIDs = new HashSet<GUID>();
-        public HashSet<GUID> assetArtifactDependencyGUIDs = new HashSet<GUID>();
+        [Flags]
+        public enum Flags
+        {
+            SourceDependency =          1 << 0,     // ShaderGraph directly reads the source file in the Assets directory
+            ArtifactDependency =        1 << 1,     // ShaderGraph reads the import result artifact (i.e. subgraph import)
+            IsSubGraph =                1 << 2,     // This asset is a SubGraph (used when we need to get multiple levels of dependencies)
+            IncludeInExportPackage =    1 << 3      // This asset should be pulled into any .unitypackages built via "Export Package.."
+        }
+
+        public Dictionary<GUID, Flags> assets = new Dictionary<GUID, Flags>();
+
+        public IEnumerable<GUID> assetGUIDs { get { return assets.Keys; } }
 
         public AssetCollection()
         {
         }
 
-        // these are assets that we read the source files directly (directly reading the file out of the Assets directory)
-        public void AddAssetSourceDependency(GUID assetGUID)
+        public void Clear()
         {
-            assetSourceDependencyGUIDs.Add(assetGUID);
+            assets.Clear();
         }
 
-        // these are asstes that we read the imported result (via LoadAssetAtPath or similar)
-        public void AddAssetArtifactDependency(GUID assetGUID)
+        // these are assets that we read the source files directly (directly reading the file out of the Assets directory)
+        public void AddAssetDependency(GUID assetGUID, Flags flags)
         {
-            assetArtifactDependencyGUIDs.Add(assetGUID);
+            if (assets.TryGetValue(assetGUID, out Flags existingFlags))
+            {
+                assets[assetGUID] = existingFlags | flags;
+            }
+            else
+            {
+                assets.Add(assetGUID, flags);
+            }
         }
     }
 }

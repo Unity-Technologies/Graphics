@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
     sealed class UniversalSpriteLitSubTarget : SubTarget<UniversalTarget>, ILegacyTarget
     {
-        static readonly GUID kAssetGuid = new GUID("ea1514729d7120344b27dcd67fbf34de"); // UniversalSpriteLitSubTarget.cs
+        static readonly GUID kSourceCodeGuid = new GUID("ea1514729d7120344b27dcd67fbf34de"); // UniversalSpriteLitSubTarget.cs
 
         public UniversalSpriteLitSubTarget()
         {
@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void Setup(ref TargetSetupContext context)
         {
-            context.AddAssetSourceDependency(kAssetGuid);
+            context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             context.AddSubShader(SubShaders.SpriteLit);
         }
 

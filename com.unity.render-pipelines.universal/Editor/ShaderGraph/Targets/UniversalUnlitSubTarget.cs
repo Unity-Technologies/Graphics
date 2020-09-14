@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
     sealed class UniversalUnlitSubTarget : SubTarget<UniversalTarget>, ILegacyTarget
     {
-        static readonly GUID kAssetGuid = new GUID("97c3f7dcb477ec842aa878573640313a"); // UniversalUnlitSubTarget.cs
+        static readonly GUID kSourceCodeGuid = new GUID("97c3f7dcb477ec842aa878573640313a"); // UniversalUnlitSubTarget.cs
 
         public UniversalUnlitSubTarget()
         {
@@ -23,7 +23,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void Setup(ref TargetSetupContext context)
         {
-            context.AddAssetSourceDependency(kAssetGuid);
+            context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
 
             // Process SubShaders
             SubShaderDescriptor[] subShaders = { SubShaders.Unlit, SubShaders.UnlitDOTS };

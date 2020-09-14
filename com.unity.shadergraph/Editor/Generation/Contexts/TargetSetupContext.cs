@@ -22,14 +22,9 @@ namespace UnityEditor.ShaderGraph
             subShaders.Add(subShader);
         }
 
-        public void AddAssetSourceDependency(GUID guid)
+        public void AddAssetDependency(GUID guid, AssetCollection.Flags flags)
         {
-            assetCollection?.AddAssetSourceDependency(guid);
-        }
-
-        public void AddAssetArtifactDependency(GUID guid)
-        {
-            assetCollection?.AddAssetArtifactDependency(guid);
+            assetCollection?.AddAssetDependency(guid, flags);
         }
 
         public void SetDefaultShaderGUI(string defaultShaderGUI)

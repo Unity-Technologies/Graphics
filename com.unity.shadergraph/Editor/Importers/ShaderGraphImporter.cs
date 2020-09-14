@@ -24,9 +24,9 @@ namespace UnityEditor.ShaderGraph
     // sure that all shader graphs get re-imported. Re-importing is required,
     // because the shader graph codegen is different for V2.
     // This ifdef can be removed once V2 is the only option.
-    [ScriptedImporter(103, Extension, -902)]
+    [ScriptedImporter(104, Extension, -902)]
 #else
-    [ScriptedImporter(35, Extension, -902)]
+    [ScriptedImporter(36, Extension, -902)]
 #endif
 
     class ShaderGraphImporter : ScriptedImporter
@@ -82,11 +82,27 @@ Shader ""Hidden/GraphErrorShader2""
             Debug.LogWarning("Gather Dependencies " + assetPath);
             try
             {
-                var depPaths = MinimalGraphData.GetDependencyPaths(assetPath);
-                foreach (var path in depPaths)
-                    Debug.Log(path);
+                AssetCollection assetCollection = new AssetCollection();
+                MinimalGraphData.GatherMinimalDependenciesFromFile(assetPath, assetCollection);
+
+                List<string> dependencyPaths = new List<string>();
+                foreach (var asset in assetCollection.assets)
+                {
+                    // only artifact dependencies need to be declared in GatherDependenciesFromSourceFile
+                    // to force their imports to run before ours
+                    if (asset.Value.HasFlag(AssetCollection.Flags.ArtifactDependency))
+                    {
+                        var dependencyPath = AssetDatabase.GUIDToAssetPath(asset.Key);
+                        Debug.Log("Artifact: " + asset.Key + " " + dependencyPath);
+
+                        // it is unfortunate that we can't declare these dependencies unless they have a path...
+                        // I asked AssetDatabase team for GatherDependenciesFromSourceFileByGUID()
+                        if (!string.IsNullOrEmpty(dependencyPath))
+                            dependencyPaths.Add(dependencyPath);
+                    }
+                }
                 Debug.LogWarning("END Gather Dependencies " + assetPath);
-                return depPaths;
+                return dependencyPaths.ToArray();
             }
             catch (Exception e)
             {
@@ -97,7 +113,7 @@ Shader ""Hidden/GraphErrorShader2""
 
         public override void OnImportAsset(AssetImportContext ctx)
         {
-            Debug.LogWarning("Import Asset " + ctx.assetPath);
+            Debug.LogWarning("Import ShaderGraph " + ctx.assetPath);
             var oldShader = AssetDatabase.LoadAssetAtPath<Shader>(ctx.assetPath);
             if (oldShader != null)
                 ShaderUtil.ClearShaderMessages(oldShader);
@@ -106,6 +122,7 @@ Shader ""Hidden/GraphErrorShader2""
             string path = ctx.assetPath;
 
             AssetCollection assetCollection = new AssetCollection();
+            MinimalGraphData.GatherMinimalDependenciesFromFile(assetPath, assetCollection);
 
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
             var graph = new GraphData
@@ -121,6 +138,8 @@ Shader ""Hidden/GraphErrorShader2""
             if (!graph.isOnlyVFXTarget)
 #endif
             {
+                // build the shader text
+                // this will also add Target dependencies into the asset collection
                 var text = GetShaderText(path, out configuredTextures, assetCollection, graph);
 
 #if UNITY_2021_1_OR_NEWER
@@ -206,31 +225,55 @@ Shader ""Hidden/GraphErrorShader2""
             var sgMetadata = ScriptableObject.CreateInstance<ShaderGraphMetadata>();
             sgMetadata.hideFlags = HideFlags.HideInHierarchy;
             sgMetadata.assetDependencies = new List<UnityEngine.Object>();
-            var deps = GatherDependenciesFromSourceFile(ctx.assetPath);
-            foreach (string dependency in deps)
+
+            foreach (var asset in assetCollection.assets)
             {
-                Debug.Log("ByPath: " + dependency);
-                sgMetadata.assetDependencies.Add(AssetDatabase.LoadAssetAtPath(dependency, typeof(UnityEngine.Object)));
+                if (asset.Value.HasFlag(AssetCollection.Flags.IncludeInExportPackage))
+                {
+                    // this sucks that we have to fully load these assets just to set the reference,
+                    // which then gets serialized as the GUID that we already have here.  :P
+
+                    var dependencyPath = AssetDatabase.GUIDToAssetPath(asset.Key);
+                    if (!string.IsNullOrEmpty(dependencyPath))
+                    {
+                        Debug.Log("ExportPackage: " + asset.Key + " " + dependencyPath);
+                        sgMetadata.assetDependencies.Add(
+                            AssetDatabase.LoadAssetAtPath(dependencyPath, typeof(UnityEngine.Object)));
+                    }
+                }
             }
             ctx.AddObjectToAsset("SGInternal:Metadata", sgMetadata);
 
-            foreach (GUID sourceAssetDependencyGUID in assetCollection.assetSourceDependencyGUIDs)
+            // declare dependencies
+            foreach (var asset in assetCollection.assets)
             {
-                var assetPath = AssetDatabase.GUIDToAssetPath(sourceAssetDependencyGUID);
-
-                Debug.Log("ByGUID: " + assetPath);
-
-                // Ensure that dependency path is relative to project
-                if (!string.IsNullOrEmpty(assetPath) && !assetPath.StartsWith("Packages/") && !assetPath.StartsWith("Assets/"))
+                if (asset.Value.HasFlag(AssetCollection.Flags.SourceDependency))
                 {
-                    Debug.LogWarning($"Invalid dependency path: {assetPath}", mainObject);
-                    continue;
+                    ctx.DependsOnSourceAsset(asset.Key);
+
+                    // TODO: I think I can get rid of this stuff below
+                    var assetPath = AssetDatabase.GUIDToAssetPath(asset.Key);
+                    Debug.Log("SourceAsset: " + asset.Key + " " + assetPath);
+
+                    // Ensure that dependency path is relative to project
+                    if (!string.IsNullOrEmpty(assetPath) && !assetPath.StartsWith("Packages/") && !assetPath.StartsWith("Assets/"))
+                    {
+                        Debug.LogWarning($"Invalid dependency path: {assetPath}", mainObject);
+                    }
                 }
 
-                ctx.DependsOnSourceAsset(sourceAssetDependencyGUID);
+                // NOTE: dependencies declared by GatherDependenciesFromSourceFile are automatically registered as artifact dependencies
+                // HOWEVER: that path ONLY grabs dependencies via MinimalGraphData, and will fail to register dependencies
+                // on GUIDs that don't exist in the project.  For both of those reasons, we re-declare the dependencies here.
+                if (asset.Value.HasFlag(AssetCollection.Flags.ArtifactDependency))
+                {
+                    var assetPath = AssetDatabase.GUIDToAssetPath(asset.Key);
+                    Debug.Log("Artifact: " + asset.Key + " " + assetPath);
+                    ctx.DependsOnArtifact(asset.Key);
+                }
             }
 
-            Debug.LogWarning("END Import Asset " + ctx.assetPath);
+            Debug.LogWarning("END Import ShaderGraph " + ctx.assetPath);
         }
 
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, AssetCollection assetCollection, GraphData graph)
