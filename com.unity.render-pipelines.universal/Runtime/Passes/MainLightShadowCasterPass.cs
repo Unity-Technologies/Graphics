@@ -67,9 +67,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public bool Setup(ref RenderingData renderingData)
         {
-#if UNITY_2020_2_OR_NEWER
             using var profScope = new ProfilingScope(null, m_ProfilingSetupSampler);
-#endif
 
             if (!renderingData.shadowData.supportsMainLightShadows)
                 return false;

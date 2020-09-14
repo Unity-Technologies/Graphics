@@ -304,10 +304,8 @@ namespace UnityEngine.Rendering.Universal
             // TODO: Would be better to add Profiling name hooks into RenderPipelineManager.
             // TODO: This is a C# 8.0 feature, supported in Unity 2020.2, but are much cleaner. Perhaps ifdef these out from previous versions,
             // TODO: all the previous and some of the new scopes would still be present.
-#if UNITY_2020_2_OR_NEWER
             // C#8 feature, only in >= 2020.2
             using var profScope = UniversalProfilingCache.GetCPUScope(URPProfileId.UniversalRenderTotal);
-#endif
 
             // TODO: Would be better to add Profiling name hooks into RenderPipeline.cs
             using(new ProfilingScope(null, UniversalProfilingCache.Pipeline.beginFrameRendering))
@@ -486,9 +484,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="camera">Camera to render.</param>
         static void RenderCameraStack(ScriptableRenderContext context, Camera baseCamera)
         {
-#if UNITY_2020_2_OR_NEWER
             using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.RenderCameraStack));
-#endif
 
             baseCamera.TryGetComponent<UniversalAdditionalCameraData>(out var baseCameraAdditionalData);
 
@@ -666,9 +662,7 @@ namespace UnityEngine.Rendering.Universal
 
         static void UpdateVolumeFramework(Camera camera, UniversalAdditionalCameraData additionalCameraData)
         {
-#if UNITY_2020_2_OR_NEWER
             using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.UpdateVolumeFramework));
-#endif
 
             // Default values when there's no additional camera data available
             LayerMask layerMask = 1; // "Default"
@@ -737,9 +731,8 @@ namespace UnityEngine.Rendering.Universal
 
         static void InitializeCameraData(Camera camera, UniversalAdditionalCameraData additionalCameraData, bool resolveFinalTarget, out CameraData cameraData)
         {
-#if UNITY_2020_2_OR_NEWER
             using var profScope = UniversalProfilingCache.GetCPUScope("InitializeCameraData");
-#endif
+
             cameraData = new CameraData();
             InitializeStackedCameraData(camera, additionalCameraData, ref cameraData);
             InitializeAdditionalCameraData(camera, additionalCameraData, resolveFinalTarget, ref cameraData);
@@ -754,9 +747,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cameraData">Camera data to initialize setttings.</param>
         static void InitializeStackedCameraData(Camera baseCamera, UniversalAdditionalCameraData baseAdditionalCameraData, ref CameraData cameraData)
         {
-#if UNITY_2020_2_OR_NEWER
             using var profScope = UniversalProfilingCache.GetCPUScope("InitializeStackedCameraData");
-#endif
 
             var settings = asset;
             cameraData.targetTexture = baseCamera.targetTexture;
@@ -850,9 +841,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cameraData">Settings to be initilized.</param>
         static void InitializeAdditionalCameraData(Camera camera, UniversalAdditionalCameraData additionalCameraData, bool resolveFinalTarget, ref CameraData cameraData)
         {
-#if UNITY_2020_2_OR_NEWER
             using var profScope = UniversalProfilingCache.GetCPUScope("InitializeAdditionalCameraData");
-#endif
 
             var settings = asset;
             cameraData.camera = camera;
@@ -936,9 +925,7 @@ namespace UnityEngine.Rendering.Universal
         static void InitializeRenderingData(UniversalRenderPipelineAsset settings, ref CameraData cameraData, ref CullingResults cullResults,
             bool anyPostProcessingEnabled, out RenderingData renderingData)
         {
-#if UNITY_2020_2_OR_NEWER
             using var profScope = UniversalProfilingCache.GetCPUScope("InitializeRenderingData");
-#endif
 
             var visibleLights = cullResults.visibleLights;
 
@@ -983,9 +970,7 @@ namespace UnityEngine.Rendering.Universal
 
         static void InitializeShadowData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, bool mainLightCastShadows, bool additionalLightsCastShadows, out ShadowData shadowData)
         {
-#if UNITY_2020_2_OR_NEWER
             using var profScope = UniversalProfilingCache.GetCPUScope("InitializeShadowData");
-#endif
 
             m_ShadowBiasData.Clear();
 
@@ -1063,9 +1048,7 @@ namespace UnityEngine.Rendering.Universal
 
         static void InitializeLightData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, int mainLightIndex, out LightData lightData)
         {
-#if UNITY_2020_2_OR_NEWER
             using var profScope = UniversalProfilingCache.GetCPUScope("InitializeLightData");
-#endif
 
             int maxPerObjectAdditionalLights = UniversalRenderPipeline.maxPerObjectLights;
             int maxVisibleAdditionalLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
@@ -1144,9 +1127,7 @@ namespace UnityEngine.Rendering.Universal
 
         static void SetupPerFrameShaderConstants()
         {
-#if UNITY_2020_2_OR_NEWER
             using var profScope = UniversalProfilingCache.GetCPUScope("SetupPerFrameShaderConstants");
-#endif
 
             // When glossy reflections are OFF in the shader we set a constant color to use as indirect specular
             SphericalHarmonicsL2 ambientSH = RenderSettings.ambientProbe;

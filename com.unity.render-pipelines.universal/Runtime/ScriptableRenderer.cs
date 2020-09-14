@@ -100,9 +100,8 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cameraData">CameraData containing camera matrices information.</param>
         void SetPerCameraShaderVariables(CommandBuffer cmd, ref CameraData cameraData)
         {
-#if UNITY_2020_2_OR_NEWER
             using var profScope = UniversalProfilingCache.GetGPUScope(cmd, "SetPerCameraShaderVariables");
-#endif
+
             Camera camera = cameraData.camera;
 
             Rect pixelRect = cameraData.pixelRect;
@@ -560,9 +559,8 @@ namespace UnityEngine.Rendering.Universal
 
         void ClearRenderingState(CommandBuffer cmd)
         {
-#if UNITY_2020_2_OR_NEWER
             using var profScope = UniversalProfilingCache.GetGPUScope(cmd, "ClearRenderingState");
-#endif
+
             // Reset per-camera shader keywords. They are enabled depending on which render passes are executed.
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadows);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadowCascades);
@@ -608,9 +606,8 @@ namespace UnityEngine.Rendering.Universal
         void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass, ref RenderingData renderingData)
         {
             // TODO: pass cmd here?
-#if UNITY_2020_2_OR_NEWER
             using var profScope = new ProfilingScope(null, renderPass.profilingSampler);
-#endif
+
             ref CameraData cameraData = ref renderingData.cameraData;
 
             CommandBuffer cmd = CommandBufferPool.Get();
@@ -916,9 +913,7 @@ namespace UnityEngine.Rendering.Universal
         [Conditional("UNITY_EDITOR")]
         void DrawWireOverlay(ScriptableRenderContext context, Camera camera)
         {
-#if UNITY_EDITOR && UNITY_2020_2_OR_NEWER
             context.DrawWireOverlay(camera);
-#endif
         }
 
         // Fill in render pass indices for each block. End index is startIndex + 1.

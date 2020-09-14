@@ -136,9 +136,7 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-#if UNITY_2020_2_OR_NEWER
             using var profScope = new ProfilingScope(null, m_ProfilingSetup);
-#endif
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             bool needTransparencyPass = !UniversalRenderPipeline.asset.useAdaptivePerformance || !AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipTransparentObjects;
@@ -416,9 +414,7 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-#if UNITY_2020_2_OR_NEWER
             using var profScope = UniversalProfilingCache.GetCPUScope("ForwardRenderer.SetupLights");
-#endif
 
             m_ForwardLights.Setup(context, ref renderingData);
         }
@@ -427,9 +423,7 @@ namespace UnityEngine.Rendering.Universal
         public override void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters,
             ref CameraData cameraData)
         {
-#if UNITY_2020_2_OR_NEWER
             using var profScope = UniversalProfilingCache.GetCPUScope("ForwardRenderer.SetupCullingParameters");
-#endif
 
             // TODO: PerObjectCulling also affect reflection probes. Enabling it for now.
             // if (asset.additionalLightsRenderingMode == LightRenderingMode.Disabled ||
