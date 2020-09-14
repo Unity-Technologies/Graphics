@@ -148,7 +148,12 @@ namespace UnityEngine.Rendering.Universal
 
             if (renderer != null)
             {
-                bool renderingToTexture = renderer.cameraColorTarget != BuiltinRenderTextureType.CameraTarget || targetTexture != null;
+                bool renderingToBackBufferTarget = renderer.cameraColorTarget == BuiltinRenderTextureType.CameraTarget;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (xr.enabled)
+                    renderingToBackBufferTarget |= renderer.cameraColorTarget == xr.renderTarget && !xr.renderTargetIsRenderTexture;
+#endif
+                bool renderingToTexture = !renderingToBackBufferTarget || targetTexture != null;
                 return SystemInfo.graphicsUVStartsAtTop && renderingToTexture;
             }
 
@@ -326,6 +331,13 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _POINT = "_POINT";
         public static readonly string _DEFERRED_ADDITIONAL_LIGHT_SHADOWS = "_DEFERRED_ADDITIONAL_LIGHT_SHADOWS";
         public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
+        public static readonly string LIGHTMAP_ON = "LIGHTMAP_ON";
+        public static readonly string _ALPHATEST_ON = "_ALPHATEST_ON";
+        public static readonly string DIRLIGHTMAP_COMBINED = "DIRLIGHTMAP_COMBINED";
+        public static readonly string _DETAIL_MULX2 = "_DETAIL_MULX2";
+        public static readonly string _DETAIL_SCALED = "_DETAIL_SCALED";
+        public static readonly string _CLEARCOAT = "_CLEARCOAT";
+        public static readonly string _CLEARCOATMAP = "_CLEARCOATMAP";
 
         // XR
         public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";
@@ -414,21 +426,8 @@ namespace UnityEngine.Rendering.Universal
                 desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
                 desc.width = (int)((float)desc.width * renderScale);
                 desc.height = (int)((float)desc.height * renderScale);
-            }
-            else
-            {
-                desc = camera.targetTexture.descriptor;
-            }
 
-            if (camera.targetTexture != null)
-            {
-                desc.colorFormat = camera.targetTexture.descriptor.colorFormat;
-                desc.depthBufferBits = camera.targetTexture.descriptor.depthBufferBits;
-                desc.msaaSamples = camera.targetTexture.descriptor.msaaSamples;
-                desc.sRGB = camera.targetTexture.descriptor.sRGB;
-            }
-            else
-            {
+
                 GraphicsFormat hdrFormat;
                 if (!needsAlpha && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
                     hdrFormat = GraphicsFormat.B10G11R11_UFloatPack32;
@@ -441,6 +440,15 @@ namespace UnityEngine.Rendering.Universal
                 desc.depthBufferBits = 32;
                 desc.msaaSamples = msaaSamples;
                 desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
+            }
+            else
+            {
+                desc = camera.targetTexture.descriptor;
+                // SystemInfo.SupportsRenderTextureFormat(camera.targetTexture.descriptor.colorFormat)
+                // will assert on R8_SINT since it isn't a valid value of RenderTextureFormat.
+                // If this is fixed then we can implement debug statement to the user explaining why some
+                // RenderTextureFormats available resolves in a black render texture when no warning or error
+                // is given.
             }
 
             desc.enableRandomWrite = false;
@@ -624,6 +632,31 @@ namespace UnityEngine.Rendering.Universal
 
     internal enum URPProfileId
     {
+        // CPU
+        UniversalRenderTotal,
+        UpdateVolumeFramework,
+        RenderCameraStack,
+
+        // GPU
+        AdditionalLightsShadow,
+        ColorGradingLUT,
+        CopyColor,
+        CopyDepth,
+        DepthNormalPrepass,
+        DepthPrepass,
+
+        // DrawObjectsPass
+        DrawOpaqueObjects,
+        DrawTransparentObjects,
+
+        // RenderObjectsPass
+        //RenderObjects,
+
+        MainLightShadow,
+        ResolveShadows,
+        SSAO,
+
+        // PostProcessPass
         StopNaNs,
         SMAA,
         GaussianDepthOfField,
@@ -632,5 +665,7 @@ namespace UnityEngine.Rendering.Universal
         PaniniProjection,
         UberPostProcess,
         Bloom,
+
+        FinalBlit
     }
 }

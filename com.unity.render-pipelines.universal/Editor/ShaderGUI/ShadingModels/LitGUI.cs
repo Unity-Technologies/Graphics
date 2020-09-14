@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Scripting.APIUpdating;
@@ -62,9 +62,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 "\nActs as a multiplier of the clear coat map mask value or as a direct mask value if no map is specified." +
                 "\nThe map specifies clear coat mask in the red channel and clear coat smoothness in the green channel.");
 
-            //public static GUIContent clearCoatSmoothnessText = new GUIContent("Smoothness",
-            //    "Specifies the smoothness of the coating." +
-            //    "\nActs as a multiplier of the clear coat map smoothness value or as a direct smoothness value if no map is specified.");
+            public static GUIContent clearCoatSmoothnessText = new GUIContent("Smoothness",
+                "Specifies the smoothness of the coating." +
+                "\nActs as a multiplier of the clear coat map smoothness value or as a direct smoothness value if no map is specified.");
         }
 
         public struct LitProperties
@@ -93,7 +93,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             public MaterialProperty clearCoat;  // Enable/Disable dummy property
             public MaterialProperty clearCoatMap;
             public MaterialProperty clearCoatMask;
-            //public MaterialProperty clearCoatSmoothness; // TODO: enable
+            public MaterialProperty clearCoatSmoothness;
 
             public LitProperties(MaterialProperty[] properties)
             {
@@ -119,7 +119,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 clearCoat           = BaseShaderGUI.FindProperty("_ClearCoat", properties, false);
                 clearCoatMap        = BaseShaderGUI.FindProperty("_ClearCoatMap", properties, false);
                 clearCoatMask       = BaseShaderGUI.FindProperty("_ClearCoatMask", properties, false);
-                //clearCoatSmoothness = BaseShaderGUI.FindProperty("_ClearCoatSmoothness", properties, false);
+                clearCoatSmoothness = BaseShaderGUI.FindProperty("_ClearCoatSmoothness", properties, false);
             }
         }
 
@@ -127,7 +127,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         {
             DoMetallicSpecularArea(properties, materialEditor, material);
             BaseShaderGUI.DrawNormalArea(materialEditor, properties.bumpMapProp, properties.bumpScaleProp);
-            DoHeightmapArea(properties, materialEditor);
+
+            if (HeightmapAvailable(material))
+                DoHeightmapArea(properties, materialEditor);
 
             if (properties.occlusionMap != null)
             {
@@ -137,14 +139,22 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
             // Check that we have all the required properties for clear coat,
             // otherwise we will get null ref exception from MaterialEditor GUI helpers.
-            if (   material.HasProperty("_ClearCoat")
-                && material.HasProperty("_ClearCoatMap")
-                && material.HasProperty("_ClearCoatMask"))
-                //&& material.HasProperty("_ClearCoatSmoothness")) //TODO: enable
-            {
-                //DoClearCoat(properties, materialEditor, material);
-            }
+            if (ClearCoatAvailable(material))
+                DoClearCoat(properties, materialEditor, material);
+        }
 
+        private static bool ClearCoatAvailable(Material material)
+        {
+            return    material.HasProperty("_ClearCoat")
+                   && material.HasProperty("_ClearCoatMap")
+                   && material.HasProperty("_ClearCoatMask")
+                   && material.HasProperty("_ClearCoatSmoothness");
+        }
+
+        private static bool HeightmapAvailable(Material material)
+        {
+            return    material.HasProperty("_Parallax")
+                   && material.HasProperty("_ParallaxMap");
         }
 
         private static void DoHeightmapArea(LitProperties properties, MaterialEditor materialEditor)
@@ -177,12 +187,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             {
                 materialEditor.TexturePropertySingleLine(Styles.clearCoatMaskText, properties.clearCoatMap, properties.clearCoatMask);
 
-                //EditorGUI.indentLevel += 2;
+                EditorGUI.indentLevel += 2;
 
                     // Texture and HDR color controls
-                    //materialEditor.ShaderProperty(properties.clearCoatSmoothness , Styles.clearCoatSmoothnessText);
+                    materialEditor.ShaderProperty(properties.clearCoatSmoothness , Styles.clearCoatSmoothnessText);
 
-                //EditorGUI.indentLevel -= 2;
+                EditorGUI.indentLevel -= 2;
             }
             EditorGUI.EndDisabledGroup();
         }

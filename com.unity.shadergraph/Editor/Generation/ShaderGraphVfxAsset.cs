@@ -1,3 +1,4 @@
+#if VFX_GRAPH_10_0_0_OR_NEWER
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,6 +34,9 @@ namespace UnityEditor.ShaderGraph.Internal
 
         [SerializeField]
         public bool lit;
+
+        [SerializeField]
+        public bool alphaClipping;
 
         [SerializeField]
         internal GraphCompilationResult compilationResult;
@@ -189,3 +193,4 @@ namespace UnityEditor.ShaderGraph.Internal
         }
     }
 }
+#endif

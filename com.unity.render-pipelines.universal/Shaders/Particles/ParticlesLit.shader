@@ -20,11 +20,6 @@ Shader "Universal Render Pipeline/Particles/Lit"
         _EmissionMap("Emission", 2D) = "white" {}
         _ReceiveShadows("Receive Shadows", Float) = 1.0
 
-        _ClearCoat("Clear Coat", Float) = 0.0
-        _ClearCoatMap("Clear Coat Map", 2D) = "white" {}
-        _ClearCoatMask("Clear Coat Mask", Range(0.0, 1.0)) = 0.0
-        //_ClearCoatSmoothness("Clear Coat Smoothness", Range(0.0, 1.0)) = 1.0 // TODO: enable
-
         // -------------------------------------
         // Particle specific
         _SoftParticlesNearFadeDistance("Soft Particles Near Fade", Float) = 0.0
@@ -84,7 +79,6 @@ Shader "Universal Render Pipeline/Particles/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             // -------------------------------------
@@ -93,7 +87,6 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #pragma shader_feature_local_fragment _EMISSION
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
-            #pragma shader_feature_local_fragment _ _CLEARCOAT _CLEARCOATMAP
 
             // -------------------------------------
             // Particle Keywords
@@ -125,7 +118,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitForwardPass.hlsl"
             ENDHLSL
         }
-	// ------------------------------------------------------------------
+	    // ------------------------------------------------------------------
         //  GBuffer pass.
         Pass
         {
@@ -138,7 +131,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles
             #pragma target 2.0
 
             // -------------------------------------
@@ -191,7 +184,6 @@ Shader "Universal Render Pipeline/Particles/Lit"
             Cull Off
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             // -------------------------------------
@@ -225,7 +217,6 @@ Shader "Universal Render Pipeline/Particles/Lit"
             Cull Off
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             // -------------------------------------
@@ -256,8 +247,6 @@ Shader "Universal Render Pipeline/Particles/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x
-
             #pragma vertex vert
             #pragma fragment frag
             #pragma shader_feature_local_fragment _ALPHATEST_ON

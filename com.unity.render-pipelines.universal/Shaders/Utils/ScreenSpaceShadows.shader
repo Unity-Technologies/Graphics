@@ -6,8 +6,6 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
 
         HLSLINCLUDE
 
-        #pragma prefer_hlslcc gles
-        #pragma exclude_renderers d3d11_9x
         //Keep compiler quiet about Shadows.hlsl.
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
