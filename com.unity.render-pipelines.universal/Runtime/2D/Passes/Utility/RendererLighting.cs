@@ -124,10 +124,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             descriptor.msaaSamples = 1;
             descriptor.dimension = TextureDimension.Tex2D;
 
-            //ref var blendStyle = ref pass.rendererData.lightBlendStyles[blendStyleIndex];
             cmd.GetTemporaryRT(rtid, descriptor, FilterMode.Bilinear);
-            // blendStyle.hasRenderTarget = true;
-            // blendStyle.isDirty = true;
         }
 
         public static void EnableBlendStyle(CommandBuffer cmd, int blendStyleIndex, bool enabled)

@@ -1,15 +1,14 @@
 using System.Collections.Generic;
+
 #if UNITY_EDITOR
 using UnityEditor.Experimental.SceneManagement;
 #endif
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
-
     internal static class Light2DManager
     {
         private static SortingLayer[] s_SortingLayers;
-
 
         public static List<Light2D> lights { get; } = new List<Light2D>();
 
@@ -105,8 +104,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return false;
         }
 
-
-
         public static SortingLayer[] GetCachedSortingLayer()
         {
             s_SortingLayers ??= SortingLayer.layers;
@@ -117,5 +114,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 #endif
             return s_SortingLayers;
         }
+
     }
 }

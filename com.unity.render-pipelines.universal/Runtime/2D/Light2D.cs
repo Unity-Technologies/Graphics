@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using UnityEngine.PlayerLoop;
-using UnityEngine.Profiling;
 using UnityEngine.Serialization;
-using UnityEngine.Rendering;
 #if UNITY_EDITOR
 using UnityEditor.Experimental.SceneManagement;
 #endif
