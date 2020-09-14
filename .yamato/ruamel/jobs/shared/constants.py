@@ -3,6 +3,7 @@ TEST_PROJECTS_DIR = 'TestProjects'
 REPOSITORY_NAME = 'Graphics'
 PATH_TEST_RESULTS = 'test-results'
 PATH_TEST_RESULTS_padded = '**/test-results/**'
+PERF_TEST_RESULTS = 'performance/test-results/**'
 PATH_PACKAGES = 'upm-ci~/packages/**/*'
 PATH_PACKAGES_temp = 'packages_temp' # used in combination with packages_temp\\[packageid] followed by PATH_PACKAGES to have unique artifact paths
 PATH_TEMPLATES = 'upm-ci~/templates/**/*'

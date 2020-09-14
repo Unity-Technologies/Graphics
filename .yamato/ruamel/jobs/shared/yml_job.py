@@ -40,7 +40,11 @@ class YMLJob():
         existing_dep = list(self.yml['dependencies'])
         existing_dep.extend(dependencies)
         self.yml['dependencies'] = existing_dep
+
+    def replace_dependency(self, old_dep, new_dep):
+        self.yml['dependencies'][old_dep] = self.yml['dependencies'][new_dep]
     
+
     def add_commands(self, commands):
         self.yml['commands'] = commands
 
@@ -57,6 +61,9 @@ class YMLJob():
 
     def add_artifacts_test_results(self):
         self.yml['artifacts']['logs']['paths'].append(dss(PATH_TEST_RESULTS_padded)) 
+
+    def add_perf_artifacts(self):
+        self.yml['artifacts']['logs']['paths'].append(dss(PERF_TEST_RESULTS)) 
 
     def add_artifacts_players(self):
         self.yml['artifacts']['players']['paths'].append(dss(PATH_PLAYERS_padded)) 

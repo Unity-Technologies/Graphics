@@ -30,5 +30,10 @@ def _job(project_name, test_platform_name, editor, platform, api, cmd):
     job.add_var_custom_revision(editor["version"])
     job.add_dependencies(dependencies)
     job.add_commands(cmd)
-    job.add_artifacts_test_results()
+
+    if "performance" in project_name:
+        job.add_perf_artifacts()
+    else:    
+        job.add_artifacts_test_results()
+
     return job

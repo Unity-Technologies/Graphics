@@ -1,4 +1,4 @@
-from ...shared.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS, PATH_PLAYERS, UNITY_DOWNLOADER_CLI_URL, UTR_INSTALL_URL
+from ...shared.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS, PATH_PLAYERS, UNITY_DOWNLOADER_CLI_URL, UTR_INSTALL_URL, PERF_TEST_RESULTS
 
 def _cmd_base(project_folder, components):
     return [
@@ -50,7 +50,7 @@ def cmd_not_standalone_performance(project_folder, platform, api, test_platform_
         base.extend(unity_config)
  
     base.extend([
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {test_platform_args} --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}'
+        f'{TEST_PROJECTS_DIR}/{project_folder}/utr {test_platform_args} --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject={TEST_PROJECTS_DIR}/{project_folder} --editor-location=.Editor --artifacts_path={PERF_TEST_RESULTS}'
     ])
     base[-1] += f' --extra-editor-arg="{api["cmd"]}"' if api["name"] != ""  else ''
     return base
@@ -73,7 +73,7 @@ def cmd_standalone_performance(project_folder, platform, api, test_platform_args
         base.append('cd Tools && powershell -command ". .\\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"')
 
     base.extend([
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {test_platform_args} --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path={PATH_TEST_RESULTS} --timeout=1200 --player-load-path=../../{PATH_PLAYERS} --player-connection-ip=auto'
+        f'{TEST_PROJECTS_DIR}/{project_folder}/utr {test_platform_args} --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path={PERF_TEST_RESULTS} --timeout=1200 --player-load-path=../../{PATH_PLAYERS} --player-connection-ip=auto'
     ])
     return base
 
@@ -89,7 +89,7 @@ def cmd_standalone_build_performance(project_folder, platform, api, test_platfor
         base.extend(unity_config)
 
     base.extend([
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}  --timeout=1200 --player-save-path=../../{PATH_PLAYERS} --build-only'
+        f'{TEST_PROJECTS_DIR}/{project_folder}/utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --testproject={TEST_PROJECTS_DIR}/{project_folder} --editor-location=.Editor --artifacts_path={PERF_TEST_RESULTS}  --timeout=1200 --player-save-path=../../{PATH_PLAYERS} --build-only'
     ])
     return base
 
