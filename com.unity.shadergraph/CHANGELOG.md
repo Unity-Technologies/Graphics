@@ -18,10 +18,6 @@ The version number for this package has increased due to a version update of a r
 - Optimized ShaderSubGraph import dependencies to minimize unnecessary reimports when using CustomFunctionNode
 
 ### Fixed
-- Fixed an issue where ShaderGraph shaders did not reimport automatically when some of the included files changed [1269634]
-- Fixed an issue where ShaderGraph shaders did not reimport automatically when missing dependencies were reintroduced [1182895]
-
-### Fixed
 - Fixed a bug where ShaderGraph subgraph nodes would not update their slot names or order
 - Fixed an issue where very old ShaderGraphs would fail to load because of uninitialized data [1269616](https://issuetracker.unity3d.com/issues/shadergraph-matrix-split-and-matrix-combine-shadergraphs-in-shadergraph-automated-tests-dont-open-throw-error)
 - Fixed an issue where ShaderGraph previews didn't display correctly when setting a texture to "None" [1264932]
@@ -30,6 +26,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed a bug where ShaderGraph would not load graphs using Procedural VT nodes when the nodes were the project had them disabled [1271598]
 - Fixed an issue where the ProceduralVT node was not updating any connected SampleVT nodes when the number of layers was changed [1274288]
 - Fixed an issue where ShaderGraph shaders did not reimport automatically when some of the included files changed [1269634]
+- Fixed an issue where ShaderGraph shaders did not reimport automatically when missing dependencies were reintroduced [1182895]
 
 ## [10.0.0] - 2019-06-10
 ### Added
