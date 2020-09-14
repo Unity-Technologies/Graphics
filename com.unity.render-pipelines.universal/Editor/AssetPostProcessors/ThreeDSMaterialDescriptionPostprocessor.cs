@@ -24,7 +24,8 @@ namespace UnityEditor.Rendering.Universal
 
         public void OnPreprocessMaterialDescription(MaterialDescription description, Material material, AnimationClip[] clips)
         {
-            if (GraphicsSettings.currentRenderPipeline.GetType() != typeof(UniversalRenderPipelineAsset))
+            var pipelineAsset = GraphicsSettings.currentRenderPipeline;
+            if (pipelineAsset != null && pipelineAsset.GetType() != typeof(UniversalRenderPipelineAsset))
                 return;
 
             var lowerCasePath = Path.GetExtension(assetPath).ToLower();
