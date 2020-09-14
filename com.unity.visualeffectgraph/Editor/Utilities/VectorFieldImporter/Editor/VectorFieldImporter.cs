@@ -5,7 +5,7 @@ using System.IO;
 using System.Text;
 using System.Globalization;
 using UnityEngine;
-using UnityEditor.Experimental.AssetImporters;
+using UnityEditor.AssetImporters;
 
 namespace UnityEditor.VFXToolbox
 {

@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
-using UnityEditor.Experimental.AssetImporters;
+using UnityEditor.AssetImporters;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Internal;
@@ -623,7 +623,7 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 result.outputCodeIndices[i] = portCodeIndices[i].ToArray();
         }
-            
+
             var outputMetadatas = new OutputMetadata[ports.Count];
             for(int portIndex = 0; portIndex < outputMetadatas.Length; portIndex++)
             {
