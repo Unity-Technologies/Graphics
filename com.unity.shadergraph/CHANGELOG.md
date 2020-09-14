@@ -15,9 +15,11 @@ The version number for this package has increased due to a version update of a r
 
 ### Changed
 - Added method chaining support to shadergraph collection API.
+- Optimized ShaderSubGraph import dependencies to minimize unnecessary reimports when using CustomFunctionNode
 
 ### Fixed
 - Fixed an issue where ShaderGraph shaders did not reimport automatically when some of the included files changed [1269634]
+- Fixed an issue where ShaderGraph shaders did not reimport automatically when missing dependencies were reintroduced [1182895]
 
 ## [10.0.0] - 2019-06-10
 ### Added
