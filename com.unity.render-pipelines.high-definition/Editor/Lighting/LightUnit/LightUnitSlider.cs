@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DoThumbTooltip(sliderRect, thumbPosition, thumbValue, thumbTooltip);
         }
 
-        LightUnitSliderUIRange CurrentRange(float value)
+        protected LightUnitSliderUIRange CurrentRange(float value)
         {
             foreach (var l in m_Descriptor.valueRanges)
             {
@@ -245,16 +245,21 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 
-    // Note: Ideally we want a continuous, monotonically increasing function, but this is useful as we can easily fit a distribution to a set of (huge) value ranges onto a slider.
+    /// <summary>
+    /// Formats the provided descriptor into a piece-wise linear slider with contextual slider markers, tooltips, and icons.
+    /// </summary>
     class PiecewiseLightUnitSlider : LightUnitSlider
     {
-        struct PiecewiseFunction
+        struct Piece
         {
+            public Vector2 domain;
+            public Vector2 range;
             public Func<float, float> transform;
             public Func<float, float> inverseTransform;
         }
 
-        private Dictionary<int, PiecewiseFunction> m_PiecewiseMap = new Dictionary<int, PiecewiseFunction>();
+        // Piecewise function indexed by value ranges.
+        private readonly Dictionary<int, Piece> m_PiecewiseFunctionMap = new Dictionary<int, Piece>();
 
         Func<float, float> GetTransformation(float x0, float x1, float y0, float y1)
         {
@@ -264,6 +269,11 @@ namespace UnityEditor.Rendering.HighDefinition
             return x => (m * x) + b;
         }
 
+        float ValueToSlider(Piece piecewise, float x) => piecewise.inverseTransform(x);
+        float SliderToValue(Piece piecewise, float x) => piecewise.transform(x);
+
+        // Ideally we want a continuous, monotonically increasing function, but this is useful as we can easily fit a
+        // distribution to a set of (huge) value ranges onto a slider.
         public PiecewiseLightUnitSlider(LightUnitSliderUIDescriptor descriptor) : base(descriptor)
         {
             // Sort the ranges into ascending order
@@ -280,37 +290,59 @@ namespace UnityEditor.Rendering.HighDefinition
                 var y0 = r.x;
                 var y1 = r.y;
 
-                PiecewiseFunction piecewise;
-                piecewise.transform = GetTransformation(x0, x1, y0, y1);
+                Piece piece;
+                piece.domain = new Vector2(x0, x1);
+                piece.range  = new Vector2(y0, y1);
+
+                piece.transform = GetTransformation(x0, x1, y0, y1);
 
                 // Compute the inverse
                 CoreUtils.Swap(ref x0, ref y0);
                 CoreUtils.Swap(ref x1, ref y1);
-                piecewise.inverseTransform = GetTransformation(x0, x1, y0, y1);
+                piece.inverseTransform = GetTransformation(x0, x1, y0, y1);
 
                 var k = sortedRanges[i].value.GetHashCode();
-                m_PiecewiseMap.Add(k, piecewise);
+                m_PiecewiseFunctionMap.Add(k, piece);
             }
         }
 
         protected override float GetPositionOnSlider(float value, Vector2 valueRange)
         {
             var k = valueRange.GetHashCode();
-            if (!m_PiecewiseMap.TryGetValue(k, out var piecewise))
+            if (!m_PiecewiseFunctionMap.TryGetValue(k, out var piecewise))
                 return -1f;
 
-            return piecewise.inverseTransform(value);
+            return ValueToSlider(piecewise, value);
+        }
+
+        void UpdatePiece(ref Piece piece, float x)
+        {
+            foreach (var pair in m_PiecewiseFunctionMap)
+            {
+                var p = pair.Value;
+
+                if (x >= p.domain.x && x <= p.domain.y)
+                {
+                    piece = p;
+                    break;
+                }
+            }
         }
 
         protected override void DoSlider(Rect rect, SerializedProperty value, Vector2 sliderRange, Vector2 valueRange)
         {
+            // Map the internal slider value to the current piecewise function
             var k = valueRange.GetHashCode();
-            if (!m_PiecewiseMap.TryGetValue(k, out var piecewise))
-                return;
+            if (!m_PiecewiseFunctionMap.TryGetValue(k, out var piece))
+                return; // TODO: Remap the unit value to sliderRange before returning?
 
-            // TODO: Default to a linear slider function if not found
-            var internalValue = GUI.HorizontalSlider(rect, piecewise.inverseTransform(value.floatValue), 0f, 1f);
-            value.floatValue = piecewise.transform(internalValue);
+            // Maintain an internal value to support a single linear continuous function
+            var internalValue = GUI.HorizontalSlider(rect, ValueToSlider(piece, value.floatValue), 0f, 1f);
+
+            // Ensure that the current function piece is being used to transform the value
+            UpdatePiece(ref piece, internalValue);
+
+            value.floatValue = SliderToValue(piece, internalValue);
         }
     }
 
@@ -375,8 +407,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 { LightUnit.Lux,     new PiecewiseLightUnitSlider  (LightUnitSliderDescriptors.LuxDescriptor)     },
                 { LightUnit.Lumen,   new ExponentialLightUnitSlider(LightUnitSliderDescriptors.LumenDescriptor)   },
-                { LightUnit.Candela, new ExponentialLightUnitSlider(LightUnitSliderDescriptors.CandelaDescriptor) },
-                { LightUnit.Ev100,   new ExponentialLightUnitSlider(LightUnitSliderDescriptors.EV100Descriptor)   },
+                { LightUnit.Candela, new PiecewiseLightUnitSlider(LightUnitSliderDescriptors.CandelaDescriptor) },
+                { LightUnit.Ev100,   new PiecewiseLightUnitSlider(LightUnitSliderDescriptors.EV100Descriptor)   },
                 { LightUnit.Nits,    new ExponentialLightUnitSlider(LightUnitSliderDescriptors.NitsDescriptor)    },
             };
 
