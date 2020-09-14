@@ -46,6 +46,15 @@ editor_versions:
     android:
       revision: 4ddb31178f9c097b15abff1c38668658c22429b2
       version: ''
+    ios:
+      revision: 4ddb31178f9c097b15abff1c38668658c22429b2
+      version: ''
+    linux:
+      revision: 4ddb31178f9c097b15abff1c38668658c22429b2
+      version: ''
+    macos:
+      revision: 4ddb31178f9c097b15abff1c38668658c22429b2
+      version: ''
     windows:
       revision: 4ddb31178f9c097b15abff1c38668658c22429b2
       version: ''
