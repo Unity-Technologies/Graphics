@@ -86,6 +86,8 @@
         * [Periodic Burst](Block-Burst.md)
         * [Single  Burst](Block-Burst.md)
         * [Variable Spawn Rate](Block-VariableRate.md)
+        * Attribute
+          * [Set Spawn Event \<attribute>](Block-SetSpawnEvent.md)
         * Custom
           * [Increment Strip Index On Start](Block-IncrementStripIndexOnStart.md)
           * [Set Spawn Time](Block-SetSpawnTime.md)
