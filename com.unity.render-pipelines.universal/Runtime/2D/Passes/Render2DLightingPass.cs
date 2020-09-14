@@ -95,16 +95,27 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                     using(new ProfilingScope(cmd, m_ProfilingDrawLayerBatch))
                     {
-                        unsafe
+                        if (layerBatch.lightStats.totalLights > 0)
+                        {
+                            unsafe
+                            {
+                                for (var blendStyleIndex = 0; blendStyleIndex < k_ShapeLightTextureIDs.Length; blendStyleIndex++)
+                                {
+                                    var used = layerBatch.renderTargetUsed[blendStyleIndex];
+
+                                    if (used)
+                                        cmd.SetGlobalTexture(k_ShapeLightTextureIDs[blendStyleIndex], new RenderTargetIdentifier(layerBatch.renderTargetIds[blendStyleIndex]));
+
+                                    RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, used);
+                                }
+                            }
+                        }
+                        else
                         {
                             for (var blendStyleIndex = 0; blendStyleIndex < k_ShapeLightTextureIDs.Length; blendStyleIndex++)
                             {
-                                var used = layerBatch.renderTargetUsed[blendStyleIndex];
-
-                                if (used)
-                                    cmd.SetGlobalTexture(k_ShapeLightTextureIDs[blendStyleIndex], new RenderTargetIdentifier(layerBatch.renderTargetIds[blendStyleIndex]));
-
-                                RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, used);
+                                cmd.SetGlobalTexture(k_ShapeLightTextureIDs[blendStyleIndex], Texture2D.blackTexture);
+                                RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleIndex == 0 ? true : false);
                             }
                         }
 
