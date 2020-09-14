@@ -73,22 +73,16 @@ namespace UnityEditor.VFX.Block
                 VFXExpression center = inputSlots[0][0].GetExpression();
 
                 var eulerAngle = inputSlots[0][1].GetExpression();
-
                 var zeroF3 = VFXOperatorUtility.ZeroExpression[VFXValueType.Float3];
                 var oneF3 = VFXOperatorUtility.OneExpression[VFXValueType.Float3];
 
                 VFXExpression rotationMatrix = new VFXExpressionTRSToMatrix(zeroF3, eulerAngle, oneF3);
+                VFXExpression i = new VFXExpressionMatrixToVector3s(rotationMatrix, VFXValue.Constant(0));
+                VFXExpression j = new VFXExpressionMatrixToVector3s(rotationMatrix, VFXValue.Constant(1));
+                VFXExpression k = new VFXExpressionMatrixToVector3s(rotationMatrix, VFXValue.Constant(2));
 
-                //TODOPAUL Can be simplified using matrix composition.
-                //TODOPAUL Check side effect of this axisInverter
-                VFXExpression axisInverter = VFXValue.Constant(new Matrix4x4(   new Vector4(1, 0, 0, 0),
-                                                                                new Vector4(0, 0, 1, 0),
-                                                                                new Vector4(0, 1, 0, 0),
-                                                                                new Vector4(0, 0, 0, 1)));
-                rotationMatrix = new VFXExpressionTransformMatrix(rotationMatrix, axisInverter);
-                var translateMatrix = new VFXExpressionTRSToMatrix(center, zeroF3, oneF3);
-                var matrix = new VFXExpressionTransformMatrix(translateMatrix, rotationMatrix);
-                yield return new VFXNamedExpression(matrix, "transformMatrix");
+                var transformMatrix = new VFXExpressionVector3sToMatrix(i, k, j, center);
+                yield return new VFXNamedExpression(transformMatrix, "transformMatrix");
             }
         }
 
