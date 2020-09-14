@@ -57,9 +57,12 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                foreach (var p in GetExpressionsFromSlots(this).Where(      e => e.name != "Thickness"
-                                                                        ||  e.name != "ArcCone_center"))
-                    yield return p; //TODOPAUL, exclude unused slot
+                foreach (var p in GetExpressionsFromSlots(this).Where(      e =>    e.name == "ArcCone_arc"
+                                                                                ||  e.name == "ArcCone_radius0"
+                                                                                ||  e.name == "ArcCone_radius1"
+                                                                                ||  e.name == "ArcCone_height"
+                                                                                ||  e.name == "ArcSequencer"))
+                    yield return p;
 
                 yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, 0, 1), "volumeFactor");
 
@@ -146,7 +149,7 @@ float hNorm = HeightSequencer;
                 outSource += @"
 direction.xzy = normalize(float3(pos * sincosSlope.x, sincosSlope.y));
 float3 finalPos = lerp(float3(pos * ArcCone_radius0, 0.0f), float3(pos * ArcCone_radius1, ArcCone_height), hNorm);
-finalPos = mul(transformMatrix, float4(finalPos, 1.0f)).xyz;
+finalPos = mul(transformMatrix, float4(finalPos, 1.0f));
 position += finalPos;
 ";
                 return outSource;
