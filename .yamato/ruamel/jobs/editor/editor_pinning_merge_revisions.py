@@ -6,13 +6,13 @@ from ..shared.yml_job import YMLJob
 
 class Editor_PinningMergeRevisionsJob():
     
-    def __init__(self, editor, agent, target_branch, target_branch_editor_ci):
+    def __init__(self, editors, agent, target_branch, target_branch_editor_ci):
         self.job_id = editor_job_id_merge_revisions()
-        self.yml_job = self.get_job_definition(editor, agent, target_branch, target_branch_editor_ci)
+        self.yml_job = self.get_job_definition(editors, agent, target_branch, target_branch_editor_ci)
         self.yml = self.yml_job.get_yml()
 
 
-    def get_job_definition(self, editor, agent, target_branch, target_branch_editor_ci):
+    def get_job_definition(self, editors, agent, target_branch, target_branch_editor_ci):
     
 
         commands = [

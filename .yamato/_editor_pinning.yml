@@ -106,5 +106,6 @@ editor-pinning-merge-revisions-abv:
       -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch master
     dependencies:
       -  .yamato/_abv.yml#all_project_ci_trunk
+      -  .yamato/_abv.yml#all_project_ci_2020.2
     triggers:
         expression: push.branch eq "ci/editor-pinning" AND push.changes.any match "**/_latest_editor_versions.metafile"
