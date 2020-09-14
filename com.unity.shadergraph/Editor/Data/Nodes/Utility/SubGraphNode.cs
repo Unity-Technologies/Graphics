@@ -413,7 +413,7 @@ namespace UnityEditor.ShaderGraph
                         break;
                 }
 
-                AddSlot(slot);
+                AddSlot(slot, false);       // always replace to force reordering of the slots
                 validNames.Add(id);
             }
 
@@ -423,7 +423,7 @@ namespace UnityEditor.ShaderGraph
             {
                 var newSlot = MaterialSlot.CreateMaterialSlot(slot.valueType, slot.id, slot.RawDisplayName(),
                     slot.shaderOutputName, SlotType.Output, Vector4.zero, outputStage, slot.hidden);
-                AddSlot(newSlot);
+                AddSlot(newSlot, false);    // always replace to force reordering of the slots
                 validNames.Add(slot.id);
             }
 
