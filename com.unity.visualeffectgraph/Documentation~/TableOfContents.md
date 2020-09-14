@@ -89,6 +89,7 @@
         * Custom
           * [Increment Strip Index On Start](Block-IncrementStripIndexOnStart.md)
           * [Set Spawn Time](Block-SetSpawnTime.md)
+          * [Spawn Over Distance](Block-SpawnOverDistance.md)
       * Velocity
         * [Velocity from Direction & Speed (Change Speed)](Block-VelocityFromDirection&Speed(ChangeSpeed).md)
         * [Velocity from Direction & Speed (New Direction)](Block-VelocityFromDirection&Speed(NewDirection).md)
