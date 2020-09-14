@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Parallax Mapping to the Lit shader (Lit.shader).
 - Added the Detail Inputs setting group in the Lit shader (Lit.shader).
 - Added Smooth shadow fading.
+- The pipeline now outputs a warning in the console when trying to access camera color or depth texture when those are not valid. Those textures are only available in the context of `ScriptableRenderPass`.
+- Added a property to access the renderer from the `CameraData`.
 
 ### Fixed
 - Fixed a case where main light hard shadows would not work if any other light is present with soft shadows.[case 1250829](https://issuetracker.unity3d.com/issues/main-light-shadows-are-ignored-in-favor-of-additional-lights-shadows)

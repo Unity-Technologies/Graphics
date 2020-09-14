@@ -209,12 +209,7 @@ namespace UnityEngine.Rendering.Universal
             if (isOffscreenDepthTexture)
             {
                 ConfigureCameraTarget(BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
-
-                for (int i = 0; i < rendererFeatures.Count; ++i)
-                {
-                    if(rendererFeatures[i].isActive)
-                        rendererFeatures[i].AddRenderPasses(this, ref renderingData);
-                }
+                AddRenderPasses(ref renderingData);
 
                 if (requiresDepthPrepass)
                 {
@@ -278,18 +273,7 @@ namespace UnityEngine.Rendering.Universal
                 ConfigureCameraTarget(activeColorRenderTargetId, activeDepthRenderTargetId);
             }
 
-            for (int i = 0; i < rendererFeatures.Count; ++i)
-            {
-                if(rendererFeatures[i].isActive)
-                    rendererFeatures[i].AddRenderPasses(this, ref renderingData);
-            }
-
-            int count = activeRenderPassQueue.Count;
-            for (int i = count - 1; i >= 0; i--)
-            {
-                if(activeRenderPassQueue[i] == null)
-                    activeRenderPassQueue.RemoveAt(i);
-            }
+            AddRenderPasses(ref renderingData);
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 
             if (mainLightShadows)
