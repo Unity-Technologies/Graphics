@@ -2,7 +2,7 @@
 
 Menu Path: **Spawn > Set SpawnEvent \<Attribute>**
 
-The **Set SpawnEvent** Block modifies the content of attributes stored in the context [event attribute](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/VFX.VFXSpawnerState-vfxEventAttribute.html).
+The **Set SpawnEvent** Block modifies the content of attributes stored in the Context [event attribute](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/VFX.VFXSpawnerState-vfxEventAttribute.html).
 
 ## Block compatibility
 
@@ -17,12 +17,14 @@ This Block is compatible with the following Contexts:
 | **Attribute**   | Enum     | **(Inspector)** Specifies the attribute to set the value for. The list of options contains |
 | **Random Mode** | Enum     | **(Inspector)** Determines whether and how the system randomises the value of the attribute. The options are:<br/>&#8226; **Off**: Does not calculate a random value for the attribute. Uses the value you provide in the input directly.<br/>&#8226; **Per Component**: Calculates a random value for each of the attribute's components.<br/>&#8226; **Uniform**: Calculates a single random value and uses it for all of the attribute's components. |
 
-
 ## Block properties
 
-| **Input**             | **Type**                 | **Description**                 |
-| --------------------- | ------------------------ | ------------------------------- |
-| **\<Attribute name>** | Depends on the attribute | The value to set the attribute. |
+| **Input**            | **Type**                 | **Description**                                              |
+| -------------------- | ------------------------ | ------------------------------------------------------------ |
+| **<Attribute name>** | Depends on the attribute | The value to set the attribute.                              |
+| **Min**              | Depends on the attribute | The minimum value this Block can set the attribute to.<br/>This property only appears if you set **Random Mode** to **Per Component** or **Uniform**. |
+| **Max**              | Depends on the attribute | The maximum value this Block can set the attribute to.<br/>This property only appears if you set **Random Mode** to **Per Component** or **Uniform**. |
+
 
 ## Remarks
 
