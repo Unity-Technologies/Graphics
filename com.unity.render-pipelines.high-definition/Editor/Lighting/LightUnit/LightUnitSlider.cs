@@ -240,16 +240,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
         float ExponentialSlider(Rect rect, float value)
         {
-            var internalValue = GUI.HorizontalSlider(rect, ValueToSlider(value), 0f, 1f, GUI.skin.horizontalSlider, GUI.skin.horizontalSliderThumb);
-
+            var internalValue = GUI.HorizontalSlider(rect, ValueToSlider(value), 0f, 1f);
             return SliderToValue(internalValue);
         }
     }
 
-    // Note: Ideally we want a continuous, monotonically increasing function
+    // Note: Ideally we want a continuous, monotonically increasing function, but this is useful as we can easily fit a distribution to a set of (huge) value ranges onto a slider.
     class PiecewiseLightUnitSlider : LightUnitSlider
     {
-        private Dictionary<int, Func<float, float>> m_PiecewiseMap = new Dictionary<int, Func<float, float>>();
+        struct PiecewiseFunction
+        {
+            public Func<float, float> transform;
+            public Func<float, float> inverseTransform;
+        }
+
+        private Dictionary<int, PiecewiseFunction> m_PiecewiseMap = new Dictionary<int, PiecewiseFunction>();
 
         Func<float, float> GetTransformation(float x0, float x1, float y0, float y1)
         {
@@ -265,7 +270,6 @@ namespace UnityEditor.Rendering.HighDefinition
             var sortedRanges = m_Descriptor.valueRanges.OrderBy(x => x.value.x).ToArray();
 
             // Compute the transformation for each value range.
-            // TODO: Slope dictionary of ranges <K, V> -> <Range, Slope> ?
             var sliderStep = 1.0f / m_Descriptor.valueRanges.Length;
             for (int i = 0; i < sortedRanges.Length; i++)
             {
@@ -276,35 +280,37 @@ namespace UnityEditor.Rendering.HighDefinition
                 var y0 = r.x;
                 var y1 = r.y;
 
-                var k = sortedRanges[i].value.GetHashCode();
-                var v = GetTransformation(x0, x1, y0, y1);
-                //m_PiecewiseMap.Add(k, v);
+                PiecewiseFunction piecewise;
+                piecewise.transform = GetTransformation(x0, x1, y0, y1);
 
                 // Compute the inverse
                 CoreUtils.Swap(ref x0, ref y0);
                 CoreUtils.Swap(ref x1, ref y1);
-                v = GetTransformation(x0, x1, y0, y1);
-                m_PiecewiseMap.Add(k, v);
+                piecewise.inverseTransform = GetTransformation(x0, x1, y0, y1);
+
+                var k = sortedRanges[i].value.GetHashCode();
+                m_PiecewiseMap.Add(k, piecewise);
             }
         }
 
         protected override float GetPositionOnSlider(float value, Vector2 valueRange)
         {
             var k = valueRange.GetHashCode();
-            if (!m_PiecewiseMap.TryGetValue(k, out var func))
+            if (!m_PiecewiseMap.TryGetValue(k, out var piecewise))
                 return -1f;
 
-            return func(value);
+            return piecewise.inverseTransform(value);
         }
 
         protected override void DoSlider(Rect rect, SerializedProperty value, Vector2 sliderRange, Vector2 valueRange)
         {
             var k = valueRange.GetHashCode();
-            if (!m_PiecewiseMap.TryGetValue(k, out var func))
+            if (!m_PiecewiseMap.TryGetValue(k, out var piecewise))
                 return;
 
             // TODO: Default to a linear slider function if not found
-            var internalValue = GUI.HorizontalSlider(rect, func(value.floatValue), 0f, 1f);
+            var internalValue = GUI.HorizontalSlider(rect, piecewise.inverseTransform(value.floatValue), 0f, 1f);
+            value.floatValue = piecewise.transform(internalValue);
         }
     }
 
