@@ -24,9 +24,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_counters_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project set registry candidates --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set enable-lock-file true
-      -  cd TestProjects/BoatAttack && unity-config project remove dependency com.unity.render-pipelines.universal
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -34,7 +32,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_counters_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.cli-project-setup@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.shaderanalysis@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shaderanalysis@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test-framework@1.2.1-preview.1"
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
@@ -68,9 +66,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_trunk:
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project set registry candidates --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set enable-lock-file true
-      -  cd TestProjects/BoatAttack && unity-config project remove dependency com.unity.render-pipelines.universal
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -78,7 +74,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.cli-project-setup@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.shaderanalysis@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shaderanalysis@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test-framework@1.2.1-preview.1"
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
@@ -115,9 +111,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_memory_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project set registry candidates --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set enable-lock-file true
-      -  cd TestProjects/BoatAttack && unity-config project remove dependency com.unity.render-pipelines.universal
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -125,7 +119,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_memory_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.cli-project-setup@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.shaderanalysis@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shaderanalysis@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test-framework@1.2.1-preview.1"
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
@@ -159,9 +153,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_trunk:
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project set registry candidates --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set enable-lock-file true
-      -  cd TestProjects/BoatAttack && unity-config project remove dependency com.unity.render-pipelines.universal
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -169,7 +161,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.cli-project-setup@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.shaderanalysis@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shaderanalysis@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test-framework@1.2.1-preview.1"
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
@@ -196,16 +188,14 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_counters_fast-trunk:
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_fast-trunk
          rerun: on-new-revision
     commands:
-      #-  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/feature/benchmark/enable-playmode-tests TestProjects/BoatAttack
+      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/feature/benchmark/enable-playmode-tests TestProjects/BoatAttack
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project set registry candidates --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set enable-lock-file true
-      -  cd TestProjects/BoatAttack && unity-config project remove dependency com.unity.render-pipelines.universal
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -213,7 +203,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_counters_fast-trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.cli-project-setup@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.shaderanalysis@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shaderanalysis@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test-framework@1.2.1-preview.1"
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
@@ -247,9 +237,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_fast-trunk:
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project set registry candidates --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set enable-lock-file true
-      -  cd TestProjects/BoatAttack && unity-config project remove dependency com.unity.render-pipelines.universal
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -257,7 +245,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_fast-trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.cli-project-setup@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.shaderanalysis@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shaderanalysis@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test-framework@1.2.1-preview.1"
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
@@ -294,9 +282,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_memory_fast-trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project set registry candidates --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set enable-lock-file true
-      -  cd TestProjects/BoatAttack && unity-config project remove dependency com.unity.render-pipelines.universal
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -304,7 +290,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_memory_fast-trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.cli-project-setup@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.shaderanalysis@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shaderanalysis@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test-framework@1.2.1-preview.1"
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
@@ -338,9 +324,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_fast-trunk:
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project set registry candidates --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set enable-lock-file true
-      -  cd TestProjects/BoatAttack && unity-config project remove dependency com.unity.render-pipelines.universal
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -348,7 +332,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_fast-trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.cli-project-setup@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.shaderanalysis@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shaderanalysis@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test-framework@1.2.1-preview.1"
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
@@ -383,9 +367,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_counters_CUSTOM-REVISIO
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project set registry candidates --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set enable-lock-file true
-      -  cd TestProjects/BoatAttack && unity-config project remove dependency com.unity.render-pipelines.universal
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -393,7 +375,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_counters_CUSTOM-REVISIO
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.cli-project-setup@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.shaderanalysis@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shaderanalysis@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test-framework@1.2.1-preview.1"
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
@@ -428,9 +410,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_CUSTOM-REVISION:
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project set registry candidates --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set enable-lock-file true
-      -  cd TestProjects/BoatAttack && unity-config project remove dependency com.unity.render-pipelines.universal
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -438,7 +418,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_CUSTOM-REVISION:
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.cli-project-setup@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.shaderanalysis@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shaderanalysis@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test-framework@1.2.1-preview.1"
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
@@ -476,9 +456,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_memory_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project set registry candidates --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set enable-lock-file true
-      -  cd TestProjects/BoatAttack && unity-config project remove dependency com.unity.render-pipelines.universal
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -486,7 +464,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_memory_CUSTOM-REVISION:
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.cli-project-setup@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.shaderanalysis@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shaderanalysis@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test-framework@1.2.1-preview.1"
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
@@ -521,9 +499,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_CUSTOM-REVISION:
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project set registry candidates --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set enable-lock-file true
-      -  cd TestProjects/BoatAttack && unity-config project remove dependency com.unity.render-pipelines.universal
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -531,7 +507,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_CUSTOM-REVISION:
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.cli-project-setup@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.shaderanalysis@"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shaderanalysis@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test-framework@1.2.1-preview.1"
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
