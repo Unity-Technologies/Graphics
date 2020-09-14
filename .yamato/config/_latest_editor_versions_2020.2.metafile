@@ -7,7 +7,7 @@ editor_version_names:
 - 2020.2_staging
 
 editor_versions:
-  2020.2_latest_internal:
+  2020.2_latest_internal: 
     android:
       revision: ef376aff2859
       version: 2020.2.0b3
