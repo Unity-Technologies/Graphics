@@ -15,7 +15,7 @@ The version number for this package has increased due to a version update of a r
 - Updated version to HightDefinition RP version 10.0.0
 - Caching Shader Preprocessor is now enabled in Project Settings
 
-## [7.1.7] - 2019-12-3
+## [7.1.7] - 2019-12-03
 - Editor will force text serialization to occur on one line
 
 ## [7.1.6] - 2019-11-22
@@ -93,7 +93,7 @@ The version number for this package has increased due to a version update of a r
 ## [2.2.0] - 2019-02-04
 - Corrected some default values in project settings.
 
-## [2.1.0] 2019-02-01
+## [2.1.0] - 2019-02-01
 - Fixed `-preview` tag on HD version 5.3.1
 - Updated default settings in HDRP Asset
 
@@ -175,17 +175,17 @@ The version number for this package has increased due to a version update of a r
 - Fog Height Attenuation updated
 - Adding to readme about hdri asset store item
 
-## [1.0.2] - 2018-x-xx
+## [1.0.2] - 2018-05-01
 
 ### Changed
 - Blendshape setting, version update
 
-## [1.0.1] - 2018-x-xx
+## [1.0.1] - 2018-04-01
 
 ### Changed
 - Version Update
 
-## [1.0.0] - 2018-2-25
+## [1.0.0] - 2018-02-25
 
 ### Added
 - Sample static meshes to show best practices
@@ -198,7 +198,7 @@ The version number for this package has increased due to a version update of a r
 - Additional setting and lighting polish
 - Removing basic content (red cube)
 
-## [0.0.5] - 2018-1-26
+## [0.0.5] - 2018-01-26
 
 ### Changed
 - Updating to HD version 0.1.26, changes to lighting settings
