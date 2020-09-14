@@ -329,20 +329,38 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        void SliderOutOfBounds(Rect rect, SerializedProperty value)
+        {
+            EditorGUI.BeginChangeCheck();
+            var internalValue = GUI.HorizontalSlider(rect, value.floatValue, 0f, 1f);
+            if (EditorGUI.EndChangeCheck())
+            {
+                Piece p = new Piece();
+                UpdatePiece(ref p, internalValue);
+                value.floatValue = SliderToValue(p, internalValue);
+            }
+        }
+
         protected override void DoSlider(Rect rect, SerializedProperty value, Vector2 sliderRange, Vector2 valueRange)
         {
             // Map the internal slider value to the current piecewise function
             var k = valueRange.GetHashCode();
             if (!m_PiecewiseFunctionMap.TryGetValue(k, out var piece))
-                return; // TODO: Remap the unit value to sliderRange before returning?
+            {
+                // Assume that if the piece is not found, that means the unit value is out of bounds.
+                SliderOutOfBounds(rect, value);
+                return;
+            }
 
             // Maintain an internal value to support a single linear continuous function
+            EditorGUI.BeginChangeCheck();
             var internalValue = GUI.HorizontalSlider(rect, ValueToSlider(piece, value.floatValue), 0f, 1f);
-
-            // Ensure that the current function piece is being used to transform the value
-            UpdatePiece(ref piece, internalValue);
-
-            value.floatValue = SliderToValue(piece, internalValue);
+            if (EditorGUI.EndChangeCheck())
+            {
+                // Ensure that the current function piece is being used to transform the value
+                UpdatePiece(ref piece, internalValue);
+                value.floatValue = SliderToValue(piece, internalValue);
+            }
         }
     }
 
