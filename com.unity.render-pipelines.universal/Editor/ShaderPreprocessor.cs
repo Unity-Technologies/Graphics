@@ -24,7 +24,8 @@ namespace UnityEditor.Rendering.Universal
         DeferredShading = (1 << 8), // DeferredRenderer is in the list of renderer
         DeferredWithAccurateGbufferNormals = (1 << 9),
         DeferredWithoutAccurateGbufferNormals = (1 << 10),
-        ScreenSpaceOcclusion = (1 << 11)
+        ScreenSpaceOcclusion = (1 << 11),
+        ScreenSpaceShadows = (1 << 12),
     }
     internal class ShaderPreprocessor : IPreprocessShaders
     {
@@ -110,6 +111,11 @@ namespace UnityEditor.Rendering.Universal
             // No additional lights
             if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLights) &&
                 (isAdditionalLightPerPixel || isAdditionalLightShadow || compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsVertex)))
+                return true;
+
+            // Screen Space Shadows
+            if (!IsFeatureEnabled(features, ShaderFeatures.ScreenSpaceShadows) &&
+                compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsScreen))
                 return true;
 
             // Screen Space Occlusion
@@ -341,6 +347,7 @@ namespace UnityEditor.Rendering.Universal
             if (pipelineAsset.supportsTerrainHoles)
                 shaderFeatures |= ShaderFeatures.TerrainHoles;
 
+            bool hasScreenSpaceShadows = false;
             bool hasScreenSpaceOcclusion = false;
             bool hasDeferredRenderer = false;
             bool withAccurateGbufferNormals = false;
@@ -365,6 +372,10 @@ namespace UnityEditor.Rendering.Universal
                     for (int rendererFeatureIndex = 0; rendererFeatureIndex < rendererData.rendererFeatures.Count; rendererFeatureIndex++)
                     {
                         ScriptableRendererFeature rendererFeature = rendererData.rendererFeatures[rendererFeatureIndex];
+
+                        ScreenSpaceShadows ssshadows = rendererFeature as ScreenSpaceShadows;
+                        hasScreenSpaceShadows |= ssshadows != null;
+
                         ScreenSpaceAmbientOcclusion ssao = rendererFeature as ScreenSpaceAmbientOcclusion;
                         hasScreenSpaceOcclusion |= ssao != null;
                     }
@@ -380,6 +391,9 @@ namespace UnityEditor.Rendering.Universal
 
             if (!withAccurateGbufferNormals && withoutAccurateGbufferNormals)
                 shaderFeatures |= ShaderFeatures.DeferredWithoutAccurateGbufferNormals;
+
+            if (hasScreenSpaceShadows)
+                shaderFeatures |= ShaderFeatures.ScreenSpaceShadows;
 
             if (hasScreenSpaceOcclusion)
                 shaderFeatures |= ShaderFeatures.ScreenSpaceOcclusion;
