@@ -45,6 +45,8 @@ namespace UnityEditor.VFX
     {
         [Tooltip("Sets the center of the circle."), VFXSpace(SpaceableType.Position)]
         public Vector3 center;
+        [Tooltip("Set the Euler rotation of the circle."), VFXSpace(SpaceableType.Euler)]
+        public Vector3 angles;
         [Tooltip("Sets the radius of the circle.")]
         public float radius;
 
@@ -67,6 +69,8 @@ namespace UnityEditor.VFX
     {
         [Tooltip("Sets the center of the sphere."), VFXSpace(SpaceableType.Position)]
         public Vector3 center;
+        [Tooltip("Set the Euler rotation of the sphere."), VFXSpace(SpaceableType.Euler)]
+        public Vector3 angles;
         [Tooltip("Sets the radius of the sphere.")]
         public float radius;
 
@@ -181,6 +185,8 @@ namespace UnityEditor.VFX
     {
         [Tooltip("Sets the center of the torus."), VFXSpace(SpaceableType.Position)]
         public Vector3 center;
+        [Tooltip("Set the Euler rotation of the torus."), VFXSpace(SpaceableType.Euler)]
+        public Vector3 angles;
         [Tooltip("Sets the radius of the torus ring.")]
         public float majorRadius;
         [Tooltip("Sets the thickness of the torus ring.")]
@@ -194,6 +200,8 @@ namespace UnityEditor.VFX
     {
         [Tooltip("Sets the center of the torus."), VFXSpace(SpaceableType.Position)]
         public Vector3 center;
+        [Tooltip("Set the Euler rotation of the torus."), VFXSpace(SpaceableType.Euler)]
+        public Vector3 angles;
         [Tooltip("Sets the radius of the torus ring.")]
         public float majorRadius;
         [Tooltip("Sets the thickness of the torus ring.")]

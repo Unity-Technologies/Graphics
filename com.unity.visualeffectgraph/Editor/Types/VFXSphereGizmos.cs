@@ -11,37 +11,43 @@ namespace UnityEditor.VFX
     class VFXSphereGizmo : VFXSpaceableGizmo<Sphere>
     {
         IProperty<Vector3> m_CenterProperty;
+        IProperty<Vector3> m_AnglesProperty;
         IProperty<float> m_RadiusProperty;
         public override void RegisterEditableMembers(IContext context)
         {
             m_CenterProperty = context.RegisterProperty<Vector3>("center");
+            m_AnglesProperty = context.RegisterProperty<Vector3>("angles");
             m_RadiusProperty = context.RegisterProperty<float>("radius");
         }
 
         public static readonly Vector3[] radiusDirections = new Vector3[] { Vector3.right, Vector3.up, Vector3.forward };
 
-        public static void DrawSphere(Sphere sphere, VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<float> radiusProperty)
+        public static void DrawSphere(Sphere sphere, VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<Vector3> anglesProperty, IProperty<float> radiusProperty)
         {
-            gizmo.PositionGizmo(sphere.center, centerProperty, true);
+            gizmo.PositionGizmo(sphere.center, centerProperty, false);
+            gizmo.RotationGizmo(sphere.center, sphere.angles, anglesProperty, false);
 
             // Radius controls
             if (radiusProperty.isEditable)
             {
-                foreach (var dist in radiusDirections)
+                using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(sphere.center, Quaternion.Euler(sphere.angles), Vector3.one)))
                 {
-                    EditorGUI.BeginChangeCheck();
-                    Vector3 sliderPos = sphere.center + dist * sphere.radius;
-                    Vector3 result = Handles.Slider(sliderPos, dist, handleSize * HandleUtility.GetHandleSize(sliderPos), Handles.CubeHandleCap, 0);
-
-                    if (EditorGUI.EndChangeCheck())
+                    foreach (var dist in radiusDirections)
                     {
-                        float newRadius = (result - sphere.center).magnitude;
+                        EditorGUI.BeginChangeCheck();
+                        Vector3 sliderPos = dist * sphere.radius;
+                        Vector3 result = Handles.Slider(sliderPos, dist, handleSize * HandleUtility.GetHandleSize(sliderPos), Handles.CubeHandleCap, 0);
 
-                        if (float.IsNaN(newRadius))
+                        if (EditorGUI.EndChangeCheck())
                         {
-                            newRadius = 0;
+                            float newRadius = result.magnitude;
+
+                            if (float.IsNaN(newRadius))
+                            {
+                                newRadius = 0;
+                            }
+                            radiusProperty.SetValue(newRadius);
                         }
-                        radiusProperty.SetValue(newRadius);
                     }
                 }
             }
@@ -49,11 +55,13 @@ namespace UnityEditor.VFX
 
         public override void OnDrawSpacedGizmo(Sphere sphere)
         {
-            Handles.DrawWireDisc(sphere.center, Vector3.forward, sphere.radius);
-            Handles.DrawWireDisc(sphere.center, Vector3.up, sphere.radius);
-            Handles.DrawWireDisc(sphere.center, Vector3.right, sphere.radius);
-
-            DrawSphere(sphere, this, m_CenterProperty, m_RadiusProperty);
+            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(sphere.center, Quaternion.Euler(sphere.angles), Vector3.one)))
+            {
+                Handles.DrawWireDisc(Vector3.zero, Vector3.forward, sphere.radius);
+                Handles.DrawWireDisc(Vector3.zero, Vector3.up, sphere.radius);
+                Handles.DrawWireDisc(Vector3.zero, Vector3.right, sphere.radius);
+            }
+            DrawSphere(sphere, this, m_CenterProperty, m_AnglesProperty, m_RadiusProperty);
         }
 
         public override Bounds OnGetSpacedGizmoBounds(Sphere value)
@@ -65,6 +73,7 @@ namespace UnityEditor.VFX
     class VFXArcSphereGizmo : VFXSpaceableGizmo<ArcSphere>
     {
         IProperty<Vector3> m_CenterProperty;
+        IProperty<Vector3> m_AnglesProperty;
         IProperty<float> m_RadiusProperty;
         IProperty<float> m_ArcProperty;
 
@@ -72,6 +81,7 @@ namespace UnityEditor.VFX
         {
             m_CenterProperty = context.RegisterProperty<Vector3>("sphere.center");
             m_RadiusProperty = context.RegisterProperty<float>("sphere.radius");
+            m_AnglesProperty = context.RegisterProperty<Vector3>("sphere.angles");
             m_ArcProperty = context.RegisterProperty<float>("arc");
         }
 
@@ -82,26 +92,27 @@ namespace UnityEditor.VFX
             float radius = arcSphere.sphere.radius;
             float arc = arcSphere.arc * Mathf.Rad2Deg;
 
-
-            // Draw semi-circles at 90 degree angles
-            for (int i = 0; i < 4; i++)
+            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(arcSphere.sphere.center, Quaternion.Euler(arcSphere.sphere.angles), Vector3.one)))
             {
-                float currentArc = (float)(i * 90);
-                if (currentArc <= arc)
-                    Handles.DrawWireArc(center, Matrix4x4.Rotate(Quaternion.Euler(0.0f, 180.0f, currentArc)) * Vector3.right, Vector3.forward, 180.0f, radius);
+                // Draw semi-circles at 90 degree angles
+                for (int i = 0; i < 4; i++)
+                {
+                    float currentArc = (float)(i * 90);
+                    if (currentArc <= arc)
+                        Handles.DrawWireArc(Vector3.zero, Matrix4x4.Rotate(Quaternion.Euler(0.0f, 180.0f, currentArc)) * Vector3.right, Vector3.forward, 180.0f, radius);
+                }
+
+                // Draw an extra semi-circle at the arc angle
+                if (arcSphere.arc < Mathf.PI * 2.0f)
+                    Handles.DrawWireArc(Vector3.zero, Matrix4x4.Rotate(Quaternion.Euler(0.0f, 180.0f, arc)) * Vector3.right, Vector3.forward, 180.0f, radius);
+
+                // Draw 3rd circle around the arc
+                Handles.DrawWireArc(Vector3.zero, -Vector3.forward, Vector3.up, arc, radius);
+
+                ArcGizmo(Vector3.zero, radius, arc, m_ArcProperty, Quaternion.Euler(-90.0f, 0.0f, 0.0f), true);
             }
 
-            // Draw an extra semi-circle at the arc angle
-            if (arcSphere.arc < Mathf.PI * 2.0f)
-                Handles.DrawWireArc(center, Matrix4x4.Rotate(Quaternion.Euler(0.0f, 180.0f, arc)) * Vector3.right, Vector3.forward, 180.0f, radius);
-
-            // Draw 3rd circle around the arc
-            Handles.DrawWireArc(center, -Vector3.forward, Vector3.up, arc, radius);
-
-            VFXSphereGizmo.DrawSphere(arcSphere.sphere, this, m_CenterProperty, m_RadiusProperty);
-
-
-            ArcGizmo(center, radius, arc, m_ArcProperty, Quaternion.Euler(-90.0f, 0.0f, 0.0f), true);
+            VFXSphereGizmo.DrawSphere(arcSphere.sphere, this, m_CenterProperty, m_AnglesProperty, m_RadiusProperty);
         }
 
         public override Bounds OnGetSpacedGizmoBounds(ArcSphere value)

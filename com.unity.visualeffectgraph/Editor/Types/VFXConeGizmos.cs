@@ -183,7 +183,7 @@ namespace UnityEditor.VFX
                 baseRadiusScreen = (HandleUtility.WorldToGUIPoint(extremities.bottomCap) - HandleUtility.WorldToGUIPoint(extremities.bottomCap + Vector3.forward * cone.radius0)).magnitude;
             }
 
-            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Translate(cone.center)))
+            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(cone.center, Quaternion.Euler(cone.angles), Vector3.one)))
             {
                 Handles.DrawWireDisc(extremities.topCap, Vector3.up, cone.radius1);
                 Handles.DrawWireDisc(extremities.bottomCap, Vector3.up, cone.radius0);
