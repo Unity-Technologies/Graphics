@@ -423,15 +423,15 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             k_LightUnitSliderMap = new Dictionary<LightUnit, LightUnitSlider>
             {
-                { LightUnit.Lux,     new PiecewiseLightUnitSlider  (LightUnitSliderDescriptors.LuxDescriptor)     },
-                { LightUnit.Lumen,   new ExponentialLightUnitSlider(LightUnitSliderDescriptors.LumenDescriptor)   },
+                { LightUnit.Lux,     new PiecewiseLightUnitSlider(LightUnitSliderDescriptors.LuxDescriptor)     },
+                { LightUnit.Lumen,   new PiecewiseLightUnitSlider(LightUnitSliderDescriptors.LumenDescriptor)   },
                 { LightUnit.Candela, new PiecewiseLightUnitSlider(LightUnitSliderDescriptors.CandelaDescriptor) },
                 { LightUnit.Ev100,   new PiecewiseLightUnitSlider(LightUnitSliderDescriptors.EV100Descriptor)   },
-                { LightUnit.Nits,    new ExponentialLightUnitSlider(LightUnitSliderDescriptors.NitsDescriptor)    },
+                { LightUnit.Nits,    new PiecewiseLightUnitSlider(LightUnitSliderDescriptors.NitsDescriptor)    },
             };
 
             // Exposure is in EV100, but we load a separate due to the different icon set.
-            k_ExposureSlider = new LightUnitSlider(LightUnitSliderDescriptors.ExposureDescriptor);
+            k_ExposureSlider = new PiecewiseLightUnitSlider(LightUnitSliderDescriptors.ExposureDescriptor);
 
             // Kelvin is not classified internally as a light unit so we handle it independently as well.
             k_TemperatureSlider = new TemperatureSlider(LightUnitSliderDescriptors.TemperatureDescriptor);
