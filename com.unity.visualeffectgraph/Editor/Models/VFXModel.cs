@@ -414,10 +414,10 @@ namespace UnityEditor.VFX
             }
             else if (spaceType == SpaceableType.Euler)
             {
-                //TODOPAUL : It can be simplify
                 var zeroF3 = VFXOperatorUtility.ZeroExpression[VFXValueType.Float3];
                 var oneF3 = VFXOperatorUtility.OneExpression[VFXValueType.Float3];
                 VFXExpression rotationMatrix = new VFXExpressionTRSToMatrix(zeroF3, input, oneF3);
+                //TODOPAUL : Not sure it's needed (I have a doubt with scale)
                 var extractRotationMatrix = VFXOperatorUtility.GetRotationMatrixFromTRS(matrix);
                 rotationMatrix = new VFXExpressionTransformMatrix(rotationMatrix, extractRotationMatrix);
                 input = new VFXExpressionExtractAnglesFromMatrix(rotationMatrix);
