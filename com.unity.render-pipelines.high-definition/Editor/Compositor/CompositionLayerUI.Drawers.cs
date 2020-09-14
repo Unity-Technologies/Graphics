@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             static public readonly GUIContent k_ClearDepth = EditorGUIUtility.TrTextContent("Clear Depth", "If enabled, the depth buffer will be cleared before rendering this layer.");
             static public readonly GUIContent k_ClearAlpha = EditorGUIUtility.TrTextContent("Clear Alpha", "If enabled, the alpha channel will be cleared before rendering this layer. If enabled, post processing will affect only the objects of this layer");
             static public readonly GUIContent k_ClearMode = EditorGUIUtility.TrTextContent("Clear Color", "To override the clear mode of this layer, activate the option by clicking on the check-box and then select the desired value.");
-            static public readonly GUIContent k_AAMode = EditorGUIUtility.TrTextContent("Postprocess Anti-aliasing", "To override the postprocess Anti-aliasing mode, activate the option by clicking on the check-box and then select the desired value.");
+            static public readonly GUIContent k_AAMode = EditorGUIUtility.TrTextContent("Post Anti-aliasing", "To override the postprocess Anti-aliasing mode, activate the option by clicking on the check-box and then select the desired value.");
             static public readonly GUIContent k_CullingMask = EditorGUIUtility.TrTextContent("Culling Mask", "To override the culling mask, activate the option by clicking on the check-box and then select the desired value.");
             static public readonly GUIContent k_VolumeMask = EditorGUIUtility.TrTextContent("Volume Mask", "To override the volume mask, activate the option by clicking on the check-box and then select the desired value.");
 
@@ -204,7 +204,6 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
         static void DrawPropertyHelper(Rect rect, GUIContent label, SerializedProperty checkBox, SerializedProperty serializedProperty)
         {
             Rect rectCopy = rect;
-            rectCopy.width = EditorGUIUtility.singleLineHeight;
             EditorGUI.PropertyField(rectCopy, checkBox, GUIContent.none);
 
             rectCopy.x += EditorGUIUtility.singleLineHeight;
