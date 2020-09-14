@@ -46,14 +46,9 @@ def apply_target_revision_changes(editor_versions_file, yml_files_path, commit, 
         return False
     
     changed_editor = apply_changes(editor_versions_file)
-    changed_yml = apply_changes(yml_files_path)
+    #changed_yml = apply_changes(yml_files_path)
     
-    return (changed_editor or changed_yml)
-
-def regenerate_expectations(yamato_parser, working_dir):
-    logging.info(f'Running {yamato_parser} to generate unfolded Yamato YAML...')
-    run_cmd(yamato_parser, cwd=working_dir)
-    git_cmd(f'add {EXPECTATIONS_PATH}', working_dir)
+    return changed_editor
 
 
 def get_commit_message(git_hash):
@@ -63,7 +58,8 @@ def get_commit_message(git_hash):
 def commit_and_push(commit_msg, working_dir, track, development_mode=False):
     commit_msg = f'{commit_msg}'
     if not development_mode:
-        git_cmd(['commit', '-m', f'[{str(track)}] {commit_msg}'], working_dir)
+        git_cmd(['commit', '-m', f'[CI] [{str(track)}] Updated latest editors metafile'], working_dir)
+        #git_cmd(['commit', '-m', f'[{str(track)}] {commit_msg}'], working_dir)
         git_cmd('pull --ff-only', working_dir)
         git_cmd('push', working_dir)
 
@@ -81,8 +77,6 @@ def parse_args(flags):
                         'of the repo will be used.')
     parser.add_argument("--target-branch", required=True,
                         help='The Git branch to merge the changes in the file into.')
-    parser.add_argument('--yamato-parser', required=False,
-                        help='The yamato-parser executable to use')
     args = parser.parse_args(flags)
     if not os.path.isfile(args.config):
         parser.error(f'Cannot find config file {args.config}')
@@ -108,8 +102,6 @@ def main(argv):
                 logging.info('No changes compared to current revision. Exiting...')
                 return 0
         if apply_target_revision_changes(editor_versions_file, config['yml_files_path'], args.revision, working_dir):
-            if args.yamato_parser:
-                regenerate_expectations(args.yamato_parser, working_dir)
             commit_msg = get_commit_message(args.revision)
             commit_and_push(commit_msg, working_dir, args.track, args.local)
         else:

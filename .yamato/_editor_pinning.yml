@@ -57,7 +57,7 @@ editor-pinning-update:
           -  branch: yamato/update-unity-versions-ep
              frequency: 0 * * ?
 editor-pinning-merge-revisions-trunk:
-    name: Merge editor revisions to yamato/update-unity-versions-ep [trunk] [manual]
+    name: Merge editor revisions to yamato/update-unity-versions-ep [trunk]
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -106,10 +106,8 @@ editor-pinning-merge-revisions-trunk-abv:
       -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch yamato/update-unity-versions-ep --track trunk
     dependencies:
       -  .yamato/_abv.yml#all_project_ci_trunk
-    triggers:
-        expression: push.branch eq "yamato/update-unity-versions-ep-ci" AND push.changes.any match "**/_latest_editor_versions_trunk.metafile"
 editor-pinning-merge-revisions-2020.2:
-    name: Merge editor revisions to yamato/update-unity-versions-ep [2020.2] [manual]
+    name: Merge editor revisions to yamato/update-unity-versions-ep [2020.2]
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -158,5 +156,36 @@ editor-pinning-merge-revisions-2020.2-abv:
       -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch yamato/update-unity-versions-ep --track 2020.2
     dependencies:
       -  .yamato/_abv.yml#all_project_ci_2020.2
+editor-pinning-merge-all:
+    name: Merge all [ABV] [CI]
+    agent:
+        type: Unity::VM
+        image: package-ci/ubuntu:stable
+        flavor: b1.small
+    variables:
+        CI: true
+    allow_failure: true
+    dependencies:
+      -  .yamato/_editor_pinning.yml#editor-pinning-merge-revisions-trunk-abv
+      -  .yamato/_editor_pinning.yml#editor-pinning-merge-revisions-2020.2-abv
+    commands:
+      -  sudo pip3 install pipenv --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+      -  python3 -m pipenv install --dev
+      -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
+      -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
+      -  sudo apt-get update
+      -  |5-
+
+                     if [[ "$GIT_BRANCH" != "yamato/update-unity-versions-ep-ci" ]]; then
+                         echo "Should run on 'yamato/update-unity-versions-ep-ci' but is running on '$GIT_BRANCH'"
+                         exit 1
+                     fi
+      -  git config --global user.name "noreply@unity3d.com"
+      -  git config --global user.email "noreply@unity3d.com"
+      -  git checkout yamato/update-unity-versions-ep
+      -  git pullpipenv run python3 .yamato/ruamel/build.py
+      -  git add .yamato/*.yml
+      -  git commit -m "[CI] Updated .ymls to new revision"
+      -  git push
     triggers:
-        expression: push.branch eq "yamato/update-unity-versions-ep-ci" AND push.changes.any match "**/_latest_editor_versions_2020.2.metafile"
+        expression: push.branch eq "yamato/update-unity-versions-ep-ci" AND push.changes.any match "**/_latest_editor_versions*.metafile"

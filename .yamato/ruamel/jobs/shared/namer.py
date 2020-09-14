@@ -26,6 +26,9 @@ def editor_job_id_merge_revisions(editor_track):
 def editor_job_id_merge_revisions_ABV(editor_track):
     return f'editor-pinning-merge-revisions-{editor_track}-abv'
 
+def editor_job_id_merge_all():
+    return f'editor-pinning-merge-all'
+
 # package specific
 def packages_filepath():
     return f'{parent_dir}/_packages.yml'.lower()

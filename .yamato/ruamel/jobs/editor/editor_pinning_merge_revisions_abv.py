@@ -16,7 +16,7 @@ class Editor_PinningMergeRevisionsABVJob():
         
         job = Editor_PinningMergeRevisionsJob(editor, agent, target_branch, target_branch_editor_ci).yml_job
         job.add_dependencies([f'{abv_filepath()}#{abv_job_id_all_project_ci(editor["track"])}'])
-        job.set_trigger_on_expression(f'push.branch eq "{target_branch_editor_ci}" AND push.changes.any match "**/_latest_editor_versions_{editor["track"]}.metafile"')
+        #job.set_trigger_on_expression(f'push.branch eq "{target_branch_editor_ci}" AND push.changes.any match "**/_latest_editor_versions_{editor["track"]}.metafile"')
         job.set_name(f'Merge editor revisions to {target_branch} [{editor["track"]}] [ABV]')
 
         return job

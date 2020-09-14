@@ -1,5 +1,6 @@
 
 from .editor_priming import Editor_PrimingJob
+from .editor_pinning_merge_all import Editor_PinningMergeAllJob
 from .editor_pinning_merge_revisions import Editor_PinningMergeRevisionsJob
 from .editor_pinning_merge_revisions_abv import Editor_PinningMergeRevisionsABVJob
 from .editor_pinning_target_to_ci import Editor_PinningTargetToCIJob
@@ -42,6 +43,8 @@ def create_editor_yml(metafile):
         job = Editor_PinningMergeRevisionsABVJob(editor, metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"])
         yml[job.job_id] = job.yml 
 
+    job = Editor_PinningMergeAllJob(metafile['editors'], metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"])
+    yml[job.job_id] = job.yml
 
     yml_files[editor_pinning_filepath()] = yml
 

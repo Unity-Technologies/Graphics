@@ -173,7 +173,7 @@ def checkout_and_push(editor_versions_files, yml_files_path, target_branch, root
         git_cmd(f'add {expectations_dir}', cwd=root)
 
     cmd = ['commit', '-m',
-           f'[Automation] Updated pinned editor versions used for CI\n\n{commit_message_details}']
+           f'[CI] Updated pinned editor versions \n\n{commit_message_details}']
     git_cmd(cmd, cwd=root)
 
     cmd = ['push', '--set-upstream', 'origin', target_branch]
