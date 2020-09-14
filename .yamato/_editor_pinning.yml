@@ -106,6 +106,7 @@ editor-pinning-merge-revisions-trunk-abv:
       -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch yamato/update-unity-versions-ep --track trunk
     dependencies:
       -  .yamato/_abv.yml#all_project_ci_trunk
+    allow_failure: true
 editor-pinning-merge-revisions-2020.2:
     name: Merge editor revisions to yamato/update-unity-versions-ep [2020.2]
     agent:
@@ -156,6 +157,7 @@ editor-pinning-merge-revisions-2020.2-abv:
       -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch yamato/update-unity-versions-ep --track 2020.2
     dependencies:
       -  .yamato/_abv.yml#all_project_ci_2020.2
+    allow_failure: true
 editor-pinning-merge-all:
     name: Merge all [ABV] [CI]
     agent:
@@ -164,7 +166,6 @@ editor-pinning-merge-all:
         flavor: b1.small
     variables:
         CI: true
-    allow_failure: true
     dependencies:
       -  .yamato/_editor_pinning.yml#editor-pinning-merge-revisions-trunk-abv
       -  .yamato/_editor_pinning.yml#editor-pinning-merge-revisions-2020.2-abv

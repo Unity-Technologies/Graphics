@@ -47,7 +47,7 @@ class Editor_PinningMergeAllJob():
         job.set_name(f'Merge all [ABV] [CI]')
         job.set_agent(agent)
         job.add_var_custom('CI', True)
-        job.allow_failure()
+        #job.allow_failure()
         job.add_dependencies(dependencies)
         job.add_commands(commands)
         job.set_trigger_on_expression(f'push.branch eq "{target_branch_editor_ci}" AND push.changes.any match "**/_latest_editor_versions*.metafile"')
