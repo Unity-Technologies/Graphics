@@ -73,7 +73,7 @@ def cmd_standalone_performance(project_folder, platform, api, test_platform_args
         base.append('cd Tools && powershell -command ". .\\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"')
 
     base.extend([
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {test_platform_args} --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path={PATH_TEST_RESULTS} --timeout=1200 --player-load-path=../../{PATH_PLAYERS} --player-connection-ip=auto'
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {test_platform_args} --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path={PATH_TEST_RESULTS} --timeout=1200 --player-load-path=../../{PATH_PLAYERS} --player-connection-ip=auto'
     ])
     return base
 
@@ -89,7 +89,7 @@ def cmd_standalone_build_performance(project_folder, platform, api, test_platfor
         base.extend(unity_config)
 
     base.extend([
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="EditorTests.CliSetup" --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS} --timeout=1200 --player-save-path=../../{PATH_PLAYERS} --build-only'
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}  --timeout=1200 --player-save-path=../../{PATH_PLAYERS} --build-only'
     ])
     return base
 
@@ -98,7 +98,7 @@ def _get_extra_utr_arg(project_folder):
 
 def extra_perf_cmd(project_folder):   
     perf_list = [
-        f'git clone https://github.com/seanstolberg-unity/BoatAttack.git -b sophia/add-perf-tests-2 TestProjects/{project_folder}',
+        f'git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/feature/benchmark/enable-playmode-tests TestProjects/{project_folder}',
         f'Xcopy /E /I \"com.unity.render-pipelines.core\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.render-pipelines.core\" /Y',
         f'Xcopy /E /I \"com.unity.render-pipelines.universal\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.render-pipelines.universal\" /Y',
         f'Xcopy /E /I \"com.unity.shadergraph\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.shadergraph\" /Y'
@@ -109,13 +109,19 @@ def install_unity_config(project_folder):
     cmds = [
         f'choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local',
         f'choco install unity-config',
+		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project set registry candidates --project-path .',
+		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project set enable-lock-file true',
+		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project remove dependency com.unity.render-pipelines.universal',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test.performance.runtimesettings@\"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.performance.runtimesettings.git\"',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test.metadata-manager@\"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git\"',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.cli-project-setup@\"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git\"',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.testing.graphics-performance@\"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git\"',
+		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .',
+		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"com.unity.test.performance.runtimesettings@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.performance.runtimesettings.git\"',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git\"',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"com.unity.cli-project-setup@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.cli-project-setup.git\"',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git\"',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.shaderanalysis@\"ssh://git@github.cds.internal.unity3d.com/unity/com.unity.shaderanalysis.git\"',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency unity.graphictests.performance.universal@\"ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git#46a6d6f6c32b22af27de119d6a144a2ba730ee49\"',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git\"',
+		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"com.unity.test-framework@1.2.1-preview.1\"',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable com.unity.testing.graphics-performance --project-path .',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable com.unity.cli-project-setup  --project-path .',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .',
