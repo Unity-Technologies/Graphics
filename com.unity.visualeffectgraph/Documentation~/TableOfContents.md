@@ -66,6 +66,7 @@
         * [Connect Target](Block-ConnectTarget.md)
         * [Orient](Block-Orient.md)
       * Output
+        * [Camera Fade](Block-CameraFade.md)
         * [Subpixel Anti-Aliasing](Block-SubpixelAntiAliasing.md)
       * Position
         * [Set Position (Depth)](Block-SetPosition(Depth).md)
