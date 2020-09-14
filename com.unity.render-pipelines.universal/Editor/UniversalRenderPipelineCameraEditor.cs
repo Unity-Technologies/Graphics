@@ -68,6 +68,7 @@ namespace UnityEditor.Rendering.Universal
 
             public static readonly string missingRendererWarning = "The currently selected Renderer is missing form the Universal Render Pipeline asset.";
             public static readonly string noRendererError = "There are no valid Renderers available on the Universal Render Pipeline asset.";
+            public static readonly string disabledPostprocessing = "Post Processing is currently disabled on the current Renderer asset.";
 
             public static GUIContent[] cameraBackgroundType =
             {
@@ -459,10 +460,10 @@ namespace UnityEditor.Rendering.Universal
         {
             var rpAsset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
             if(rpAsset == null)
-			{
+            {
                 base.OnInspectorGUI();
                 return;
-			}
+            }
 
             settings.Update();
             m_AdditionalCameraDataSO.Update();
@@ -595,11 +596,11 @@ namespace UnityEditor.Rendering.Universal
 
                 if (camType == CameraRenderType.Base)
                 {
-                    DrawPostProcessing();
+                    DrawPostProcessing(rpAsset);
                 }
                 else if (camType == CameraRenderType.Overlay)
                 {
-                    DrawPostProcessingOverlay();
+                    DrawPostProcessingOverlay(rpAsset);
                     EditorGUILayout.PropertyField(m_AdditionalCameraClearDepth, Styles.clearDepth);
                     m_AdditionalCameraDataSO.ApplyModifiedProperties();
                 }
@@ -622,9 +623,10 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
-        void DrawPostProcessingOverlay()
+        void DrawPostProcessingOverlay(UniversalRenderPipelineAsset rpAsset)
         {
             EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderPostProcessing, Styles.renderPostProcessing);
+            DoPostProcessingHelpBox(rpAsset);
         }
 
         void DrawOutputSettings(UniversalRenderPipelineAsset rpAsset)
@@ -809,9 +811,11 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        void DrawPostProcessing()
+        void DrawPostProcessing(UniversalRenderPipelineAsset rpAsset)
         {
             EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderPostProcessing, Styles.renderPostProcessing);
+
+            DoPostProcessingHelpBox(rpAsset);
 
             // Draw Final Post-processing
             DrawIntPopup(m_AdditionalCameraDataAntialiasing, Styles.antialiasing, Styles.antialiasingOptions, Styles.antialiasingValues);
@@ -835,6 +839,29 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUILayout.PropertyField(m_AdditionalCameraDataStopNaN, Styles.stopNaN);
             EditorGUILayout.PropertyField(m_AdditionalCameraDataDithering, Styles.dithering);
+        }
+
+        void DoPostProcessingHelpBox(UniversalRenderPipelineAsset rpAsset)
+        {
+            if (m_AdditionalCameraDataRendererProp.hasMultipleDifferentValues)
+            {
+                return;
+            }
+
+            int rendererIndex = m_AdditionalCameraDataRendererProp.intValue != -1 ? m_AdditionalCameraDataRendererProp.intValue : rpAsset.m_DefaultRendererIndex;
+            var rendererData = rpAsset.m_RendererDataList[rendererIndex];
+
+            var forwardRendererData = rendererData as ForwardRendererData;
+            if (forwardRendererData != null && !forwardRendererData.postProcessIncluded && m_AdditionalCameraDataRenderPostProcessing.boolValue)
+            {
+                EditorGUILayout.HelpBox(Styles.disabledPostprocessing, MessageType.Warning);
+            }
+
+            var deferredRendererData = rendererData as DeferredRendererData;
+            if (deferredRendererData != null && !deferredRendererData.postProcessIncluded && m_AdditionalCameraDataRenderPostProcessing.boolValue)
+            {
+                EditorGUILayout.HelpBox(Styles.disabledPostprocessing, MessageType.Warning);
+            }
         }
 
         bool DrawLayerMask(SerializedProperty prop, ref LayerMask mask, GUIContent style)

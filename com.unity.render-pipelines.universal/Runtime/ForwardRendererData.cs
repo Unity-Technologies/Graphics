@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.Universal
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
                 var instance = CreateInstance<ForwardRendererData>();
+                instance.postProcessData = PostProcessData.GetDefaultPostProcessData();
                 AssetDatabase.CreateAsset(instance, pathName);
                 ResourceReloader.ReloadAllNullIn(instance, UniversalRenderPipelineAsset.packagePath);
                 Selection.activeObject = instance;
@@ -50,7 +51,6 @@ namespace UnityEngine.Rendering.Universal
             public Shader fallbackErrorPS;
         }
 
-        [Reload("Runtime/Data/PostProcessData.asset")]
         public PostProcessData postProcessData = null;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -67,18 +67,14 @@ namespace UnityEngine.Rendering.Universal
 
         protected override ScriptableRenderer Create()
         {
-#if UNITY_EDITOR
-            if (!Application.isPlaying)
-            {
-                ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-                ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
-#if ENABLE_VR && ENABLE_XR_MODULE
-                ResourceReloader.TryReloadAllNullIn(xrSystemData, UniversalRenderPipelineAsset.packagePath);
-#endif
-            }
-#endif
+            ReloadAllNullProperties();
             return new ForwardRenderer(this);
         }
+
+        /// <summary>
+        /// Returns if post processing is included in this renderer.
+        /// </summary>
+        internal bool postProcessIncluded { get => postProcessData != null; }
 
         /// <summary>
         /// Use this to configure how to filter opaque objects.
@@ -140,9 +136,13 @@ namespace UnityEngine.Rendering.Universal
             if (shaders == null)
                 return;
 
+            ReloadAllNullProperties();
+        }
+
+        private void ReloadAllNullProperties()
+        {
 #if UNITY_EDITOR
             ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-            ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
 #if ENABLE_VR && ENABLE_XR_MODULE
             ResourceReloader.TryReloadAllNullIn(xrSystemData, UniversalRenderPipelineAsset.packagePath);
 #endif

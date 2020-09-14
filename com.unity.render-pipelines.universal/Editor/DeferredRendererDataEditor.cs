@@ -11,6 +11,8 @@ namespace UnityEditor.Rendering.Universal
         private static class Styles
         {
             public static readonly GUIContent RendererTitle = new GUIContent("Deferred Renderer", "Custom Deferred Renderer for UniversalRP.");
+            public static readonly GUIContent PostProcessIncluded = EditorGUIUtility.TrTextContent("Post Processing", "Includes or removes Post Processing from builds, this includes rendering passes, shaders and texture resources.");
+            public static readonly GUIContent PostProcessLabel = new GUIContent("Post Process Data", "The asset containing references to shaders and Textures that the Renderer uses for post-processing.");
             public static readonly GUIContent FilteringLabel = new GUIContent("Filtering", "Controls filter rendering settings for this renderer.");
             public static readonly GUIContent OpaqueMask = new GUIContent("Opaque Layer Mask", "Controls which opaque layers this renderer draws.");
             public static readonly GUIContent TransparentMask = new GUIContent("Transparent Layer Mask", "Controls which transparent layers this renderer draws.");
@@ -53,7 +55,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(Styles.RendererTitle, EditorStyles.boldLabel); // Title
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(m_PostProcessData);
+            DrawPostProcessArea();
             EditorGUILayout.PropertyField(m_PreferDepthPrepass, Styles.preferDepthPrepassLabel, true);
             EditorGUILayout.PropertyField(m_AccurateGbufferNormals, Styles.accurateGbufferNormalsLabel, true);
             //EditorGUILayout.PropertyField(m_TiledDeferredShading, Styles.tiledDeferredShadingLabel, true);
@@ -108,6 +110,22 @@ namespace UnityEditor.Rendering.Universal
                     resources.shaders = null;
                     ResourceReloader.ReloadAllNullIn(target, UniversalRenderPipelineAsset.packagePath);
                 }
+            }
+        }
+
+        private void DrawPostProcessArea()
+        {
+            EditorGUI.BeginChangeCheck();
+            var postProcessIncluded = EditorGUILayout.Toggle(Styles.PostProcessIncluded, m_PostProcessData.objectReferenceValue != null);
+            if (EditorGUI.EndChangeCheck())
+            {
+                m_PostProcessData.objectReferenceValue = postProcessIncluded ? PostProcessData.GetDefaultPostProcessData() : null;
+            }
+            if (postProcessIncluded)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_PostProcessData, Styles.PostProcessLabel);
+                EditorGUI.indentLevel--;
             }
         }
     }
