@@ -67,6 +67,10 @@
     * [Subsurface Scattering Materials](Subsurface-Scattering)
     * [Diffusion Profile](Diffusion-Profile)
   * Shader List
+    * Autodesk Interactive
+      * [Autodesk Interactive Shader](Autodesk-Interactive-Shader)
+      * [Autodesk Interactive Masked Shader](Autodesk-Interactive-Shader-Masked)
+      * [Autodesk Interactive Transparent Shader](Autodesk-Interactive-Shader-Transparent)
     * [AxF Shader](AxF-Shader)
     * [Decal Shader](Decal-Shader)
     * [Layered Lit Shader](Layered-Lit-Shader)
@@ -91,11 +95,12 @@
 * Lighting
   * [Reflection in HDRP](Reflection-in-HDRP)
   * [Refraction in HDRP](Refraction-in-HDRP)
-  * Reflection Probes
-    * [Reflection Probes Introduction](Reflection-Probes-Intro)
-    * [Reflection Probe](Reflection-Probe)
-    * [Planar Reflection Probe](Planar-Reflection-Probe)
-    * [Reflection Proxy Volume](Reflection-Proxy-Volume)
+  * [Reflection Probes](Reflection-Probes-Intro)
+    * [Using Reflection Probes](Reflection-Probe-Usage)
+    * Components
+      * [Reflection Probe](Reflection-Probe)
+      * [Planar Reflection Probe](Planar-Reflection-Probe)
+      * [Reflection Proxy Volume](Reflection-Proxy-Volume)
   * [Light](Light-Component)
   * [Environment Lighting](Environment-Lighting)
   * [Atmospheric Scattering](Atmospheric-Scattering)
@@ -141,6 +146,7 @@
     * [Overview](Authoring-LUTs)
     * [Authoring in Adobe Photoshop](LUT-Authoring-Photoshop)
     * [Authoring in DaVinci Resolve](LUT-Authoring-Resolve)
+  * [Propagating NaNs](Post-Processing-Propagating-NaNs)
 * Ray Tracing
   * [Getting Started with Ray Tracing](Ray-Tracing-Getting-Started)
   * Effects and Volume Overrides

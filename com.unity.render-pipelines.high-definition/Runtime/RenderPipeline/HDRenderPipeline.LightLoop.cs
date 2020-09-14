@@ -428,7 +428,13 @@ namespace UnityEngine.Rendering.HighDefinition
             else
             {
                 if (transparent)
-                    BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, ref prepassOutput);
+                {
+                    // NOTE: Currently we profiled that generating the HTile for SSR and using it is not worth it the optimization.
+                    // However if the generated HTile will be used for something else but SSR, this should be made NOT resolve only and
+                    // re-enabled in the shader.
+                    BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, resolveOnly: true, ref prepassOutput);
+
+                }
 
                 using (var builder = renderGraph.AddRenderPass<RenderSSRPassData>("Render SSR", out var passData))
                 {

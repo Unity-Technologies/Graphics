@@ -19,23 +19,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector3 emissive;
             [SurfaceDataAttributes("AOSBlend", true)]
             public Vector2 MAOSBlend; // Metal opacity and Ambient occlusion opacity
-            [SurfaceDataAttributes("HTileMask")]
-            public uint HTileMask;
-
         };
 
         [GenerateHLSL(PackingRules.Exact)]
         public enum DBufferMaterial
         {
             Count = 4
-        };
-
-        [GenerateHLSL(PackingRules.Exact)]
-        public enum DBufferHTileBit
-        {
-            Diffuse = 1,
-            Normal = 2,
-            Mask = 4
         };
 
         //-----------------------------------------------------------------------------
