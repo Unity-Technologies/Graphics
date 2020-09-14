@@ -16,8 +16,23 @@ auto-version:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci utils auto-version bump --package-path com.unity.render-pipelines.core --package-path com.unity.render-pipelines.universal --package-path com.unity.render-pipelines.high-definition --package-path com.unity.shadergraph --package-path com.unity.visualeffectgraph --package-path com.unity.render-pipelines.high-definition-config --package-path com.unity.render-pipelines.lightweight
       -  upm-ci utils auto-version commit --push
+      -  python3 ./Tools/standalone/templates_auto_bumper.py --template-name ./com.unity.template-hd --target-dependency com.unity.render-pipelines.high-definition
+      -  python3 ./Tools/standalone/templates_auto_bumper.py --template-name ./com.unity.template-universal --target-dependency com.unity.render-pipelines.universal
+      -  |5-
+
+                             git diff --quiet
+                             if [[ $? != 0 ]]; then
+                                 git config --global user.name "noreply@unity3d.com"
+                                 git config --global user.email "noreply@unity3d.com"
+                                 git add ./com.unity.template-*
+                                 git checkout master
+                                 git commit -m "[Automation] Auto-bump template dependencies"
+                                 git push origin master
+                             else
+                                 echo "Did not find any dependency to bump. Will not commit and push anything."
+                             fi
     triggers:
-        expression: push.branch eq "master" AND NOT push.changes.all match ["*template*/**/*.json"]
+        expression: push.branch eq "master" AND NOT push.changes.all match ["com.unity.template-*/**/*.json"] AND NOT push.changes.all match ["com.unity.*/package.json"]
     artifacts:
         packages:
             paths:

@@ -37,7 +37,7 @@ Shader "Universal Render Pipeline/Unlit"
             Name "Unlit"
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex vert
@@ -115,7 +115,7 @@ Shader "Universal Render Pipeline/Unlit"
             ColorMask 0
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex DepthOnlyVertex
@@ -144,7 +144,7 @@ Shader "Universal Render Pipeline/Unlit"
             Cull Off
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex UniversalVertexMeta
@@ -172,7 +172,7 @@ Shader "Universal Render Pipeline/Unlit"
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore
             #pragma target 2.0
-            
+
             #pragma vertex vert
             #pragma fragment frag
             #pragma shader_feature_local_fragment _ALPHATEST_ON
@@ -234,7 +234,7 @@ Shader "Universal Render Pipeline/Unlit"
 #endif
 
                 color = MixFog(color, input.fogCoord);
-                alpha = OutputAlpha(alpha);
+                alpha = OutputAlpha(alpha, _Surface);
 
                 return half4(color, alpha);
             }
@@ -253,11 +253,11 @@ Shader "Universal Render Pipeline/Unlit"
 
             #pragma vertex DepthOnlyVertex
             #pragma fragment DepthOnlyFragment
-            
+
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature_local_fragment _ALPHATEST_ON
-                        
+
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
@@ -277,6 +277,7 @@ Shader "Universal Render Pipeline/Unlit"
 
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore
+            #pragma target 2.0
 
             #pragma vertex UniversalVertexMeta
             #pragma fragment UniversalFragmentMetaUnlit
