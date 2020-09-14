@@ -212,34 +212,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 DrawOverrideCheckbox(fixedExposure);
 
                 using (new EditorGUI.DisabledScope(!fixedExposure.overrideState.boolValue))
-                {
                     EditorGUILayout.LabelField(fixedExposure.displayName);
-
-                    const float k_EdgePadding  = 20f;
-                    const float k_LabelPadding = 40f;
-
-                    var offset = EditorGUIUtility.labelWidth + k_LabelPadding;
-
-                    // Manually build the rect to fit the light unit slider into the field area.
-                    var rect = EditorGUILayout.GetControlRect();
-                    rect.x = offset;
-                    rect.width = (EditorGUIUtility.currentViewWidth - k_EdgePadding) - offset;
-
-                    k_LightUnitSlider.DrawExposureSlider(m_FixedExposure.value, rect);
-                }
             }
 
             using (new EditorGUI.DisabledScope(!fixedExposure.overrideState.boolValue))
             {
-                const float k_OffsetPadding = 22f;
-                float offset = EditorGUIUtility.labelWidth + k_OffsetPadding;
+                var xOffset = EditorGUIUtility.labelWidth + 22;
+                var lineRect = EditorGUILayout.GetControlRect();
+                lineRect.x += xOffset;
+                lineRect.width -= xOffset;
 
-                var fieldRect = EditorGUILayout.GetControlRect();
-                fieldRect.x += offset;
-                fieldRect.width -= offset;
+                var sliderRect = lineRect;
+                sliderRect.y -= EditorGUIUtility.singleLineHeight;
+                k_LightUnitSlider.DrawExposureSlider(m_FixedExposure.value, sliderRect);
 
                 // Warning: It appears that drawing property without label disables the ability to slide values in the textbox
-                EditorGUI.PropertyField(fieldRect, m_FixedExposure.value, GUIContent.none);
+                EditorGUI.PropertyField(lineRect, m_FixedExposure.value, GUIContent.none);
             }
         }
     }
