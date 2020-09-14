@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static LightUnitSliderUIRange CautionRange(string tooltip, float value) => new LightUnitSliderUIRange
         {
             // Load the buildin caution icon with provided tooltip.
-            content = new GUIContent( EditorGUIUtility.TrIconContent("console.warnicon.sml").image, tooltip),
+            content = new GUIContent( EditorGUIUtility.TrIconContent("console.warnicon").image, tooltip),
             value = new Vector2(-1, value)
         };
 

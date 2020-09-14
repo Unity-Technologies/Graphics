@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DoThumbTooltip(sliderRect, thumbPosition, thumbValue, thumbTooltip);
         }
 
-        protected LightUnitSliderUIRange CurrentRange(float value)
+        LightUnitSliderUIRange CurrentRange(float value)
         {
             foreach (var l in m_Descriptor.valueRanges)
             {
@@ -158,9 +158,9 @@ namespace UnityEditor.Rendering.HighDefinition
             else if (value >= 10000)
                 formatValue = (value / 1000).ToString("0.#") + "K";
             else
-                formatValue = value.ToString("#.0");
+                formatValue = value.ToString("#0.0");
 
-            string tooltip = baseTooltip + " - " + formatValue + " " + unit;
+            string tooltip = baseTooltip + " | " + formatValue + " " + unit;
 
             return new GUIContent(string.Empty, tooltip);
         }
