@@ -50,9 +50,7 @@ namespace UnityEngine.Rendering.HighDefinition
         const float k_DefaultAerosolScaleHeight = 1200;
         static readonly float k_DefaultAerosolMaximumAltitude = LayerDepthFromScaleHeight(k_DefaultAerosolScaleHeight);
 
-
-        /// <summary> Simplifies the interface by using parameters suitable to simulate Earth. </summary>
-        [Tooltip("When enabled, Unity simplifies the interface and only exposes properties suitable to simulate Earth.")]
+        /// <summary> Simplifies the interface by reducing the number of parameters available. </summary>
         public PhysicallyBasedSkyModelParameter type = new PhysicallyBasedSkyModelParameter(PhysicallyBasedSkyModel.EarthAdvanced);
 
         /// <summary> Allows to specify the location of the planet. If disabled, the planet is always below the camera in the world-space X-Z plane. </summary>
