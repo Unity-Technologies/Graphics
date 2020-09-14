@@ -196,7 +196,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_counters_fast-trunk:
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_fast-trunk
          rerun: on-new-revision
     commands:
-      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/feature/benchmark/enable-playmode-tests TestProjects/BoatAttack
+      #-  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/feature/benchmark/enable-playmode-tests TestProjects/BoatAttack
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
