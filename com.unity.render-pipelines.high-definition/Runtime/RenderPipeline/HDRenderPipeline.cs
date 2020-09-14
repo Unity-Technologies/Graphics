@@ -1499,6 +1499,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Render(renderContext, new List<Camera>(cameras));
         }
+
         /// <summary>
         /// RenderPipeline Render implementation.
         /// </summary>
@@ -1520,7 +1521,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // This function should be called once every render (once for all camera)
             LightLoopNewRender();
 
-            BeginFrameRendering(renderContext, cameras);
+            BeginContextRendering(renderContext, cameras);
 
             // Check if we can speed up FrameSettings process by skiping history
             // or go in detail if debug is activated. Done once for all renderer.
@@ -2229,7 +2230,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_EnableRenderGraph)
                 m_RenderGraph.PurgeUnusedResources();
             m_XRSystem.ReleaseFrame();
-            UnityEngine.Rendering.RenderPipeline.EndFrameRendering(renderContext, cameras);
+            UnityEngine.Rendering.RenderPipeline.EndContextRendering(renderContext, cameras);
         }
 
 
