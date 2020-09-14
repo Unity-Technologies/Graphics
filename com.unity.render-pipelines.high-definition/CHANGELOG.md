@@ -87,6 +87,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Small optimization that allows to skip motion vector prepping when the whole wave as velocity of 0.
 - Improved performance to avoid generating coarse stencil buffer when not needed.
 - Remove HTile generation for decals (faster without).
+- Improving SSGI Filtering and fixing a blend issue with RTGI.
 
 ## [10.0.0] - 2019-06-10
 
