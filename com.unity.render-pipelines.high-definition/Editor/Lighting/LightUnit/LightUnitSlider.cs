@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -30,26 +32,27 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             BuildRects(rect, out var sliderRect, out var iconRect);
 
-            DoSlider(sliderRect, value, m_Descriptor.sliderRange);
+            var level = CurrentRange(value.floatValue);
+
+            DoSlider(sliderRect, value, m_Descriptor.sliderRange, level.value);
 
             if (m_Descriptor.hasMarkers)
             {
                 foreach (var r in m_Descriptor.valueRanges)
                 {
                     var markerValue = r.value.y;
-                    var markerPosition = GetPositionOnSlider(markerValue);
+                    var markerPosition = GetPositionOnSlider(markerValue, r.value);
                     var markerTooltip = r.content.tooltip;
                     DoSliderMarker(sliderRect, markerPosition, markerValue, markerTooltip);
                 }
             }
 
-            var level = CurrentRange(value.floatValue);
             var levelIconContent = level.content;
             var levelRange = level.value;
             DoIcon(iconRect, levelIconContent, levelRange.y);
 
             var thumbValue = value.floatValue;
-            var thumbPosition = GetPositionOnSlider(thumbValue);
+            var thumbPosition = GetPositionOnSlider(thumbValue, level.value);
             var thumbTooltip = levelIconContent.tooltip;
             DoThumbTooltip(sliderRect, thumbPosition, thumbValue, thumbTooltip);
         }
@@ -162,16 +165,26 @@ namespace UnityEditor.Rendering.HighDefinition
             return new GUIContent(string.Empty, tooltip);
         }
 
+        protected virtual void DoSlider(Rect rect, SerializedProperty value, Vector2 sliderRange, Vector2 valueRange)
+        {
+            DoSlider(rect, value, sliderRange);
+        }
+
         /// <summary>
         /// Draws a linear slider mapped to the min/max value range. Override this for different slider behavior (texture background, power).
         /// </summary>
-        protected virtual void DoSlider(Rect rect, SerializedProperty value, Vector2 range)
+        protected virtual void DoSlider(Rect rect, SerializedProperty value, Vector2 sliderRange)
         {
-            value.floatValue = GUI.HorizontalSlider(rect, value.floatValue, range.x, range.y);
+            value.floatValue = GUI.HorizontalSlider(rect, value.floatValue, sliderRange.x, sliderRange.y);
         }
 
         // Remaps value in the domain { Min0, Max0 } to { Min1, Max1 } (by default, normalizes it to (0, 1).
         static float Remap(float v, float x0, float y0, float x1 = 0f, float y1 = 1f) => x1 + (v - x0) * (y1 - x1) / (y0 - x0);
+
+        protected virtual float GetPositionOnSlider(float value, Vector2 valueRange)
+        {
+            return GetPositionOnSlider(value);
+        }
 
         /// <summary>
         /// Maps a light unit value onto the slider. Keeps in sync placement of markers and tooltips with the slider power.
@@ -220,7 +233,7 @@ namespace UnityEditor.Rendering.HighDefinition
             return ValueToSlider(value);
         }
 
-        protected override void DoSlider(Rect rect, SerializedProperty value, Vector2 range)
+        protected override void DoSlider(Rect rect, SerializedProperty value, Vector2 sliderRange)
         {
             value.floatValue = ExponentialSlider(rect, value.floatValue);
         }
@@ -230,6 +243,68 @@ namespace UnityEditor.Rendering.HighDefinition
             var internalValue = GUI.HorizontalSlider(rect, ValueToSlider(value), 0f, 1f, GUI.skin.horizontalSlider, GUI.skin.horizontalSliderThumb);
 
             return SliderToValue(internalValue);
+        }
+    }
+
+    // Note: Ideally we want a continuous, monotonically increasing function
+    class PiecewiseLightUnitSlider : LightUnitSlider
+    {
+        private Dictionary<int, Func<float, float>> m_PiecewiseMap = new Dictionary<int, Func<float, float>>();
+
+        Func<float, float> GetTransformation(float x0, float x1, float y0, float y1)
+        {
+            var m = (y0 - y1) / (x0 - x1);
+            var b = (m * -x0) + y0;
+
+            return x => (m * x) + b;
+        }
+
+        public PiecewiseLightUnitSlider(LightUnitSliderUIDescriptor descriptor) : base(descriptor)
+        {
+            // Sort the ranges into ascending order
+            var sortedRanges = m_Descriptor.valueRanges.OrderBy(x => x.value.x).ToArray();
+
+            // Compute the transformation for each value range.
+            // TODO: Slope dictionary of ranges <K, V> -> <Range, Slope> ?
+            var sliderStep = 1.0f / m_Descriptor.valueRanges.Length;
+            for (int i = 0; i < sortedRanges.Length; i++)
+            {
+                var r = sortedRanges[i].value;
+
+                var x0 = (i + 0) * sliderStep;
+                var x1 = (i + 1) * sliderStep;
+                var y0 = r.x;
+                var y1 = r.y;
+
+                var k = sortedRanges[i].value.GetHashCode();
+                var v = GetTransformation(x0, x1, y0, y1);
+                //m_PiecewiseMap.Add(k, v);
+
+                // Compute the inverse
+                CoreUtils.Swap(ref x0, ref y0);
+                CoreUtils.Swap(ref x1, ref y1);
+                v = GetTransformation(x0, x1, y0, y1);
+                m_PiecewiseMap.Add(k, v);
+            }
+        }
+
+        protected override float GetPositionOnSlider(float value, Vector2 valueRange)
+        {
+            var k = valueRange.GetHashCode();
+            if (!m_PiecewiseMap.TryGetValue(k, out var func))
+                return -1f;
+
+            return func(value);
+        }
+
+        protected override void DoSlider(Rect rect, SerializedProperty value, Vector2 sliderRange, Vector2 valueRange)
+        {
+            var k = valueRange.GetHashCode();
+            if (!m_PiecewiseMap.TryGetValue(k, out var func))
+                return;
+
+            // TODO: Default to a linear slider function if not found
+            var internalValue = GUI.HorizontalSlider(rect, func(value.floatValue), 0f, 1f);
         }
     }
 
@@ -266,9 +341,9 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Settings = settings;
         }
 
-        protected override void DoSlider(Rect rect, SerializedProperty value, Vector2 range)
+        protected override void DoSlider(Rect rect, SerializedProperty value, Vector2 sliderRange)
         {
-            SliderWithTextureNoTextField(rect, value, range, m_Settings);
+            SliderWithTextureNoTextField(rect, value, sliderRange, m_Settings);
         }
 
         // Note: We could use the internal SliderWithTexture, however: the internal slider func forces a text-field (and no ability to opt-out of it).
@@ -292,7 +367,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             k_LightUnitSliderMap = new Dictionary<LightUnit, LightUnitSlider>
             {
-                { LightUnit.Lux,     new ExponentialLightUnitSlider(LightUnitSliderDescriptors.LuxDescriptor)     },
+                { LightUnit.Lux,     new PiecewiseLightUnitSlider  (LightUnitSliderDescriptors.LuxDescriptor)     },
                 { LightUnit.Lumen,   new ExponentialLightUnitSlider(LightUnitSliderDescriptors.LumenDescriptor)   },
                 { LightUnit.Candela, new ExponentialLightUnitSlider(LightUnitSliderDescriptors.CandelaDescriptor) },
                 { LightUnit.Ev100,   new ExponentialLightUnitSlider(LightUnitSliderDescriptors.EV100Descriptor)   },
