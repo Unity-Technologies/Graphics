@@ -70,7 +70,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            return LightUnitSliderUIRange.CautionRange(m_Descriptor.cautionTooltip, value);
+            var cautionTooltip = value < m_Descriptor.sliderRange.x ? m_Descriptor.belowRangeTooltip : m_Descriptor.aboveRangeTooltip;
+            return LightUnitSliderUIRange.CautionRange(cautionTooltip, value);
         }
 
         void BuildRects(Rect baseRect, out Rect sliderRect, out Rect iconRect)
@@ -83,7 +84,6 @@ namespace UnityEditor.Rendering.HighDefinition
             iconRect.width = EditorGUIUtility.singleLineHeight;
         }
 
-        // Some sliders may want to clamp their value to the slider range.
         void ClampValue(SerializedProperty value, Vector2 range) =>
             value.floatValue = Mathf.Clamp(value.floatValue, range.x, range.y);
 
@@ -167,7 +167,7 @@ namespace UnityEditor.Rendering.HighDefinition
             else
                 formatValue = value.ToString("#0.0");
 
-            string tooltip = baseTooltip + " | " + formatValue + " " + unit;
+            var tooltip = baseTooltip + " | " + formatValue + " " + unit;
 
             return new GUIContent(string.Empty, tooltip);
         }

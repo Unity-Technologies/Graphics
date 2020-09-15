@@ -7,10 +7,17 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     struct LightUnitSliderUIDescriptor
     {
-        public LightUnitSliderUIDescriptor(LightUnitSliderUIRange[] valueRanges, float[] sliderDistribution, string cautionTooltip, string unitName, bool hasMarkers = true, bool clampValue = false)
+        public LightUnitSliderUIDescriptor(LightUnitSliderUIRange[] valueRanges, float[] sliderDistribution,
+            string cautionTooltip, string unitName, bool hasMarkers = true, bool clampValue = false)
+            : this(valueRanges, sliderDistribution, cautionTooltip, cautionTooltip, unitName, hasMarkers, clampValue)
+        {}
+
+        public LightUnitSliderUIDescriptor(LightUnitSliderUIRange[] valueRanges, float[] sliderDistribution, string belowRangeTooltip,
+            string aboveRangeTooltip, string unitName, bool hasMarkers = true, bool clampValue = false)
         {
             this.valueRanges = valueRanges;
-            this.cautionTooltip = cautionTooltip;
+            this.belowRangeTooltip = belowRangeTooltip;
+            this.aboveRangeTooltip = aboveRangeTooltip;
             this.sliderDistribution = sliderDistribution;
             this.unitName = unitName;
             this.hasMarkers = hasMarkers;
@@ -25,7 +32,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public readonly float[] sliderDistribution;
         public readonly LightUnitSliderUIRange[] valueRanges;
         public readonly Vector2 sliderRange;
-        public readonly string cautionTooltip;
+        public readonly string belowRangeTooltip;
+        public readonly string aboveRangeTooltip;
         public readonly string unitName;
         public readonly bool hasMarkers;
         public readonly bool clampValue;
@@ -96,7 +104,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public static LightUnitSliderUIDescriptor ExposureDescriptor = new LightUnitSliderUIDescriptor(
             LightUnitValueRanges.ExposureValueTable,
             LightUnitSliderDistributions.ExposureDistribution,
-            LightUnitTooltips.k_ExposureCaution,
+            LightUnitTooltips.k_ExposureBelowCaution,
+            LightUnitTooltips.k_ExposureAboveCaution,
             "EV"
         );
 
@@ -244,10 +253,11 @@ namespace UnityEditor.Rendering.HighDefinition
         private static class LightUnitTooltips
         {
             // Caution
-            public const string k_SunCaution         = "Higher than Sunlight";
-            public const string k_PunctualCaution    = "Very high intensity light";
-            public const string k_ExposureCaution    = "Higher than sunlight";
-            public const string k_TemperatureCaution = "";
+            public const string k_SunCaution           = "Higher than Sunlight";
+            public const string k_PunctualCaution      = "Very high intensity light";
+            public const string k_ExposureBelowCaution = "Lower than a moonless scene";
+            public const string k_ExposureAboveCaution = "Higher than a sunlit scene";
+            public const string k_TemperatureCaution   = "";
 
             // Lux / Directional
             public const string k_LuxBrightSky       = "High Sun";
