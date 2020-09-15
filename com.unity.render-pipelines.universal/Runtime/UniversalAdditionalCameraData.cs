@@ -222,12 +222,12 @@ namespace UnityEngine.Rendering.Universal
                     Debug.LogWarning(string.Format("{0}: This camera has a ScriptableRenderer that doesn't support camera stacking. Camera stack is null.", camera.name));
                     return null;
                 }
-                updateCameraStack();
+                UpdateCameraStack();
                 return m_Cameras;
             }
         }
 
-        public void updateCameraStack()
+        private void UpdateCameraStack()
         {
             Undo.RecordObject(this, "Update camera stack");
             int prev = m_Cameras.Count;
