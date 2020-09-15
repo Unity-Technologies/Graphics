@@ -19,10 +19,9 @@ namespace UnityEngine.Rendering.Universal
 
         public bool Setup(ref RenderingData renderingData)
         {
-            // Previously we only need to enqueue this pass when the user
-            // doesn't want transparent objects to receive shadows,
-            // but we need to enqueue this pass for disabling a keyword of screen space shadow
-            return true;
+            // Currently we only need to enqueue this pass when the user
+            // doesn't want transparent objects to receive shadows
+            return !m_shouldReceiveShadows;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -31,19 +30,9 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
-                ShadowData shadowData = renderingData.shadowData;
-                int cascadesCount = shadowData.mainLightShadowCascadesCount;
-
-                bool mainLightShadows = m_shouldReceiveShadows && renderingData.shadowData.supportsMainLightShadows;
-                bool receiveShadowsNoCascade = mainLightShadows && cascadesCount == 1;
-                bool receiveShadowsCascades = mainLightShadows && cascadesCount > 1;
-
-                // Before transparent object pass, force screen space shadow for main light to disable
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowsScreen, false);
-
                 // Toggle light shadows enabled based on the renderer setting set in the constructor
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, receiveShadowsNoCascade);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowsCascades, receiveShadowsCascades);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, m_shouldReceiveShadows);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowsCascades, m_shouldReceiveShadows);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, m_shouldReceiveShadows);
             }
 

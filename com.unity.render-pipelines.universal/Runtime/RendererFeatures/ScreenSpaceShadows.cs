@@ -19,6 +19,7 @@ namespace UnityEngine.Rendering.Universal
         // Private Fields
         private Material m_Material;
         private ScreenSpaceShadowsPass m_SSShadowsPass = null;
+        private RestoreShadowKeywordsPass m_RestoreShadowKeywordsPass = null;
 
         // Constants
         private const string k_ShaderName = "Hidden/Universal Render Pipeline/ScreenSpaceShadows";
@@ -28,10 +29,14 @@ namespace UnityEngine.Rendering.Universal
         {
             if (m_SSShadowsPass == null)
                 m_SSShadowsPass = new ScreenSpaceShadowsPass();
+            if (m_RestoreShadowKeywordsPass == null)
+                m_RestoreShadowKeywordsPass = new RestoreShadowKeywordsPass();
 
             LoadMaterial();
+
             m_SSShadowsPass.profilerTag = name;
-            m_SSShadowsPass.renderPassEvent = RenderPassEvent.AfterRenderingPrePasses;
+            m_SSShadowsPass.renderPassEvent = RenderPassEvent.BeforeRenderingOpaques;
+            m_RestoreShadowKeywordsPass.renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
         }
 
         /// <inheritdoc/>
@@ -47,7 +52,10 @@ namespace UnityEngine.Rendering.Universal
 
             bool shouldAdd = m_SSShadowsPass.Setup(m_Settings) && renderingData.shadowData.supportsMainLightShadows;
             if (shouldAdd)
+            {
                 renderer.EnqueuePass(m_SSShadowsPass);
+                renderer.EnqueuePass(m_RestoreShadowKeywordsPass);
+            }
         }
 
         /// <inheritdoc/>
@@ -86,7 +94,6 @@ namespace UnityEngine.Rendering.Universal
 
             // Private Variables
             private ScreenSpaceShadowsSettings m_CurrentSettings;
-            private ProfilingSampler m_ProfilingSampler = new ProfilingSampler("SSShadows.Execute()");
             private RenderTextureDescriptor m_RenderTextureDescriptor;
             private RenderTargetHandle m_RenderTarget;
 
@@ -139,11 +146,8 @@ namespace UnityEngine.Rendering.Universal
                 int cascadesCount = shadowData.mainLightShadowCascadesCount;
 
                 CommandBuffer cmd = CommandBufferPool.Get();
-                using (new ProfilingScope(cmd, m_ProfilingSampler))
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.ResolveShadows)))
                 {
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, cascadesCount == 1);
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowsCascades, cascadesCount > 1);
-
                     cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
                     cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
@@ -166,6 +170,36 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 cmd.ReleaseTemporaryRT(m_RenderTarget.id);
+            }
+        }
+
+        private class RestoreShadowKeywordsPass : ScriptableRenderPass
+        {
+            const string m_ProfilerTag = "Restore Shadow Keywords Pass";
+            private ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
+
+            public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+            {
+                CommandBuffer cmd = CommandBufferPool.Get();
+                using (new ProfilingScope(cmd, m_ProfilingSampler))
+                {
+                    ShadowData shadowData = renderingData.shadowData;
+                    int cascadesCount = shadowData.mainLightShadowCascadesCount;
+
+                    bool mainLightShadows = renderingData.shadowData.supportsMainLightShadows;
+                    bool receiveShadowsNoCascade = mainLightShadows && cascadesCount == 1;
+                    bool receiveShadowsCascades = mainLightShadows && cascadesCount > 1;
+
+                    // Before transparent object pass, force screen space shadow for main light to disable
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowsScreen, false);
+
+                    // then enable main light shadows with or without cascades
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, receiveShadowsNoCascade);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowsCascades, receiveShadowsCascades);
+                }
+
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
             }
         }
     }
