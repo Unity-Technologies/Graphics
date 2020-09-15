@@ -16,6 +16,9 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
         {
             Name "TerrainDetailVertex"
             HLSLPROGRAM
+            // Required to compile gles 2.0 with standard srp library
+            #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             #pragma vertex Vert
@@ -140,8 +143,9 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             Tags{"LightMode" = "UniversalGBuffer"}
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles
+            #pragma exclude_renderers d3d11_9x gles
             #pragma target 2.0
+
             #pragma vertex Vert
             #pragma fragment Frag
 
@@ -263,6 +267,9 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             ColorMask 0
 
             HLSLPROGRAM
+            // Required to compile gles 2.0 with standard srp library
+            #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             #pragma vertex DepthOnlyVertex
@@ -285,7 +292,9 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             ZWrite On
 
             HLSLPROGRAM
+            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
+
             #pragma vertex DepthNormalOnlyVertex
             #pragma fragment DepthNormalOnlyFragment
 
@@ -306,6 +315,9 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             Cull Off
 
             HLSLPROGRAM
+            // Required to compile gles 2.0 with standard srp library
+            #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
             #pragma vertex UniversalVertexMeta
             #pragma fragment UniversalFragmentMetaSimple
 

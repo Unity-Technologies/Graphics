@@ -94,11 +94,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         public static Renderer2DData GetRenderer2DData()
         {
             UniversalRenderPipelineAsset pipelineAsset = UniversalRenderPipeline.asset;
-            if (pipelineAsset == null)
-                return null;
-
-            // try get the default
-            Renderer2DData rendererData = pipelineAsset.scriptableRendererData as Renderer2DData;
+            Renderer2DData rendererData  = pipelineAsset != null ? pipelineAsset.scriptableRendererData as Renderer2DData : null;
             if(rendererData == null)
             {
                 foreach (Camera camera in Camera.allCameras)

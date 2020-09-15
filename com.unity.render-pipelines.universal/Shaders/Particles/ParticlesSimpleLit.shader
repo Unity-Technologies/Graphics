@@ -85,6 +85,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
+            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             // -------------------------------------
@@ -140,7 +141,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles
+            #pragma exclude_renderers d3d11_9x gles
             #pragma target 2.0
 
             // -------------------------------------
@@ -174,7 +175,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             // Unity defined keywords
             #pragma multi_compile_instancing
             #pragma instancing_options procedural:ParticleInstancingSetup
-
+	    
             #pragma vertex ParticlesLitGBufferVertex
             #pragma fragment ParticlesLitGBufferFragment
             #define BUMP_SCALE_NOT_SUPPORTED 1
@@ -196,6 +197,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             Cull Off
 
             HLSLPROGRAM
+            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             // -------------------------------------
@@ -229,6 +231,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             Cull Off
 
             HLSLPROGRAM
+            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             // -------------------------------------
@@ -259,7 +262,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma target 2.0
+            #pragma exclude_renderers d3d11_9x
 
             #pragma vertex vert
             #pragma fragment frag

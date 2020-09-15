@@ -98,6 +98,34 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: OSX Standalone won't work with back buffer capture
+  - FilteredScene: {fileID: 102900000, guid: c7b61419ee9382545afe530714fda0c2, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: iOS tracked regression (119)
+  - FilteredScene: {fileID: 102900000, guid: 9aa9851df0da149c9a83a0f26072e234, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: iOS tracked issue (123)
+  - FilteredScene: {fileID: 102900000, guid: 2fac616c9e61b45ccb7fcfa4fb18ae60, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: iOS tracked issue (124)
+  - FilteredScene: {fileID: 102900000, guid: 9173c5ffc1365594aa9b927c4cd84c54, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: iOS tracked regression (125)
   - FilteredScene: {fileID: 102900000, guid: 716466bc92f8e4eeeb3c138524b04021, type: 3}
     ColorSpace: -1
     BuildPlatform: 13
@@ -404,17 +432,3 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: Android Vulkan 143 regressed test scene
-  - FilteredScene: {fileID: 102900000, guid: fe73f67a2bc4933468c714f164c6596d, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 11
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Android GLES3 max additional lights regression. '
-  - FilteredScene: {fileID: 102900000, guid: 169aede566e462449812f4bfb3f8d20d, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 11
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Android GLES3 max additional lights regression. '

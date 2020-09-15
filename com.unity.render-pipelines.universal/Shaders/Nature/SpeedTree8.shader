@@ -116,7 +116,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             Tags{"LightMode" = "UniversalGBuffer"}
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles
+            #pragma exclude_renderers d3d11_9x gles
             #pragma vertex SpeedTree8Vert
             #pragma fragment SpeedTree8Frag
 

@@ -92,6 +92,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Spotlight_Spot_01b
       objectReference: {fileID: 0}
+    - target: {fileID: 2897031892463655715, guid: 43a2c40dd5bb4f6449d77cd82d533131, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7121601065988640605, guid: 43a2c40dd5bb4f6449d77cd82d533131, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 0

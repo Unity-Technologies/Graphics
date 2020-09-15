@@ -127,9 +127,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         {
             DoMetallicSpecularArea(properties, materialEditor, material);
             BaseShaderGUI.DrawNormalArea(materialEditor, properties.bumpMapProp, properties.bumpScaleProp);
-
-            if (HeightmapAvailable(material))
-                DoHeightmapArea(properties, materialEditor);
+            DoHeightmapArea(properties, materialEditor);
 
             if (properties.occlusionMap != null)
             {
@@ -139,7 +137,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
             // Check that we have all the required properties for clear coat,
             // otherwise we will get null ref exception from MaterialEditor GUI helpers.
-            if (ClearCoatAvailable(material))
+            if ( ClearCoatAvailable(material) )
                 DoClearCoat(properties, materialEditor, material);
         }
 
@@ -149,12 +147,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                    && material.HasProperty("_ClearCoatMap")
                    && material.HasProperty("_ClearCoatMask")
                    && material.HasProperty("_ClearCoatSmoothness");
-        }
-
-        private static bool HeightmapAvailable(Material material)
-        {
-            return    material.HasProperty("_Parallax")
-                   && material.HasProperty("_ParallaxMap");
         }
 
         private static void DoHeightmapArea(LitProperties properties, MaterialEditor materialEditor)

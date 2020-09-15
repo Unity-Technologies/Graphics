@@ -123,6 +123,7 @@ namespace UnityEditor.Rendering.Universal
         public bool isSameClearFlags { get { return !settings.clearFlags.hasMultipleDifferentValues; } }
         public bool isSameOrthographic { get { return !settings.orthographic.hasMultipleDifferentValues; } }
 
+        UniversalRenderPipelineAsset m_UniversalRenderPipeline;
         Dictionary<Object, UniversalAdditionalCameraData> m_AdditionalCameraDatas = new Dictionary<Object, UniversalAdditionalCameraData>();
         SerializedObject m_AdditionalCameraDataSO;
 
@@ -182,6 +183,7 @@ namespace UnityEditor.Rendering.Universal
         public new void OnEnable()
         {
             base.OnEnable();
+            m_UniversalRenderPipeline = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
 
             m_CommonCameraSettingsFoldout = new SavedBool($"{target.GetType()}.CommonCameraSettingsFoldout", false);
             m_EnvironmentSettingsFoldout = new SavedBool($"{target.GetType()}.EnvironmentSettingsFoldout", false);
@@ -360,7 +362,7 @@ namespace UnityEditor.Rendering.Universal
                         result.Add(camera);
                 }
             }
-
+            
             return result.ToArray();
         }
 
@@ -438,6 +440,8 @@ namespace UnityEditor.Rendering.Universal
             m_ShowBGColorAnim.valueChanged.RemoveListener(Repaint);
             m_ShowOrthoAnim.valueChanged.RemoveListener(Repaint);
             m_ShowTargetEyeAnim.valueChanged.RemoveListener(Repaint);
+
+            m_UniversalRenderPipeline = null;
         }
 
         BackgroundType GetBackgroundType(CameraClearFlags clearFlags)
@@ -457,10 +461,9 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnInspectorGUI()
         {
-            var rpAsset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
-            if(rpAsset == null)
+            if(m_UniversalRenderPipeline == null)
 			{
-                base.OnInspectorGUI();
+				EditorGUILayout.HelpBox("Universal RP asset not assigned, assign one in the Graphics Settings.", MessageType.Error);
                 return;
 			}
 
@@ -484,13 +487,13 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.indentLevel++;
 
             DrawCommonSettings();
-            DrawRenderingSettings(camType, rpAsset);
+            DrawRenderingSettings(camType);
             DrawEnvironmentSettings(camType);
 
             // Settings only relevant to base cameras
             if (camType == CameraRenderType.Base)
             {
-                DrawOutputSettings(rpAsset);
+                DrawOutputSettings();
                 DrawStackSettings();
             }
 
@@ -586,12 +589,12 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
-        void DrawRenderingSettings(CameraRenderType camType, UniversalRenderPipelineAsset rpAsset)
+        void DrawRenderingSettings(CameraRenderType camType)
         {
             m_RenderingSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_RenderingSettingsFoldout.value, Styles.renderingSettingsText);
             if (m_RenderingSettingsFoldout.value)
             {
-                DrawRenderer(rpAsset);
+                DrawRenderer();
 
                 if (camType == CameraRenderType.Base)
                 {
@@ -627,12 +630,12 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderPostProcessing, Styles.renderPostProcessing);
         }
 
-        void DrawOutputSettings(UniversalRenderPipelineAsset rpAsset)
+        void DrawOutputSettings()
         {
             m_OutputSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_OutputSettingsFoldout.value, Styles.outputSettingsText);
             if (m_OutputSettingsFoldout.value)
             {
-                DrawTargetTexture(rpAsset);
+                DrawTargetTexture();
 
                 if (camera.targetTexture == null)
                 {
@@ -735,14 +738,14 @@ namespace UnityEditor.Rendering.Universal
         }
 #endif
 
-        void DrawTargetTexture(UniversalRenderPipelineAsset rpAsset)
+        void DrawTargetTexture()
         {
             EditorGUILayout.PropertyField(settings.targetTexture, Styles.targetTextureLabel);
 
-            if (!settings.targetTexture.hasMultipleDifferentValues && rpAsset != null)
+            if (!settings.targetTexture.hasMultipleDifferentValues && m_UniversalRenderPipeline != null)
             {
                 var texture = settings.targetTexture.objectReferenceValue as RenderTexture;
-                int pipelineSamplesCount = rpAsset.msaaSampleCount;
+                int pipelineSamplesCount = m_UniversalRenderPipeline.msaaSampleCount;
 
                 if (texture && texture.antiAliasing > pipelineSamplesCount)
                 {
@@ -782,7 +785,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        void DrawRenderer(UniversalRenderPipelineAsset rpAsset)
+        void DrawRenderer()
         {
             int selectedRendererOption = m_AdditionalCameraDataRendererProp.intValue;
             EditorGUI.BeginChangeCheck();
@@ -791,13 +794,14 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.BeginProperty(controlRect, Styles.rendererType, m_AdditionalCameraDataRendererProp);
 
             EditorGUI.showMixedValue = m_AdditionalCameraDataRendererProp.hasMultipleDifferentValues;
-            int selectedRenderer = EditorGUI.IntPopup(controlRect, Styles.rendererType, selectedRendererOption, rpAsset.rendererDisplayList, UniversalRenderPipeline.asset.rendererIndexList);
+            int selectedRenderer = EditorGUI.IntPopup(controlRect, Styles.rendererType, selectedRendererOption, m_UniversalRenderPipeline.rendererDisplayList, UniversalRenderPipeline.asset.rendererIndexList);
+
             EditorGUI.EndProperty();
-            if (!rpAsset.ValidateRendererDataList())
+            if (!m_UniversalRenderPipeline.ValidateRendererDataList())
             {
                 EditorGUILayout.HelpBox(Styles.noRendererError, MessageType.Error);
             }
-            else if (!rpAsset.ValidateRendererData(selectedRendererOption))
+            else if (!m_UniversalRenderPipeline.ValidateRendererData(selectedRendererOption))
             {
                 EditorGUILayout.HelpBox(Styles.missingRendererWarning, MessageType.Warning);
             }

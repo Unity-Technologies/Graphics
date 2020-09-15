@@ -1,19 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!136 &3465795236466881209
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8039455247081414916}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  m_Radius: 0.6
-  m_Height: 7
-  m_Direction: 1
-  m_Center: {x: 0.40000004, y: -3.5055034, z: 1}
 --- !u!136 &3912181820269217273
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -42,6 +28,20 @@ CapsuleCollider:
   m_Height: 5.5
   m_Direction: 1
   m_Center: {x: -0.39000005, y: -2.7843761, z: 0.08999998}
+--- !u!136 &3465795236466881209
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8039455247081414916}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  m_Radius: 0.6
+  m_Height: 7
+  m_Direction: 1
+  m_Center: {x: 0.40000004, y: -3.5055034, z: 1}
 --- !u!1001 &8842488967474762285
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -136,10 +136,6 @@ PrefabInstance:
     - target: {fileID: 2619187338190720270, guid: 7931acb98e4dbae4fb720b7c34166bec, type: 3}
       propertyPath: m_ReceiveGI
       value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 2619187338190720270, guid: 7931acb98e4dbae4fb720b7c34166bec, type: 3}
-      propertyPath: m_RenderingLayerMask
-      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 2888170842726772454, guid: 7931acb98e4dbae4fb720b7c34166bec, type: 3}
       propertyPath: m_CastShadows

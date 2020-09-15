@@ -104,12 +104,10 @@ namespace UnityEngine.Rendering.Universal
                 // XRTODO : replace by API from XR SDK, assume we have 2 slices until then
                 maxViews = 2;
             }
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
             else if (XRGraphicsAutomatedTests.enabled)
             {
                 maxViews = Math.Max(maxViews, 2);
             }
-#endif
 
             return maxViews;
         }
@@ -141,14 +139,11 @@ namespace UnityEngine.Rendering.Universal
             bool isGameCamera = (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR);
             bool xrSupported = isGameCamera && camera.targetTexture == null && cameraData.xrRendering;
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (XRGraphicsAutomatedTests.enabled && XRGraphicsAutomatedTests.running && isGameCamera && LayoutSinglePassTestMode(cameraData, new XRLayout() { camera = camera, xrSystem = this }))
             {
                 // test layout in used
             }
-            else
-#endif
-            if (xrEnabled && xrSupported)
+            else if (xrEnabled && xrSupported)
             {
                 // Disable vsync on the main display when rendering to a XR device
                 // XRTODO: Quest provider has a bug where vSyncCount must be 1, otherwise app is locked to 30fps
@@ -373,35 +368,6 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-        static MaterialPropertyBlock testMirrorViewMaterialProperty = new MaterialPropertyBlock();
-        static Material testMirrorViewMaterial = null;
-
-        static void copyToTestRenderTexture(XRPass pass, CommandBuffer cmd, RenderTexture rt, Rect viewport)
-        {
-            cmd.SetViewport(viewport);
-            cmd.SetRenderTarget(rt == null ? new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget) : rt);
-
-            Vector4 scaleBias = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
-            Vector4 scaleBiasRT = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
-
-            if (rt == null)
-            {
-                scaleBias.y = -1.0f;
-                scaleBias.w = 1.0f;
-            }
-
-            testMirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBias, scaleBias);
-            testMirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBiasRt, scaleBiasRT);
-
-            // Copy result from the second slice
-            testMirrorViewMaterialProperty.SetInt(XRShaderIDs._SourceTexArraySlice, 1);
-
-            cmd.DrawProcedural(Matrix4x4.identity, testMirrorViewMaterial, 1, MeshTopology.Quads, 4, 1, testMirrorViewMaterialProperty);
-        }
-
-        static XRPass.CustomMirrorView testMirrorView = copyToTestRenderTexture;
-
         bool LayoutSinglePassTestMode(CameraData cameraData, XRLayout frameLayout)
         {
             Camera camera = frameLayout.camera;
@@ -420,18 +386,38 @@ namespace UnityEngine.Rendering.Universal
                     RenderTextureDescriptor rtDesc = cameraData.cameraTargetDescriptor;
                     rtDesc.dimension = TextureDimension.Tex2DArray;
                     rtDesc.volumeDepth = 2;
-
                     // If camera renders to subrect and it renders to backbuffer, we adjust size to match back buffer
-                    if (!cameraData.isDefaultViewport && cameraData.targetTexture == null)
+                    if(!cameraData.isDefaultViewport && cameraData.targetTexture == null)
                     {
                         rtDesc.width = (int)(rtDesc.width / cameraData.camera.rect.width);
                         rtDesc.height = (int)(rtDesc.height / cameraData.camera.rect.height);
                     }
                     testRenderTexture = RenderTexture.GetTemporary(rtDesc);
+                }
 
-                    testMirrorViewMaterial = mirrorViewMaterial;
-                    testMirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBRead, (testRenderTexture.sRGB) ? 0 : 1);
-                    testMirrorViewMaterialProperty.SetTexture(ShaderPropertyId.sourceTex, testRenderTexture);
+                void copyToTestRenderTexture(XRPass pass, CommandBuffer cmd, RenderTexture rt, Rect viewport)
+                {
+                    cmd.SetViewport(viewport);
+                    cmd.SetRenderTarget(rt == null ? new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget) : rt);
+
+                    Vector4 scaleBias   = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
+                    Vector4 scaleBiasRT = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
+
+                    if (rt == null)
+                    {
+                        scaleBias.y = -1.0f;
+                        scaleBias.w = 1.0f;
+                    }
+
+                    mirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBRead, (testRenderTexture.sRGB) ? 0 : 1);
+                    mirrorViewMaterialProperty.SetTexture(ShaderPropertyId.sourceTex, testRenderTexture);
+                    mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBias, scaleBias);
+                    mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBiasRt, scaleBiasRT);
+
+                    // Copy result from the second slice
+                    mirrorViewMaterialProperty.SetInt(XRShaderIDs._SourceTexArraySlice, 1);
+
+                    cmd.DrawProcedural(Matrix4x4.identity, mirrorViewMaterial, 1, MeshTopology.Quads, 4, 1, mirrorViewMaterialProperty);
                 }
 
                 var passInfo = new XRPassCreateInfo
@@ -441,7 +427,7 @@ namespace UnityEngine.Rendering.Universal
                     cullingParameters = cullingParams,
                     renderTarget = testRenderTexture,
                     renderTargetIsRenderTexture = true,
-                    customMirrorView = testMirrorView
+                    customMirrorView = copyToTestRenderTexture
                 };
 
                 var viewInfo2 = new XRViewCreateInfo
@@ -476,7 +462,6 @@ namespace UnityEngine.Rendering.Universal
 
             return false;
         }
-#endif
     }
 }
 
