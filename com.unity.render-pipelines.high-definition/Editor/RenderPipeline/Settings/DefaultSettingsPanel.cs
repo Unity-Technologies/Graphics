@@ -52,6 +52,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 public static GUIContent frameSettingsLabel = new GUIContent("Frame Settings");
                 public static GUIContent volumeComponentsLabel = new GUIContent("Volume Components");
                 public static GUIContent customPostProcessOrderLabel = new GUIContent("Custom Post Process Orders");
+                public static GUIContent diffusionProfileSettingsLabel = new GUIContent("Default Diffusion Profile Assets");
             }
 
             Vector2 m_ScrollViewPosition = Vector2.zero;
@@ -63,6 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ReorderableList m_AfterPostProcessCustomPostProcesses;
             int m_CurrentVolumeProfileInstanceID;
             private Editor m_Cache;
+            DiffusionProfileSettingsListUI diffusionProfileUI = new DiffusionProfileSettingsListUI();
 
             public void DoGUI(string searchContext)
             {
@@ -80,6 +82,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 EditorGUILayout.LabelField(Styles.customPostProcessOrderLabel, EditorStyles.largeLabel);
                 Draw_CustomPostProcess();
+
+                EditorGUILayout.LabelField(Styles.diffusionProfileSettingsLabel, EditorStyles.largeLabel);
+                Draw_DiffusionProfileSettings();
                 GUILayout.EndScrollView();
             }
 
@@ -92,6 +97,9 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 m_ScrollViewPosition = Vector2.zero;
                 InitializeCustomPostProcessesLists();
+
+                
+
 
                 var editorResources = HDRenderPipeline.defaultAsset.renderPipelineEditorResources;
                 if (!EditorUtility.IsPersistent(editorResources))
@@ -298,6 +306,20 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 HDRenderPipelineUI.FrameSettingsSection.Draw(serializedHDRPAsset, m_Cache);
                 serializedObject.ApplyModifiedProperties();
+            }
+
+            static void DrawDiffusionProfileElement(SerializedProperty element, Rect rect, int index)
+            {
+                EditorGUI.ObjectField(rect, element, EditorGUIUtility.TrTextContent("Profile " + index));
+            }
+
+            void Draw_DiffusionProfileSettings()
+            {
+                var serializedObject = new SerializedObject(HDRenderPipeline.defaultAsset);
+                var serializedHDRPAsset = new SerializedHDRenderPipelineAsset(serializedObject);
+
+                diffusionProfileUI.drawElement = DrawDiffusionProfileElement;
+                diffusionProfileUI.OnGUI(serializedHDRPAsset.diffusionProfileSettingsList);
             }
         }
     }
