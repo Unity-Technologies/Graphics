@@ -1548,14 +1548,8 @@ namespace UnityEditor.ShaderGraph
                 {
                     // If the property is not in the current graph, do check if the
                     // property can be made into a concrete node.
-                    var index = graphToPaste.metaProperties.TakeWhile(x => x != propertyNode.property).Count();
-                    var originalId = graphToPaste.metaPropertyIds.ElementAt(index);
-                    var property = m_Properties.SelectValue().FirstOrDefault(x => x.objectId == originalId);
-                    if (property != null)
-                    {
-                        propertyNode.property = property;
-                    }
-                    else
+                    var property = m_Properties.SelectValue().FirstOrDefault(x => x.objectId == propertyNode.property.objectId);
+                    if(property == null)
                     {
                         pastedNode = propertyNode.property.ToConcreteNode();
                         // some property nodes cannot be concretized..  fail to paste them

@@ -1207,7 +1207,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         foreach (var node in dependentPropertyNodes)
                         {
                             node.owner = graphView.graph;
-                            node.property = property;
+                            node.property = (AbstractShaderProperty)copiedInput;
                         }
                         break;
 
@@ -1227,7 +1227,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         foreach (var node in dependentKeywordNodes)
                         {
                             node.owner = graphView.graph;
-                            node.keyword = shaderKeyword;
+                            node.keyword = (ShaderKeyword)copiedInput;
                         }
 
                         // Pasting a new Keyword so need to test against variant limit
