@@ -10,13 +10,6 @@ All_Universal_Stereo_trunk:
          rerun: on-new-revision
       -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_editmode_trunk
          rerun: on-new-revision
-All_Universal_Stereo_fast-trunk:
-    name: All Universal_Stereo CI - fast-trunk
-    dependencies:
-      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_Standalone_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_editmode_fast-trunk
-         rerun: on-new-revision
 All_Universal_Stereo_CUSTOM-REVISION:
     name: All Universal_Stereo CI - CUSTOM-REVISION
     dependencies:
