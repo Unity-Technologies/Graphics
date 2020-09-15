@@ -31,7 +31,7 @@ def _job(project_name, test_platform_name, editor, platform, api, cmd):
     job.add_dependencies(dependencies)
     job.add_commands(cmd)
 
-    if "performance" in project_name:
+    if project_name == "URP_Performance_BoatAttack":
         job.add_perf_artifacts()
     else:    
         job.add_artifacts_test_results()

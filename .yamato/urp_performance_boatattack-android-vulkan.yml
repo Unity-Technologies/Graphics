@@ -29,7 +29,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_counters_trunk:
     artifacts:
         logs:
             paths:
-              -  "**/test-results/**"
+              -  "performance/test-results/**"
 Build_URP_Performance_BoatAttack_Android_Vulkan_Player_trunk:
     name: Build URP_Performance_BoatAttack on Android_Vulkan_Player on version trunk
     agent:
@@ -53,7 +53,7 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_Player_trunk:
     artifacts:
         logs:
             paths:
-              -  "**/test-results/**"
+              -  "performance/test-results/**"
         players:
             paths:
               -  "players/**"
@@ -83,7 +83,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_memory_trunk:
     artifacts:
         logs:
             paths:
-              -  "**/test-results/**"
+              -  "performance/test-results/**"
 URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_trunk:
     name: URP_Performance_BoatAttack on Android_Vulkan_performance_editmode_build on version trunk
     agent:
@@ -110,7 +110,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_trunk:
     artifacts:
         logs:
             paths:
-              -  "**/test-results/**"
+              -  "performance/test-results/**"
 URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_counters_fast-trunk:
     name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_counters on version fast-trunk
     agent:
@@ -137,7 +137,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_counters_fast-tru
     artifacts:
         logs:
             paths:
-              -  "**/test-results/**"
+              -  "performance/test-results/**"
 Build_URP_Performance_BoatAttack_Android_Vulkan_Player_fast-trunk:
     name: Build URP_Performance_BoatAttack on Android_Vulkan_Player on version fast-trunk
     agent:
@@ -161,7 +161,7 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_Player_fast-trunk:
     artifacts:
         logs:
             paths:
-              -  "**/test-results/**"
+              -  "performance/test-results/**"
         players:
             paths:
               -  "players/**"
@@ -191,7 +191,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_memory_fast-trunk
     artifacts:
         logs:
             paths:
-              -  "**/test-results/**"
+              -  "performance/test-results/**"
 URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_fast-trunk:
     name: URP_Performance_BoatAttack on Android_Vulkan_performance_editmode_build on version fast-trunk
     agent:
@@ -218,7 +218,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_fast-trunk:
     artifacts:
         logs:
             paths:
-              -  "**/test-results/**"
+              -  "performance/test-results/**"
 URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_counters_CUSTOM-REVISION:
     name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_counters on version CUSTOM-REVISION
     agent:
@@ -246,7 +246,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_counters_CUSTOM-R
     artifacts:
         logs:
             paths:
-              -  "**/test-results/**"
+              -  "performance/test-results/**"
 Build_URP_Performance_BoatAttack_Android_Vulkan_Player_CUSTOM-REVISION:
     name: Build URP_Performance_BoatAttack on Android_Vulkan_Player on version CUSTOM-REVISION
     agent:
@@ -271,7 +271,7 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_Player_CUSTOM-REVISION:
     artifacts:
         logs:
             paths:
-              -  "**/test-results/**"
+              -  "performance/test-results/**"
         players:
             paths:
               -  "players/**"
@@ -302,7 +302,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_memory_CUSTOM-REV
     artifacts:
         logs:
             paths:
-              -  "**/test-results/**"
+              -  "performance/test-results/**"
 URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_CUSTOM-REVISION:
     name: URP_Performance_BoatAttack on Android_Vulkan_performance_editmode_build on version CUSTOM-REVISION
     agent:
@@ -330,4 +330,4 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_CUSTOM-REVI
     artifacts:
         logs:
             paths:
-              -  "**/test-results/**"
+              -  "performance/test-results/**"
