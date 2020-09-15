@@ -151,8 +151,8 @@ finalPos = mul(transformMatrix, float4(finalPos, 1.0f));
 finalDir = mul((float3x3)transformMatrix, finalDir);
 ";
                 outSource += VFXBlockUtility.GetComposeString(compositionDirection, "direction", "finalDir", "blendDirection") + "\n";
-                //outSource += VFXBlockUtility.GetComposeString(compositionDirection, "direction.xzy", "normalize(float3(pos * sincosSlope.x, sincosSlope.y))", "blendDirection") + "\n";
                 outSource += VFXBlockUtility.GetComposeString(compositionPosition, "position", "finalPos", "blendPosition");
+
                 return outSource;
             }
         }
