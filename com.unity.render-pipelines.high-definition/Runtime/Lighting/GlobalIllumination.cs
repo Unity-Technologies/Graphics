@@ -51,24 +51,6 @@ namespace UnityEngine.Rendering.HighDefinition
         private ClampedIntParameter m_RaySteps = new ClampedIntParameter(24, 16, 128);
 
         /// <summary>
-        /// The maximal world space radius from which we should get indirect lighting contribution.
-        /// </summary>
-        public float maximalRadius
-        {
-            get
-            {
-                if (!UsesQualitySettings())
-                    return m_MaximalRadius.value;
-                else
-                    return GetLightingQualitySettings().SSGIRadius[(int)quality.value];
-            }
-            set { m_MaximalRadius.value = value; }
-        }
-        [SerializeField]
-        [Tooltip("Controls the maximal world space radius from which we should get indirect lighting contribution.")]
-        private ClampedFloatParameter m_MaximalRadius = new ClampedFloatParameter(2.0f, 0.01f, 50.0f);
-
-        /// <summary>
         /// Defines if the effect should be evaluated at full resolution.
         /// </summary>
         public bool fullResolutionSS
@@ -84,23 +66,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         [SerializeField]
         private BoolParameter m_FullResolutionSS = new BoolParameter(true);
-
-        /// <summary>
-        /// Defines if the effect should be evaluated at full resolution.
-        /// </summary>
-        public float clampValueSS
-        {
-            get
-            {
-                if (!UsesQualitySettings())
-                    return m_ClampValueSS.value;
-                else
-                    return GetLightingQualitySettings().SSGIClampValue[(int)quality.value];
-            }
-            set { m_ClampValueSS.value = value; }
-        }
-        [SerializeField]
-        private ClampedFloatParameter m_ClampValueSS = new ClampedFloatParameter(2.0f, 0.01f, 10.0f);
 
         /// <summary>
         /// Defines the radius for the spatial filter

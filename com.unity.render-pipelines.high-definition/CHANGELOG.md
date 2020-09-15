@@ -70,6 +70,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with stencil not being set in rendergraph mode.
 - Fixed for post process being overridable in reflection probes even though it is not supported.
 - Fixed RTGI in performance mode when light layers are enabled on the asset.
+- Fixed SSS materials appearing black in matcap mode.
+- Fixed a collision in the interaction of RTR and RTGI.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
@@ -85,6 +87,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Small optimization that allows to skip motion vector prepping when the whole wave as velocity of 0.
 - Improved performance to avoid generating coarse stencil buffer when not needed.
 - Remove HTile generation for decals (faster without).
+- Improving SSGI Filtering and fixing a blend issue with RTGI.
+- Changed the Trackball UI so that it allows explicit numeric values.
 
 ## [10.0.0] - 2019-06-10
 
