@@ -60,7 +60,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass
             ColorMask 0
             Cull Off
 
-lude_renderers d3d11_9x
+            HLSLPROGRAM
             #pragma target 2.0
 
             #pragma vertex DepthOnlyVertex
