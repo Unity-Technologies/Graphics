@@ -172,11 +172,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static readonly LightUnitSliderUIRange[] KelvinValueTable =
             {
-                new LightUnitSliderUIRange(LightUnitIcon.BlueSky,       LightUnitTooltips.k_TemperatureBlueSky,        new Vector2(10000, 20000)),
-                new LightUnitSliderUIRange(LightUnitIcon.Overcast,      LightUnitTooltips.k_TemperatureCloudySky,      new Vector2(6500,  10000)),
-                new LightUnitSliderUIRange(LightUnitIcon.DirectSunlight,LightUnitTooltips.k_TemperatureDirectSunlight, new Vector2(3500,   6500)),
-                new LightUnitSliderUIRange(LightUnitIcon.ExteriorLight, LightUnitTooltips.k_TemperatureArtificial,     new Vector2(2500,   3500)),
-                new LightUnitSliderUIRange(LightUnitIcon.Candlelight,   LightUnitTooltips.k_TemperatureCandle,        new Vector2(1500,   2500)),
+                new LightUnitSliderUIRange(LightUnitIcon.BlueSky,          LightUnitTooltips.k_TemperatureBlueSky,        new Vector2(10000, 20000)),
+                new LightUnitSliderUIRange(LightUnitIcon.Overcast,         LightUnitTooltips.k_TemperatureCloudySky,      new Vector2(6500,  10000)),
+                new LightUnitSliderUIRange(LightUnitIcon.DirectSunlight,   LightUnitTooltips.k_TemperatureDirectSunlight, new Vector2(3500,   6500)),
+                new LightUnitSliderUIRange(LightUnitIcon.IntenseAreaLight, LightUnitTooltips.k_TemperatureArtificial,     new Vector2(2500,   3500)),
+                new LightUnitSliderUIRange(LightUnitIcon.Candlelight,      LightUnitTooltips.k_TemperatureCandle,        new Vector2(1500,   2500)),
             };
         }
 
