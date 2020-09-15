@@ -1206,7 +1206,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Raytracing Quality
             public static DefineCollection raytracingDefault = new DefineCollection { {RayTracingQualityNode.GetRayTracingQualityKeyword(), 0} };
-            public static DefineCollection raytracingOptimized = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 1} };
+            public static DefineCollection raytracingRaytraced = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 1} };
         }
 
 #endregion

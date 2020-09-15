@@ -143,7 +143,7 @@ by respectively
 ```
 For an example of best practices to apply decals to a material, see the `ApplyDecalToSurfaceData()` function in the LitDecalData.hlsl file.
 
-From Unity 2020.2, the Raytracing keyword in Shader Graph has been renamed to Raytracing Quality and the RAYTRACING_SHADER_GRAPH_LOW and RAYTRACING_SHADER_GRAPH_HIGH defines are now RAYTRACING_SHADER_GRAPH_DEFAULT and RAYTRACING_SHADER_GRAPH_OPTIMIZED respectively. Unless you used these defines in custom Shader code, you do not need to do anything because Shader Graph automatically regenerates its Shaders with the correct defines when you load the Project.
+From Unity 2020.2, the Raytracing keyword in Shader Graph has been renamed to Raytracing Quality and the RAYTRACING_SHADER_GRAPH_LOW and RAYTRACING_SHADER_GRAPH_HIGH defines are now RAYTRACING_SHADER_GRAPH_DEFAULT and RAYTRACING_SHADER_GRAPH_RAYTRACED respectively. Unless you used these defines in custom Shader code, you do not need to do anything because Shader Graph automatically regenerates its Shaders with the correct defines when you load the Project.
 
 ## Custom pass API
 
