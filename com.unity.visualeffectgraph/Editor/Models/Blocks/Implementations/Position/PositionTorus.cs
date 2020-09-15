@@ -29,7 +29,8 @@ namespace UnityEditor.VFX.Block
                 foreach (var p in GetExpressionsFromSlots(this).Where(e => e.name != "Thickness"))
                     yield return p;
 
-                yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, 0, 1), "volumeFactor");
+                //TODOPAUL
+                yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, null, null), "volumeFactor");
                 yield return new VFXNamedExpression(VFXOperatorUtility.Saturate(inputSlots[0][2].GetExpression() / inputSlots[0][1].GetExpression()), "r"); // Saturate can be removed once degenerated torus are correctly handled
             }
         }

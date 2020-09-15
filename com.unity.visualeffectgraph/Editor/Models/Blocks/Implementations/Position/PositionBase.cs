@@ -84,11 +84,15 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                foreach (var p in GetExpressionsFromSlots(this).Where(e => e.name != "Thickness"))
+                var allSlots = GetExpressionsFromSlots(this);
+                foreach (var p in allSlots.Where(e => e.name != "Thickness"))
                     yield return p;
 
+                var thickness = allSlots.Where(o => o.name == nameof(ThicknessProperties.Thickness)).FirstOrDefault();
+
+                //TODOPAUL replace inputSlots[0][1].GetExpression() 
                 if (supportsVolumeSpawning)
-                    yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, 0, 1), "volumeFactor");
+                    yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, inputSlots[0][1].GetExpression(), thickness.exp), "volumeFactor");
             }
         }
 
@@ -134,7 +138,7 @@ namespace UnityEditor.VFX.Block
 
         protected virtual float thicknessDimensions { get { return 3.0f; } }
 
-        protected VFXExpression CalculateVolumeFactor(PositionMode positionMode, int radiusIndex, int thicknessIndex)
+        protected VFXExpression CalculateVolumeFactor(PositionMode positionMode, VFXExpression radius, VFXExpression thickness)
         {
             VFXExpression factor = VFXValue.Constant(0.0f);
 
@@ -149,12 +153,9 @@ namespace UnityEditor.VFX.Block
                 case PositionMode.ThicknessAbsolute:
                 case PositionMode.ThicknessRelative:
                 {
-                    var thickness = inputSlots[thicknessIndex].GetExpression();
-                    if (positionMode == PositionMode.ThicknessAbsolute)
-                    {
-                        var radius = inputSlots[radiusIndex][1].GetExpression();
+                        //TODOPAUL : double check this function, I think radius and thickness may have been swapped at some point
+                        if (positionMode == PositionMode.ThicknessAbsolute)
                         thickness = thickness / radius;
-                    }
 
                     factor = VFXOperatorUtility.Saturate(thickness);
                     break;

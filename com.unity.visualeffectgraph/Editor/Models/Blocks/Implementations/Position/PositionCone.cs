@@ -57,20 +57,24 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                foreach (var p in GetExpressionsFromSlots(this).Where(      e =>    e.name == "ArcCone_arc"
-                                                                                ||  e.name == "ArcCone_radius0"
-                                                                                ||  e.name == "ArcCone_radius1"
-                                                                                ||  e.name == "ArcCone_height"
-                                                                                ||  e.name == "ArcSequencer"))
-                    yield return p;
+                var allSlots = GetExpressionsFromSlots(this);
 
-                yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, 0, 1), "volumeFactor");
+                foreach (var p in allSlots.Where(e => e.name == "ArcCone_arc"
+                                                   || e.name == "ArcCone_radius0"
+                                                   || e.name == "ArcCone_radius1"
+                                                   || e.name == "ArcCone_height"
+                                                   || e.name == "ArcSequencer"))
+                    yield return p;
 
                 VFXExpression radius0 = inputSlots[0][3].GetExpression();
                 VFXExpression radius1 = inputSlots[0][4].GetExpression();
                 VFXExpression height = inputSlots[0][5].GetExpression();
                 VFXExpression tanSlope = (radius1 - radius0) / height;
                 VFXExpression slope = new VFXExpressionATan(tanSlope);
+
+                var thickness = allSlots.Where(o => o.name == nameof(ThicknessProperties.Thickness)).FirstOrDefault();
+                yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, radius0, thickness.exp), "volumeFactor");
+
                 yield return new VFXNamedExpression(new VFXExpressionCombine(new VFXExpression[] { new VFXExpressionSin(slope), new VFXExpressionCos(slope) }), "sincosSlope");
 
                 VFXExpression center = inputSlots[0][0].GetExpression();
@@ -140,11 +144,13 @@ float hNorm = HeightSequencer;
 ";
                 }
 
-                outSource += VFXBlockUtility.GetComposeString(compositionDirection, "direction.xzy", "normalize(float3(pos * sincosSlope.x, sincosSlope.y))", "blendDirection") + "\n";
-                outSource += VFXBlockUtility.GetComposeString(compositionPosition, "position.xzy", "lerp(float3(pos * ArcCone_radius0, 0.0f), float3(pos * ArcCone_radius1, ArcCone_height), hNorm) + ArcCone_center.xzy", "blendPosition");
-//finalPos = mul(transformMatrix, float4(finalPos, 1.0f));
-//position += finalPos;
-//WIP : Merge it correctly
+                outSource += @"
+float3 finalPos = lerp(float3(pos * ArcCone_radius0, 0.0f), float3(pos * ArcCone_radius1, ArcCone_height), hNorm);
+finalPos = mul(transformMatrix, float4(finalPos, 1.0f));
+float3 finalDir = normalize(float3(pos * sincosSlope.x, sincosSlope.y));";
+
+                outSource += VFXBlockUtility.GetComposeString(compositionDirection, "direction", "finalDir", "blendDirection") + "\n";
+                outSource += VFXBlockUtility.GetComposeString(compositionPosition, "position", "finalPos", "blendPosition");
                 return outSource;
             }
         }
