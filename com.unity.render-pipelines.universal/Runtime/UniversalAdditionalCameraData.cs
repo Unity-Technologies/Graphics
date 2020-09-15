@@ -227,7 +227,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public void UpdateCameraStack()
+        internal void UpdateCameraStack()
         {
             Undo.RecordObject(this, "Update camera stack");
             int prev = m_Cameras.Count;
