@@ -9,6 +9,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // This will be used during GBuffer and/or forward passes.
         TextureHandle CreateSSSBuffer(RenderGraph renderGraph, bool msaa)
         {
+#if UNITY_2020_2_OR_NEWER
+            FastMemoryDesc fastMemDesc;
+            fastMemDesc.inFastMemory = true;
+            fastMemDesc.residencyFraction = 1.0f;
+            fastMemDesc.flags = FastMemoryFlags.SpillTop;
+#endif
+
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
             {
                 colorFormat = GraphicsFormat.R8G8B8A8_SRGB,
@@ -18,6 +25,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 clearBuffer = NeedClearGBuffer(),
                 clearColor = Color.clear,
                 name = msaa ? "SSSBufferMSAA" : "SSSBuffer"
+#if UNITY_2020_2_OR_NEWER
+                , fastMemoryDesc = fastMemDesc
+#endif
             });
         }
 
@@ -39,7 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
                 return;
 
-            BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, ref prepassOutput);
+            BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, resolveOnly: false, ref prepassOutput);
 
             TextureHandle depthStencilBuffer = prepassOutput.depthBuffer;
             TextureHandle depthTexture = prepassOutput.depthPyramidTexture;

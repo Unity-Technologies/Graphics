@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         }
 
         public override bool IsActive() => true;
-        
+
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddField(CoreFields.UseLegacySpriteBlocks, useLegacyBlocks);
 
             // Surface Type & Blend Mode
-            context.AddField(Fields.SurfaceTransparent);
+            context.AddField(UniversalFields.SurfaceTransparent);
             context.AddField(Fields.BlendAlpha);
             context.AddField(Fields.DoubleSided);
         }
@@ -72,13 +72,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             return true;
         }
-        
+
 #region SubShader
         static class SubShaders
         {
             public static SubShaderDescriptor SpriteLit = new SubShaderDescriptor()
             {
                 pipelineTag = UniversalTarget.kPipelineTag,
+                customTags = UniversalTarget.kLitMaterialTypeTag,
                 renderType = $"{RenderType.Transparent}",
                 renderQueue = $"{UnityEditor.ShaderGraph.RenderQueue.Transparent}",
                 generatesPreview = true,

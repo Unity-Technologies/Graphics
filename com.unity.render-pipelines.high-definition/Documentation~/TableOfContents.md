@@ -16,23 +16,25 @@
   * [Menu Items](Menu-Items.md)
 * Upgrading HDRP between Unity Versions
   * [Material Upgrade](Material-Upgrade)
-  * [2019.1 to 2019.2](Upgrading-from-2019.1-to-2019.2)
-  * [2019.2 to 2019.3](Upgrading-from-2019.2-to-2019.3)
-  * [2019.3 to 2020.1](Upgrading-from-2019.3-to-2020.1)
-  * [2020.1 to 2020.2](Upgrading-from-2020.1-to-2020.2)
+  * [5.x to 6.x](Upgrading-from-2019.1-to-2019.2)
+  * [6.x to 7.x](Upgrading-from-2019.2-to-2019.3)
+  * [7.x to 8.x](Upgrading-from-2019.3-to-2020.1)
+  * [8.x to 9.x-preview/10.x](Upgrading-from-2020.1-to-2020.2)
 * Volume Framework
   * [Volumes](Volumes)
   * [Volume Profiles](Volume-Profile)
   * [Volume Overrides](Volume-Components)
   * Volume Overrides List
-    * [Diffusion Profile](Override-Diffusion-Profile)
     * [Exposure](Override-Exposure)
     * [Fog](Override-Fog)
     * Lighting
       * [Ambient Occlusion](Override-Ambient-Occlusion)
       * [Indirect Lighting Controller](Override-Indirect-Lighting-Controller)
+      * [Screen Space Global Illumination](Override-Screen-Space-GI)
       * [Screen Space Reflection](Override-Screen-Space-Reflection)
       * [Screen Space Refraction](Override-Screen-Space-Refraction)
+    * Material
+      * [Diffusion Profile](Override-Diffusion-Profile)
     * Shadowing
       * [Contact Shadows](Override-Contact-Shadows)
       * [Micro Shadows](Override-Micro-Shadows)
@@ -65,6 +67,10 @@
     * [Subsurface Scattering Materials](Subsurface-Scattering)
     * [Diffusion Profile](Diffusion-Profile)
   * Shader List
+    * Autodesk Interactive
+      * [Autodesk Interactive Shader](Autodesk-Interactive-Shader)
+      * [Autodesk Interactive Masked Shader](Autodesk-Interactive-Shader-Masked)
+      * [Autodesk Interactive Transparent Shader](Autodesk-Interactive-Shader-Transparent)
     * [AxF Shader](AxF-Shader)
     * [Decal Shader](Decal-Shader)
     * [Layered Lit Shader](Layered-Lit-Shader)
@@ -89,11 +95,12 @@
 * Lighting
   * [Reflection in HDRP](Reflection-in-HDRP)
   * [Refraction in HDRP](Refraction-in-HDRP)
-  * Reflection Probes
-    * [Reflection Probes Introduction](Reflection-Probes-Intro)
-    * [Reflection Probe](Reflection-Probe)
-    * [Planar Reflection Probe](Planar-Reflection-Probe)
-    * [Reflection Proxy Volume](Reflection-Proxy-Volume)
+  * [Reflection Probes](Reflection-Probes-Intro)
+    * [Using Reflection Probes](Reflection-Probe-Usage)
+    * Components
+      * [Reflection Probe](Reflection-Probe)
+      * [Planar Reflection Probe](Planar-Reflection-Probe)
+      * [Reflection Proxy Volume](Reflection-Proxy-Volume)
   * [Light](Light-Component)
   * [Environment Lighting](Environment-Lighting)
   * [Atmospheric Scattering](Atmospheric-Scattering)
@@ -139,6 +146,7 @@
     * [Overview](Authoring-LUTs)
     * [Authoring in Adobe Photoshop](LUT-Authoring-Photoshop)
     * [Authoring in DaVinci Resolve](LUT-Authoring-Resolve)
+  * [Propagating NaNs](Post-Processing-Propagating-NaNs)
 * Ray Tracing
   * [Getting Started with Ray Tracing](Ray-Tracing-Getting-Started)
   * Effects and Volume Overrides
