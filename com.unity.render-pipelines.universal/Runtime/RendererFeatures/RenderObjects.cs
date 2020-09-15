@@ -37,9 +37,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [System.Serializable]
         public class FilterSettings
         {
+            // TODO: expose opaque, transparent, all ranges as drop down
             public RenderQueueType RenderQueueType;
             public LayerMask LayerMask;
-            public uint RenderingLayerMask;
             public string[] PassNames;
 
             public FilterSettings()
@@ -66,7 +66,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             FilterSettings filter = settings.filterSettings;
             renderObjectsPass = new RenderObjectsPass(settings.passTag, settings.Event, filter.PassNames,
-                filter.RenderQueueType, filter.LayerMask, settings.cameraSettings, filter.RenderingLayerMask);
+                filter.RenderQueueType, filter.LayerMask, settings.cameraSettings);
 
             renderObjectsPass.overrideMaterial = settings.overrideMaterial;
             renderObjectsPass.overrideMaterialPassIndex = settings.overrideMaterialPassIndex;

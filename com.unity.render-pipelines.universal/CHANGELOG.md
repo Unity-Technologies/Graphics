@@ -7,7 +7,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [10.1.0] - 2019-08-04
 ### Added
 - Added ComplexLit shader for advanced material features such as clear coat.
-- Added Rendering Layer Mask to the Render Objects renderer feature. 
 
 ### Added
 - Support for Clear coat and ComplexLit forward only shader in shader graph.
