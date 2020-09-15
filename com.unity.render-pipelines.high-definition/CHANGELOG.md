@@ -72,6 +72,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed RTGI in performance mode when light layers are enabled on the asset.
 - Fixed SSS materials appearing black in matcap mode.
 - Fixed a collision in the interaction of RTR and RTGI.
+- Fix for lookdev toggling renderers that are set to non editable or are hidden in the inspector.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
