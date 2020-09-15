@@ -293,7 +293,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public ScriptableRenderer scriptableRenderer
         {
-            get => UniversalRenderPipeline.asset.GetRenderer(m_RendererIndex);
+            get => UniversalRenderPipeline.asset?.GetRenderer(m_RendererIndex);
         }
 
         /// <summary>

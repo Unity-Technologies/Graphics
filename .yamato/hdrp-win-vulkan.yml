@@ -135,7 +135,8 @@ HDRP_Win_Vulkan_playmode_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
 HDRP_Win_Vulkan_playmode_XR_CUSTOM-REVISION:
     name: HDRP on Win_Vulkan_playmode_XR on version CUSTOM-REVISION
     agent:
@@ -156,7 +157,8 @@ HDRP_Win_Vulkan_playmode_XR_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
 HDRP_Win_Vulkan_playmode_RenderGraph_CUSTOM-REVISION:
     name: HDRP on Win_Vulkan_playmode_RenderGraph on version CUSTOM-REVISION
     agent:
@@ -177,7 +179,8 @@ HDRP_Win_Vulkan_playmode_RenderGraph_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
 HDRP_Win_Vulkan_editmode_CUSTOM-REVISION:
     name: HDRP on Win_Vulkan_editmode on version CUSTOM-REVISION
     agent:
@@ -197,7 +200,8 @@ HDRP_Win_Vulkan_editmode_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
 HDRP_Win_Vulkan_Standalone_CUSTOM-REVISION:
     name: HDRP on Win_Vulkan_Standalone on version CUSTOM-REVISION
     agent:
@@ -216,7 +220,8 @@ HDRP_Win_Vulkan_Standalone_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
       -  path: .yamato/hdrp-win-vulkan.yml#Build_HDRP_Win_Vulkan_Player_CUSTOM-REVISION
          rerun: always
     skip_checkout: true
@@ -243,4 +248,5 @@ Build_HDRP_Win_Vulkan_Player_CUSTOM-REVISION:
             paths:
               -  "players/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
