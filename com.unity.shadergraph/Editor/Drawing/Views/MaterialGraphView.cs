@@ -163,8 +163,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             Vector2 mousePosition = evt.mousePosition;
 
+            // If a block node is floating, it may not be the target for building the context menu.            
             if (!(evt.target is MaterialNodeView && ((MaterialNodeView)evt.target).node is BlockNode))
             {
+                // We can intuit this case by checking to see if the current selection has a block node in it.
                 var selectedBlocknodes = selection.FindAll(e => e is MaterialNodeView && ((MaterialNodeView)e).node is BlockNode).Cast<MaterialNodeView>().ToArray();
                 if (selectedBlocknodes.Length > 0)
                 {
@@ -174,21 +176,24 @@ namespace UnityEditor.ShaderGraph.Drawing
                         {
                             if (context.contextData == ((BlockNode)bnode.node).contextData)
                             {
-                                context.InsertBlock(bnode);                          
+                                // if it does, let's just give up and snap the block node back to its context/stack node.
+                                context.InsertBlock(bnode);
                             }
                         }
                     }
+                    // Selection state has become unstable, so rebuild it with the previously selected block nodes.
                     selection.Clear();
                     foreach (var bnode in selectedBlocknodes)
                     {
-                        selection.Add(bnode);                        
+                        selection.Add(bnode);
                     }
+                    // Preview block nodes may have been ghosted into place during this process, remove them.
                     foreach (var context in contexts)
                     {
                         for (int i = context.childCount - 1; i >= 0; --i)
                         {
                             var child = context.ElementAt(i);
-                            if (child.ClassListContains("stack-node-preview"))
+                            if (child.ClassListContains("stack-node-preview")) // no formal identifiers
                             {
                                 child.RemoveFromHierarchy();
                             }
