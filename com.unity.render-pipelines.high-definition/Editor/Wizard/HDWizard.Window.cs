@@ -381,7 +381,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var toolbar = new ToolbarRadio();
             toolbar.AddRadios(tabs);
             //make sure when we open the same project on different platforms the saved active tab is not out of range
-            int tabIndex = toolbar.radioLength() > HDProjectSettings.wizardActiveTab ? HDProjectSettings.wizardActiveTab : 0;
+            int tabIndex = toolbar.radioLength > HDProjectSettings.wizardActiveTab ? HDProjectSettings.wizardActiveTab : 0;
             toolbar.SetValueWithoutNotify(tabIndex);
             m_Configuration = (Configuration)tabIndex;
             toolbar.RegisterValueChangedCallback(evt =>
