@@ -66,9 +66,9 @@ namespace UnityEditor.VFX.Block
                                                    || e.name == "ArcSequencer"))
                     yield return p;
 
-                VFXExpression radius0 = inputSlots[0][3].GetExpression();
-                VFXExpression radius1 = inputSlots[0][4].GetExpression();
-                VFXExpression height = inputSlots[0][5].GetExpression();
+                VFXExpression radius0 = allSlots.First(e => e.name == "ArcCone_radius0").exp;
+                VFXExpression radius1 = allSlots.First(e => e.name == "ArcCone_radius1").exp;
+                VFXExpression height = allSlots.First(e => e.name == "ArcCone_height").exp;
                 VFXExpression tanSlope = (radius1 - radius0) / height;
                 VFXExpression slope = new VFXExpressionATan(tanSlope);
 
@@ -146,10 +146,12 @@ float hNorm = HeightSequencer;
 
                 outSource += @"
 float3 finalPos = lerp(float3(pos * ArcCone_radius0, 0.0f), float3(pos * ArcCone_radius1, ArcCone_height), hNorm);
+float3 finalDir = normalize(float3(pos * sincosSlope.x, sincosSlope.y));
 finalPos = mul(transformMatrix, float4(finalPos, 1.0f));
-float3 finalDir = normalize(float3(pos * sincosSlope.x, sincosSlope.y));";
-
+finalDir = mul((float3x3)transformMatrix, finalDir);
+";
                 outSource += VFXBlockUtility.GetComposeString(compositionDirection, "direction", "finalDir", "blendDirection") + "\n";
+                //outSource += VFXBlockUtility.GetComposeString(compositionDirection, "direction.xzy", "normalize(float3(pos * sincosSlope.x, sincosSlope.y))", "blendDirection") + "\n";
                 outSource += VFXBlockUtility.GetComposeString(compositionPosition, "position", "finalPos", "blendPosition");
                 return outSource;
             }
