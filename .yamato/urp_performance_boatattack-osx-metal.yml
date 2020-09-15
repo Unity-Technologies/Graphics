@@ -31,7 +31,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_counters_trunk:
     artifacts:
         logs:
             paths:
-              -  "performance/test-results/**"
+              -  "**/performance/test-results/**"
 URP_Performance_BoatAttack_OSX_Metal_performance_playmode_memory_trunk:
     name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_memory on version trunk
     agent:
@@ -60,7 +60,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_memory_trunk:
     artifacts:
         logs:
             paths:
-              -  "performance/test-results/**"
+              -  "**/performance/test-results/**"
 URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_trunk:
     name: URP_Performance_BoatAttack on OSX_Metal_performance_editmode_build on version trunk
     agent:
@@ -89,7 +89,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_trunk:
     artifacts:
         logs:
             paths:
-              -  "performance/test-results/**"
+              -  "**/performance/test-results/**"
 URP_Performance_BoatAttack_OSX_Metal_performance_playmode_counters_fast-trunk:
     name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_counters on version fast-trunk
     agent:
@@ -118,7 +118,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_counters_fast-trunk:
     artifacts:
         logs:
             paths:
-              -  "performance/test-results/**"
+              -  "**/performance/test-results/**"
 URP_Performance_BoatAttack_OSX_Metal_performance_playmode_memory_fast-trunk:
     name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_memory on version fast-trunk
     agent:
@@ -147,7 +147,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_memory_fast-trunk:
     artifacts:
         logs:
             paths:
-              -  "performance/test-results/**"
+              -  "**/performance/test-results/**"
 URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_fast-trunk:
     name: URP_Performance_BoatAttack on OSX_Metal_performance_editmode_build on version fast-trunk
     agent:
@@ -176,7 +176,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_fast-trunk:
     artifacts:
         logs:
             paths:
-              -  "performance/test-results/**"
+              -  "**/performance/test-results/**"
 URP_Performance_BoatAttack_OSX_Metal_performance_playmode_counters_CUSTOM-REVISION:
     name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_counters on version CUSTOM-REVISION
     agent:
@@ -206,7 +206,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_counters_CUSTOM-REVISI
     artifacts:
         logs:
             paths:
-              -  "performance/test-results/**"
+              -  "**/performance/test-results/**"
 URP_Performance_BoatAttack_OSX_Metal_performance_playmode_memory_CUSTOM-REVISION:
     name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_memory on version CUSTOM-REVISION
     agent:
@@ -236,7 +236,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_memory_CUSTOM-REVISION
     artifacts:
         logs:
             paths:
-              -  "performance/test-results/**"
+              -  "**/performance/test-results/**"
 URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_CUSTOM-REVISION:
     name: URP_Performance_BoatAttack on OSX_Metal_performance_editmode_build on version CUSTOM-REVISION
     agent:
@@ -266,4 +266,4 @@ URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_CUSTOM-REVISION:
     artifacts:
         logs:
             paths:
-              -  "performance/test-results/**"
+              -  "**/performance/test-results/**"
