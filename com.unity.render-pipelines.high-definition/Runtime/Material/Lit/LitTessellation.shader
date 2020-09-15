@@ -292,7 +292,6 @@ Shader "HDRP/LitTessellation"
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
-    #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
     #pragma shader_feature_local _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
     #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
 
@@ -337,7 +336,6 @@ Shader "HDRP/LitTessellation"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 
     //-------------------------------------------------------------------------------------
     // variable declaration
@@ -352,6 +350,8 @@ Shader "HDRP/LitTessellation"
     // LitData.hlsl should be responsible for preparing shading parameters.
     // LitShading.hlsl implements the light loop API.
     // LitData.hlsl is included here, LitShading.hlsl is included below for shading passes only.
+
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 
     ENDHLSL
 

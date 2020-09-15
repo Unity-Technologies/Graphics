@@ -431,13 +431,13 @@ namespace UnityEditor.VFX
                 switch (blendMode)
                 {
                     case BlendMode.Alpha:
-                        forwardDefines.WriteLine("#define _BLENDMODE_ALPHA");
+                        forwardDefines.WriteLine("#define _BlendMode 0");
                         break;
                     case BlendMode.Additive:
-                        forwardDefines.WriteLine("#define _BLENDMODE_ADD");
+                        forwardDefines.WriteLine("#define _BlendMode 1");
                         break;
                     case BlendMode.AlphaPremultiplied:
-                        forwardDefines.WriteLine("#define _BLENDMODE_PRE_MULTIPLY");
+                        forwardDefines.WriteLine("#define _BlendMode 4");
                         break;
                 }
                 if (!isBlendModeOpaque)

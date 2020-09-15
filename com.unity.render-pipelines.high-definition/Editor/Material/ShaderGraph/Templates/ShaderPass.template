@@ -97,6 +97,9 @@ Pass
 
     $splice(HybridV1InjectedBuiltinProperties)
 
+    // Graph Properties
+    $splice(GraphProperties)
+
     // Includes
     $splice(PreGraphIncludes)
 
@@ -116,8 +119,6 @@ Pass
     // --------------------------------------------------
     // Graph
 
-    // Graph Properties
-    $splice(GraphProperties)
 
     // Graph Functions
     $splice(GraphFunctions)
