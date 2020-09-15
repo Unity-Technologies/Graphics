@@ -18,8 +18,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         private RenderTargetIdentifier source { get; set; }
         private RenderTargetHandle destination { get; set; }
-        const string m_ProfilerTag = "Copy Color";
-        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
 
         /// <summary>
         /// Create the CopyColorPass
@@ -74,7 +72,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyColor)))
             {
                 RenderTargetIdentifier opaqueColorRT = destination.Identifier();
 

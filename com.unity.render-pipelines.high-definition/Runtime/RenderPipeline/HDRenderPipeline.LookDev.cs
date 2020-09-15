@@ -5,10 +5,6 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline : IDataProvider
     {
-#if UNITY_EDITOR
-        int m_LookDevVolumeProfileHash = -1;
-#endif
-
         struct LookDevDataForHDRP
         {
             public HDAdditionalCameraData additionalCameraData;
@@ -16,21 +12,24 @@ namespace UnityEngine.Rendering.HighDefinition
             public VisualEnvironment visualEnvironment;
             public HDRISky sky;
             public Volume volume;
+#if UNITY_EDITOR
+            public int currentVolumeProfileHash;
+#endif
         }
 
 #if UNITY_EDITOR
-        bool UpdateVolumeProfile(Volume volume, out VisualEnvironment visualEnvironment, out HDRISky sky)
+        bool UpdateVolumeProfile(Volume volume, out VisualEnvironment visualEnvironment, out HDRISky sky, ref int volumeProfileHash)
         {
             HDRenderPipelineAsset hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
             if (hdrpAsset.defaultLookDevProfile == null)
                 hdrpAsset.defaultLookDevProfile = hdrpAsset.renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile;
 
             int newHashCode = hdrpAsset.defaultLookDevProfile.GetHashCode();
-            if (newHashCode != m_LookDevVolumeProfileHash)
+            if (newHashCode != volumeProfileHash)
             {
                 VolumeProfile oldProfile = volume.sharedProfile;
 
-                m_LookDevVolumeProfileHash = newHashCode;
+                volumeProfileHash = newHashCode;
 
                 VolumeProfile profile = ScriptableObject.Instantiate(hdrpAsset.defaultLookDevProfile);
                 profile.hideFlags = HideFlags.HideAndDontSave;
@@ -118,8 +117,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
             // Make sure we invalidate the current volume when first loading a scene.
-            m_LookDevVolumeProfileHash = -1;
-            UpdateVolumeProfile(volume, out var visualEnvironment, out var sky);
+            int volumeProfileHash = -1;
+            UpdateVolumeProfile(volume, out var visualEnvironment, out var sky, ref volumeProfileHash);
 
             SRI.SRPData = new LookDevDataForHDRP()
             {
@@ -127,7 +126,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 additionalLightData = additionalLightData,
                 visualEnvironment = visualEnvironment,
                 sky = sky,
-                volume = volume
+                volume = volume,
+                currentVolumeProfileHash = volumeProfileHash
             };
 #else
             //remove unassigned warnings when building
@@ -174,11 +174,13 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             LookDevDataForHDRP data = (LookDevDataForHDRP)SRI.SRPData;
 #if UNITY_EDITOR
+            int currentHash = data.currentVolumeProfileHash;
             // The default volume can change in the HDRP asset so if it does we need to re-instantiate it.
-            if (UpdateVolumeProfile(data.volume, out var visualEnv, out var sky))
+            if (UpdateVolumeProfile(data.volume, out var visualEnv, out var sky, ref currentHash))
             {
                 data.sky = sky;
                 data.visualEnvironment = visualEnv;
+                data.currentVolumeProfileHash = currentHash;
                 SRI.SRPData = data;
             }
 #endif
