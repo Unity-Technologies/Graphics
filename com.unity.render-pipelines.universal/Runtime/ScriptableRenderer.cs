@@ -474,13 +474,6 @@ namespace UnityEngine.Rendering.Universal
         {
             var cameraClearFlags = cameraData.camera.clearFlags;
 
-#if UNITY_EDITOR
-            // We need public API to tell if FrameDebugger is active and enabled. In that case
-            // we want to force a clear to see properly the drawcall stepping.
-            // For now, to fix FrameDebugger in Editor, we force a clear.
-            cameraClearFlags = CameraClearFlags.SolidColor;
-#endif
-
             // Universal RP doesn't support CameraClearFlags.DepthOnly and CameraClearFlags.Nothing.
             // CameraClearFlags.DepthOnly has the same effect of CameraClearFlags.SolidColor
             // CameraClearFlags.Nothing clears Depth on PC/Desktop and in mobile it clears both
