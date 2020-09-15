@@ -126,6 +126,9 @@ namespace UnityEngine.Rendering.Universal
         {
             // always dispose unmanaged resources
             m_PostProcessPass.Cleanup();
+            m_FinalPostProcessPass.Cleanup();
+            m_ColorGradingLutPass.Cleanup();
+
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_CopyDepthMaterial);
             CoreUtils.Destroy(m_SamplingMaterial);
@@ -301,9 +304,10 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             EnqueuePass(m_RenderOpaqueForwardPass);
-
+            Skybox cameraSkybox;
+            cameraData.camera.TryGetComponent<Skybox>(out cameraSkybox);
             bool isOverlayCamera = cameraData.renderType == CameraRenderType.Overlay;
-            if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null && !isOverlayCamera)
+            if (camera.clearFlags == CameraClearFlags.Skybox && (RenderSettings.skybox != null || cameraSkybox?.material != null) && !isOverlayCamera)
                 EnqueuePass(m_DrawSkyboxPass);
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
