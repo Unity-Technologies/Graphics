@@ -51,7 +51,7 @@ namespace UnityEditor.Rendering.Universal
         public void OnPreprocessMaterialDescription(MaterialDescription description, Material material, AnimationClip[] clips)
         {
             var pipelineAsset = GraphicsSettings.currentRenderPipeline;
-            if (pipelineAsset == null || pipelineAsset.GetType() != typeof(UniversalRenderPipelineAsset))
+            if (!pipelineAsset || pipelineAsset.GetType() != typeof(UniversalRenderPipelineAsset))
                 return;
 
             if (Is3DsMaxPhysicalMaterial(description))

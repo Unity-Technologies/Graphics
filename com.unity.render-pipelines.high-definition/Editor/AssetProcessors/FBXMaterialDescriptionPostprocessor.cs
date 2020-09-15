@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public void OnPreprocessMaterialDescription(MaterialDescription description, Material material, AnimationClip[] clips)
         {
             var pipelineAsset = GraphicsSettings.currentRenderPipeline;
-            if (pipelineAsset == null || pipelineAsset.GetType() != typeof(HDRenderPipelineAsset))
+            if (!pipelineAsset || pipelineAsset.GetType() != typeof(HDRenderPipelineAsset))
                 return;
 
             var lowerCaseExtension = Path.GetExtension(assetPath).ToLower();
