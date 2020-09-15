@@ -1477,12 +1477,12 @@ void    ComputeClearcoatReflectionAndExtinction_UsePreLightData(inout float3 vie
 void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, inout BuiltinData builtinData)
 {
     // Note: When baking reflection probes, we approximate the diffuse with the fresnel0
+    builtinData.bakeDiffuseLighting *= GetDiffuseIndirectDimmer();
 #ifdef _AXF_BRDF_TYPE_SVBRDF
-    builtinData.bakeDiffuseLighting *= GetDiffuseIndirectDimmer() * preLightData.diffuseFGD * GetDiffuseOrDefaultColor(bsdfData, _ReplaceDiffuseForIndirect).rgb;
-#else
-    // diffuse is Lambert, but we want the influence of the color still...
-    // TODO_diffuseFGDColor
-    builtinData.bakeDiffuseLighting *= GetDiffuseIndirectDimmer() * preLightData.singleBRDFColor * GetDiffuseOrDefaultColor(bsdfData, _ReplaceDiffuseForIndirect).rgb;
+    builtinData.bakeDiffuseLighting *= preLightData.diffuseFGD * GetDiffuseOrDefaultColor(bsdfData, _ReplaceDiffuseForIndirect).rgb;
+#elif defined(_AXF_BRDF_TYPE_CAR_PAINT)
+    // diffuse is Lambert, but we want the influence of the color table still...
+    builtinData.bakeDiffuseLighting *= preLightData.singleBRDFColor * GetDiffuseOrDefaultColor(bsdfData, _ReplaceDiffuseForIndirect).rgb;
     // debugtest
     //builtinData.bakeDiffuseLighting *= 0;
 #endif

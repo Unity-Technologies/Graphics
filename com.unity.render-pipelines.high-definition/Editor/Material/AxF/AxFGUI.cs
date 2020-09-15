@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         SVBRDF,
         CAR_PAINT,
-        BTF,
+        //unsupported for now: BTF,
     }
 
     internal enum AxFMappingMode
@@ -106,7 +106,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             CoreUtils.SetKeyword(material, "_AXF_BRDF_TYPE_SVBRDF", BRDFType == AxfBrdfType.SVBRDF);
             CoreUtils.SetKeyword(material, "_AXF_BRDF_TYPE_CAR_PAINT", BRDFType == AxfBrdfType.CAR_PAINT);
-            CoreUtils.SetKeyword(material, "_AXF_BRDF_TYPE_BTF", BRDFType == AxfBrdfType.BTF);
+            //unsupported for now: CoreUtils.SetKeyword(material, "_AXF_BRDF_TYPE_BTF", BRDFType == AxfBrdfType.BTF);
 
 
             // Mapping Modes:
