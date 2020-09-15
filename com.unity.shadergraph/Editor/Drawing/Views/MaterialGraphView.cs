@@ -170,6 +170,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 RemoveElement(mNode);
                 context.InsertBlock(mNode);
 
+                // TODO: StackNode in GraphView (Trunk) has no interface to reset drop previews. The least intrusive
+                // solution is to call its DragLeave until its interface can be improved.
                 context.DragLeave(null, null, null, null);
             }
         }
