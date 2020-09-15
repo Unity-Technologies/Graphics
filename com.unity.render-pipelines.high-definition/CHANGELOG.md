@@ -214,6 +214,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added missing API documentation.
 
 ### Fixed
+- fix when saved HDWizard window tab index out of range (1260273)
 - Fix when rescale probe all direction below zero (1219246)
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
 - Sorting, undo, labels, layout in the Lighting Explorer.
