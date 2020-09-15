@@ -269,7 +269,8 @@ namespace UnityEditor.Rendering.HighDefinition
             return x => (m * x) + b;
         }
 
-        float ValueToSlider(Piece piecewise, float x) => piecewise.inverseTransform(x);
+        // Ensure clamping to (0,1) as sometimes the function evaluates to slightly below 0 (breaking the handle).
+        float ValueToSlider(Piece piecewise, float x) => Mathf.Clamp01(piecewise.inverseTransform(x));
         float SliderToValue(Piece piecewise, float x) => piecewise.transform(x);
 
         // Ideally we want a continuous, monotonically increasing function, but this is useful as we can easily fit a
@@ -281,13 +282,10 @@ namespace UnityEditor.Rendering.HighDefinition
             var sliderDistribution = m_Descriptor.sliderDistribution;
 
             // Compute the transformation for each value range.
-            var sliderStep = 1.0f / m_Descriptor.valueRanges.Length;
-
             for (int i = 0; i < sortedRanges.Length; i++)
             {
                 var r = sortedRanges[i].value;
 
-                // See distribution functions in light unit settings
                 var x0 = sliderDistribution[i + 0];
                 var x1 = sliderDistribution[i + 1];
                 var y0 = r.x;
