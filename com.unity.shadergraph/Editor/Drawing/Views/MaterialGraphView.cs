@@ -14,7 +14,6 @@ using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine.UIElements;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
 using Node = UnityEditor.Experimental.GraphView.Node;
-using System.Runtime.Remoting.Contexts;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {

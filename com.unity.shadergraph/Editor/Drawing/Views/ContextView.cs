@@ -60,21 +60,8 @@ namespace UnityEditor.ShaderGraph
             if(!(nodeView.userData is BlockNode blockNode))
                 return;
 
-            // Remove all preview drop targets.
-            //"stack-node-preview"
-            //HashSet<GraphElement> previewNodeSet = new HashSet<GraphElement>();
-            //this.CollectElements(previewNodeSet, e => e.ClassListContains("stack-node-preview"));
-            //for(int i = this.childCount-1; i >= 0; --i)
-            //{
-            //    var child = this.ElementAt(i);
-            //    if (child.ClassListContains("stack-node-preview"))
-            //    {
-            //        child.RemoveFromHierarchy();
-            //    }
-            //}
-
             // If index is -1 the node is being added to the end of the Stack
-            if (blockNode.index == -1)
+            if(blockNode.index == -1)
             {
                 AddElement(nodeView);
                 return;
@@ -89,7 +76,6 @@ namespace UnityEditor.ShaderGraph
             {
                 InsertElement(blockNode.index, nodeView);
             }
-            
         }
 
         public void InsertElements(int insertIndex, IEnumerable<GraphElement> elements)
