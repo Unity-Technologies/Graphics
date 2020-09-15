@@ -190,13 +190,13 @@ public class RenderGraphViewer : EditorWindow
     {
         VisualElement legend = new VisualElement();
         legend.style.flexDirection = FlexDirection.Row;
-        var label = new Label(name);
-        label.style.unityTextAlign = TextAnchor.MiddleCenter;
-        legend.Add(label);
         Button button = new Button();
         button.style.width = kRenderPassWidth;// * 2;
         button.style.backgroundColor = color;
         legend.Add(button);
+        var label = new Label(name);
+        label.style.unityTextAlign = TextAnchor.MiddleCenter;
+        legend.Add(label);
         return legend;
     }
 
@@ -315,6 +315,13 @@ public class RenderGraphViewer : EditorWindow
         int index = 0;
         foreach (var resource in debugData.resourceLists[0])
         {
+            // Remove unused resource.
+            if (resource.releasePassIndex == -1 && resource.creationPassIndex == -1)
+            {
+                index++;
+                continue;
+            }
+
             resourceNamesContainer.Add(CreateResourceLabel(resource.name, resource.imported));
 
             var newButton = new Button();

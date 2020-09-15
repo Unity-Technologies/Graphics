@@ -714,7 +714,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public TextureHandle[]      mrt;
             public int                  dBufferCount;
-            public ComputeBufferHandle  decalPropertyMaskBuffer;
         }
 
         class DBufferNormalPatchData
@@ -757,7 +756,6 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < dBufferOutput.dBufferCount; ++i)
                 dBufferOutput.mrt[i] = builder.ReadTexture(dBufferOutput.mrt[i]);
 
-            dBufferOutput.decalPropertyMaskBuffer = builder.ReadComputeBuffer(dBufferOutput.decalPropertyMaskBuffer);
             return dBufferOutput;
         }
 

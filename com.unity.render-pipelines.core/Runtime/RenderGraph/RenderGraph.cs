@@ -1158,6 +1158,23 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return sampler;
         }
 
+        void UpdateImportedResourceLifeTime(ref RenderGraphDebugData.ResourceDebugData data, List<int> passList)
+        {
+            foreach (var pass in passList)
+            {
+                if (data.creationPassIndex == -1)
+                    data.creationPassIndex = pass;
+                else
+                    data.creationPassIndex = Math.Min(data.creationPassIndex, pass);
+
+                if (data.releasePassIndex == -1)
+                    data.releasePassIndex = pass;
+                else
+                    data.releasePassIndex = Math.Max(data.releasePassIndex, pass);
+            }
+        }
+
+
         void GenerateDebugData()
         {
             m_RenderGraphDebugData.Clear();
@@ -1170,9 +1187,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     RenderGraphDebugData.ResourceDebugData newResource = new RenderGraphDebugData.ResourceDebugData();
                     newResource.name = m_Resources.GetResourceName((RenderGraphResourceType)type, i);
                     newResource.imported = m_Resources.IsResourceImported((RenderGraphResourceType)type, i);
+                    newResource.creationPassIndex = -1;
+                    newResource.releasePassIndex = -1;
 
                     newResource.consumerList = new List<int>(resourceInfo.consumers);
                     newResource.producerList = new List<int>(resourceInfo.producers);
+
+                    if (newResource.imported)
+                    {
+                        UpdateImportedResourceLifeTime(ref newResource, newResource.consumerList);
+                        UpdateImportedResourceLifeTime(ref newResource, newResource.producerList);
+                    }
 
                     m_RenderGraphDebugData.resourceLists[type].Add(newResource);
                 }
@@ -1200,6 +1225,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     foreach (var resourceCreate in passInfo.resourceCreateList[type])
                     {
                         var res = m_RenderGraphDebugData.resourceLists[type][resourceCreate];
+                        if (res.imported)
+                            continue;
                         res.creationPassIndex = i;
                         m_RenderGraphDebugData.resourceLists[type][resourceCreate] = res;
                     }
@@ -1207,6 +1234,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     foreach (var resourceRelease in passInfo.resourceReleaseList[type])
                     {
                         var res = m_RenderGraphDebugData.resourceLists[type][resourceRelease];
+                        if (res.imported)
+                            continue;
                         res.releasePassIndex = i;
                         m_RenderGraphDebugData.resourceLists[type][resourceRelease] = res;
                     }
