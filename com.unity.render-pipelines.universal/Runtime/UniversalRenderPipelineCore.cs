@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xr.enabled)
                 return xr.GetProjMatrix(viewIndex);
-#endif      
+#endif
             return m_ProjectionMatrix;
         }
 
@@ -148,7 +148,12 @@ namespace UnityEngine.Rendering.Universal
 
             if (renderer != null)
             {
-                bool renderingToTexture = renderer.cameraColorTarget != BuiltinRenderTextureType.CameraTarget || targetTexture != null;
+                bool renderingToBackBufferTarget = renderer.cameraColorTarget == BuiltinRenderTextureType.CameraTarget;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (xr.enabled)
+                    renderingToBackBufferTarget |= renderer.cameraColorTarget == xr.renderTarget && !xr.renderTargetIsRenderTexture;
+#endif
+                bool renderingToTexture = !renderingToBackBufferTarget || targetTexture != null;
                 return SystemInfo.graphicsUVStartsAtTop && renderingToTexture;
             }
 
@@ -228,13 +233,13 @@ namespace UnityEngine.Rendering.Universal
         public Vector4 attenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation (for SpotLights)
         public Vector3 spotDirection;   // for spotLights
         public int lightIndex;
-    }    
+    }
 
     internal static class ShaderPropertyId
     {
         public static readonly int glossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
         public static readonly int subtractiveShadowColor = Shader.PropertyToID("_SubtractiveShadowColor");
-        
+
         public static readonly int ambientSkyColor = Shader.PropertyToID("unity_AmbientSky");
         public static readonly int ambientEquatorColor = Shader.PropertyToID("unity_AmbientEquator");
         public static readonly int ambientGroundColor = Shader.PropertyToID("unity_AmbientGround");
@@ -244,7 +249,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int cosTime = Shader.PropertyToID("_CosTime");
         public static readonly int deltaTime = Shader.PropertyToID("unity_DeltaTime");
         public static readonly int timeParameters = Shader.PropertyToID("_TimeParameters");
-        
+
         public static readonly int scaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
         public static readonly int worldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
         public static readonly int screenParams = Shader.PropertyToID("_ScreenParams");
@@ -622,6 +627,31 @@ namespace UnityEngine.Rendering.Universal
 
     internal enum URPProfileId
     {
+        // CPU
+        UniversalRenderTotal,
+        UpdateVolumeFramework,
+        RenderCameraStack,
+
+        // GPU
+        AdditionalLightsShadow,
+        ColorGradingLUT,
+        CopyColor,
+        CopyDepth,
+        DepthNormalPrepass,
+        DepthPrepass,
+
+        // DrawObjectsPass
+        DrawOpaqueObjects,
+        DrawTransparentObjects,
+
+        // RenderObjectsPass
+        //RenderObjects,
+
+        MainLightShadow,
+        ResolveShadows,
+        SSAO,
+
+        // PostProcessPass
         StopNaNs,
         SMAA,
         GaussianDepthOfField,
@@ -630,5 +660,7 @@ namespace UnityEngine.Rendering.Universal
         PaniniProjection,
         UberPostProcess,
         Bloom,
+
+        FinalBlit
     }
 }

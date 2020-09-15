@@ -1,5 +1,17 @@
 Shader "Hidden/Universal Render Pipeline/TileDeferred"
 {
+    Properties {
+        _StencilRef ("StencilRef", Int) = 0
+
+        _LitStencilRef ("LitStencilWriteMask", Int) = 0
+        _LitStencilReadMask ("LitStencilReadMask", Int) = 0
+        _LitStencilWriteMask ("LitStencilWriteMask", Int) = 0
+
+        _SimpleLitStencilRef ("SimpleLitStencilWriteMask", Int) = 0
+        _SimpleLitStencilReadMask ("SimpleLitStencilReadMask", Int) = 0
+        _SimpleLitStencilWriteMask ("SimpleLitStencilWriteMask", Int) = 0
+    }
+
     HLSLINCLUDE
 
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
@@ -282,9 +294,9 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
             // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             Stencil {
-                Ref 32      // 0b00100000
-                WriteMask 0 // 0b00000000
-                ReadMask 96 // 0b01100000
+                Ref [_LitStencilRef]
+                ReadMask [_LitReadMask]
+                WriteMask [_LitWriteMask]
                 Comp Equal
                 Pass Zero
                 Fail Zero
@@ -314,11 +326,10 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             Blend One One, Zero One
             BlendOp Add, Add
 
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             Stencil {
-                Ref 64      // 0b01000000
-                WriteMask 0 // 0b00000000
-                ReadMask 96 // 0b01100000
+                Ref [_SimpleLitStencilRef]
+                ReadMask [_SimpleLitReadMask]
+                WriteMask [_SimpleLitWriteMask]
                 Comp Equal
                 Pass Keep
                 Fail Keep

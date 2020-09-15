@@ -324,7 +324,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ExposureDebugMode    exposureDebugMode = ExposureDebugMode.None;
         /// <summary>Exposure compensation to apply on current scene exposure.</summary>
         public float                debugExposure = 0.0f;
-        /// <summary>Debug lens attenuation factor for the virtual camera.</summary>
+        [Obsolete("Please use the lens attenuation mode in HDRP Default Settings", true)]
         public float                debugLensAttenuation = 0.65f;
         /// <summary>Whether to show tonemap curve in the histogram debug view or not.</summary>
         public bool                 showTonemapCurveAlongHistogramView = true;
