@@ -209,9 +209,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.AddManipulator(new RectangleSelector());
                 m_GraphView.AddManipulator(new ClickSelector());
                 m_GraphView.RegisterCallback<KeyDownEvent>(OnKeyDown);
-
-                // Events for ContentDragger (MouseDown/MouseMove) are inconsistent or do not propogate              
-                m_GraphView.RegisterCallback<MouseUpEvent>(evt => {/* if (evt.button == 2) */ { m_GraphView.ResetBlockNodes1(); } } );
+                m_GraphView.RegisterCallback<MouseUpEvent>(evt => { m_GraphView.ResetSelectedBlockNodes(); } );
 
                 RegisterGraphViewCallbacks();
                 content.Add(m_GraphView);
@@ -281,15 +279,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             //graph settings need to be initilaized after the target setup
             m_InspectorView.InitializeGraphSettings();
-        }
-
-        void FixupBlockNodesUp(MouseUpEvent evt)
-        {
-            Debug.Log(evt.pressedButtons + " " + evt.button + " " + evt.modifiers + " " + evt + " ");
-            if (evt.button == 2)
-            {
-                m_GraphView.ResetBlockNodes();
-            }            
         }
 
         private void CreateBlackboard()

@@ -159,7 +159,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             return compatibleAnchors;
         }
 
-        internal void ResetBlockNodes1()
+        internal void ResetSelectedBlockNodes()
         {
             var selectedBlocknodes = selection.FindAll(e => e is MaterialNodeView && ((MaterialNodeView)e).node is BlockNode).Cast<MaterialNodeView>().ToArray();
             foreach (var mNode in selectedBlocknodes)
@@ -167,51 +167,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var bNode = mNode.node as BlockNode;
                 var context = GetContext(bNode.contextData);
 
-                // isDragging ensures we arent calling this when moving
-                // the BlockNode into the GraphView during dragging
-                if (context.isDragging)
-                    continue;
-
-                // Remove from GraphView and add back to Context
                 RemoveElement(mNode);
                 context.InsertBlock(mNode);
-            }
-        }
 
-        internal void ResetBlockNodes()
-        {
-            var selectedBlocknodes = selection.FindAll(e => e is MaterialNodeView && ((MaterialNodeView)e).node is BlockNode).Cast<MaterialNodeView>().ToArray();
-            if (selectedBlocknodes.Length > 0)
-            {
-                foreach (var bnode in selectedBlocknodes)
-                {
-                    foreach (var context in contexts)
-                    {
-                        if (context.contextData == ((BlockNode)bnode.node).contextData)
-                        {
-                            // if it does, let's just give up and snap the block node back to its context/stack node.
-                            context.InsertBlock(bnode);
-                        }
-                    }
-                }
-                // Selection state has become unstable, so rebuild it with the previously selected block nodes.
-                selection.Clear();
-                foreach (var bnode in selectedBlocknodes)
-                {
-                    selection.Add(bnode);
-                }
-                // Preview block nodes may have been ghosted into place during this process, remove them.
-                foreach (var context in contexts)
-                {
-                    for (int i = context.childCount - 1; i >= 0; --i)
-                    {
-                        var child = context.ElementAt(i);
-                        if (child.ClassListContains("stack-node-preview")) // no formal identifiers
-                        {
-                            child.RemoveFromHierarchy();
-                        }
-                    }
-                }
+                context.DragLeave(null, null, null, null);
             }
         }
 
@@ -219,10 +178,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             Vector2 mousePosition = evt.mousePosition;
 
-            // If a block node is floating, it may not be the target for building the context menu.            
+            // If a block node is floating, the context menu may not build correctly.     
             if (!(evt.target is MaterialNodeView && ((MaterialNodeView)evt.target).node is BlockNode))
             {
-                ResetBlockNodes1();
+                // GraphEditorView will call ResetSelectedBlockNodes via MouseUpEvent to ensure block nodes are reset
                 return;
             }
 
