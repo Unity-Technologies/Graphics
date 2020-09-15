@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with dynamic resolution handler when no OnResolutionChange callback is specified. 
 - Fixed error about layers when disabling emissive mesh for area lights.
 - Fixed issue with sun icon being clipped in the look dev window. 
+- Fixed lookdev toggling renderers that are set to non editable or are hidden in the inspector.
 
 ### Changed
 - Remove MSAA debug mode when renderpipeline asset has no MSAA
