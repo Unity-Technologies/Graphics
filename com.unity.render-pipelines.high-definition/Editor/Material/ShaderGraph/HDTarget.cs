@@ -796,41 +796,41 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public static DefineCollection SceneSelection = new DefineCollection
         {
-            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
+            { RayTracingNode.GetRayTracingQualityKeyword(), 0 },
             { CoreKeywordDescriptors.SceneSelectionPass, 1 },
         };
 
         public static DefineCollection DepthForwardOnly = new DefineCollection
         {
-            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
+            { RayTracingNode.GetRayTracingQualityKeyword(), 0 },
             { CoreKeywordDescriptors.WriteNormalBuffer, 1 },
         };
 
         public static DefineCollection ShaderGraphRaytracingDefault = new DefineCollection
         {
-            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
+            { RayTracingNode.GetRayTracingQualityKeyword(), 0 },
         };
 
         public static DefineCollection TransparentDepthPrepass = new DefineCollection
         {
-            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
+            { RayTracingNode.GetRayTracingQualityKeyword(), 0 },
         };
 
         public static DefineCollection TransparentDepthPostpass = new DefineCollection
         {
-            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
+            { RayTracingNode.GetRayTracingQualityKeyword(), 0 },
         };
 
         public static DefineCollection Forward = new DefineCollection
         {
             { CoreKeywordDescriptors.HasLightloop, 1 },
-            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
+            { RayTracingNode.GetRayTracingQualityKeyword(), 0 },
         };
 
         public static DefineCollection BackThenFront = new DefineCollection
         {
             { CoreKeywordDescriptors.HasLightloop, 1 },
-            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
+            { RayTracingNode.GetRayTracingQualityKeyword(), 0 },
             // { CoreKeywordDescriptors.LightList, 1 }, // BackThenFront Transparent use #define USE_CLUSTERED_LIGHTLIST 
         };
     }
