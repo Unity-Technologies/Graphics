@@ -349,7 +349,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 232ef9f8f41ffa64b8236e870c502b32, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cascadeShadowSplitCount: 3
+  shadowCascadeCount: 3
 --- !u!114 &64132554
 MonoBehaviour:
   m_ObjectHideFlags: 0
