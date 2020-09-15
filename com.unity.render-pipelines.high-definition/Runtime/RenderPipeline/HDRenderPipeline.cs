@@ -761,6 +761,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     m_IndirectDiffuseBuffer0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer0");
                     m_IndirectDiffuseBuffer1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer1");
+                    m_IndirectDiffuseBuffer2 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer2");
+                    m_IndirectDiffuseBuffer3 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer3");
                     m_IndirectDiffuseHitPointBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseHitBuffer");
                 }
 
@@ -836,6 +838,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     RTHandles.Release(m_IndirectDiffuseBuffer0);
                 if (m_IndirectDiffuseBuffer1 != null)
                     RTHandles.Release(m_IndirectDiffuseBuffer1);
+                if (m_IndirectDiffuseBuffer2 != null)
+                    RTHandles.Release(m_IndirectDiffuseBuffer2);
+                if (m_IndirectDiffuseBuffer3 != null)
+                    RTHandles.Release(m_IndirectDiffuseBuffer3);
                 if (m_IndirectDiffuseHitPointBuffer != null)
                     RTHandles.Release(m_IndirectDiffuseHitPointBuffer);
 
