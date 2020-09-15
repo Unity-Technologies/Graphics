@@ -89,6 +89,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Remove HTile generation for decals (faster without).
 - Improving SSGI Filtering and fixing a blend issue with RTGI.
 - Changed the Trackball UI so that it allows explicit numeric values.
+- Reduce the G-buffer footprint of anisotropic materials
 
 ## [10.0.0] - 2019-06-10
 
