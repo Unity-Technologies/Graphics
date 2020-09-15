@@ -5,7 +5,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Position")]
+    [VFXInfo(category = "Position", variantProvider = typeof(PositionBaseProvider))]
     class PositionCone : PositionBase
     {
         public enum HeightMode
@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.Block
         [VFXSetting, Tooltip("Controls whether particles are spawned on the base of the cone, or throughout the entire volume.")]
         public HeightMode heightMode;
 
-        public override string name { get { return "Position (Cone)"; } }
+        public override string name { get { return string.Format(base.name, "Cone"); } }
         protected override float thicknessDimensions { get { return 2.0f; } }
 
         public class InputProperties
@@ -89,13 +89,7 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        protected override bool needDirectionWrite
-        {
-            get
-            {
-                return true;
-            }
-        }
+        protected override bool needDirectionWrite => true;
 
         public override string source
         {
@@ -146,12 +140,11 @@ float hNorm = HeightSequencer;
 ";
                 }
 
-                outSource += @"
-direction.xzy = normalize(float3(pos * sincosSlope.x, sincosSlope.y));
-float3 finalPos = lerp(float3(pos * ArcCone_radius0, 0.0f), float3(pos * ArcCone_radius1, ArcCone_height), hNorm);
-finalPos = mul(transformMatrix, float4(finalPos, 1.0f));
-position += finalPos;
-";
+                outSource += VFXBlockUtility.GetComposeString(compositionDirection, "direction.xzy", "normalize(float3(pos * sincosSlope.x, sincosSlope.y))", "blendDirection") + "\n";
+                outSource += VFXBlockUtility.GetComposeString(compositionPosition, "position.xzy", "lerp(float3(pos * ArcCone_radius0, 0.0f), float3(pos * ArcCone_radius1, ArcCone_height), hNorm) + ArcCone_center.xzy", "blendPosition");
+//finalPos = mul(transformMatrix, float4(finalPos, 1.0f));
+//position += finalPos;
+//WIP : Merge it correctly
                 return outSource;
             }
         }

@@ -5,9 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [10.1.0] - 2019-08-04
+### Added
+- New WorldToViewportPoint operator
+- New ViewportToWorldPoint operator
+- Harmonized position, direction and velocity composition modes for position (shape, sequential, depth) and Velocity from Direction & Speed blocks
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Addressing for mirror and clamp modes in sequential operators and blocks
 
 ## [10.0.0] - 2019-06-10
 ### Added
