@@ -674,7 +674,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if(node is BlockNode blockNode)
                     {
                         var context = m_GraphView.GetContext(blockNode.contextData);
-                        context.RemoveElement(nodeView as Node);
+                        // blocknode may be floating and not actually in the stacknode's visual hierarchy.
+                        if (context.Contains(nodeView as Node))
+                        {
+                            context.RemoveElement(nodeView as Node);
+                        }
+                        else
+                        {
+                            m_GraphView.RemoveElement((Node)nodeView);
+                        }
                     }
                     else
                     {
