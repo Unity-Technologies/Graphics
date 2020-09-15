@@ -88,7 +88,7 @@ namespace UnityEditor.Rendering.HighDefinition
             value.floatValue = Mathf.Clamp(value.floatValue, range.x, range.y);
 
         private static Color k_DarkThemeColor = new Color32(153, 153, 153, 255);
-        private static Color k_LiteThemeColor = new Color32(85, 85, 85, 255);
+        private static Color k_LiteThemeColor = new Color32(97, 97, 97, 255);
         static Color GetMarkerColor() => EditorGUIUtility.isProSkin ? k_DarkThemeColor : k_LiteThemeColor;
 
         void DoSliderMarker(Rect rect, float position, float value, string tooltip)
