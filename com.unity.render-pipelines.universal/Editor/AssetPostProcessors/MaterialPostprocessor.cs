@@ -137,7 +137,10 @@ namespace UnityEditor.Rendering.Universal
                 AssetVersion assetVersion = null;
                 foreach (var subAsset in assetVersions)
                 {
-                    if(subAsset.GetType() == typeof(AssetVersion))
+                    if (subAsset == null)
+                        continue;
+                    
+                    if (subAsset.GetType() == typeof(AssetVersion))
                         assetVersion = subAsset as AssetVersion;
                 }
                 var debug = "\n" + material.name;
