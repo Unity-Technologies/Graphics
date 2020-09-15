@@ -402,9 +402,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class PushFullScreenDebugPassData
         {
-            public TextureHandle input;
-            public TextureHandle output;
-            public int mipIndex;
+            public TextureHandle    input;
+            public TextureHandle    output;
+            public int              mipIndex;
         }
 
         void PushFullScreenLightingDebugTexture(RenderGraph renderGraph, TextureHandle input)
@@ -442,7 +442,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.mipIndex = mipIndex;
                 passData.input = builder.ReadTexture(input);
                 passData.output = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, name = "DebugFullScreen" }), 0);
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, name = "DebugFullScreen" }), 0);
 
                 builder.SetRenderFunc(
                 (PushFullScreenDebugPassData data, RenderGraphContext ctx) =>
@@ -467,6 +467,44 @@ namespace UnityEngine.Rendering.HighDefinition
                 PushFullScreenDebugTexture(renderGraph, input);
             }
         }
+
+#if ENABLE_VIRTUALTEXTURES
+        class PushFullScreenVTDebugPassData
+        {
+            public TextureHandle    input;
+            public TextureHandle    output;
+            public Material         material;
+            public bool             msaa;
+        }
+
+        void PushFullScreenVTFeedbackDebugTexture(RenderGraph renderGraph, TextureHandle input, bool msaa)
+        {
+            if (FullScreenDebugMode.RequestedVirtualTextureTiles == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
+            {
+                using (var builder = renderGraph.AddRenderPass<PushFullScreenVTDebugPassData>("Push Full Screen Debug", out var passData))
+                {
+                    passData.material = m_VTDebugBlit;
+                    passData.msaa = msaa;
+                    passData.input = builder.ReadTexture(input);
+                    passData.output = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, name = "DebugFullScreen" }), 0);
+
+                    builder.SetRenderFunc(
+                    (PushFullScreenVTDebugPassData data, RenderGraphContext ctx) =>
+                    {
+                        CoreUtils.SetRenderTarget(ctx.cmd, data.output);
+                        data.material.SetTexture(data.msaa ? HDShaderIDs._BlitTextureMSAA : HDShaderIDs._BlitTexture, data.input);
+                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.material, data.msaa ? 1 : 0, MeshTopology.Triangles, 3, 1);
+                    });
+
+                    m_DebugFullScreenTexture = passData.output;
+
+                }
+
+                m_FullScreenDebugPushed = true;
+            }
+        }
+#endif
 
         TextureHandle PushColorPickerDebugTexture(RenderGraph renderGraph, TextureHandle input)
         {

@@ -84,7 +84,7 @@ Shader "Universal Render Pipeline/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             // -------------------------------------
@@ -97,7 +97,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma shader_feature_local_fragment _OCCLUSIONMAP
             #pragma shader_feature_local _PARALLAXMAP
-            #pragma shader_feature_local _DETAIL_MULX2 _DETAIL_SCALED
+            #pragma shader_feature_local _ _DETAIL_MULX2 _DETAIL_SCALED
 
             #pragma shader_feature_local_fragment _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature_local_fragment _ENVIRONMENTREFLECTIONS_OFF
@@ -143,7 +143,7 @@ Shader "Universal Render Pipeline/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             // -------------------------------------
@@ -176,7 +176,7 @@ Shader "Universal Render Pipeline/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             // -------------------------------------
@@ -189,7 +189,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma shader_feature_local_fragment _OCCLUSIONMAP
             #pragma shader_feature_local _PARALLAXMAP
-            #pragma shader_feature_local _DETAIL_MULX2 _DETAIL_SCALED
+            #pragma shader_feature_local _ _DETAIL_MULX2 _DETAIL_SCALED
 
             #pragma shader_feature_local_fragment _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature_local_fragment _ENVIRONMENTREFLECTIONS_OFF
@@ -233,7 +233,7 @@ Shader "Universal Render Pipeline/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex DepthOnlyVertex
@@ -264,7 +264,7 @@ Shader "Universal Render Pipeline/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex DepthNormalsVertex
@@ -295,7 +295,7 @@ Shader "Universal Render Pipeline/Lit"
             Cull Off
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex UniversalVertexMeta
@@ -306,7 +306,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-            #pragma shader_feature_local _DETAIL_MULX2 _DETAIL_SCALED
+            #pragma shader_feature_local _ _DETAIL_MULX2 _DETAIL_SCALED
 
             #pragma shader_feature_local_fragment _SPECGLOSSMAP
 
@@ -325,7 +325,7 @@ Shader "Universal Render Pipeline/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex vert
@@ -519,7 +519,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-            #pragma shader_feature_local _DETAIL_MULX2 _DETAIL_SCALED
+            #pragma shader_feature_local _ _DETAIL_MULX2 _DETAIL_SCALED
 
             #pragma shader_feature_local_fragment _SPECGLOSSMAP
 
