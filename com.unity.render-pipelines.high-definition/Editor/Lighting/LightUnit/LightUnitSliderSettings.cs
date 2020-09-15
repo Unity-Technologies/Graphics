@@ -7,13 +7,14 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     struct LightUnitSliderUIDescriptor
     {
-        public LightUnitSliderUIDescriptor(LightUnitSliderUIRange[] valueRanges, float[] sliderDistribution, string cautionTooltip, string unitName, bool hasMarkers = true)
+        public LightUnitSliderUIDescriptor(LightUnitSliderUIRange[] valueRanges, float[] sliderDistribution, string cautionTooltip, string unitName, bool hasMarkers = true, bool clampValue = false)
         {
             this.valueRanges = valueRanges;
             this.cautionTooltip = cautionTooltip;
             this.sliderDistribution = sliderDistribution;
             this.unitName = unitName;
             this.hasMarkers = hasMarkers;
+            this.clampValue = clampValue;
 
             sliderRange = new Vector2(
                 this.valueRanges.Min(x => x.value.x),
@@ -27,6 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public readonly string cautionTooltip;
         public readonly string unitName;
         public readonly bool hasMarkers;
+        public readonly bool clampValue;
     }
 
     struct LightUnitSliderUIRange
@@ -104,7 +106,8 @@ namespace UnityEditor.Rendering.HighDefinition
             LightUnitSliderDistributions.LinearDistribution,
             LightUnitTooltips.k_TemperatureCaution,
             "Kelvin",
-            false
+            false,
+            true
         );
 
         private static class LightUnitValueRanges

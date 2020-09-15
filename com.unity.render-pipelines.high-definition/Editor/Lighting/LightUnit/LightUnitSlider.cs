@@ -32,6 +32,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             BuildRects(rect, out var sliderRect, out var iconRect);
 
+            if (m_Descriptor.clampValue)
+                ClampValue(value, m_Descriptor.sliderRange);
+
             var level = CurrentRange(value.floatValue);
 
             DoSlider(sliderRect, value, m_Descriptor.sliderRange, level.value);
@@ -79,6 +82,10 @@ namespace UnityEditor.Rendering.HighDefinition
             iconRect.x += sliderRect.width + SliderConfig.k_IconSeparator;
             iconRect.width = EditorGUIUtility.singleLineHeight;
         }
+
+        // Some sliders may want to clamp their value to the slider range.
+        void ClampValue(SerializedProperty value, Vector2 range) =>
+            value.floatValue = Mathf.Clamp(value.floatValue, range.x, range.y);
 
         private static Color k_DarkThemeColor = new Color32(153, 153, 153, 255);
         private static Color k_LiteThemeColor = new Color32(85, 85, 85, 255);
