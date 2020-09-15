@@ -93,7 +93,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the Trackball UI so that it allows explicit numeric values.
 - Reduce the G-buffer footprint of anisotropic materials
 - Moved SSGI out of preview.
-- Rename Raytracing Node to Raytracing Quality Keyword and rename high and low inputs as default and optimized.
+- Rename Raytracing Node to Raytracing Quality Keyword and rename high and low inputs as default and raytraced. All raytracing effects now use the raytraced mode but path tracing.
 
 ## [10.0.0] - 2019-06-10
 
