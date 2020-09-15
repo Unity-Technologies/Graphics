@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.Universal
             AnimationClip[] clips)
         {
             var pipelineAsset = GraphicsSettings.currentRenderPipeline;
-            if (pipelineAsset != null && pipelineAsset.GetType() != typeof(UniversalRenderPipelineAsset))
+            if (pipelineAsset == null || pipelineAsset.GetType() != typeof(UniversalRenderPipelineAsset))
                 return;
 
             var lowerCasePath = Path.GetExtension(assetPath).ToLower();
