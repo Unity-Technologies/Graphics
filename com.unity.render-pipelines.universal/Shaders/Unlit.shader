@@ -234,7 +234,7 @@ Shader "Universal Render Pipeline/Unlit"
 #endif
 
                 color = MixFog(color, input.fogCoord);
-                alpha = OutputAlpha(alpha);
+                alpha = OutputAlpha(alpha, _Surface);
 
                 return half4(color, alpha);
             }
@@ -277,6 +277,7 @@ Shader "Universal Render Pipeline/Unlit"
 
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore
+            #pragma target 2.0
 
             #pragma vertex UniversalVertexMeta
             #pragma fragment UniversalFragmentMetaUnlit

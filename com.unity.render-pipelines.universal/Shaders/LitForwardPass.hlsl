@@ -3,7 +3,8 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
-#if defined(_PARALLAXMAP) && (SHADER_TARGET >= 30)
+// GLES2 has limited amount of interpolators
+#if defined(_PARALLAXMAP) && !defined(SHADER_API_GLES)
 #define REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR
 #endif
 
