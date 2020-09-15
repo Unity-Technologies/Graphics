@@ -259,12 +259,12 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string k_PunctualCandle     = "Candle";
 
             // Exposure
-            public const string k_ExposureBrightSky     = "Bright Sky";
-            public const string k_ExposureOvercastSky   = "Overcast Sky";
-            public const string k_ExposureSunriseSunset = "Sunrise or Sunset";
-            public const string k_ExposureInterior      = "Interior";
-            public const string k_ExposureMoonlitSky    = "Moonlit Sky";
-            public const string k_ExposureMoonlessNight = "Moonless Night";
+            public const string k_ExposureBrightSky     = "Sunlit Scene";
+            public const string k_ExposureOvercastSky   = "Cloudy Scene";
+            public const string k_ExposureSunriseSunset = "Low Sun Scene";
+            public const string k_ExposureInterior      = "Interior Scene";
+            public const string k_ExposureMoonlitSky    = "Moonlit Scene";
+            public const string k_ExposureMoonlessNight = "Moonless Scene";
 
             // Temperature
             public const string k_TemperatureBlueSky        = "Blue Sky";
