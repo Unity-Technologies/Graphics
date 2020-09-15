@@ -80,7 +80,7 @@ namespace UnityEditor.Rendering.HighDefinition
             iconRect.width = EditorGUIUtility.singleLineHeight;
         }
 
-        private static Color k_DarkThemeColor = new Color32(196, 196, 196, 255);
+        private static Color k_DarkThemeColor = new Color32(153, 153, 153, 255);
         private static Color k_LiteThemeColor = new Color32(85, 85, 85, 255);
         static Color GetMarkerColor() => EditorGUIUtility.isProSkin ? k_DarkThemeColor : k_LiteThemeColor;
 
@@ -278,15 +278,18 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // Sort the ranges into ascending order
             var sortedRanges = m_Descriptor.valueRanges.OrderBy(x => x.value.x).ToArray();
+            var sliderDistribution = m_Descriptor.sliderDistribution;
 
             // Compute the transformation for each value range.
             var sliderStep = 1.0f / m_Descriptor.valueRanges.Length;
+
             for (int i = 0; i < sortedRanges.Length; i++)
             {
                 var r = sortedRanges[i].value;
 
-                var x0 = (i + 0) * sliderStep;
-                var x1 = (i + 1) * sliderStep;
+                // See distribution functions in light unit settings
+                var x0 = sliderDistribution[i + 0];
+                var x1 = sliderDistribution[i + 1];
                 var y0 = r.x;
                 var y1 = r.y;
 

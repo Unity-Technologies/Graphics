@@ -1,5 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
+using System;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
@@ -8,10 +7,11 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     struct LightUnitSliderUIDescriptor
     {
-        public LightUnitSliderUIDescriptor(LightUnitSliderUIRange[] valueRanges, string cautionTooltip, string unitName, bool hasMarkers = true)
+        public LightUnitSliderUIDescriptor(LightUnitSliderUIRange[] valueRanges, float[] sliderDistribution, string cautionTooltip, string unitName, bool hasMarkers = true)
         {
             this.valueRanges = valueRanges;
             this.cautionTooltip = cautionTooltip;
+            this.sliderDistribution = sliderDistribution;
             this.unitName = unitName;
             this.hasMarkers = hasMarkers;
 
@@ -21,6 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
             );
         }
 
+        public readonly float[] sliderDistribution;
         public readonly LightUnitSliderUIRange[] valueRanges;
         public readonly Vector2 sliderRange;
         public readonly string cautionTooltip;
@@ -51,55 +52,62 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         // Lux
         public static LightUnitSliderUIDescriptor LuxDescriptor = new LightUnitSliderUIDescriptor(
-        LightUnitSliderRanges.LuxValueTable,
+        LightUnitValueRanges.LuxValueTable,
+        LightUnitSliderDistributions.LuxDistribution,
         LightUnitTooltips.k_SunCaution,
            "Lux"
         );
 
         // Lumen
         public static LightUnitSliderUIDescriptor LumenDescriptor = new LightUnitSliderUIDescriptor(
-            LightUnitSliderRanges.LumenValueTable,
+            LightUnitValueRanges.LumenValueTable,
+            LightUnitSliderDistributions.LinearDistribution,
             LightUnitTooltips.k_PunctualCaution,
             "Lumen"
         );
 
         // Candela
         public static LightUnitSliderUIDescriptor CandelaDescriptor = new LightUnitSliderUIDescriptor(
-            LightUnitSliderRanges.CandelaValueTable,
+            LightUnitValueRanges.CandelaValueTable,
+            LightUnitSliderDistributions.LinearDistribution,
             LightUnitTooltips.k_PunctualCaution,
             "Candela"
         );
 
         // EV100
         public static LightUnitSliderUIDescriptor EV100Descriptor = new LightUnitSliderUIDescriptor(
-            LightUnitSliderRanges.EV100ValueTable,
+            LightUnitValueRanges.EV100ValueTable,
+            LightUnitSliderDistributions.LinearDistribution,
             LightUnitTooltips.k_PunctualCaution,
             "EV"
         );
 
         // Nits
         public static LightUnitSliderUIDescriptor NitsDescriptor = new LightUnitSliderUIDescriptor(
-            LightUnitSliderRanges.NitsValueTable,
+            LightUnitValueRanges.NitsValueTable,
+            LightUnitSliderDistributions.LinearDistribution,
             LightUnitTooltips.k_PunctualCaution,
             "Nits"
         );
 
         // Exposure
         public static LightUnitSliderUIDescriptor ExposureDescriptor = new LightUnitSliderUIDescriptor(
-            LightUnitSliderRanges.ExposureValueTable,
+            LightUnitValueRanges.ExposureValueTable,
+            LightUnitSliderDistributions.ExposureDistribution,
             LightUnitTooltips.k_ExposureCaution,
             "EV"
         );
 
         // Temperature
         public static LightUnitSliderUIDescriptor TemperatureDescriptor = new LightUnitSliderUIDescriptor(
-            LightUnitSliderRanges.KelvinValueTable,
+            LightUnitValueRanges.KelvinValueTable,
+            LightUnitSliderDistributions.LinearDistribution,
             LightUnitTooltips.k_TemperatureCaution,
             "Kelvin",
             false
         );
 
-        private static class LightUnitSliderRanges
+        private static class LightUnitValueRanges
         {
             // Shorthand helper for converting the pre-defined ranges into other units (Nits, EV, Candela).
             static float LuxToEV(float x) => LightUtils.ConvertLuxToEv(x, 1f);
@@ -166,6 +174,34 @@ namespace UnityEditor.Rendering.HighDefinition
                 new LightUnitSliderUIRange(LightUnitIcon.DirectSunlight,LightUnitTooltips.k_TemperatureDirectSunlight, new Vector2(3500,   6500)),
                 new LightUnitSliderUIRange(LightUnitIcon.ExteriorLight, LightUnitTooltips.k_TemperatureArtificial,     new Vector2(2500,   3500)),
                 new LightUnitSliderUIRange(LightUnitIcon.Candlelight,   LightUnitTooltips.k_TemperatureCandle,        new Vector2(1500,   2500)),
+            };
+        }
+
+        private static class LightUnitSliderDistributions
+        {
+            // Warning: All of these values need to be kept in sync with their associated descriptor's set of value ranges.
+            public static float[] LuxDistribution = {0.0f, 0.05f, 0.5f, 0.9f, 1.0f};
+
+            private const float LinearStep = 1 / 4f;
+            public static float[] LinearDistribution =
+            {
+                0 * LinearStep,
+                1 * LinearStep,
+                2 * LinearStep,
+                3 * LinearStep,
+                4 * LinearStep
+            };
+
+            private const float ExposureStep = 1 / 6f;
+            public static float[] ExposureDistribution =
+            {
+                0 * ExposureStep,
+                1 * ExposureStep,
+                2 * ExposureStep,
+                3 * ExposureStep,
+                4 * ExposureStep,
+                5 * ExposureStep,
+                6 * ExposureStep
             };
         }
 
