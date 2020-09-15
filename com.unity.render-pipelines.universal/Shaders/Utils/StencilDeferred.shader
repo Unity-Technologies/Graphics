@@ -248,6 +248,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             ZTest LEQual
             ZWrite Off
+            ZClip false
             Cull Off
             ColorMask 0
 
@@ -281,6 +282,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             ZTest GEqual
             ZWrite Off
+            ZClip false
             Cull Front
             Blend One One, Zero One
             BlendOp Add, Add
@@ -319,6 +321,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             ZTest GEqual
             ZWrite Off
+            ZClip false
             Cull Front
             Blend One One, Zero One
             BlendOp Add, Add
