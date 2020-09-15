@@ -1392,6 +1392,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     filterMode = FilterMode.Bilinear,
                     wrapMode = TextureWrapMode.Clamp
                 };
+                m_ExposureCurveTexture.hideFlags = HideFlags.HideAndDontSave;
             }
 
             bool minCurveHasPoints = minCurve.length > 0;
