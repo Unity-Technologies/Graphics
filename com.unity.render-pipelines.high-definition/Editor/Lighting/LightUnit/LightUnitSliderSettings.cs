@@ -241,16 +241,16 @@ namespace UnityEditor.Rendering.HighDefinition
         private static class LightUnitTooltips
         {
             // Caution
-            public const string k_SunCaution         = "Higher than sunlight.";
-            public const string k_PunctualCaution    = "Very high intensity light.";
-            public const string k_ExposureCaution    = "Higher than sunlight.";
+            public const string k_SunCaution         = "Higher than Sunlight";
+            public const string k_PunctualCaution    = "Very high intensity light";
+            public const string k_ExposureCaution    = "Higher than sunlight";
             public const string k_TemperatureCaution = "";
 
             // Lux / Directional
-            public const string k_LuxBrightSky       = "Very Bright Sun";
-            public const string k_LuxOvercastSky     = "Overcast Sky";
-            public const string k_LuxSunriseSunset   = "Sunrise or Sunset";
-            public const string k_LuxMoonlight       = "Moon Light";
+            public const string k_LuxBrightSky       = "High Sun";
+            public const string k_LuxOvercastSky     = "Cloudy";
+            public const string k_LuxSunriseSunset   = "Low Sun";
+            public const string k_LuxMoonlight       = "Moon";
 
             // Punctual
             public const string k_PunctualExterior   = "Exterior";
