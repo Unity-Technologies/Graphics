@@ -13,6 +13,7 @@ using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine.UIElements;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
 using Node = UnityEditor.Experimental.GraphView.Node;
+using System.Runtime.Remoting.Contexts;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -161,6 +162,42 @@ namespace UnityEditor.ShaderGraph.Drawing
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             Vector2 mousePosition = evt.mousePosition;
+
+            if (!(evt.target is MaterialNodeView && ((MaterialNodeView)evt.target).node is BlockNode))
+            {
+                var selectedBlocknodes = selection.FindAll(e => e is MaterialNodeView && ((MaterialNodeView)e).node is BlockNode).Cast<MaterialNodeView>().ToArray();
+                if (selectedBlocknodes.Length > 0)
+                {
+                    foreach (var bnode in selectedBlocknodes)
+                    {
+                        foreach (var context in contexts)
+                        {
+                            if (context.contextData == ((BlockNode)bnode.node).contextData)
+                            {
+                                context.InsertBlock(bnode);                          
+                            }
+                        }
+                    }
+                    selection.Clear();
+                    foreach (var bnode in selectedBlocknodes)
+                    {
+                        selection.Add(bnode);                        
+                    }
+                    foreach (var context in contexts)
+                    {
+                        for (int i = context.childCount - 1; i >= 0; --i)
+                        {
+                            var child = context.ElementAt(i);
+                            if (child.ClassListContains("stack-node-preview"))
+                            {
+                                child.RemoveFromHierarchy();
+                            }
+                        }
+                    }
+                    return;
+                }
+            }
+
             base.BuildContextualMenu(evt);
             if(evt.target is GraphView)
             {
