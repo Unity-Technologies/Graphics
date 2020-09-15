@@ -337,7 +337,7 @@ namespace UnityEditor.ShaderGraph
             {
                 // if it is a subgraph, try to recurse into it
                 var assetPath = AssetDatabase.GUIDToAssetPath(rootAssetGUID);
-                if (!string.IsNullOrEmpty(assetPath) && assetPath.EndsWith(Extension))
+                if (!string.IsNullOrEmpty(assetPath) && assetPath.EndsWith(Extension, true, null))
                 {
                     MinimalGraphData.GatherMinimalDependenciesFromFile(assetPath, tempAssetCollection);
 
