@@ -27,7 +27,7 @@ float DifferenceOfSquares(float a, float b)
 
 float3 AirScatter(float height)
 {
-    return _AirSeaLevelScattering * exp(-height * _AirDensityFalloff);
+    return _AirSeaLevelScattering.rgb * exp(-height * _AirDensityFalloff);
 }
 
 float AirPhase(float LdotV)
@@ -37,7 +37,7 @@ float AirPhase(float LdotV)
 
 float3 AerosolScatter(float height)
 {
-    return _AerosolSeaLevelScattering * exp(-height * _AerosolDensityFalloff);
+    return _AerosolSeaLevelScattering.rgb * exp(-height * _AerosolDensityFalloff);
 }
 
 float AerosolPhase(float LdotV)
@@ -285,7 +285,7 @@ float3 ComputeAtmosphericOpticalDepth(float r, float cosTheta, bool aboveHorizon
 
     float2 optDepth = ch * H;
 
-    return optDepth.x * _AirSeaLevelExtinction + optDepth.y * _AerosolSeaLevelExtinction;
+    return optDepth.x * _AirSeaLevelExtinction.xyz + optDepth.y * _AerosolSeaLevelExtinction;
 }
 
 float3 ComputeAtmosphericOpticalDepth1(float r, float cosTheta)
