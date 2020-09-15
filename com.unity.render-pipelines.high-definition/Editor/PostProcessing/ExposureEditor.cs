@@ -226,8 +226,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 sliderRect.y -= EditorGUIUtility.singleLineHeight;
                 k_LightUnitSlider.DrawExposureSlider(m_FixedExposure.value, sliderRect);
 
-                // Warning: It appears that drawing property without label disables the ability to slide values in the textbox
-                EditorGUI.PropertyField(lineRect, m_FixedExposure.value, GUIContent.none);
+                // GUIContent.none disables horizontal scrolling, ur TrTextContent and adjust the rect to make it work
+                lineRect.x -= EditorGUIUtility.labelWidth + 2;
+                lineRect.width += EditorGUIUtility.labelWidth + 2;
+                EditorGUI.PropertyField(lineRect, m_FixedExposure.value, EditorGUIUtility.TrTextContent(" "));
             }
         }
     }
