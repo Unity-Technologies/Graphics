@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor;
 using UnityEditor.UIElements;
+using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using System.Collections.Generic;
 
@@ -36,6 +37,9 @@ public class RenderGraphViewer : EditorWindow
     StyleColor m_OriginalResourceLifeColor;
     StyleColor m_OriginalPassColor;
 
+    DynamicArray<VisualElement> m_ResourceLifeTimeElements = new DynamicArray<VisualElement>();
+    DynamicArray<VisualElement> m_PassElements = new DynamicArray<VisualElement>();
+
     void RenderPassLabelChanged(GeometryChangedEvent evt)
     {
         var label = evt.currentTarget as Label;
@@ -52,10 +56,9 @@ public class RenderGraphViewer : EditorWindow
         topRowElement.style.minHeight = passNamesContainerHeight;
     }
 
-    void MouseEnterPassCallback(MouseEnterEvent evt, int index)
-    {
-        var resourceLifeTimeElement = m_GraphViewerElement.Q<VisualElement>("GraphViewer.Resources.ResourceLifeTime");
 
+    void UpdateResourceLifetimeColor(int index, StyleColor colorRead, StyleColor colorWrite)
+    {
         var debugData = m_CurrentRenderGraph.GetDebugData();
         var pass = debugData.passList[index];
 
@@ -64,78 +67,71 @@ public class RenderGraphViewer : EditorWindow
 
         foreach (int resourceRead in pass.resourceReadLists[0])
         {
-            VisualElement resourceLifetime = resourceLifeTimeElement.ElementAt(resourceRead);
-            resourceLifetime.style.backgroundColor = m_ResourceColorRead;
+            VisualElement resourceLifetime = m_ResourceLifeTimeElements[resourceRead];
+            if (resourceLifetime != null)
+                resourceLifetime.style.backgroundColor = colorRead;
         }
 
         foreach (int resourceWrite in pass.resourceWriteLists[0])
         {
-            VisualElement resourceLifetime = resourceLifeTimeElement.ElementAt(resourceWrite);
-            resourceLifetime.style.backgroundColor = m_ResourceColorWrite;
+            VisualElement resourceLifetime = m_ResourceLifeTimeElements[resourceWrite];
+            if (resourceLifetime != null)
+                resourceLifetime.style.backgroundColor = colorWrite;
         }
+    }
+
+    void MouseEnterPassCallback(MouseEnterEvent evt, int index)
+    {
+        UpdateResourceLifetimeColor(index, m_ResourceColorRead, m_ResourceColorWrite);
     }
 
     void MouseLeavePassCallback(MouseLeaveEvent evt, int index)
     {
-        var resourceLifeTimeElement = m_GraphViewerElement.Q<VisualElement>("GraphViewer.Resources.ResourceLifeTime");
+        UpdateResourceLifetimeColor(index, m_OriginalResourceLifeColor, m_OriginalResourceLifeColor);
+    }
 
+    void UpdatePassColor(int index, StyleColor colorRead, StyleColor colorWrite)
+    {
         var debugData = m_CurrentRenderGraph.GetDebugData();
-        var pass = debugData.passList[index];
+        var resource = debugData.resourceLists[0][index];
 
-        if (pass.culled)
-            return;
-
-        foreach (int resourceRead in pass.resourceReadLists[0])
+        foreach (int consumer in resource.consumerList)
         {
-            VisualElement resourceLifetime = resourceLifeTimeElement.ElementAt(resourceRead);
-            resourceLifetime.style.backgroundColor = m_OriginalResourceLifeColor;
+            var passDebugData = debugData.passList[consumer];
+            if (passDebugData.culled)
+                continue;
+
+            VisualElement passElement = m_PassElements[consumer];
+            if (passElement != null)
+            {
+                VisualElement passButton = passElement.Q("PassNameButton");
+                passButton.style.backgroundColor = colorRead;
+            }
         }
 
-        foreach (int resourceWrite in pass.resourceWriteLists[0])
+        foreach (int producer in resource.producerList)
         {
-            VisualElement resourceLifetime = resourceLifeTimeElement.ElementAt(resourceWrite);
-            resourceLifetime.style.backgroundColor = m_OriginalResourceLifeColor;
+            var passDebugData = debugData.passList[producer];
+            if (passDebugData.culled)
+                continue;
+
+            VisualElement passElement = m_PassElements[producer];
+            if (passElement != null)
+            {
+                VisualElement passButton = passElement.Q("PassNameButton");
+                passButton.style.backgroundColor = colorWrite;
+            }
         }
     }
 
     void MouseEnterResourceCallback(MouseEnterEvent evt, int index)
     {
-        var passNamesElement = m_GraphViewerElement.Q<VisualElement>("GraphViewer.TopRowElement.PassNames");
-
-        var debugData = m_CurrentRenderGraph.GetDebugData();
-        var resource = debugData.resourceLists[0][index];
-
-        foreach (int consumer in resource.consumerList)
-        {
-            VisualElement passButton = passNamesElement.ElementAt(consumer).Q("PassNameButton");
-            passButton.style.backgroundColor = m_ResourceColorRead;
-        }
-
-        foreach (int producer in resource.producerList)
-        {
-            VisualElement passButton = passNamesElement.ElementAt(producer).Q("PassNameButton");
-            passButton.style.backgroundColor = m_ResourceColorWrite;
-        }
+        UpdatePassColor(index, m_ResourceColorRead, m_ResourceColorWrite);
     }
 
     void MouseLeaveResourceCallback(MouseLeaveEvent evt, int index)
     {
-        var passNamesElement = m_GraphViewerElement.Q<VisualElement>("GraphViewer.TopRowElement.PassNames");
-
-        var debugData = m_CurrentRenderGraph.GetDebugData();
-        var resource = debugData.resourceLists[0][index];
-
-        foreach (int consumer in resource.consumerList)
-        {
-            VisualElement passButton = passNamesElement.ElementAt(consumer).Q("PassNameButton");
-            passButton.style.backgroundColor = m_OriginalPassColor;
-        }
-
-        foreach (int producer in resource.producerList)
-        {
-            VisualElement passButton = passNamesElement.ElementAt(producer).Q("PassNameButton");
-            passButton.style.backgroundColor = m_OriginalPassColor;
-        }
+        UpdatePassColor(index, m_OriginalPassColor, m_OriginalPassColor);
     }
 
     VisualElement CreateRenderPassLabel(string name, int index, bool culled)
@@ -286,10 +282,16 @@ public class RenderGraphViewer : EditorWindow
 
         var debugData = m_CurrentRenderGraph.GetDebugData();
 
+        m_ResourceLifeTimeElements.Resize(debugData.resourceLists[0].Count);
+        m_PassElements.Resize(debugData.passList.Count);
+
         int passIndex = 0;
         foreach(var pass in debugData.passList)
         {
-            passNamesElement.Add(CreateRenderPassLabel(pass.name, passIndex++, pass.culled));
+            var passElement = CreateRenderPassLabel(pass.name, passIndex, pass.culled);
+            m_PassElements[passIndex] = passElement;
+            passNamesElement.Add(passElement);
+            passIndex++;
         }
 
         topRowElement.Add(passNamesElement);
@@ -318,7 +320,7 @@ public class RenderGraphViewer : EditorWindow
             // Remove unused resource.
             if (resource.releasePassIndex == -1 && resource.creationPassIndex == -1)
             {
-                index++;
+                m_ResourceLifeTimeElements[index++] = null;
                 continue;
             }
 
@@ -340,7 +342,7 @@ public class RenderGraphViewer : EditorWindow
             resourcesLifeTimeElement.Add(newButton);
 
             m_OriginalResourceLifeColor = newButton.style.color;
-            index++;
+            m_ResourceLifeTimeElements[index++] = newButton;
         }
 
         resourceElement.Add(resourceNamesContainer);
