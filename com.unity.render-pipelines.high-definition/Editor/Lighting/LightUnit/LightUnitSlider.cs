@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static class SliderConfig
         {
             public const float k_IconSeparator      = 6;
-            public const float k_MarkerWidth        = 4;
+            public const float k_MarkerWidth        = 2;
             public const float k_MarkerHeight       = 2;
             public const float k_MarkerTooltipScale = 4;
             public const float k_ThumbTooltipSize   = 10;
