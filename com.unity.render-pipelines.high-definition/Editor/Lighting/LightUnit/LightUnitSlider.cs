@@ -70,8 +70,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
+            var cautionValue = m_Descriptor.sliderRange.y;
             var cautionTooltip = value < m_Descriptor.sliderRange.x ? m_Descriptor.belowRangeTooltip : m_Descriptor.aboveRangeTooltip;
-            return LightUnitSliderUIRange.CautionRange(cautionTooltip, value);
+            return LightUnitSliderUIRange.CautionRange(cautionTooltip, cautionValue);
         }
 
         void BuildRects(Rect baseRect, out Rect sliderRect, out Rect iconRect)
