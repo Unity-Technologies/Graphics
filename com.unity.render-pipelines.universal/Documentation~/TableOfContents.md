@@ -20,6 +20,7 @@
 * [Lighting](lighting.md)
   * [Light component reference](light-component)
   * [The Universal Additional Light Data component](universal-additional-light-data.md)
+  * [Shadows in the Universal Render Pipeline](Shadows-in-URP.md)
 * [Cameras](cameras.md)
   * [The Universal Additional Camera Data component](universal-additional-camera-data.md)
   * [Render Type](camera-types-and-render-type.md)
