@@ -31,21 +31,6 @@ public class RenderGraphViewer : EditorWindow
         CulledPasses = 1 << 1,
     }
 
-    RenderGraph m_CurrentRenderGraph;
-
-    VisualElement m_Root;
-    VisualElement m_HeaderElement;
-    VisualElement m_GraphViewerElement;
-
-    StyleColor m_ResourceColorRead = new StyleColor(new Color(0.2f, 1.0f, 0.2f));
-    StyleColor m_ResourceColorWrite = new StyleColor(new Color(1.0f, 0.2f, 0.2f));
-    StyleColor m_ImportedResourceColor = new StyleColor(new Color(0.3f, 0.75f, 0.75f));
-    StyleColor m_CulledPassColor = new StyleColor(Color.black);
-    StyleColor m_ResourceHighlightColor = new StyleColor(Color.white);
-    StyleColor m_OriginalResourceLifeColor;
-    StyleColor m_OriginalPassColor;
-    StyleColor m_OriginalResourceColor;
-
     struct ResourceElementInfo
     {
         public VisualElement lifetime;
@@ -70,7 +55,22 @@ public class RenderGraphViewer : EditorWindow
         }
     }
 
-    DynamicArray<ResourceElementInfo> m_ResourceElementsInfo = new DynamicArray<ResourceElementInfo>();
+    RenderGraph m_CurrentRenderGraph;
+
+    VisualElement m_Root;
+    VisualElement m_HeaderElement;
+    VisualElement m_GraphViewerElement;
+
+    StyleColor m_ResourceColorRead = new StyleColor(new Color(0.2f, 1.0f, 0.2f));
+    StyleColor m_ResourceColorWrite = new StyleColor(new Color(1.0f, 0.2f, 0.2f));
+    StyleColor m_ImportedResourceColor = new StyleColor(new Color(0.3f, 0.75f, 0.75f));
+    StyleColor m_CulledPassColor = new StyleColor(Color.black);
+    StyleColor m_ResourceHighlightColor = new StyleColor(Color.white);
+    StyleColor m_OriginalResourceLifeColor;
+    StyleColor m_OriginalPassColor;
+    StyleColor m_OriginalResourceColor;
+
+    DynamicArray<ResourceElementInfo>[] m_ResourceElementsInfo = new DynamicArray<ResourceElementInfo>[(int)RenderGraphResourceType.Count];
     DynamicArray<PassElementInfo> m_PassElementsInfo = new DynamicArray<PassElementInfo>();
 
     Filter m_Filter = 0;
@@ -92,26 +92,29 @@ public class RenderGraphViewer : EditorWindow
     }
 
 
-    void UpdateResourceLifetimeColor(int index, StyleColor colorRead, StyleColor colorWrite)
+    void UpdateResourceLifetimeColor(int passIndex, StyleColor colorRead, StyleColor colorWrite)
     {
         var debugData = m_CurrentRenderGraph.GetDebugData();
-        var pass = debugData.passList[index];
+        var pass = debugData.passList[passIndex];
 
         if (pass.culled)
             return;
 
-        foreach (int resourceRead in pass.resourceReadLists[0])
+        for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
         {
-            VisualElement resourceLifetime = m_ResourceElementsInfo[resourceRead].lifetime;
-            if (resourceLifetime != null)
-                resourceLifetime.style.backgroundColor = colorRead;
-        }
+            foreach (int resourceRead in pass.resourceReadLists[type])
+            {
+                VisualElement resourceLifetime = m_ResourceElementsInfo[type][resourceRead].lifetime;
+                if (resourceLifetime != null)
+                    resourceLifetime.style.backgroundColor = colorRead;
+            }
 
-        foreach (int resourceWrite in pass.resourceWriteLists[0])
-        {
-            VisualElement resourceLifetime = m_ResourceElementsInfo[resourceWrite].lifetime;
-            if (resourceLifetime != null)
-                resourceLifetime.style.backgroundColor = colorWrite;
+            foreach (int resourceWrite in pass.resourceWriteLists[type])
+            {
+                VisualElement resourceLifetime = m_ResourceElementsInfo[type][resourceWrite].lifetime;
+                if (resourceLifetime != null)
+                    resourceLifetime.style.backgroundColor = colorWrite;
+            }
         }
     }
 
@@ -125,10 +128,10 @@ public class RenderGraphViewer : EditorWindow
         UpdateResourceLifetimeColor(index, m_OriginalResourceLifeColor, m_OriginalResourceLifeColor);
     }
 
-    void UpdatePassColor(int index, StyleColor colorRead, StyleColor colorWrite)
+    void UpdatePassColor((int index, int resourceType) resInfo, StyleColor colorRead, StyleColor colorWrite)
     {
         var debugData = m_CurrentRenderGraph.GetDebugData();
-        var resource = debugData.resourceLists[0][index];
+        var resource = debugData.resourceLists[resInfo.resourceType][resInfo.index];
 
         foreach (int consumer in resource.consumerList)
         {
@@ -159,26 +162,26 @@ public class RenderGraphViewer : EditorWindow
         }
     }
 
-    void UpdateResourceLabelColor(int index, StyleColor color)
+    void UpdateResourceLabelColor((int index, int resourceType) resInfo, StyleColor color)
     {
-        var label = m_ResourceElementsInfo[index].resourceLabel;
+        var label = m_ResourceElementsInfo[resInfo.resourceType][resInfo.index].resourceLabel;
         if (label != null)
         {
             label.style.color = color;
         }
     }
 
-    void MouseEnterResourceCallback(MouseEnterEvent evt, int index)
+    void MouseEnterResourceCallback(MouseEnterEvent evt, (int index, int resourceType) info)
     {
-        UpdatePassColor(index, m_ResourceColorRead, m_ResourceColorWrite);
-        UpdateResourceLabelColor(index, m_ResourceHighlightColor);
+        UpdatePassColor(info, m_ResourceColorRead, m_ResourceColorWrite);
+        UpdateResourceLabelColor(info, m_ResourceHighlightColor);
     }
 
-    void MouseLeaveResourceCallback(MouseLeaveEvent evt, int index)
+    void MouseLeaveResourceCallback(MouseLeaveEvent evt, (int index, int resourceType) info)
     {
-        var resource = m_CurrentRenderGraph.GetDebugData().resourceLists[0][index];
-        UpdatePassColor(index, m_OriginalPassColor, m_OriginalPassColor);
-        UpdateResourceLabelColor(index, resource.imported ? m_ImportedResourceColor : m_OriginalResourceColor); ;
+        var resource = m_CurrentRenderGraph.GetDebugData().resourceLists[info.resourceType][info.index];
+        UpdatePassColor(info, m_OriginalPassColor, m_OriginalPassColor);
+        UpdateResourceLabelColor(info, resource.imported ? m_ImportedResourceColor : m_OriginalResourceColor); ;
     }
 
     VisualElement CreateRenderPassLabel(string name, int index, bool culled)
@@ -215,8 +218,15 @@ public class RenderGraphViewer : EditorWindow
     void ResourceNamesContainerChanged(GeometryChangedEvent evt)
     {
         var cornerElement = m_GraphViewerElement.Q<VisualElement>("GraphViewer.Corner");
-        cornerElement.style.width = evt.newRect.width;
-        cornerElement.style.minWidth = evt.newRect.width;
+        cornerElement.style.width = Mathf.Max(evt.newRect.width, cornerElement.style.width.value.value);
+        cornerElement.style.minWidth = Mathf.Max(evt.newRect.width, cornerElement.style.minWidth.value.value);
+
+        // We need to make sure all resource types have the same width
+        m_GraphViewerElement.Query("GraphViewer.Resources.ResourceNames").Build().ForEach((elem) =>
+        {
+            elem.style.width = Mathf.Max(evt.newRect.width, elem.style.width.value.value);
+            elem.style.minWidth = Mathf.Max(evt.newRect.width, elem.style.minWidth.value.value);
+        });
     }
 
     VisualElement CreateResourceLabel(string name, bool imported)
@@ -325,19 +335,8 @@ public class RenderGraphViewer : EditorWindow
         return null;
     }
 
-    void RebuildGraphViewerUI()
+    VisualElement CreateTopRowWithPasses(RenderGraphDebugData debugData, out int finalPassCount)
     {
-        m_GraphViewerElement.Clear();
-
-        m_CurrentRenderGraph = GetCurrentRenderGraph();
-        if (m_CurrentRenderGraph == null)
-            return;
-
-        var horizontalScrollView = new ScrollView(ScrollViewMode.Horizontal);
-
-        var graphViewerElement = new VisualElement();
-        graphViewerElement.style.flexDirection = FlexDirection.Column;
-
         var topRowElement = new VisualElement();
         topRowElement.name = "GraphViewer.TopRowElement";
         topRowElement.style.flexDirection = FlexDirection.Row;
@@ -351,16 +350,9 @@ public class RenderGraphViewer : EditorWindow
         passNamesElement.name = "GraphViewer.TopRowElement.PassNames";
         passNamesElement.style.flexDirection = FlexDirection.Row;
 
-        var debugData = m_CurrentRenderGraph.GetDebugData();
-        if (debugData.passList.Count == 0)
-            return;
-
-        m_ResourceElementsInfo.Resize(debugData.resourceLists[0].Count);
-        m_PassElementsInfo.Resize(debugData.passList.Count);
-
         int passIndex = 0;
-        int finalPassCount = 0;
-        foreach(var pass in debugData.passList)
+        finalPassCount = 0;
+        foreach (var pass in debugData.passList)
         {
             if ((pass.culled && !m_Filter.HasFlag(Filter.CulledPasses)) || !pass.generateDebugData)
             {
@@ -379,8 +371,11 @@ public class RenderGraphViewer : EditorWindow
 
         topRowElement.Add(passNamesElement);
 
-        var resourceScrollView = new ScrollView(ScrollViewMode.Vertical);
+        return topRowElement;
+    }
 
+    VisualElement CreateResourceViewer(RenderGraphDebugData debugData, int resourceType, int passCount)
+    {
         var resourceElement = new VisualElement();
         resourceElement.name = "GraphViewer.Resources";
         resourceElement.style.flexDirection = FlexDirection.Row;
@@ -395,21 +390,21 @@ public class RenderGraphViewer : EditorWindow
         var resourcesLifeTimeElement = new VisualElement();
         resourcesLifeTimeElement.name = "GraphViewer.Resources.ResourceLifeTime";
         resourcesLifeTimeElement.style.flexDirection = FlexDirection.Column;
-        resourcesLifeTimeElement.style.width = kRenderPassWidth * finalPassCount;
+        resourcesLifeTimeElement.style.width = kRenderPassWidth * passCount;
 
         int index = 0;
-        foreach (var resource in debugData.resourceLists[0])
+        foreach (var resource in debugData.resourceLists[resourceType])
         {
             // Remove unused resource.
             if (resource.releasePassIndex == -1 && resource.creationPassIndex == -1
                 || (resource.imported && !m_Filter.HasFlag(Filter.ImportedResources)))
             {
-                m_ResourceElementsInfo[index++].Reset();
+                m_ResourceElementsInfo[resourceType][index++].Reset();
                 continue;
             }
 
             var label = CreateResourceLabel(resource.name, resource.imported);
-            m_ResourceElementsInfo[index].resourceLabel = label;
+            m_ResourceElementsInfo[resourceType][index].resourceLabel = label;
             resourceNamesContainer.Add(label);
 
             var newButton = new Button();
@@ -422,18 +417,55 @@ public class RenderGraphViewer : EditorWindow
             newButton.style.marginTop = 0.0f;
             newButton.style.height = kResourceHeight;
 
-            newButton.RegisterCallback<MouseEnterEvent, int>(MouseEnterResourceCallback, index);
-            newButton.RegisterCallback<MouseLeaveEvent, int>(MouseLeaveResourceCallback, index);
+            newButton.RegisterCallback<MouseEnterEvent, (int, int)>(MouseEnterResourceCallback, (index, resourceType));
+            newButton.RegisterCallback<MouseLeaveEvent, (int, int)>(MouseLeaveResourceCallback, (index, resourceType));
 
             resourcesLifeTimeElement.Add(newButton);
 
             m_OriginalResourceLifeColor = newButton.style.color;
-            m_ResourceElementsInfo[index++].lifetime = newButton;
+            m_ResourceElementsInfo[resourceType][index++].lifetime = newButton;
         }
 
         resourceElement.Add(resourceNamesContainer);
         resourceElement.Add(resourcesLifeTimeElement);
-        resourceScrollView.Add(resourceElement);
+
+        return resourceElement;
+    }
+
+    void RebuildGraphViewerUI()
+    {
+        m_GraphViewerElement.Clear();
+
+        m_CurrentRenderGraph = GetCurrentRenderGraph();
+        if (m_CurrentRenderGraph == null)
+            return;
+
+        var debugData = m_CurrentRenderGraph.GetDebugData();
+        if (debugData.passList.Count == 0)
+            return;
+
+        for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
+            m_ResourceElementsInfo[i].Resize(debugData.resourceLists[i].Count);
+        m_PassElementsInfo.Resize(debugData.passList.Count);
+
+        var horizontalScrollView = new ScrollView(ScrollViewMode.Horizontal);
+
+        var graphViewerElement = new VisualElement();
+        graphViewerElement.style.flexDirection = FlexDirection.Column;
+
+        var topRowElement = CreateTopRowWithPasses(debugData, out int finalPassCount);
+
+        var resourceScrollView = new ScrollView(ScrollViewMode.Vertical);
+
+        for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
+        {
+            var resourceViewerElement = CreateResourceViewer(debugData, i, finalPassCount);
+            resourceScrollView.Add(resourceViewerElement);
+
+            VisualElement separator = new VisualElement();
+            separator.style.minHeight = kResourceHeight;
+            resourceScrollView.Add(separator);
+        }
 
         graphViewerElement.Add(topRowElement);
         graphViewerElement.Add(resourceScrollView);
@@ -488,6 +520,9 @@ public class RenderGraphViewer : EditorWindow
 
     void OnEnable()
     {
+        for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
+            m_ResourceElementsInfo[i] = new DynamicArray<ResourceElementInfo>();
+
         RenderGraph.requireDebugData = true;
         RenderGraph.onGraphRegistered += OnGraphRegistered;
         RenderGraph.onGraphRegistered += OnGraphUnregistered;
