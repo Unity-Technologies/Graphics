@@ -303,7 +303,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 customGetter: () => serialized.sssQualityMode.GetEnumValue<SssQualityMode>(),
                 customSetter: v  => serialized.sssQualityMode.SetEnumValue((SssQualityMode)v),
                 customOverrideable: () => hdrpSettings.supportSubsurfaceScattering
-                                       && (serialized.IsEnabled(FrameSettingsField.SubsurfaceScattering) ?? false)
+                                       && (serialized.IsEnabled(FrameSettingsField.SubsurfaceScattering) ?? false),
+                hasMixedValues: serialized.sssQualityMode.hasMultipleDifferentValues
             );
             area.AmmendInfo(FrameSettingsField.SssQualityLevel,
                 overridedDefaultValue: ScalableLevel3ForFrameSettingsUIOnly.Low,
@@ -311,7 +312,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 customSetter:       v  => serialized.sssQualityLevel.intValue = Math.Max(0, Math.Min((int)v, 2)),    // Levels 0-2
                 customOverrideable: () => hdrpSettings.supportSubsurfaceScattering
                                        && (serialized.IsEnabled(FrameSettingsField.SubsurfaceScattering) ?? false)
-                                       && (serialized.sssQualityMode.GetEnumValue<SssQualityMode>() == SssQualityMode.FromQualitySettings)
+                                       && (serialized.sssQualityMode.GetEnumValue<SssQualityMode>() == SssQualityMode.FromQualitySettings),
+                hasMixedValues: serialized.sssQualityLevel.hasMultipleDifferentValues
             );
             area.AmmendInfo(FrameSettingsField.SssCustomSampleBudget,
                 overridedDefaultValue: (int)DefaultSssSampleBudgetForQualityLevel.Low,
@@ -319,7 +321,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 customSetter:       v  => serialized.sssCustomSampleBudget.intValue = Math.Max(1, Math.Min((int)v, (int)DefaultSssSampleBudgetForQualityLevel.Max)),
                 customOverrideable: () => hdrpSettings.supportSubsurfaceScattering
                                        && (serialized.IsEnabled(FrameSettingsField.SubsurfaceScattering) ?? false)
-                                       && (serialized.sssQualityMode.GetEnumValue<SssQualityMode>() != SssQualityMode.FromQualitySettings)
+                                       && (serialized.sssQualityMode.GetEnumValue<SssQualityMode>() != SssQualityMode.FromQualitySettings),
+                hasMixedValues: serialized.sssCustomSampleBudget.hasMultipleDifferentValues
             );
 
             area.AmmendInfo(FrameSettingsField.Volumetrics, overrideable: () => hdrpSettings.supportVolumetrics);
