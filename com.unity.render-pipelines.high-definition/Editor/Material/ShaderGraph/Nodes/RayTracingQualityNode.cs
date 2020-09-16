@@ -8,10 +8,8 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    // [FormerName("UnityEditor.Rendering.HighDefinition.RayTracingNode")]
-    // TODO: rename to RayTracingQualityNode but can't for now due to a bug in ShaderGraph which prevent correct migration + Don't forget to rename the file as well
-    //class RayTracingQualityNode
-    class RayTracingNode
+    [FormerName("UnityEditor.Rendering.HighDefinition.RayTracingNode")]
+    class RayTracingQualityNode
     {
         private const string k_KeywordDefault = "RAYTRACING_SHADER_GRAPH_DEFAULT";
         private const string k_KeywordRaytraced = "RAYTRACING_SHADER_GRAPH_RAYTRACED";
