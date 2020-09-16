@@ -23,7 +23,8 @@ namespace UnityEditor.VFX.Operator
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new VFXExpression[] { VFXOperatorUtility.SphereVolume(inputExpression[1]) };
+            var sphereRadius = inputExpression[2];
+            return new VFXExpression[] { VFXOperatorUtility.SphereVolume(sphereRadius) };
         }
     }
 }

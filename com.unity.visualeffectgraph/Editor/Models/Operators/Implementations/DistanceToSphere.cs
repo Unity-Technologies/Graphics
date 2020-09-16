@@ -36,12 +36,16 @@ namespace UnityEditor.VFX.Operator
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            VFXExpression sphereDelta = (inputExpression[2] - inputExpression[0]);
-            VFXExpression sphereDeltaLength = VFXOperatorUtility.Length(sphereDelta);
-            VFXExpression sphereDistance = (sphereDeltaLength - inputExpression[1]);
+            var spherePosition = inputExpression[0];
+            var sphereRadius = inputExpression[2];
+            var inputPosition = inputExpression[3];
 
-            VFXExpression pointOnSphere = (inputExpression[1] / sphereDeltaLength);
-            pointOnSphere = (sphereDelta * VFXOperatorUtility.CastFloat(pointOnSphere, inputExpression[0].valueType) + inputExpression[0]);
+            VFXExpression sphereDelta = inputPosition - spherePosition;
+            VFXExpression sphereDeltaLength = VFXOperatorUtility.Length(sphereDelta);
+            VFXExpression sphereDistance = sphereDeltaLength - sphereRadius;
+
+            VFXExpression pointOnSphere = sphereRadius / sphereDeltaLength;
+            pointOnSphere = (sphereDelta * VFXOperatorUtility.CastFloat(pointOnSphere, spherePosition.valueType) + spherePosition);
 
             return new VFXExpression[] { pointOnSphere, sphereDistance };
         }
