@@ -76,6 +76,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a collision in the interaction of RTR and RTGI.
 - Fix for lookdev toggling renderers that are set to non editable or are hidden in the inspector.
 - Fixed issue with mipmap debug mode not properly resetting full screen mode (and viceversa). 
+- Added unsupported message when using tile debug mode with MSAA.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
