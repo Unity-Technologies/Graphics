@@ -110,6 +110,10 @@ namespace UnityEngine.Rendering.Universal
             ShaderData.instance.Dispose();
             DeferredShaderData.instance.Dispose();
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+            m_XRSystem?.Dispose();
+#endif
+
 #if UNITY_EDITOR
             SceneViewDrawMode.ResetDrawMode();
 #endif
