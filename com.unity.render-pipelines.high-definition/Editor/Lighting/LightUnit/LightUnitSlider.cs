@@ -451,6 +451,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!k_LightUnitSliderMap.TryGetValue(unit, out var lightUnitSlider))
                 return;
 
+            // TODO: Always present the light intensity units in terms of Lumen for the slider!
             using (new EditorGUI.IndentLevelScope(-EditorGUI.indentLevel))
             {
                 lightUnitSlider.Draw(rect, value);

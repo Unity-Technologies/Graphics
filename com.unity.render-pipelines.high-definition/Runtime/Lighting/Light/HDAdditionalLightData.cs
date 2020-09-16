@@ -2510,6 +2510,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             lightData.normalBias           = 0.75f;
             lightData.slopeBias            = 0.5f;
+
+            // Enable filter/temperature mode by default for all light types
+            lightData.useColorTemperature = true;
         }
 
         void OnValidate()
