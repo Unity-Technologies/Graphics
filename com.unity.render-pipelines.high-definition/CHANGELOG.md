@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support of SSGI in the render graph mode.
 - Added option for 11-11-10 format for cube reflection probes.
 - Added an optional check in the HDRP DXR Wizard to verify 64 bits target architecture
+- Added a way to check the normals through the material views.
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
