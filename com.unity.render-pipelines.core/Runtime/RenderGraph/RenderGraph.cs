@@ -113,6 +113,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             public List<int>[] resourceReadLists;
             public List<int>[] resourceWriteLists;
             public bool culled;
+            // We have this member instead of removing the pass altogether because we need the full list of passes in order to be able to remap them correctly when we remove them from display in the viewer.
+            public bool generateDebugData;
         }
 
         [DebuggerDisplay("ResourceDebug: {name} [{creationPassIndex}:{releasePassIndex}]")]
@@ -271,7 +273,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <summary>Name of the Render Graph.</summary>
         public string name { get; private set; } = "RenderGraph";
         /// <summary>If true, the Render Graph will generate execution debug information.</summary>
-        public static bool requireDebugData { get; set; } = false;
+        internal static bool requireDebugData { get; set; } = false;
 
         /// <summary>
         /// Set of default resources usable in a pass rendering code.
@@ -498,7 +500,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
             finally
             {
-                GenerateDebugData();
+                if (!m_ExecutionExceptionWasRaised && requireDebugData)
+                    GenerateDebugData();
 
                 ClearCompiledGraph();
 
@@ -528,6 +531,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 passData.sampler = sampler;
                 builder.AllowPassCulling(false);
+                builder.GenerateDebugData(false);
                 builder.SetRenderFunc((ProfilingScopePassData data, RenderGraphContext ctx) =>
                 {
                     data.sampler.Begin(ctx.cmd);
@@ -545,6 +549,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 passData.sampler = sampler;
                 builder.AllowPassCulling(false);
+                builder.GenerateDebugData(false);
                 builder.SetRenderFunc((ProfilingScopePassData data, RenderGraphContext ctx) =>
                 {
                     data.sampler.End(ctx.cmd);
@@ -1206,9 +1211,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             for (int i = 0; i < m_CompiledPassInfos.size; ++i)
             {
                 ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[i];
+
                 RenderGraphDebugData.PassDebugData newPass = new RenderGraphDebugData.PassDebugData();
                 newPass.name = passInfo.pass.name;
                 newPass.culled = passInfo.culled;
+                newPass.generateDebugData = passInfo.pass.generateDebugData;
                 newPass.resourceReadLists = new List<int>[(int)RenderGraphResourceType.Count];
                 newPass.resourceWriteLists = new List<int>[(int)RenderGraphResourceType.Count];
 

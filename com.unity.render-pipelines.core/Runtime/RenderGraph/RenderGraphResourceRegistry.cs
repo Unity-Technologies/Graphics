@@ -78,7 +78,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             public override string GetName()
             {
                 if (imported)
-                    return resource.name;
+                    return resource != null ? resource.name : "null resource";
                 else
                     return desc.name;
             }
@@ -90,7 +90,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             public override string GetName()
             {
                 if (imported)
-                    return "ImportedComputeBuffer";
+                    return "ImportedComputeBuffer"; // No getter for compute buffer name.
                 else
                     return desc.name;
             }

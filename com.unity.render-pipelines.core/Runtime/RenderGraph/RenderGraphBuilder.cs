@@ -228,6 +228,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
 #endif
         }
+
+        internal void GenerateDebugData(bool value)
+        {
+            m_RenderPass.GenerateDebugData(value);
+        }
         #endregion
     }
 }

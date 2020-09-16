@@ -24,6 +24,13 @@ public class RenderGraphViewer : EditorWindow
         window.titleContent = new GUIContent("Render Graph Viewer");
     }
 
+    [System.Flags]
+    enum Filter
+    {
+        ImportedResources = 1 << 0,
+        CulledPasses = 1 << 1,
+    }
+
     RenderGraph m_CurrentRenderGraph;
 
     VisualElement m_Root;
@@ -39,8 +46,9 @@ public class RenderGraphViewer : EditorWindow
 
     DynamicArray<VisualElement> m_ResourceLifeTimeElements = new DynamicArray<VisualElement>();
     DynamicArray<VisualElement> m_PassElements = new DynamicArray<VisualElement>();
+    DynamicArray<int> m_PassRemapping = new DynamicArray<int>();
 
-    bool m_DisplayImportedResources = false;
+    Filter m_Filter = 0;
 
     void RenderPassLabelChanged(GeometryChangedEvent evt)
     {
@@ -242,15 +250,15 @@ public class RenderGraphViewer : EditorWindow
         captureButton.text = "Capture Graph";
         controlsElement.Add(captureButton);
 
-        var displayImported = new Toggle("Display Imported Resources");
-        displayImported.value = m_DisplayImportedResources;
-        displayImported.style.alignItems = Align.Center;
-        displayImported.RegisterValueChangedCallback<bool>((evt) =>
+        var filters = new EnumFlagsField("Filters", m_Filter);
+        filters.labelElement.style.minWidth = 0;
+        filters.labelElement.style.alignItems = Align.Center;
+        filters.RegisterCallback<ChangeEvent<System.Enum>>((evt) =>
         {
-            m_DisplayImportedResources = evt.newValue;
+            m_Filter = (Filter)evt.newValue;
             RebuildGraphViewerUI();
         });
-        controlsElement.Add(displayImported);
+        controlsElement.Add(filters);
 
         m_HeaderElement.Add(controlsElement);
 
@@ -305,19 +313,30 @@ public class RenderGraphViewer : EditorWindow
         passNamesElement.style.flexDirection = FlexDirection.Row;
 
         var debugData = m_CurrentRenderGraph.GetDebugData();
+        if (debugData.passList == null)
+            return;
 
         m_ResourceLifeTimeElements.Resize(debugData.resourceLists[0].Count);
         m_PassElements.Resize(debugData.passList.Count);
+        m_PassRemapping.Resize(debugData.passList.Count);
 
         int passIndex = 0;
         int finalPassCount = 0;
         foreach(var pass in debugData.passList)
         {
-            var passElement = CreateRenderPassLabel(pass.name, passIndex, pass.culled);
-            m_PassElements[passIndex] = passElement;
-            passNamesElement.Add(passElement);
+            if ((pass.culled && !m_Filter.HasFlag(Filter.CulledPasses)) || !pass.generateDebugData)
+            {
+                m_PassRemapping[passIndex] = -1;
+            }
+            else
+            {
+                var passElement = CreateRenderPassLabel(pass.name, passIndex, pass.culled);
+                m_PassElements[passIndex] = passElement;
+                m_PassRemapping[passIndex] = finalPassCount;
+                passNamesElement.Add(passElement);
+                finalPassCount++;
+            }
             passIndex++;
-            finalPassCount++;
         }
 
         topRowElement.Add(passNamesElement);
@@ -345,7 +364,7 @@ public class RenderGraphViewer : EditorWindow
         {
             // Remove unused resource.
             if (resource.releasePassIndex == -1 && resource.creationPassIndex == -1
-                || resource.imported && !m_DisplayImportedResources)
+                || (resource.imported && !m_Filter.HasFlag(Filter.ImportedResources)))
             {
                 m_ResourceLifeTimeElements[index++] = null;
                 continue;
@@ -355,8 +374,8 @@ public class RenderGraphViewer : EditorWindow
 
             var newButton = new Button();
             newButton.style.position = Position.Relative;
-            newButton.style.left = resource.creationPassIndex * kRenderPassWidth;
-            newButton.style.width = (resource.releasePassIndex - resource.creationPassIndex + 1) * kRenderPassWidth;
+            newButton.style.left = m_PassRemapping[resource.creationPassIndex] * kRenderPassWidth;
+            newButton.style.width = (m_PassRemapping[resource.releasePassIndex] - m_PassRemapping[resource.creationPassIndex] + 1) * kRenderPassWidth;
             newButton.style.marginBottom = 0.0f;
             newButton.style.marginLeft = 0.0f;
             newButton.style.marginRight = 0.0f;
