@@ -590,7 +590,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.numBigTileX = GetNumTileBigTileX(hdCamera);
             parameters.numBigTileY = GetNumTileBigTileY(hdCamera);
 
-            parameters.tiledLighting = HasLightToCull() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
+            parameters.tiledLighting = (m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.DensityVolume) > 0) && hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
             bool highQuality = volumetricLightingPreset == VolumetricLightingPreset.High;
 
             parameters.voxelizationCS = m_VolumeVoxelizationCS;
@@ -649,7 +649,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // TODO: set the constant buffer data only once.
             cmd.SetComputeMatrixArrayParam(parameters.voxelizationCS, HDShaderIDs._VBufferCoordToViewDirWS, parameters.pixelCoordToViewDirWS);
             cmd.SetComputeFloatParam(parameters.voxelizationCS, HDShaderIDs._VBufferUnitDepthTexelSpacing, parameters.unitDepthTexelSpacing);
-            cmd.SetComputeIntParam(parameters.voxelizationCS, HDShaderIDs._NumVisibleDensityVolumes, parameters.numVisibleVolumes);
+            cmd.SetComputeIntParam(parameters.voxelizationCS, HDShaderIDs._DensityVolumeCount, parameters.numVisibleVolumes);
             cmd.SetComputeVectorParam(parameters.voxelizationCS, HDShaderIDs._VolumeMaskDimensions, parameters.volumeAtlasDimensions);
 
             // The shader defines GROUP_SIZE_1D = 8.

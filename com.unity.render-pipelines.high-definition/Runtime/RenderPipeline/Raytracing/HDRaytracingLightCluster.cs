@@ -636,6 +636,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.shadowIndex = -1;
                 lightData.screenSpaceShadowIndex = -1;
 
+                HDLightType lightType = additionalLightData.type;
 
                 if (light != null && light.cookie != null)
                 {
@@ -735,8 +736,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // We make the light position camera-relative as late as possible in order
                 // to allow the preceding code to work with the absolute world space coordinates.
-                Vector3 camPosWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
-                m_RenderPipeline.UpdateEnvLighCameraRelativetData(ref envLightData, camPosWS);
+                if (ShaderConfig.s_CameraRelativeRendering != 0)
+                {
+                    Vector3 camPosWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
+
+                    // Caution: 'EnvLightData.positionRWS' is camera-relative after this point.
+                    envLightData.capturePositionRWS -= camPosWS;
+                    envLightData.influencePositionRWS -= camPosWS;
+                    envLightData.proxyPositionRWS -= camPosWS;
+                }
 
                 m_EnvLightDataCPUArray.Add(envLightData);
             }

@@ -330,7 +330,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         for (int sampleIdx = 0; sampleIdx < m_CurrentSunLightAdditionalLightData.numRayTracingSamples; ++sampleIdx)
                         {
                             // Bind the light & sampling data
-                            cmd.SetComputeBufferParam(m_ScreenSpaceShadowsCS, m_RaytracingDirectionalShadowSample, HDShaderIDs._DirectionalLightDatas, m_LightLoopLightData.directionalLightData);
+                            //cmd.SetComputeBufferParam(m_ScreenSpaceShadowsCS, m_RaytracingDirectionalShadowSample, HDShaderIDs._DirectionalLightData, m_LightLoopLightData.directionalLightData);
                             cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._DirectionalShadowIndex, m_CurrentShadowSortedSunLightIndex);
                             cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingSampleIndex, sampleIdx);
                             cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingNumSamples, m_CurrentSunLightAdditionalLightData.numRayTracingSamples);
@@ -459,23 +459,24 @@ namespace UnityEngine.Rendering.HighDefinition
                         EvaluateGPULightType(extraLightData.type, extraLightData.spotLightShape, extraLightData.areaLightShape,
                                              ref category, ref lightType);
 
-                        // Trigger the right algorithm based on the light type
-                        switch (lightType)
-                        {
-                            case GPULightType.Rectangle:
-                            {
-                                LightData lightData = m_BoundedEntityCollection.areaLightData[lightDataIndex];
-                                RenderAreaScreenSpaceShadow(cmd, hdCamera, lightData, extraLightData, lightDataIndex, shadowHistoryArray, shadowHistoryValidityArray);
-                            }
-                            break;
-                            case GPULightType.Point:
-                            case GPULightType.Spot:
-                            {
-                                LightData lightData = m_BoundedEntityCollection.punctualLightData[lightDataIndex];
-                                RenderPunctualScreenSpaceShadow(cmd, hdCamera, lightData, extraLightData, lightDataIndex, shadowHistoryArray, shadowHistoryValidityArray);
-                            }
-                            break;
-                        }
+                        /* Broken in XR, fix later */
+                        //// Trigger the right algorithm based on the light type
+                        //switch (lightType)
+                        //{
+                        //    case GPULightType.Rectangle:
+                        //    {
+                        //        LightData lightData = m_BoundedEntityCollection.areaLightData[lightDataIndex];
+                        //        RenderAreaScreenSpaceShadow(cmd, hdCamera, lightData, extraLightData, lightDataIndex, shadowHistoryArray, shadowHistoryValidityArray);
+                        //    }
+                        //    break;
+                        //    case GPULightType.Point:
+                        //    case GPULightType.Spot:
+                        //    {
+                        //        LightData lightData = m_BoundedEntityCollection.punctualLightData[lightDataIndex];
+                        //        RenderPunctualScreenSpaceShadow(cmd, hdCamera, lightData, extraLightData, lightDataIndex, shadowHistoryArray, shadowHistoryValidityArray);
+                        //    }
+                        //    break;
+                        //}
                     }
                 }
                 return true;
@@ -524,7 +525,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // we do a first prepass that compute the analytic term and probability and generates the first integration sample
 
                 // Bind the light data
-                cmd.SetComputeBufferParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._LightDatas, m_LightLoopLightData.punctualLightData);
+                //cmd.SetComputeBufferParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._LightDatas, m_LightLoopLightData.punctualLightData);
                 cmd.SetComputeMatrixParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingAreaWorldToLocal, m_WorldToLocalArea);
                 cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingTargetAreaLight, lightIndex);
                 cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingNumSamples, additionalLightData.numRayTracingSamples);
@@ -554,7 +555,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetRayTracingTextureParam(m_ScreenSpaceShadowsRT, HDShaderIDs._RayCountTexture, rayCountManager.GetRayCountTexture());
 
                 // Input data
-                cmd.SetRayTracingBufferParam(m_ScreenSpaceShadowsRT, HDShaderIDs._LightDatas, m_LightLoopLightData.punctualLightData);
+                //cmd.SetRayTracingBufferParam(m_ScreenSpaceShadowsRT, HDShaderIDs._LightDatas, m_LightLoopLightData.punctualLightData);
                 cmd.SetRayTracingTextureParam(m_ScreenSpaceShadowsRT, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
                 cmd.SetRayTracingTextureParam(m_ScreenSpaceShadowsRT, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
                 cmd.SetRayTracingTextureParam(m_ScreenSpaceShadowsRT, HDShaderIDs._AnalyticProbBuffer, intermediateBufferRG0);
@@ -575,7 +576,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int sampleIndex = 1; sampleIndex < additionalLightData.numRayTracingSamples; ++sampleIndex)
                 {
                     // Bind the light data
-                    cmd.SetComputeBufferParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._LightDatas, m_LightLoopLightData.punctualLightData);
+                    //cmd.SetComputeBufferParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._LightDatas, m_LightLoopLightData.punctualLightData);
                     cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingTargetAreaLight, lightIndex);
                     cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingSampleIndex, sampleIndex);
                     cmd.SetComputeMatrixParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingAreaWorldToLocal, m_WorldToLocalArea);
@@ -598,7 +599,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.DispatchCompute(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, numTilesX, numTilesY, hdCamera.viewCount);
 
                     // Input buffers
-                    cmd.SetRayTracingBufferParam(m_ScreenSpaceShadowsRT, HDShaderIDs._LightDatas, m_LightLoopLightData.punctualLightData);
+                    //cmd.SetRayTracingBufferParam(m_ScreenSpaceShadowsRT, HDShaderIDs._LightDatas, m_LightLoopLightData.punctualLightData);
                     cmd.SetRayTracingTextureParam(m_ScreenSpaceShadowsRT, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
                     cmd.SetRayTracingTextureParam(m_ScreenSpaceShadowsRT, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
                     cmd.SetRayTracingTextureParam(m_ScreenSpaceShadowsRT, HDShaderIDs._RaytracedAreaShadowSample, intermediateBufferRGBA1);
@@ -616,7 +617,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (additionalLightData.filterTracedShadow)
                 {
-                    int areaShadowSlot = m_lightList.lights[lightIndex].screenSpaceShadowIndex;
+                    // Will not work in XR
+                    //int areaShadowSlot = m_lightList.lights[lightIndex].screenSpaceShadowIndex;
+                    int areaShadowSlot = -1;
                     GetShadowChannelMask(areaShadowSlot, ScreenSpaceShadowType.Area, ref m_ShadowChannelMask0);
                     GetShadowChannelMask(areaShadowSlot, ScreenSpaceShadowType.GrayScale, ref m_ShadowChannelMask1);
                     GetShadowChannelMask(areaShadowSlot + 1, ScreenSpaceShadowType.GrayScale, ref m_ShadowChannelMask2);
@@ -746,7 +749,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     int shadowKernel = lightData.lightType == GPULightType.Point ? m_RaytracingPointShadowSample : m_RaytracingSpotShadowSample;
 
                     // Bind the light & sampling data
-                    cmd.SetComputeBufferParam(m_ScreenSpaceShadowsCS, shadowKernel, HDShaderIDs._LightDatas, m_LightLoopLightData.punctualLightData);
+                    //cmd.SetComputeBufferParam(m_ScreenSpaceShadowsCS, shadowKernel, HDShaderIDs._LightDatas, m_LightLoopLightData.punctualLightData);
                     cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingTargetAreaLight, lightIndex);
                     cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingSampleIndex, sampleIdx);
                     cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingNumSamples, additionalLightData.numRayTracingSamples);

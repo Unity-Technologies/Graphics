@@ -107,7 +107,7 @@ void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdf
                 DirectionalShadowType shadow = 1.0;
                 if (_DirectionalShadowIndex >= 0)
                 {
-                    DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
+                    DirectionalLightData light = _DirectionalLightData[_DirectionalShadowIndex];
 
 #if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT)
                     if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
@@ -177,7 +177,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         // Evaluate sun shadows.
         if (_DirectionalShadowIndex >= 0)
         {
-            DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
+            DirectionalLightData light = _DirectionalLightData[_DirectionalShadowIndex];
 
 #if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT)
             if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
@@ -401,9 +401,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     {
         for (i = 0; i < _DirectionalLightCount; ++i)
         {
-            if (IsMatchingLightLayer(_DirectionalLightDatas[i].lightLayers, builtinData.renderingLayers))
+            if (IsMatchingLightLayer(_DirectionalLightData[i].lightLayers, builtinData.renderingLayers))
             {
-                DirectLighting lighting = EvaluateBSDF_Directional(context, V, posInput, preLightData, _DirectionalLightDatas[i], bsdfData, builtinData);
+                DirectLighting lighting = EvaluateBSDF_Directional(context, V, posInput, preLightData, _DirectionalLightData[i], bsdfData, builtinData);
                 AccumulateDirectLighting(lighting, aggregateLighting);
             }
         }

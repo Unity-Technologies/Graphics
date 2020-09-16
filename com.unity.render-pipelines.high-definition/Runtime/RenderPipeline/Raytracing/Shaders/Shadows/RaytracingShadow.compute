@@ -100,7 +100,7 @@ void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, u
     float3 viewWS = normalize(_WorldSpaceCameraPos - positionWS);
 
     // Fetch the data of the area light
-    LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
+    LightData lightData = _LightData[_RaytracingTargetAreaLight];
 
     // Structure that holds all the input data for the MIS
     MISSamplingInput misInput;
@@ -147,7 +147,7 @@ void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, u
     float U = clamp(Luminance(lighting.diffuse + lighting.specular) * GetCurrentExposureMultiplier(), 0.0, AREA_SHADOW_CLAMP_VALUE);
 
     // NOTE: Due to a VGPR optimisation in we need to restore the previous value (position, dimmer, and other thing are overriden)
-    lightData = _LightDatas[_RaytracingTargetAreaLight];
+    lightData = _LightData[_RaytracingTargetAreaLight];
 
     // Here we need to evaluate the diffuseProbablity and the unshadowed lighting
     if (!EvaluateMISProbabilties(lighting, bsdfData.perceptualRoughness, misInput.brdfProb))
@@ -269,7 +269,7 @@ void RaytracingAreaShadowNewSample(uint3 dispatchThreadId : SV_DispatchThreadID,
     bsdfData.roughnessB = ClampRoughnessForRaytracing(bsdfData.roughnessB);
 
     // Fetch the data of the area light
-    LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
+    LightData lightData = _LightData[_RaytracingTargetAreaLight];
 
     // Convert this to a world space position
     float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
@@ -396,7 +396,7 @@ void RaytracingDirectionalShadowSample(uint3 dispatchThreadId : SV_DispatchThrea
     float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
     // Fetch the data of the area light
-    DirectionalLightData lightData = _DirectionalLightDatas[_DirectionalShadowIndex];
+    DirectionalLightData lightData = _DirectionalLightData[_DirectionalShadowIndex];
 
     // Compute the current sample index
     int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + _RaytracingSampleIndex;
@@ -443,7 +443,7 @@ void RaytracingPointShadowSample(uint2 groupThreadId : SV_GroupThreadID, uint2 g
     float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
     // Fetch the data of the area light
-    LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
+    LightData lightData = _LightData[_RaytracingTargetAreaLight];
     float3 lightpositionWS = GetAbsolutePositionWS(lightData.positionRWS);
 
     // If the point is inside the sphere, it will be visible
@@ -516,7 +516,7 @@ void RaytracingSpotShadowSample(uint2 groupThreadId : SV_GroupThreadID, uint2 gr
     float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
     // Fetch the data of the area light
-    LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
+    LightData lightData = _LightData[_RaytracingTargetAreaLight];
     float3 lightpositionWS = GetAbsolutePositionWS(lightData.positionRWS);
 
     // If the point is inside the sphere, it will be visible

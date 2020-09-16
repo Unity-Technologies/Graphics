@@ -75,9 +75,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     GenerateLightsScreenSpaceAABBs(data.buildGPULightListParameters, data.buildGPULightListResources, context.cmd);
-                    BigTilePrepass(data.buildGPULightListParameters, data.buildGPULightListResources, context.cmd);
-                    BuildPerTileLightList(data.buildGPULightListParameters, data.buildGPULightListResources, ref tileFlagsWritten, context.cmd);
-                    VoxelLightListGeneration(data.buildGPULightListParameters, data.buildGPULightListResources, context.cmd);
+                    //BigTilePrepass(data.buildGPULightListParameters, data.buildGPULightListResources, context.cmd);
+                    //BuildPerTileLightList(data.buildGPULightListParameters, data.buildGPULightListResources, ref tileFlagsWritten, context.cmd);
+                    //VoxelLightListGeneration(data.buildGPULightListParameters, data.buildGPULightListResources, context.cmd);
 
                     BuildDispatchIndirectArguments(data.buildGPULightListParameters, data.buildGPULightListResources, tileFlagsWritten, context.cmd);
 
@@ -315,7 +315,6 @@ namespace UnityEngine.Rendering.HighDefinition
         class RenderContactShadowPassData
         {
             public ContactShadowsParameters     parameters;
-            public LightLoopLightData           lightLoopLightData;
             public TileAndClusterData           tileAndClusterData;
             public RenderGraphResource          depthTexture;
             public RenderGraphMutableResource   contactShadowsTexture;
@@ -336,7 +335,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool clearBuffer = m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.ContactShadows;
 
                 passData.parameters = PrepareContactShadowsParameters(hdCamera, firstMipOffsetY);
-                passData.lightLoopLightData = m_LightLoopLightData;
                 passData.tileAndClusterData = m_TileAndClusterData;
                 passData.depthTexture = builder.ReadTexture(depthTexture);
                 passData.shadowManager = m_ShadowManager;
@@ -351,7 +349,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var res = context.resources;
                     data.shadowManager.PushGlobalParameters(context.cmd);
 
-                    RenderContactShadows(data.parameters, res.GetTexture(data.contactShadowsTexture), res.GetTexture(data.depthTexture), data.lightLoopLightData, data.tileAndClusterData, context.cmd);
+                    RenderContactShadows(data.parameters, res.GetTexture(data.contactShadowsTexture), res.GetTexture(data.depthTexture), data.tileAndClusterData, context.cmd);
                 });
             }
 

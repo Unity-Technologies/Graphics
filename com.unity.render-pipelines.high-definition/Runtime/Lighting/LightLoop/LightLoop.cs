@@ -71,13 +71,13 @@ namespace UnityEngine.Rendering.HighDefinition
             Debug.Assert(xrViewCount > 0);
             Debug.Assert(maxEntityCountPerCategory.Length == (int)BoundedEntityCategory.Count);
 
-            int totalEntityCountLimit = 0;
+            m_MaxEntityCount = 0;
 
             for (int i = 0, n = (int)BoundedEntityCategory.Count; i < n; i++)
             {
                 m_EntityCountPerCategory[i] = 0;
 
-                totalEntityCountLimit += maxEntityCountPerCategory[i];
+                m_MaxEntityCount += maxEntityCountPerCategory[i];
             }
 
             m_TotalEntityCount = 0;
@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_Views[i].decalData           = new List<DecalData>();
                 m_Views[i].densityVolumeData   = new List<DensityVolumeEngineData>();
                 m_Views[i].entityBounds        = new List<FiniteLightBound>();
-                m_Views[i].entitySortKeys      = new ulong[totalEntityCountLimit];
+                m_Views[i].entitySortKeys      = new ulong[m_MaxEntityCount];
             }
 
             for (int i = 0, n = (int)BoundedEntityCategory.Count; i < n; i++)
@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_EntityDataBufferPerCategory[i] = new ComputeBuffer(maxEntityCountPerCategory[i] * xrViewCount, s_EntityDataSizesPerCategory[i]);
             }
 
-            m_EntityBoundsBuffer = new ComputeBuffer(totalEntityCountLimit * xrViewCount, Marshal.SizeOf(typeof(FiniteLightBound)));
+            m_EntityBoundsBuffer = new ComputeBuffer(m_MaxEntityCount * xrViewCount, Marshal.SizeOf(typeof(FiniteLightBound)));
         }
 
         // Reset the counters.
@@ -147,6 +147,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_EntityCountPerCategory[(int)category];
         }
 
+        // For all categories combined.
+        public int GetMaxEntityCount()
+        {
+            return m_MaxEntityCount;
+        }
+
         public void AddEntitySortKey(int viewIndex, BoundedEntityCategory category, ulong key)
         {
             Debug.Assert(0 <= viewIndex && viewIndex < m_Views.Length);
@@ -155,6 +161,14 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Views[viewIndex].entitySortKeys[m_TotalEntityCount] = key;
             m_EntityCountPerCategory[(int)category]++;
             m_TotalEntityCount++;
+        }
+
+        // For all categories combined.
+        public int GetTotalEntityCount()
+        {
+            Debug.Assert(GetEntitySortKeyArrayOffset(BoundedEntityCategory.Count) == m_TotalEntityCount);
+
+            return m_TotalEntityCount;
         }
 
         public ulong GetEntitySortKey(int viewIndex, int keyIndex)
@@ -231,6 +245,16 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Views[viewIndex].entityBounds.Add(bounds);
         }
 
+        public ComputeBuffer GetEntityDataBuffer(BoundedEntityCategory category)
+        {
+            return m_EntityDataBufferPerCategory[(int)category];
+        }
+
+        public ComputeBuffer GetEntityBoundsBuffer()
+        {
+            return m_EntityBoundsBuffer;
+        }
+
         public void CopyEntityDataToComputeBuffers()
         {
             int totalCount = 0;
@@ -295,6 +319,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // The entity count is the same for all views.
         int[] m_EntityCountPerCategory = new int[(int)BoundedEntityCategory.Count];
         int   m_TotalEntityCount; // Prefix sum of the array above
+        int   m_MaxEntityCount;   // For all categories combined
+
 
         // We sort entities by depth, which makes the order of items in these lists view-dependent.
         struct ViewDependentData
@@ -577,40 +603,40 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal class LightLoopLightData
-        {
-            public ComputeBuffer    directionalLightData { get; private set; }
-            public ComputeBuffer    punctualLightData { get; private set; }
-            public ComputeBuffer    areaLightData { get; private set; }
-            public ComputeBuffer    envLightData { get; private set; }
-            public ComputeBuffer    decalData { get; private set; }
-            public ComputeBuffer    densityVolumeData { get; private set; }
+        //internal class LightLoopLightData
+        //{
+        //    public ComputeBuffer    directionalLightData { get; private set; }
+        //    public ComputeBuffer    punctualLightData { get; private set; }
+        //    public ComputeBuffer    areaLightData { get; private set; }
+        //    public ComputeBuffer    envLightData { get; private set; }
+        //    public ComputeBuffer    decalData { get; private set; }
+        //    public ComputeBuffer    densityVolumeData { get; private set; }
 
-            public void Initialize(int xrViewCount, int directionalCount, int punctualCount, int areaLightCount, int envLightCount, int decalCount, int densityVolumeCount)
-            {
-                directionalLightData = new ComputeBuffer(directionalCount * xrViewCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLightData)));
-                punctualLightData = new ComputeBuffer(punctualCount * xrViewCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
-                areaLightData = new ComputeBuffer(areaLightCount * xrViewCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
-                envLightData = new ComputeBuffer(envLightCount * xrViewCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
-                decalData = new ComputeBuffer(decalCount * xrViewCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DecalData)));
-                densityVolumeData = new ComputeBuffer(densityVolumeCount * xrViewCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DensityVolumeEngineData)));
-            }
+        //    public void Initialize(int xrViewCount, int directionalCount, int punctualCount, int areaLightCount, int envLightCount, int decalCount, int densityVolumeCount)
+        //    {
+        //        directionalLightData = new ComputeBuffer(directionalCount * xrViewCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLightData)));
+        //        punctualLightData = new ComputeBuffer(punctualCount * xrViewCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
+        //        areaLightData = new ComputeBuffer(areaLightCount * xrViewCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
+        //        envLightData = new ComputeBuffer(envLightCount * xrViewCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
+        //        decalData = new ComputeBuffer(decalCount * xrViewCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DecalData)));
+        //        densityVolumeData = new ComputeBuffer(densityVolumeCount * xrViewCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DensityVolumeEngineData)));
+        //    }
 
-            public void Cleanup()
-            {
-                CoreUtils.SafeRelease(directionalLightData);
-                CoreUtils.SafeRelease(punctualLightData);
-                CoreUtils.SafeRelease(areaLightData);
-                CoreUtils.SafeRelease(envLightData);
-                CoreUtils.SafeRelease(decalData);
-                CoreUtils.SafeRelease(densityVolumeData);
-            }
-        }
+        //    public void Cleanup()
+        //    {
+        //        CoreUtils.SafeRelease(directionalLightData);
+        //        CoreUtils.SafeRelease(punctualLightData);
+        //        CoreUtils.SafeRelease(areaLightData);
+        //        CoreUtils.SafeRelease(envLightData);
+        //        CoreUtils.SafeRelease(decalData);
+        //        CoreUtils.SafeRelease(densityVolumeData);
+        //    }
+        //}
 
         class TileAndClusterData
         {
             //public ComputeBuffer lightVolumeDataBuffer;
-            //public ComputeBuffer convexBoundsBuffer;
+            public ComputeBuffer convexBoundsBuffer;
             public ComputeBuffer AABBBoundsBuffer;
             public ComputeBuffer lightList;
             public ComputeBuffer tileList;
@@ -629,7 +655,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 globalLightListAtomic = new ComputeBuffer(1, sizeof(uint));
             }
 
-            public void AllocateResolutionDependentBuffers(HDCamera hdCamera, int width, int height, int viewCount, int maxLightOnScreen)
+            public void AllocateResolutionDependentBuffers(HDCamera hdCamera, int width, int height, int viewCount, int maxEntityCount)
             {
                 var nrTilesX = (width + TiledLightingConstants.s_TileSizeFptl - 1) / TiledLightingConstants.s_TileSizeFptl;
                 var nrTilesY = (height + TiledLightingConstants.s_TileSizeFptl - 1) / TiledLightingConstants.s_TileSizeFptl;
@@ -666,10 +692,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // The bounds and light volumes are view-dependent, and AABB is additionally projection dependent.
-                // TODO: I don't think k_MaxLightsOnScreen corresponds to the actual correct light count for cullable light types (punctual, area, env, decal)
-                AABBBoundsBuffer = new ComputeBuffer(viewCount * 2 * maxLightOnScreen, 4 * sizeof(float));
-                convexBoundsBuffer = new ComputeBuffer(viewCount * maxLightOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(FiniteLightBound)));
-                lightVolumeDataBuffer = new ComputeBuffer(viewCount * maxLightOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightVolumeData)));
+                AABBBoundsBuffer = new ComputeBuffer((viewCount * maxEntityCount) * 2, 4 * sizeof(float));
 
                 // DispatchIndirect: Buffer with arguments has to have three integer numbers at given argsOffset offset: number of work groups in X dimension, number of work groups in Y dimension, number of work groups in Z dimension.
                 // DrawProceduralIndirect: Buffer with arguments has to have four integer numbers at given argsOffset offset: vertex count per instance, instance count, start vertex location, and start instance location
@@ -693,8 +716,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // LightList building
                 CoreUtils.SafeRelease(AABBBoundsBuffer);
-                CoreUtils.SafeRelease(convexBoundsBuffer);
-                CoreUtils.SafeRelease(lightVolumeDataBuffer);
                 CoreUtils.SafeRelease(dispatchIndirectBuffer);
             }
 
@@ -740,7 +761,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Keep track of the maximum number of XR instanced views
-        int m_MaxViewCount = 1;
+        int m_MaxViewCount = TextureXR.slices;
 
         // Matrix used for LightList building, keep them around to avoid GC
         Matrix4x4[] m_LightListProjMatrices = new Matrix4x4[ShaderConfig.s_XrMaxViews];
@@ -749,50 +770,50 @@ namespace UnityEngine.Rendering.HighDefinition
         Matrix4x4[] m_LightListProjHMatrices = new Matrix4x4[ShaderConfig.s_XrMaxViews];
         Matrix4x4[] m_LightListInvProjHMatrices = new Matrix4x4[ShaderConfig.s_XrMaxViews];
 
-        internal class LightList
-        {
-            public List<DirectionalLightData> directionalLights;
-            public List<LightData> lights;
-            public List<EnvLightData> envLights;
-            public int punctualLightCount;
-            public int areaLightCount;
+        //internal class LightList
+        //{
+        //    public List<DirectionalLightData> directionalLights;
+        //    public List<LightData> lights;
+        //    public List<EnvLightData> envLights;
+        //    public int punctualLightCount;
+        //    public int areaLightCount;
 
-            public struct LightsPerView
-            {
-                public List<FiniteLightBound> bounds;
-                public List<LightVolumeData> lightVolumes;
-            }
+        //    public struct LightsPerView
+        //    {
+        //        public List<FiniteLightBound> bounds;
+        //        public List<LightVolumeData> lightVolumes;
+        //    }
 
-            public List<LightsPerView> lightsPerView;
+        //    public List<LightsPerView> lightsPerView;
 
-            public void Clear()
-            {
-                directionalLights.Clear();
-                lights.Clear();
-                envLights.Clear();
-                punctualLightCount = 0;
-                areaLightCount = 0;
+        //    public void Clear()
+        //    {
+        //        directionalLights.Clear();
+        //        lights.Clear();
+        //        envLights.Clear();
+        //        punctualLightCount = 0;
+        //        areaLightCount = 0;
 
-                for (int i = 0; i < lightsPerView.Count; ++i)
-                {
-                    lightsPerView[i].bounds.Clear();
-                    lightsPerView[i].lightVolumes.Clear();
-                }
-            }
+        //        for (int i = 0; i < lightsPerView.Count; ++i)
+        //        {
+        //            lightsPerView[i].bounds.Clear();
+        //            lightsPerView[i].lightVolumes.Clear();
+        //        }
+        //    }
 
-            public void Allocate()
-            {
-                directionalLights = new List<DirectionalLightData>();
-                lights = new List<LightData>();
-                envLights = new List<EnvLightData>();
+        //    public void Allocate()
+        //    {
+        //        directionalLights = new List<DirectionalLightData>();
+        //        lights = new List<LightData>();
+        //        envLights = new List<EnvLightData>();
 
-                lightsPerView = new List<LightsPerView>();
-                for (int i = 0; i < TextureXR.slices; ++i)
-                {
-                    lightsPerView.Add(new LightsPerView { bounds = new List<FiniteLightBound>(), lightVolumes = new List<LightVolumeData>() });
-                }
-            }
-        }
+        //        lightsPerView = new List<LightsPerView>();
+        //        for (int i = 0; i < TextureXR.slices; ++i)
+        //        {
+        //            lightsPerView.Add(new LightsPerView { bounds = new List<FiniteLightBound>(), lightVolumes = new List<LightVolumeData>() });
+        //        }
+        //    }
+        //}
 
         // internal LightList m_lightList;
         internal List<DirectionalLightData> m_DirectionalLightData;    // Global list
@@ -939,11 +960,6 @@ namespace UnityEngine.Rendering.HighDefinition
         List<Matrix4x4> m_WorldToViewMatrices = new List<Matrix4x4>(ShaderConfig.s_XrMaxViews);
 
         static MaterialPropertyBlock m_LightLoopDebugMaterialProperties = new MaterialPropertyBlock();
-
-        bool HasLightToCull()
-        {
-            return m_TotalLightCount > 0;
-        }
 
         static int GetNumTileBigTileX(HDCamera hdCamera)
         {
@@ -1256,8 +1272,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool LightLoopNeedResize(HDCamera hdCamera, TileAndClusterData tileAndClusterData)
         {
-            return tileAndClusterData.lightList == null || tileAndClusterData.tileList == null || tileAndClusterData.tileFeatureFlags == null ||
-                tileAndClusterData.AABBBoundsBuffer == null || tileAndClusterData.convexBoundsBuffer == null || tileAndClusterData.lightVolumeDataBuffer == null ||
+            return tileAndClusterData.lightList == null || tileAndClusterData.tileList == null ||
+                tileAndClusterData.tileFeatureFlags == null || tileAndClusterData.AABBBoundsBuffer == null ||
                 (tileAndClusterData.bigTileLightList == null && hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass)) ||
                 (tileAndClusterData.dispatchIndirectBuffer == null && hdCamera.frameSettings.IsEnabled(FrameSettingsField.DeferredTile)) ||
                 (tileAndClusterData.perVoxelLightLists == null) || (hdCamera.viewCount > m_MaxViewCount);
@@ -1277,7 +1293,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void LightLoopAllocResolutionDependentBuffers(HDCamera hdCamera, int width, int height)
         {
             m_MaxViewCount = Math.Max(hdCamera.viewCount, m_MaxViewCount);
-            m_TileAndClusterData.AllocateResolutionDependentBuffers(hdCamera, width, height, m_MaxViewCount, m_MaxLightsOnScreen);
+            m_TileAndClusterData.AllocateResolutionDependentBuffers(hdCamera, width, height, m_MaxViewCount, m_BoundedEntityCollection.GetMaxEntityCount());
         }
 
         internal static Matrix4x4 WorldToCamera(Camera camera)
@@ -1782,22 +1798,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 int lightDataIndex = -1;
 
-                switch (processedData.lightCategory)
-                {
-                    case BoundedEntityCategory.PunctualLight:
-                        lightDataIndex = m_BoundedEntityCollection.punctualLightData.Count; // Dangerous and error-prone
-                        break;
-                    case BoundedEntityCategory.AreaLight:
-                        lightDataIndex = m_BoundedEntityCollection.areaLightData.Count; // Dangerous and error-prone
-                        break;
-                    default:
-                        Debug.Assert(false, "Encountered an unhandled case of a switch statement.");
-                        break;
-                }
-
                 // Keep track of the screen space shadow data
                 m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].additionalLightData = additionalLightData;
-                m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].lightDataIndex = lightDataIndex;
+                m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].lightDataIndex = lightDataIndex; /* WILL NOT WORK IN XR */
                 m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].valid = true;
                 m_ScreenSpaceShadowsUnion.Add(additionalLightData);
 
@@ -3158,9 +3161,23 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DirectionalLightDataBuffer.SetData(m_DirectionalLightData);
                 m_BoundedEntityCollection.CopyEntityDataToComputeBuffers();
 
-                cmd.SetGlobalInt(HDShaderIDs._EnvLightIndexShift, m_lightList.lights.Count);
-                cmd.SetGlobalInt(HDShaderIDs._DecalIndexShift, m_lightList.lights.Count + m_lightList.envLights.Count);
-                cmd.SetGlobalInt(HDShaderIDs._DensityVolumeIndexShift, m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount);
+                // TODO: see if setting these not globally but, rather, per pass, is worth it.
+                cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightData,  m_DirectionalLightDataBuffer);
+                cmd.SetGlobalBuffer(HDShaderIDs._PunctualLightData,     m_BoundedEntityCollection.GetEntityDataBuffer(BoundedEntityCategory.PunctualLight));
+                cmd.SetGlobalBuffer(HDShaderIDs._AreaLightData,         m_BoundedEntityCollection.GetEntityDataBuffer(BoundedEntityCategory.AreaLight));
+                cmd.SetGlobalBuffer(HDShaderIDs._EnvLightData,          m_BoundedEntityCollection.GetEntityDataBuffer(BoundedEntityCategory.ReflectionProbe));
+                cmd.SetGlobalBuffer(HDShaderIDs._DecalData,             m_BoundedEntityCollection.GetEntityDataBuffer(BoundedEntityCategory.Decal));
+                cmd.SetGlobalBuffer(HDShaderIDs._DensityVolumeData,     m_BoundedEntityCollection.GetEntityDataBuffer(BoundedEntityCategory.DensityVolume));
+
+                cmd.SetGlobalInt(   HDShaderIDs._DirectionalLightCount, m_DirectionalLightData.Count);
+                cmd.SetGlobalInt(   HDShaderIDs._PunctualLightCount,    m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.PunctualLight));
+                cmd.SetGlobalInt(   HDShaderIDs._AreaLightCount,        m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.AreaLight));
+                cmd.SetGlobalInt(   HDShaderIDs._EnvLightCount,         m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.ReflectionProbe));
+                cmd.SetGlobalInt(   HDShaderIDs._DecalCount,            m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.Decal));
+                cmd.SetGlobalInt(   HDShaderIDs._DensityVolumeCount,    m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.DensityVolume));
+
+                // Hand it over so it can be used to construct light lists. BEC still owns (and manages) the buffer.
+                m_TileAndClusterData.convexBoundsBuffer = m_BoundedEntityCollection.GetEntityBoundsBuffer();
             }
 
             m_enableBakeShadowMask = m_enableBakeShadowMask && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask);
@@ -3214,16 +3231,16 @@ namespace UnityEngine.Rendering.HighDefinition
         struct BuildGPULightListParameters
         {
             // Common
-            public int totalLightCount; // Regular + Env + Decal + Density Volumes
+            public bool hasDirectionalLights;
+            public int  totalBoundedEntityCount;
             public bool isOrthographic;
-            public int viewCount;
+            public int  viewCount;
             public bool runLightList;
             public bool clearLightLists;
             public bool enableFeatureVariants;
             public bool computeMaterialVariants;
             public bool computeLightVariants;
             public bool skyEnabled;
-            public LightList lightList;
             public Matrix4x4[] lightListProjscrMatrices;
             public Matrix4x4[] lightListInvProjscrMatrices;
             public float nearClipPlane, farClipPlane;
@@ -3287,7 +3304,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // generate screen-space AABBs (used for both fptl and clustered).
         static void GenerateLightsScreenSpaceAABBs(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, CommandBuffer cmd)
         {
-            if (parameters.totalLightCount != 0)
+            if (parameters.totalBoundedEntityCount != 0)
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.GenerateLightAABBs)))
                 {
@@ -3296,7 +3313,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeIntParam(parameters.screenSpaceAABBShader, HDShaderIDs.g_isOrthographic, parameters.isOrthographic ? 1 : 0);
 
                     // With XR single-pass, we have one set of light bounds per view to iterate over (bounds are in view space for each view)
-                    cmd.SetComputeIntParam(parameters.screenSpaceAABBShader, HDShaderIDs.g_iNrVisibLights, parameters.totalLightCount);
+                    cmd.SetComputeIntParam(parameters.screenSpaceAABBShader, HDShaderIDs.g_iNrVisibLights, parameters.totalBoundedEntityCount);
                     cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_data, tileAndCluster.convexBoundsBuffer);
                     cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_vBoundsBuffer, tileAndCluster.AABBBoundsBuffer);
 
@@ -3306,135 +3323,127 @@ namespace UnityEngine.Rendering.HighDefinition
                     const int threadsPerLight = 4;  // Shader: THREADS_PER_LIGHT (4)
                     const int threadsPerGroup = 64; // Shader: THREADS_PER_GROUP (64)
 
-                    int groupCount = HDUtils.DivRoundUp(parameters.totalLightCount * threadsPerLight, threadsPerGroup);
+                    int groupCount = HDUtils.DivRoundUp(parameters.totalBoundedEntityCount * threadsPerLight, threadsPerGroup);
 
                     cmd.DispatchCompute(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, groupCount, parameters.viewCount, 1);
                 }
             }
         }
 
-        // enable coarse 2D pass on 64x64 tiles (used for both fptl and clustered).
-        static void BigTilePrepass(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, CommandBuffer cmd)
-        {
-            if (parameters.runLightList && parameters.runBigTilePrepass)
-            {
-                var tileAndCluster = resources.tileAndClusterData;
+        //// enable coarse 2D pass on 64x64 tiles (used for both fptl and clustered).
+        //static void BigTilePrepass(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, CommandBuffer cmd)
+        //{
+        //    if (parameters.runLightList && parameters.runBigTilePrepass)
+        //    {
+        //        var tileAndCluster = resources.tileAndClusterData;
 
-                cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs.g_iNrVisibLights, parameters.totalLightCount);
-                cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs.g_isOrthographic, parameters.isOrthographic ? 1 : 0);
-                cmd.SetComputeIntParams(parameters.bigTilePrepassShader, HDShaderIDs.g_viDimensions, s_TempScreenDimArray);
+        //        cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs.g_iNrVisibLights, parameters.totalLightCount);
+        //        cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs.g_isOrthographic, parameters.isOrthographic ? 1 : 0);
+        //        cmd.SetComputeIntParams(parameters.bigTilePrepassShader, HDShaderIDs.g_viDimensions, s_TempScreenDimArray);
 
-                // TODO: These two aren't actually used...
-                cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs._EnvLightIndexShift, parameters.lightList.lights.Count);
-                cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs._DecalIndexShift, parameters.lightList.lights.Count + parameters.lightList.envLights.Count);
+        //        cmd.SetComputeMatrixArrayParam(parameters.bigTilePrepassShader, HDShaderIDs.g_mScrProjectionArr, parameters.lightListProjscrMatrices);
+        //        cmd.SetComputeMatrixArrayParam(parameters.bigTilePrepassShader, HDShaderIDs.g_mInvScrProjectionArr, parameters.lightListInvProjscrMatrices);
 
-                cmd.SetComputeMatrixArrayParam(parameters.bigTilePrepassShader, HDShaderIDs.g_mScrProjectionArr, parameters.lightListProjscrMatrices);
-                cmd.SetComputeMatrixArrayParam(parameters.bigTilePrepassShader, HDShaderIDs.g_mInvScrProjectionArr, parameters.lightListInvProjscrMatrices);
+        //        cmd.SetComputeFloatParam(parameters.bigTilePrepassShader, HDShaderIDs.g_fNearPlane, parameters.nearClipPlane);
+        //        cmd.SetComputeFloatParam(parameters.bigTilePrepassShader, HDShaderIDs.g_fFarPlane, parameters.farClipPlane);
+        //        cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs.g_vLightList, tileAndCluster.bigTileLightList);
+        //        cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs.g_vBoundsBuffer, tileAndCluster.AABBBoundsBuffer);
+        //        cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs.g_data, tileAndCluster.convexBoundsBuffer);
 
-                cmd.SetComputeFloatParam(parameters.bigTilePrepassShader, HDShaderIDs.g_fNearPlane, parameters.nearClipPlane);
-                cmd.SetComputeFloatParam(parameters.bigTilePrepassShader, HDShaderIDs.g_fFarPlane, parameters.farClipPlane);
-                cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs.g_vLightList, tileAndCluster.bigTileLightList);
-                cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs.g_vBoundsBuffer, tileAndCluster.AABBBoundsBuffer);
-                cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs._LightVolumeData, tileAndCluster.lightVolumeDataBuffer);
-                cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs.g_data, tileAndCluster.convexBoundsBuffer);
+        //        cmd.DispatchCompute(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, parameters.numBigTilesX, parameters.numBigTilesY, parameters.viewCount);
+        //    }
+        //}
 
-                cmd.DispatchCompute(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, parameters.numBigTilesX, parameters.numBigTilesY, parameters.viewCount);
-            }
-        }
+        //static void BuildPerTileLightList(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, ref bool tileFlagsWritten, CommandBuffer cmd)
+        //{
+        //    // optimized for opaques only
+        //    if (parameters.runLightList && parameters.runFPTL)
+        //    {
+        //        var tileAndCluster = resources.tileAndClusterData;
 
-        static void BuildPerTileLightList(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, ref bool tileFlagsWritten, CommandBuffer cmd)
-        {
-            // optimized for opaques only
-            if (parameters.runLightList && parameters.runFPTL)
-            {
-                var tileAndCluster = resources.tileAndClusterData;
+        //        cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_isOrthographic, parameters.isOrthographic ? 1 : 0);
+        //        cmd.SetComputeIntParams(parameters.buildPerTileLightListShader, HDShaderIDs.g_viDimensions, s_TempScreenDimArray);
+        //        cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_iNrVisibLights, parameters.totalLightCount);
 
-                cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_isOrthographic, parameters.isOrthographic ? 1 : 0);
-                cmd.SetComputeIntParams(parameters.buildPerTileLightListShader, HDShaderIDs.g_viDimensions, s_TempScreenDimArray);
-                cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs._EnvLightIndexShift, parameters.lightList.lights.Count);
-                cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs._DecalIndexShift, parameters.lightList.lights.Count + parameters.lightList.envLights.Count);
-                cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_iNrVisibLights, parameters.totalLightCount);
+        //        cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_vBoundsBuffer, tileAndCluster.AABBBoundsBuffer);
+        //        cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_data, tileAndCluster.convexBoundsBuffer);
 
-                cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_vBoundsBuffer, tileAndCluster.AABBBoundsBuffer);
-                cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs._LightVolumeData, tileAndCluster.lightVolumeDataBuffer);
-                cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_data, tileAndCluster.convexBoundsBuffer);
+        //        cmd.SetComputeMatrixArrayParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_mScrProjectionArr, parameters.lightListProjscrMatrices);
+        //        cmd.SetComputeMatrixArrayParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_mInvScrProjectionArr, parameters.lightListInvProjscrMatrices);
 
-                cmd.SetComputeMatrixArrayParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_mScrProjectionArr, parameters.lightListProjscrMatrices);
-                cmd.SetComputeMatrixArrayParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_mInvScrProjectionArr, parameters.lightListInvProjscrMatrices);
+        //        cmd.SetComputeTextureParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_depth_tex, resources.depthBuffer);
+        //        cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_vLightList, tileAndCluster.lightList);
+        //        if (parameters.runBigTilePrepass)
+        //            cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_vBigTileLightList, tileAndCluster.bigTileLightList);
 
-                cmd.SetComputeTextureParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_depth_tex, resources.depthBuffer);
-                cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_vLightList, tileAndCluster.lightList);
-                if (parameters.runBigTilePrepass)
-                    cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_vBigTileLightList, tileAndCluster.bigTileLightList);
+        //        if (parameters.enableFeatureVariants)
+        //        {
+        //            uint baseFeatureFlags = 0;
+        //            if (parameters.lightList.directionalLights.Count > 0)
+        //            {
+        //                baseFeatureFlags |= (uint)LightFeatureFlags.Directional;
+        //            }
+        //            if (parameters.skyEnabled)
+        //            {
+        //                baseFeatureFlags |= (uint)LightFeatureFlags.Sky;
+        //            }
+        //            if (!parameters.computeMaterialVariants)
+        //            {
+        //                baseFeatureFlags |= TiledLightingConstants.s_MaterialFeatureMaskFlags;
+        //            }
+        //            cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_BaseFeatureFlags, (int)baseFeatureFlags);
+        //            cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_TileFeatureFlags, tileAndCluster.tileFeatureFlags);
+        //            tileFlagsWritten = true;
+        //        }
 
-                if (parameters.enableFeatureVariants)
-                {
-                    uint baseFeatureFlags = 0;
-                    if (parameters.lightList.directionalLights.Count > 0)
-                    {
-                        baseFeatureFlags |= (uint)LightFeatureFlags.Directional;
-                    }
-                    if (parameters.skyEnabled)
-                    {
-                        baseFeatureFlags |= (uint)LightFeatureFlags.Sky;
-                    }
-                    if (!parameters.computeMaterialVariants)
-                    {
-                        baseFeatureFlags |= TiledLightingConstants.s_MaterialFeatureMaskFlags;
-                    }
-                    cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_BaseFeatureFlags, (int)baseFeatureFlags);
-                    cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_TileFeatureFlags, tileAndCluster.tileFeatureFlags);
-                    tileFlagsWritten = true;
-                }
+        //        cmd.DispatchCompute(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, parameters.numTilesFPTLX, parameters.numTilesFPTLY, parameters.viewCount);
+        //    }
+        //}
+        //static void VoxelLightListGeneration(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, CommandBuffer cmd)
+        //{
+        //    if (parameters.runLightList)
+        //    {
+        //        var tileAndCluster = resources.tileAndClusterData;
 
-                cmd.DispatchCompute(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, parameters.numTilesFPTLX, parameters.numTilesFPTLY, parameters.viewCount);
-            }
-        }
-        static void VoxelLightListGeneration(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, CommandBuffer cmd)
-        {
-            if (parameters.runLightList)
-            {
-                var tileAndCluster = resources.tileAndClusterData;
+        //        // clear atomic offset index
+        //        cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, HDShaderIDs.g_LayeredSingleIdxBuffer, tileAndCluster.globalLightListAtomic);
+        //        cmd.DispatchCompute(parameters.buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, 1, 1, 1);
 
-                // clear atomic offset index
-                cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, HDShaderIDs.g_LayeredSingleIdxBuffer, tileAndCluster.globalLightListAtomic);
-                cmd.DispatchCompute(parameters.buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, 1, 1, 1);
+        //        cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_isOrthographic, parameters.isOrthographic ? 1 : 0);
+        //        cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_iNrVisibLights, parameters.totalLightCount);
+        //        cmd.SetComputeMatrixArrayParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_mScrProjectionArr, parameters.lightListProjscrMatrices);
+        //        cmd.SetComputeMatrixArrayParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_mInvScrProjectionArr, parameters.lightListInvProjscrMatrices);
 
-                cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_isOrthographic, parameters.isOrthographic ? 1 : 0);
-                cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_iNrVisibLights, parameters.totalLightCount);
-                cmd.SetComputeMatrixArrayParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_mScrProjectionArr, parameters.lightListProjscrMatrices);
-                cmd.SetComputeMatrixArrayParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_mInvScrProjectionArr, parameters.lightListInvProjscrMatrices);
+        //        cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_iLog2NumClusters, k_Log2NumClusters);
 
-                cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_iLog2NumClusters, k_Log2NumClusters);
+        //        cmd.SetComputeVectorParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_screenSize, parameters.screenSize);
+        //        cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_iNumSamplesMSAA, parameters.msaaSamples);
 
-                cmd.SetComputeVectorParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_screenSize, parameters.screenSize);
-                cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_iNumSamplesMSAA, parameters.msaaSamples);
+        //        cmd.SetComputeFloatParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_fNearPlane, parameters.nearClipPlane);
+        //        cmd.SetComputeFloatParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_fFarPlane, parameters.farClipPlane);
 
-                cmd.SetComputeFloatParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_fNearPlane, parameters.nearClipPlane);
-                cmd.SetComputeFloatParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_fFarPlane, parameters.farClipPlane);
+        //        cmd.SetComputeFloatParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_fClustScale, parameters.clusterScale);
+        //        cmd.SetComputeFloatParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_fClustBase, k_ClustLogBase);
 
-                cmd.SetComputeFloatParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_fClustScale, parameters.clusterScale);
-                cmd.SetComputeFloatParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_fClustBase, k_ClustLogBase);
+        //        cmd.SetComputeTextureParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_depth_tex, resources.depthBuffer);
+        //        cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_vLayeredLightList, tileAndCluster.perVoxelLightLists);
+        //        cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_LayeredOffset, tileAndCluster.perVoxelOffset);
+        //        cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_LayeredSingleIdxBuffer, tileAndCluster.globalLightListAtomic);
+        //        if (parameters.runBigTilePrepass)
+        //            cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_vBigTileLightList, tileAndCluster.bigTileLightList);
 
-                cmd.SetComputeTextureParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_depth_tex, resources.depthBuffer);
-                cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_vLayeredLightList, tileAndCluster.perVoxelLightLists);
-                cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_LayeredOffset, tileAndCluster.perVoxelOffset);
-                cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_LayeredSingleIdxBuffer, tileAndCluster.globalLightListAtomic);
-                if (parameters.runBigTilePrepass)
-                    cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_vBigTileLightList, tileAndCluster.bigTileLightList);
+        //        if (k_UseDepthBuffer)
+        //        {
+        //            cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_logBaseBuffer, tileAndCluster.perTileLogBaseTweak);
+        //        }
 
-                if (k_UseDepthBuffer)
-                {
-                    cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_logBaseBuffer, tileAndCluster.perTileLogBaseTweak);
-                }
+        //        cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_vBoundsBuffer, tileAndCluster.AABBBoundsBuffer);
+        //        cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs._LightVolumeData, tileAndCluster.lightVolumeDataBuffer);
+        //        cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_data, tileAndCluster.convexBoundsBuffer);
 
-                cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_vBoundsBuffer, tileAndCluster.AABBBoundsBuffer);
-                cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs._LightVolumeData, tileAndCluster.lightVolumeDataBuffer);
-                cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_data, tileAndCluster.convexBoundsBuffer);
-
-                cmd.DispatchCompute(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, parameters.numTilesClusterX, parameters.numTilesClusterY, parameters.viewCount);
-            }
-        }
+        //        cmd.DispatchCompute(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, parameters.numTilesClusterX, parameters.numTilesClusterY, parameters.viewCount);
+        //    }
+        //}
 
         static void BuildDispatchIndirectArguments(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, bool tileFlagsWritten, CommandBuffer cmd)
         {
@@ -3457,7 +3466,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // If we haven't run the light list building, we are missing some basic lighting flags.
                     if (!tileFlagsWritten)
                     {
-                        if (parameters.lightList.directionalLights.Count > 0)
+                        if (parameters.hasDirectionalLights)
                         {
                             baseFeatureFlags |= (uint)LightFeatureFlags.Directional;
                         }
@@ -3541,7 +3550,10 @@ namespace UnityEngine.Rendering.HighDefinition
             s_TempScreenDimArray[0] = w;
             s_TempScreenDimArray[1] = h;
 
-            parameters.runLightList = m_TotalLightCount > 0;
+            parameters.hasDirectionalLights    = m_DirectionalLightData.Count != 0;
+            parameters.totalBoundedEntityCount = m_BoundedEntityCollection.GetTotalEntityCount();
+
+            parameters.runLightList = parameters.totalBoundedEntityCount != 0;
             parameters.clearLightLists = false;
 
             // Always build the light list in XR mode to avoid issues with multi-pass
@@ -3575,7 +3587,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.lightListInvProjscrMatrices[viewIndex] = parameters.lightListProjscrMatrices[viewIndex].inverse;
             }
 
-            parameters.totalLightCount = m_TotalLightCount;
             parameters.isOrthographic = camera.orthographic;
             parameters.viewCount = hdCamera.viewCount;
             parameters.enableFeatureVariants = GetFeatureVariantsEnabled(hdCamera.frameSettings);
@@ -3583,7 +3594,6 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.computeLightVariants = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ComputeLightVariants);
             parameters.nearClipPlane = camera.nearClipPlane;
             parameters.farClipPlane = camera.farClipPlane;
-            parameters.lightList = m_lightList;
             parameters.skyEnabled = m_SkyManager.IsLightingSkyValid(hdCamera);
             parameters.screenSize = hdCamera.screenSize;
             parameters.msaaSamples = (int)hdCamera.msaaSamples;
@@ -3688,9 +3698,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 GenerateLightsScreenSpaceAABBs(parameters, resources, cmd);
-                BigTilePrepass(parameters, resources, cmd);
-                BuildPerTileLightList(parameters, resources, ref tileFlagsWritten, cmd);
-                VoxelLightListGeneration(parameters, resources, cmd);
+                //BigTilePrepass(parameters, resources, cmd);
+                //BuildPerTileLightList(parameters, resources, ref tileFlagsWritten, cmd);
+                //VoxelLightListGeneration(parameters, resources, cmd);
 
                 BuildDispatchIndirectArguments(parameters, resources, tileFlagsWritten, cmd);
             }
@@ -3730,18 +3740,18 @@ namespace UnityEngine.Rendering.HighDefinition
         struct LightDataGlobalParameters
         {
             public HDCamera hdCamera;
-            public LightList lightList;
+            //public LightList lightList;
             public LightLoopTextureCaches textureCaches;
-            public LightLoopLightData lightData;
+            //public LightLoopLightData lightData;
         }
 
         LightDataGlobalParameters PrepareLightDataGlobalParameters(HDCamera hdCamera)
         {
             LightDataGlobalParameters parameters = new LightDataGlobalParameters();
             parameters.hdCamera = hdCamera;
-            parameters.lightList = m_lightList;
+            //parameters.lightList = m_lightList;
             parameters.textureCaches = m_TextureCaches;
-            parameters.lightData = m_LightLoopLightData;
+            //parameters.lightData = m_LightLoopLightData;
             return parameters;
         }
 
@@ -3798,22 +3808,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalFloatArray(HDShaderIDs._Env2DCaptureForward, param.textureCaches.env2DCaptureForward);
                 cmd.SetGlobalVectorArray(HDShaderIDs._Env2DAtlasScaleOffset, param.textureCaches.env2DAtlasScaleOffset);
 
-                // Directional lights are made available immediately after PrepareLightsForGPU for the PBR sky.
-                // cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, param.lightData.directionalLightData);
-                // cmd.SetGlobalInt(HDShaderIDs._DirectionalLightCount, param.lightList.directionalLights.Count);
-                cmd.SetGlobalBuffer(HDShaderIDs._LightDatas, param.lightData.punctualLightData);
-                cmd.SetGlobalInt(HDShaderIDs._PunctualLightCount, param.lightList.punctualLightCount);
-                cmd.SetGlobalInt(HDShaderIDs._AreaLightCount, param.lightList.areaLightCount);
-                cmd.SetGlobalBuffer(HDShaderIDs._EnvLightDatas, param.lightData.envLightData);
-                cmd.SetGlobalInt(HDShaderIDs._EnvLightCount, param.lightList.envLights.Count);
-                cmd.SetGlobalBuffer(HDShaderIDs._DecalDatas, param.lightData.decalData);
-                cmd.SetGlobalInt(HDShaderIDs._DecalCount, DecalSystem.m_DecalDatasCount);
-
                 cmd.SetGlobalInt(HDShaderIDs._EnableSSRefraction, param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) ? 1 : 0);
-
-                // Directional lights are made available immediately after PrepareLightsForGPU for the PBR sky.
-                cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, param.lightData.directionalLightData);
-                cmd.SetGlobalInt(HDShaderIDs._DirectionalLightCount, param.lightList.directionalLights.Count);
             }
         }
 
@@ -3982,7 +3977,6 @@ namespace UnityEngine.Rendering.HighDefinition
         static void RenderContactShadows(   in ContactShadowsParameters parameters,
                                             RTHandle                    contactShadowRT,
                                             RTHandle                    depthTexture,
-                                            LightLoopLightData          lightLoopLightData,
                                             TileAndClusterData          tileAndClusterData,
                                             CommandBuffer               cmd)
         {
@@ -3990,10 +3984,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeVectorParam(parameters.contactShadowsCS, HDShaderIDs._ContactShadowParamsParameters, parameters.params1);
             cmd.SetComputeVectorParam(parameters.contactShadowsCS, HDShaderIDs._ContactShadowParamsParameters2, parameters.params2);
             cmd.SetComputeIntParam(parameters.contactShadowsCS, HDShaderIDs._DirectionalContactShadowSampleCount, parameters.sampleCount);
-            cmd.SetComputeBufferParam(parameters.contactShadowsCS, parameters.kernel, HDShaderIDs._DirectionalLightDatas, lightLoopLightData.directionalLightData);
 
             // Send light list to the compute
-            cmd.SetComputeBufferParam(parameters.contactShadowsCS, parameters.kernel, HDShaderIDs._LightDatas, lightLoopLightData.punctualLightData);
+            //cmd.SetComputeBufferParam(parameters.contactShadowsCS, parameters.kernel, HDShaderIDs._LightDatas, lightLoopLightData.punctualLightData);
             cmd.SetComputeBufferParam(parameters.contactShadowsCS, parameters.kernel, HDShaderIDs.g_vLightListGlobal, tileAndClusterData.lightList);
 
             cmd.SetComputeTextureParam(parameters.contactShadowsCS, parameters.kernel, parameters.depthTextureParameterName, depthTexture);
@@ -4009,10 +4002,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cmd.SetRayTracingVectorParam(parameters.contactShadowsRTS, HDShaderIDs._ContactShadowParamsParameters, parameters.params1);
                 cmd.SetRayTracingVectorParam(parameters.contactShadowsRTS, HDShaderIDs._ContactShadowParamsParameters2, parameters.params2);
-                cmd.SetRayTracingBufferParam(parameters.contactShadowsRTS, HDShaderIDs._DirectionalLightDatas, lightLoopLightData.directionalLightData);
+                //cmd.SetRayTracingBufferParam(parameters.contactShadowsRTS, HDShaderIDs._DirectionalLightData, lightLoopLightData.directionalLightData);
 
                 // Send light list to the compute
-                cmd.SetRayTracingBufferParam(parameters.contactShadowsRTS, HDShaderIDs._LightDatas, lightLoopLightData.punctualLightData);
+                //cmd.SetRayTracingBufferParam(parameters.contactShadowsRTS, HDShaderIDs._LightDatas, lightLoopLightData.punctualLightData);
                 cmd.SetRayTracingBufferParam(parameters.contactShadowsRTS, HDShaderIDs.g_vLightListGlobal, tileAndClusterData.lightList);
 
                 cmd.SetRayTracingTextureParam(parameters.contactShadowsRTS, HDShaderIDs._DepthTexture, depthTexture);
@@ -4035,7 +4028,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var depthTexture = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_SharedRTManager.GetDepthValuesTexture() : m_SharedRTManager.GetDepthTexture();
                 int firstMipOffsetY = m_SharedRTManager.GetDepthBufferMipChainInfo().mipLevelOffsets[1].y;
                 var parameters = PrepareContactShadowsParameters(hdCamera, firstMipOffsetY);
-                RenderContactShadows(parameters, m_ContactShadowBuffer, depthTexture, m_LightLoopLightData, m_TileAndClusterData, cmd);
+                RenderContactShadows(parameters, m_ContactShadowBuffer, depthTexture, m_TileAndClusterData, cmd);
             }
         }
 

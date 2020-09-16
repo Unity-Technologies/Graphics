@@ -137,7 +137,7 @@ void Frag(  PackedVaryingsToPS packedInput,
     uint i;
     for (i = 0; i < _DirectionalLightCount; ++i)
     {
-        DirectionalLightData light = _DirectionalLightDatas[i];
+        DirectionalLightData light = _DirectionalLightData[i];
         outColor.rgb += surfaceData.baseColor.rgb * light.color * saturate(dot(surfaceData.normalWS.xyz, -light.forward.xyz));
     }
 

@@ -95,7 +95,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
             // Unfortunately, they don't write depth.
             for (uint i = 0; i < _DirectionalLightCount; i++)
             {
-                DirectionalLightData light = _DirectionalLightDatas[i];
+                DirectionalLightData light = _DirectionalLightData[i];
 
                 // Use scalar or integer cores (more efficient).
                 bool interactsWithSky = asint(light.distanceFromCamera) >= 0;
@@ -138,7 +138,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                                 color *= SampleCookie2D(uv, light.surfaceTextureScaleOffset);
                                 // color *= SAMPLE_TEXTURE2D_ARRAY(_CookieTextures, s_linear_clamp_sampler, uv, light.surfaceTextureIndex).rgb;
                             }
-                            
+
                             color *= light.surfaceTint;
                         }
                         else // Flare region.
@@ -189,7 +189,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                 // Shade the ground.
                 for (uint i = 0; i < _DirectionalLightCount; i++)
                 {
-                    DirectionalLightData light = _DirectionalLightDatas[i];
+                    DirectionalLightData light = _DirectionalLightData[i];
 
                     // Use scalar or integer cores (more efficient).
                     bool interactsWithSky = asint(light.distanceFromCamera) >= 0;

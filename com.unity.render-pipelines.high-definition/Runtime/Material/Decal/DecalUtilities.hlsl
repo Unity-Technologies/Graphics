@@ -191,12 +191,12 @@ DecalData FetchDecal(uint start, uint i)
 #else
     int j = start + i;
 #endif
-    return _DecalDatas[j];
+    return _DecalData[j];
 }
 
 DecalData FetchDecal(uint index)
 {
-    return _DecalDatas[index];
+    return _DecalData[index];
 }
 #endif
 

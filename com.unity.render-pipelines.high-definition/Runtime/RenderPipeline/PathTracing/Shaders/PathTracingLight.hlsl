@@ -53,7 +53,7 @@ LightList CreateLightList(float3 position, uint lightLayers)
 
     for (i = 0; i < _DirectionalLightCount && list.distantCount < MAX_DISTANT_LIGHT_COUNT; i++)
     {
-        if (IsMatchingLightLayer(_DirectionalLightDatas[i].lightLayers, lightLayers))
+        if (IsMatchingLightLayer(_DirectionalLightData[i].lightLayers, lightLayers))
             list.distantIndex[list.distantCount++] = i;
     }
 
@@ -85,7 +85,7 @@ LightData GetLocalLightData(LightList list, float inputSample)
 
 DirectionalLightData GetDistantLightData(LightList list, uint i)
 {
-    return _DirectionalLightDatas[list.distantIndex[i]];
+    return _DirectionalLightData[list.distantIndex[i]];
 }
 
 DirectionalLightData GetDistantLightData(LightList list, float inputSample)

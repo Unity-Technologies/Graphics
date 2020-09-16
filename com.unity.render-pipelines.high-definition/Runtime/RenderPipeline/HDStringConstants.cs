@@ -100,8 +100,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _BlurWeightsStorage = Shader.PropertyToID("_BlurWeightsStorage");
 
         public static readonly int g_LayeredSingleIdxBuffer = Shader.PropertyToID("g_LayeredSingleIdxBuffer");
-        public static readonly int _EnvLightIndexShift = Shader.PropertyToID("_EnvLightIndexShift");
-        public static readonly int _DensityVolumeIndexShift = Shader.PropertyToID("_DensityVolumeIndexShift");
         public static readonly int g_isOrthographic = Shader.PropertyToID("g_isOrthographic");
         public static readonly int g_iNrVisibLights = Shader.PropertyToID("g_iNrVisibLights");
 
@@ -122,7 +120,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int g_vLightListGlobal = Shader.PropertyToID("g_vLightListGlobal");
         public static readonly int g_logBaseBuffer = Shader.PropertyToID("g_logBaseBuffer");
         public static readonly int g_vBoundsBuffer = Shader.PropertyToID("g_vBoundsBuffer");
-        public static readonly int _LightVolumeData = Shader.PropertyToID("_LightVolumeData");
         public static readonly int g_data = Shader.PropertyToID("g_data");
         public static readonly int g_mProjectionArr = Shader.PropertyToID("g_mProjectionArr");
         public static readonly int g_mInvProjectionArr = Shader.PropertyToID("g_mInvProjectionArr");
@@ -151,13 +148,20 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _Env2DCaptureVP = Shader.PropertyToID("_Env2DCaptureVP");
         public static readonly int _Env2DCaptureForward = Shader.PropertyToID("_Env2DCaptureForward");
         public static readonly int _Env2DAtlasScaleOffset = Shader.PropertyToID("_Env2DAtlasScaleOffset");
-        public static readonly int _DirectionalLightDatas = Shader.PropertyToID("_DirectionalLightDatas");
-        public static readonly int _DirectionalLightCount = Shader.PropertyToID("_DirectionalLightCount");
-        public static readonly int _LightDatas = Shader.PropertyToID("_LightDatas");
-        public static readonly int _PunctualLightCount = Shader.PropertyToID("_PunctualLightCount");
-        public static readonly int _AreaLightCount = Shader.PropertyToID("_AreaLightCount");
-        public static readonly int _EnvLightDatas = Shader.PropertyToID("_EnvLightDatas");
-        public static readonly int _EnvLightCount = Shader.PropertyToID("_EnvLightCount");
+
+        public static readonly int _DirectionalLightData  = Shader.PropertyToID(nameof(_DirectionalLightData));
+        public static readonly int _DirectionalLightCount = Shader.PropertyToID(nameof(_DirectionalLightCount));
+        public static readonly int _PunctualLightData     = Shader.PropertyToID(nameof(_PunctualLightData));
+        public static readonly int _PunctualLightCount    = Shader.PropertyToID(nameof(_PunctualLightCount));
+        public static readonly int _AreaLightData         = Shader.PropertyToID(nameof(_AreaLightData));
+        public static readonly int _AreaLightCount        = Shader.PropertyToID(nameof(_AreaLightCount));
+        public static readonly int _EnvLightData          = Shader.PropertyToID(nameof(_EnvLightData));
+        public static readonly int _EnvLightCount         = Shader.PropertyToID(nameof(_EnvLightCount));
+        public static readonly int _DecalData             = Shader.PropertyToID(nameof(_DecalData));
+        public static readonly int _DecalCount            = Shader.PropertyToID(nameof(_DecalCount));
+        public static readonly int _DensityVolumeData     = Shader.PropertyToID(nameof(_DensityVolumeData));
+        public static readonly int _DensityVolumeCount    = Shader.PropertyToID(nameof(_DensityVolumeCount));
+
         public static readonly int _EnvProxyCount = Shader.PropertyToID("_EnvProxyCount");
         public static readonly int _NumTileBigTileX = Shader.PropertyToID("_NumTileBigTileX");
         public static readonly int _NumTileBigTileY = Shader.PropertyToID("_NumTileBigTileY");
@@ -278,8 +282,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DecalAtlas2DID = Shader.PropertyToID("_DecalAtlas2D");
         public static readonly int _DecalHTileTexture = Shader.PropertyToID("_DecalHTileTexture");
         public static readonly int _DecalIndexShift = Shader.PropertyToID("_DecalIndexShift");
-        public static readonly int _DecalCount = Shader.PropertyToID("_DecalCount");
-        public static readonly int _DecalDatas = Shader.PropertyToID("_DecalDatas");
         public static readonly int _DecalNormalBufferStencilReadMask = Shader.PropertyToID("_DecalNormalBufferStencilReadMask");
         public static readonly int _DecalNormalBufferStencilRef = Shader.PropertyToID("_DecalNormalBufferStencilRef");
         public static readonly int _DecalPropertyMaskBuffer = Shader.PropertyToID("_DecalPropertyMaskBuffer");
@@ -454,7 +456,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _InputCubemap = Shader.PropertyToID("_InputCubemap");
         public static readonly int _Mipmap = Shader.PropertyToID("_Mipmap");
-        public static readonly int _ApplyExposure = Shader.PropertyToID("_ApplyExposure");        
+        public static readonly int _ApplyExposure = Shader.PropertyToID("_ApplyExposure");
 
         public static readonly int _DiffusionProfileHash = Shader.PropertyToID("_DiffusionProfileHash");
         public static readonly int _MaxRadius = Shader.PropertyToID("_MaxRadius");
@@ -524,7 +526,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VBufferSampleOffset               = Shader.PropertyToID("_VBufferSampleOffset");
         public static readonly int _VolumeBounds                      = Shader.PropertyToID("_VolumeBounds");
         public static readonly int _VolumeData                        = Shader.PropertyToID("_VolumeData");
-        public static readonly int _NumVisibleDensityVolumes          = Shader.PropertyToID("_NumVisibleDensityVolumes");
         public static readonly int _VolumeMaskAtlas                   = Shader.PropertyToID("_VolumeMaskAtlas");
         public static readonly int _VolumeMaskDimensions              = Shader.PropertyToID("_VolumeMaskDimensions");
 
@@ -719,7 +720,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _NormalTextureRW                 = Shader.PropertyToID("_NormalTextureRW");
         public static readonly int _PositionTextureRW               = Shader.PropertyToID("_PositionTextureRW");
         public static readonly int _DiffuseLightingTextureRW        = Shader.PropertyToID("_DiffuseLightingTextureRW");
-        
+
         // Preintegrated texture name
         public static readonly int _PreIntegratedFGD_GGXDisneyDiffuse = Shader.PropertyToID("_PreIntegratedFGD_GGXDisneyDiffuse");
         public static readonly int _PreIntegratedFGD_CharlieAndFabric = Shader.PropertyToID("_PreIntegratedFGD_CharlieAndFabric");

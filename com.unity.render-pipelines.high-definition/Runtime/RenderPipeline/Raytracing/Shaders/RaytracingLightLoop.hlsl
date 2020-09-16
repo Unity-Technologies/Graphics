@@ -15,11 +15,11 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
     // Initialize the contactShadow and contactShadowFade fields
     InvalidateConctactShadow(posInput, context);
-    
+
     // Evaluate sun shadows.
     if (_DirectionalShadowIndex >= 0)
     {
-        DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
+        DirectionalLightData light = _DirectionalLightData[_DirectionalShadowIndex];
 
         // TODO: this will cause us to load from the normal buffer first. Does this cause a performance problem?
         float3 L = -light.forward;
@@ -121,7 +121,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         #else
         EnvLightData envLightData = _EnvLightDatasRT[envLightIdx];
         #endif
-        envLightData.multiplier = _EnvLightDatas[envLightIdx].multiplier;
+        envLightData.multiplier = _EnvLightData[envLightIdx].multiplier;
 
         if (reflectionHierarchyWeight < 1.0)
         {
@@ -160,16 +160,16 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     // We loop over all the directional lights given that there is no culling for them
     for (i = 0; i < _DirectionalLightCount; ++i)
     {
-        if (IsMatchingLightLayer(_DirectionalLightDatas[i].lightLayers, builtinData.renderingLayers))
+        if (IsMatchingLightLayer(_DirectionalLightData[i].lightLayers, builtinData.renderingLayers))
         {
-            DirectLighting lighting = EvaluateBSDF_Directional(context, V, posInput, preLightData, _DirectionalLightDatas[i], bsdfData, builtinData);
+            DirectLighting lighting = EvaluateBSDF_Directional(context, V, posInput, preLightData, _DirectionalLightData[i], bsdfData, builtinData);
             AccumulateDirectLighting(lighting, aggregateLighting);
         }
     }
 
 
     #ifdef USE_LIGHT_CLUSTER
-    // Let's loop through all the 
+    // Let's loop through all the
     GetLightCountAndStartCluster(actualWSPos, LIGHTCATEGORY_AREA, lightStart, lightEnd, cellIndex);
     #else
     lightStart = _PunctualLightCountRT;
