@@ -168,8 +168,7 @@ namespace UnityEditor.Rendering.HighDefinition
             else
                 formatValue = value.ToString("#0.0");
 
-            var tooltip = baseTooltip + " | " + formatValue + " " + unit;
-
+            var tooltip = $"{baseTooltip} | {formatValue} {unit}";
             return new GUIContent(string.Empty, tooltip);
         }
 
