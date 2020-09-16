@@ -92,6 +92,8 @@ The **Material** panel has tools that you can use to visualize different Materia
 | **- Not A Pure Metal Color** | Use the color picker to select the color that the debugger displays if a pixel defined as metallic has a non-zero albedo value. The debugger only highlights these pixels if you enable the **True Metals** checkbox.<br/>This property only appears when you select **Diffuse Color** or **Metal or SpecularColor** from the **Material Validator** drop-down. |
 | **- Pure Metals**            | Enable the checkbox to make the debugger highlight any pixels which Unity defines as metallic, but which have a non-zero albedo value. The debugger uses the **Not A Pure Metal Color** to highlight these pixels.<br/>This property only appears when you select **Diffuse Color** or **Metal or SpecularColor** from the **Material Validator** drop-down. |
 
+If the geometry or the shading normal is denormalized, the view renders the target pixel red.
+
 <a name="LightingPanel"></a>
 
 ## Lighting panel
