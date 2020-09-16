@@ -89,8 +89,6 @@ namespace UnityEditor.VFX.Block
                     yield return p;
 
                 var thickness = allSlots.Where(o => o.name == nameof(ThicknessProperties.Thickness)).FirstOrDefault();
-
-                //TODOPAUL replace inputSlots[0][1].GetExpression() 
                 if (supportsVolumeSpawning)
                     yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, inputSlots[0][1].GetExpression(), thickness.exp), "volumeFactor");
             }
