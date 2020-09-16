@@ -117,12 +117,19 @@ namespace UnityEditor.Rendering.HighDefinition
             if (material.HasProperty(kMaskMap))
                 CoreUtils.SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
 
-            if (material.HasProperty(kUVEmissive) && material.HasProperty(kEmissiveColorMap))
+
+            if (material.HasProperty(kUVEmissive))
             {
-                CoreUtils.SetKeyword(material, "_EMISSIVE_MAPPING_PLANAR", ((UVEmissiveMapping)material.GetFloat(kUVEmissive)) == UVEmissiveMapping.Planar && material.GetTexture(kEmissiveColorMap));
-                CoreUtils.SetKeyword(material, "_EMISSIVE_MAPPING_TRIPLANAR", ((UVEmissiveMapping)material.GetFloat(kUVEmissive)) == UVEmissiveMapping.Triplanar && material.GetTexture(kEmissiveColorMap));
-                CoreUtils.SetKeyword(material, "_EMISSIVE_MAPPING_BASE", ((UVEmissiveMapping)material.GetFloat(kUVEmissive)) == UVEmissiveMapping.SameAsBase && material.GetTexture(kEmissiveColorMap));
-                CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
+                UVEmissiveMapping emissiveMapping = (UVEmissiveMapping)material.GetFloat(kUVEmissive);
+
+                if (material.HasProperty(kEmissiveColorMap))
+                {
+                    material.SetFloat(kUVEmissive, (float)emissiveMapping); 
+                }
+                else if ((int)emissiveMapping > (int)UVEmissiveMapping.UV3) // Meaning it was set as a non UV-set option and we don't have an emissive map, so ...
+                {
+                    material.SetFloat(kUVEmissive, (float)UVEmissiveMapping.UV0); // ... we default back to UV set 0.
+                }
             }
 
             if (material.HasProperty(kSpecularOcclusionMode))

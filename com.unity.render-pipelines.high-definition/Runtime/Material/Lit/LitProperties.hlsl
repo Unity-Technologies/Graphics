@@ -136,6 +136,7 @@ float3 _EmissionColor;
 float4 _EmissiveColorMap_ST;
 float _TexWorldScaleEmissive;
 float4 _UVMappingMaskEmissive;
+float _UVEmissive;
 
 float4 _InvPrimScale; // Only XY are used
 

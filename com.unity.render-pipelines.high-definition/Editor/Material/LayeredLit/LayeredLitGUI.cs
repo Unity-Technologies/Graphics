@@ -200,10 +200,19 @@ namespace UnityEditor.Rendering.HighDefinition
 
             CoreUtils.SetKeyword(material, "_INFLUENCEMASK_MAP", material.GetTexture(kLayerInfluenceMaskMap) && material.GetFloat(kkUseMainLayerInfluence) != 0.0f);
 
-            CoreUtils.SetKeyword(material, "_EMISSIVE_MAPPING_PLANAR", ((UVEmissiveMapping)material.GetFloat(kUVEmissive)) == UVEmissiveMapping.Planar && material.GetTexture(kEmissiveColorMap));
-            CoreUtils.SetKeyword(material, "_EMISSIVE_MAPPING_TRIPLANAR", ((UVEmissiveMapping)material.GetFloat(kUVEmissive)) == UVEmissiveMapping.Triplanar && material.GetTexture(kEmissiveColorMap));
-            CoreUtils.SetKeyword(material, "_EMISSIVE_MAPPING_BASE", ((UVEmissiveMapping)material.GetFloat(kUVEmissive)) == UVEmissiveMapping.SameAsBase && material.GetTexture(kEmissiveColorMap));
-            CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
+            if (material.HasProperty(kUVEmissive))
+            {
+                UVEmissiveMapping emissiveMapping = (UVEmissiveMapping)material.GetFloat(kUVEmissive);
+
+                if (material.HasProperty(kEmissiveColorMap))
+                {
+                    material.SetFloat(kUVEmissive, (float)emissiveMapping);
+                }
+                else if ((int)emissiveMapping > (int)UVEmissiveMapping.UV3) // Meaning it was set as a non UV-set option and we don't have an emissive map, so ...
+                {
+                    material.SetFloat(kUVEmissive, (float)UVEmissiveMapping.UV0); // ... we default back to UV set 0.
+                }
+            }
 
             // For migration of specular occlusion to specular mode we remove previous keyword
             // _ENABLESPECULAROCCLUSION is deprecated

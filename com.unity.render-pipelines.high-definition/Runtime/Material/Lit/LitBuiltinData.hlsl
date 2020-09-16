@@ -1,4 +1,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUVMappingEnums.cs.hlsl"
+
 
 void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, SurfaceData surfaceData, float alpha, float3 bentNormalWS, float depthOffset, float3 emissiveColor, out BuiltinData builtinData)
 {
@@ -46,13 +48,9 @@ void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, S
     layerTexCoord.vertexNormalWS = input.tangentToWorld[2].xyz;
     layerTexCoord.triplanarWeights = ComputeTriplanarWeights(layerTexCoord.vertexNormalWS);
 
-    int mappingType = UV_MAPPING_UVSET;
-    #if defined(_EMISSIVE_MAPPING_PLANAR)
-    mappingType = UV_MAPPING_PLANAR;
-    #elif defined(_EMISSIVE_MAPPING_TRIPLANAR)
-    mappingType = UV_MAPPING_TRIPLANAR;
-    #endif
-
+    int mappingType = _UVEmissive == UVEMISSIVEMAPPING_PLANAR ? UV_MAPPING_PLANAR :
+                      _UVEmissive == UVEMISSIVEMAPPING_TRIPLANAR ? UV_MAPPING_TRIPLANAR :
+                      UV_MAPPING_UVSET;
     // Be sure that the compiler is aware that we don't use UV1 to UV3 for main layer so it can optimize code
     #ifndef LAYERED_LIT_SHADER
     ComputeLayerTexCoord(
@@ -78,9 +76,15 @@ void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, S
 
 void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, SurfaceData surfaceData, float alpha, float3 bentNormalWS, float depthOffset, UVMapping emissiveMapMapping, out BuiltinData builtinData)
 {
-#ifdef _EMISSIVE_MAPPING_BASE
-    GetBuiltinData(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, GetEmissiveColor(surfaceData, emissiveMapMapping), builtinData);
-#else
-    GetBuiltinData(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
+#ifdef _EMISSIVE_COLOR_MAP
+    UNITY_BRANCH
+    if (_UVEmissive == UVEMISSIVEMAPPING_SAME_AS_BASE)
+    {
+        GetBuiltinData(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, GetEmissiveColor(surfaceData, emissiveMapMapping), builtinData);
+    }
+    else
 #endif
+    {
+        GetBuiltinData(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
+    }
 }
