@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
@@ -29,7 +30,6 @@ namespace UnityEditor.VFX.Block
                 var allSlots = GetExpressionsFromSlots(this);
                 foreach (var p in allSlots.Where(e =>       e.name == "ArcTorus_arc"
                                                         ||  e.name == "ArcSequencer"
-                                                        ||  e.name == "ArcTorus_center"
                                                         ||  e.name == "ArcTorus_majorRadius"))
                     yield return p;
 
@@ -39,6 +39,20 @@ namespace UnityEditor.VFX.Block
 
                 yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, majorRadius, thickness), "volumeFactor");
                 yield return new VFXNamedExpression(VFXOperatorUtility.Saturate(minorRadius / majorRadius), "r"); // Saturate can be removed once degenerated torus are correctly handled
+
+                var eulerAngle = allSlots.FirstOrDefault(o => o.name == "ArcTorus_angles").exp;
+                var center = allSlots.FirstOrDefault(o => o.name == "ArcTorus_center").exp;
+                var zeroF3 = VFXOperatorUtility.ZeroExpression[VFXValueType.Float3];
+                var oneF3 = VFXOperatorUtility.OneExpression[VFXValueType.Float3];
+
+                VFXExpression rotationMatrix = new VFXExpressionTRSToMatrix(zeroF3, eulerAngle, oneF3);
+                VFXExpression i = new VFXExpressionMatrixToVector3s(rotationMatrix, VFXValue.Constant(0));
+                VFXExpression j = new VFXExpressionMatrixToVector3s(rotationMatrix, VFXValue.Constant(1));
+                VFXExpression k = new VFXExpressionMatrixToVector3s(rotationMatrix, VFXValue.Constant(2));
+
+                var transformMatrix = new VFXExpressionVector3sToMatrix(i, j, k, center);
+                yield return new VFXNamedExpression(transformMatrix, "transformMatrix");
+
             }
         }
 
@@ -85,10 +99,15 @@ else
 
 float s,c;
 sincos(phi,c,s);
-float3 t2 = float3(c * t.x - s * t.y,c * t.y + s * t.x,t.z);";
+float3 t2 = float3(c * t.x - s * t.y,c * t.y + s * t.x,t.z);
 
-                outSource += string.Format(composePositionFormatString, "ArcTorus_center + ArcTorus_majorRadius * t2");
-                outSource += string.Format(composeDirectionFormatString, "t2");
+float3 finalPos = ArcTorus_majorRadius * t2;
+float3 finalDir = t2;
+finalPos = mul(transformMatrix, float4(finalPos, 1.0f));
+finalDir = mul((float3x3)transformMatrix, finalDir);
+";
+                outSource += string.Format(composePositionFormatString, "finalPos");
+                outSource += string.Format(composeDirectionFormatString, "finalDir");
 
                 return outSource;
             }
