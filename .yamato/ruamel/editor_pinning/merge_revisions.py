@@ -23,7 +23,7 @@ def verify_changed_files(editor_versions_file, commit_hash, working_dir):
 
 def checkout_and_pull_branch(branch, working_dir):
     git_cmd(f'checkout {branch}', working_dir)
-    git_cmd('pull --ff-only', working_dir)
+    git_cmd('pull', working_dir)
 
 
 def apply_target_revision_changes(editor_versions_file, yml_files_path, commit, working_dir):
@@ -60,7 +60,7 @@ def commit_and_push(commit_msg, working_dir, track, development_mode=False):
     if not development_mode:
         git_cmd(['commit', '-m', f'[CI] [{str(track)}] Updated latest editors metafile'], working_dir)
         #git_cmd(['commit', '-m', f'[{str(track)}] {commit_msg}'], working_dir)
-        git_cmd('pull --ff-only', working_dir)
+        git_cmd('pull', working_dir)
         git_cmd('push', working_dir)
 
 
