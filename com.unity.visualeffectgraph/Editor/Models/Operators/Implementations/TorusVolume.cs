@@ -23,7 +23,9 @@ namespace UnityEditor.VFX.Operator
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new VFXExpression[] { VFXOperatorUtility.TorusVolume(inputExpression[1], inputExpression[2]) };
+            var minorRadius = inputExpression[2];
+            var majorRadius = inputExpression[3];
+            return new VFXExpression[] { VFXOperatorUtility.TorusVolume(minorRadius, majorRadius) };
         }
     }
 }

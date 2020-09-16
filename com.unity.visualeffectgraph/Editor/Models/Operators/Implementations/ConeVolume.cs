@@ -23,7 +23,10 @@ namespace UnityEditor.VFX.Operator
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new VFXExpression[] { VFXOperatorUtility.ConeVolume(inputExpression[1], inputExpression[2], inputExpression[3]) };
+            var radius0 = inputExpression[2];
+            var radius1 = inputExpression[3];
+            var height = inputExpression[4];
+            return new VFXExpression[] { VFXOperatorUtility.ConeVolume(radius0, radius1, height) };
         }
     }
 }
