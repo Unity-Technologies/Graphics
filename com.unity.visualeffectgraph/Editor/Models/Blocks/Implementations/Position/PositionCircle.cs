@@ -44,7 +44,9 @@ namespace UnityEditor.VFX.Block
                 var one = VFXOperatorUtility.OneExpression[UnityEngine.VFX.VFXValueType.Float];
 
                 var thickness = allSlot.FirstOrDefault(o => o.name == "Thickness").exp;
-                var volumeFactor = CalculateVolumeFactor(positionMode, arcCircleRadius, thickness);
+
+                var fakeRadius = arcCircle_arc; //arcCircleRadius TODOPAUL : Isolate this fix, log an issue, there was a mistake, keep old behavior
+                var volumeFactor = CalculateVolumeFactor(positionMode, fakeRadius, thickness);
                 yield return new VFXNamedExpression(volumeFactor, "volumeFactor");
 
                 var rNorm = VFXOperatorUtility.Sqrt(volumeFactor + (one - volumeFactor) * new VFXExpressionRandom(true, new RandId(this, 1))) * arcCircleRadius;

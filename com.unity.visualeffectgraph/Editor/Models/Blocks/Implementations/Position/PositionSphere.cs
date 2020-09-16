@@ -36,7 +36,8 @@ namespace UnityEditor.VFX.Block
 
                 var thickness = allSlots.FirstOrDefault(o => o.name == "Thickness").exp;
                 var radius = allSlots.FirstOrDefault(o => o.name == "ArcSphere_sphere_radius").exp;
-                yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, radius, thickness), "volumeFactor");
+                var fakeRadius = allSlots.FirstOrDefault(o => o.name == "ArcSphere_arc").exp; //radius TODOPAUL : Isolate this fix, log an issue, there was a mistake, keep old behavior
+                yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, fakeRadius, thickness), "volumeFactor");
 
                 var eulerAngle = allSlots.FirstOrDefault(o => o.name == "ArcSphere_sphere_angles").exp;
                 var center = allSlots.FirstOrDefault(o => o.name == "ArcSphere_sphere_center").exp;
