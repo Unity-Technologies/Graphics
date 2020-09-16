@@ -312,25 +312,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return iNumMips;
         }
 
-        public static bool isMobileBuildTarget
-        {
-            get
-            {
-#if UNITY_EDITOR
-                switch (EditorUserBuildSettings.activeBuildTarget)
-                {
-                    case BuildTarget.iOS:
-                    case BuildTarget.Android:
-                        return true;
-                    default:
-                        return false;
-                }
-#else
-                return Application.isMobilePlatform;
-#endif
-            }
-        }
-
         public static TextureFormat GetPreferredHDRCompressedTextureFormat
         {
             get

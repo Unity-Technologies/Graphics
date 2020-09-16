@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_MotionVectorsRT = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: Builtin.GetMotionVectorFormat(), dimension: TextureXR.dimension, useDynamicScale: true, name: "MotionVectors");
                 if (m_MSAASupported)
                 {
-                    m_MotionVectorsMSAART = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: Builtin.GetMotionVectorFormat(), dimension: TextureXR.dimension, enableMSAA: true, bindTextureMS: true, useDynamicScale: true, name: "MotionVectorsMSAA");
+                    m_MotionVectorsMSAART = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: Builtin.GetMotionVectorFormat(), dimension: TextureXR.dimensionMSAA, enableMSAA: true, bindTextureMS: true, useDynamicScale: true, name: "MotionVectorsMSAA");
                 }
             }
 
@@ -94,13 +94,16 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_MSAASupported)
             {
                 // Let's create the MSAA textures
-                m_CameraDepthStencilMSAABuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, DepthBits.Depth24, dimension: TextureXR.dimension, bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "CameraDepthStencilMSAA");
+                m_CameraDepthStencilMSAABuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, DepthBits.Depth24, dimension: TextureXR.dimensionMSAA, bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "CameraDepthStencilMSAA");
                 m_CameraDepthValuesBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, dimension: TextureXR.dimension, useDynamicScale: true, name: "DepthValuesBuffer");
-                m_DepthAsColorMSAART = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32_SFloat, dimension: TextureXR.dimension, bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "DepthAsColorMSAA");
+                GraphicsFormat depthAsColorMSAAFormat = GraphicsFormat.R32_SFloat;
+                if (!SystemInfo.IsFormatSupported(depthAsColorMSAAFormat, m_MSAASamples.AsFormatUsage()))
+                    depthAsColorMSAAFormat = GraphicsFormat.R16_SFloat;
+                m_DepthAsColorMSAART = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: depthAsColorMSAAFormat, dimension: TextureXR.dimensionMSAA, bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "DepthAsColorMSAA");
                 m_StencilBufferResolved = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8G8_UInt, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, name: "StencilBufferResolved");
 
                 // We need to allocate this texture as long as msaa is supported because on both mode, one of the cameras can be forward only using the framesettings
-                m_NormalMSAART = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, dimension: TextureXR.dimension, enableMSAA: true, bindTextureMS: true, useDynamicScale: true, name: "NormalBufferMSAA");
+                m_NormalMSAART = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, dimension: TextureXR.dimensionMSAA, enableMSAA: true, bindTextureMS: true, useDynamicScale: true, name: "NormalBufferMSAA");
 
                 // Create the required resolve materials
                 m_DepthResolveMaterial = CoreUtils.CreateEngineMaterial(resources.shaders.depthValuesPS);
@@ -108,7 +111,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_MotionVectorResolve = CoreUtils.CreateEngineMaterial(resources.shaders.resolveMotionVecPS);
 
                 if (m_DecalLayersSupported)
-                    m_DecalPrePassBufferMSAA = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableMSAA: true, useDynamicScale: true, name: "Decal PrePass Buffer MSAA");
+                    m_DecalPrePassBufferMSAA = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimensionMSAA, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableMSAA: true, useDynamicScale: true, name: "Decal PrePass Buffer MSAA");
 
                 CoreUtils.SetKeyword(m_DepthResolveMaterial, "_HAS_MOTION_VECTORS", m_MotionVectorsSupport);
             }
@@ -439,6 +442,11 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(HDShaderIDs._NormalBufferTexture, GetNormalBuffer(isMSAA));
         }
 
+        private bool CompareRTHandle(RTHandle a, RTHandle b)
+        {
+            return (a != null && b != null && a.rt.graphicsFormat == b.rt.graphicsFormat);
+        }
+
         public void ResolveSharedRT(CommandBuffer cmd, HDCamera hdCamera)
         {
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
@@ -446,31 +454,44 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.Assert(m_MSAASupported);
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ResolveMSAADepth)))
                 {
-                    if (m_MotionVectorsSupport)
+                    if (DeviceInfo.requiresExplicitMSAAResolve == false &&
+                        (m_MotionVectorsSupport == true ? CompareRTHandle(m_MotionVectorsMSAART, m_MotionVectorsRT) : true) &&
+                        CompareRTHandle(m_NormalMSAART, m_NormalRT) &&
+                        CompareRTHandle(m_DepthAsColorMSAART, m_CameraDepthValuesBuffer))
                     {
-                        // Grab the RTIs and set the output render targets
-                        m_RTIDs3[0] = m_CameraDepthValuesBuffer.nameID;
-                        m_RTIDs3[1] = m_NormalRT.nameID;
-                        m_RTIDs3[2] = m_MotionVectorsRT.nameID;
-                        CoreUtils.SetRenderTarget(cmd, m_RTIDs3, m_CameraDepthStencilBuffer);
-
-                        // Set the motion vector input texture
-                        Shader.SetGlobalTexture(HDShaderIDs._MotionVectorTextureMS, m_MotionVectorsMSAART);
+                        if (m_MotionVectorsSupport)
+                            cmd.ResolveAntiAliasedSurface(m_MotionVectorsMSAART.rt, m_MotionVectorsRT.rt);
+                        cmd.ResolveAntiAliasedSurface(m_NormalMSAART.rt, m_NormalRT.rt);
+                        cmd.ResolveAntiAliasedSurface(m_DepthAsColorMSAART.rt, m_CameraDepthValuesBuffer.rt);
                     }
                     else
                     {
-                        // Grab the RTIs and set the output render targets
-                        m_RTIDs2[0] = m_CameraDepthValuesBuffer.nameID;
-                        m_RTIDs2[1] = m_NormalRT.nameID;
-                        CoreUtils.SetRenderTarget(cmd, m_RTIDs2, m_CameraDepthStencilBuffer);
+                        if (m_MotionVectorsSupport)
+                        {
+                            // Grab the RTIs and set the output render targets
+                            m_RTIDs3[0] = m_CameraDepthValuesBuffer.nameID;
+                            m_RTIDs3[1] = m_NormalRT.nameID;
+                            m_RTIDs3[2] = m_MotionVectorsRT.nameID;
+                            CoreUtils.SetRenderTarget(cmd, m_RTIDs3, m_CameraDepthStencilBuffer);
+
+                            // Set the motion vector input texture
+                            Shader.SetGlobalTexture(HDShaderIDs._MotionVectorTextureMS, m_MotionVectorsMSAART);
+                        }
+                        else
+                        {
+                            // Grab the RTIs and set the output render targets
+                            m_RTIDs2[0] = m_CameraDepthValuesBuffer.nameID;
+                            m_RTIDs2[1] = m_NormalRT.nameID;
+                            CoreUtils.SetRenderTarget(cmd, m_RTIDs2, m_CameraDepthStencilBuffer);
+                        }
+
+                        // Set the depth and normal input textures
+                        Shader.SetGlobalTexture(HDShaderIDs._NormalTextureMS, m_NormalMSAART);
+                        Shader.SetGlobalTexture(HDShaderIDs._DepthTextureMS, m_DepthAsColorMSAART);
+
+                        // Resolve the buffers
+                        cmd.DrawProcedural(Matrix4x4.identity, m_DepthResolveMaterial, SampleCountToPassIndex(m_MSAASamples), MeshTopology.Triangles, 3, 1);
                     }
-
-                    // Set the depth and normal input textures
-                    Shader.SetGlobalTexture(HDShaderIDs._NormalTextureMS, m_NormalMSAART);
-                    Shader.SetGlobalTexture(HDShaderIDs._DepthTextureMS, m_DepthAsColorMSAART);
-
-                    // Resolve the buffers
-                    cmd.DrawProcedural(Matrix4x4.identity, m_DepthResolveMaterial, SampleCountToPassIndex(m_MSAASamples), MeshTopology.Triangles, 3, 1);
                 }
             }
         }
@@ -481,9 +502,17 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ResolveMSAAMotionVector)))
                 {
-                    CoreUtils.SetRenderTarget(cmd, m_MotionVectorsRT);
-                    Shader.SetGlobalTexture(HDShaderIDs._MotionVectorTextureMS, m_MotionVectorsMSAART);
-                    cmd.DrawProcedural(Matrix4x4.identity, m_MotionVectorResolve, SampleCountToPassIndex(m_MSAASamples), MeshTopology.Triangles, 3, 1);
+                    if (DeviceInfo.requiresExplicitMSAAResolve == false &&
+                        CompareRTHandle(m_MotionVectorsMSAART, m_MotionVectorsRT))
+                    {
+                        cmd.ResolveAntiAliasedSurface(m_MotionVectorsMSAART.rt, m_MotionVectorsRT.rt);
+                    }
+                    else
+                    {
+                        CoreUtils.SetRenderTarget(cmd, m_MotionVectorsRT);
+                        Shader.SetGlobalTexture(HDShaderIDs._MotionVectorTextureMS, m_MotionVectorsMSAART);
+                        cmd.DrawProcedural(Matrix4x4.identity, m_MotionVectorResolve, SampleCountToPassIndex(m_MSAASamples), MeshTopology.Triangles, 3, 1);
+                    }
                 }
             }
         }
@@ -495,14 +524,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.Assert(m_MSAASupported);
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ResolveMSAAColor)))
                 {
-                    // Grab the RTIs and set the output render targets
-                    CoreUtils.SetRenderTarget(cmd, simpleTarget);
+                    if (DeviceInfo.requiresExplicitMSAAResolve == false &&
+                        CompareRTHandle(msaaTarget, simpleTarget))
+                    {
+                        cmd.ResolveAntiAliasedSurface(msaaTarget.rt, simpleTarget.rt);
+                    }
+                    else
+                    {
+                        // Grab the RTIs and set the output render targets
+                        CoreUtils.SetRenderTarget(cmd, simpleTarget);
 
-                    // Set the input textures
-                    m_PropertyBlock.SetTexture(HDShaderIDs._ColorTextureMS, msaaTarget);
+                        // Set the input textures
+                        m_PropertyBlock.SetTexture(HDShaderIDs._ColorTextureMS, msaaTarget);
 
-                    // Resolve the depth and normal buffers
-                    cmd.DrawProcedural(Matrix4x4.identity, m_ColorResolveMaterial, SampleCountToPassIndex(m_MSAASamples), MeshTopology.Triangles, 3, 1, m_PropertyBlock);
+                        // Resolve the depth and normal buffers
+                        cmd.DrawProcedural(Matrix4x4.identity, m_ColorResolveMaterial, SampleCountToPassIndex(m_MSAASamples), MeshTopology.Triangles, 3, 1, m_PropertyBlock);
+                    }
                 }
             }
         }
