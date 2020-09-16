@@ -51,9 +51,6 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass
 
         Pass
         {
-
-        Pass
-        {
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
