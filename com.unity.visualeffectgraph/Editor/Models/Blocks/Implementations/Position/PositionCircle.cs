@@ -30,10 +30,10 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                var volumeFactor = base.parameters.FirstOrDefault(o => o.name == "volumeFactor").exp;
-                var arcCircle_arc = base.parameters.FirstOrDefault(o => o.name == "ArcCircle_arc").exp;
-                var arcCircleRadius = base.parameters.FirstOrDefault(o => o.name == "ArcCircle_circle_radius").exp;
-                var arcSequencer = base.parameters.FirstOrDefault(o => o.name == "ArcSequencer").exp;
+                var allSlot = GetExpressionsFromSlots(this);
+                var arcCircle_arc = allSlot.FirstOrDefault(o => o.name == "ArcCircle_arc").exp;
+                var arcCircleRadius = allSlot.FirstOrDefault(o => o.name == "ArcCircle_circle_radius").exp;
+                var arcSequencer = allSlot.FirstOrDefault(o => o.name == "ArcSequencer").exp;
 
                 VFXExpression theta = null;
                 if (spawnMode == SpawnMode.Random)
@@ -42,6 +42,10 @@ namespace UnityEditor.VFX.Block
                     theta = arcCircle_arc * arcSequencer;
 
                 var one = VFXOperatorUtility.OneExpression[UnityEngine.VFX.VFXValueType.Float];
+
+                var thickness = allSlot.FirstOrDefault(o => o.name == "Thickness").exp;
+                var volumeFactor = CalculateVolumeFactor(positionMode, arcCircleRadius, thickness);
+                yield return new VFXNamedExpression(volumeFactor, "volumeFactor");
 
                 var rNorm = VFXOperatorUtility.Sqrt(volumeFactor + (one - volumeFactor) * new VFXExpressionRandom(true, new RandId(this, 1))) * arcCircleRadius;
                 var sinTheta = new VFXExpressionSin(theta);
@@ -52,13 +56,13 @@ namespace UnityEditor.VFX.Block
                 yield return new VFXNamedExpression(cosTheta, "cosTheta");
 
                 if (compositionPosition == AttributeCompositionMode.Blend)
-                    yield return base.parameters.FirstOrDefault(o => o.name == "blendPosition");
+                    yield return allSlot.FirstOrDefault(o => o.name == "blendPosition");
                 if (compositionDirection == AttributeCompositionMode.Blend)
                     yield return base.parameters.FirstOrDefault(o => o.name == "blendDirection");
 
 
-                var eulerAngle = base.parameters.FirstOrDefault(o => o.name == "ArcCircle_circle_angles").exp;
-                var center = base.parameters.FirstOrDefault(o => o.name == "ArcCircle_circle_center").exp;
+                var eulerAngle = allSlot.FirstOrDefault(o => o.name == "ArcCircle_circle_angles").exp;
+                var center = allSlot.FirstOrDefault(o => o.name == "ArcCircle_circle_center").exp;
                 var zeroF3 = VFXOperatorUtility.ZeroExpression[VFXValueType.Float3];
                 var oneF3 = VFXOperatorUtility.OneExpression[VFXValueType.Float3];
 
