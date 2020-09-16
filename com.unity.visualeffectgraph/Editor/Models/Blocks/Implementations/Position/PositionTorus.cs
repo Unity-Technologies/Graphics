@@ -52,7 +52,6 @@ namespace UnityEditor.VFX.Block
 
                 var transformMatrix = new VFXExpressionVector3sToMatrix(i, j, k, center);
                 yield return new VFXNamedExpression(transformMatrix, "transformMatrix");
-
             }
         }
 

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
@@ -49,13 +50,25 @@ namespace UnityEditor.VFX.Block
                 yield return new VFXNamedExpression(rNorm, "rNorm");
                 yield return new VFXNamedExpression(sinTheta, "sinTheta");
                 yield return new VFXNamedExpression(cosTheta, "cosTheta");
-                yield return base.parameters.FirstOrDefault(o => o.name == "ArcCircle_circle_center");
 
                 if (compositionPosition == AttributeCompositionMode.Blend)
                     yield return base.parameters.FirstOrDefault(o => o.name == "blendPosition");
                 if (compositionDirection == AttributeCompositionMode.Blend)
                     yield return base.parameters.FirstOrDefault(o => o.name == "blendDirection");
 
+
+                var eulerAngle = base.parameters.FirstOrDefault(o => o.name == "ArcCircle_circle_angles").exp;
+                var center = base.parameters.FirstOrDefault(o => o.name == "ArcCircle_circle_center").exp;
+                var zeroF3 = VFXOperatorUtility.ZeroExpression[VFXValueType.Float3];
+                var oneF3 = VFXOperatorUtility.OneExpression[VFXValueType.Float3];
+
+                VFXExpression rotationMatrix = new VFXExpressionTRSToMatrix(zeroF3, eulerAngle, oneF3);
+                VFXExpression i = new VFXExpressionMatrixToVector3s(rotationMatrix, VFXValue.Constant(0));
+                VFXExpression j = new VFXExpressionMatrixToVector3s(rotationMatrix, VFXValue.Constant(1));
+                VFXExpression k = new VFXExpressionMatrixToVector3s(rotationMatrix, VFXValue.Constant(2));
+
+                var transformMatrix = new VFXExpressionVector3sToMatrix(i, j, k, center);
+                yield return new VFXNamedExpression(transformMatrix, "transformMatrix");
 
             }
         }
@@ -64,9 +77,14 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                string outSource = string.Format(composeDirectionFormatString, "float3(sinTheta, cosTheta, 0.0f)");
-                outSource += VFXBlockUtility.GetComposeString(compositionPosition, "position.xy", "float2(sinTheta, cosTheta) * rNorm + ArcCircle_circle_center.xy", "blendPosition") + "\n";
-                outSource += VFXBlockUtility.GetComposeString(compositionPosition, "position.z", " ArcCircle_circle_center.z", "blendPosition");
+                var outSource = @"
+float3 finalDir = float3(sinTheta, cosTheta, 0.0f);
+float3 finalPos = float3(sinTheta, cosTheta, 0.0f) * rNorm;
+finalPos = mul(transformMatrix, float4(finalPos, 1.0f));
+finalDir = mul((float3x3)transformMatrix, finalDir);
+";
+                outSource += string.Format(composeDirectionFormatString, "finalDir");
+                outSource += string.Format(composePositionFormatString, "finalPos") + "\n";
                 return outSource;
             }
         }
