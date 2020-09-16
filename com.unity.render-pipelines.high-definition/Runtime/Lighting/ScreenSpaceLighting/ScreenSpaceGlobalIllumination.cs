@@ -16,6 +16,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Buffers used for the evaluation
         RTHandle m_IndirectDiffuseBuffer0 = null;
         RTHandle m_IndirectDiffuseBuffer1 = null;
+        RTHandle m_IndirectDiffuseBuffer2 = null;
+        RTHandle m_IndirectDiffuseBuffer3 = null;
         RTHandle m_IndirectDiffuseHitPointBuffer = null;
 
         // The set of kernels that we shall be using
@@ -23,7 +25,9 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_TraceGlobalIlluminationHalfKernel;
         int m_ReprojectGlobalIlluminationKernel;
         int m_ReprojectGlobalIlluminationHalfKernel;
-        int m_BilateralUpSampleColorTMKernel;
+        int m_BilateralUpSampleColorKernel;
+        int m_ConvertYCoCgToRGBKernel;
+        int m_ConvertYCoCgToRGBHalfKernel;
 
         void InitScreenSpaceGlobalIllumination()
         {
@@ -31,6 +35,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_IndirectDiffuseBuffer0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer0");
                 m_IndirectDiffuseBuffer1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer1");
+                m_IndirectDiffuseBuffer2 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer2");
+                m_IndirectDiffuseBuffer3 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer3");
                 m_IndirectDiffuseHitPointBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseHitBuffer");
 
                 // Grab the sets of shaders that we'll be using
@@ -42,7 +48,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_TraceGlobalIlluminationHalfKernel = ssGICS.FindKernel("TraceGlobalIlluminationHalf");
                 m_ReprojectGlobalIlluminationKernel = ssGICS.FindKernel("ReprojectGlobalIllumination");
                 m_ReprojectGlobalIlluminationHalfKernel = ssGICS.FindKernel("ReprojectGlobalIlluminationHalf");
-                m_BilateralUpSampleColorTMKernel = bilateralUpsampleCS.FindKernel("BilateralUpSampleColorTM");
+                m_BilateralUpSampleColorKernel = bilateralUpsampleCS.FindKernel("BilateralUpSampleColor");
+                m_ConvertYCoCgToRGBKernel = ssGICS.FindKernel("ConvertYCoCgToRGB");
+                m_ConvertYCoCgToRGBHalfKernel = ssGICS.FindKernel("ConvertYCoCgToRGBHalf");
             }
         }
 
@@ -52,6 +60,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 RTHandles.Release(m_IndirectDiffuseBuffer0);
             if (m_IndirectDiffuseBuffer1 != null)
                 RTHandles.Release(m_IndirectDiffuseBuffer1);
+            if (m_IndirectDiffuseBuffer2 != null)
+                RTHandles.Release(m_IndirectDiffuseBuffer2);
+            if (m_IndirectDiffuseBuffer3 != null)
+                RTHandles.Release(m_IndirectDiffuseBuffer3);
             if (m_IndirectDiffuseHitPointBuffer != null)
                 RTHandles.Release(m_IndirectDiffuseHitPointBuffer);
         }
@@ -100,8 +112,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool fullResolutionSS;
             public float thickness;
             public int raySteps;
-            public float maximalRadius;
-            public float clampValueSS;
             public Vector4 colorPyramidUvScaleAndLimitPrevFrame;
 
             // Compute Shader
@@ -140,8 +150,6 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.fullResolutionSS = settings.fullResolutionSS;
             parameters.thickness = settings.depthBufferThickness.value;
             parameters.raySteps = settings.raySteps;
-            parameters.maximalRadius = settings.maximalRadius;
-            parameters.clampValueSS = settings.clampValueSS;
             parameters.colorPyramidUvScaleAndLimitPrevFrame = HDUtils.ComputeViewportScaleAndLimit(hdCamera.historyRTHandleProperties.previousViewportSize, hdCamera.historyRTHandleProperties.previousRenderTargetSize);
 
             // Grab the right kernel
@@ -171,10 +179,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public RTHandle hitPointBuffer;
 
             // Output buffers
-            public RTHandle outputBuffer;
+            public RTHandle outputBuffer0;
+            public RTHandle outputBuffer1;
         }
 
-        SSGITraceResources PrepareSSGITraceResources(HDCamera hdCamera, RTHandle outputBuffer, RTHandle hitPointBuffer)
+        SSGITraceResources PrepareSSGITraceResources(HDCamera hdCamera, RTHandle outputBuffer0, RTHandle outputBuffer1, RTHandle hitPointBuffer)
         {
             SSGITraceResources ssgiTraceResources = new SSGITraceResources();
 
@@ -191,7 +200,8 @@ namespace UnityEngine.Rendering.HighDefinition
             ssgiTraceResources.hitPointBuffer = hitPointBuffer;
 
             // Output buffers
-            ssgiTraceResources.outputBuffer = outputBuffer;
+            ssgiTraceResources.outputBuffer0 = outputBuffer0;
+            ssgiTraceResources.outputBuffer1 = outputBuffer1;
 
             return ssgiTraceResources;
         }
@@ -210,7 +220,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeFloatParam(parameters.ssGICS, HDShaderIDs._IndirectDiffuseThicknessScale, thicknessScale);
             cmd.SetComputeFloatParam(parameters.ssGICS, HDShaderIDs._IndirectDiffuseThicknessBias, thicknessBias);
             cmd.SetComputeIntParam(parameters.ssGICS, HDShaderIDs._IndirectDiffuseSteps, parameters.raySteps);
-            cmd.SetComputeFloatParam(parameters.ssGICS, HDShaderIDs._IndirectDiffuseMaximalRadius, parameters.maximalRadius);
             // Inject half screen size if required
             if (!parameters.fullResolutionSS)
                 cmd.SetComputeVectorParam(parameters.ssGICS, HDShaderIDs._HalfScreenSize, parameters.halfScreenSize);
@@ -229,7 +238,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Update global constant buffer.
             // This should probably be a shader specific uniform instead of reusing the global constant buffer one since it's the only one updated here.
-            parameters.shaderVariablesRayTracingCB._RaytracingIntensityClamp = parameters.clampValueSS;
             ConstantBuffer.PushGlobal(cmd, parameters.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
             // Inject all the input scalars
@@ -245,10 +253,80 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeBufferParam(parameters.ssGICS, parameters.projectKernel, HDShaderIDs._DepthPyramidMipLevelOffsets, parameters.offsetBuffer);
 
             // Bind the output texture
-            cmd.SetComputeTextureParam(parameters.ssGICS, parameters.projectKernel, HDShaderIDs._IndirectDiffuseTextureRW, resources.outputBuffer);
+            cmd.SetComputeTextureParam(parameters.ssGICS, parameters.projectKernel, HDShaderIDs._IndirectDiffuseTexture0RW, resources.outputBuffer0);
+            cmd.SetComputeTextureParam(parameters.ssGICS, parameters.projectKernel, HDShaderIDs._IndirectDiffuseTexture1RW, resources.outputBuffer1);
 
             // Do the reprojection
             cmd.DispatchCompute(parameters.ssGICS, parameters.projectKernel, numTilesXHR, numTilesYHR, parameters.viewCount);
+        }
+
+        struct SSGIConvertParameters
+        {
+            // Camera parameters
+            public int texWidth;
+            public int texHeight;
+            public int viewCount;
+
+            // Compute Shader
+            public ComputeShader ssGICS;
+            public int convertKernel;
+            public ComputeBuffer offsetBuffer;
+        }
+
+        SSGIConvertParameters PrepareSSGIConvertParameters(HDCamera hdCamera, bool halfResolution)
+        {
+            SSGIConvertParameters parameters = new SSGIConvertParameters();
+
+            // Set the camera parameters
+            parameters.texWidth = hdCamera.actualWidth;
+            parameters.texHeight = hdCamera.actualHeight;
+            parameters.viewCount = hdCamera.viewCount;
+
+            // Grab the right kernel
+            parameters.ssGICS = m_Asset.renderPipelineResources.shaders.screenSpaceGlobalIlluminationCS;
+            parameters.convertKernel = halfResolution? m_ConvertYCoCgToRGBHalfKernel : m_ConvertYCoCgToRGBKernel;
+
+            var info = m_SharedRTManager.GetDepthBufferMipChainInfo();
+            parameters.offsetBuffer = info.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
+
+            return parameters;
+        }
+
+        struct SSGIConvertResources
+        {
+            public RTHandle depthTexture;
+            public RTHandle normalBuffer;
+            public RTHandle inoutBuffer0;
+            public RTHandle inputBufer1;
+        }
+
+        SSGIConvertResources PrepareSSGIConvertResources(HDCamera hdCamera, RTHandle inoutBuffer0, RTHandle outputBuffer1)
+        {
+            SSGIConvertResources resources = new SSGIConvertResources();
+
+            // Input buffers
+            resources.depthTexture = m_SharedRTManager.GetDepthTexture();
+            resources.normalBuffer = m_SharedRTManager.GetNormalBuffer();
+            // Output buffers
+            resources.inoutBuffer0 = inoutBuffer0;
+            resources.inputBufer1 = outputBuffer1;
+
+            return resources;
+        }
+
+        static void ExecuteSSGIConversion(CommandBuffer cmd, SSGIConvertParameters parameters, SSGIConvertResources resources)
+        {
+            // Re-evaluate the dispatch parameters (we are evaluating the upsample in full resolution)
+            int ssgiTileSize = 8;
+            int numTilesXHR = (parameters.texWidth + (ssgiTileSize - 1)) / ssgiTileSize;
+            int numTilesYHR = (parameters.texHeight + (ssgiTileSize - 1)) / ssgiTileSize;
+
+            cmd.SetComputeTextureParam(parameters.ssGICS, parameters.convertKernel, HDShaderIDs._DepthTexture, resources.depthTexture);
+            cmd.SetComputeTextureParam(parameters.ssGICS, parameters.convertKernel, HDShaderIDs._NormalBufferTexture, resources.normalBuffer);
+            cmd.SetComputeBufferParam(parameters.ssGICS, parameters.convertKernel, HDShaderIDs._DepthPyramidMipLevelOffsets, parameters.offsetBuffer);
+            cmd.SetComputeTextureParam(parameters.ssGICS, parameters.convertKernel, HDShaderIDs._IndirectDiffuseTexture0RW, resources.inoutBuffer0);
+            cmd.SetComputeTextureParam(parameters.ssGICS, parameters.convertKernel, HDShaderIDs._IndirectDiffuseTexture1RW, resources.inputBufer1);
+            cmd.DispatchCompute(parameters.ssGICS, parameters.convertKernel, numTilesXHR, numTilesYHR, parameters.viewCount);
         }
 
         struct SSGIUpscaleParameters
@@ -283,7 +361,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Grab the right kernel
             parameters.bilateralUpsampleCS = m_Asset.renderPipelineResources.shaders.bilateralUpsampleCS;
-            parameters.upscaleKernel = m_BilateralUpSampleColorTMKernel;
+            parameters.upscaleKernel = m_BilateralUpSampleColorKernel;
 
             return parameters;
         }
@@ -334,22 +412,40 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(parameters.bilateralUpsampleCS, parameters.upscaleKernel, numTilesXHR, numTilesYHR, parameters.viewCount);
         }
 
+        private float EvaluateIndirectDiffuseHistoryValidity(HDCamera hdCamera, bool fullResolution, bool rayTraced)
+        {
+            // Evaluate the history validity
+            float effectHistoryValidity = hdCamera.EffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination0, fullResolution, rayTraced)
+                                          && hdCamera.EffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination1, fullResolution, rayTraced) ? 1.0f : 0.0f;
+            return EvaluateHistoryValidity(hdCamera) * effectHistoryValidity;
+        }
+
+        private void PropagateIndirectDiffuseHistoryValidity(HDCamera hdCamera, bool fullResolution, bool rayTraced)
+        {
+            hdCamera.PropagateEffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination0, fullResolution, rayTraced);
+            hdCamera.PropagateEffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination1, fullResolution, rayTraced);
+        }
+
         void RenderSSGI(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, int frameCount)
         {
             // Grab the global illumination volume component
             GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
 
             // Based on if we are doing it in half resolution or full, we need to define initial and final buffer to avoid a useless blit
-            RTHandle buffer0, buffer1;
+            RTHandle buffer00, buffer01, buffer10, buffer11;
             if (giSettings.fullResolutionSS)
             {
-                buffer0 = m_IndirectDiffuseBuffer0;
-                buffer1 = m_IndirectDiffuseBuffer1;
+                buffer00 = m_IndirectDiffuseBuffer0;
+                buffer01 = m_IndirectDiffuseBuffer1;
+                buffer10 = m_IndirectDiffuseBuffer2;
+                buffer11 = m_IndirectDiffuseBuffer3;
             }
             else
             {
-                buffer0 = m_IndirectDiffuseBuffer1;
-                buffer1 = m_IndirectDiffuseBuffer0;
+                buffer00 = m_IndirectDiffuseBuffer2;
+                buffer01 = m_IndirectDiffuseBuffer3;
+                buffer10 = m_IndirectDiffuseBuffer0;
+                buffer11 = m_IndirectDiffuseBuffer1;
             }
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.SSGIPass)))
@@ -358,17 +454,29 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.SSGITrace)))
                 {
                     SSGITraceParameters parameters = PrepareSSGITraceParameters(hdCamera, giSettings);
-                    SSGITraceResources resources = PrepareSSGITraceResources(hdCamera, buffer0, m_IndirectDiffuseHitPointBuffer);
+                    SSGITraceResources resources = PrepareSSGITraceResources(hdCamera, buffer00, buffer01, m_IndirectDiffuseHitPointBuffer);
                     ExecuteSSGITrace(cmd, parameters, resources);
                 }
 
                 // Denoise it
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.SSGIDenoise)))
                 {
-                    float historyValidity = EvaluateHistoryValidity(hdCamera);
+                    // Evaluate the history validity
+                    float historyValidity = EvaluateIndirectDiffuseHistoryValidity(hdCamera, giSettings.fullResolutionSS, false);
 
                     SSGIDenoiser ssgiDenoiser = GetSSGIDenoiser();
-                    ssgiDenoiser.Denoise(cmd, hdCamera, buffer0, buffer1, halfResolution: !giSettings.fullResolutionSS, historyValidity: historyValidity);
+                    ssgiDenoiser.Denoise(cmd, hdCamera, buffer00, buffer01, buffer10, buffer11, halfResolution: !giSettings.fullResolutionSS, historyValidity: historyValidity);
+
+                    // Propagate the history
+                    PropagateIndirectDiffuseHistoryValidity(hdCamera, giSettings.fullResolutionSS, false);
+                }
+
+                // Convert it
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.SSGIConvert)))
+                {
+                    SSGIConvertParameters parameters = PrepareSSGIConvertParameters(hdCamera, !giSettings.fullResolutionSS);
+                    SSGIConvertResources resources = PrepareSSGIConvertResources(hdCamera, buffer00, buffer01);
+                    ExecuteSSGIConversion(cmd, parameters, resources);
                 }
 
                 // Upscale it if required
@@ -380,7 +488,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ComputeShader bilateralUpsampleCS = m_Asset.renderPipelineResources.shaders.bilateralUpsampleCS;
 
                         SSGIUpscaleParameters parameters = PrepareSSGIUpscaleParameters(hdCamera, giSettings);
-                        SSGIUpscaleResources resources = PrepareSSGIUpscaleResources(hdCamera, buffer0, buffer1);
+                        SSGIUpscaleResources resources = PrepareSSGIUpscaleResources(hdCamera, buffer00, buffer10);
                         ExecuteSSGIUpscale(cmd, parameters, resources);
                     }
                 }

@@ -95,11 +95,12 @@
 * Lighting
   * [Reflection in HDRP](Reflection-in-HDRP)
   * [Refraction in HDRP](Refraction-in-HDRP)
-  * Reflection Probes
-    * [Reflection Probes Introduction](Reflection-Probes-Intro)
-    * [Reflection Probe](Reflection-Probe)
-    * [Planar Reflection Probe](Planar-Reflection-Probe)
-    * [Reflection Proxy Volume](Reflection-Proxy-Volume)
+  * [Reflection Probes](Reflection-Probes-Intro)
+    * [Using Reflection Probes](Reflection-Probe-Usage)
+    * Components
+      * [Reflection Probe](Reflection-Probe)
+      * [Planar Reflection Probe](Planar-Reflection-Probe)
+      * [Reflection Proxy Volume](Reflection-Proxy-Volume)
   * [Light](Light-Component)
   * [Environment Lighting](Environment-Lighting)
   * [Atmospheric Scattering](Atmospheric-Scattering)

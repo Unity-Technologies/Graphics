@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader deferredRaytracingCS;
             public ComputeShader rayBinningCS;
 
-            public ShaderVariablesRaytracing globalCB;
+            public ShaderVariablesRaytracing raytracingCB;
         }
 
         struct DeferredLightingRTResources
@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Inject the global parameters
-            ConstantBuffer.PushGlobal(cmd, parameters.globalCB, HDShaderIDs._ShaderVariablesRaytracing);
+            ConstantBuffer.PushGlobal(cmd, parameters.raytracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
             // Define the shader pass to use for the reflection pass
             cmd.SetRayTracingShaderPass(parameters.gBufferRaytracingRT, "GBufferDXR");
@@ -224,7 +224,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRayTracingTextureParam(parameters.gBufferRaytracingRT, HDShaderIDs._SkyTexture, buffers.skyTexture);
 
             // Only compute diffuse lighting if required
-            cmd.SetGlobalInt(HDShaderIDs._RayTracingDiffuseLightingOnly, parameters.diffuseLightingOnly ? 1 : 0);
             CoreUtils.SetKeyword(cmd, "MINIMAL_GBUFFER", parameters.diffuseLightingOnly);
 
             if (parameters.rayBinning)
