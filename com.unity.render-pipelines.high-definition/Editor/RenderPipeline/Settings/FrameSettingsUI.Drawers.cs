@@ -147,6 +147,8 @@ namespace UnityEditor.Rendering.HighDefinition
             FrameSettings defaultFrameSettings = GetDefaultFrameSettingsFor(owner);
             var area = OverridableFrameSettingsArea.GetGroupContent(0, defaultFrameSettings, serialized);
 
+            var frameSettingType = owner is IDefaultFrameSettingsType getType ? getType.GetFrameSettingsType() : FrameSettingsRenderType.Camera;
+
             LitShaderMode defaultShaderLitMode;
             switch (hdrpSettings.supportedLitShaderMode)
             {
@@ -217,6 +219,9 @@ namespace UnityEditor.Rendering.HighDefinition
             area.AmmendInfo(FrameSettingsField.Decals, overrideable: () => hdrpSettings.supportDecals);
             area.AmmendInfo(FrameSettingsField.DecalLayers, overrideable: () => hdrpSettings.supportDecalLayers);
             area.AmmendInfo(FrameSettingsField.Distortion, overrideable: () => hdrpSettings.supportDistortion);
+
+            area.AmmendInfo(FrameSettingsField.Postprocess, overrideable: () => (frameSettingType != FrameSettingsRenderType.CustomOrBakedReflection &&
+                                                                                frameSettingType != FrameSettingsRenderType.RealtimeReflection));
 
             area.AmmendInfo(
                 FrameSettingsField.LODBiasMode,
