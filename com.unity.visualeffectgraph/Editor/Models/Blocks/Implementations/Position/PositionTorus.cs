@@ -26,12 +26,19 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                foreach (var p in GetExpressionsFromSlots(this).Where(e => e.name != "Thickness"))
+                var allSlots = GetExpressionsFromSlots(this);
+                foreach (var p in allSlots.Where(e =>       e.name == "ArcTorus_arc"
+                                                        ||  e.name == "ArcSequencer"
+                                                        ||  e.name == "ArcTorus_center"
+                                                        ||  e.name == "ArcTorus_majorRadius"))
                     yield return p;
 
-                //TODOPAUL
-                yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, null, null), "volumeFactor");
-                yield return new VFXNamedExpression(VFXOperatorUtility.Saturate(inputSlots[0][2].GetExpression() / inputSlots[0][1].GetExpression()), "r"); // Saturate can be removed once degenerated torus are correctly handled
+                var thickness = allSlots.FirstOrDefault(o => o.name == "Thickness").exp;
+                var majorRadius = allSlots.FirstOrDefault(o => o.name == "ArcTorus_majorRadius").exp;
+                var minorRadius = allSlots.FirstOrDefault(o => o.name == "ArcTorus_minorRadius").exp;
+
+                yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, majorRadius, thickness), "volumeFactor");
+                yield return new VFXNamedExpression(VFXOperatorUtility.Saturate(minorRadius / majorRadius), "r"); // Saturate can be removed once degenerated torus are correctly handled
             }
         }
 
