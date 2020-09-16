@@ -40,6 +40,8 @@ public class RenderGraphViewer : EditorWindow
     DynamicArray<VisualElement> m_ResourceLifeTimeElements = new DynamicArray<VisualElement>();
     DynamicArray<VisualElement> m_PassElements = new DynamicArray<VisualElement>();
 
+    bool m_DisplayImportedResources = false;
+
     void RenderPassLabelChanged(GeometryChangedEvent evt)
     {
         var label = evt.currentTarget as Label;
@@ -215,6 +217,10 @@ public class RenderGraphViewer : EditorWindow
     {
         m_HeaderElement.Clear();
 
+        var controlsElement = new VisualElement();
+        controlsElement.name = "Header.Controls";
+        controlsElement.style.flexDirection = FlexDirection.Row;
+
         var renderGraphList = new List<RenderGraph>(RenderGraph.GetRegisteredRenderGraphs());
 
         PopupField<RenderGraph> popup = null;
@@ -230,17 +236,35 @@ public class RenderGraphViewer : EditorWindow
 
         popup.labelElement.style.minWidth = 0;
         popup.name = "Header.RenderGraphPopup";
-        m_HeaderElement.Add(popup);
+        controlsElement.Add(popup);
 
         var captureButton = new Button(OnCaptureGraph);
         captureButton.text = "Capture Graph";
-        //captureButton.disable = renderGraphList.Count != 0 ? true : false;
-        m_HeaderElement.Add(captureButton);
+        controlsElement.Add(captureButton);
 
-        m_HeaderElement.Add(CreateColorLegend("Resource Read", m_ResourceColorRead));
-        m_HeaderElement.Add(CreateColorLegend("Resource Write", m_ResourceColorWrite));
-        m_HeaderElement.Add(CreateColorLegend("Culled Pass", m_CulledPassColor));
-        m_HeaderElement.Add(CreateColorLegend("Imported Resource", m_ImportedResourceColor));
+        var displayImported = new Toggle("Display Imported Resources");
+        displayImported.value = m_DisplayImportedResources;
+        displayImported.style.alignItems = Align.Center;
+        displayImported.RegisterValueChangedCallback<bool>((evt) =>
+        {
+            m_DisplayImportedResources = evt.newValue;
+            RebuildGraphViewerUI();
+        });
+        controlsElement.Add(displayImported);
+
+        m_HeaderElement.Add(controlsElement);
+
+        var legendsElement = new VisualElement();
+        legendsElement.name = "Header.Legends";
+        legendsElement.style.flexDirection = FlexDirection.Row;
+        legendsElement.style.alignContent = Align.FlexEnd;
+
+        legendsElement.Add(CreateColorLegend("Resource Read", m_ResourceColorRead));
+        legendsElement.Add(CreateColorLegend("Resource Write", m_ResourceColorWrite));
+        legendsElement.Add(CreateColorLegend("Culled Pass", m_CulledPassColor));
+        legendsElement.Add(CreateColorLegend("Imported Resource", m_ImportedResourceColor));
+
+        m_HeaderElement.Add(legendsElement);
     }
 
     RenderGraph GetCurrentRenderGraph()
@@ -286,12 +310,14 @@ public class RenderGraphViewer : EditorWindow
         m_PassElements.Resize(debugData.passList.Count);
 
         int passIndex = 0;
+        int finalPassCount = 0;
         foreach(var pass in debugData.passList)
         {
             var passElement = CreateRenderPassLabel(pass.name, passIndex, pass.culled);
             m_PassElements[passIndex] = passElement;
             passNamesElement.Add(passElement);
             passIndex++;
+            finalPassCount++;
         }
 
         topRowElement.Add(passNamesElement);
@@ -312,13 +338,14 @@ public class RenderGraphViewer : EditorWindow
         var resourcesLifeTimeElement = new VisualElement();
         resourcesLifeTimeElement.name = "GraphViewer.Resources.ResourceLifeTime";
         resourcesLifeTimeElement.style.flexDirection = FlexDirection.Column;
-        resourcesLifeTimeElement.style.width = kRenderPassWidth * debugData.passList.Count;
+        resourcesLifeTimeElement.style.width = kRenderPassWidth * finalPassCount;
 
         int index = 0;
         foreach (var resource in debugData.resourceLists[0])
         {
             // Remove unused resource.
-            if (resource.releasePassIndex == -1 && resource.creationPassIndex == -1)
+            if (resource.releasePassIndex == -1 && resource.creationPassIndex == -1
+                || resource.imported && !m_DisplayImportedResources)
             {
                 m_ResourceLifeTimeElements[index++] = null;
                 continue;
@@ -370,6 +397,7 @@ public class RenderGraphViewer : EditorWindow
         m_HeaderElement = new VisualElement();
         m_HeaderElement.name = "Header";
         m_HeaderElement.style.flexDirection = FlexDirection.Row;
+        m_HeaderElement.style.justifyContent = Justify.SpaceBetween;
         m_HeaderElement.style.minHeight = 25.0f;
         m_HeaderElement.style.marginBottom = 1.0f;
         m_HeaderElement.style.marginTop = 1.0f;
