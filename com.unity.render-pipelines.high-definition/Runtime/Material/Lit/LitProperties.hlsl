@@ -177,6 +177,8 @@ float _DetailAlbedoScale;
 float _DetailNormalScale;
 float _DetailSmoothnessScale;
 
+float _UVBase;
+
 float4 _HeightMap_TexelSize; // Unity facility. This will provide the size of the heightmap to the shader
 
 float _HeightAmplitude;

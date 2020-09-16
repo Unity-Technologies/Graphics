@@ -134,6 +134,7 @@ void GenerateLayerTexCoordBasisTB(FragInputs input, inout LayerTexCoord layerTex
 #define _BENTNORMALMAP_IDX
 #endif
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDataIndividualLayer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitBuiltinData.hlsl"
 
 // This maybe call directly by tessellation (domain) shader, thus all part regarding surface gradient must be done
 // in function with FragInputs input as parameters
@@ -144,12 +145,9 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     layerTexCoord.vertexNormalWS = vertexNormalWS;
     layerTexCoord.triplanarWeights = ComputeTriplanarWeights(vertexNormalWS);
 
-    int mappingType = UV_MAPPING_UVSET;
-#if defined(_MAPPING_PLANAR)
-    mappingType = UV_MAPPING_PLANAR;
-#elif defined(_MAPPING_TRIPLANAR)
-    mappingType = UV_MAPPING_TRIPLANAR;
-#endif
+    int mappingType = _UVBase == UVBASEMAPPING_PLANAR ? UV_MAPPING_PLANAR :
+                      _UVBase == UVBASEMAPPING_TRIPLANAR ? UV_MAPPING_TRIPLANAR :
+                       UV_MAPPING_UVSET;
 
     // Be sure that the compiler is aware that we don't use UV1 to UV3 for main layer so it can optimize code
     ComputeLayerTexCoord(   texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMask, _UVDetailsMappingMask,
@@ -173,8 +171,6 @@ void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
 #if !defined(SHADER_STAGE_RAY_TRACING)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDataDisplacement.hlsl"
 #endif
-
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitBuiltinData.hlsl"
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData RAY_TRACING_OPTIONAL_PARAMETERS)
 {
