@@ -775,8 +775,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
-            // We need to copy depth buffer texture if we want to bind it at this stage
-            CopyDepthBufferIfNeeded(renderGraph, hdCamera, ref output);
+            bool canReadBoundDepthBuffer = SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
+                                            SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
+                                            SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12;
+
+            if (!canReadBoundDepthBuffer)
+            {
+                // We need to copy depth buffer texture if we want to bind it at this stage
+                CopyDepthBufferIfNeeded(renderGraph, hdCamera, ref output);
+            }
 
             // If we have an incomplete depth buffer use for decal we will need to do another copy
             // after the rendering of the GBuffer
@@ -790,7 +797,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.meshDecalsRendererList = builder.UseRendererList(renderGraph.CreateRendererList(PrepareMeshDecalsRendererList(cullingResults, hdCamera, use4RTs)));
                 SetupDBufferTargets(renderGraph, passData, use4RTs, ref output, builder);
                 passData.decalBuffer = builder.ReadTexture(decalBuffer);
-                passData.depthTexture = builder.ReadTexture(output.depthPyramidTexture);
+                passData.depthTexture = canReadBoundDepthBuffer ? builder.ReadTexture(output.resolvedDepthBuffer) : builder.ReadTexture(output.depthPyramidTexture);
 
                 builder.SetRenderFunc(
                 (RenderDBufferPassData data, RenderGraphContext context) =>

@@ -93,6 +93,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the Trackball UI so that it allows explicit numeric values.
 - Reduce the G-buffer footprint of anisotropic materials
 - Moved SSGI out of preview.
+- Skip an unneeded depth buffer copy on consoles. 
 
 ## [10.0.0] - 2019-06-10
 
