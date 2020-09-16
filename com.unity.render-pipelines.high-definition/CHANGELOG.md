@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support of SSGI in the render graph mode.
 - Added option for 11-11-10 format for cube reflection probes.
 - Added an optional check in the HDRP DXR Wizard to verify 64 bits target architecture
+- Added option to display timing stats in the debug menu as an average over 1 second. 
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
@@ -74,6 +75,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed SSS materials appearing black in matcap mode.
 - Fixed a collision in the interaction of RTR and RTGI.
 - Fix for lookdev toggling renderers that are set to non editable or are hidden in the inspector.
+- Fixed issue with mipmap debug mode not properly resetting full screen mode (and viceversa). 
+- Added unsupported message when using tile debug mode with MSAA.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
@@ -93,6 +96,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the Trackball UI so that it allows explicit numeric values.
 - Reduce the G-buffer footprint of anisotropic materials
 - Moved SSGI out of preview.
+- Skip an unneeded depth buffer copy on consoles. 
+- Replaced the Density Volume Texture Tool with the new 3D Texture Importer.
 - Rename Raytracing Node to Raytracing Quality Keyword and rename high and low inputs as default and raytraced. All raytracing effects now use the raytraced mode but path tracing.
 
 ## [10.0.0] - 2019-06-10
@@ -255,6 +260,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added API to check if a Camera, Light or ReflectionProbe is compatible with HDRP.
 - Added path tracing test scene for normal mapping.
 - Added missing API documentation.
+- Remove CloudLayer
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -845,6 +851,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed multiple volumes, planar reflection, and decal projector position when creating them from the menu.
 - Reduced the number of global keyword used in deferredTile.shader
 - Fixed incorrect processing of Ambient occlusion probe (9% error was introduced)
+- Fixed multiedition of framesettings drop down (case 1270044)
 
 ### Changed
 - Improve MIP selection for decals on Transparents
