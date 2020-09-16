@@ -441,7 +441,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public static void CopyLinks(VFXSlot dst, VFXSlot src, bool notify)
+        public static void CopyLinks(VFXSlot dst, VFXSlot src, bool notify, bool tryMatchingNameAndType = false)
         {
             var links = src.LinkedSlots.ToArray();
             int index = 0;
@@ -475,11 +475,23 @@ namespace UnityEditor.VFX
                 dst = dst.children.First();
             }
 
-            if (copySubLinks && src.GetNbChildren() == dst.GetNbChildren())
+            if (copySubLinks)
             {
-                int nbSubSlots = src.GetNbChildren();
-                for (int i = 0; i < nbSubSlots; ++i)
-                    CopyLinks(dst[i], src[i], notify);
+                if (src.GetNbChildren() == dst.GetNbChildren())
+                {
+                    int nbSubSlots = src.GetNbChildren();
+                    for (int i = 0; i < nbSubSlots; ++i)
+                        CopyLinks(dst[i], src[i], notify);
+                }
+                else if (tryMatchingNameAndType)
+                {
+                    foreach (var srcSlot in src.children)
+                    {
+                        var dstSlot = dst.children.FirstOrDefault(o => o.name == srcSlot.name && o.property.type == srcSlot.property.type);
+                        if (dstSlot != null)
+                            CopyLinks(dstSlot, srcSlot, notify);
+                    }
+                }
             }
         }
 
@@ -591,7 +603,7 @@ namespace UnityEditor.VFX
                     parent.AddChild(newSlot, index);
                 }
 
-                CopyLinks(newSlot, this, true);
+                CopyLinks(newSlot, this, true, true); //WIIIIIIP ! //TODOPAUL
                 CopySpace(newSlot, this, true);
                 UnlinkAll(true);
                 return newSlot;
