@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -49,13 +49,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             targetSettingsLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             element.Add(new PropertyRow(targetSettingsLabel));
 
-            var targetNameList = graphData.validTargets.Select(x => x.displayName);
+            var targetNameList = graphData.validTargets.Select(x => x.displayName).ToArray();
 
             element.Add(new PropertyRow(new Label("Targets")), (row) =>
                 {
                     row.Add(new IMGUIContainer(() => {
                         EditorGUI.BeginChangeCheck();
-                        var activeTargetBitmask = EditorGUILayout.MaskField(graphData.activeTargetBitmask, targetNameList.ToArray(), GUILayout.Width(100f));
+                        var activeTargetBitmask = EditorGUILayout.MaskField(graphData.activeTargetBitmask, targetNameList, GUILayout.Width(100f));
                         if (EditorGUI.EndChangeCheck())
                         {
                             RegisterActionToUndo("Change active Targets");

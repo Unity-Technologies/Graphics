@@ -14,6 +14,7 @@ using UnityEditor.ShaderGraph.Serialization;
 using Edge = UnityEditor.Graphing.Edge;
 
 using UnityEngine.UIElements;
+using UnityEngine.Assertions;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -308,11 +309,34 @@ namespace UnityEditor.ShaderGraph
 
         public List<Target> unsupportedTargets { get => m_UnsupportedTargets; }
 
-        int m_ActiveTargetBitmask;
         public int activeTargetBitmask
         {
-            get => m_ActiveTargetBitmask;
-            set => m_ActiveTargetBitmask = value;
+            get
+            {
+                int targetBitmask = 0;
+                foreach (var target in m_ActiveTargets.SelectValue())
+                {
+                    int targetIndex = m_ValidTargets.FindIndex(t => t.GetType() == target.GetType());
+                    Assert.IsTrue(targetIndex >= 0);
+                    int targetFlag = (1 << targetIndex);
+                    targetBitmask = targetBitmask | targetFlag;
+                }
+                return targetBitmask;
+            }
+
+            set
+            {
+                m_ActiveTargets.Clear();
+                for (int targetIndex = 0; targetIndex < m_ValidTargets.Count; targetIndex++)
+                {
+                    Target target = m_ValidTargets[targetIndex];
+                    int targetFlag = (1 << targetIndex);
+                    if ((value & targetFlag) != 0)
+                    {
+                        m_ActiveTargets.Add(target);
+                    }
+                }
+            }
         }
 
         public List<Target> validTargets => m_ValidTargets;
@@ -414,27 +438,18 @@ namespace UnityEditor.ShaderGraph
             // Update active TargetImplementation list
             if(m_ActiveTargets != null)
             {
-                m_ActiveTargets.Clear();
-                var invalidTargetsToRemove = ListPool<Target>.Get();
                 var targetCount = m_ValidTargets.Count;
-                for(int i = 0; i < targetCount; i++)
+                for(int targetIndex = 0; targetIndex < targetCount; targetIndex++)
                 {
-                    if(((1 << i) & m_ActiveTargetBitmask) == (1 << i))
-                    {
-                        m_ActiveTargets.Add(m_ValidTargets[i]);
-                    }
                     //if we no longer have an unknown target as active, remove it
-                    else if(m_ValidTargets[i] is MultiJsonInternal.UnknownTargetType)
+                    if (m_ValidTargets[targetIndex] is MultiJsonInternal.UnknownTargetType)
                     {
-                        invalidTargetsToRemove.Add(m_ValidTargets[i]);
+                        m_ValidTargets.RemoveAt(targetIndex);
+
+                        // need to back up the index, since we just deleted the target in the list
+                        targetIndex--;
                     }
                 }
-
-                foreach(var invalidTarget in invalidTargetsToRemove)
-                {
-                    m_ValidTargets.Remove(invalidTarget);
-                }
-                ListPool<Target>.Release(invalidTargetsToRemove);
             }
             if (reevaluateActivity)
             {
@@ -2080,7 +2095,7 @@ namespace UnityEditor.ShaderGraph
                 }
                 var activeTargetCurrent = m_ValidTargets.FirstOrDefault(x => x.GetType() == target.GetType());
                 var targetIndex = m_ValidTargets.IndexOf(activeTargetCurrent);
-                m_ActiveTargetBitmask = m_ActiveTargetBitmask | (1 << targetIndex);
+                // m_ActiveTargetBitmask = m_ActiveTargetBitmask | (1 << targetIndex);
                 m_ValidTargets[targetIndex] = target;
             }
 
