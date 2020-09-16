@@ -47,11 +47,6 @@ To support SSAO in custom shader, add the `DepthNormals` Pass and the `_SCREEN_S
 
 If your custom shader implements custom lighting functions, use the function `GetScreenSpaceAmbientOcclusion(float2 normalizedScreenSpaceUV)` to get the `AmbientOcclusionFactor` value for your lighting calculations.
 
-### Shadow Normal Bias
-
-In 10.0.x the formula used to apply Shadow Normal Bias has been slightly fix in order to work better with punctual lights.
-As a result, to match exactly shadow outlines from earlier revisions, the parameter might to be adjusted in some scenes. Typically, using 1.4 instead of 1.0 for a Directional light is usually enough.
-
 ## Upgrading from URP 7.0.x-7.1.x
 
 1. Upgrade to URP 7.2.0 first. Refer to [Upgrading to version 7.2.0 of the Universal Render Pipeline](upgrade-guide-7-2-0).
