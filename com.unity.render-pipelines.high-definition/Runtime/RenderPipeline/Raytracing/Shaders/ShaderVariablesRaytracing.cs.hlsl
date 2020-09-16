@@ -16,7 +16,6 @@ GLOBAL_CBUFFER_START(ShaderVariablesRaytracing, b3)
     int _RaytracingPreExposition;
     float _RaytracingCameraNearPlane;
     float _RaytracingPixelSpreadAngle;
-    uint _RaytracingDiffuseRay;
     float _RaytracingReflectionMinSmoothness;
     float _RaytracingReflectionSmoothnessFadeStart;
     int _RaytracingIncludeSky;
