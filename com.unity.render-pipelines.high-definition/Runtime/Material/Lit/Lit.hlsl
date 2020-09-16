@@ -7,7 +7,7 @@
 // Those define allow to include desired SSS/Transmission functions
 #define MATERIAL_INCLUDE_SUBSURFACESCATTERING
 #define MATERIAL_INCLUDE_TRANSMISSION
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl" //For IsUninitializedGI 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl" //For IsUninitializedGI
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
@@ -578,15 +578,55 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
         // Compute the rotation angle of the actual tangent frame with respect to the default one.
         float sinFrame = dot(surfaceData.tangentWS, frame[1]);
         float cosFrame = dot(surfaceData.tangentWS, frame[0]);
-        uint  storeSin = abs(sinFrame) < abs(cosFrame) ? 4 : 0;
-        uint  quadrant = ((sinFrame < 0) ? 1 : 0) | ((cosFrame < 0) ? 2 : 0);
 
-        // sin [and cos] are approximately linear up to [after] 45 degrees.
-        float sinOrCos = min(abs(sinFrame), abs(cosFrame)) * sqrt(2);
+        // Define AnisoGGX(α, β, γ), where:
+        // α is the roughness corresponding to the direction of the tangent;
+        // β is the roughness corresponding to the direction of the bi-tangent;
+        // γ is the angle of rotation of the tangent frame around the normal.
+        //
+        // The following symmetry relations exist:
+        // 1st quadrant (Sin >= 0, Cos >  0): AnisoGGX(α, β, γ), where (0 <= γ < Pi/2)
+        // 2nd quadrant (Sin >  0, Cos <= 0): AnisoGGX(α, β, γ) == AnisoGGX(β, α, γ + Pi * 1/2)
+        // 3rd quadrant (Sin <= 0, Cos <  0): AnisoGGX(α, β, γ) == AnisoGGX(α, β, γ + Pi)
+        // 4th quadrant (Sin <  0, Cos >= 0): AnisoGGX(α, β, γ) == AnisoGGX(β, α, γ + Pi * 3/2)
+        // Handling of the interval end-points may be less rigorous to simplify programming.
+        // The only requirement is that the handling is consistent throughout.
+        bool quad2or4 = (sinFrame * cosFrame) < 0;
 
-        outGBuffer2.rgb = float3(surfaceData.anisotropy * 0.5 + 0.5,
-                                 sinOrCos,
-                                 PackFloatInt8bit(surfaceData.metallic, storeSin | quadrant, 8));
+        // Anisotropy = (α - β) / (α + β).
+        // Exchanging the roughness values α and β is equivalent to negating the value of anisotropy.
+    #if 0
+        // To avoid shading seams at the locations where anisotropy changes its sign,
+        // its magnitude must be the same (on both sides) after reconstruction from the G-buffer.
+        // This means that the hardware unit must perform rounding accurately (and consistently)
+        // before storing the value in the G-buffer.
+        float sfltAniso  = quad2or4 ? -surfaceData.anisotropy : surfaceData.anisotropy;
+        float anisotropy = sfltAniso * 0.5 + 0.5;
+    #else
+        // It turns out, certain hardware has poor rounding behavior:
+        // https://microsoft.github.io/DirectX-Specs/d3d/archive/D3D11_3_FunctionalSpec.htm#3.2.3.6%20FLOAT%20-%3E%20UNORM
+        // Therefore, we must round manually to avoid the seams.
+        float uintAniso  = round(surfaceData.anisotropy * 127.5 + 127.5);
+              uintAniso  = quad2or4 ? 255 - uintAniso : uintAniso;
+        // We cannot represent the anisotropy value of 0 exactly, but it is of little
+        // importance since you can just use the isotropic material for that purpose.
+        float anisotropy = uintAniso * rcp(255);
+    #endif
+
+        // We need to convert the values of Sin and Cos to those appropriate for the 1st quadrant.
+        // To go from Q3 to Q1, we must rotate by Pi, so taking the absolute value suffices.
+        // To go from Q2 or Q4 to Q1, we must rotate by ((N + 1/2) * Pi), so we must
+        // take the absolute value and also swap Sin and Cos.
+        bool  storeSin = (abs(sinFrame) < abs(cosFrame)) != quad2or4;
+        // sin [and cos] are approximately linear up to [after] Pi/4 ± Pi.
+        float sinOrCos = min(abs(sinFrame), abs(cosFrame));
+        // To avoid storing redundant angles, we must convert from a node-centered representation
+        // to a cell-centered one, e.i. remap: [0.5/256, 255.5/256] -> [0, 1].
+        float remappedSinOrCos = Remap01(sinOrCos, sqrt(2) * 256.0/255.0, 0.5/255.0);
+
+        outGBuffer2.rgb = float3(anisotropy,
+                                 remappedSinOrCos,
+                                 PackFloatInt8bit(surfaceData.metallic, storeSin ? 1 : 0, 8));
     }
     else if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
     {
@@ -869,14 +909,11 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
             UnpackFloatInt8bit(inGBuffer2.b, 8, unused, tangentFlags);
 
             // Get the rotation angle of the actual tangent frame with respect to the default one.
-            uint  quadrant = tangentFlags;
-            uint  storeSin = tangentFlags & 4;
-            float sinOrCos = inGBuffer2.g * rsqrt(2);
+            float sinOrCos = (0.5/256.0 * rsqrt(2)) + (255.0/256.0 * rsqrt(2)) * inGBuffer2.g;
             float cosOrSin = sqrt(1 - sinOrCos * sinOrCos);
+            bool  storeSin = tangentFlags != 0;
             float sinFrame = storeSin ? sinOrCos : cosOrSin;
             float cosFrame = storeSin ? cosOrSin : sinOrCos;
-                  sinFrame = (quadrant & 1) ? -sinFrame : sinFrame;
-                  cosFrame = (quadrant & 2) ? -cosFrame : cosFrame;
 
             // Rotate the reconstructed tangent around the normal.
             frame[0] = sinFrame * frame[1] + cosFrame * frame[0];
@@ -1580,14 +1617,21 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             // Evaluate the diffuse part
             // Polygon irradiance in the transformed configuration.
             float4x3 LD = mul(lightVerts, preLightData.ltcTransformDiffuse);
-            ltcValue  = PolygonIrradiance(LD);
+            float3 formFactorD;
+#ifdef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
+            formFactorD = PolygonFormFactor(LD);
+            ltcValue = PolygonIrradianceFromVectorFormFactor(formFactorD);
+#else
+            ltcValue = PolygonIrradiance(LD, formFactorD);
+#endif
             ltcValue *= lightData.diffuseDimmer;
 
             // Only apply cookie if there is one
             if ( lightData.cookieMode != COOKIEMODE_NONE )
             {
-                // Compute the cookie data for the diffuse term
-                float3 formFactorD =  PolygonFormFactor(LD);
+#ifndef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
+                formFactorD = PolygonFormFactor(LD);
+#endif
                 ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LD, formFactorD);
             }
 
@@ -1628,14 +1672,22 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             // Evaluate the specular part
             // Polygon irradiance in the transformed configuration.
             float4x3 LS = mul(lightVerts, preLightData.ltcTransformSpecular);
-            ltcValue  = PolygonIrradiance(LS);
+            float3 formFactorS;
+#ifdef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
+            formFactorS = PolygonFormFactor(LS);
+            ltcValue = PolygonIrradianceFromVectorFormFactor(formFactorS);
+#else
+            ltcValue = PolygonIrradiance(LS);
+#endif
             ltcValue *= lightData.specularDimmer;
 
             // Only apply cookie if there is one
             if ( lightData.cookieMode != COOKIEMODE_NONE)
             {
                 // Compute the cookie data for the specular term
-                float3 formFactorS =  PolygonFormFactor(LS);
+#ifndef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
+                formFactorS =  PolygonFormFactor(LS);
+#endif
                 ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LS, formFactorS);
             }
 
@@ -1729,8 +1781,8 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     // In case this material has a clear coat, we shou not be using the specularFGD. The condition for it is a combination
     // of a materia feature and the coat mask.
     float clampedNdotV = ClampNdotV(preLightData.NdotV);
-    lighting.specularReflected = ssrLighting.rgb * (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) ? 
-                                                    lerp(preLightData.specularFGD, F_Schlick(CLEAR_COAT_F0, clampedNdotV), bsdfData.coatMask) 
+    lighting.specularReflected = ssrLighting.rgb * (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) ?
+                                                    lerp(preLightData.specularFGD, F_Schlick(CLEAR_COAT_F0, clampedNdotV), bsdfData.coatMask)
                                                     : preLightData.specularFGD);
     reflectionHierarchyWeight  = ssrLighting.a;
 

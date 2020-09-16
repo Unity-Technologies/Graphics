@@ -71,7 +71,7 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
-        [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData();
+        [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData() { passOperation = StencilOp.Replace };
         [SerializeField] bool m_ShadowTransparentReceive = true;
         [SerializeField] bool m_PreferDepthPrepass = false;
         [SerializeField] bool m_AccurateGbufferNormals = false;
