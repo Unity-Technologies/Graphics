@@ -4,7 +4,7 @@ In Photography, vignetting is the term for the darkening and/or desaturating tow
 
 ## Using Vignette
 
-**Vignette** uses the [Volume](Volumes.html) framework, so to enable and modify **Vignette** properties, you must add a **Vignette** override to a [Volume](Volumes.html) in your Scene. To add **Vignette** to a Volume:
+**Vignette** uses the [Volume](Volumes.md) framework, so to enable and modify **Vignette** properties, you must add a **Vignette** override to a [Volume](Volumes.md) in your Scene. To add **Vignette** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Post-processing** and click on **Vignette**. HDRP now applies **Vignette** to any Camera this Volume affects.

@@ -12,7 +12,6 @@ namespace UnityEditor.Rendering.HighDefinition
         // Properties for Base Lit material keyword setup
         protected const string kDoubleSidedNormalMode = "_DoubleSidedNormalMode";
 
-        protected const string kDisplacementMode = "_DisplacementMode";
         protected const string kDisplacementLockObjectScale = "_DisplacementLockObjectScale";
         protected const string kDisplacementLockTilingScale = "_DisplacementLockTilingScale";
 
@@ -76,12 +75,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Depth offset is only enabled if per pixel displacement is
                 bool depthOffsetEnable = (material.GetFloat(kDepthOffsetEnable) > 0.0f) && enablePixelDisplacement;
-                CoreUtils.SetKeyword(material, "_DEPTHOFFSET_ON", depthOffsetEnable);
-            }
-            else if (material.HasProperty(kDepthOffsetEnable)) // ShaderGraphs don't have the displacement mode but they have a depth offset
-            {
-                // Depth offset is only enabled if per pixel displacement is
-                bool depthOffsetEnable = (material.GetFloat(kDepthOffsetEnable) > 0.0f);
                 CoreUtils.SetKeyword(material, "_DEPTHOFFSET_ON", depthOffsetEnable);
             }
 

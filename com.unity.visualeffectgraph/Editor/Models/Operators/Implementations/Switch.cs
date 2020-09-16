@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.Operator
         public class TestInputProperties
         {
             [Tooltip("Sets the integer value that determines which entry is output.")]
-            public int testValue = 0;
+            public uint testValue = 0;
         }
 
         public class ManualRandom
@@ -109,7 +109,7 @@ namespace UnityEditor.VFX.Operator
             }
 
             var referenceValue = inputExpression.First();
-            referenceValue = new VFXExpressionCastIntToFloat(referenceValue);
+            referenceValue = new VFXExpressionCastUintToFloat(referenceValue);
 
             var startCaseOffset = 1;
             var stride = expressionCountPerUniqueSlot + 1;

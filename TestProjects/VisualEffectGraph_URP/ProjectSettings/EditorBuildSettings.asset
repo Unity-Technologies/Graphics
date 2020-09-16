@@ -39,6 +39,9 @@ EditorBuildSettings:
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/009_ReadAttributeInSpawner.unity
     guid: a6e75e236a616124d9604762b5402ac7
   - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/009_OutputEvent.unity
+    guid: fa108e309b0697045b8474742e8d9a0a
+  - enabled: 1
     path: Assets/GraphicsTests/100_Fog.unity
     guid: b288e123b6536de40bc86452b3811b20
   - enabled: 1

@@ -54,16 +54,24 @@ namespace UnityEngine.Rendering.Universal
 
             [Reload("Shaders/Utils/StencilDeferred.shader")]
             public Shader stencilDeferredPS;
+
+            [Reload("Shaders/Utils/FallbackError.shader")]
+            public Shader fallbackErrorPS;
         }
 
         [Reload("Runtime/Data/PostProcessData.asset")]
         public PostProcessData postProcessData = null;
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+        [Reload("Runtime/Data/XRSystemData.asset")]
+        public XRSystemData xrSystemData = null;
+#endif
+
         public ShaderResources shaders = null;
 
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
-        [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData();
+        [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData() { passOperation = StencilOp.Replace };
         [SerializeField] bool m_ShadowTransparentReceive = true;
         [SerializeField] bool m_PreferDepthPrepass = false;
         [SerializeField] bool m_AccurateGbufferNormals = false;
@@ -76,6 +84,9 @@ namespace UnityEngine.Rendering.Universal
             {
                 ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
                 ResourceReloader.ReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
+#if ENABLE_VR && ENABLE_XR_MODULE
+                ResourceReloader.TryReloadAllNullIn(xrSystemData, UniversalRenderPipelineAsset.packagePath);
+#endif
             }
 #endif
             return new DeferredRenderer(this);
@@ -176,6 +187,9 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
             ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
             ResourceReloader.ReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
+#if ENABLE_VR && ENABLE_XR_MODULE
+            ResourceReloader.TryReloadAllNullIn(xrSystemData, UniversalRenderPipelineAsset.packagePath);
+#endif
 #endif
         }
     }

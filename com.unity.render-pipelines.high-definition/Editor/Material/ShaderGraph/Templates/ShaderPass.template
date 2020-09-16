@@ -24,6 +24,9 @@ Pass
     $splice(PassKeywords)
     $splice(GraphKeywords)
 
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+
     // --------------------------------------------------
     // Defines
 
@@ -58,9 +61,9 @@ Pass
 
     // To handle SSR on transparent correctly with a possibility to enable/disable it per framesettings
     // we should have a code like this:
-    // #if !defined(_DISABLE_SSR_TRANSPARENT)
-    // #pragma multi_compile _ WRITE_NORMAL_BUFFER
-    // #endif
+    // if !defined(_DISABLE_SSR_TRANSPARENT)
+    // pragma multi_compile _ WRITE_NORMAL_BUFFER
+    // endif
     // i.e we enable the multicompile only if we can receive SSR or not, and then C# code drive
     // it based on if SSR transparent in frame settings and not (and stripper can strip it).
     // this is currently not possible with our current preprocessor as _DISABLE_SSR_TRANSPARENT is a keyword not a define
@@ -203,7 +206,7 @@ Pass
             // Light Layers are currently not used for the Unlit shader (because it is not lit)
             // But Unlit objects do cast shadows according to their rendering layer mask, which is what we want to
             // display in the light layers visualization mode, therefore we need the renderingLayers
-            builtinData.renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
+            builtinData.renderingLayers = GetMeshRenderingLightLayer();
         #endif
 
         #endif // SHADER_UNLIT

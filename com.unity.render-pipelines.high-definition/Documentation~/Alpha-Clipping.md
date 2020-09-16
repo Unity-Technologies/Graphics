@@ -13,7 +13,7 @@ If you enable this feature, HDRP exposes the following properties for you to use
 | **- Shadow Threshold**   | Set the alpha value limit that HDRP uses to determine whether it should render shadows for a pixel. |
 | **Alpha to Mask**        | Enable the checkbox to turn on alpha-to-coverage. When MSAA is used, alpha-to-coverage modifies multisample coverage mask proportionally to the pixel Shader result alpha value. This is typically used for anti-aliasing vegetation and other alpha-tested shaders.  |
 
-If you set your [Surface Type](Surface-Type.html) to **Transparent**, HDRP exposes the **Transparent Depth Prepass** and **Transparent Depth Postpass** properties. HDRP allows you to set individual thresholds for these two passes.
+If you set your [Surface Type](Surface-Type.md) to **Transparent**, HDRP exposes the **Transparent Depth Prepass** and **Transparent Depth Postpass** properties. HDRP allows you to set individual thresholds for these two passes.
 
 | Property                      | Description                                                  |
 | ----------------------------- | ------------------------------------------------------------ |

@@ -137,9 +137,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public NoInterpVector2Parameter proceduralCenter = new NoInterpVector2Parameter(new Vector2(0.5f, 0.5f));
         /// <summary>
-        /// Sets the radii of the procedural mask, in terms of fraction of the screen (i.e. 0.5 means a radius that stretch half of the screen).
+        /// Sets the radii of the procedural mask, in terms of fraction of half the screen (i.e. 0.5 means a mask that stretch half of the screen in both directions).
         /// </summary>
-        public NoInterpVector2Parameter proceduralRadii  = new NoInterpVector2Parameter(new Vector2(0.15f, 0.15f));
+        public NoInterpVector2Parameter proceduralRadii  = new NoInterpVector2Parameter(new Vector2(0.3f, 0.3f));
         /// <summary>
         /// All pixels below this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask. 
         /// </summary>
@@ -176,27 +176,27 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Allows you to manually sets the Scene exposure.
         /// </summary>
-        Fixed,
+        Fixed = 0,
 
         /// <summary>
         /// Automatically sets the exposure depending on what is on screen.
         /// </summary>
-        Automatic,
+        Automatic = 1,
 
         /// <summary>
         /// Automatically sets the exposure depending on what is on screen and can filter out outliers based on provided settings.
         /// </summary>
-        AutomaticHistogram,
+        AutomaticHistogram = 4,
 
         /// <summary>
         /// Maps the current Scene exposure to a custom curve.
         /// </summary>
-        CurveMapping,
+        CurveMapping = 2,
 
         /// <summary>
         /// Uses the current physical Camera settings to set the Scene exposure.
         /// </summary>
-        UsePhysicalCamera
+        UsePhysicalCamera = 3
     }
 
     /// <summary>

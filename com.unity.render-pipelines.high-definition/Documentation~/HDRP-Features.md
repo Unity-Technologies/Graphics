@@ -105,11 +105,13 @@ The Fabric Shader allows you to render realistic fabric Materials in HDRP. You c
 
 The AxF Shader supports the [X-Rite AxF](https://www.xrite.com/axf) measured Material format. The AxF importer, available in [Unity Enterprise for Product Lifecylce](https://unity.com/products/unity-enterprise-product-lifecycle), automatically populates an AxF Material when it imports AxF Assets. For more information, including a full list of Shader properties, see the [AxF Shader documentation](AxF-Shader).
 
-### Decal Shader
+### Decals
 
 ![](Images/HDRPFeatures-DecalShader.png)
 
-The Decal Shader allows you to place decals on surfaces in your Scene. To apply a decal to a surface, you can either use the [Decal Projector component](Decal-Projector.md) to project the decal onto the surface, or assign the decal directly to a Mesh and then place the Mesh on the surface. For more information, including the full list of Shader properties, see the [Decal Shader documentation](Decal-Shader.md).
+HDRP allows you to apply decals to surfaces in your Scene. To apply a decal to a surface, you can either use the [Decal Projector component](Decal-Projector.md) to project the decal onto the surface, or assign the decal shader directly to a Mesh and then place the Mesh on the surface. For more information, see the [Decal documentation](Decal.md).
+
+HDRP also supports Decal Layers which allows you to control which GameObjects receive decals or not. 
 
 ### Terrain Shader
 
@@ -118,6 +120,7 @@ The Decal Shader allows you to place decals on surfaces in your Scene. To apply 
 The Terrain Lit Shader is compatible with the built-in terrain system and supports up to eight layers in a single draw call. This Shader uses the same lighting model as the Lit Shader. For more information, including the full list of Shader properties, see the [Terrain Lit Shader documentation](Terrain-Lit-Shader.md).
 
 <a name="Lighting"></a>
+
 
 ## Lighting
 

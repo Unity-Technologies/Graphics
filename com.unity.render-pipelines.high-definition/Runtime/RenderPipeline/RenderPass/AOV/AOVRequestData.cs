@@ -145,13 +145,29 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_RequestedAOVBuffers != null)
             {
                 foreach (var bufferId in m_RequestedAOVBuffers)
-                    textures.Add(m_BufferAllocator(bufferId));
+                {
+                    var rtHandle = m_BufferAllocator(bufferId);
+                    textures.Add(rtHandle);
+                    if (rtHandle == null)
+                    {
+                        Debug.LogError("Allocation for requested AOVBuffers ID: " + bufferId.ToString() + " have fail. Please ensure the callback allocator do the correct allocation.");
+                    }
+                }
+                    
             }
 
             if (m_CustomPassAOVBuffers != null)
             {
                 foreach (var aovBufferId in m_CustomPassAOVBuffers)
-                    customPassTextures.Add(m_CustomPassBufferAllocator(aovBufferId));
+                {
+                    var rtHandle = m_CustomPassBufferAllocator(aovBufferId);
+                    customPassTextures.Add(rtHandle);
+
+                    if (rtHandle == null)
+                    {
+                        Debug.LogError("Allocation for requested AOVBuffers ID: " + aovBufferId.ToString() + " have fail. Please ensure the callback for custom pass allocator do the correct allocation.");
+                    }
+                }
             }
         }
 
@@ -179,7 +195,10 @@ namespace UnityEngine.Rendering.HighDefinition
             if (index == -1)
                 return;
 
-            HDUtils.BlitCameraTexture(cmd, source, targets[index]);
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.AOVOutput + (int)aovBufferId)))
+            {
+                HDUtils.BlitCameraTexture(cmd, source, targets[index]);
+            }
         }
 
         class PushCameraTexturePassData
@@ -207,7 +226,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (index == -1)
                 return;
 
-            using (var builder = renderGraph.AddRenderPass<PushCameraTexturePassData>("Push AOV Camera Texture", out var passData))
+            using (var builder = renderGraph.AddRenderPass<PushCameraTexturePassData>("Push AOV Camera Texture", out var passData, ProfilingSampler.Get(HDProfileId.AOVOutput + (int)aovBufferId)))
             {
                 passData.source = builder.ReadTexture(source);
                 passData.target = targets[index];
@@ -215,7 +234,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (PushCameraTexturePassData data, RenderGraphContext ctx) =>
                 {
-                    HDUtils.BlitCameraTexture(ctx.cmd, ctx.resources.GetTexture(data.source), data.target);
+                    HDUtils.BlitCameraTexture(ctx.cmd, data.source, data.target);
                 });
             }
         }
@@ -312,7 +331,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (data.customPassSource != null)
                         HDUtils.BlitCameraTexture(ctx.cmd, data.customPassSource, data.target);
                     else
-                        HDUtils.BlitCameraTexture(ctx.cmd, ctx.resources.GetTexture(data.source), data.target);
+                        HDUtils.BlitCameraTexture(ctx.cmd, data.source, data.target);
                 });
             }
         }

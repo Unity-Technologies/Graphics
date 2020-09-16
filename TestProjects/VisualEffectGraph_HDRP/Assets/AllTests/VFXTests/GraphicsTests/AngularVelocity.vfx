@@ -164,9 +164,9 @@ MonoBehaviour:
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
+  - {fileID: 8926484042661614614}
   - {fileID: 8926484042661614541}
   - {fileID: 8926484042661614542}
-  - {fileID: 8926484042661614614}
   - {fileID: 8926484042661614540}
   m_OutputSlots: []
   m_Label: 
@@ -191,9 +191,13 @@ MonoBehaviour:
   sortPriority: 0
   sort: 0
   indirectDraw: 0
+  computeCulling: 0
+  frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   shaderGraph: {fileID: 0}
+  MeshCount: 1
+  lod: 0
 --- !u!114 &8926484042661614540
 MonoBehaviour:
   m_ObjectHideFlags: 0

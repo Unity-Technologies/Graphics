@@ -11,7 +11,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         Material m_ScreenSpaceShadowsMaterial;
         RenderTargetHandle m_ScreenSpaceShadowmap;
         RenderTextureDescriptor m_RenderTextureDescriptor;
-        const string m_ProfilerTag = "Resolve Shadows";
 
         public ScreenSpaceShadowResolvePass(RenderPassEvent evt, Material screenspaceShadowsMaterial)
         {
@@ -53,18 +52,21 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             Camera camera = renderingData.cameraData.camera;
 
-            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
-            if (!renderingData.cameraData.xr.enabled)
+            CommandBuffer cmd = CommandBufferPool.Get();
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.ResolveShadows)))
             {
-                cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_ScreenSpaceShadowsMaterial);
-                cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
-            }
-            else
-            {
-                // Avoid setting and restoring camera view and projection matrices when in stereo.
-                RenderTargetIdentifier screenSpaceOcclusionTexture = m_ScreenSpaceShadowmap.Identifier();
-                Blit(cmd, screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceShadowsMaterial);
+                if (!renderingData.cameraData.xr.enabled)
+                {
+                    cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+                    cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_ScreenSpaceShadowsMaterial);
+                    cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
+                }
+                else
+                {
+                    // Avoid setting and restoring camera view and projection matrices when in stereo.
+                    RenderTargetIdentifier screenSpaceOcclusionTexture = m_ScreenSpaceShadowmap.Identifier();
+                    Blit(cmd, screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceShadowsMaterial);
+                }
             }
 
             context.ExecuteCommandBuffer(cmd);

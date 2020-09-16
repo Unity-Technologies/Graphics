@@ -70,6 +70,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(SubsurfaceScattering,                 fabricData.subsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
             context.AddField(Transmission,                         fabricData.transmission);
             context.AddField(EnergyConservingSpecular,             fabricData.energyConservingSpecular);
+
+            context.AddField(SpecularAA, lightingData.specularAA &&
+                                context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold) &&
+                                context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance));
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)

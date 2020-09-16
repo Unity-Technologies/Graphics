@@ -10,8 +10,8 @@ void BuildFragInputsFromIntersection(IntersectionVertex currentVertex, float3 in
 	outFragInputs.color = currentVertex.color;
 
     float3 normalWS = normalize(mul(currentVertex.normalOS, (float3x3)WorldToObject3x4()));
-	float4 tangentWS = float4(normalize(mul(currentVertex.tangentOS.xyz, (float3x3)WorldToObject3x4())), currentVertex.tangentOS.w);
-	outFragInputs.tangentToWorld = BuildTangentToWorld(tangentWS, normalWS);
+	float3 tangentWS = normalize(mul(currentVertex.tangentOS.xyz, (float3x3)WorldToObject3x4()));
+	outFragInputs.tangentToWorld = CreateTangentToWorld(normalWS, tangentWS, sign(currentVertex.tangentOS.w));
 
 	outFragInputs.isFrontFace = dot(incidentDirection, outFragInputs.tangentToWorld[2]) < 0.0f;
 }

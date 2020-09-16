@@ -10,7 +10,6 @@ using UnityEngine;
 using UnityEngine.Profiling;
 
 using UnityObject = UnityEngine.Object;
-using Branch = UnityEditor.VFX.Operator.VFXOperatorDynamicBranch;
 
 namespace UnityEditor.VFX.UI
 {
@@ -1713,9 +1712,9 @@ namespace UnityEditor.VFX.UI
                     else
                         newControllers.Add(new VFXUnifiedOperatorController(model as VFXOperator, this));
                 }
-                else if (model is Branch)
+                else if (model is VFXOperatorDynamicType)
                 {
-                    newControllers.Add(new VFXBranchOperatorController(model as VFXOperator, this));
+                    newControllers.Add(new VFXDynamicTypeOperatorController(model as VFXOperator, this));
                 }
                 else
                     newControllers.Add(new VFXOperatorController(model as VFXOperator, this));

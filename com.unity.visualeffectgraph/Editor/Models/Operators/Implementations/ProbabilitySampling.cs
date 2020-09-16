@@ -79,7 +79,6 @@ namespace UnityEditor.VFX.Operator
         {
             get
             {
-                var baseInputProperties = base.inputProperties;
                 var defaultValue = GetDefaultValueForType(GetOperandType());
                 for (uint i = 0; i < m_EntryCount; ++i)
                 {

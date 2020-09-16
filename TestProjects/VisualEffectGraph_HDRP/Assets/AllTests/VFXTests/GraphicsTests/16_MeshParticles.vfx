@@ -697,6 +697,8 @@ MonoBehaviour:
       m_SerializableType: 
     m_SerializableObject: 
   m_IsOutput: 0
+  m_EnumValues: []
+  m_ValueFilter: 0
   m_Tooltip: 
   m_Nodes:
   - m_Id: 0
@@ -824,9 +826,9 @@ MonoBehaviour:
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
+  - {fileID: 114776405816517722}
   - {fileID: 114742699564142396}
   - {fileID: 114347075832499752}
-  - {fileID: 114776405816517722}
   - {fileID: 114903038865561644}
   m_OutputSlots: []
   m_Label: 
@@ -851,9 +853,13 @@ MonoBehaviour:
   sortPriority: 0
   sort: 0
   indirectDraw: 0
+  computeCulling: 0
+  frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   shaderGraph: {fileID: 0}
+  MeshCount: 1
+  lod: 0
 --- !u!114 &114194721034308180
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3280,9 +3286,13 @@ MonoBehaviour:
   sortPriority: 0
   sort: 0
   indirectDraw: 1
+  computeCulling: 0
+  frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   shaderGraph: {fileID: 0}
+  MeshCount: 1
+  lod: 0
 --- !u!114 &114800354742086734
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3679,9 +3689,13 @@ MonoBehaviour:
   sortPriority: 0
   sort: 0
   indirectDraw: 0
+  computeCulling: 0
+  frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   shaderGraph: {fileID: 0}
+  MeshCount: 1
+  lod: 0
 --- !u!114 &114849367105866056
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3878,9 +3892,13 @@ MonoBehaviour:
   sortPriority: 0
   sort: 0
   indirectDraw: 0
+  computeCulling: 0
+  frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   shaderGraph: {fileID: 0}
+  MeshCount: 1
+  lod: 0
 --- !u!114 &114893539770069574
 MonoBehaviour:
   m_ObjectHideFlags: 1

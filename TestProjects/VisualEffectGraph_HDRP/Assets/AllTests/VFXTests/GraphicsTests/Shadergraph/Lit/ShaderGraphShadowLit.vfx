@@ -1052,6 +1052,8 @@ MonoBehaviour:
   sortPriority: 0
   sort: 0
   indirectDraw: 0
+  computeCulling: 0
+  frustumCulling: 0
   castShadows: 1
   useExposureWeight: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 512f82f171764c6479b3c00a0ed7479a,
@@ -1199,6 +1201,8 @@ MonoBehaviour:
   sortPriority: 0
   sort: 0
   indirectDraw: 0
+  computeCulling: 0
+  frustumCulling: 0
   castShadows: 1
   useExposureWeight: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 512f82f171764c6479b3c00a0ed7479a,
@@ -1219,6 +1223,8 @@ MonoBehaviour:
   enableSpecular: 1
   enableCookie: 1
   enableEnvLight: 1
+  MeshCount: 1
+  lod: 0
 --- !u!114 &8926484042661614595
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1660,6 +1666,8 @@ MonoBehaviour:
   sortPriority: 0
   sort: 0
   indirectDraw: 0
+  computeCulling: 0
+  frustumCulling: 0
   castShadows: 1
   useExposureWeight: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 512f82f171764c6479b3c00a0ed7479a,
@@ -1680,6 +1688,8 @@ MonoBehaviour:
   enableSpecular: 1
   enableCookie: 1
   enableEnvLight: 1
+  MeshCount: 1
+  lod: 0
 --- !u!114 &8926484042661614618
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2060,6 +2070,8 @@ MonoBehaviour:
   sortPriority: 0
   sort: 0
   indirectDraw: 0
+  computeCulling: 0
+  frustumCulling: 0
   castShadows: 1
   useExposureWeight: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 512f82f171764c6479b3c00a0ed7479a,

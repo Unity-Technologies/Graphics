@@ -63,7 +63,6 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             float2 positionSS  = input.positionCS.xy;
             float3 V           = GetSkyViewDirWS(positionSS);
             float  depth       = LoadCameraDepth(positionSS);
-            float3 surfColor   = LOAD_TEXTURE2D_X(_ColorTexture, (int2)positionSS).rgb;
 
             float3 volColor, volOpacity;
             AtmosphericScatteringCompute(input, V, depth, volColor, volOpacity);
@@ -77,7 +76,6 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             float2 positionSS  = input.positionCS.xy;
             float3 V           = GetSkyViewDirWS(positionSS);
             float  depth       = LOAD_TEXTURE2D_X_MSAA(_DepthTextureMS, (int2)positionSS, sampleIndex).x;
-            float3 surfColor   = LOAD_TEXTURE2D_X_MSAA(_ColorTextureMS, (int2)positionSS, sampleIndex).rgb;
 
             float3 volColor, volOpacity;
             AtmosphericScatteringCompute(input, V, depth, volColor, volOpacity);

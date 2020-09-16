@@ -1,4 +1,4 @@
-#include "GraniteShaderLibBase.h"
+#include "GraniteShaderLibBase.hlsl"
 
 #define VtAddressMode_Wrap 0
 #define VtAddressMode_Clamp 1

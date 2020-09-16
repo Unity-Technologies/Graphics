@@ -60,9 +60,9 @@ Shader "Hidden/Light2d-Point-Volumetric"
 
             half4   _LightColor;
             half    _VolumeOpacity;
-            half4   _LightPosition;
-            half4x4 _LightInvMatrix;
-            half4x4 _LightNoRotInvMatrix;
+            float4   _LightPosition;
+            float4x4 _LightInvMatrix;
+            float4x4 _LightNoRotInvMatrix;
             half    _LightZDistance;
             half    _OuterAngle;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
             half    _InnerAngleMult;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees

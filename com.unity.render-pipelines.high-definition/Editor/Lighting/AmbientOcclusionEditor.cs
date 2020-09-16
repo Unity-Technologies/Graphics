@@ -14,6 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_FullResolution;
         SerializedDataParameter m_MaximumRadiusInPixels;
         SerializedDataParameter m_DirectLightingStrength;
+        SerializedDataParameter m_SpatialBilateralAggressiveness;
 
         // Temporal only parameters
         SerializedDataParameter m_TemporalAccumulation;
@@ -52,6 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DirectLightingStrength = Unpack(o.Find(x => x.directLightingStrength));
             m_GhostingAdjustement = Unpack(o.Find(x => x.ghostingReduction));
             m_BilateralUpsample = Unpack(o.Find("m_BilateralUpsample"));
+            m_SpatialBilateralAggressiveness = Unpack(o.Find(x => x.spatialBilateralAggressiveness));
 
             m_RayTracing = Unpack(o.Find(x => x.rayTracing));
             m_LayerMask = Unpack(o.Find(x => x.layerMask));
@@ -109,7 +111,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_StepCount, EditorGUIUtility.TrTextContent("Step Count", "Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction)."));
                 GUI.enabled = true;
 
-                PropertyField(m_TemporalAccumulation, EditorGUIUtility.TrTextContent("Temporal Accumulation", "Whether the results are accumulated over time or not. This can get better results cheaper, but it can lead to temporal artifacts."));
+                PropertyField(m_TemporalAccumulation, EditorGUIUtility.TrTextContent("Temporal Accumulation", "Whether the results are accumulated over time or not. This can get better results cheaper, but it can lead to temporal artifacts. Requires Motion Vectors to be enabled."));
                 EditorGUI.indentLevel++;
                 if(!m_TemporalAccumulation.value.boolValue)
                 {
@@ -124,6 +126,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 else
                 {
+                    PropertyField(m_SpatialBilateralAggressiveness, EditorGUIUtility.TrTextContent("Bilateral Aggressiveness", "Higher this value, the less lenient with depth differences the spatial filter is. Increase if for example noticing white halos where AO should be."));
                     PropertyField(m_GhostingAdjustement, EditorGUIUtility.TrTextContent("Ghosting reduction", "Moving this factor closer to 0 will increase the amount of accepted samples during temporal accumulation, increasing the ghosting, but reducing the temporal noise."));
                     if (isInAdvancedMode && !m_FullResolution.value.boolValue)
                     {

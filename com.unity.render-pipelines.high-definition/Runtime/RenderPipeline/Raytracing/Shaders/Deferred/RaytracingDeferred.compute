@@ -89,12 +89,17 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     ZERO_INITIALIZE(BuiltinData, builtinData);
     uint  featureFlags = UINT_MAX;
     DecodeFromGBuffer(currentCoord, featureFlags, bsdfData, builtinData);
+    builtinData.renderingLayers = DEFAULT_LIGHT_LAYERS;
+    builtinData.shadowMask0 = 1.0;
+    builtinData.shadowMask1 = 1.0;
+    builtinData.shadowMask2 = 1.0;
+    builtinData.shadowMask3 = 1.0;
 
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
     // Evaluate the complete lighting
     LightLoopOutput lightLoopOutput;
-    LightLoop(V, posInput, preLightData, bsdfData, builtinData, 0.0, 0.0, float3(0.0, 0.0, 0.0),  float3(0.0, 0.0, 0.0), lightLoopOutput);
+    LightLoop(V, posInput, preLightData, bsdfData, builtinData, 0.0, 1.0, float3(0.0, 0.0, 0.0),  float3(0.0, 0.0, 0.0), lightLoopOutput);
 
     // Alias
     float3 diffuseLighting = lightLoopOutput.diffuseLighting;
@@ -105,7 +110,7 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     ApplyFogAttenuation(positionWS, rayDirection, rayDistance, finalColor, true);
     // Expose, clamp and inverse exposure
     finalColor = clamp(finalColor * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp) * (_RaytracingPreExposition ? 1.0 : GetInverseCurrentExposureMultiplier());
-    _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor, 0.0);
+    _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor, 1.0);
 }
 
 // Input textures for the diffuse deferred lightloop that we will be executing
@@ -184,7 +189,7 @@ void RaytracingDiffuseDeferred(uint3 dispatchThreadId : SV_DispatchThreadID, uin
     
     // Evaluate lighting
     LightLoopOutput lightLoopOutput;
-    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, 0.0, 0.0, float3(0.0, 0.0, 0.0), float3(0.0, 0.0, 0.0), lightLoopOutput);
+    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, 0.0, 1.0, float3(0.0, 0.0, 0.0), float3(0.0, 0.0, 0.0), lightLoopOutput);
 
     // Alias
     float3 diffuseLighting = lightLoopOutput.diffuseLighting;
@@ -192,5 +197,5 @@ void RaytracingDiffuseDeferred(uint3 dispatchThreadId : SV_DispatchThreadID, uin
 
     // Read the previous value and combine with the current lighting
     float3 previousValue = _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)].xyz;
-    _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(previousValue + throughput * diffuseLighting, 0.0);
+    _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(previousValue + throughput * diffuseLighting, 1.0);
 }

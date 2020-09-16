@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 
@@ -122,5 +123,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 }
             }
         }
+
+        // Transient data
+        internal bool isDirty { get; set; }
+        internal bool hasRenderTarget { get; set; }
+        internal RenderTargetHandle renderTargetHandle;
+
     }
 }

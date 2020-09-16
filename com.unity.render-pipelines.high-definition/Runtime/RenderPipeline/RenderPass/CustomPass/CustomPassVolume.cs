@@ -88,6 +88,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
 
             Shader.SetGlobalFloat(HDShaderIDs._CustomPassInjectionPoint, (float)injectionPoint);
+            if (injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
+                Shader.SetGlobalTexture(HDShaderIDs._AfterPostProcessColorBuffer, targets.cameraColorBuffer);
 
             foreach (var pass in customPasses)
             {
@@ -108,8 +110,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // We never execute volume if the layer is not within the culling layers of the camera
             if ((hdCamera.volumeLayerMask & (1 << gameObject.layer)) == 0)
                 return false;
-
-            Shader.SetGlobalFloat(HDShaderIDs._CustomPassInjectionPoint, (float)injectionPoint);
 
             foreach (var pass in customPasses)
             {

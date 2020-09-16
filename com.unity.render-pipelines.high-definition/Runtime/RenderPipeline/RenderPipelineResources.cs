@@ -33,6 +33,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader debugLightVolumeCS;
             [Reload("Runtime/Debug/DebugBlitQuad.Shader")]
             public Shader debugBlitQuad;
+            [Reload("Runtime/Debug/DebugVTBlit.Shader")]
+            public Shader debugViewVirtualTexturingBlit;
 
             // Lighting
             [Reload("Runtime/Lighting/Deferred.Shader")]
@@ -191,8 +193,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Decal
             [Reload("Runtime/Material/Decal/DecalNormalBuffer.shader")]
             public Shader decalNormalBufferPS;
-            [Reload("Runtime/Material/Decal/ClearPropertyMaskBuffer.compute")]
-            public ComputeShader decalClearPropertyMaskBufferCS;
 
             // Ambient occlusion
             [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAO.compute")]
@@ -396,9 +396,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             [Reload("Runtime/RenderPipelineResources/Texture/DefaultHDRISky.exr")]
             public Cubemap     defaultHDRISky;
-
-            [Reload("Runtime/RenderPipelineResources/Texture/DefaultCloudLayer.asset")]
-            public CustomRenderTexture defaultCloudLayer;
         }
 
         [Serializable, ReloadGroup]

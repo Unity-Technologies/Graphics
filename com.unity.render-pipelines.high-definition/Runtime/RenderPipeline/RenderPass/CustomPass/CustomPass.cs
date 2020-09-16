@@ -66,8 +66,6 @@ namespace UnityEngine.Rendering.HighDefinition
         CustomPassVolume    owner;
         SharedRTManager     currentRTManager;
         HDCamera            currentHDCamera;
-        // This is a bit dirty but necessary as users may call function that need it but they don't have the instance to pass on.
-        RenderGraphContext  currentRenderGraphContext;
 
         MaterialPropertyBlock userMaterialPropertyBlock;
 
@@ -259,7 +257,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 (ExecutePassData data, RenderGraphContext ctx) =>
                 {
                     var customPass = data.customPass;
-                    customPass.currentRenderGraphContext = ctx;
+
+                    ctx.cmd.SetGlobalFloat(HDShaderIDs._CustomPassInjectionPoint, (float)customPass.injectionPoint);
+                    if (customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
+                        ctx.cmd.SetGlobalTexture(HDShaderIDs._AfterPostProcessColorBuffer, customPass.currentRenderTarget.colorBufferRG);
 
                     if (!customPass.isSetup)
                     {
@@ -267,20 +268,20 @@ namespace UnityEngine.Rendering.HighDefinition
                         customPass.isSetup = true;
                         // TODO RENDERGRAPH: We still need to allocate this otherwise it would be null when switching off render graph (because isSetup stays true).
                         // We can remove the member altogether when we remove the non render graph code path.
-                        userMaterialPropertyBlock = new MaterialPropertyBlock();
+                        customPass.userMaterialPropertyBlock = new MaterialPropertyBlock();
                     }
 
                     customPass.SetCustomPassTarget(ctx.cmd);
 
-                    var outputColorBuffer = ctx.resources.GetTexture(customPass.currentRenderTarget.colorBufferRG);
+                    var outputColorBuffer = customPass.currentRenderTarget.colorBufferRG;
 
                     // Create the custom pass context:
                     CustomPassContext customPassCtx = new CustomPassContext(
                         ctx.renderContext, ctx.cmd, data.hdCamera,
                         data.cullingResult,
                         outputColorBuffer,
-                        ctx.resources.GetTexture(customPass.currentRenderTarget.depthBufferRG),
-                        ctx.resources.GetTexture(customPass.currentRenderTarget.normalBufferRG),
+                        customPass.currentRenderTarget.depthBufferRG,
+                        customPass.currentRenderTarget.normalBufferRG,
                         customPass.currentRenderTarget.customColorBuffer,
                         customPass.currentRenderTarget.customDepthBuffer,
                         ctx.renderGraphPool.GetTempMaterialPropertyBlock()
@@ -345,8 +346,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                colorBuffer = (targetColorBuffer == TargetBuffer.Custom) ? currentRenderTarget.customColorBuffer.Value : currentRenderGraphContext.resources.GetTexture(currentRenderTarget.colorBufferRG);
-                depthBuffer = (targetDepthBuffer == TargetBuffer.Custom) ? currentRenderTarget.customDepthBuffer.Value : currentRenderGraphContext.resources.GetTexture(currentRenderTarget.depthBufferRG);
+                colorBuffer = (targetColorBuffer == TargetBuffer.Custom) ? currentRenderTarget.customColorBuffer.Value : currentRenderTarget.colorBufferRG;
+                depthBuffer = (targetDepthBuffer == TargetBuffer.Custom) ? currentRenderTarget.customDepthBuffer.Value : currentRenderTarget.depthBufferRG;
             }
 
             if (targetColorBuffer == TargetBuffer.None && targetDepthBuffer != TargetBuffer.None)
@@ -416,8 +417,8 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle colorBuffer, depthBuffer;
             if (currentRenderTarget.useRenderGraph)
             {
-                colorBuffer = currentRenderGraphContext.resources.GetTexture(currentRenderTarget.colorBufferRG);
-                depthBuffer = currentRenderGraphContext.resources.GetTexture(currentRenderTarget.depthBufferRG);
+                colorBuffer = currentRenderTarget.colorBufferRG;
+                depthBuffer = currentRenderTarget.depthBufferRG;
             }
             else
             {
@@ -474,8 +475,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 RTHandle input, output;
                 if (currentRenderTarget.useRenderGraph)
                 {
-                    input = currentRenderGraphContext.resources.GetTexture(currentRenderTarget.colorBufferRG);
-                    output = currentRenderGraphContext.resources.GetTexture(currentRenderTarget.nonMSAAColorBufferRG);
+                    input = currentRenderTarget.colorBufferRG;
+                    output = currentRenderTarget.nonMSAAColorBufferRG;
                 }
                 else
                 {
@@ -507,8 +508,8 @@ namespace UnityEngine.Rendering.HighDefinition
             bool msaa = IsMSAAEnabled(currentHDCamera);
             if (currentRenderTarget.useRenderGraph)
             {
-                colorBuffer = currentRenderGraphContext.resources.GetTexture(currentRenderTarget.colorBufferRG);
-                depthBuffer = currentRenderGraphContext.resources.GetTexture(currentRenderTarget.depthBufferRG);
+                colorBuffer = currentRenderTarget.colorBufferRG;
+                depthBuffer = currentRenderTarget.depthBufferRG;
             }
             else
             {
@@ -543,7 +544,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 throw new Exception("GetNormalBuffer can only be called inside the CustomPass.Execute function");
 
             if (currentRenderTarget.useRenderGraph)
-                return currentRenderGraphContext.resources.GetTexture(currentRenderTarget.normalBufferRG);
+                return currentRenderTarget.normalBufferRG;
             else
                 return currentRTManager.GetNormalBuffer(IsMSAAEnabled(currentHDCamera));
         }

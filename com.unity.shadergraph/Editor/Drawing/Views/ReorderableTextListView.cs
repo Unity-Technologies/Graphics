@@ -5,7 +5,7 @@ using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Drawing.Views
+namespace UnityEditor.ShaderGraph.Drawing
 {
     internal class ReorderableListView<T> : VisualElement
     {

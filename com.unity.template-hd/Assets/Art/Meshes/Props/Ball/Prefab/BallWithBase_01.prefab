@@ -93,6 +93,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7463582231431991560}
+  - component: {fileID: 2301229173843524623}
   m_Layer: 0
   m_Name: BallWithBase_01
   m_TagString: Untagged
@@ -116,6 +117,20 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: -180, z: 0}
+--- !u!136 &2301229173843524623
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3413977195110685305}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  m_Radius: 1.6
+  m_Height: 3.5
+  m_Direction: 1
+  m_Center: {x: 0, y: 1.5999999, z: 0}
 --- !u!1 &4325897608372888364
 GameObject:
   m_ObjectHideFlags: 0
