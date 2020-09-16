@@ -88,7 +88,7 @@ namespace UnityEditor.VFX.Block
                 VFXExpression j = new VFXExpressionMatrixToVector3s(rotationMatrix, VFXValue.Constant(1));
                 VFXExpression k = new VFXExpressionMatrixToVector3s(rotationMatrix, VFXValue.Constant(2));
 
-                var transformMatrix = new VFXExpressionVector3sToMatrix(i, k, j, center);
+                var transformMatrix = new VFXExpressionVector3sToMatrix(i, k, j, center); //Expected axis inversion
                 yield return new VFXNamedExpression(transformMatrix, "transformMatrix");
             }
         }
