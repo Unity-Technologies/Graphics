@@ -426,12 +426,19 @@ namespace UnityEngine.Rendering.Universal
                     RenderTextureDescriptor rtDesc = cameraData.cameraTargetDescriptor;
                     rtDesc.dimension = TextureDimension.Tex2DArray;
                     rtDesc.volumeDepth = 2;
-
-                    // If camera renders to subrect and it renders to backbuffer, we adjust size to match back buffer
-                    if (!cameraData.isDefaultViewport && cameraData.targetTexture == null)
+                    // If camera renders to subrect, we adjust size to match back buffer/target texture
+                    if (!cameraData.isDefaultViewport)
                     {
-                        rtDesc.width = (int)(rtDesc.width / cameraData.camera.rect.width);
-                        rtDesc.height = (int)(rtDesc.height / cameraData.camera.rect.height);
+                        if (cameraData.targetTexture == null)
+                        {
+                            rtDesc.width = (int)(rtDesc.width / cameraData.camera.rect.width);
+                            rtDesc.height = (int)(rtDesc.height / cameraData.camera.rect.height);
+                        }
+                        else
+                        {
+                            rtDesc.width = (int)(cameraData.targetTexture.width);
+                            rtDesc.height = (int)(cameraData.targetTexture.height);
+                        }
                     }
                     testRenderTexture = RenderTexture.GetTemporary(rtDesc);
 

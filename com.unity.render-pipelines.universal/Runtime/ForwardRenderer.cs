@@ -212,7 +212,7 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.xr.enabled)
             {
                 // URP can't handle msaa/size mismatch between depth RT and color RT(for now we create intermediate depth to ensure they match)
-                createDepthTexture |= createColorTexture && cameraTargetDescriptor.msaaSamples != cameraData.xr.renderTargetDesc.msaaSamples;
+                createDepthTexture |= createColorTexture;
             }
 #endif
 
