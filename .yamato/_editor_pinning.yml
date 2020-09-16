@@ -184,7 +184,8 @@ editor-pinning-merge-all:
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
       -  git checkout yamato/update-unity-versions-ep
-      -  git pullpipenv run python3 .yamato/ruamel/build.py
+      -  git pull
+      -  pipenv run python3 .yamato/ruamel/build.py
       -  git add .yamato/*.yml
       -  git commit -m "[CI] Updated .ymls to new revision"
       -  git push
@@ -216,7 +217,8 @@ editor-pinning-merge-all-abv:
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
       -  git checkout yamato/update-unity-versions-ep
-      -  git pullpipenv run python3 .yamato/ruamel/build.py
+      -  git pull
+      -  pipenv run python3 .yamato/ruamel/build.py
       -  git add .yamato/*.yml
       -  git commit -m "[CI] Updated .ymls to new revision"
       -  git push

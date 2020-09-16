@@ -36,7 +36,7 @@ class Editor_PinningMergeAllJob():
             f'git config --global user.name "noreply@unity3d.com"', # TODO
             f'git config --global user.email "noreply@unity3d.com"', # TODO
             f'git checkout {target_branch}',
-            f'git pull'
+            f'git pull',
             f'pipenv run python3 .yamato/ruamel/build.py',
             f'git add .yamato/*.yml',
             f'git commit -m "[CI] Updated .ymls to new revision"',
