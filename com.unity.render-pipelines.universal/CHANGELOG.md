@@ -6,9 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.1.0] - 2019-08-04
 ### Added
+- Added real-time Point Light Shadows.
 - Added ComplexLit shader for advanced material features such as clear coat.
-
-### Added
 - Support for Clear coat and ComplexLit forward only shader in shader graph.
 - Added Parallax Mapping to the Lit shader (Lit.shader).
 - Added the Detail Inputs setting group in the Lit shader (Lit.shader).
@@ -33,9 +32,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed not using the local skybox on the camera game object when the Skybox Material property in the Lighting window was set to null.
 - Fixed an issue where, if URP was not in use, you would sometimes get errors about 2D Lights when going through the menus.
 - Fixed GC when using XR single-pass automated tests.
-
-### Added
-- Added real-time Point Light Shadows.
 
 ## [10.0.0] - 2019-06-10
 ### Added
