@@ -24,7 +24,7 @@ namespace UnityEditor.VFX
 
         public static void DrawSphere(Sphere sphere, VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<Vector3> anglesProperty, IProperty<float> radiusProperty)
         {
-            gizmo.PositionGizmo(sphere.center, centerProperty, false);
+            gizmo.PositionGizmo(sphere.center, sphere.angles, centerProperty, false);
             gizmo.RotationGizmo(sphere.center, sphere.angles, anglesProperty, false);
 
             // Radius controls

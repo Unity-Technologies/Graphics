@@ -111,7 +111,7 @@ namespace UnityEditor.VFX
 
         public static void DrawCone(Cone cone, VFXGizmo gizmo, ref Extremities extremities, IProperty<Vector3> centerProperty, IProperty<Vector3> anglesProperty, IProperty<float> baseRadiusProperty, IProperty<float> topRadiusProperty, IProperty<float> heightProperty, float baseRadiusScreen, float topRadiusScreen)
         {
-            gizmo.PositionGizmo(cone.center, centerProperty, false);
+            gizmo.PositionGizmo(cone.center, cone.angles, centerProperty, false);
             gizmo.RotationGizmo(cone.center, cone.angles, anglesProperty, false);
 
             using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(cone.center, Quaternion.Euler(cone.angles), Vector3.one)))

@@ -29,7 +29,7 @@ namespace UnityEditor.VFX
 
         public static void DrawTorus(Torus torus, VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<Vector3> anglesProperty, IProperty<float> thicknessProperty, IProperty<float> radiusProperty, IEnumerable<float> angles, float maxAngle = Mathf.PI * 2)
         {
-            gizmo.PositionGizmo(torus.center, centerProperty, false);
+            gizmo.PositionGizmo(torus.center, torus.angles, centerProperty, false);
             gizmo.RotationGizmo(torus.center, torus.angles, anglesProperty, false);
 
             // Radius controls

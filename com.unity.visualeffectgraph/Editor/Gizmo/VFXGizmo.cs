@@ -44,12 +44,13 @@ namespace UnityEditor.VFX
         public bool spaceLocalByDefault { get; set; }
         public VisualEffect component {get; set; }
 
-        public bool PositionGizmo(ref Vector3 position, bool always)
+        public bool PositionGizmo(ref Vector3 position, Vector3 rotation, bool always)
         {
             if (always || Tools.current == Tool.Move || Tools.current == Tool.Transform || Tools.current == Tool.None)
             {
                 EditorGUI.BeginChangeCheck();
-                position = Handles.PositionHandle(position, Tools.pivotRotation == PivotRotation.Local ? Quaternion.identity : Handles.matrix.inverse.rotation);
+                var quaternion = Quaternion.Euler(rotation);
+                position = Handles.PositionHandle(position, Tools.pivotRotation == PivotRotation.Local ? quaternion : quaternion * Handles.matrix.inverse.rotation);
                 return EditorGUI.EndChangeCheck();
             }
             return false;
@@ -76,9 +77,9 @@ namespace UnityEditor.VFX
             return false;
         }
 
-        public bool PositionGizmo(Vector3 position, IProperty<Vector3> positionProperty, bool always)
+        public bool PositionGizmo(Vector3 position, Vector3 rotation, IProperty<Vector3> positionProperty, bool always)
         {
-            if (positionProperty.isEditable && PositionGizmo(ref position, always))
+            if (positionProperty.isEditable && PositionGizmo(ref position, rotation, always))
             {
                 positionProperty.SetValue(position);
                 return true;

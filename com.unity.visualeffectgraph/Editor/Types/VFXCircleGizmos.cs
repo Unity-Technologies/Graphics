@@ -24,7 +24,7 @@ namespace UnityEditor.VFX
 
         public static void DrawCircle(Circle circle, VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<Vector3> anglesProperty, IProperty<float> radiusProperty, IEnumerable<Vector3> radiusDirections, int countVisible = int.MaxValue)
         {
-            gizmo.PositionGizmo(circle.center, centerProperty, false);
+            gizmo.PositionGizmo(circle.center, circle.angles, centerProperty, false);
             gizmo.RotationGizmo(circle.center, circle.angles, anglesProperty, false);
 
             // Radius controls

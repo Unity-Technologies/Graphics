@@ -40,7 +40,7 @@ namespace UnityEditor.VFX
             extremities[7] = bottomCap - Vector3.left * cylinder.radius;
 
 
-            PositionGizmo(cylinder.center, m_CenterProperty, true);
+            PositionGizmo(cylinder.center, Vector3.zero, m_CenterProperty, true);
 
             using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Translate(cylinder.center)))
             {
