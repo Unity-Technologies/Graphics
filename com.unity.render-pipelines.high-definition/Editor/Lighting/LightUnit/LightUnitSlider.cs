@@ -262,24 +262,27 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public Vector2 domain;
             public Vector2 range;
-            public Func<float, float> transform;
-            public Func<float, float> inverseTransform;
+
+            public float directM;
+            public float directB;
+            public float inverseM;
+            public float inverseB;
         }
 
         // Piecewise function indexed by value ranges.
         private readonly Dictionary<Vector2, Piece> m_PiecewiseFunctionMap = new Dictionary<Vector2, Piece>();
 
-        Func<float, float> GetTransformation(float x0, float x1, float y0, float y1)
+        static void NewTransformation(float x0, float x1, float y0, float y1, out float m, out float b)
         {
-            var m = (y0 - y1) / (x0 - x1);
-            var b = (m * -x0) + y0;
-
-            return x => (m * x) + b;
+            m = (y0 - y1) / (x0 - x1);
+            b = (m * -x0) + y0;
         }
 
+        static float DoTransformation(in float x, in float m, in float b) => (m * x) + b;
+
         // Ensure clamping to (0,1) as sometimes the function evaluates to slightly below 0 (breaking the handle).
-        float ValueToSlider(Piece piecewise, float x) => Mathf.Clamp01(piecewise.inverseTransform(x));
-        float SliderToValue(Piece piecewise, float x) => piecewise.transform(x);
+        static float ValueToSlider(Piece p, float x) => Mathf.Clamp01(DoTransformation(x, p.inverseM, p.inverseB));
+        static float SliderToValue(Piece p, float x) => DoTransformation(x, p.directM, p.directB);
 
         // Ideally we want a continuous, monotonically increasing function, but this is useful as we can easily fit a
         // distribution to a set of (huge) value ranges onto a slider.
@@ -303,12 +306,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 piece.domain = new Vector2(x0, x1);
                 piece.range  = new Vector2(y0, y1);
 
-                piece.transform = GetTransformation(x0, x1, y0, y1);
+                NewTransformation(x0, x1, y0, y1, out piece.directM, out piece.directB);
 
                 // Compute the inverse
-                CoreUtils.Swap(ref x0, ref y0);
-                CoreUtils.Swap(ref x1, ref y1);
-                piece.inverseTransform = GetTransformation(x0, x1, y0, y1);
+                NewTransformation(y0, y1, x0, x1, out piece.inverseM, out piece.inverseB);
 
                 m_PiecewiseFunctionMap.Add(sortedRanges[i].value, piece);
             }
@@ -322,7 +323,7 @@ namespace UnityEditor.Rendering.HighDefinition
             return ValueToSlider(piecewise, value);
         }
 
-        void UpdatePiece(ref Piece piece, float x)
+        bool UpdatePiece(ref Piece piece, float x)
         {
             foreach (var pair in m_PiecewiseFunctionMap)
             {
@@ -331,9 +332,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (x >= p.domain.x && x <= p.domain.y)
                 {
                     piece = p;
-                    break;
+
+                    return true;
                 }
             }
+
+            return false;
         }
 
         void SliderOutOfBounds(Rect rect, SerializedProperty value)
