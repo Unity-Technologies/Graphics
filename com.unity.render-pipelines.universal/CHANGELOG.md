@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed not using the local skybox on the camera game object when the Skybox Material property in the Lighting window was set to null.
 - Fixed an issue where, if URP was not in use, you would sometimes get errors about 2D Lights when going through the menus.
 - Fixed GC when using XR single-pass automated tests.
+- Fixed resolution of intermediate textures when rendering to part of a render texture. [case 1261287](https://issuetracker.unity3d.com/product/unity/issues/guid/1261287/)
 
 ## [10.0.0] - 2019-06-10
 ### Added
