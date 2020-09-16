@@ -202,8 +202,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DecalDatas = Shader.PropertyToID("_DecalDatas");
         public static readonly int _DecalNormalBufferStencilReadMask = Shader.PropertyToID("_DecalNormalBufferStencilReadMask");
         public static readonly int _DecalNormalBufferStencilRef = Shader.PropertyToID("_DecalNormalBufferStencilRef");
-        public static readonly int _DecalPropertyMaskBuffer = Shader.PropertyToID("_DecalPropertyMaskBuffer");
-        public static readonly int _DecalPropertyMaskBufferSRV = Shader.PropertyToID("_DecalPropertyMaskBufferSRV");
         public static readonly int _DecalPrepassTexture = Shader.PropertyToID("_DecalPrepassTexture");
         public static readonly int _DecalPrepassTextureMS = Shader.PropertyToID("_DecalPrepassTextureMS");
 
@@ -410,10 +408,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _Flowmap = Shader.PropertyToID("_Flowmap");
         public static readonly int _FlowmapParam = Shader.PropertyToID("_FlowmapParam");
-        public static readonly int _CloudMap = Shader.PropertyToID("_CloudMap");
-        public static readonly int _CloudFlowmap = Shader.PropertyToID("_CloudFlowmap");
-        public static readonly int _CloudParam = Shader.PropertyToID("_CloudParam");
-        public static readonly int _CloudParam2 = Shader.PropertyToID("_CloudParam2");
 
         public static readonly int _Size = Shader.PropertyToID("_Size");
         public static readonly int _Source = Shader.PropertyToID("_Source");
@@ -513,6 +507,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Denoising
         public static readonly int _HistoryBuffer                   = Shader.PropertyToID("_HistoryBuffer");
+        public static readonly int _HistoryBuffer0                  = Shader.PropertyToID("_HistoryBuffer0");
+        public static readonly int _HistoryBuffer1                  = Shader.PropertyToID("_HistoryBuffer1");
         public static readonly int _ValidationBuffer                = Shader.PropertyToID("_ValidationBuffer");
         public static readonly int _ValidationBufferRW              = Shader.PropertyToID("_ValidationBufferRW");
         public static readonly int _HistoryDepthTexture             = Shader.PropertyToID("_HistoryDepthTexture");
@@ -535,6 +531,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VelocityBuffer                  = Shader.PropertyToID("_VelocityBuffer");
         public static readonly int _ShadowFilterMapping             = Shader.PropertyToID("_ShadowFilterMapping");
         public static readonly int _DistanceTexture                 = Shader.PropertyToID("_DistanceTexture");
+        public static readonly int _JitterFramePeriod               = Shader.PropertyToID("_JitterFramePeriod");
 
         // Reflections
         public static readonly int _ReflectionHistorybufferRW       = Shader.PropertyToID("_ReflectionHistorybufferRW");
@@ -596,15 +593,20 @@ namespace UnityEngine.Rendering.HighDefinition
         // Indirect diffuse
         public static readonly int _IndirectDiffuseTexture              = Shader.PropertyToID("_IndirectDiffuseTexture");
         public static readonly int _IndirectDiffuseTextureRW            = Shader.PropertyToID("_IndirectDiffuseTextureRW");
+        public static readonly int _IndirectDiffuseTexture0RW           = Shader.PropertyToID("_IndirectDiffuseTexture0RW");
+        public static readonly int _IndirectDiffuseTexture1RW           = Shader.PropertyToID("_IndirectDiffuseTexture1RW");
         public static readonly int _UpscaledIndirectDiffuseTextureRW    = Shader.PropertyToID("_UpscaledIndirectDiffuseTextureRW");
         public static readonly int _IndirectDiffuseHitPointTexture      = Shader.PropertyToID("_IndirectDiffuseHitPointTexture");
         public static readonly int _IndirectDiffuseHitPointTextureRW    = Shader.PropertyToID("_IndirectDiffuseHitPointTextureRW");
         public static readonly int _IndirectDiffuseThicknessScale       = Shader.PropertyToID("_IndirectDiffuseThicknessScale");
         public static readonly int _IndirectDiffuseThicknessBias        = Shader.PropertyToID("_IndirectDiffuseThicknessBias");
         public static readonly int _IndirectDiffuseSteps                = Shader.PropertyToID("_IndirectDiffuseSteps");
-        public static readonly int _IndirectDiffuseMaximalRadius        = Shader.PropertyToID("_IndirectDiffuseMaximalRadius");
         public static readonly int _InputNoisyBuffer                    = Shader.PropertyToID("_InputNoisyBuffer");
+        public static readonly int _InputNoisyBuffer0                   = Shader.PropertyToID("_InputNoisyBuffer0");
+        public static readonly int _InputNoisyBuffer1                   = Shader.PropertyToID("_InputNoisyBuffer1");
         public static readonly int _OutputFilteredBuffer                = Shader.PropertyToID("_OutputFilteredBuffer");
+        public static readonly int _OutputFilteredBuffer0               = Shader.PropertyToID("_OutputFilteredBuffer0");
+        public static readonly int _OutputFilteredBuffer1               = Shader.PropertyToID("_OutputFilteredBuffer1");
         public static readonly int _LowResolutionTexture                = Shader.PropertyToID("_LowResolutionTexture");
         public static readonly int _OutputUpscaledTexture               = Shader.PropertyToID("_OutputUpscaledTexture");
         public static readonly int _IndirectDiffuseSpatialFilter        = Shader.PropertyToID("_IndirectDiffuseSpatialFilter");

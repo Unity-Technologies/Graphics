@@ -100,51 +100,6 @@ void Frag(  PackedVaryingsToPS packedInput,
 
     GetSurfaceData(input, V, posInput, surfaceData);
 
-    // Perform HTile optimization only on platform that support it
-#if ((SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)) && defined(PLATFORM_SUPPORTS_BUFFER_ATOMICS_IN_PIXEL_SHADER)
-    uint2 htileCoord = input.positionSS.xy / 8;
-    int stride = (_ScreenSize.x + 7) / 8;
-    uint mask = surfaceData.HTileMask;
-    uint tileCoord1d = htileCoord.y * stride + htileCoord.x;
-#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
-    // This is an optimization to reduce the number of atomatic operation executed.
-    // smallest tile index in the wave
-    uint minTileCoord1d = WaveActiveMin(tileCoord1d);
-    while (minTileCoord1d != -1)
-    {
-        if ((minTileCoord1d == tileCoord1d) && (clipValue > 0.0))// if this is the current tile and not a helper lane
-        {
-            // calculate the mask across the current tile
-            mask = WaveActiveBitOr(surfaceData.HTileMask);
-
-            // Is it the first active lane?
-            if (WaveIsFirstLane())
-            {
-                // recalculate tileCoord1d, because on Xbox the register holding its value gets overwritten
-                if (tileCoord1d != -1)
-                {
-                    tileCoord1d = htileCoord.y * stride + htileCoord.x;
-                }
-                InterlockedOr(_DecalPropertyMaskBuffer[tileCoord1d], mask);
-            }
-            // mark this tile as processed
-            tileCoord1d = -1;
-        }
-        // recalculate tileCoord1d, because on Xbox the register holding its value gets overwritten
-        if (tileCoord1d != -1)
-        {
-            tileCoord1d = htileCoord.y * stride + htileCoord.x;
-        }
-        // get the next tile with smallest index
-        minTileCoord1d = WaveActiveMin(tileCoord1d);
-    }
-#else // PLATFORM_SUPPORTS_WAVE_INTRINSICS
-    InterlockedOr(_DecalPropertyMaskBuffer[tileCoord1d], mask);
-#endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
-
-#endif // ((SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)) && defined(PLATFORM_SUPPORTS_BUFFER_ATOMICS_IN_PIXEL_SHADER)
-
-
 #if ((SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)) && defined(SHADER_API_METAL)
     } // if (clipValue > 0.0)
 

@@ -192,6 +192,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO: See how to clean this. Some buffers are created outside, some inside functions...
             result.motionVectorsBuffer = CreateMotionVectorBuffer(renderGraph, msaa, clearMotionVectors);
             result.depthBuffer = CreateDepthBuffer(renderGraph, hdCamera.clearDepth, msaa);
+            result.stencilBuffer = result.depthBuffer;
             result.flagMaskBuffer = CreateFlagMaskTexture(renderGraph);
 
             RenderXROcclusionMeshes(renderGraph, hdCamera, colorBuffer, result.depthBuffer);
@@ -267,7 +268,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderCameraMotionVectors(renderGraph, hdCamera, result.depthBuffer, result.resolvedMotionVectorsBuffer);
                 }
 
-                BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, ref result);
+                // NOTE: Currently we profiled that generating the HTile for SSR and using it is not worth it the optimization.
+                // However if the generated HTile will be used for something else but SSR, this should be made NOT resolve only and
+                // re-enabled in the shader.
+                BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, resolveOnly: true, ref result);
             }
 
             return result;
@@ -498,7 +502,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             for (int i = 0; i < dBufferOutput.dBufferCount; ++i)
                 ctx.cmd.SetGlobalTexture(HDShaderIDs._DBufferTexture[i], dBufferOutput.mrt[i]);
-            ctx.cmd.SetGlobalBuffer(HDShaderIDs._DecalPropertyMaskBufferSRV, dBufferOutput.decalPropertyMaskBuffer);
         }
 
         static void BindProbeVolumeGlobalData(in FrameSettings frameSettings, GBufferPassData data, in RenderGraphContext ctx)
@@ -669,11 +672,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle coarseStencilBuffer;
         }
 
-        void BuildCoarseStencilAndResolveIfNeeded(RenderGraph renderGraph, HDCamera hdCamera, ref PrepassOutput output)
+        // This pass build the coarse stencil buffer if requested (i.e. when resolveOnly: false) and perform the MSAA resolve of the
+        // full res stencil buffer if needed (a pass requires it and MSAA is on).
+        void BuildCoarseStencilAndResolveIfNeeded(RenderGraph renderGraph, HDCamera hdCamera, bool resolveOnly, ref PrepassOutput output)
         {
             using (var builder = renderGraph.AddRenderPass<ResolveStencilPassData>("Resolve Stencil", out var passData, ProfilingSampler.Get(HDProfileId.ResolveStencilBuffer)))
             {
-                passData.parameters = PrepareBuildCoarseStencilParameters(hdCamera);
+                passData.parameters = PrepareBuildCoarseStencilParameters(hdCamera, resolveOnly);
                 passData.inputDepth = output.depthBuffer;
                 passData.coarseStencilBuffer = builder.WriteComputeBuffer(
                     renderGraph.CreateComputeBuffer(new ComputeBufferDesc(HDUtils.DivRoundUp(m_MaxCameraWidth, 8) * HDUtils.DivRoundUp(m_MaxCameraHeight, 8) * m_MaxViewCount, sizeof(uint)) { name = "CoarseStencilBuffer" }));
@@ -690,10 +695,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     output.stencilBuffer = passData.resolvedStencil;
                 }
-                else
-                {
-                    output.stencilBuffer = output.depthBuffer;
-                }
                 output.coarseStencilBuffer = passData.coarseStencilBuffer;
             }
         }
@@ -706,7 +707,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public RendererListHandle       meshDecalsRendererList;
             public TextureHandle            depthStencilBuffer;
             public TextureHandle            depthTexture;
-            public ComputeBufferHandle      propertyMaskBuffer;
             public TextureHandle            decalBuffer;
         }
 
@@ -743,14 +743,12 @@ namespace UnityEngine.Rendering.HighDefinition
             propertyMaskBufferSize = ((propertyMaskBufferSize + 63) / 64) * 64; // round off to nearest multiple of 64 for ease of use in CS
 
             passData.depthStencilBuffer = builder.UseDepthBuffer(output.resolvedDepthBuffer, DepthAccess.Write);
-            passData.propertyMaskBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(propertyMaskBufferSize, 4) { name = "DecalPropertyMask" }));
 
             output.dbuffer.dBufferCount = passData.dBufferCount;
             for (int i = 0; i < passData.dBufferCount; ++i)
             {
                 output.dbuffer.mrt[i] = passData.mrt[i];
             }
-            output.dbuffer.decalPropertyMaskBuffer = passData.propertyMaskBuffer;
         }
 
         static DBufferOutput ReadDBuffer(DBufferOutput dBufferOutput, RenderGraphBuilder builder)
@@ -814,7 +812,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                     data.depthStencilBuffer,
                                     data.depthTexture,
                                     data.meshDecalsRendererList,
-                                    data.propertyMaskBuffer,
                                     data.decalBuffer,
                                     context.renderContext,
                                     context.cmd);
