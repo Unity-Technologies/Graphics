@@ -1252,9 +1252,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 LightLoopAllocResolutionDependentBuffers(hdCamera, m_MaxCameraWidth, m_MaxCameraHeight);
-                m_SharedRTManager.AllocateFullScreenDebugBuffer(m_MaxCameraWidth, m_MaxCameraHeight, m_MaxViewCount);
                 if (!m_EnableRenderGraph)
                 {
+                    m_SharedRTManager.AllocateFullScreenDebugBuffer(m_MaxCameraWidth, m_MaxCameraHeight, m_MaxViewCount);
                     m_SharedRTManager.AllocateCoarseStencilBuffer(m_MaxCameraWidth, m_MaxCameraHeight, m_MaxViewCount);
                 }
             }
@@ -4112,22 +4112,53 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RenderFullScreenDebug(CullingResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        struct FullScreenDebugParameters
+        {
+            public RendererListDesc rendererList;
+            public FrameSettings frameSettings;
+        }
+
+        FullScreenDebugParameters PrepareFullScreenDebugParameters(HDCamera hdCamera, CullingResults cull)
+        {
+            var parameters = new FullScreenDebugParameters();
+
+            parameters.rendererList = CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_FullScreenDebugPassNames, renderQueueRange: RenderQueueRange.all);
+            parameters.frameSettings = hdCamera.frameSettings;
+
+            return parameters;
+        }
+
+        void RenderFullScreenDebug( FullScreenDebugParameters   parameters,
+                                    RTHandle                    colorBuffer,
+                                    RTHandle                    depthBuffer,
+                                    ComputeBuffer               debugBuffer,
+                                    in RendererList             rendererList,
+                                    ScriptableRenderContext     renderContext,
+                                    CommandBuffer               cmd)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderFullScreenDebug)))
             {
-                bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-                var renderTarget = msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer;
+                CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer);
+                cmd.SetRandomWriteTarget(1, debugBuffer);
 
-                CoreUtils.SetRenderTarget(cmd, renderTarget, m_SharedRTManager.GetDepthStencilBuffer(msaa));
-                cmd.SetRandomWriteTarget(1, m_SharedRTManager.GetFullScreenDebugBuffer());
-
-                var rendererList = RendererList.Create(CreateOpaqueRendererListDesc(cullResults, hdCamera.camera, m_FullScreenDebugPassNames, renderQueueRange: RenderQueueRange.all));
                 CoreUtils.DrawRendererList(renderContext, cmd, rendererList);
 
                 cmd.ClearRandomWriteTargets();
-                m_FullScreenDebugPushed = true;
             }
+        }
+
+        void RenderFullScreenDebug(CullingResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        {
+                bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+                var parameters = PrepareFullScreenDebugParameters(hdCamera, cullResults);
+                RenderFullScreenDebug(  parameters,
+                                        msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer,
+                                        m_SharedRTManager.GetDepthStencilBuffer(msaa),
+                                        m_SharedRTManager.GetFullScreenDebugBuffer(),
+                                        RendererList.Create(parameters.rendererList),
+                                        renderContext, cmd);
+
+            m_FullScreenDebugPushed = true;
         }
 
         void UpdateSkyEnvironment(HDCamera hdCamera, ScriptableRenderContext renderContext, int frameIndex, CommandBuffer cmd)
@@ -5057,7 +5088,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material         debugFullScreenMaterial;
             public int              depthPyramidMip;
             public ComputeBuffer    depthPyramidOffsets;
-            public ComputeBuffer    debugDisplayBuffer;
 
             // Sky
             public Texture skyReflectionTexture;
@@ -5090,8 +5120,6 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.depthPyramidMip = (int)(parameters.debugDisplaySettings.data.fullscreenDebugMip * depthMipInfo.mipLevelCount);
             parameters.depthPyramidOffsets = depthMipInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
 
-            parameters.debugDisplayBuffer = m_SharedRTManager.GetFullScreenDebugBuffer();
-
             parameters.skyReflectionTexture = m_SkyManager.GetSkyReflection(hdCamera);
             parameters.debugLatlongMaterial = m_DebugDisplayLatlong;
             parameters.lightingOverlayParameters = PrepareLightLoopDebugOverlayParameters();
@@ -5113,6 +5141,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                             RTHandle                inputFullScreenDebug,
                                             RTHandle                inputDepthPyramid,
                                             RTHandle                output,
+                                            ComputeBuffer           fullscreenBuffer,
                                             CommandBuffer           cmd)
         {
             mpb.SetTexture(HDShaderIDs._DebugFullScreenTexture, inputFullScreenDebug);
@@ -5129,11 +5158,13 @@ namespace UnityEngine.Rendering.HighDefinition
             mpb.SetFloat(HDShaderIDs._QuadOverdrawMaxQuadCost, (float)parameters.debugDisplaySettings.data.maxQuadCost);
             mpb.SetFloat(HDShaderIDs._VertexDensityMaxPixelCost, (float)parameters.debugDisplaySettings.data.maxVertexDensity);
 
-            cmd.SetRandomWriteTarget(1, parameters.debugDisplayBuffer);
+            if (fullscreenBuffer != null)
+                cmd.SetRandomWriteTarget(1, fullscreenBuffer);
 
             HDUtils.DrawFullScreen(cmd, parameters.debugFullScreenMaterial, output, mpb, 0);
 
-            cmd.ClearRandomWriteTargets();
+            if (fullscreenBuffer != null)
+                cmd.ClearRandomWriteTargets();
         }
 
         static void ResolveColorPickerDebug(in DebugParameters  parameters,
@@ -5298,7 +5329,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (debugParams.resolveFullScreenDebug)
                 {
                     m_FullScreenDebugPushed = false;
-                    ResolveFullScreenDebug(debugParams, m_DebugFullScreenPropertyBlock, m_DebugFullScreenTempBuffer, m_SharedRTManager.GetDepthTexture(), m_IntermediateAfterPostProcessBuffer, cmd);
+                    ResolveFullScreenDebug(debugParams, m_DebugFullScreenPropertyBlock, m_DebugFullScreenTempBuffer, m_SharedRTManager.GetDepthTexture(), m_IntermediateAfterPostProcessBuffer, m_SharedRTManager.GetFullScreenDebugBuffer(), cmd);
+
                     PushColorPickerDebugTexture(cmd, hdCamera, m_IntermediateAfterPostProcessBuffer);
                 }
 
