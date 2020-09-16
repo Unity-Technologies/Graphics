@@ -73,7 +73,7 @@ def cmd_standalone_performance(project_folder, platform, api, test_platform_args
         base.append('cd Tools && powershell -command ". .\\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"')
 
     base.extend([
-        f'{TEST_PROJECTS_DIR}/{project_folder}/utr {test_platform_args} --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path={PERF_TEST_RESULTS} --timeout=1200 --player-load-path=../../{PATH_PLAYERS} --player-connection-ip=auto'
+        f'{TEST_PROJECTS_DIR}/{project_folder}/utr {test_platform_args} --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path={PERF_TEST_RESULTS} --timeout=1200 --player-load-path=../../../../{PATH_PLAYERS} --player-connection-ip=auto'
     ])
     return base
 

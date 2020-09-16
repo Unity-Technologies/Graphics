@@ -40,7 +40,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_counters_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  TestProjects/BoatAttack/utr --suite=playmode --testfilter=Counters --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path=performance/test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
+      -  TestProjects/BoatAttack/utr --suite=playmode --testfilter=Counters --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path=performance/test-results --timeout=1200 --player-load-path=../../../../players --player-connection-ip=auto
     artifacts:
         logs:
             paths:
@@ -127,7 +127,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_memory_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  TestProjects/BoatAttack/utr --suite=playmode --testfilter=Memory --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path=performance/test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
+      -  TestProjects/BoatAttack/utr --suite=playmode --testfilter=Memory --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path=performance/test-results --timeout=1200 --player-load-path=../../../../players --player-connection-ip=auto
     artifacts:
         logs:
             paths:
@@ -211,7 +211,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_counters_fast-trunk:
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  TestProjects/BoatAttack/utr --suite=playmode --testfilter=Counters --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path=performance/test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
+      -  TestProjects/BoatAttack/utr --suite=playmode --testfilter=Counters --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path=performance/test-results --timeout=1200 --player-load-path=../../../../players --player-connection-ip=auto
     artifacts:
         logs:
             paths:
@@ -298,7 +298,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_memory_fast-trunk:
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  TestProjects/BoatAttack/utr --suite=playmode --testfilter=Memory --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path=performance/test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
+      -  TestProjects/BoatAttack/utr --suite=playmode --testfilter=Memory --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path=performance/test-results --timeout=1200 --player-load-path=../../../../players --player-connection-ip=auto
     artifacts:
         logs:
             paths:
@@ -383,7 +383,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_counters_CUSTOM-REVISIO
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  TestProjects/BoatAttack/utr --suite=playmode --testfilter=Counters --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path=performance/test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
+      -  TestProjects/BoatAttack/utr --suite=playmode --testfilter=Counters --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path=performance/test-results --timeout=1200 --player-load-path=../../../../players --player-connection-ip=auto
     artifacts:
         logs:
             paths:
@@ -472,7 +472,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_memory_CUSTOM-REVISION:
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  TestProjects/BoatAttack/utr --suite=playmode --testfilter=Memory --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path=performance/test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
+      -  TestProjects/BoatAttack/utr --suite=playmode --testfilter=Memory --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path=performance/test-results --timeout=1200 --player-load-path=../../../../players --player-connection-ip=auto
     artifacts:
         logs:
             paths:

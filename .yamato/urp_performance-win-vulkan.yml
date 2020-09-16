@@ -18,7 +18,7 @@ URP_Performance_Win_Vulkan_performance_playmode_counters_trunk:
          rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
-      -  TestProjects/URP_Performance/utr --suite=playmode --testfilter=Counters --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path=performance/test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
+      -  TestProjects/URP_Performance/utr --suite=playmode --testfilter=Counters --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path=performance/test-results --timeout=1200 --player-load-path=../../../../players --player-connection-ip=auto
     artifacts:
         logs:
             paths:
@@ -61,7 +61,7 @@ URP_Performance_Win_Vulkan_performance_playmode_memory_trunk:
          rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
-      -  TestProjects/URP_Performance/utr --suite=playmode --testfilter=Memory --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path=performance/test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
+      -  TestProjects/URP_Performance/utr --suite=playmode --testfilter=Memory --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path=performance/test-results --timeout=1200 --player-load-path=../../../../players --player-connection-ip=auto
     artifacts:
         logs:
             paths:
@@ -101,7 +101,7 @@ URP_Performance_Win_Vulkan_performance_playmode_counters_fast-trunk:
          rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
-      -  TestProjects/URP_Performance/utr --suite=playmode --testfilter=Counters --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path=performance/test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
+      -  TestProjects/URP_Performance/utr --suite=playmode --testfilter=Counters --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path=performance/test-results --timeout=1200 --player-load-path=../../../../players --player-connection-ip=auto
     artifacts:
         logs:
             paths:
@@ -144,7 +144,7 @@ URP_Performance_Win_Vulkan_performance_playmode_memory_fast-trunk:
          rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
-      -  TestProjects/URP_Performance/utr --suite=playmode --testfilter=Memory --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path=performance/test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
+      -  TestProjects/URP_Performance/utr --suite=playmode --testfilter=Memory --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path=performance/test-results --timeout=1200 --player-load-path=../../../../players --player-connection-ip=auto
     artifacts:
         logs:
             paths:
@@ -185,7 +185,7 @@ URP_Performance_Win_Vulkan_performance_playmode_counters_CUSTOM-REVISION:
          rerun: always
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
-      -  TestProjects/URP_Performance/utr --suite=playmode --testfilter=Counters --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path=performance/test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
+      -  TestProjects/URP_Performance/utr --suite=playmode --testfilter=Counters --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path=performance/test-results --timeout=1200 --player-load-path=../../../../players --player-connection-ip=auto
     artifacts:
         logs:
             paths:
@@ -230,7 +230,7 @@ URP_Performance_Win_Vulkan_performance_playmode_memory_CUSTOM-REVISION:
          rerun: always
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
-      -  TestProjects/URP_Performance/utr --suite=playmode --testfilter=Memory --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path=performance/test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
+      -  TestProjects/URP_Performance/utr --suite=playmode --testfilter=Memory --platform=StandaloneWindows64 --report-performance-data --performance-project-id=BoatAttack --artifacts_path=performance/test-results --timeout=1200 --player-load-path=../../../../players --player-connection-ip=auto
     artifacts:
         logs:
             paths:
