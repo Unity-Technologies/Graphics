@@ -82,7 +82,7 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_Player_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=performance/test-results  --timeout=1200 --player-save-path=../../players --build-only
+      -  TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --testproject=TestProjects/BoatAttack --editor-location=TestProjects/BoatAttack/.Editor --artifacts_path=performance/test-results  --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
             paths:
@@ -169,7 +169,7 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  TestProjects/BoatAttack/utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=performance/test-results --extra-editor-arg="-force-vulkan"
+      -  TestProjects/BoatAttack/utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=TestProjects/BoatAttack --editor-location=TestProjects/BoatAttack/.Editor --artifacts_path=performance/test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -253,7 +253,7 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_Player_fast-trunk:
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=performance/test-results  --timeout=1200 --player-save-path=../../players --build-only
+      -  TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --testproject=TestProjects/BoatAttack --editor-location=TestProjects/BoatAttack/.Editor --artifacts_path=performance/test-results  --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
             paths:
@@ -340,7 +340,7 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_fast-trunk:
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  TestProjects/BoatAttack/utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=performance/test-results --extra-editor-arg="-force-vulkan"
+      -  TestProjects/BoatAttack/utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=TestProjects/BoatAttack --editor-location=TestProjects/BoatAttack/.Editor --artifacts_path=performance/test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -426,7 +426,7 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_Player_CUSTOM-REVISION:
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=performance/test-results  --timeout=1200 --player-save-path=../../players --build-only
+      -  TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --testproject=TestProjects/BoatAttack --editor-location=TestProjects/BoatAttack/.Editor --artifacts_path=performance/test-results  --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
             paths:
@@ -515,7 +515,7 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_CUSTOM-REVISION
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  TestProjects/BoatAttack/utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=performance/test-results --extra-editor-arg="-force-vulkan"
+      -  TestProjects/BoatAttack/utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=TestProjects/BoatAttack --editor-location=TestProjects/BoatAttack/.Editor --artifacts_path=performance/test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:

@@ -38,7 +38,7 @@ Build_URP_Performance_Win_Vulkan_Player_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  TestProjects/URP_Performance/utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=performance/test-results  --timeout=1200 --player-save-path=../../players --build-only
+      -  TestProjects/URP_Performance/utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --testproject=TestProjects/URP_Performance --editor-location=TestProjects/URP_Performance/.Editor --artifacts_path=performance/test-results  --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
             paths:
@@ -81,7 +81,7 @@ URP_Performance_Win_Vulkan_performance_editmode_build_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  TestProjects/URP_Performance/utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=performance/test-results --extra-editor-arg="-force-vulkan"
+      -  TestProjects/URP_Performance/utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=TestProjects/URP_Performance --editor-location=TestProjects/URP_Performance/.Editor --artifacts_path=performance/test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -121,7 +121,7 @@ Build_URP_Performance_Win_Vulkan_Player_fast-trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  TestProjects/URP_Performance/utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=performance/test-results  --timeout=1200 --player-save-path=../../players --build-only
+      -  TestProjects/URP_Performance/utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --testproject=TestProjects/URP_Performance --editor-location=TestProjects/URP_Performance/.Editor --artifacts_path=performance/test-results  --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
             paths:
@@ -164,7 +164,7 @@ URP_Performance_Win_Vulkan_performance_editmode_build_fast-trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  TestProjects/URP_Performance/utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=performance/test-results --extra-editor-arg="-force-vulkan"
+      -  TestProjects/URP_Performance/utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=TestProjects/URP_Performance --editor-location=TestProjects/URP_Performance/.Editor --artifacts_path=performance/test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -206,7 +206,7 @@ Build_URP_Performance_Win_Vulkan_Player_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  TestProjects/URP_Performance/utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=performance/test-results  --timeout=1200 --player-save-path=../../players --build-only
+      -  TestProjects/URP_Performance/utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --testproject=TestProjects/URP_Performance --editor-location=TestProjects/URP_Performance/.Editor --artifacts_path=performance/test-results  --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
             paths:
@@ -251,7 +251,7 @@ URP_Performance_Win_Vulkan_performance_editmode_build_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  TestProjects/URP_Performance/utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=performance/test-results --extra-editor-arg="-force-vulkan"
+      -  TestProjects/URP_Performance/utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=TestProjects/URP_Performance --editor-location=TestProjects/URP_Performance/.Editor --artifacts_path=performance/test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
