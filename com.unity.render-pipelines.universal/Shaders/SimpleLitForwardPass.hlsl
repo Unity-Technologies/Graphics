@@ -152,6 +152,6 @@ half4 LitPassFragmentSimple(Varyings input) : SV_Target
     color.a = OutputAlpha(color.a, _Surface);
 
     return color;
-};
+}
 
 #endif

@@ -29,10 +29,6 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
             Tags{"LightMode" = "UniversalForward"}
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard SRP library
-            // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
-            #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             // -------------------------------------
@@ -79,9 +75,6 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
             ZWrite On
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             #pragma multi_compile_instancing
@@ -103,7 +96,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
             Tags{"LightMode" = "UniversalGBuffer"}
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles
             #pragma target 2.0
 
             // -------------------------------------
@@ -151,9 +144,6 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
             ColorMask 0
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             #pragma vertex DepthOnlyVertex
@@ -175,7 +165,6 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
             ZWrite On
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             #pragma vertex DepthNormalOnlyVertex
@@ -199,10 +188,6 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
             Cull Off
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
-
             #pragma vertex TerrainVertexMeta
             #pragma fragment TerrainFragmentMeta
 

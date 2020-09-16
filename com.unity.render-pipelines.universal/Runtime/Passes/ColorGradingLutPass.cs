@@ -181,6 +181,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.ReleaseTemporaryRT(m_InternalLut.id);
         }
 
+        public void Cleanup()
+        {
+            CoreUtils.Destroy(m_LutBuilderLdr);
+            CoreUtils.Destroy(m_LutBuilderHdr);
+        }
+
         // Precomputed shader ids to same some CPU cycles (mostly affects mobile)
         static class ShaderConstants
         {
