@@ -6,20 +6,21 @@ from ..shared.yml_job import YMLJob
 
 class Editor_PinningMergeAllJob():
     
-    def __init__(self, editors, agent, target_branch, target_branch_editor_ci):
-        self.job_id = editor_job_id_merge_all()
-        self.yml_job = self.get_job_definition(editors, agent, target_branch, target_branch_editor_ci)
+    def __init__(self, editors, agent, target_branch, target_branch_editor_ci, abv):
+        self.job_id = editor_job_id_merge_all(abv)
+        self.yml_job = self.get_job_definition(editors, agent, target_branch, target_branch_editor_ci, abv)
         self.yml = self.yml_job.get_yml()
 
 
-    def get_job_definition(self, editors, agent, target_branch, target_branch_editor_ci):
+    def get_job_definition(self, editors, agent, target_branch, target_branch_editor_ci, abv):
     
-
+        
         dependencies = []
         for editor in editors:
             if str(editor['track']).lower()=='custom-revision':
                 continue
-            dependencies.append(f'{editor_pinning_filepath()}#{editor_job_id_merge_revisions_ABV(editor["track"])}')
+
+            dependencies.append(f'{editor_pinning_filepath()}#{editor_job_id_merge_revisions(editor["track"], abv)}')
         
         commands = [
             f'sudo pip3 install pipenv --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple',# Remove when the image has this preinstalled.
@@ -44,11 +45,15 @@ class Editor_PinningMergeAllJob():
 
         # construct job
         job = YMLJob()
-        job.set_name(f'Merge all [ABV] [CI]')
+        
+        if abv:
+            job.set_name(f'Merge all [ABV] [CI]')
+            job.set_trigger_on_expression(f'push.branch eq "{target_branch_editor_ci}" AND push.changes.any match "**/_latest_editor_versions*.metafile"')
+        else:
+            job.set_name(f'Merge all [no ABV] [no CI]')
+        
         job.set_agent(agent)
         job.add_var_custom('CI', True)
-        #job.allow_failure()
         job.add_dependencies(dependencies)
         job.add_commands(commands)
-        job.set_trigger_on_expression(f'push.branch eq "{target_branch_editor_ci}" AND push.changes.any match "**/_latest_editor_versions*.metafile"')
         return job

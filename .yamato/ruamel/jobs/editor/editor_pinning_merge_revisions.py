@@ -6,13 +6,13 @@ from ..shared.yml_job import YMLJob
 
 class Editor_PinningMergeRevisionsJob():
     
-    def __init__(self, editor, agent, target_branch, target_branch_editor_ci):
-        self.job_id = editor_job_id_merge_revisions(editor["track"])
-        self.yml_job = self.get_job_definition(editor, agent, target_branch, target_branch_editor_ci)
+    def __init__(self, editor, agent, target_branch, target_branch_editor_ci, abv):
+        self.job_id = editor_job_id_merge_revisions(editor["track"], abv)
+        self.yml_job = self.get_job_definition(editor, agent, target_branch, target_branch_editor_ci, abv)
         self.yml = self.yml_job.get_yml()
 
 
-    def get_job_definition(self, editor, agent, target_branch, target_branch_editor_ci):
+    def get_job_definition(self, editor, agent, target_branch, target_branch_editor_ci, abv):
     
 
         commands = [
@@ -34,10 +34,15 @@ class Editor_PinningMergeRevisionsJob():
         
         # construct job
         job = YMLJob()
-        job.set_name(f'Merge editor revisions to {target_branch} [{editor["track"]}]')
+
+        if abv: 
+            job.set_name(f'Merge [{editor["track"]}] revisions to {target_branch} [ABV]')
+            job.allow_failure()
+            job.add_dependencies([f'{abv_filepath()}#{abv_job_id_all_project_ci(editor["track"])}'])
+        else:
+            job.set_name(f'Merge [{editor["track"]}] revisions to {target_branch} [no ABV]')
+        
         job.set_agent(agent)
         job.add_var_custom('CI', True)
         job.add_commands(commands)
-        #job.add_dependencies([f'{abv_filepath()}#{abv_job_id_all_project_ci(editor)}'])
-        #job.set_trigger_on_expression(f'push.branch eq "{target_branch_editor_ci}" AND push.changes.any match "**/_latest_editor_versions.metafile"')
         return job
