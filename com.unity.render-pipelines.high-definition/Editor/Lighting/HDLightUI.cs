@@ -513,9 +513,13 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static void ConvertLightIntensity(LightUnit oldLightUnit, LightUnit newLightUnit, SerializedHDLight serialized, Editor owner)
+        internal static void ConvertLightIntensity(LightUnit oldLightUnit, LightUnit newLightUnit, SerializedHDLight serialized, Editor owner)
         {
-            float intensity = serialized.intensity.floatValue;
+            serialized.intensity.floatValue = ConvertLightIntensity(oldLightUnit, newLightUnit, serialized, owner, serialized.intensity.floatValue);
+        }
+
+        internal static float ConvertLightIntensity(LightUnit oldLightUnit, LightUnit newLightUnit, SerializedHDLight serialized, Editor owner, float intensity)
+        {
             Light light = (Light)owner.target;
 
             // For punctual lights
@@ -579,7 +583,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     break;  // do nothing
             }
 
-            serialized.intensity.floatValue = intensity;
+            return intensity;
         }
 
         static void DrawLightIntensityGUILayout(SerializedHDLight serialized, Editor owner)
@@ -611,8 +615,9 @@ namespace UnityEditor.Rendering.HighDefinition
             lightUnitSliderRect.x += EditorGUIUtility.labelWidth + k_ValueUnitSeparator;
             lightUnitSliderRect.width -= EditorGUIUtility.labelWidth + k_ValueUnitSeparator;
 
-            LightUnit lightUnit = serialized.lightUnit.GetEnumValue<LightUnit>();
-            k_LightUnitSliderUIDrawer.Draw(lightUnit, serialized.intensity, lightUnitSliderRect);
+            var lightType = serialized.type;
+            var lightUnit = serialized.lightUnit.GetEnumValue<LightUnit>();
+            k_LightUnitSliderUIDrawer.Draw(lightType, lightUnit, serialized.intensity, lightUnitSliderRect, serialized, owner);
 
             // We use PropertyField to draw the value to keep the handle at left of the field
             // This will apply the indent again thus we need to remove it time for alignment

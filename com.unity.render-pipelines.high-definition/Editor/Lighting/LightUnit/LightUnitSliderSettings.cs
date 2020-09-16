@@ -76,30 +76,6 @@ namespace UnityEditor.Rendering.HighDefinition
             "Lumen"
         );
 
-        // Candela
-        public static LightUnitSliderUIDescriptor CandelaDescriptor = new LightUnitSliderUIDescriptor(
-            LightUnitValueRanges.CandelaValueTable,
-            LightUnitSliderDistributions.LinearDistribution,
-            LightUnitTooltips.k_PunctualCaution,
-            "Candela"
-        );
-
-        // EV100
-        public static LightUnitSliderUIDescriptor EV100Descriptor = new LightUnitSliderUIDescriptor(
-            LightUnitValueRanges.EV100ValueTable,
-            LightUnitSliderDistributions.LinearDistribution,
-            LightUnitTooltips.k_PunctualCaution,
-            "EV"
-        );
-
-        // Nits
-        public static LightUnitSliderUIDescriptor NitsDescriptor = new LightUnitSliderUIDescriptor(
-            LightUnitValueRanges.NitsValueTable,
-            LightUnitSliderDistributions.LinearDistribution,
-            LightUnitTooltips.k_PunctualCaution,
-            "Nits"
-        );
-
         // Exposure
         public static LightUnitSliderUIDescriptor ExposureDescriptor = new LightUnitSliderUIDescriptor(
             LightUnitValueRanges.ExposureValueTable,
@@ -121,27 +97,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
         private static class LightUnitValueRanges
         {
-            // Shorthand helper for converting the pre-defined ranges into other units (Nits, EV, Candela).
-            static float LuxToEV(float x) => LightUtils.ConvertLuxToEv(x, 1f);
-            static float LuxToCandela(float x) => LightUtils.ConvertLuxToCandela(x, 1f);
-
-            // Note: In case of area light, the intensity is scaled by the light size. How should this be reconciled in the UI?
-            static float LumenToNits(float x) => LightUtils.ConvertRectLightLumenToLuminance(x, 1f, 1f);
-
             public static readonly LightUnitSliderUIRange[] LumenValueTable =
             {
                 new LightUnitSliderUIRange(LightUnitIcon.ExteriorLight,  LightUnitTooltips.k_PunctualExterior,   new Vector2(3000, 40000)),
                 new LightUnitSliderUIRange(LightUnitIcon.InteriorLight,  LightUnitTooltips.k_PunctualInterior,   new Vector2(300,  3000)),
                 new LightUnitSliderUIRange(LightUnitIcon.DecorativeLight,LightUnitTooltips.k_PunctualDecorative, new Vector2(15,   300)),
                 new LightUnitSliderUIRange(LightUnitIcon.Candlelight,    LightUnitTooltips.k_PunctualCandle,     new Vector2(0,    15)),
-            };
-
-            public static readonly LightUnitSliderUIRange[] NitsValueTable =
-            {
-                new LightUnitSliderUIRange(LightUnitIcon.ExteriorLight,   LightUnitTooltips.k_PunctualExterior,   new Vector2(LumenToNits(3000), LumenToNits(40000))),
-                new LightUnitSliderUIRange(LightUnitIcon.InteriorLight,   LightUnitTooltips.k_PunctualInterior,   new Vector2(LumenToNits(300),  LumenToNits(3000))),
-                new LightUnitSliderUIRange(LightUnitIcon.DecorativeLight, LightUnitTooltips.k_PunctualDecorative, new Vector2(LumenToNits(15),   LumenToNits(300))),
-                new LightUnitSliderUIRange(LightUnitIcon.Candlelight,     LightUnitTooltips.k_PunctualCandle,     new Vector2(0,               LumenToNits(15))),
             };
 
             public static readonly LightUnitSliderUIRange[] LuxValueTable =
@@ -152,23 +113,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 new LightUnitSliderUIRange(LightUnitIcon.Moonlight,     LightUnitTooltips.k_LuxMoonlight,     new Vector2(0,     1)),
             };
 
-            public static readonly LightUnitSliderUIRange[] CandelaValueTable =
-            {
-                new LightUnitSliderUIRange(LightUnitIcon.ExteriorLight,   LightUnitTooltips.k_PunctualExterior,   new Vector2(LuxToCandela(80000),  LuxToCandela(120000))),
-                new LightUnitSliderUIRange(LightUnitIcon.InteriorLight,   LightUnitTooltips.k_PunctualInterior,   new Vector2(LuxToCandela(10000),  LuxToCandela(80000))),
-                new LightUnitSliderUIRange(LightUnitIcon.DecorativeLight, LightUnitTooltips.k_PunctualDecorative, new Vector2(LuxToCandela(1),      LuxToCandela(10000))),
-                new LightUnitSliderUIRange(LightUnitIcon.Candlelight,     LightUnitTooltips.k_PunctualCandle,     new Vector2(0,                       LuxToCandela(1))),
-            };
-
-            public static readonly LightUnitSliderUIRange[] EV100ValueTable =
-            {
-                new LightUnitSliderUIRange(LightUnitIcon.ExteriorLight,   LightUnitTooltips.k_PunctualExterior,   new Vector2(LuxToEV(80000),  LuxToEV(120000))),
-                new LightUnitSliderUIRange(LightUnitIcon.InteriorLight,   LightUnitTooltips.k_PunctualInterior,   new Vector2(LuxToEV(10000),  LuxToEV(80000))),
-                new LightUnitSliderUIRange(LightUnitIcon.DecorativeLight, LightUnitTooltips.k_PunctualDecorative, new Vector2(LuxToEV(1),      LuxToEV(10000))),
-                new LightUnitSliderUIRange(LightUnitIcon.Candlelight,     LightUnitTooltips.k_PunctualCandle,     new Vector2(0,                  LuxToEV(1))),
-            };
-
-            // Same units as EV100, but we declare a new table since we use different icons in the exposure context.
             public static readonly LightUnitSliderUIRange[] ExposureValueTable =
             {
                 new LightUnitSliderUIRange(LightUnitIcon.BrightSky,     LightUnitTooltips.k_ExposureBrightSky,     new Vector2(12, 16)),
@@ -185,17 +129,17 @@ namespace UnityEditor.Rendering.HighDefinition
                 new LightUnitSliderUIRange(LightUnitIcon.Overcast,         LightUnitTooltips.k_TemperatureCloudySky,      new Vector2(6500,  10000)),
                 new LightUnitSliderUIRange(LightUnitIcon.DirectSunlight,   LightUnitTooltips.k_TemperatureDirectSunlight, new Vector2(3500,   6500)),
                 new LightUnitSliderUIRange(LightUnitIcon.IntenseAreaLight, LightUnitTooltips.k_TemperatureArtificial,     new Vector2(2500,   3500)),
-                new LightUnitSliderUIRange(LightUnitIcon.Candlelight,      LightUnitTooltips.k_TemperatureCandle,        new Vector2(1500,   2500)),
+                new LightUnitSliderUIRange(LightUnitIcon.Candlelight,      LightUnitTooltips.k_TemperatureCandle,         new Vector2(1500,   2500)),
             };
         }
 
         private static class LightUnitSliderDistributions
         {
             // Warning: All of these values need to be kept in sync with their associated descriptor's set of value ranges.
-            public static float[] LuxDistribution = {0.0f, 0.05f, 0.5f, 0.9f, 1.0f};
+            public static readonly float[] LuxDistribution = {0.0f, 0.05f, 0.5f, 0.9f, 1.0f};
 
             private const float LinearStep = 1 / 4f;
-            public static float[] LinearDistribution =
+            public static readonly float[] LinearDistribution =
             {
                 0 * LinearStep,
                 1 * LinearStep,
@@ -205,7 +149,7 @@ namespace UnityEditor.Rendering.HighDefinition
             };
 
             private const float ExposureStep = 1 / 6f;
-            public static float[] ExposureDistribution =
+            public static readonly float[] ExposureDistribution =
             {
                 0 * ExposureStep,
                 1 * ExposureStep,

@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Descriptor = descriptor;
         }
 
-        public void Draw(Rect rect, SerializedProperty value)
+        public virtual void Draw(Rect rect, SerializedProperty value)
         {
             BuildRects(rect, out var sliderRect, out var iconRect);
 
@@ -157,7 +157,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.LabelField(thumbMarkerRect, GetLightUnitTooltip(tooltip, value, m_Descriptor.unitName));
         }
 
-        static GUIContent GetLightUnitTooltip(string baseTooltip, float value, string unit)
+        protected virtual GUIContent GetLightUnitTooltip(string baseTooltip, float value, string unit)
         {
             string formatValue;
 
@@ -374,6 +374,62 @@ namespace UnityEditor.Rendering.HighDefinition
     }
 
     /// <summary>
+    /// Formats the provided descriptor into a punctual light unit slider with contextual slider markers, tooltips, and icons.
+    /// </summary>
+    class PunctualLightUnitSlider : PiecewiseLightUnitSlider
+    {
+        public PunctualLightUnitSlider(LightUnitSliderUIDescriptor descriptor) : base(descriptor) {}
+
+        private SerializedHDLight m_Light;
+        private Editor m_Editor;
+        private LightUnit m_Unit;
+
+        // Note: these should be in sync with LightUnit
+        private static string[] m_UnitNames =
+        {
+            "Lumen",
+            "Candela",
+            "Lux",
+            "Nits",
+            "EV",
+        };
+
+        public void Setup(LightUnit unit, SerializedHDLight light, Editor owner)
+        {
+            m_Unit = unit;
+            m_Light = light;
+            m_Editor = owner;
+        }
+
+        public override void Draw(Rect rect, SerializedProperty value)
+        {
+            // In case spot reflector is enabled, we need to disable it prior to Lumen conversion
+            var spotReflector = m_Light.enableSpotReflector.boolValue;
+            m_Light.enableSpotReflector.boolValue = false;
+
+            // Convert the incoming unit value into Lumen as the punctual slider is always in these terms (internally)
+            HDLightUI.ConvertLightIntensity(m_Unit, LightUnit.Lumen, m_Light, m_Editor);
+
+            base.Draw(rect, value);
+
+            // ...and then convert back from Lumens
+            HDLightUI.ConvertLightIntensity(LightUnit.Lumen, m_Unit, m_Light, m_Editor);
+
+            // Restore spot reflector in case it was enabled
+            m_Light.enableSpotReflector.boolValue = spotReflector;
+        }
+
+        protected override GUIContent GetLightUnitTooltip(string baseTooltip, float value, string unit)
+        {
+            // Convert the internal lumens into the actual light unit value
+            value = HDLightUI.ConvertLightIntensity(LightUnit.Lumen, m_Unit, m_Light, m_Editor, value);
+            unit = m_UnitNames[(int)m_Unit];
+
+            return base.GetLightUnitTooltip(baseTooltip, value, unit);
+        }
+    }
+
+    /// <summary>
     /// Formats the provided descriptor into a temperature unit slider with contextual slider markers, tooltips, and icons.
     /// </summary>
     class TemperatureSlider : LightUnitSlider
@@ -401,7 +457,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public TemperatureSlider(LightUnitSliderUIDescriptor descriptor) : base(descriptor) {}
 
-        public void SetLightSettings(LightEditor.Settings settings)
+        public void Setup(LightEditor.Settings settings)
         {
             m_Settings = settings;
         }
@@ -424,20 +480,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
     internal class LightUnitSliderUIDrawer
     {
-        static Dictionary<LightUnit, LightUnitSlider> k_LightUnitSliderMap;
-        static LightUnitSlider k_ExposureSlider;
-        static TemperatureSlider k_TemperatureSlider;
+        static PiecewiseLightUnitSlider k_DirectionalLightUnitSlider;
+        static PunctualLightUnitSlider  k_PunctualLightUnitSlider;
+        static PiecewiseLightUnitSlider k_ExposureSlider;
+        static TemperatureSlider        k_TemperatureSlider;
 
         static LightUnitSliderUIDrawer()
         {
-            k_LightUnitSliderMap = new Dictionary<LightUnit, LightUnitSlider>
-            {
-                { LightUnit.Lux,     new PiecewiseLightUnitSlider(LightUnitSliderDescriptors.LuxDescriptor)     },
-                { LightUnit.Lumen,   new PiecewiseLightUnitSlider(LightUnitSliderDescriptors.LumenDescriptor)   },
-                { LightUnit.Candela, new PiecewiseLightUnitSlider(LightUnitSliderDescriptors.CandelaDescriptor) },
-                { LightUnit.Ev100,   new PiecewiseLightUnitSlider(LightUnitSliderDescriptors.EV100Descriptor)   },
-                { LightUnit.Nits,    new PiecewiseLightUnitSlider(LightUnitSliderDescriptors.NitsDescriptor)    },
-            };
+            // Maintain a unique slider for directional/lux.
+            k_DirectionalLightUnitSlider = new PiecewiseLightUnitSlider(LightUnitSliderDescriptors.LuxDescriptor);
+
+            // Internally, slider is always in terms of lumens, so that the slider is uniform for all light units.
+            k_PunctualLightUnitSlider = new PunctualLightUnitSlider(LightUnitSliderDescriptors.LumenDescriptor);
 
             // Exposure is in EV100, but we load a separate due to the different icon set.
             k_ExposureSlider = new PiecewiseLightUnitSlider(LightUnitSliderDescriptors.ExposureDescriptor);
@@ -446,16 +500,26 @@ namespace UnityEditor.Rendering.HighDefinition
             k_TemperatureSlider = new TemperatureSlider(LightUnitSliderDescriptors.TemperatureDescriptor);
         }
 
-        public void Draw(LightUnit unit, SerializedProperty value, Rect rect)
+        public void Draw(HDLightType type, LightUnit lightUnit, SerializedProperty value, Rect rect, SerializedHDLight light, Editor owner)
         {
-            if (!k_LightUnitSliderMap.TryGetValue(unit, out var lightUnitSlider))
-                return;
-
-            // TODO: Always present the light intensity units in terms of Lumen for the slider!
             using (new EditorGUI.IndentLevelScope(-EditorGUI.indentLevel))
             {
-                lightUnitSlider.Draw(rect, value);
+                if (type == HDLightType.Directional)
+                    DrawDirectionalUnitSlider(value, rect);
+                else
+                    DrawPunctualLightUnitSlider(lightUnit, value, rect, light, owner);
             }
+        }
+
+        void DrawDirectionalUnitSlider(SerializedProperty value, Rect rect)
+        {
+            k_DirectionalLightUnitSlider.Draw(rect, value);
+        }
+
+        void DrawPunctualLightUnitSlider(LightUnit lightUnit, SerializedProperty value, Rect rect, SerializedHDLight light, Editor owner)
+        {
+            k_PunctualLightUnitSlider.Setup(lightUnit, light, owner);
+            k_PunctualLightUnitSlider.Draw(rect, value);
         }
 
         public void DrawExposureSlider(SerializedProperty value, Rect rect)
@@ -470,7 +534,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             using (new EditorGUI.IndentLevelScope(-EditorGUI.indentLevel))
             {
-                k_TemperatureSlider.SetLightSettings(settings);
+                k_TemperatureSlider.Setup(settings);
                 k_TemperatureSlider.Draw(rect, value);
             }
         }
