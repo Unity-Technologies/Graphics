@@ -267,7 +267,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // Piecewise function indexed by value ranges.
-        private readonly Dictionary<int, Piece> m_PiecewiseFunctionMap = new Dictionary<int, Piece>();
+        private readonly Dictionary<Vector2, Piece> m_PiecewiseFunctionMap = new Dictionary<Vector2, Piece>();
 
         Func<float, float> GetTransformation(float x0, float x1, float y0, float y1)
         {
@@ -310,15 +310,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreUtils.Swap(ref x1, ref y1);
                 piece.inverseTransform = GetTransformation(x0, x1, y0, y1);
 
-                var k = sortedRanges[i].value.GetHashCode();
-                m_PiecewiseFunctionMap.Add(k, piece);
+                m_PiecewiseFunctionMap.Add(sortedRanges[i].value, piece);
             }
         }
 
         protected override float GetPositionOnSlider(float value, Vector2 valueRange)
         {
-            var k = valueRange.GetHashCode();
-            if (!m_PiecewiseFunctionMap.TryGetValue(k, out var piecewise))
+            if (!m_PiecewiseFunctionMap.TryGetValue(valueRange, out var piecewise))
                 return -1f;
 
             return ValueToSlider(piecewise, value);
@@ -353,8 +351,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected override void DoSlider(Rect rect, SerializedProperty value, Vector2 sliderRange, Vector2 valueRange)
         {
             // Map the internal slider value to the current piecewise function
-            var k = valueRange.GetHashCode();
-            if (!m_PiecewiseFunctionMap.TryGetValue(k, out var piece))
+            if (!m_PiecewiseFunctionMap.TryGetValue(valueRange, out var piece))
             {
                 // Assume that if the piece is not found, that means the unit value is out of bounds.
                 SliderOutOfBounds(rect, value);
