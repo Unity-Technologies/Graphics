@@ -7,7 +7,7 @@ editor_version_names:
 - trunk_staging
 
 editor_versions:
-  trunk_latest_internal: 
+  trunk_latest_internal:   
     android:
       revision: 33396aa80555164ab46e889ada28564905edf2f3
       version: ''
