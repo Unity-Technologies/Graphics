@@ -28,6 +28,18 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
+    /// Available graphic formats for the cube and planar reflection probes.
+    /// </summary>
+    [System.Serializable]
+    public enum ReflectionAndPlanarProbeFormat
+    {
+        /// <summary>Faster sampling and rendering but at the cost of precision.</summary>
+        R11G11B10 = GraphicsFormat.B10G11R11_UFloatPack32,
+        /// <summary>Better precision, but uses twice as much memory compared to R11G11B10.</summary>
+        R16G16B16A16 = GraphicsFormat.R16G16B16A16_SFloat,
+    }
+
+    /// <summary>
     /// Possible values for the texture 2D size used for planar reflection probes.
     /// </summary>
     [Serializable]
@@ -124,6 +136,7 @@ namespace UnityEngine.Rendering.HighDefinition
             planarReflectionAtlasSize = PlanarReflectionAtlasResolution.PlanarReflectionResolution1024,
             reflectionProbeCacheSize = 64,
             reflectionCubemapSize = CubeReflectionResolution.CubeReflectionResolution256,
+            reflectionProbeFormat = ReflectionAndPlanarProbeFormat.R11G11B10,
 
             skyReflectionSize = SkyResolution.SkyResolution256,
             skyLightingOverrideLayerMask = 0,
@@ -162,6 +175,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public CubeReflectionResolution reflectionCubemapSize;
         /// <summary>Enable reflection probe cache compression.</summary>
         public bool reflectionCacheCompressed;
+        /// <summary>Reflection probes resolution.</summary>
+        public ReflectionAndPlanarProbeFormat reflectionProbeFormat;
 
         /// <summary>Resolution of the sky reflection cubemap.</summary>
         public SkyResolution skyReflectionSize;

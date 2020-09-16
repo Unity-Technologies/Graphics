@@ -197,10 +197,33 @@ namespace UnityEditor.ShaderGraph
 
         public void SetValueOnMaterialPropertyBlock(MaterialPropertyBlock mat)
         {
-            if ((propType == PropertyType.Texture2D || propType == PropertyType.Texture2DArray || propType == PropertyType.Texture3D) && textureValue != null)
-                mat.SetTexture(name, m_ClassData.textureValue);
-            else if (propType == PropertyType.Cubemap && cubemapValue != null)
-                mat.SetTexture(name, m_ClassData.cubemapValue);
+            if ((propType == PropertyType.Texture2D || propType == PropertyType.Texture2DArray || propType == PropertyType.Texture3D))
+            {
+                if (m_ClassData.textureValue == null)
+                {
+                    // there's no way to set the texture back to NULL
+                    // and no way to delete the property either
+                    // so instead we set the value to what we know the default will be
+                    // (all textures in ShaderGraph default to white)
+                    mat.SetTexture(name, Texture2D.whiteTexture);
+                }
+                else
+                    mat.SetTexture(name, m_ClassData.textureValue);
+            }
+            else if (propType == PropertyType.Cubemap)
+            {
+                if (m_ClassData.cubemapValue == null)
+                {
+                    // there's no way to set the texture back to NULL
+                    // and no way to delete the property either
+                    // so instead we set the value to what we know the default will be
+                    // (all textures in ShaderGraph default to white)
+                    // there's no Cubemap.whiteTexture, but this seems to work
+                    mat.SetTexture(name, Texture2D.whiteTexture);
+                }
+                else
+                    mat.SetTexture(name, m_ClassData.cubemapValue);
+            }
             else if (propType == PropertyType.Color)
                 mat.SetColor(name, m_StructData.colorValue);
             else if (propType == PropertyType.Vector2 || propType == PropertyType.Vector3 || propType == PropertyType.Vector4)
