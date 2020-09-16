@@ -322,7 +322,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionExtractScaleFromMatrix(VFXExpression parent) : base(VFXExpression.Flags.InvalidOnGPU, new VFXExpression[] { parent })
+        public VFXExpressionExtractScaleFromMatrix(VFXExpression parent) : base(VFXExpression.Flags.None, new VFXExpression[] { parent })
         {
         }
 
@@ -349,6 +349,10 @@ namespace UnityEditor.VFX
             var matrix = matrixReduce.Get<Matrix4x4>();
             matrix.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
             return VFXValue.Constant(matrix.lossyScale);
+        }
+        public override string GetCodeString(string[] parents)
+        {
+            return string.Format("float3(length({0}[0]),length({0}[1]),length({0}[2]))", parents[0]);
         }
     }
 

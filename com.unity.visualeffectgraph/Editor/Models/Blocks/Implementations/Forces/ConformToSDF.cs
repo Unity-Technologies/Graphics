@@ -19,7 +19,12 @@ namespace UnityEditor.VFX.Block
                 foreach (var input in GetExpressionsFromSlots(this))
                 {
                     if (input.name == "FieldTransform")
+                    {
                         yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(input.exp), "InvFieldTransform");
+                        yield return new VFXNamedExpression(VFXOperatorUtility.Max3(new VFXExpressionExtractScaleFromMatrix(input.exp)), "scalingFactor");
+
+                    }
+
                     yield return input;
                 }
 
@@ -80,7 +85,7 @@ else
     dir = normalize(mul(float4(dir,0), InvFieldTransform).xyz);
 }
 
-float distToSurface = abs(dist);
+float distToSurface = abs(dist) * scalingFactor; 
 
 float spdNormal = dot(dir,velocity);
 float ratio = smoothstep(0.0,stickDistance * 2.0,abs(distToSurface));

@@ -165,7 +165,8 @@ float3 SampleSDFDerivatives(VFXSampler3D s, float3 coords, float level = 0.0f)
 float GetDistanceFromSDF(VFXSampler3D s, float3 uvw, float3 extents, float level = 0.0f)
 {
     float3 projUVW = saturate(uvw);
-    float dist = SampleSDF(s, projUVW, level);
+    float scalingFactor = max(extents.x, max(extents.y, extents.z));
+    float dist = SampleSDF(s, projUVW, level) * scalingFactor;
     float3 absPos = abs(uvw - 0.5f);
     float outsideDist = max(absPos.x, max(absPos.y, absPos.z));
     if (outsideDist > 0.5f) // Check whether point is outside the box
