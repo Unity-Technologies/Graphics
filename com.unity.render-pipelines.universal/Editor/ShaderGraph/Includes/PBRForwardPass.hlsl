@@ -3,11 +3,14 @@ void BuildInputData(Varyings input, SurfaceDescription surfaceDescription, out I
     inputData.positionWS = input.positionWS;
 
     #ifdef _NORMALMAP
+        // IMPORTANT! If we ever support Flip on double sided materials ensure bitangent and tangent are NOT flipped.
+        float crossSign = (input.tangentWS.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale();
+        float3 bitangent = crossSign * cross(input.normalWS.xyz, input.tangentWS.xyz);
+
+        inputData.tangentMatrixWS = half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
+
         #if _NORMAL_DROPOFF_TS
-            // IMPORTANT! If we ever support Flip on double sided materials ensure bitangent and tangent are NOT flipped.
-            float crossSign = (input.tangentWS.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale();
-            float3 bitangent = crossSign * cross(input.normalWS.xyz, input.tangentWS.xyz);
-            inputData.normalWS = TransformTangentToWorld(surfaceDescription.NormalTS, half3x3(input.tangentWS.xyz, bitangent, input.normalWS.xyz));
+            inputData.normalWS = TransformTangentToWorld(surfaceDescription.NormalTS, inputData.tangentMatrixWS);
         #elif _NORMAL_DROPOFF_OS
             inputData.normalWS = TransformObjectToWorldNormal(surfaceDescription.NormalOS);
         #elif _NORMAL_DROPOFF_WS
@@ -16,6 +19,7 @@ void BuildInputData(Varyings input, SurfaceDescription surfaceDescription, out I
     #else
         inputData.normalWS = input.normalWS;
     #endif
+    inputData.normalTS = surfaceDescription.NormalTS;
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
     inputData.viewDirectionWS = SafeNormalize(input.viewDirectionWS);
 
@@ -31,6 +35,16 @@ void BuildInputData(Varyings input, SurfaceDescription surfaceDescription, out I
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.sh, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
+
+    #if defined(LIGHTMAP_ON)
+    inputData.lightmapUV = input.lightmapUV;
+    #else
+    inputData.vertexSH = input.sh;
+    #endif
+
+    #if defined(_DEBUG_SHADER)
+    inputData.uv = input.uv;
+    #endif
 }
 
 PackedVaryings vert(Attributes input)

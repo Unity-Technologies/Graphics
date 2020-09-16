@@ -66,9 +66,12 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 #if defined(_NORMALMAP) || defined(_DETAIL)
     float sgn = input.tangentWS.w;      // should be either +1 or -1
     float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
+    half3x3 tangentMatrixWS = half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
 
-    inputData.tangentMatrixWS = half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
-    inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentMatrixWS);
+    #if defined(_NORMALMAP)
+    inputData.tangentMatrixWS = tangentMatrixWS;
+    #endif
+    inputData.normalWS = TransformTangentToWorld(normalTS, tangentMatrixWS);
 #else
     inputData.normalWS = input.normalWS;
 #endif
