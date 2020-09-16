@@ -41,12 +41,37 @@ public class RenderGraphViewer : EditorWindow
     StyleColor m_ResourceColorWrite = new StyleColor(new Color(1.0f, 0.2f, 0.2f));
     StyleColor m_ImportedResourceColor = new StyleColor(new Color(0.3f, 0.75f, 0.75f));
     StyleColor m_CulledPassColor = new StyleColor(Color.black);
+    StyleColor m_ResourceHighlightColor = new StyleColor(Color.white);
     StyleColor m_OriginalResourceLifeColor;
     StyleColor m_OriginalPassColor;
+    StyleColor m_OriginalResourceColor;
 
-    DynamicArray<VisualElement> m_ResourceLifeTimeElements = new DynamicArray<VisualElement>();
-    DynamicArray<VisualElement> m_PassElements = new DynamicArray<VisualElement>();
-    DynamicArray<int> m_PassRemapping = new DynamicArray<int>();
+    struct ResourceElementInfo
+    {
+        public VisualElement lifetime;
+        public VisualElement resourceLabel;
+
+        public void Reset()
+        {
+            lifetime = null;
+            resourceLabel = null;
+        }
+    }
+
+    struct PassElementInfo
+    {
+        public VisualElement pass;
+        public int remap;
+
+        public void Reset()
+        {
+            pass = null;
+            remap = -1;
+        }
+    }
+
+    DynamicArray<ResourceElementInfo> m_ResourceElementsInfo = new DynamicArray<ResourceElementInfo>();
+    DynamicArray<PassElementInfo> m_PassElementsInfo = new DynamicArray<PassElementInfo>();
 
     Filter m_Filter = 0;
 
@@ -77,14 +102,14 @@ public class RenderGraphViewer : EditorWindow
 
         foreach (int resourceRead in pass.resourceReadLists[0])
         {
-            VisualElement resourceLifetime = m_ResourceLifeTimeElements[resourceRead];
+            VisualElement resourceLifetime = m_ResourceElementsInfo[resourceRead].lifetime;
             if (resourceLifetime != null)
                 resourceLifetime.style.backgroundColor = colorRead;
         }
 
         foreach (int resourceWrite in pass.resourceWriteLists[0])
         {
-            VisualElement resourceLifetime = m_ResourceLifeTimeElements[resourceWrite];
+            VisualElement resourceLifetime = m_ResourceElementsInfo[resourceWrite].lifetime;
             if (resourceLifetime != null)
                 resourceLifetime.style.backgroundColor = colorWrite;
         }
@@ -111,7 +136,7 @@ public class RenderGraphViewer : EditorWindow
             if (passDebugData.culled)
                 continue;
 
-            VisualElement passElement = m_PassElements[consumer];
+            VisualElement passElement = m_PassElementsInfo[consumer].pass;
             if (passElement != null)
             {
                 VisualElement passButton = passElement.Q("PassNameButton");
@@ -125,7 +150,7 @@ public class RenderGraphViewer : EditorWindow
             if (passDebugData.culled)
                 continue;
 
-            VisualElement passElement = m_PassElements[producer];
+            VisualElement passElement = m_PassElementsInfo[producer].pass;
             if (passElement != null)
             {
                 VisualElement passButton = passElement.Q("PassNameButton");
@@ -134,14 +159,26 @@ public class RenderGraphViewer : EditorWindow
         }
     }
 
+    void UpdateResourceLabelColor(int index, StyleColor color)
+    {
+        var label = m_ResourceElementsInfo[index].resourceLabel;
+        if (label != null)
+        {
+            label.style.color = color;
+        }
+    }
+
     void MouseEnterResourceCallback(MouseEnterEvent evt, int index)
     {
         UpdatePassColor(index, m_ResourceColorRead, m_ResourceColorWrite);
+        UpdateResourceLabelColor(index, m_ResourceHighlightColor);
     }
 
     void MouseLeaveResourceCallback(MouseLeaveEvent evt, int index)
     {
+        var resource = m_CurrentRenderGraph.GetDebugData().resourceLists[0][index];
         UpdatePassColor(index, m_OriginalPassColor, m_OriginalPassColor);
+        UpdateResourceLabelColor(index, resource.imported ? m_ImportedResourceColor : m_OriginalResourceColor); ;
     }
 
     VisualElement CreateRenderPassLabel(string name, int index, bool culled)
@@ -188,6 +225,8 @@ public class RenderGraphViewer : EditorWindow
         label.style.height = kResourceHeight;
         if (imported)
             label.style.color = m_ImportedResourceColor;
+        else
+            m_OriginalResourceColor = label.style.color;
 
         return label;
     }
@@ -313,12 +352,11 @@ public class RenderGraphViewer : EditorWindow
         passNamesElement.style.flexDirection = FlexDirection.Row;
 
         var debugData = m_CurrentRenderGraph.GetDebugData();
-        if (debugData.passList == null)
+        if (debugData.passList.Count == 0)
             return;
 
-        m_ResourceLifeTimeElements.Resize(debugData.resourceLists[0].Count);
-        m_PassElements.Resize(debugData.passList.Count);
-        m_PassRemapping.Resize(debugData.passList.Count);
+        m_ResourceElementsInfo.Resize(debugData.resourceLists[0].Count);
+        m_PassElementsInfo.Resize(debugData.passList.Count);
 
         int passIndex = 0;
         int finalPassCount = 0;
@@ -326,13 +364,13 @@ public class RenderGraphViewer : EditorWindow
         {
             if ((pass.culled && !m_Filter.HasFlag(Filter.CulledPasses)) || !pass.generateDebugData)
             {
-                m_PassRemapping[passIndex] = -1;
+                m_PassElementsInfo[passIndex].Reset();
             }
             else
             {
                 var passElement = CreateRenderPassLabel(pass.name, passIndex, pass.culled);
-                m_PassElements[passIndex] = passElement;
-                m_PassRemapping[passIndex] = finalPassCount;
+                m_PassElementsInfo[passIndex].pass = passElement;
+                m_PassElementsInfo[passIndex].remap = finalPassCount;
                 passNamesElement.Add(passElement);
                 finalPassCount++;
             }
@@ -366,16 +404,18 @@ public class RenderGraphViewer : EditorWindow
             if (resource.releasePassIndex == -1 && resource.creationPassIndex == -1
                 || (resource.imported && !m_Filter.HasFlag(Filter.ImportedResources)))
             {
-                m_ResourceLifeTimeElements[index++] = null;
+                m_ResourceElementsInfo[index++].Reset();
                 continue;
             }
 
-            resourceNamesContainer.Add(CreateResourceLabel(resource.name, resource.imported));
+            var label = CreateResourceLabel(resource.name, resource.imported);
+            m_ResourceElementsInfo[index].resourceLabel = label;
+            resourceNamesContainer.Add(label);
 
             var newButton = new Button();
             newButton.style.position = Position.Relative;
-            newButton.style.left = m_PassRemapping[resource.creationPassIndex] * kRenderPassWidth;
-            newButton.style.width = (m_PassRemapping[resource.releasePassIndex] - m_PassRemapping[resource.creationPassIndex] + 1) * kRenderPassWidth;
+            newButton.style.left = m_PassElementsInfo[resource.creationPassIndex].remap * kRenderPassWidth;
+            newButton.style.width = (m_PassElementsInfo[resource.releasePassIndex].remap - m_PassElementsInfo[resource.creationPassIndex].remap + 1) * kRenderPassWidth;
             newButton.style.marginBottom = 0.0f;
             newButton.style.marginLeft = 0.0f;
             newButton.style.marginRight = 0.0f;
@@ -388,7 +428,7 @@ public class RenderGraphViewer : EditorWindow
             resourcesLifeTimeElement.Add(newButton);
 
             m_OriginalResourceLifeColor = newButton.style.color;
-            m_ResourceLifeTimeElements[index++] = newButton;
+            m_ResourceElementsInfo[index++].lifetime = newButton;
         }
 
         resourceElement.Add(resourceNamesContainer);
