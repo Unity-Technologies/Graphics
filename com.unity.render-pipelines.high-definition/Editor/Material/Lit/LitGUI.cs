@@ -119,6 +119,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (material.HasProperty(kEmissiveColorMap))
                 {
+                    CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
                     material.SetFloat(kUVEmissive, (float)emissiveMapping); 
                 }
                 else if ((int)emissiveMapping > (int)UVEmissiveMapping.UV3) // Meaning it was set as a non UV-set option and we don't have an emissive map, so ...
