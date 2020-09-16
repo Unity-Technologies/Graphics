@@ -29,6 +29,8 @@ public class RenderGraphViewer : EditorWindow
     {
         ImportedResources = 1 << 0,
         CulledPasses = 1 << 1,
+        Textures = 1 << 2,
+        ComputeBuffers = 1 << 3,
     }
 
     struct ResourceElementInfo
@@ -73,7 +75,7 @@ public class RenderGraphViewer : EditorWindow
     DynamicArray<ResourceElementInfo>[] m_ResourceElementsInfo = new DynamicArray<ResourceElementInfo>[(int)RenderGraphResourceType.Count];
     DynamicArray<PassElementInfo> m_PassElementsInfo = new DynamicArray<PassElementInfo>();
 
-    Filter m_Filter = 0;
+    Filter m_Filter = Filter.Textures | Filter.ComputeBuffers;
 
     void RenderPassLabelChanged(GeometryChangedEvent evt)
     {
@@ -223,6 +225,12 @@ public class RenderGraphViewer : EditorWindow
 
         // We need to make sure all resource types have the same width
         m_GraphViewerElement.Query("GraphViewer.Resources.ResourceNames").Build().ForEach((elem) =>
+        {
+            elem.style.width = Mathf.Max(evt.newRect.width, elem.style.width.value.value);
+            elem.style.minWidth = Mathf.Max(evt.newRect.width, elem.style.minWidth.value.value);
+        });
+
+        m_GraphViewerElement.Query("GraphViewer.Resources.ResourceTypeName").Build().ForEach((elem) =>
         {
             elem.style.width = Mathf.Max(evt.newRect.width, elem.style.width.value.value);
             elem.style.minWidth = Mathf.Max(evt.newRect.width, elem.style.minWidth.value.value);
@@ -457,14 +465,27 @@ public class RenderGraphViewer : EditorWindow
 
         var resourceScrollView = new ScrollView(ScrollViewMode.Vertical);
 
+        // Has to match RenderGraphModule.RenderGraphResourceType order.
+        Filter[] resourceFilterFlags = { Filter.Textures, Filter.ComputeBuffers };
+        string[] resourceNames = { "Textures Resources", "Compute Buffer Resources" };
+
         for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
         {
-            var resourceViewerElement = CreateResourceViewer(debugData, i, finalPassCount);
-            resourceScrollView.Add(resourceViewerElement);
+            if (m_Filter.HasFlag(resourceFilterFlags[i]))
+            {
+                var resourceViewerElement = CreateResourceViewer(debugData, i, finalPassCount);
+                var resourceNameLabel = new Label(resourceNames[i]);
+                resourceNameLabel.name = "GraphViewer.Resources.ResourceTypeName";
+                resourceNameLabel.style.unityTextAlign = TextAnchor.MiddleRight;
+                resourceNameLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+                resourceNameLabel.style.fontSize = 13;
+                resourceScrollView.Add(resourceNameLabel);
+                resourceScrollView.Add(resourceViewerElement);
 
-            VisualElement separator = new VisualElement();
-            separator.style.minHeight = kResourceHeight;
-            resourceScrollView.Add(separator);
+                VisualElement separator = new VisualElement();
+                separator.style.minHeight = kResourceHeight;
+                resourceScrollView.Add(separator);
+            }
         }
 
         graphViewerElement.Add(topRowElement);
