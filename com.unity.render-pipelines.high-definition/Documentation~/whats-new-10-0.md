@@ -150,14 +150,6 @@ The [HDRI Sky](Override-HDRI-Sky.md) override now contains a new property to all
 
 For more information, see the [HDRI Sky documentation](Override-HDRI-Sky.md).
 
-### Cloud Layer Override (in preview)
-
-![](Images/HDRPFeatures-CloudLayer.png)
-
-This feature allows you to blend a texture with any sky available in the HDRP [volume system](Volumes.md). You can also use a flow map to apply a distortion effect, like wind.
-
-For information about the feature, see the [Cloud Layer documentation](Override-Cloud-Layer.md). For an example of integration in a custom sky, see the [Custom Sky documentation](Creating-a-Custom-Sky.md)
-
 ### Graphics Compositor (in Preview)
 
 ![](Images/Compositor-HDRPTemplateWithLogo.png)

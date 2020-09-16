@@ -554,6 +554,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.lightingDebugSettings.debugLightingMode = DebugLightingMode.None;
                 data.lightingDebugSettings.debugLightLayers = false;
                 data.materialDebugSettings.DisableMaterialDebug();
+                data.mipMapDebugSettings.debugMipMapMode = DebugMipMapMode.None;
             }
 
             data.fullScreenDebugMode = value;
@@ -664,6 +665,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.materialDebugSettings.DisableMaterialDebug();
                 data.lightingDebugSettings.debugLightingMode = DebugLightingMode.None;
                 data.lightingDebugSettings.debugLightLayers = false;
+                data.fullScreenDebugMode = FullScreenDebugMode.None;
             }
             data.mipMapDebugSettings.debugMipMapMode = value;
         }
