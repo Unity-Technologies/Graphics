@@ -39,5 +39,6 @@
         * [Transform (Vector4)](Operator-Transform(Vector4).md)
     * Sampling
       * [Get Texture Dimensions](Operator-GetTextureDimensions.md)
+      * [Sample Signed Distance Field](Operator-SampleSDF.md)
 * Reference
   * [Standard Attributes](Reference-Attributes.md)
