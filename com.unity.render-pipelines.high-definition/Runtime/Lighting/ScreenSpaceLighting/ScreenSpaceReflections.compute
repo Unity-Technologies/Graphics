@@ -71,7 +71,6 @@ TEXTURE2D_X(_DepthTexture);
 #ifdef SSR_TRACE
     TEXTURE2D_X_UINT2(         _StencilTexture);
     RW_TEXTURE2D_X(float4, _SsrHitPointTexture);
-    RW_TEXTURE2D_X(float4, _SSRInfoTexture);
 #elif defined(SSR_REPROJECT)
        TEXTURE2D_X(        _SsrHitPointTexture);
     RW_TEXTURE2D_X(float4, _SsrLightingTextureRW); // ShaderVariablesScreenSpaceLighting.hlsl already pulls in a non-RW _SsrLightingTexture
@@ -624,8 +623,6 @@ void ScreenSpaceReflectionsTracing(uint3 groupId          : SV_GroupID,
         // It also needs to be precisely at the center of the pixel to avoid artifacts.
         float2 hitPositionNDC = floor(rayPos.xy) * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute the half-texel bias? We seem to use it a lot.
         _SsrHitPointTexture[COORD_TEXTURE2D_X(positionSS)] = float4(hitPositionNDC, t, weight);
-        float3 res = _SSRInfoTexture[COORD_TEXTURE2D_X(positionSS)].rgb;
-        _SSRInfoTexture[COORD_TEXTURE2D_X(positionSS)] = float4(res, NdotV);
     }
 
     // If we do not hit anything, 'rayPos.xy' provides an indication where we stopped the search.
