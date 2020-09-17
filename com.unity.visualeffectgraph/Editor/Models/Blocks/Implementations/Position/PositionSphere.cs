@@ -72,7 +72,7 @@ sincos(theta, sincosTheta.x, sincosTheta.y);
 sincosTheta *= sqrt(1.0f - cosPhi * cosPhi);
 float3 finalDir = float3(sincosTheta, cosPhi);
 float3 finalPos = float3(sincosTheta, cosPhi) * rNorm * ArcSphere_sphere_radius;
-finalPos = mul(transformMatrix, float4(finalPos, 1.0f));
+finalPos = mul(transformMatrix, float4(finalPos, 1.0f)).xyz;
 finalDir = mul((float3x3)transformMatrix, finalDir);
 ";
 

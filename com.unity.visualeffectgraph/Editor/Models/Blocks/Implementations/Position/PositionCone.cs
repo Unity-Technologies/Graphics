@@ -147,7 +147,7 @@ float hNorm = HeightSequencer;
                 outSource += @"
 float3 finalPos = lerp(float3(pos * ArcCone_radius0, 0.0f), float3(pos * ArcCone_radius1, ArcCone_height), hNorm);
 float3 finalDir = normalize(float3(pos * sincosSlope.x, sincosSlope.y));
-finalPos = mul(transformMatrix, float4(finalPos, 1.0f));
+finalPos = mul(transformMatrix, float4(finalPos, 1.0f)).xyz;
 finalDir = mul((float3x3)transformMatrix, finalDir);
 ";
                 outSource += VFXBlockUtility.GetComposeString(compositionDirection, "direction", "finalDir", "blendDirection") + "\n";

@@ -86,7 +86,7 @@ namespace UnityEditor.VFX.Block
                 var outSource = @"
 float3 finalDir = float3(sinTheta, cosTheta, 0.0f);
 float3 finalPos = float3(sinTheta, cosTheta, 0.0f) * rNorm;
-finalPos = mul(transformMatrix, float4(finalPos, 1.0f));
+finalPos = mul(transformMatrix, float4(finalPos, 1.0f)).xyz;
 finalDir = mul((float3x3)transformMatrix, finalDir);
 ";
                 outSource += string.Format(composeDirectionFormatString, "finalDir");

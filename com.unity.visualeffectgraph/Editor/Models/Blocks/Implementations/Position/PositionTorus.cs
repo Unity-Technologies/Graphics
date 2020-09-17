@@ -102,7 +102,7 @@ float3 t2 = float3(c * t.x - s * t.y,c * t.y + s * t.x,t.z);
 
 float3 finalPos = ArcTorus_majorRadius * t2;
 float3 finalDir = t2;
-finalPos = mul(transformMatrix, float4(finalPos, 1.0f));
+finalPos = mul(transformMatrix, float4(finalPos, 1.0f)).xyz;
 finalDir = mul((float3x3)transformMatrix, finalDir);
 ";
                 outSource += string.Format(composePositionFormatString, "finalPos");
