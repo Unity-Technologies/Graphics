@@ -80,6 +80,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with mipmap debug mode not properly resetting full screen mode (and viceversa). 
 - Added unsupported message when using tile debug mode with MSAA.
 - Fixed SSGI compilation issues on PS4.
+- Fixed Cutoff not working properly with ray tracing shaders default and SG (case 1261292).
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
