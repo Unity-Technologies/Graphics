@@ -58,7 +58,7 @@ void RayGenIntegration()
     UNITY_XR_ASSIGN_VIEW_INDEX(LaunchIndex.z);
 
     // Compute the pixel coordinate to evaluate
-    uint2 currentCoord = uint2(LaunchIndex.x, LaunchDim.y - LaunchIndex.y - 1);
+    uint2 currentCoord = uint2(LaunchIndex.x, LaunchIndex.y);
 
     // Clear the output color texture
     _SsrLightingTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, 0.0);
@@ -103,7 +103,7 @@ void RayGenIntegration()
     float roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
 
     // Clamp the sample count if the surface is a completely smooth
-    int realSampleCount = normalData.perceptualRoughness < 0.01 ? 1 : _RaytracingNumSamples;
+    int realSampleCount = _RaytracingMaxRecursion == 1 ? (normalData.perceptualRoughness < 0.01 ? 1 : _RaytracingNumSamples) : _RaytracingNumSamples;
 
     // Variable that accumulate the radiance
     float3 finalColor = float3(0.0, 0.0, 0.0);
