@@ -12,8 +12,7 @@ using UnityEditor.VFX.UI;
 
 namespace UnityEditor.VFX.Test
 {
-    [TestFixture]
-    internal class VFXSpacePropagationTest
+    class VFXExpressionTestHelper
     {
         public static IEnumerable<VFXExpression> CollectParentExpression(VFXExpression expression, HashSet<VFXExpression> hashSet = null)
         {
@@ -38,6 +37,15 @@ namespace UnityEditor.VFX.Test
                     }
                 }
             }
+        }
+    }
+
+    [TestFixture]
+    internal class VFXSpacePropagationTest
+    {
+        public static IEnumerable<VFXExpression> CollectParentExpression(VFXExpression expression, HashSet<VFXExpression> hashSet = null)
+        {
+            return VFXExpressionTestHelper.CollectParentExpression(expression, hashSet);
         }
 
         [Test]

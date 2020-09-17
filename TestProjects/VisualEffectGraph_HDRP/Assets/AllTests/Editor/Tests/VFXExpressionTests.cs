@@ -303,6 +303,26 @@ namespace UnityEditor.VFX.Test
             Assert.AreNotEqual(exp0, exp3);
             Assert.AreNotEqual(exp0, exp4);
         }
+
+        [Test]
+        public void Check_ExtractAnglesFromMatrix_Can_Be_Skipped_By_Reduce()
+        {
+            var zeroF3 = VFXOperatorUtility.ZeroExpression[VFXValueType.Float3];
+            var oneF3 = VFXOperatorUtility.OneExpression[VFXValueType.Float3];
+
+            var matrix = VFXBuiltInExpression.WorldToLocal;
+            var angles = new VFXExpressionExtractAnglesFromMatrix(matrix);
+            var rotationMatrix = new VFXExpressionTRSToMatrix(zeroF3, angles, oneF3);
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.ConstantFolding);
+            var reduced = context.Compile(rotationMatrix);
+
+            //Check if reduction correctly removed useless VFXExpressionExtractAnglesFromMatrix
+            var before = VFXExpressionTestHelper.CollectParentExpression(rotationMatrix).ToArray();
+            var after = VFXExpressionTestHelper.CollectParentExpression(reduced).ToArray();
+            Assert.IsTrue(before.Any(o => o.operation == VFXExpressionOperation.ExtractAnglesFromMatrix));
+            Assert.IsFalse(after.Any(o => o.operation == VFXExpressionOperation.ExtractAnglesFromMatrix));
+        }
     }
 }
 #endif
