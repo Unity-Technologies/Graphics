@@ -837,19 +837,13 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
         //motionVectorCenterNDC *= _ColorPyramidUvScaleAndLimitPrevFrame.xy;
         float speedSrc = length(motionVectorCenterNDC);
         float speed = (speedDst + speedDst);
-        //speed = speed > 0.0f ? saturate(1.0f) : 0.0f;
+        speed = speed > 0.0f ? 1.0f : 0.0f;
 
         _SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] =
             lerp(
                 _SsrPrevLightingTexture[COORD_TEXTURE2D_X(positionSS)],
                 _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)],
-                //output,
-                //1.0f - saturate(speed));
-                //1.0f);
-                //0.125f);
-                //lerp(speed, 1.0f, _SsrAccumulationAmount));
-                lerp(_SsrAccumulationAmount, 1.0f, saturate(speed)));
-                //_SsrAccumulationAmount*speed);
+                lerp(_SsrAccumulationAmount, 1.0f, speed));
     }
 }
 
