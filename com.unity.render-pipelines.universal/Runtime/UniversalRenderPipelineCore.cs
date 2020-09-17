@@ -233,6 +233,7 @@ namespace UnityEngine.Rendering.Universal
         public Vector4 attenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation (for SpotLights)
         public Vector3 spotDirection;   // for spotLights
         public int lightIndex;
+        public Vector4 occlusionProbeInfo;
     }
 
     internal static class ShaderPropertyId
@@ -331,6 +332,14 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _POINT = "_POINT";
         public static readonly string _DEFERRED_ADDITIONAL_LIGHT_SHADOWS = "_DEFERRED_ADDITIONAL_LIGHT_SHADOWS";
         public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
+        public static readonly string _DEFERRED_SUBTRACTIVE_LIGHTING = "_DEFERRED_SUBTRACTIVE_LIGHTING";
+        public static readonly string LIGHTMAP_ON = "LIGHTMAP_ON";
+        public static readonly string _ALPHATEST_ON = "_ALPHATEST_ON";
+        public static readonly string DIRLIGHTMAP_COMBINED = "DIRLIGHTMAP_COMBINED";
+        public static readonly string _DETAIL_MULX2 = "_DETAIL_MULX2";
+        public static readonly string _DETAIL_SCALED = "_DETAIL_SCALED";
+        public static readonly string _CLEARCOAT = "_CLEARCOAT";
+        public static readonly string _CLEARCOATMAP = "_CLEARCOATMAP";
 
         // XR
         public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";
@@ -437,6 +446,8 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 desc = camera.targetTexture.descriptor;
+                desc.width = camera.pixelWidth;
+                desc.height = camera.pixelHeight;
                 // SystemInfo.SupportsRenderTextureFormat(camera.targetTexture.descriptor.colorFormat)
                 // will assert on R8_SINT since it isn't a valid value of RenderTextureFormat.
                 // If this is fixed then we can implement debug statement to the user explaining why some
