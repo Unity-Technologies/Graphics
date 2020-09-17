@@ -43,7 +43,7 @@ void BuildInputData(Varyings input, SurfaceDescription surfaceDescription, out I
     #endif
 
     #if defined(_DEBUG_SHADER)
-    inputData.uv = input.uv;
+    inputData.uv = input.texCoord0.xy;
     #endif
 }
 

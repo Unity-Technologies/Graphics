@@ -97,6 +97,10 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     #else
     inputData.vertexSH = input.vertexSH;
     #endif
+
+    #if defined(_DEBUG_SHADER)
+    inputData.uv = input.uv;
+    #endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -180,9 +184,6 @@ half4 LitPassFragment(Varyings input) : SV_Target
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
 
-#if defined(_DEBUG_SHADER)
-    inputData.uv = input.uv;
-#endif
     half4 color = UniversalFragmentPBR(inputData, surfaceData);
 
     color.rgb = MixFog(color.rgb, inputData.fogCoord);

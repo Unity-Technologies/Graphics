@@ -336,6 +336,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _DETAIL_SCALED = "_DETAIL_SCALED";
         public static readonly string _CLEARCOAT = "_CLEARCOAT";
         public static readonly string _CLEARCOATMAP = "_CLEARCOATMAP";
+        public static readonly string _DEBUG_SHADER = "_DEBUG_SHADER";
 
         // XR
         public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";

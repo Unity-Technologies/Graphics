@@ -549,6 +549,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas  = CorePragmas.Forward, // NOTE: SM 2.0 only GL
                 keywords = LitKeywords.Forward,
                 includes = LitIncludes.Forward,
+                defines = LitDefines.DebugLit,
             };
         }
 #endregion
@@ -664,9 +665,23 @@ static class LitDefines
         scope = KeywordScope.Local,
     };
 
+    public static readonly KeywordDescriptor DebugShader = new KeywordDescriptor()
+    {
+        displayName = "Debug Shader",
+        referenceName = "_DEBUG_SHADER",
+        type = KeywordType.Boolean,
+        definition = KeywordDefinition.ShaderFeature,
+        scope = KeywordScope.Local,
+    };
+
     public static readonly DefineCollection ComplexLit = new DefineCollection()
     {
         {ClearCoat, 1},
+    };
+
+    public static readonly DefineCollection DebugLit = new DefineCollection()
+    {
+        {DebugShader, 1},
     };
 }
 #endregion
@@ -719,6 +734,19 @@ static class LitDefines
             public static readonly KeywordCollection Meta = new KeywordCollection
             {
                 { CoreKeywordDescriptors.SmoothnessChannel },
+            };
+
+            public static readonly KeywordCollection DebugMaterial = new KeywordCollection
+            {
+                { ScreenSpaceAmbientOcclusion },
+                { CoreKeywordDescriptors.Lightmap },
+                { CoreKeywordDescriptors.DirectionalLightmapCombined },
+                { CoreKeywordDescriptors.MainLightShadows },
+                { CoreKeywordDescriptors.MainLightShadowsCascade },
+                { CoreKeywordDescriptors.AdditionalLights },
+                { CoreKeywordDescriptors.AdditionalLightShadows },
+                { CoreKeywordDescriptors.ShadowsSoft },
+                { CoreKeywordDescriptors.MixedLightingSubtractive },
             };
         }
 #endregion
