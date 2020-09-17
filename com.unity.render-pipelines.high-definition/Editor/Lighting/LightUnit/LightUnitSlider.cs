@@ -159,15 +159,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected virtual GUIContent GetLightUnitTooltip(string baseTooltip, float value, string unit)
         {
-            string formatValue;
-
-            if (value >= 100000)
-                formatValue = (value / 1000).ToString("#,0K");
-            else if (value >= 10000)
-                formatValue = (value / 1000).ToString("0.#") + "K";
-            else
-                formatValue = value.ToString("#0.0");
-
+            var formatValue = value < 100 ? $"{value:n}" : $"{value:n0}";
             var tooltip = $"{baseTooltip} | {formatValue} {unit}";
             return new GUIContent(string.Empty, tooltip);
         }
