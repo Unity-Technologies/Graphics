@@ -1,16 +1,12 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepassBuffer.hlsl"
 
-#ifndef SCALARIZE_LIGHT_LOOP
-#define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
-#endif
-
 DECLARE_DBUFFER_TEXTURE(_DBufferTexture);
 
 // In order that the lod for with transpartent decal better match the lod for opaque decal
 // We use ComputeTextureLOD with bias == 0.5
 void EvalDecalMask( PositionInputs posInput, float3 positionRWSDdx, float3 positionRWSDdy, DecalData decalData,
-                    inout float4 DBuffer0, inout float4 DBuffer1, inout float4 DBuffer2, inout float2 DBuffer3, inout uint HTileMask, inout float alpha)
+                    inout float4 DBuffer0, inout float4 DBuffer1, inout float4 DBuffer2, inout float2 DBuffer3, inout float alpha)
 {
     // Get the relative world camera to decal matrix
     float4x4 worldToDecal = ApplyCameraTranslationToInverseMatrix(decalData.worldToDecal);
@@ -60,21 +56,9 @@ void EvalDecalMask( PositionInputs posInput, float3 positionRWSDdx, float3 posit
             src.w *= fadeFactor;
             albedoMapBlend = src.w;  // diffuse texture alpha affects all other channels
 
-            if (affectFlags & 1) // Albedo
-            {
-                if (src.w > 0.0)
-                {
-                    HTileMask |= DBUFFERHTILEBIT_DIFFUSE;
-                }
-            }
-            else
-            {
-                src.w = 0.0;
-            }
-
             // Accumulate in dbuffer (mimic what ROP are doing)
-            DBuffer0.xyz = src.xyz * src.w + DBuffer0.xyz * (1.0 - src.w);
-            DBuffer0.w = DBuffer0.w * (1.0 - src.w);
+            DBuffer0.xyz = (affectFlags & 1) ? src.xyz * src.w + DBuffer0.xyz * (1.0 - src.w) : DBuffer0.xyz; // Albedo
+            DBuffer0.w = (affectFlags & 1) ? DBuffer0.w * (1.0 - src.w) : DBuffer0.w; // Albedo alpha
 
             // Specific to transparent and requested by the artist: use decal alpha if it is higher than transparent alpha
             alpha = max(alpha, albedoMapBlend);
@@ -125,11 +109,6 @@ void EvalDecalMask( PositionInputs posInput, float3 positionRWSDdx, float3 posit
 
             src.w = (decalData.blendParams.y == 1.0) ? maskMapBlend : albedoMapBlend;
 
-            if (src.w > 0.0)
-            {
-                HTileMask |= DBUFFERHTILEBIT_MASK;
-            }
-
             // Accumulate in dbuffer (mimic what ROP are doing)
             #ifdef DECALS_4RT
             DBuffer2.x = (affectFlags & 4) ? src.x * src.w + DBuffer2.x * (1.0 - src.w) : DBuffer2.x; // Metal
@@ -169,11 +148,6 @@ void EvalDecalMask( PositionInputs posInput, float3 positionRWSDdx, float3 posit
             src.xyz = mul((float3x3)decalData.normalToWorld, normalTS) * 0.5 + 0.5; // The " * 0.5 + 0.5" mimic what is happening when calling EncodeIntoDBuffer()
             src.w = (decalData.blendParams.x == 1.0) ? maskMapBlend : albedoMapBlend;
 
-            if (src.w > 0.0)
-            {
-                HTileMask |= DBUFFERHTILEBIT_NORMAL;
-            }
-
             // Accumulate in dbuffer (mimic what ROP are doing)
             DBuffer1.xyz = src.xyz * src.w + DBuffer1.xyz * (1.0 - src.w);
             DBuffer1.w = DBuffer1.w * (1.0 - src.w);
@@ -200,17 +174,13 @@ DecalData FetchDecal(uint index)
 
 DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
 {
-    uint HTileMask = 0;
-    // the code in the macros, gets moved inside the conditionals by the compiler
-    FETCH_DBUFFER(DBuffer, _DBufferTexture, int2(posInput.positionSS.xy));
-
 #if defined(_SURFACE_TYPE_TRANSPARENT) && defined(HAS_LIGHTLOOP)  // forward transparent using clustered decals
     uint decalCount, decalStart;
-    DBuffer0 = float4(0.0, 0.0, 0.0, 1.0);
-    DBuffer1 = float4(0.5, 0.5, 0.5, 1.0);
-    DBuffer2 = float4(0.0, 0.0, 0.0, 1.0);
+    DBufferType0 DBuffer0 = float4(0.0, 0.0, 0.0, 1.0);
+    DBufferType1 DBuffer1 = float4(0.5, 0.5, 0.5, 1.0);
+    DBufferType2 DBuffer2 = float4(0.0, 0.0, 0.0, 1.0);
 #ifdef DECALS_4RT
-    DBuffer3 = float2(1.0, 1.0);
+    DBufferType3 DBuffer3 = float2(1.0, 1.0);
 #else
     float2 DBuffer3 = float2(1.0, 1.0);
 #endif
@@ -218,11 +188,9 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
     GetCountAndStart(posInput, LIGHTCATEGORY_DECAL, decalStart, decalCount);
 
-    #if SCALARIZE_LIGHT_LOOP
     // Fast path is when we all pixels in a wave are accessing same tile or cluster.
-    uint decalStartLane0 = WaveReadLaneFirst(decalStart);
-    bool fastPath = WaveActiveAllTrue(decalStart == decalStartLane0);
-    #endif
+    uint decalStartLane0;
+    bool fastPath = IsFastPath(decalStart, decalStartLane0);
 
 #else // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
     decalCount = _DecalCount;
@@ -252,26 +220,9 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
         v_decalIdx = decalStart + v_decalListOffset;
 #endif // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 
-        uint s_decalIdx = v_decalIdx;
-
-#if SCALARIZE_LIGHT_LOOP
-
-        if (!fastPath)
-        {
-            // If we are not in fast path, v_lightIdx is not scalar, so we need to query the Min value across the wave.
-            s_decalIdx = WaveActiveMin(v_decalIdx);
-            // If WaveActiveMin returns 0xffffffff it means that all lanes are actually dead, so we can safely ignore the loop and move forward.
-            // This could happen as an helper lane could reach this point, hence having a valid v_lightIdx, but their values will be ignored by the WaveActiveMin
-            if (s_decalIdx == -1)
-            {
-                break;
-            }
-        }
-        // Note that the WaveReadLaneFirst should not be needed, but the compiler might insist in putting the result in VGPR.
-        // However, we are certain at this point that the index is scalar.
-        s_decalIdx = WaveReadLaneFirst(s_decalIdx);
-
-#endif // SCALARIZE_LIGHT_LOOP
+        uint s_decalIdx = ScalarizeElementIndex(v_decalIdx, fastPath);
+        if (s_decalIdx == -1)
+            break;
 
         DecalData s_decalData = FetchDecal(s_decalIdx);
         bool isRejected = (s_decalData.decalLayerMask & decalLayerMask) == 0;
@@ -283,16 +234,16 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
         {
             v_decalListOffset++;
             if (!isRejected)
-                EvalDecalMask(posInput, positionRWSDdx, positionRWSDdy, s_decalData, DBuffer0, DBuffer1, DBuffer2, DBuffer3, HTileMask, alpha);
+                EvalDecalMask(posInput, positionRWSDdx, positionRWSDdy, s_decalData, DBuffer0, DBuffer1, DBuffer2, DBuffer3, alpha);
         }
 
     }
-#else // _SURFACE_TYPE_TRANSPARENT
-    HTileMask = DBUFFERHTILEBIT_DIFFUSE | DBUFFERHTILEBIT_NORMAL | DBUFFERHTILEBIT_MASK;
+#else // Opaque - used DBuffer
+    FETCH_DBUFFER(DBuffer, _DBufferTexture, int2(posInput.positionSS.xy));
 #endif
+
     DecalSurfaceData decalSurfaceData;
     DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
-    decalSurfaceData.HTileMask = HTileMask;
 
     return decalSurfaceData;
 }

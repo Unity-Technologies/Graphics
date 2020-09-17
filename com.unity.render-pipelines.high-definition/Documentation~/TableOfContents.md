@@ -85,21 +85,16 @@
     * [Hair](Master-Node-Hair)
     * [Lit](Master-Node-Lit)
     * [Unlit](Master-Node-Unlit)
-  * Shader Graph Nodes
-    * [Emission](SGNode-Emission)
-    * [Baked GI](SGNode-Baked-GI)
-    * [Diffusion Profile](SGNode-Diffusion-Profile)
-    * [Parallax Occlusion Mapping](SGNode-Parallax-Occlusion-Mapping)
-    * [Exposure](SGNode-Exposure)
-    * [HD Scene Color](SGNode-HD-Scene-Color)
+  * [Shader Graph Nodes](Shader-Graph-Nodes.md)
 * Lighting
   * [Reflection in HDRP](Reflection-in-HDRP)
   * [Refraction in HDRP](Refraction-in-HDRP)
-  * Reflection Probes
-    * [Reflection Probes Introduction](Reflection-Probes-Intro)
-    * [Reflection Probe](Reflection-Probe)
-    * [Planar Reflection Probe](Planar-Reflection-Probe)
-    * [Reflection Proxy Volume](Reflection-Proxy-Volume)
+  * [Reflection Probes](Reflection-Probes-Intro)
+    * [Using Reflection Probes](Reflection-Probe-Usage)
+    * Components
+      * [Reflection Probe](Reflection-Probe)
+      * [Planar Reflection Probe](Planar-Reflection-Probe)
+      * [Reflection Proxy Volume](Reflection-Proxy-Volume)
   * [Light](Light-Component)
   * [Environment Lighting](Environment-Lighting)
   * [Atmospheric Scattering](Atmospheric-Scattering)

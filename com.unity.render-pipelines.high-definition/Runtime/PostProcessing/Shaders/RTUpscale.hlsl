@@ -43,8 +43,8 @@ void WeightedAcc(CTYPE value, float weight, inout CTYPE accumulated, inout float
 // TODO: Revisit derivation.
 CTYPE Lanczos(TEXTURE2D_X(_InputTexture), float2 inUV)
 {
-    // Lanczos 3
-    const float a = 3.0;
+    const float epsilon = 0.0000000001;
+    const float a = 3.0;     // Lanczos 3
 
     float2 TexSize = _ScreenSize.xy * (_RTHandleScale.xy);
     float2 TexelSize = rcp(TexSize);
@@ -67,7 +67,6 @@ CTYPE Lanczos(TEXTURE2D_X(_InputTexture), float2 inUV)
     cosXPIOverA *= sqrtA;
     float2 sinXCosXOverA = cosXPIOverA * sinXPI;
 
-
     // Find UVs
     float2 UV_2 = (center - 2) * TexelSize;
     float2 UV_1 = (center - 1) * TexelSize;
@@ -82,8 +81,12 @@ CTYPE Lanczos(TEXTURE2D_X(_InputTexture), float2 inUV)
     float2 xMin4 = x - 4.0;
     float2 xMin5 = x - 5.0;
 
+    // By the definition of x, only xMin2 should possibly = 0
+    xMin2 = (xMin2 == 0) * epsilon + xMin2; // if (xMin2 == 0), then xMin2 = epsilon
+
     float2 w14 = -sinLancz + sinXCosXOverA;
     float2 w25 = -sinLancz - sinXCosXOverA;
+
 
     float2 weight0 = sinLancz        / (x  * x);
     float2 weight1 = w14             / (xMin1 * xMin1);
@@ -93,13 +96,14 @@ CTYPE Lanczos(TEXTURE2D_X(_InputTexture), float2 inUV)
     float2 weight5 = w25             / (xMin5 * xMin5);
 
     float2 weight23 = weight2 + weight3; // Readapt since we are leveraging bilinear.
-
+    weight23 = (weight23 == 0) * epsilon + weight23; // if (weight23 == 0), then weight23 = epsilon
 
     // Correct UV to account for bilinear adjustment
     UV0 += (weight3 / weight23) * TexelSize;
 
 #ifndef ENABLE_ALPHA
     float4 accumulation = 0;
+
     // Corners are dropped (similarly to what Jimenez suggested for Bicubic)
     accumulation += float4(Bilinear(_InputTexture, float2(UV_2.x, UV0.y)), 1) * weight0.x * weight23.y;
     accumulation += float4(Bilinear(_InputTexture, float2(UV_1.x, UV_1.y)), 1) * weight1.x * weight1.y;

@@ -45,6 +45,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         internal AlphaChannelSupport m_AlphaSupport = AlphaChannelSupport.RenderingAndPostProcessing;
 
+        internal float timeSinceLastRepaint;
+
         public bool enableOutput
         {
             get
@@ -131,6 +133,9 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         ShaderVariablesGlobal m_ShaderVariablesGlobalCB = new ShaderVariablesGlobal();
 
         static private CompositionManager s_CompositorInstance;
+
+        // Built-in Color.black has an alpha of 1, so defien here a fully transparent black 
+        static Color s_TransparentBlack = new Color(0, 0, 0, 0); 
 
         #region Validation
         public void ValidateLayerListOrder(int oldIndex, int newIndex)
@@ -258,19 +263,18 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             if (m_Shader == null)
             {
-                Debug.Log("A composition shader graph must be set in the compositor window");
+                m_InputLayers.Clear();
+                m_CompositionProfile = null;
                 return false;
             }
 
             if (m_CompositionProfile == null)
             {
-                Debug.Log("The composition profile was not set at runtime");
                 return false;
             }
 
             if (m_Material == null)
             {
-                Debug.Log("The composition material was Null");
                 SetupCompositionMaterial();
             }
 
@@ -328,7 +332,11 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         void OnValidate()
         {
-
+            if (shader == null)
+            {
+                m_InputLayers.Clear();
+                m_CompositionProfile = null;
+            }
         }
 
         public void OnEnable()
@@ -401,7 +409,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             }
             else
             {
-                Debug.LogError("Cannot find the default composition graph. Was the installation folder corrupted?");
+                m_CompositionProfile = null;
                 m_Material = null;
             }
         }
@@ -651,6 +659,10 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 if (m_InputLayers[i].outputTarget != CompositorLayer.OutputTarget.CameraStack)
                 {
                     lastLayer = m_InputLayers[i];
+
+                    // [case 1265061] If this layer does not have any cameras that will clear/draw the background, set a flag so the compositor will clear it explicitly.
+                    m_InputLayers[i].clearsBackGround =
+                        (i + 1 < m_InputLayers.Count) ? (m_InputLayers[i + 1].outputTarget == CompositorLayer.OutputTarget.CompositorLayer) : true;
                 }
 
                 if (m_InputLayers[i].outputTarget == CompositorLayer.OutputTarget.CameraStack && i > 0)
@@ -712,10 +724,27 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             return null;
         }
 
+        public void Repaint()
+        {
+            for (int indx = 0; indx < m_InputLayers.Count; indx++)
+            {
+                if (m_InputLayers[indx].camera)
+                    m_InputLayers[indx].camera.Render();
+            }
+        }
+
         void CustomRender(ScriptableRenderContext context, HDCamera camera)
         {
-            if (camera == null || camera.camera == null || m_Material == null)
+            if (camera == null || camera.camera == null || m_Material == null || m_Shader == null)
+            {
+                // If something is wrong, don't keep the previous image (clear to black) to avoid confusion
+                var cmdbuff = CommandBufferPool.Get("Compositor Blit");
+                cmdbuff.ClearRenderTarget(false, true, Color.black);
                 return;
+            }
+                
+
+            timeSinceLastRepaint = 0;
 
             // set shader uniforms
             m_CompositionProfile.CopyPropertiesToMaterial(m_Material);
@@ -740,6 +769,15 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 m_ShaderVariablesGlobalCB._WorldSpaceCameraPos_Internal = new Vector3(0.0f, 0.0f, 0.0f);
                 cmd.SetViewport(new Rect(0, 0, camera.camera.pixelWidth, camera.camera.pixelHeight));
                 cmd.ClearRenderTarget(true, false, Color.red);
+
+                foreach (var layer in m_InputLayers)
+                {
+                    if (layer.clearsBackGround)
+                    {
+                        cmd.SetRenderTarget(layer.GetRenderTarget());
+                        cmd.ClearRenderTarget(false, true, s_TransparentBlack);
+                    }
+                }
             }
 
             if (camera.camera.targetTexture)
@@ -752,7 +790,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             {
                 m_ShaderVariablesGlobalCB._ViewProjMatrix = m_ViewProjMatrix;
                 ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
-                cmd.Blit(null, BuiltinRenderTextureType.CurrentActive, m_Material, m_Material.FindPass("ForwardOnly"));
+                cmd.Blit(null, BuiltinRenderTextureType.CameraTarget, m_Material, m_Material.FindPass("ForwardOnly"));
             }
             
             context.ExecuteCommandBuffer(cmd);

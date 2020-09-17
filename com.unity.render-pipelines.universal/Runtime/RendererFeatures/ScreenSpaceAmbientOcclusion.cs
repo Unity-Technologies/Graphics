@@ -119,7 +119,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Private Variables
             private ScreenSpaceAmbientOcclusionSettings m_CurrentSettings;
-            private ProfilingSampler m_ProfilingSampler = new ProfilingSampler("SSAO.Execute()");
+            private ProfilingSampler m_ProfilingSampler = ProfilingSampler.Get(URPProfileId.SSAO);
             private RenderTargetIdentifier m_SSAOTexture1Target = new RenderTargetIdentifier(s_SSAOTexture1ID, 0, CubemapFace.Unknown, -1);
             private RenderTargetIdentifier m_SSAOTexture2Target = new RenderTargetIdentifier(s_SSAOTexture2ID, 0, CubemapFace.Unknown, -1);
             private RenderTargetIdentifier m_SSAOTexture3Target = new RenderTargetIdentifier(s_SSAOTexture3ID, 0, CubemapFace.Unknown, -1);
