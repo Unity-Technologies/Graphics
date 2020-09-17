@@ -5,8 +5,7 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor.Rendering.Universal
 {
-    [CustomEditor(typeof(ForwardRendererData), true)]
-    [MovedFrom("UnityEditor.Rendering.LWRP")] public class ForwardRendererDataEditor : StandardRendererDataEditor
-    {
-    }
+    [System.Obsolete("ForwardRendererDataEditor has been deprecated. Use StandardRendererDataEditor instead (UnityUpgradable) -> StandardRendererDataEditor", true)]
+    public class ForwardRendererDataEditor
+    {}
 }
