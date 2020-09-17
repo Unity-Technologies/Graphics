@@ -328,9 +328,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _ShaderVariablesScreenSpaceReflection    = Shader.PropertyToID("ShaderVariablesScreenSpaceReflection");
         public static readonly int _SsrLightingTexture                      = Shader.PropertyToID("_SsrLightingTexture");
+        public static readonly int _SsrPrevLightingTexture                  = Shader.PropertyToID("_SsrPrevLightingTexture");
         public static readonly int _SsrLightingTextureRW                    = Shader.PropertyToID("_SsrLightingTextureRW");
         public static readonly int _SSRAccumTexture                         = Shader.PropertyToID("_SSRAccumTexture");
-        public static readonly int _PrevSSRLightingTexture                  = Shader.PropertyToID("_PrevSSRLightingTexture");
         public static readonly int _SsrHitPointTexture                      = Shader.PropertyToID("_SsrHitPointTexture");
         public static readonly int _SsrClearCoatMaskTexture                 = Shader.PropertyToID("_SsrClearCoatMaskTexture");
         public static readonly int _DepthPyramidMipLevelOffsets             = Shader.PropertyToID("_DepthPyramidMipLevelOffsets");

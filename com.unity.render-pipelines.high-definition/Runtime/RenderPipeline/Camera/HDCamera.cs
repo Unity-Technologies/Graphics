@@ -726,19 +726,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         #endregion
 
-        internal void AllocateScreenSpaceHistoryBuffer(float scaleFactor)
-        {
-            if (scaleFactor != m_ScreenSpaceReflectionResolutionScale || GetCurrentFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflection) == null)
-            {
-                ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflection);
-
-                var ssrAlloc = new ScreenSpaceAllocator(scaleFactor);
-                AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflection, ssrAlloc.Allocator, 2);
-
-                m_ScreenSpaceReflectionResolutionScale = scaleFactor;
-            }
-        }
-
         internal void ReleaseHistoryFrameRT(int id)
         {
             m_HistoryRTSystem.ReleaseBuffer(id);
@@ -878,7 +865,6 @@ namespace UnityEngine.Rendering.HighDefinition
         int                     m_NumColorPyramidBuffersAllocated = 0;
         int                     m_NumVolumetricBuffersAllocated   = 0;
         float                   m_AmbientOcclusionResolutionScale = 0.0f; // Factor used to track if history should be reallocated for Ambient Occlusion
-        float                   m_ScreenSpaceReflectionResolutionScale = 0.0f; // Need another factor if AO not used in the same time with SSR
 
         ViewConstants[]         m_XRViewConstants;
 

@@ -20,6 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_ScreenFadeDistance;
         SerializedDataParameter m_RayMaxIterations;
         SerializedDataParameter m_DepthBufferThickness;
+        SerializedDataParameter m_AccumulationFactor;
 
         // Ray Tracing
         SerializedDataParameter m_LayerMask;
@@ -54,6 +55,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DepthBufferThickness          = Unpack(o.Find(x => x.depthBufferThickness));
             m_RayMaxIterations              = Unpack(o.Find(x => x.rayMaxIterations));
             m_ScreenFadeDistance            = Unpack(o.Find(x => x.screenFadeDistance));
+            m_AccumulationFactor            = Unpack(o.Find(x => x.accumulationFactor));
 
             // Generic ray tracing
             m_LayerMask                     = Unpack(o.Find(x => x.layerMask));
@@ -78,6 +80,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_MinimumSmoothnessText = EditorGUIUtility.TrTextContent("Minimum Smoothness", "Controls the smoothness value at which HDRP activates SSR and the smoothness-controlled fade out stops.");
         static public readonly GUIContent k_SmoothnessFadeStartText = EditorGUIUtility.TrTextContent("Smoothness Fade Start", "Controls the smoothness value at which the smoothness-controlled fade out starts. The fade is in the range [Min Smoothness, Smoothness Fade Start].");
         static public readonly GUIContent k_ScreenFaceDistanceText = EditorGUIUtility.TrTextContent("Screen Edge Fade Distance", "Controls the distance at which HDRP fades out SSR near the edge of the screen.");
+        static public readonly GUIContent k_AccumulationFactorText = EditorGUIUtility.TrTextContent("Accumulation Factor", "Controls Controls the amount of accumulation (0 no accumulation, 1 just accumulate).");
         static public readonly GUIContent k_DepthBufferThicknessText = EditorGUIUtility.TrTextContent("Object Thickness", "Controls the typical thickness of objects the reflection rays may pass behind.");
         static public readonly GUIContent k_RayMaxIterationsText = EditorGUIUtility.TrTextContent("Max Ray Steps", "Sets the maximum number of steps HDRP uses for raytracing. Affects both correctness and performance.");
         static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Ray Length", "Controls the length of reflection rays.");
@@ -207,6 +210,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_RayMaxIterations, k_RayMaxIterationsText);
                 m_RayMaxIterations.value.intValue = Mathf.Max(0, m_RayMaxIterations.value.intValue);
                 GUI.enabled = true;
+                PropertyField(m_AccumulationFactor, k_AccumulationFactorText);
             }
         }
     }
