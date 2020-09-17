@@ -481,8 +481,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     ? data.drawDistance
                     : instance.DrawDistance;
                 m_CachedDrawDistances[index].y = data.fadeScale;
-                // Do a remap in the shader. 1.0 - saturate((dot() - start) / (end - start))
-                // x = 1.0 / (end - start), y = -start / (end - start)
+                // In the shader to remap from cosine -1 to 1 to new range 0..1  (with 0 - 0 degree and 1 - 180 degree)
+                // we do 1.0 - (dots() * 0.5 + 0.5) => 0.5 * (1 - dots())
+                // Do a remap in the shader. 1.0 - saturate(( 0.5 * (1 - dot()) - start) / (end - start))
+                // x = 0.5 / (end - start), y = -start / (end - start)
                 if (data.startAngleFade == 180.0f) // angle fade is disabled
                 {
                     m_CachedAngleFade[index].x = 0.0f;
@@ -493,7 +495,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     float angleStart = data.startAngleFade / 180.0f;
                     float angleEnd = data.endAngleFade / 180.0f;
                     var val = Mathf.Max(0.0001f, angleEnd - angleStart);
-                    m_CachedAngleFade[index].x = 1.0f / (val);
+                    m_CachedAngleFade[index].x = 0.5f / (val);
                     m_CachedAngleFade[index].y = -angleStart / (val);
                 }
                 m_CachedUVScaleBias[index] = data.uvScaleBias;

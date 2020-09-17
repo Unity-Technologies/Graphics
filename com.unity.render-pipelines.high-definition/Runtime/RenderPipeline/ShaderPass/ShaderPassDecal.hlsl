@@ -98,14 +98,14 @@ void Frag(  PackedVaryingsToPS packedInput,
         float dotAngle = 0.0f;
         if (_EnableDecalLayers)
         {
-            dotAngle = dot(material.geomNormalWS, normalToWorld[2]);
+            dotAngle = 1.0 - dot(material.geomNormalWS, normalToWorld[2]);
         }
         else
         {
             // recover vertex normal from (incomplete) depth buffer could have various aritfacts at edge geometry (in particular
             // as we don't render a full depth buffer depends on context)
-            float3 vtxNormal = cross(normalize(ddx(posInput.positionWS)), normalize(ddy(posInput.positionWS)));
-            dotAngle = dot(material.geomNormalWS, normalToWorld[2]);
+            float3 vtxNormal = normalize(cross(ddy(posInput.positionWS), ddx(posInput.positionWS)));
+            dotAngle = 1.0 - dot(vtxNormal, normalToWorld[2]);
         }
 
         angleFadeFactor = 1.0 - saturate(dotAngle * angleFade.x + angleFade.y);
