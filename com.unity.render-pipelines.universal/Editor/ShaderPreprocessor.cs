@@ -44,6 +44,7 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_AdditionalLightsPixel = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsPixel);
         ShaderKeyword m_AdditionalLightShadows = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
         ShaderKeyword m_CascadeShadows = new ShaderKeyword(ShaderKeywordStrings.MainLightShadowCascades);
+        ShaderKeyword m_CastingPunctualLightShadow = new ShaderKeyword(ShaderKeywordStrings.CastingPunctualLightShadow);
         ShaderKeyword m_SoftShadows = new ShaderKeyword(ShaderKeywordStrings.SoftShadows);
         ShaderKeyword m_MixedLightingSubtractive = new ShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive);
         ShaderKeyword m_Lightmap = new ShaderKeyword(ShaderKeywordStrings.LIGHTMAP_ON);
@@ -100,6 +101,9 @@ namespace UnityEditor.Rendering.Universal
 
                 if (compilerData.shaderKeywordSet.IsEnabled(m_CascadeShadows))
                     return true;
+
+                if (snippetData.passType == PassType.ShadowCaster && !compilerData.shaderKeywordSet.IsEnabled(m_CastingPunctualLightShadow))
+                    return true;
             }
 
             if (!IsFeatureEnabled(features, ShaderFeatures.SoftShadows) &&
@@ -110,11 +114,17 @@ namespace UnityEditor.Rendering.Universal
                 !IsFeatureEnabled(features, ShaderFeatures.MixedLighting))
                 return true;
 
-            // No additional light shadows
             bool isAdditionalLightShadow = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightShadows);
-            if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isAdditionalLightShadow)
-                return true;
 
+            // No additional light shadows
+            if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows))
+            {
+                if (isAdditionalLightShadow)
+                    return true;
+
+                if (snippetData.passType == PassType.ShadowCaster && compilerData.shaderKeywordSet.IsEnabled(m_CastingPunctualLightShadow))
+                    return true;
+            }
 
             // Additional light are shaded per-vertex or per-pixel.
             bool isFeaturePerPixelLightingEnabled = IsFeatureEnabled(features, ShaderFeatures.AdditionalLights);
