@@ -170,8 +170,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowFilter |= unchecked((uint)LightFeatureFlags.Area);
             m_SkyHDRIMaterial.SetInt(HDShaderIDs._BackplateShadowFilter, unchecked((int)shadowFilter));
 
-            CloudLayer.Apply(builtinParams.cloudLayer, m_SkyHDRIMaterial);
-
             // This matrix needs to be updated at the draw call frequency.
             m_PropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
             CoreUtils.DrawFullScreen(builtinParams.commandBuffer, m_SkyHDRIMaterial, m_PropertyBlock, passID);

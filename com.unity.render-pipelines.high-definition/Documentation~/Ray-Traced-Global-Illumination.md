@@ -55,7 +55,6 @@ Alongside the standard properties, Unity makes different properties available de
 | - **Half Resolution Denoiser** | Enable this feature to evaluate the spatio-temporal filter in half resolution. This decreases the resource intensity of denoising but reduces quality. |
 | - **Denoiser Radius**          | Set the radius of the spatio-temporal filter.                |
 | - **Second Denoiser Pass**     | Enable this feature to process a second denoiser pass. This helps to remove noise from the effect. |
-| - **Second Denoiser Radius**   | Set the radius of the spatio-temporal filter for the second denoiser pass. |
 
 ### Performance Mode
 
