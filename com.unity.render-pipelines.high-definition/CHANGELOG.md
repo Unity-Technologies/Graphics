@@ -80,6 +80,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with mipmap debug mode not properly resetting full screen mode (and viceversa). 
 - Added unsupported message when using tile debug mode with MSAA.
 - Fixed SSGI compilation issues on PS4.
+- Fixed issue with bloom showing a thin black line after rescaling window. 
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
