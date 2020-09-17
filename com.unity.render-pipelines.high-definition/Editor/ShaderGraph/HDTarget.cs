@@ -815,6 +815,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Pragma.Target(ShaderModel.Target50) },
             { Pragma.Raytracing("surface_shader") },
             { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11}) },
+//SensorSDK - Begin - Add debug pragma to shadergraph (to be removed)
+            { Pragma.Debug }
+//SensorSDK - End - Add debug pragma to shadergraph (to be removed)
         };
     }
 #endregion
