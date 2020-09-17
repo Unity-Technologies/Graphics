@@ -392,6 +392,48 @@ namespace UnityEditor.VFX.Test
                 Assert.IsTrue(vector3.inputSlots[0].HasLink());
             }
         }
+
+        static void HackRemoveSlotNamed(VFXSlot slot, string name)
+        {
+            var childrenListField = typeof(VFXModel).GetField("m_Children", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            var vfxModelList = childrenListField.GetValue(slot) as List<VFXModel>;
+            vfxModelList.RemoveAll(o => o.name == name);
+        }
+
+        [Test]
+        public void Slot_Sanitize_When_A_Sub_Slot_Is_Missing_Link()
+        {
+            var sourceOfLink = ScriptableObject.CreateInstance<VFXInlineOperator>();
+            sourceOfLink.SetSettingValue("m_Type", (SerializableType)typeof(float));
+
+            var sphere = ScriptableObject.CreateInstance<VFXInlineOperator>();
+            sphere.SetSettingValue("m_Type", (SerializableType)typeof(Sphere));
+
+            Assert.AreEqual("radius", sphere.inputSlots[0][2].name);
+            sourceOfLink.outputSlots[0].Link(sphere.inputSlots[0][2]);
+
+            Assert.AreEqual("center", sphere.inputSlots[0][0].name);
+            Assert.AreEqual("angles", sphere.inputSlots[0][1].name);
+            Assert.AreEqual("radius", sphere.inputSlots[0][2].name);
+            Assert.IsTrue(sphere.inputSlots[0][2].HasLink());
+
+            HackRemoveSlotNamed(sphere.inputSlots[0], "angles");
+            HackRemoveSlotNamed(sphere.outputSlots[0], "angles");
+
+            sphere.Sanitize(-1);
+
+            var objs = new HashSet<ScriptableObject>();
+            sphere.CollectDependencies(objs);
+            foreach (var obj in objs.Cast<VFXModel>())
+            {
+                obj.Sanitize(-123);
+            }
+
+            Assert.AreEqual("center", sphere.inputSlots[0][0].name);
+            Assert.AreEqual("angles", sphere.inputSlots[0][1].name);
+            Assert.AreEqual("radius", sphere.inputSlots[0][2].name);
+            Assert.IsTrue(sphere.inputSlots[0][2].HasLink());
+        }
     }
 }
 #endif
