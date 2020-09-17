@@ -53,8 +53,8 @@ This table provides an overview of the current features supported in the Univers
 | ***Mixed Lighting Mode***                                         |                                                              |                                                              |
 | Subtractive                                                  | Yes                                                          | Yes                                                          |
 | Baked Indirect                                               | Yes                                                          | Yes                                                          |
-| Shadow Mask                                                  | Yes                                                          | Yes                                                  |
-| Distance Shadow Mask                                         | Yes                                                          | Yes                                                  |
+| Shadow Mask                                                  | Yes                                                          | Yes (Forward)                                                  |
+| Distance Shadow Mask                                         | Yes                                                          | Yes (Forward)                                                  |
 | ***Light Probes***                     |                                                              |                                                              |
 | Blending                                                     | Yes                                                          | Yes                                                          |
 | Proxy Volume (LPPV)                                          | Yes                                                          | Not supported                                                 |

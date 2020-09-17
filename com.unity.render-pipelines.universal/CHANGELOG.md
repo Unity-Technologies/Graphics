@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.1.0] - 2019-08-04
 ### Added
-- Added support for the Shadowmask Mixed Lighting Mode, which supports up to four baked-shadow Lights.
+- Added support for the Shadowmask Mixed Lighting Mode (Forward only), which supports up to four baked-shadow Lights.
 - Added ComplexLit shader for advanced material features such as clear coat.
 
 ### Added
