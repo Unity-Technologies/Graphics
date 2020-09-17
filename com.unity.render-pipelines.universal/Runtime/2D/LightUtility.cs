@@ -93,61 +93,124 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             return (path[activePoint].N == -1);
         }
-
-        // Ensure that we get a valid path from 0.
-        static List<IntPoint> SortPivots(List<IntPoint> path)
+        
+        // Degenerate Pivots at the End Points.
+        static List<IntPoint> DegeneratePivots(List<IntPoint> path, List<IntPoint> inPath)
         {
-            var min = path[0].N;
-            var max = path[0].N;
-            var minIndex = 0;
-            bool newMin = true;
+            List<IntPoint> degenerate = new List<IntPoint>();
+            var minN = path[0].N;
+            var maxN = path[0].N;
             for (int i = 1; i < path.Count; ++i)
             {
-                if (max > path[i].N && newMin && path[i].N != -1)
+                if (path[i].N != -1)
                 {
-                    min = max = path[i].N;
+                    minN = Math.Min(minN, path[i].N);
+                    maxN = Math.Max(maxN, path[i].N);
+                }
+            }
+            
+            for (long i = 0; i < minN; ++i)
+            {
+                IntPoint ins = path[(int)minN];
+                ins.N = i;
+                degenerate.Add(ins);
+            }
+            degenerate.AddRange(path.GetRange(0, path.Count));
+            for (long i = maxN + 1; i < inPath.Count; ++i)
+            {
+                IntPoint ins = inPath[(int)i];
+                ins.N = i;
+                degenerate.Add(ins);
+            }            
+            return degenerate;
+        }
+
+        // Ensure that we get a valid path from 0.
+        static List<IntPoint> SortPivots(List<IntPoint> outPath, List<IntPoint> inPath)
+        {
+            List<IntPoint> sorted = new List<IntPoint>();
+            var min = outPath[0].N;
+            var max = outPath[0].N;
+            var minIndex = 0;
+            bool newMin = true;
+            for (int i = 1; i < outPath.Count; ++i)
+            {
+                if (max > outPath[i].N && newMin && outPath[i].N != -1)
+                {
+                    min = max = outPath[i].N;
                     minIndex = i;
                     newMin = false;
                 }
-                else if (path[i].N >= max)
+                else if (outPath[i].N >= max)
                 {
-                    max = path[i].N;
+                    max = outPath[i].N;
                     newMin = true;
                 }
             }
-
-            List<IntPoint> sorted = new List<IntPoint>();
-            sorted.AddRange(path.GetRange(minIndex, (path.Count - minIndex)));
-            sorted.AddRange(path.GetRange(0, minIndex));
+            sorted.AddRange(outPath.GetRange(minIndex, (outPath.Count - minIndex)));
+            sorted.AddRange(outPath.GetRange(0, minIndex));
             return sorted;
         }
         
         // Ensure that all points eliminated due to overlaps and intersections are accounted for Tessellation.
-        static List<IntPoint> FixPivots(List<IntPoint> pathInput, int pathLength)
+        static List<IntPoint> FixPivots(List<IntPoint> outPath, List<IntPoint> inPath)
         {
-            var path = SortPivots(pathInput);
+            var path = SortPivots(outPath, inPath);
             long pivotPoint = path[0].N;
             
             // Connect Points for Overlaps.
             for (int i = 1; i < path.Count; ++i)
             {
+                var j = (i == path.Count - 1) ? 0 : (i + 1); 
                 var prev = path[i - 1];
                 var curr = path[i];
+                var next = path[j];
 
                 if (prev.N > curr.N)
                 {
                     var incr = TestPivot(path, i, pivotPoint);
                     if (incr)
                     {
-                        var test = curr;
-                        test.N = (pivotPoint + 1) < pathLength ? (pivotPoint + 1) : 0;
-                        test.D = 3;
-                        path[i] = test;
+                        if (prev.N == next.N)
+                            curr.N = prev.N;
+                        else 
+                            curr.N = (pivotPoint + 1) < inPath.Count ? (pivotPoint + 1) : 0;
+                        curr.D = 3;
+                        path[i] = curr;
                     }
                 }
                 pivotPoint = path[i].N;
             }
+            
+            // Insert Skipped Points.
+            for (int i = 1; i < path.Count - 1;)
+            {
+                var prev = path[i - 1];
+                var curr = path[i];
+                var next = path[i + 1];
 
+                if (curr.N - prev.N > 1)
+                {
+                    if (curr.N == next.N)
+                    {
+                        IntPoint ins = curr;
+                        ins.N = (ins.N - 1);
+                        path[i] = ins;
+                    }
+                    else
+                    {
+                        IntPoint ins = curr;
+                        ins.N = (ins.N - 1);
+                        path.Insert(i, ins);                        
+                    }
+                }
+                else
+                {
+                    i++;
+                }
+            }
+
+            path = DegeneratePivots(path, inPath);
             return path;
         }
 
@@ -166,9 +229,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var indices = new NativeArray<ushort>(shapePath.Length * 256, Allocator.Temp);
 
             // Create shape geometry
-            var innerShapeVertexCount = shapePath.Length;
-            var inner = new ContourVertex[innerShapeVertexCount + 1];
-            for (var i = 0; i < innerShapeVertexCount; ++i)
+            var inputPointCount = shapePath.Length;
+            var inner = new ContourVertex[inputPointCount + 1];
+            for (var i = 0; i < inputPointCount; ++i)
                 inner[ix++] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y, Z = 0 } };
             inner[ix++] = inner[0];
 
@@ -179,37 +242,36 @@ namespace UnityEngine.Experimental.Rendering.Universal
             // Create falloff geometry
             List<IntPoint> path = new List<IntPoint>();
             var pointNoise = new System.Random();
-            for (var i = 0; i < innerShapeVertexCount; ++i)
+            for (var i = 0; i < inputPointCount; ++i)
             {
-                var pnx = 0;// pointNoise.Next(10);
-                var pny = 0;// pointNoise.Next(10);
                 var newPoint = new Vector2(inner[i].Position.X, inner[i].Position.Y) * kClipperScale;
-                var addPoint = new IntPoint((System.Int64) (newPoint.x + pnx),(System.Int64) (newPoint.y + pny));
+                var addPoint = new IntPoint((System.Int64) (newPoint.x),(System.Int64) (newPoint.y));
                 addPoint.N = i; addPoint.D = -1;
                 path.Add(addPoint);
             }
-
+            var lastPointIndex = inputPointCount - 1;
+            
             // Generate Bevels.
             List<List<IntPoint>> solution = new List<List<IntPoint>>();
-            ClipperOffset clipOffset = new ClipperOffset(44.0f);
+            ClipperOffset clipOffset = new ClipperOffset(24.0f);
             clipOffset.AddPath(path, JoinType.jtRound, EndType.etClosedPolygon);
             clipOffset.Execute(ref solution, kClipperScale * falloffDistance, path.Count);
 
             if (solution.Count > 0)
             {
                 // Fix path for Pivots.                
-                path = solution[0];
-                path = FixPivots(path, shapePath.Length);
-                path.Add(path[0]);                
+                var outPath = solution[0];
+                var minPath = (long)inputPointCount;
+                for (int i = 0; i < outPath.Count; ++i)
+                    minPath = (outPath[i].N != -1 ) ? Math.Min(minPath, outPath[i].N) : minPath;
+                var containsStart = minPath == 0;
+                outPath = FixPivots(outPath, path);
 
                 // Tessellate.
-                var prev = path[0];
-                var prevIndex = prev.N == -1 ? 0 : prev.N;
-                var prevPoint = new float2(prev.X / kClipperScale, prev.Y / kClipperScale);
-                var innerIndices = new ushort[innerShapeVertexCount];
+                var innerIndices = new ushort[inputPointCount];
                 
                 // Inner Vertices. (These may or may not be part of the created path. Beware!!)
-                for (int i = 0; i < innerShapeVertexCount; ++i)
+                for (int i = 0; i < inputPointCount; ++i)
                 {
                     vertices[vcount++] = new ParametricLightMeshVertex()
                     {
@@ -220,15 +282,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 }
                 
                 var saveIndex = (ushort)vcount;
-                vertices[vcount++] = new ParametricLightMeshVertex()
-                {
-                    position = new float3(prevPoint.x, prevPoint.y, 0),
-                    color = meshExteriorColor
-                };
+                var pathStart = saveIndex;
+                var prevIndex = outPath[0].N == -1 ? 0 : outPath[0].N;
 
-                for (int i = 1; i < path.Count; ++i)
+                for (int i = 0; i < outPath.Count; ++i)
                 {
-                    var curr = path[i];
+                    var curr = outPath[i];
                     var currPoint = new float2(curr.X / kClipperScale, curr.Y / kClipperScale);
                     var currIndex = curr.N == -1 ? 0 : curr.N;
 
@@ -249,7 +308,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     indices[icount++] = saveIndex;
                     indices[icount++] = saveIndex = (ushort)(vcount - 1);
                     prevIndex = currIndex;
-                    prevPoint = currPoint;
+                }
+
+                // Close the Loop.
+                {
+                    indices[icount++] = pathStart;
+                    indices[icount++] = innerIndices[minPath];
+                    indices[icount++] = containsStart ? innerIndices[lastPointIndex] : saveIndex;
+
+                    indices[icount++] = containsStart ? pathStart : saveIndex;
+                    indices[icount++] = containsStart ? saveIndex : innerIndices[minPath];
+                    indices[icount++] = containsStart ? innerIndices[lastPointIndex] : innerIndices[minPath - 1];
                 }
             }
 
