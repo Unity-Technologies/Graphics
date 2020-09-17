@@ -45,7 +45,6 @@ namespace UnityEditor.VFX
 
         sealed protected override VFXExpression Reduce(VFXExpression[] reducedParents)
         {
-            //TODOPAUL : Cover this by a test
             var posReduce = reducedParents[0];
             var rotReduce = reducedParents[1];
             var scaleReduce = reducedParents[2];

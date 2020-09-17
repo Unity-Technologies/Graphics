@@ -479,15 +479,20 @@ namespace UnityEditor.VFX
             {
                 if (src.GetNbChildren() == dst.GetNbChildren())
                 {
-                    int nbSubSlots = src.GetNbChildren();
-                    for (int i = 0; i < nbSubSlots; ++i)
-                        CopyLinks(dst[i], src[i], notify);
-                }
-                else if (tryMatchingNameAndType)
-                {
+                    //If number of slot is equal, copy index by index (OrientedBox <=> Transform)
                     foreach (var srcSlot in src.children)
                     {
-                        var dstSlot = dst.children.FirstOrDefault(o => o.name == srcSlot.name && o.property.type == srcSlot.property.type);
+                        int nbSubSlots = src.GetNbChildren();
+                        for (int i = 0; i < nbSubSlots; ++i)
+                            CopyLinks(dst[i], src[i], notify);
+                    }
+                }
+                else
+                {
+                    //If number slot is different, try matching by name (Sphere without angles during sanitize)
+                    foreach (var srcSlot in src.children)
+                    {
+                        var dstSlot = dst.children.FirstOrDefault(o => o.name == srcSlot.name);
                         if (dstSlot != null)
                             CopyLinks(dstSlot, srcSlot, notify);
                     }
@@ -570,7 +575,7 @@ namespace UnityEditor.VFX
 
             if (!hierarchySane)
             {
-                Debug.LogWarningFormat("Slot {0} holding {1} didnt match the type layout. It is recreated and all links are lost.", property.name, property.type);
+                Debug.LogWarningFormat("Slot {0} holding {1} didnt match the type layout. It is recreated and some links may lost.", property.name, property.type);
 
                 // Try to retrieve the value
                 object previousValue = null;
@@ -603,7 +608,7 @@ namespace UnityEditor.VFX
                     parent.AddChild(newSlot, index);
                 }
 
-                CopyLinks(newSlot, this, true, true); //WIIIIIIP ! //TODOPAUL
+                CopyLinks(newSlot, this, true);
                 CopySpace(newSlot, this, true);
                 UnlinkAll(true);
                 return newSlot;
