@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New WorldToViewportPoint operator
 - New ViewportToWorldPoint operator
 
+### Fixed
+- Mesh Sampling incorrect with some GPU (use ByteAddressBuffer instead of Buffer<float>)
+
 ## [10.0.0] - 2019-06-10
 ### Added
 - Tooltips for Attributes
