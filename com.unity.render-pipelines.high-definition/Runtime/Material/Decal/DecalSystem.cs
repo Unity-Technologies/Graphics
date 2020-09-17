@@ -522,6 +522,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     bool[] newCachedAffectsTransparency = new bool[m_DecalsCount + kDecalBlockSize];
                     int[] newCachedLayerMask = new int[m_DecalsCount + kDecalBlockSize];
                     ulong[] newCachedSceneLayerMask = new ulong[m_DecalsCount + kDecalBlockSize];
+                    var cachedDecalLayerMask = new DecalLayerEnum[m_DecalsCount + kDecalBlockSize];
                     float[] newCachedFadeFactor = new float[m_DecalsCount + kDecalBlockSize];
                     m_ResultIndices = new int[m_DecalsCount + kDecalBlockSize];
 
@@ -535,6 +536,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_CachedAffectsTransparency.CopyTo(newCachedAffectsTransparency, 0);
                     m_CachedLayerMask.CopyTo(newCachedLayerMask, 0);
                     m_CachedSceneLayerMask.CopyTo(newCachedSceneLayerMask, 0);
+                    m_CachedDecalLayerMask.CopyTo(cachedDecalLayerMask, 0);
                     m_CachedFadeFactor.CopyTo(newCachedFadeFactor, 0);
 
                     m_Handles = newHandles;
@@ -547,6 +549,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_CachedAffectsTransparency = newCachedAffectsTransparency;
                     m_CachedLayerMask = newCachedLayerMask;
                     m_CachedSceneLayerMask = newCachedSceneLayerMask;
+                    m_CachedDecalLayerMask = cachedDecalLayerMask;
                     m_CachedFadeFactor = newCachedFadeFactor;
                 }
 
