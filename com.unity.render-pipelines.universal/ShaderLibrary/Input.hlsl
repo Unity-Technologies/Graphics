@@ -41,8 +41,12 @@ float4 _MainLightPosition;
 half4 _MainLightColor;
 
 // xyz are currently unused
-// w directLightStrength
+// w: directLightStrength
 half4 _AmbientOcclusionParam;
+
+// xyz are currently unused
+// w: Depth Texture
+half4 _AvailableTexturesParams;
 
 half4 _AdditionalLightsCount;
 

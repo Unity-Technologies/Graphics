@@ -41,6 +41,11 @@ float4 GetScaledScreenParams()
     return _ScaledScreenParams;
 }
 
+bool HasDepthTexture()
+{
+    return (_AvailableTexturesParams.w == 1);
+}
+
 // Returns 'true' if the current view performs a perspective projection.
 bool IsPerspectiveProjection()
 {

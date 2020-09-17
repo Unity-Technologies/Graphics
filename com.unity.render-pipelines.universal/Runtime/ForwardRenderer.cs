@@ -585,7 +585,7 @@ namespace UnityEngine.Rendering.Universal
                 m_TileDepthInfoTexture,
                 m_ActiveCameraDepthAttachment, m_GBufferHandles
             );
-            
+
             EnqueuePass(m_GBufferPass);
 
             EnqueuePass(m_RenderOpaqueForwardOnlyPass);
@@ -663,7 +663,6 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
-                int msaaSamples = descriptor.msaaSamples;
                 if (createColor)
                 {
                     bool useDepthRenderBuffer = m_ActiveCameraDepthAttachment == RenderTargetHandle.CameraTarget;

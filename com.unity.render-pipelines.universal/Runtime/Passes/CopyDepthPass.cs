@@ -115,7 +115,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
 
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
-
+                cmd.SetGlobalVector(ShaderPropertyId.availableTexturesParams, new Vector4(0f, 0f, 0f, 1f));
             }
 
             context.ExecuteCommandBuffer(cmd);
