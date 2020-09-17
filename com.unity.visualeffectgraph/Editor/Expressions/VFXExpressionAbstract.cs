@@ -132,7 +132,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.TextureCube: return "TextureCube";
                 case VFXValueType.TextureCubeArray: return "TextureCubeArray";
                 case VFXValueType.Matrix4x4: return "float4x4";
-                case VFXValueType.Mesh: return "Buffer<float>";
+                case VFXValueType.Mesh: return "ByteAddressBuffer";
                 case VFXValueType.Boolean: return "bool";
             }
             throw new NotImplementedException(type.ToString());
