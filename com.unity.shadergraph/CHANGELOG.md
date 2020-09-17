@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [9.0.0] - 2020-07-09
 
 ### Added
+- Added parallax mapping node and parallax occlusion mapping node.
+- Added the possibility to have multiple POM node in a single graph.
+
+### Changed
+- Added method chaining support to shadergraph collection API.
+
+### Fixed
+- Fixed a bug where ShaderGraph subgraph nodes would not update their slot names or order
+- Fixed an issue where very old ShaderGraphs would fail to load because of uninitialized data [1269616](https://issuetracker.unity3d.com/issues/shadergraph-matrix-split-and-matrix-combine-shadergraphs-in-shadergraph-automated-tests-dont-open-throw-error)
+- Fixed an issue where ShaderGraph previews didn't display correctly when setting a texture to "None" [1264932]
+- Fixed an issue with the SampleVirtualTexture node in ShaderGraph, where toggling Automatic Streaming would cause the node to incorrectly display four output slots [1271618]
+- Fixed an issue in ShaderGraph with integer-mode Vector1 properties throwing errors when the value is changed [1264930]
+- Fixed a bug where ShaderGraph would not load graphs using Procedural VT nodes when the nodes were the project had them disabled [1271598]
+- Fixed an issue where the ProceduralVT node was not updating any connected SampleVT nodes when the number of layers was changed [1274288]
+- Fixed an issue where ShaderGraph shaders did not reimport automatically when some of the included files changed [1269634]
+- Fixed an issue where building a context menu on a dragging block node would leave it floating and undo/redo would result in a soft-lock
+
+## [10.0.0] - 2019-06-10
+### Added
 - Added the Internal Inspector which allows the user to view data contained in selected nodes and properties in a new floating graph sub-window. Also added support for custom property drawers to let you visualize any data type you like and expose it to the inspector.  
 - Added samples for Procedural Patterns to the package.
 - You can now use the right-click context menu to delete Sticky Notes.
