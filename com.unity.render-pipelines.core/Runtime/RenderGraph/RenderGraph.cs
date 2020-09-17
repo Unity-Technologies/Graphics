@@ -1227,6 +1227,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <summary>
         /// Profiling Scope constructor
         /// </summary>
+        /// <param name="renderGraph">Render Graph used for this scope.</param>
         /// <param name="sampler">Profiling Sampler to be used for this scope.</param>
         public RenderGraphProfilingScope(RenderGraph renderGraph, ProfilingSampler sampler)
         {
