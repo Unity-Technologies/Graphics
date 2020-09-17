@@ -23,6 +23,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #pragma warning disable 618 // Obsolete warning
+        [Obsolete("This is obsolete, please use shadowCascadeCount instead.", false)]
         [SerializeField] ShadowCascadesOption m_ShadowCascades = ShadowCascadesOption.NoCascades;
 
         [Obsolete("This is obsolete, please use shadowCascadeCount instead.", false)]
