@@ -296,6 +296,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     { PassVariant(LitPasses.DepthNormalOnly, CorePragmas.DOTSInstanced) },
                     { PassVariant(LitPasses.Meta,            CorePragmas.DOTSDefault) },
                     { PassVariant(LitPasses._2D,             CorePragmas.DOTSDefault) },
+                    { PassVariant(LitPasses.DebugMaterial,   CorePragmas.DOTSDefault) },
                 },
             };
 
@@ -332,6 +333,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     { LitPasses.DepthNormalOnly },
                     { LitPasses.Meta },
                     { LitPasses._2D },
+                    { LitPasses.DebugMaterial},
                 },
             };
 
@@ -350,6 +352,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     { LitPasses.DepthNormalOnly },
                     { LitPasses.Meta },
                     { LitPasses._2D },
+                    { LitPasses.DebugMaterial},
                 },
             };
         }
@@ -518,6 +521,34 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 renderStates = CoreRenderStates.DepthNormalsOnly,
                 pragmas = CorePragmas.Instanced,
                 includes = CoreIncludes.DepthNormalsOnly,
+            };
+
+            public static PassDescriptor DebugMaterial = new PassDescriptor
+            {
+                // Definition
+                displayName = "Debug Material",
+                referenceName = "SHADERPASS_DEBUGMATERIAL",
+                lightMode = "DebugMaterial",
+                useInPreview = true,
+
+                // Template
+                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentLit,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                requiredFields = LitRequiredFields.Forward,
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                // Conditional State
+                renderStates = CoreRenderStates.Default,
+                pragmas  = CorePragmas.Forward, // NOTE: SM 2.0 only GL
+                keywords = LitKeywords.Forward,
+                includes = LitIncludes.Forward,
             };
         }
 #endregion
