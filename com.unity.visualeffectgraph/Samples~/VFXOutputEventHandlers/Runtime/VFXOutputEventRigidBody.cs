@@ -5,7 +5,7 @@ namespace UnityEngine.VFX.Utility
 {
     [ExecuteAlways]
     [RequireComponent(typeof(VisualEffect))]
-    public class VFXOutputEventRigidBody : VFXOutputEventHandler
+    class VFXOutputEventRigidBody : VFXOutputEventHandler
     {
         public override bool canExecuteInEditor => false;
         public enum Space

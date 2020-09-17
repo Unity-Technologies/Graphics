@@ -4,7 +4,7 @@ namespace UnityEngine.VFX.Utility
 {
     [ExecuteAlways]
     [RequireComponent(typeof(VisualEffect))]
-    public class VFXOutputEventUnityEvent : VFXOutputEventHandler
+    class VFXOutputEventUnityEvent : VFXOutputEventHandler
     {
         public override bool canExecuteInEditor => false;
 

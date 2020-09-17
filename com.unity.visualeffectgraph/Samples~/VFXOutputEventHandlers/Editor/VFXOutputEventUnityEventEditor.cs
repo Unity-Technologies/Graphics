@@ -3,7 +3,7 @@ using UnityEngine.VFX.Utility;
 namespace UnityEditor.VFX.Utility
 {
     [CustomEditor(typeof(VFXOutputEventUnityEvent))]
-    public class VFXOutputEventUnityEventEditor : VFXOutputEventHandlerEditor
+    class VFXOutputEventUnityEventEditor : VFXOutputEventHandlerEditor
     {
         SerializedProperty onEvent;
 

@@ -11,7 +11,7 @@ namespace UnityEngine.VFX.Utility
 #if VFX_OUTPUTEVENT_HDRP_10_0_0_OR_NEWER
     [RequireComponent(typeof(HDAdditionalLightData))]
 #endif
-    public class VFXOutputEventPrefabAttributeHandler_Light : VFXOutputEventPrefabAttributeHandler
+    class VFXOutputEventPrefabAttributeHandler_Light : VFXOutputEventPrefabAttributeHandler
     {
         public float brightnessScale = 1.0f;
         static readonly int k_Color = Shader.PropertyToID("color");

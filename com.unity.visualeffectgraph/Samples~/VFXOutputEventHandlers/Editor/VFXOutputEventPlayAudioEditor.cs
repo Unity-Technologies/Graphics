@@ -4,7 +4,7 @@ using UnityEngine.VFX.Utility;
 namespace UnityEditor.VFX.Utility
 {
     [CustomEditor(typeof(VFXOutputEventPlayAudio))]
-    public class VFXOutputEventPlayAudioEditor : VFXOutputEventHandlerEditor
+    class VFXOutputEventPlayAudioEditor : VFXOutputEventHandlerEditor
     {
         VFXOutputEventPlayAudio m_PlayAudioHandler;
 

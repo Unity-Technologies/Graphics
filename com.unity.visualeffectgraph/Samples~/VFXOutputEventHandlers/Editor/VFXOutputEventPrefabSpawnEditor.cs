@@ -4,7 +4,7 @@ using UnityEngine.VFX.Utility;
 namespace UnityEditor.VFX.Utility
 {
     [CustomEditor(typeof(VFXOutputEventPrefabSpawn))]
-    public class VFXOutputEventPrefabSpawnEditor : VFXOutputEventHandlerEditor
+    class VFXOutputEventPrefabSpawnEditor : VFXOutputEventHandlerEditor
     {
         VFXOutputEventPrefabSpawn m_PrefabSpawnHandler;
 

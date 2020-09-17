@@ -1,15 +1,18 @@
 {
-    "name": "VFXGraph.OutputEventHandlers",
+    "name": "VFXGraph.OutputEventHandlers.Editor",
     "rootNamespace": "",
     "references": [
-        "GUID:d04eb9c554ad44ceab303cecf0c0cf82",
-        "GUID:457756d89b35d2941b3e7b37b4ece6f1",
-        "GUID:4307f53044263cf4b835bd812fc161a4"
+        "Unity.VisualEffectGraph.Runtime",
+        "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Cinemachine",
+        "VFXGraph.OutputEventHandlers"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
+    "overrideReferences": true,
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],

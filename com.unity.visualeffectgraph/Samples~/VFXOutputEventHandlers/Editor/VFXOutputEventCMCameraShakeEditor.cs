@@ -4,7 +4,7 @@ using UnityEngine.VFX.Utility;
 namespace UnityEditor.VFX.Utility
 {
     [CustomEditor(typeof(VFXOutputEventCMCameraShake))]
-    public class VFXOutputEventCMCameraShakeEditor : VFXOutputEventHandlerEditor
+    class VFXOutputEventCMCameraShakeEditor : VFXOutputEventHandlerEditor
     {
         VFXOutputEventCMCameraShake m_RigidbodyEventHandler;
 

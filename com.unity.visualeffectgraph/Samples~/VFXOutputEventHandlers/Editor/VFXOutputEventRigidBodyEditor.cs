@@ -4,7 +4,7 @@ using UnityEngine.VFX.Utility;
 namespace UnityEditor.VFX.Utility
 {
     [CustomEditor(typeof(VFXOutputEventRigidBody))]
-    public class VFXOutputEventRigidBodyEditor : VFXOutputEventHandlerEditor
+    class VFXOutputEventRigidBodyEditor : VFXOutputEventHandlerEditor
     {
         VFXOutputEventRigidBody m_RigidbodyEventHandler;
 

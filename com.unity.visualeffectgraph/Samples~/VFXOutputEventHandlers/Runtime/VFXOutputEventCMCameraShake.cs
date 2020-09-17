@@ -5,7 +5,7 @@ namespace UnityEngine.VFX.Utility
 {
     [ExecuteAlways]
     [RequireComponent(typeof(VisualEffect))]
-    public class VFXOutputEventCMCameraShake : VFXOutputEventHandler
+    class VFXOutputEventCMCameraShake : VFXOutputEventHandler
     {
         public override bool canExecuteInEditor => true;
 

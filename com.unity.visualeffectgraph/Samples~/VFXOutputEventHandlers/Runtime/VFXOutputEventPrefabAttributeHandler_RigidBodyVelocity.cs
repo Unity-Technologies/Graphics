@@ -2,7 +2,7 @@
 namespace UnityEngine.VFX.Utility
 {
     [RequireComponent(typeof(Rigidbody))]
-    public class VFXOutputEventPrefabAttributeHandler_RigidBodyVelocity : VFXOutputEventPrefabAttributeHandler
+    class VFXOutputEventPrefabAttributeHandler_RigidBodyVelocity : VFXOutputEventPrefabAttributeHandler
     {
         static readonly int k_Velocity = Shader.PropertyToID("velocity");
         Rigidbody m_RigidBody;
