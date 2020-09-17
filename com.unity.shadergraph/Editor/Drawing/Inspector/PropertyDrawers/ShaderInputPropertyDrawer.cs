@@ -1058,7 +1058,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 KeywordEntry entry = ((KeywordEntry)m_KeywordReorderableList.list[index]);
                 EditorGUI.BeginChangeCheck();
 
-                var displayName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.displayName, EditorStyles.label);
+                Rect displayRect = new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight);
+                var displayName = EditorGUI.DelayedTextField(displayRect, entry.displayName, EditorStyles.label);
+                //This is gross but I cant find any other way to make a DelayedTextField have a tooltip (tried doing the empty label on the field itself and it didnt work either)
+                EditorGUI.LabelField(displayRect, new GUIContent("", "Enum keyword display names can only use alphanumeric characters and `_`"));
+
                 var referenceName = EditorGUI.TextField( new Rect(rect.x + rect.width / 2, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.referenceName,
                     keyword.isBuiltIn ? EditorStyles.label : greyLabel);
 
@@ -1180,8 +1184,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         public string GetDuplicateSafeDisplayName(int id, string name)
         {
             name = name.Trim();
-            //since enum display names are not _true_ display names, have to sanitize a little big more harshly. Remove any non alphanumeric characters.
-            name = Regex.Replace(name, "[\\W]", "_");
             var entryList = m_KeywordReorderableList.list as List<KeywordEntry>;
             return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.displayName), "{0} ({1})", name, "[\\W]");
         }
