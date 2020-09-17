@@ -188,7 +188,6 @@ namespace UnityEngine.Rendering.HighDefinition
         UpsampleLowResTransparent,
 
         // Post-processing
-        GuardBandClear,
         AlphaCopy,
         StopNaNs,
         FixedExposure,
