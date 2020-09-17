@@ -383,8 +383,8 @@ namespace UnityEngine.Rendering.HighDefinition
             SetRenderingFeatures();
 
             // Initialize lod settings with the low quality settings (for the editor camera)
-            QualitySettings.lodBias = m_Asset.currentPlatformRenderPipelineSettings.lodBias[0];
-            QualitySettings.maximumLODLevel = m_Asset.currentPlatformRenderPipelineSettings.maximumLODLevel[0];
+            QualitySettings.lodBias = m_Asset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).GetResolvedLODBias(m_Asset);
+            QualitySettings.maximumLODLevel = m_Asset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).GetResolvedMaximumLODLevel(m_Asset);
 
             // The first thing we need to do is to set the defines that depend on the render pipeline settings
             m_RayTracingSupported = GatherRayTracingSupport(m_Asset.currentPlatformRenderPipelineSettings);
