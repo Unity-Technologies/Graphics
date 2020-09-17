@@ -91,7 +91,8 @@ namespace UnityEngine.Rendering.Universal
     [MovedFrom("UnityEngine.Rendering.LWRP")] public enum RendererType
     {
         Custom,
-        ForwardRenderer,
+        StandardRenderer,
+        ForwardRenderer = StandardRenderer, // deprecated
         _2DRenderer,
     }
 
@@ -112,7 +113,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int k_AssetPreviousVersion = 5;
 
         // Deprecated settings for upgrading sakes
-        [SerializeField] RendererType m_RendererType = RendererType.ForwardRenderer;
+        [SerializeField] RendererType m_RendererType = RendererType.StandardRenderer;
         [EditorBrowsable(EditorBrowsableState.Never)]
         [SerializeField] internal ScriptableRendererData m_RendererData = null;
 
@@ -194,7 +195,7 @@ namespace UnityEngine.Rendering.Universal
             if (rendererData != null)
                 instance.m_RendererDataList[0] = rendererData;
             else
-                instance.m_RendererDataList[0] = CreateInstance<ForwardRendererData>();
+                instance.m_RendererDataList[0] = CreateInstance<StandardRendererData>();
 
             // Initialize default Renderer
             instance.m_EditorResourcesAsset = instance.editorResources;
@@ -208,7 +209,7 @@ namespace UnityEngine.Rendering.Universal
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
                 //Create asset
-                AssetDatabase.CreateAsset(Create(CreateRendererAsset(pathName, RendererType.ForwardRenderer)), pathName);
+                AssetDatabase.CreateAsset(Create(CreateRendererAsset(pathName, RendererType.StandardRenderer)), pathName);
             }
         }
 
@@ -236,14 +237,14 @@ namespace UnityEngine.Rendering.Universal
         {
             switch (type)
             {
-                case RendererType.ForwardRenderer:
-                    return CreateInstance<ForwardRendererData>();
+                case RendererType.StandardRenderer:
+                    return CreateInstance<StandardRendererData>();
                 // 2D renderer is experimental
                 case RendererType._2DRenderer:
                     return CreateInstance<Experimental.Rendering.Universal.Renderer2DData>();
                 // Forward Renderer is the fallback renderer that works on all platforms
                 default:
-                    return CreateInstance<ForwardRendererData>();
+                    return CreateInstance<StandardRendererData>();
             }
         }
 
@@ -270,12 +271,12 @@ namespace UnityEngine.Rendering.Universal
         }
 #endif
 
-        public ScriptableRendererData LoadBuiltinRendererData(RendererType type = RendererType.ForwardRenderer)
+        public ScriptableRendererData LoadBuiltinRendererData(RendererType type = RendererType.StandardRenderer)
         {
 #if UNITY_EDITOR
             EditorUtility.SetDirty(this);
             return m_RendererDataList[0] =
-                CreateRendererAsset("Assets/ForwardRenderer.asset", type, false);
+                CreateRendererAsset("Assets/StandardRenderer.asset", type, false);
 #else
             m_RendererDataList[0] = null;
             return m_RendererDataList[0];
@@ -813,9 +814,9 @@ namespace UnityEngine.Rendering.Universal
         {
             if(asset.k_AssetPreviousVersion < 5)
             {
-                if (asset.m_RendererType == RendererType.ForwardRenderer)
+                if (asset.m_RendererType == RendererType.StandardRenderer)
                 {
-                    var data = AssetDatabase.LoadAssetAtPath<ForwardRendererData>("Assets/ForwardRenderer.asset");
+                    var data = AssetDatabase.LoadAssetAtPath<StandardRendererData>("Assets/StandardRenderer.asset");
                     if (data)
                     {
                         asset.m_RendererDataList[0] = data;
