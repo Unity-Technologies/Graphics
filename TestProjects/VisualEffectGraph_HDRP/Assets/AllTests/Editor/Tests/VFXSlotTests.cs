@@ -135,18 +135,18 @@ namespace UnityEditor.VFX.Test
             VFXSlot floatSlot = VFXSlot.Create(new VFXProperty(typeof(float), "float"), VFXSlot.Direction.kOutput);
 
             sphereSlot[0][0].Link(floatSlot);
-            sphereSlot[1].Link(floatSlot);
+            sphereSlot[2].Link(floatSlot);
 
             var expr = sphereSlot[0][0].GetExpression();
             Assert.IsInstanceOf<VFXExpressionExtractComponent>(expr);
             Assert.AreEqual(floatSlot.GetExpression(), expr.parents[0].parents[0]);
-            Assert.AreEqual(floatSlot.GetExpression(), sphereSlot[1].GetExpression());
+            Assert.AreEqual(floatSlot.GetExpression(), sphereSlot[2].GetExpression());
 
             floatSlot.UnlinkAll();
             expr = sphereSlot[0][0].GetExpression();
             Assert.IsInstanceOf<VFXExpressionExtractComponent>(expr);
             Assert.AreNotEqual(floatSlot.GetExpression(), expr.parents[0].parents[0]);
-            Assert.AreNotEqual(floatSlot.GetExpression(), sphereSlot[1].GetExpression());
+            Assert.AreNotEqual(floatSlot.GetExpression(), sphereSlot[2].GetExpression());
         }
 
         static void CollectExpression(VFXExpression expression, List<VFXExpression> collected)

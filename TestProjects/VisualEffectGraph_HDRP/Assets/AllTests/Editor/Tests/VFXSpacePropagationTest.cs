@@ -138,7 +138,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(VFXCoordinateSpace.World, sphere_A.outputSlots[0].space);
             Assert.AreEqual(VFXCoordinateSpace.Local, sphere_B.outputSlots[0].space);
 
-            sphere_B.inputSlots[0][1].Link(sphere_A.outputSlots[0][1]); //link radius to other radius
+            sphere_B.inputSlots[0][2].Link(sphere_A.outputSlots[0][2]); //link radius to other radius
             Assert.AreEqual(VFXCoordinateSpace.Local, sphere_B.outputSlots[0].space);
 
             var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);

@@ -311,8 +311,8 @@ namespace UnityEditor.VFX.Test
             var branch = ScriptableObject.CreateInstance<Operator.Branch>();
             branch.SetOperandType(typeof(Sphere));
 
-            var sphereA = new Sphere() { center = new Vector3(1.0f, 2.0f, 3.0f), radius = 4.0f };
-            var sphereB = new Sphere() { center = new Vector3(1.0f, 2.0f, 3.0f), radius = 4.0f };
+            var sphereA = new Sphere() { center = new Vector3(1.0f, 2.0f, 3.0f), angles = new Vector3(10.0f, 15.0f, 8.0f), radius = 4.0f };
+            var sphereB = new Sphere() { center = new Vector3(6.0f, 7.0f, 8.0f), angles = new Vector3(20.0f, 12.0f, 2.0f), radius = 9.0f };
 
             branch.inputSlots[0].value = false;
             branch.inputSlots[1].value = sphereA;
@@ -323,6 +323,9 @@ namespace UnityEditor.VFX.Test
                 if (aS.center.x != bS.center.x) return false;
                 if (aS.center.y != bS.center.y) return false;
                 if (aS.center.z != bS.center.z) return false;
+                if (aS.angles.x != bS.angles.x) return false;
+                if (aS.angles.y != bS.angles.y) return false;
+                if (aS.angles.z != bS.angles.z) return false;
                 if (aS.radius != bS.radius) return false;
                 return true;
             };
@@ -331,10 +334,12 @@ namespace UnityEditor.VFX.Test
             {
                 var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
                 var center = context.Compile(slot[0].GetExpression());
-                var radius = context.Compile(slot[1].GetExpression());
+                var euler = context.Compile(slot[1].GetExpression());
+                var radius = context.Compile(slot[2].GetExpression());
                 return new Sphere()
                 {
                     center = center.Get<Vector3>(),
+                    angles = euler.Get<Vector3>(),
                     radius = radius.Get<float>()
                 };
             };
