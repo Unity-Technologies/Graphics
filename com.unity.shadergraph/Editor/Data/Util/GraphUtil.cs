@@ -277,10 +277,10 @@ namespace UnityEditor.ShaderGraph
         /// <returns>
         /// A name that is distinct form any name in `existingNames`.
         /// </returns>
-        internal static string SanitizeName(IEnumerable<string> existingNames, string duplicateFormat, string name)
+        internal static string SanitizeName(IEnumerable<string> existingNames, string duplicateFormat, string name, string disallowedPatternRegex = "\"")
         {
             //.shader files are not cool with " in the middle of a property name (eg.  Vector1_81B203C2("fo"o"o", Float) = 0)
-            name = Regex.Replace(name, "[\\W]", "_");
+            name = Regex.Replace(name, disallowedPatternRegex, "_");
             if (!existingNames.Contains(name))
                 return name;
 

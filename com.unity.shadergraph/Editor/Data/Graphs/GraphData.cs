@@ -1119,7 +1119,7 @@ namespace UnityEditor.ShaderGraph
                     input.displayName = GraphUtil.SanitizeName(BuildPropertyDisplayNameList(property, input.displayName), "{0} ({1})", input.displayName);
                     break;
                 case ShaderKeyword keyword:
-                    input.displayName = GraphUtil.SanitizeName(keywords.Where(p => p != input).Select(p => p.displayName), "{0} ({1})", input.displayName);
+                    input.displayName = GraphUtil.SanitizeName(keywords.Where(p => p != input).Select(p => p.displayName), "{0} ({1})", input.displayName); 
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

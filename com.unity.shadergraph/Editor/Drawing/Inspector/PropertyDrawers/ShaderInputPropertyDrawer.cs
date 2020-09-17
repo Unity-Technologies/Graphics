@@ -1180,16 +1180,17 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         public string GetDuplicateSafeDisplayName(int id, string name)
         {
             name = name.Trim();
+            //since enum display names are not _true_ display names, have to sanitize a little big more harshly. Remove any non alphanumeric characters.
+            name = Regex.Replace(name, "[\\W]", "_");
             var entryList = m_KeywordReorderableList.list as List<KeywordEntry>;
-            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.displayName), "{0} ({1})", name);
+            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.displayName), "{0} ({1})", name, "[\\W]");
         }
 
         public string GetDuplicateSafeReferenceName(int id, string name)
         {
             name = name.Trim();
-            name = Regex.Replace(name, @"(?:[^A-Za-z_0-9_])", "_");
             var entryList = m_KeywordReorderableList.list as List<KeywordEntry>;
-            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.referenceName), "{0}_{1}", name);
+            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.referenceName), "{0}_{1}", name, @"(?:[^A-Za-z_0-9_])");
         }
     }
 }
