@@ -73,7 +73,7 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
     output.fogCoord = (half)input.positionWS.w;
     output.vertexLighting = half3(0.0h, 0.0h, 0.0h);
     output.bakedGI = SampleSHPixel(input.vertexSH, output.normalWS);
-    output.normalizedScreenSpaceUV = input.clipPos.xy;
+    output.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -160,7 +160,7 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
     half3 result = albedo.rgb + emission;
     half fogFactor = input.positionWS.w;
     result = MixFogColor(result, half3(0, 0, 0), fogFactor);
-    albedo.a = OutputAlpha(albedo.a);
+    albedo.a = OutputAlpha(albedo.a, _Surface);
 
     return half4(result, albedo.a);
 }

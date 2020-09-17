@@ -14,10 +14,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/ContactShadows.hlsl"
 
-// We perform scalarization all the time here as we don't know if we have clustered data structure or not at this point. 
-// More info on scalarization: https://flashypixels.wordpress.com/2018/11/10/intro-to-gpu-scalarization-part-2-scalarize-all-the-lights/
-#define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER))
-
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
 // #pragma enable_d3d11_debug_symbols
@@ -26,7 +22,7 @@
     TEXTURE2D_X(_CameraDepthValues);
 #endif
 
-#define DEFERRED_SHADOW_TILE_SIZE 16
+#define DEFERRED_SHADOW_TILE_SIZE 8
 
 float SampleDepth(float2 UV, bool HalfRes)
 {
@@ -173,7 +169,8 @@ void DeferredContactShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     uint2 pixelCoord = groupId * DEFERRED_SHADOW_TILE_SIZE + groupThreadId;
-    uint2 tileCoord = groupId;
+    // There might be a mismatch between the size of a tile and the group size of this shader.
+    uint2 tileCoord = groupId * (DEFERRED_SHADOW_TILE_SIZE / TILE_SIZE_FPTL);
 
 #ifdef ENABLE_MSAA
     float depth = LOAD_TEXTURE2D_X(_CameraDepthValues, pixelCoord.xy).z;
