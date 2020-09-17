@@ -171,12 +171,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             bool hdrpAssetSupportForward = hdrpSettings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly;
             bool hdrpAssetSupportDeferred = hdrpSettings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly;
+            bool hdrpAssetIsForward = hdrpSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly;
+            bool hdrpAssetIsDeffered = hdrpSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly;
+
             bool frameSettingsOverrideToForward = serialized.GetOverrides(FrameSettingsField.LitShaderMode) && serialized.litShaderMode == LitShaderMode.Forward;
             bool frameSettingsOverrideToDeferred = serialized.GetOverrides(FrameSettingsField.LitShaderMode) && serialized.litShaderMode == LitShaderMode.Deferred;
             bool defaultForwardUsed = !serialized.GetOverrides(FrameSettingsField.LitShaderMode) && defaultShaderLitMode == LitShaderMode.Forward;
-            bool defaultDefferedUsed = !serialized.GetOverrides(FrameSettingsField.LitShaderMode) && defaultShaderLitMode == LitShaderMode.Deferred;
-            bool msaaEnablable = hdrpAssetSupportForward && hdrpSettings.supportMSAA && (frameSettingsOverrideToForward || defaultForwardUsed);
-            bool depthPrepassEnablable = hdrpAssetSupportDeferred && (defaultDefferedUsed || frameSettingsOverrideToDeferred);
+            bool msaaEnablable = (hdrpAssetSupportForward && hdrpSettings.supportMSAA && (frameSettingsOverrideToForward || defaultForwardUsed)) || (hdrpAssetIsForward && hdrpSettings.supportMSAA);
             area.AmmendInfo(FrameSettingsField.MSAA,
                 overrideable: () => msaaEnablable,
                 overridedDefaultValue: msaaEnablable && defaultFrameSettings.IsEnabled(FrameSettingsField.MSAA),
@@ -194,9 +195,31 @@ namespace UnityEditor.Rendering.HighDefinition
                             throw new System.ArgumentOutOfRangeException("Unknown ShaderLitMode");
                     }
                 });
+
+            bool defaultDefferedUsed = !serialized.GetOverrides(FrameSettingsField.LitShaderMode) && defaultShaderLitMode == LitShaderMode.Deferred;
+            bool depthPrepassEnablable = (hdrpAssetSupportDeferred && (defaultDefferedUsed || frameSettingsOverrideToDeferred)) || (hdrpAssetIsDeffered);
             area.AmmendInfo(FrameSettingsField.DepthPrepassWithDeferredRendering,
                 overrideable: () => depthPrepassEnablable,
                 overridedDefaultValue: depthPrepassEnablable && defaultFrameSettings.IsEnabled(FrameSettingsField.DepthPrepassWithDeferredRendering),
+                customOverrideable: () =>
+                {
+                    switch (hdrpSettings.supportedLitShaderMode)
+                    {
+                        case RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly:
+                            return false;
+                        case RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly:
+                            return true;
+                        case RenderPipelineSettings.SupportedLitShaderMode.Both:
+                            return frameSettingsOverrideToDeferred || defaultDefferedUsed;
+                        default:
+                            throw new System.ArgumentOutOfRangeException("Unknown ShaderLitMode");
+                    }
+                });
+
+            bool clearGBufferEnablable = (hdrpAssetSupportDeferred && (defaultDefferedUsed || frameSettingsOverrideToDeferred)) ||(hdrpAssetIsDeffered);
+            area.AmmendInfo(FrameSettingsField.ClearGBuffers,
+                overrideable: () => clearGBufferEnablable,
+                overridedDefaultValue: clearGBufferEnablable && defaultFrameSettings.IsEnabled(FrameSettingsField.ClearGBuffers),
                 customOverrideable: () =>
                 {
                     switch (hdrpSettings.supportedLitShaderMode)

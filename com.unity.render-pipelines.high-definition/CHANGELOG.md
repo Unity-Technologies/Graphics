@@ -77,7 +77,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix for lookdev toggling renderers that are set to non editable or are hidden in the inspector.
 - Fixed issue with mipmap debug mode not properly resetting full screen mode (and viceversa). 
 - Added unsupported message when using tile debug mode with MSAA.
-
+- Fixed the dependecy of FrameSettings (MSAA, ClearGBuffer, DepthPrepassWithDeferred) (case 1277620).
+ 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
 - Add tooltips with the full name of the (graphics) compositor properties to properly show large names that otherwise are clipped by the UI (case 1263590)
