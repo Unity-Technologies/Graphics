@@ -229,7 +229,7 @@ Shader "HDRP/Lit"
         [HideInInspector] _DiffusionProfileHash("Diffusion Profile Hash", Float) = 0
 
 //SensorSDK - Begin - Expose a reflectance parameter to override when using standard material
-        [HideInInspector] _SensorCustomReflectance("Diffusion Profile Hash", Float) = 0.0
+        [HideInInspector] _SensorCustomReflectance("Diffusion Profile Hash", 2D) = "white" {}
 //SensorSDK - End - Expose a reflectance parameter to override when using standard material
     }
 

@@ -24,7 +24,11 @@ float3 GetPositionBias(float3 geomNormal, float bias, bool below)
     return geomNormal * (below ? -bias : bias);
 }
 
-float _SensorCustomReflectance;
+#if !defined(SHADERGRAPH_SENSOR_DXR)
+TEXTURE2D(_SensorCustomReflectance);
+float 		Wavelength; 
+#endif
+
 int _SensorLightCount;
 
 // Generic function that handles the reflection code
@@ -107,9 +111,18 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
 
     //We override the diffuce color when we are using standard lit shader.  Don't need to when using shader graph.
 #if !defined(SHADERGRAPH_SENSOR_DXR)
-    bsdfData.diffuseColor = float3(_SensorCustomReflectance, _SensorCustomReflectance, _SensorCustomReflectance); //Override diffuse with material reflectance
+    //bsdfData.diffuseColor = float3(_SensorCustomReflectance, _SensorCustomReflectance, _SensorCustomReflectance); //Override diffuse with material reflectance
+    const float _minWaveLengthValue = 0.35f; // 350 nm
+    const float _maxWaveLengthValue = 2.5f;  // 2500 nm
+
+    float wlIdx           = clamp(Wavelength * 0.001f, _minWaveLengthValue, _maxWaveLengthValue);
+    float wavelengthSpan  = _maxWaveLengthValue - _minWaveLengthValue + 1;
+    float2 coordCurve     = float2(wlIdx / wavelengthSpan, 0);
+ 
+    bsdfData.diffuseColor = SAMPLE_TEXTURE2D(_SensorCustomReflectance, s_linear_clamp_sampler, coordCurve);	
 
     pathIntersection.diffValue = bsdfData.diffuseColor;
+    pathIntersection.customRefractance = bsdfData.diffuseColor;
 #endif
     
     pathIntersection.color = float3(1.0f, 1.0f, 0.0f);
@@ -187,7 +200,6 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
         pathIntersection.lightPosition = rayDescriptor.Origin;
         pathIntersection.lightDirection = bsdfData.normalWS;
         pathIntersection.lightCount = _SensorLightCount;
-        pathIntersection.customRefractance = _SensorCustomReflectance;
         
         // Light sampling
         //if (computeDirect)
