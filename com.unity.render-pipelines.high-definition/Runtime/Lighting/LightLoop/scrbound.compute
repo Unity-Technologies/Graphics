@@ -10,12 +10,6 @@
 
 /* ------------------------------ Inputs ------------------------------------ */
 
-uniform uint g_isOrthographic;
-uniform uint g_iNrVisibLights;
-
-uniform float4x4 g_mInvProjectionArr[SHADEROPTIONS_XR_MAX_VIEWS];
-uniform float4x4 g_mProjectionArr[SHADEROPTIONS_XR_MAX_VIEWS];
-
 StructuredBuffer<SFiniteLightBound> g_data : register(t0);
 
 /* ------------------------------ Outputs ----------------------------------- */
@@ -50,7 +44,7 @@ uint NthBitLow(uint value, uint n)
 
 float4x4 Translation4x4(float3 d)
 {
-    float4x4 M = k_Identity4x4;
+    float4x4 M = k_identity4x4;
 
     M._14_24_34 = d; // Last column
 
@@ -98,7 +92,7 @@ float4x4 PerspectiveProjection4x4(float a, float g, float n, float f)
 
 /* ------------------------------ Implementation ---------------------------- */
 
-#define DUMB_COMPILER // Improve the quality of generated code at the expense of readability
+#define OBTUSE_COMPILER // Improve the quality of generated code at the expense of readability
 
 #define CLEAR_SIGN_BIT(X)  (asint(X) & INT_MAX)
 #define DIV_ROUND_UP(N, D) (((N) + (D) - 1) / (D)) // No division by 0 checks
@@ -251,14 +245,14 @@ void ClipPolygonAgainstPlane(uint p, uint srcBegin, uint srcSize,
 
     ClipVertex tailVert = CreateClipVertex(p, vertRingBuffer[(srcBegin + srcSize - 1) % MAX_CLIP_VERTS]);
 
-#ifdef DUMB_COMPILER
+#ifdef OBTUSE_COMPILER
     uint modSrcIdx = srcBegin % MAX_CLIP_VERTS;
     uint modDstIdx = dstBegin % MAX_CLIP_VERTS;
 #endif
 
     for (uint j = srcBegin; j < (srcBegin + srcSize); j++)
     {
-    #ifndef DUMB_COMPILER
+    #ifndef OBTUSE_COMPILER
         uint modSrcIdx = j % MAX_CLIP_VERTS;
     #endif
         ClipVertex leadVert = CreateClipVertex(p, vertRingBuffer[modSrcIdx]);
@@ -275,11 +269,11 @@ void ClipPolygonAgainstPlane(uint p, uint srcBegin, uint srcSize,
         {
             // The line segment is guaranteed to cross the plane.
             float4 clipVert = IntersectEdgeAgainstPlane(tailVert, leadVert);
-        #ifndef DUMB_COMPILER
+        #ifndef OBTUSE_COMPILER
             uint modDstIdx = (dstBegin + dstSize++) % MAX_CLIP_VERTS;
         #endif
             vertRingBuffer[modDstIdx] = clipVert;
-        #ifdef DUMB_COMPILER
+        #ifdef OBTUSE_COMPILER
             dstSize++;
             modDstIdx++;
             modDstIdx = (modDstIdx == MAX_CLIP_VERTS) ? 0 : modDstIdx;
@@ -288,18 +282,18 @@ void ClipPolygonAgainstPlane(uint p, uint srcBegin, uint srcSize,
 
         if (leadVert.bc >= 0)
         {
-        #ifndef DUMB_COMPILER
+        #ifndef OBTUSE_COMPILER
             uint modDstIdx = (dstBegin + dstSize++) % MAX_CLIP_VERTS;
         #endif
             vertRingBuffer[modDstIdx] = leadVert.pt;
-        #ifdef DUMB_COMPILER
+        #ifdef OBTUSE_COMPILER
             dstSize++;
             modDstIdx++;
             modDstIdx = (modDstIdx == MAX_CLIP_VERTS) ? 0 : modDstIdx;
         #endif
         }
 
-    #ifdef DUMB_COMPILER
+    #ifdef OBTUSE_COMPILER
         modSrcIdx++;
         modSrcIdx = (modSrcIdx == MAX_CLIP_VERTS) ? 0 : modSrcIdx;
     #endif
@@ -351,12 +345,12 @@ void UpdateAaBb(uint srcBegin, uint srcSize, float4 vertRingBuffer[MAX_CLIP_VERT
                 bool isOrthoProj, float4x4 invProjMat,
                 inout float4 ndcAaBbMinPt, inout float4 ndcAaBbMaxPt)
 {
-#ifdef DUMB_COMPILER
+#ifdef OBTUSE_COMPILER
     uint modSrcIdx = srcBegin % MAX_CLIP_VERTS;
 #endif
     for (uint j = srcBegin; j < (srcBegin + srcSize); j++)
     {
-    #ifndef DUMB_COMPILER
+    #ifndef OBTUSE_COMPILER
         uint modSrcIdx = j % MAX_CLIP_VERTS;
     #endif
         float4 hapVert = vertRingBuffer[modSrcIdx];
@@ -371,7 +365,7 @@ void UpdateAaBb(uint srcBegin, uint srcSize, float4 vertRingBuffer[MAX_CLIP_VERT
 
         ndcAaBbMinPt = min(ndcAaBbMinPt, float4(rapVertNDC, rbpVertVSz));
         ndcAaBbMaxPt = max(ndcAaBbMaxPt, float4(rapVertNDC, rbpVertVSz));
-    #ifdef DUMB_COMPILER
+    #ifdef OBTUSE_COMPILER
         modSrcIdx++;
         modSrcIdx = (modSrcIdx == MAX_CLIP_VERTS) ? 0 : modSrcIdx;
     #endif
