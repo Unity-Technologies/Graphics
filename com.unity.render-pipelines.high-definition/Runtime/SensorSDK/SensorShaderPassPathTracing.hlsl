@@ -12,7 +12,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/SensorSDK/SensorLitPathTracing.hlsl"
 #endif
 
-//#pragma enable_d3d11_debug_symbols
+#pragma enable_ray_tracing_shader_debug_symbols
 
 float PowerHeuristic(float f, float b)
 {
@@ -86,14 +86,18 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     bool isVisible;
     GetSurfaceAndBuiltinData(fragInput, -WorldRayDirection(), posInput, surfaceData, builtinData, currentVertex, pathIntersection.cone, isVisible);
 
-    pathIntersection.color = float3(1.0f, 0.0f, 0.0f);
+    pathIntersection.alpha = builtinData.opacity;
+    pathIntersection.alphatreshold = builtinData.alphaClipTreshold;
     
-    // if (!isVisible)
-    // {
+    pathIntersection.color = float3(1.0f, 0.0f, 1.0f);
+    
+    //if (!isVisible)
+    //{
     //     // This should never happen, return magenta just in case
-    //     pathIntersection.value = float3(1.0, 0.0, 0.5);
+    //     pathIntersection.color = float3(1.0, 0.0, 0.5);
+    //     pathIntersection.value = 0.0;
     //     return;
-    // }
+    //}
 
     // Check if we want to compute direct and emissive lighting for current depth
     bool computeDirect = currentDepth >= _RaytracingMinRecursion - 1;
@@ -101,7 +105,14 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     // Compute the bsdf data
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
 
-    pathIntersection.color = float3(1.0f, 0.0f, 1.0f);
+    //We override the diffuce color when we are using standard lit shader.  Don't need to when using shader graph.
+#if !defined(SHADERGRAPH_SENSOR_DXR)
+    bsdfData.diffuseColor = float3(_SensorCustomReflectance, _SensorCustomReflectance, _SensorCustomReflectance); //Override diffuse with material reflectance
+
+    pathIntersection.diffValue = bsdfData.diffuseColor;
+#endif
+    
+    pathIntersection.color = float3(1.0f, 1.0f, 0.0f);
     
 //#ifdef HAS_LIGHTLOOP
 
@@ -120,20 +131,44 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     // And reset the ray intersection color, which will store our final result
     pathIntersection.value = computeDirect ? builtinData.emissiveColor : 0.0;
 
-    //We override the diffuce color when we are using standard lit shader.  Don't need to when using shader graph.
-#if !defined(SHADERGRAPH_SENSOR_DXR)
-    bsdfData.diffuseColor = float3(_SensorCustomReflectance, _SensorCustomReflectance, _SensorCustomReflectance); //Override diffuse with material reflectance
+    pathIntersection.color = float3(1.0f, 1.0f, 1.0f);
 
-    pathIntersection.diffValue = bsdfData.diffuseColor;
-#endif
-
-    pathIntersection.color = float3(1.0f, 1.0f, 0.0f);
+    pathIntersection.materialFeatures = bsdfData.materialFeatures;
+    pathIntersection.diffuseColor = bsdfData.diffuseColor;
+    pathIntersection.fresnel0 = bsdfData.fresnel0;
+    pathIntersection.ambientOcclusion = bsdfData.ambientOcclusion;
+    pathIntersection.specularOcclusion = bsdfData.specularOcclusion;
+    pathIntersection.normalWS = bsdfData.normalWS;
+    pathIntersection.perceptualRoughness = bsdfData.perceptualRoughness;
+    pathIntersection.coatMask = bsdfData.coatMask;
+    pathIntersection.diffusionProfileIndex = bsdfData.diffusionProfileIndex;
+    pathIntersection.subsurfaceMask = bsdfData.subsurfaceMask;
+    pathIntersection.thickness = bsdfData.thickness;
+    pathIntersection.useThickObjectMode = bsdfData.useThickObjectMode;
+    pathIntersection.transmittance = bsdfData.transmittance;
+    pathIntersection.tangentWS = bsdfData.tangentWS;
+    pathIntersection.bitangentWS = bsdfData.bitangentWS;
+    pathIntersection.roughnessT = bsdfData.roughnessT;
+    pathIntersection.roughnessB = bsdfData.roughnessB;
+    pathIntersection.anisotropy = bsdfData.anisotropy;
+    pathIntersection.iridescenceThickness = bsdfData.iridescenceThickness;
+    pathIntersection.iridescenceMask = bsdfData.iridescenceMask;
+    pathIntersection.coatRoughness = bsdfData.coatRoughness;
+    pathIntersection.geomNormalWS = bsdfData.geomNormalWS;
+    pathIntersection.ior = bsdfData.ior;
+    pathIntersection.absorptionCoefficient = bsdfData.absorptionCoefficient;
+    pathIntersection.transmittanceMask = bsdfData.transmittanceMask;
     
     // Initialize our material data (this will alter the bsdfData to suit path tracing, and choose between BSDF or SSS evaluation)
     MaterialData mtlData;
     if (CreateMaterialData(pathIntersection, builtinData, bsdfData, shadingPosition, inputSample.z, mtlData))
     {
-        pathIntersection.color = float3(1.0f, 1.0f, 1.0f);
+        pathIntersection.bsdfWeight0 = mtlData.bsdfWeight[0];
+        pathIntersection.bsdfWeight1 = mtlData.bsdfWeight[1];
+        pathIntersection.bsdfWeight2 = mtlData.bsdfWeight[2];
+        pathIntersection.bsdfWeight3 = mtlData.bsdfWeight[3];
+        
+        pathIntersection.color = float3(0.0f, 0.0f, 2.0f);
         
         // Create the list of active lights
         //LightList lightList = CreateLightList(shadingPosition, mtlData.bsdfData.geomNormalWS, builtinData.renderingLayers);
@@ -151,8 +186,8 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
 
         pathIntersection.lightPosition = rayDescriptor.Origin;
         pathIntersection.lightDirection = bsdfData.normalWS;
-
-        
+        pathIntersection.lightCount = _SensorLightCount;
+        pathIntersection.customRefractance = _SensorCustomReflectance;
         
         // Light sampling
         //if (computeDirect)
@@ -163,9 +198,9 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
                 if (SampleBeam(_LightDatasRT[i], rayDescriptor.Origin, bsdfData.normalWS, rayDescriptor.Direction, value, pdf, rayDescriptor.TMax))
                 {
                     pathIntersection.lightOutgoing = rayDescriptor.Direction;
-                    pathIntersection.lightIntensity = _LightDatasRT[0].color.x;
-                    pathIntersection.lightAngleScale = _LightDatasRT[0].angleScale;
-                    pathIntersection.lightAngleOffset = _LightDatasRT[0].angleOffset;
+                    pathIntersection.lightIntensity = _LightDatasRT[i].color.x;
+                    pathIntersection.lightAngleScale = _LightDatasRT[i].angleScale;
+                    pathIntersection.lightAngleOffset = _LightDatasRT[i].angleOffset;
                     pathIntersection.lightValue = value.x;
                     pathIntersection.lightPDF = pdf;
                     
@@ -175,12 +210,9 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
                     pathIntersection.diffPdf = mtlResult.diffPdf;
                     pathIntersection.specValue = mtlResult.specValue;
                     pathIntersection.specPdf = mtlResult.specPdf;
-                    pathIntersection.bsdfWeight0 = mtlData.bsdfWeight[0];
-                    pathIntersection.bsdfWeight1 = mtlData.bsdfWeight[1];
-                    pathIntersection.bsdfWeight2 = mtlData.bsdfWeight[2];
-                    pathIntersection.bsdfWeight3 = mtlData.bsdfWeight[3];
+
                     //pathIntersection.color = float3(_SensorCustomReflectance, _SensorCustomReflectance, _SensorCustomReflectance);
-                    pathIntersection.color = float3(1.0f, 0.0f, 0.0f);
+                    pathIntersection.color = float3(0.0f, 2.0f, 0.0f);
 
                     // value is in radian (w/sr) not in lumen (cd/sr) and only the r channel is used
                     value *= (mtlResult.diffValue + mtlResult.specValue) / pdf;
@@ -322,6 +354,8 @@ void AnyHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeDa
     // Check alpha clipping
     if (!isVisible)
     {
+        pathIntersection.color = float3(0.2f, 0.2f, 0.2f);
+        pathIntersection.value = 0.98;
         IgnoreHit();
     }
     else if (pathIntersection.remainingDepth > _RaytracingMaxRecursion)
@@ -338,7 +372,9 @@ void AnyHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeDa
             IgnoreHit();
 #else
         // Opaque surface
-        pathIntersection.value = 0.0;
+        pathIntersection.color = float3(0.3f, 0.3f, 0.3f);
+        pathIntersection.value = 0.90;
+        
         AcceptHitAndEndSearch();
 #endif
     }

@@ -4,7 +4,9 @@ using UnityEngine.Experimental.Rendering;
 namespace UnityEngine.Rendering.HighDefinition
 {
     [GenerateHLSL]
-    internal enum RayTracingRendererFlag
+//SensorSDK - Begin - Expose to be able to duplicate AddInstanceRAS in the sensor package.
+    public enum RayTracingRendererFlag
+//SensorSDK - End - Expose to be able to duplicate AddInstanceRAS in the sensor package.
     {
         Opaque = 0x01,
         CastShadowTransparent = 0x02,
