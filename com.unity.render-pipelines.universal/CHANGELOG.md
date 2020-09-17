@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Smooth shadow fading.
 
 ### Fixed
+- Fixed camera backgrounds not matching between editor and build when background is set to 'Uninitialized'. [case 1224369](https://issuetracker.unity3d.com/issues/urp-uninitialized-camera-background-type-does-not-match-between-the-build-and-game-view)
 - Fixed a case where main light hard shadows would not work if any other light is present with soft shadows.[case 1250829](https://issuetracker.unity3d.com/issues/main-light-shadows-are-ignored-in-favor-of-additional-lights-shadows)
 - Fixed issue that caused color grading to not work correctly with camera stacking. [case 1263193](https://issuetracker.unity3d.com/product/unity/issues/guid/1263193/)
 - Fixed an issue that caused an infinite asset database reimport when running Unity in command line with -testResults argument.
@@ -32,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed not using the local skybox on the camera game object when the Skybox Material property in the Lighting window was set to null.
 - Fixed an issue where, if URP was not in use, you would sometimes get errors about 2D Lights when going through the menus.
 - Fixed GC when using XR single-pass automated tests.
+- Fixed resolution of intermediate textures when rendering to part of a render texture. [case 1261287](https://issuetracker.unity3d.com/product/unity/issues/guid/1261287/)
 - Fixed issue where multiple cameras would cause GC each frame. [case 1259717](https://issuetracker.unity3d.com/issues/urp-scriptablerendercontext-dot-getcamera-array-dot-resize-creates-garbage-every-frame-when-more-than-one-camera-is-active)
 
 ## [10.0.0] - 2019-06-10
@@ -111,6 +113,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Eliminated some unnecessary clearing of render targets when using the 2D Renderer.
 - The rendering of 2D lights is more effient as sorting layers affected by the same set of lights are now batched.
 - Removed the 8 renderer limit from URP Asset.
+- Merged the deferred renderer into the forward renderer.
 - Changing the default value of Skip Iterations to 1 in Bloom effect editor
 - Use SystemInfo to check if multiview is supported instead of being platform hardcoded
 - Default attachment setup behaviour for ScriptableRenderPasses that execute before rendering opaques is now set use current the active render target setup. This improves performance in some situations.

@@ -1618,8 +1618,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // We are in a case where the platform does not support hw dynamic resolution, so we force the software fallback.
                         // TODO: Expose the graphics caps info on whether the platform supports hw dynamic resolution or not.
                         // Temporarily disable HW Dynamic resolution on metal until the problems we have with it are fixed
-                        bool isMetal = (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal);
-                        if (isMetal || (dynResHandler.RequestsHardwareDynamicResolution() && cameraRequestedDynamicRes && !camera.allowDynamicResolution))
+                        if (dynResHandler.RequestsHardwareDynamicResolution() && cameraRequestedDynamicRes && !camera.allowDynamicResolution)
                         {
                             dynResHandler.ForceSoftwareFallback();
                         }

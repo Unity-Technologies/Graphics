@@ -180,7 +180,7 @@ namespace UnityEditor.Rendering.HighDefinition
             HDRP_VR,
             HDRP_DXR
         }
-        
+
         enum ConfigPackageState
         {
             BeingChecked,
@@ -202,7 +202,7 @@ namespace UnityEditor.Rendering.HighDefinition
             window.minSize = new Vector2(420, 450);
             HDProjectSettings.wizardPopupAlreadyShownOnce = true;
         }
-        
+
         void OnGUI()
         {
             foreach (VisualElementUpdatable updatable in m_BaseUpdatable.Children().Where(c => c is VisualElementUpdatable))
@@ -218,7 +218,7 @@ namespace UnityEditor.Rendering.HighDefinition
         #region SCRIPT_RELOADING
 
         static int frameToWait;
-        
+
         static void WizardBehaviourDelayed()
         {
             if (frameToWait > 0)
@@ -239,7 +239,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorApplication.quitting += () => HDProjectSettings.wizardPopupAlreadyShownOnce = false;
             }
         }
-        
+
         [Callbacks.DidReloadScripts]
         static void CheckPersistencyPopupAlreadyOpened()
         {
@@ -249,7 +249,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorApplication.quitting += () => HDProjectSettings.wizardPopupAlreadyShownOnce = false;
             };
         }
-        
+
         [Callbacks.DidReloadScripts]
         static void WizardBehaviour()
         {
@@ -257,7 +257,7 @@ namespace UnityEditor.Rendering.HighDefinition
             frameToWait = 10;
             EditorApplication.update += WizardBehaviourDelayed;
         }
-        
+
         #endregion
 
         #region DRAWERS
@@ -265,7 +265,7 @@ namespace UnityEditor.Rendering.HighDefinition
         private void OnEnable()
         {
             titleContent = Style.title;
-            
+
             HDEditorUtils.AddStyleSheets(rootVisualElement, HDEditorUtils.FormatingPath); //.h1
             HDEditorUtils.AddStyleSheets(rootVisualElement, HDEditorUtils.WizardSheetPath);
 
@@ -332,13 +332,13 @@ namespace UnityEditor.Rendering.HighDefinition
             AddVRConfigInfo(vrScope);
             vrScope.Init();
             m_BaseUpdatable.Add(vrScope);
-            
+
             var dxrScope = new HiddableUpdatableContainer(()
                 => m_Configuration == Configuration.HDRP_DXR);
             AddDXRConfigInfo(dxrScope);
             dxrScope.Init();
             m_BaseUpdatable.Add(dxrScope);
-            
+
             container.Add(CreateTitle(Style.migrationTitle));
             container.Add(CreateLargeButton(Style.migrateAllButton, UpgradeStandardShaderMaterials.UpgradeMaterialsProject));
             container.Add(CreateLargeButton(Style.migrateSelectedButton, UpgradeStandardShaderMaterials.UpgradeMaterialsSelection));
@@ -347,7 +347,7 @@ namespace UnityEditor.Rendering.HighDefinition
             container.Add(CreateWizardBehaviour());
 
             CheckPersistantNeedReboot();
-            CheckPersistentFixAll(); 
+            CheckPersistentFixAll();
         }
 
         VisualElement CreateFolderData()
@@ -380,8 +380,10 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var toolbar = new ToolbarRadio();
             toolbar.AddRadios(tabs);
-            toolbar.SetValueWithoutNotify(HDProjectSettings.wizardActiveTab);
-            m_Configuration = (Configuration)HDProjectSettings.wizardActiveTab;
+            //make sure when we open the same project on different platforms the saved active tab is not out of range
+            int tabIndex = toolbar.radioLength > HDProjectSettings.wizardActiveTab ? HDProjectSettings.wizardActiveTab : 0;
+            toolbar.SetValueWithoutNotify(tabIndex);
+            m_Configuration = (Configuration)tabIndex;
             toolbar.RegisterValueChangedCallback(evt =>
             {
                 int index = evt.newValue;
@@ -456,14 +458,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     m_InstallConfigPackageButton.focusable = true;
                     m_InstallConfigPackageHelpbox.style.display = DisplayStyle.None;
                     break;
-                    
+
                 case ConfigPackageState.BeingChecked:
                     m_InstallConfigPackageButton.SetEnabled(false);
                     m_InstallConfigPackageButton.focusable = false;
                     m_InstallConfigPackageHelpbox.style.display = DisplayStyle.Flex;
                     m_InstallConfigPackageHelpboxLabel.text = Style.installConfigPackageInfoInCheck;
                     break;
-                    
+
                 case ConfigPackageState.BeingFixed:
                     m_InstallConfigPackageButton.SetEnabled(false);
                     m_InstallConfigPackageButton.focusable = false;
