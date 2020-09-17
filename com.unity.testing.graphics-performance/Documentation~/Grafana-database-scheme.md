@@ -98,3 +98,22 @@ This is the scheme of the Grafana database. All Record types are an array. UNNES
 | Results.SampleGroups.Definition. IncreaseIsBetter | BOOLEAN   | NULLABLE |
 | Results.SampleGroups.Definition. Percentile       | FLOAT     | NULLABLE |
 | TestProject                                       | STRING    | NULLABLE |
+| JobMetaData                                       | RECORD    | NULLABLE |
+| JobMetaData. Bokken                               | RECORD    | NULLABLE |
+| JobMetaData.Bokken. ResourceGroupName             | STRING    | NULLABLE |
+| JobMetaData.Bokken. DeviceResourceId              | STRING    | NULLABLE |
+| JobMetaData.Bokken. DeviceId                      | STRING    | NULLABLE |
+| JobMetaData.Bokken. DeviceIp                      | STRING    | NULLABLE |
+| JobMetaData.Bokken. DeviceType                    | STRING    | NULLABLE |
+| JobMetaData.Bokken. HostIp                        | STRING    | NULLABLE |
+| JobMetaData.Bokken. RuntimeOs                     | STRING    | NULLABLE |
+| JobMetaData. Yamato                               | RECORD    | NULLABLE |
+| JobMetaData.Yamato. JobFriendlyName               | STRING    | NULLABLE |
+| JobMetaData.Yamato. JobName                       | STRING    | NULLABLE |
+| JobMetaData.Yamato. JobId                         | STRING    | NULLABLE |
+| JobMetaData.Yamato. ProjectId                     | STRING    | NULLABLE |
+| JobMetaData.Yamato. ProjectName                   | STRING    | NULLABLE |
+| JobMetaData.Yamato. WorkDir                       | STRING    | NULLABLE |
+| JobMetaData.Yamato. JobOwnerEmail                 | STRING    | NULLABLE |
+| Dependencies                                      | RECORD    | NULLABLE |
+| Dependencies. Packages                            | STRING    | REPEATED |
