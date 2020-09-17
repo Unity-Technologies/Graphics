@@ -26,6 +26,15 @@ namespace UnityEngine.Rendering.HighDefinition
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
             var target = renderRequest.target;
 
+            var renderGraphParams = new RenderGraphParameters()
+            {
+                scriptableRenderContext = renderContext,
+                commandBuffer = commandBuffer,
+                currentFrameIndex = GetFrameCount()
+            };
+
+            m_RenderGraph.Begin(renderGraphParams);
+
 #if UNITY_EDITOR
             var showGizmos = camera.cameraType == CameraType.Game
                 || camera.cameraType == CameraType.SceneView;
@@ -274,7 +283,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderGizmos(m_RenderGraph, hdCamera, colorBuffer, GizmoSubset.PostImageEffects);
 
-            ExecuteRenderGraph(m_RenderGraph, hdCamera, m_MSAASamples, m_FrameCount, renderContext, commandBuffer );
+            m_RenderGraph.Execute();
 
             if (aovRequest.isValid)
             {
@@ -284,21 +293,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     aovRequest.Execute(commandBuffer, aovBuffers, RenderOutputProperties.From(hdCamera));
                 }
             }
-        }
-
-        static void ExecuteRenderGraph(RenderGraph renderGraph, HDCamera hdCamera, MSAASamples msaaSample, int frameIndex, ScriptableRenderContext renderContext, CommandBuffer cmd)
-        {
-            var renderGraphParams = new RenderGraphExecuteParams()
-            {
-                scriptableRenderContext = renderContext,
-                commandBuffer = cmd,
-                renderingWidth = hdCamera.actualWidth,
-                renderingHeight = hdCamera.actualHeight,
-                msaaSamples = msaaSample,
-                currentFrameIndex = frameIndex
-            };
-
-            renderGraph.Execute(renderGraphParams);
         }
 
         class FinalBlitPassData
