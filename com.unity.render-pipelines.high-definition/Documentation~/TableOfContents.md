@@ -25,14 +25,16 @@
   * [Volume Profiles](Volume-Profile)
   * [Volume Overrides](Volume-Components)
   * Volume Overrides List
-    * [Diffusion Profile](Override-Diffusion-Profile)
     * [Exposure](Override-Exposure)
     * [Fog](Override-Fog)
     * Lighting
       * [Ambient Occlusion](Override-Ambient-Occlusion)
       * [Indirect Lighting Controller](Override-Indirect-Lighting-Controller)
+      * [Screen Space Global Illumination](Override-Screen-Space-GI)
       * [Screen Space Reflection](Override-Screen-Space-Reflection)
       * [Screen Space Refraction](Override-Screen-Space-Refraction)
+    * Material
+      * [Diffusion Profile](Override-Diffusion-Profile)
     * Shadowing
       * [Contact Shadows](Override-Contact-Shadows)
       * [Micro Shadows](Override-Micro-Shadows)
@@ -83,13 +85,7 @@
     * [Hair](Master-Node-Hair)
     * [Lit](Master-Node-Lit)
     * [Unlit](Master-Node-Unlit)
-  * Shader Graph Nodes
-    * [Emission](SGNode-Emission)
-    * [Baked GI](SGNode-Baked-GI)
-    * [Diffusion Profile](SGNode-Diffusion-Profile)
-    * [Parallax Occlusion Mapping](SGNode-Parallax-Occlusion-Mapping)
-    * [Exposure](SGNode-Exposure)
-    * [HD Scene Color](SGNode-HD-Scene-Color)
+  * [Shader Graph Nodes](Shader-Graph-Nodes.md)
 * Lighting
   * [Reflection in HDRP](Reflection-in-HDRP)
   * [Refraction in HDRP](Refraction-in-HDRP)
