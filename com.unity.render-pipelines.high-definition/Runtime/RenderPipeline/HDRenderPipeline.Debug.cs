@@ -74,22 +74,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(passData.parameters.rendererList));
 
                 builder.SetRenderFunc(
-                        (FullScreenDebugPassData data, RenderGraphContext ctx) =>
-                        {
-                        RenderFullScreenDebug( data.parameters,
-                                data.output,
-                                data.depthBuffer,
-                                data.debugBuffer,
-                                data.rendererList,
-                                ctx.renderContext, ctx.cmd);
-                        });
+                (FullScreenDebugPassData data, RenderGraphContext ctx) =>
+                {
+                    RenderFullScreenDebug(  data.parameters,
+                                            data.output,
+                                            data.depthBuffer,
+                                            data.debugBuffer,
+                                            data.rendererList,
+                                            ctx.renderContext, ctx.cmd);
+                });
 
                 fullscreenDebugOutput = passData.output;
                 fullscreenDebugBuffer = passData.debugBuffer;
             }
 
             m_DebugFullScreenComputeBuffer = fullscreenDebugBuffer;
-            PushFullScreenDebugTexture(renderGraph, fullscreenDebugOutput);
+            PushFullScreenDebugTexture(renderGraph, ResolveMSAAColor(renderGraph, hdCamera, fullscreenDebugOutput));
         }
 
         class ResolveFullScreenDebugPassData

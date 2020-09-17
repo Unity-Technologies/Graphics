@@ -4128,13 +4128,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        void RenderFullScreenDebug( FullScreenDebugParameters   parameters,
-                                    RTHandle                    colorBuffer,
-                                    RTHandle                    depthBuffer,
-                                    ComputeBuffer               debugBuffer,
-                                    in RendererList             rendererList,
-                                    ScriptableRenderContext     renderContext,
-                                    CommandBuffer               cmd)
+        static void RenderFullScreenDebug(  FullScreenDebugParameters   parameters,
+                                            RTHandle                    colorBuffer,
+                                            RTHandle                    depthBuffer,
+                                            ComputeBuffer               debugBuffer,
+                                            in RendererList             rendererList,
+                                            ScriptableRenderContext     renderContext,
+                                            CommandBuffer               cmd)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderFullScreenDebug)))
             {
@@ -4149,16 +4149,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderFullScreenDebug(CullingResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-                bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-                var parameters = PrepareFullScreenDebugParameters(hdCamera, cullResults);
-                RenderFullScreenDebug(  parameters,
-                                        msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer,
-                                        m_SharedRTManager.GetDepthStencilBuffer(msaa),
-                                        m_SharedRTManager.GetFullScreenDebugBuffer(),
-                                        RendererList.Create(parameters.rendererList),
-                                        renderContext, cmd);
+            bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+            var parameters = PrepareFullScreenDebugParameters(hdCamera, cullResults);
+            RenderFullScreenDebug(  parameters,
+                                    msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer,
+                                    m_SharedRTManager.GetDepthStencilBuffer(msaa),
+                                    m_SharedRTManager.GetFullScreenDebugBuffer(),
+                                    RendererList.Create(parameters.rendererList),
+                                    renderContext, cmd);
 
-            m_FullScreenDebugPushed = true;
+            if (msaa)
+                m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_CameraColorMSAABuffer, m_CameraColorBuffer);
+            PushFullScreenDebugTexture(hdCamera, cmd, m_CameraColorBuffer, m_CurrentDebugDisplaySettings.data.fullScreenDebugMode);
         }
 
         void UpdateSkyEnvironment(HDCamera hdCamera, ScriptableRenderContext renderContext, int frameIndex, CommandBuffer cmd)
