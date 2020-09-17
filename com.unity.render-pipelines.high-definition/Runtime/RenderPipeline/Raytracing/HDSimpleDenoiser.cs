@@ -1,3 +1,6 @@
+using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     class HDSimpleDenoiser
@@ -134,6 +137,65 @@ namespace UnityEngine.Rendering.HighDefinition
             SimpleDenoiserParameters sdParams = PrepareSimpleDenoiserParameters(hdCamera, singleChannel, kernelSize);
             SimpleDenoiserResources sdResources = PrepareSimpleDenoiserResources(noisyBuffer, intermediateBuffer, outputBuffer);
             ExecuteSimpleDenoiser(cmd, sdParams, sdResources);
+        }
+
+        class SimpleDenoiserPassData
+        {
+            public SimpleDenoiserParameters parameters;
+            // Input buffers
+            public TextureHandle noisyBuffer;
+            public TextureHandle depthStencilBuffer;
+            public TextureHandle normalBuffer;
+
+            // Temporary buffers
+            public TextureHandle intermediateBuffer;
+
+            // Output buffers
+            public TextureHandle outputBuffer;
+        }
+
+        public TextureHandle DenoiseBufferNoHistory(RenderGraph renderGraph, HDCamera hdCamera,
+                            TextureHandle depthBuffer, TextureHandle normalBuffer,
+                            TextureHandle noisyBuffer,
+                            int kernelSize, bool singleChannel)
+        {
+            using (var builder = renderGraph.AddRenderPass<SimpleDenoiserPassData>("DiffuseDenoiser", out var passData, ProfilingSampler.Get(HDProfileId.DiffuseFilter)))
+            {
+                // Cannot run in async
+                builder.EnableAsyncCompute(false);
+
+                // Fetch all the resources
+                passData.parameters = PrepareSimpleDenoiserParameters(hdCamera, singleChannel, kernelSize);
+
+                // Input buffers
+                passData.depthStencilBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.Read);
+                passData.normalBuffer = builder.ReadTexture(normalBuffer);
+                passData.noisyBuffer = builder.ReadTexture(noisyBuffer);
+
+                // Temporary buffers
+                passData.intermediateBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Intermediate buffer" });
+
+                // Output buffer
+                passData.outputBuffer = builder.ReadTexture(builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Denoised Buffer" })));
+
+
+                builder.SetRenderFunc(
+                (SimpleDenoiserPassData data, RenderGraphContext ctx) =>
+                {
+                    SimpleDenoiserResources resources = new SimpleDenoiserResources();
+                    resources.depthStencilBuffer = data.depthStencilBuffer;
+                    resources.normalBuffer = data.normalBuffer;
+                    resources.noisyBuffer = data.noisyBuffer;
+
+                    resources.intermediateBuffer = data.intermediateBuffer;
+
+                    resources.outputBuffer = data.outputBuffer;
+                    ExecuteSimpleDenoiser(ctx.cmd, data.parameters, resources);
+                });
+                return passData.outputBuffer;
+            }
         }
     }
 }

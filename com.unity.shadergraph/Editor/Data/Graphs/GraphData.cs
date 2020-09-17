@@ -319,7 +319,13 @@ namespace UnityEditor.ShaderGraph
         public DataValueEnumerable<Target> activeTargets => m_ActiveTargets.SelectValue();
 
         // TODO: Need a better way to handle this
-        public bool isVFXTarget => !isSubGraph && activeTargets.Count() > 0 && activeTargets.ElementAt(0).GetType() == typeof(VFXTarget);
+#if VFX_GRAPH_10_0_0_OR_NEWER
+        public bool hasVFXTarget => !isSubGraph && activeTargets.Count() > 0 && activeTargets.OfType<VFXTarget>().Any();
+        public bool isOnlyVFXTarget => hasVFXTarget && activeTargets.Count() == 1;
+#else
+        public bool isVFXTarget => false;
+        public bool isOnlyVFXTarget => false;
+#endif
         #endregion
 
         private Comparison<Target> targetComparison = new Comparison<Target>((a, b) => string.Compare(a.displayName, b.displayName));
@@ -1119,7 +1125,7 @@ namespace UnityEditor.ShaderGraph
                     input.displayName = GraphUtil.SanitizeName(BuildPropertyDisplayNameList(property, input.displayName), "{0} ({1})", input.displayName);
                     break;
                 case ShaderKeyword keyword:
-                    input.displayName = GraphUtil.SanitizeName(keywords.Where(p => p != input).Select(p => p.displayName), "{0} ({1})", input.displayName); 
+                    input.displayName = GraphUtil.SanitizeName(keywords.Where(p => p != input).Select(p => p.displayName), "{0} ({1})", input.displayName);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
