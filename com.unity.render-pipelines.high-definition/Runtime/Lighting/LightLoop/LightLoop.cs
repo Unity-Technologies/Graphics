@@ -4213,6 +4213,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         parameters.debugViewTilesMaterial.DisableKeyword(!bUseClustered ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                         parameters.debugViewTilesMaterial.EnableKeyword("SHOW_LIGHT_CATEGORIES");
                         parameters.debugViewTilesMaterial.DisableKeyword("SHOW_FEATURE_VARIANTS");
+                        if (!bUseClustered && hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+                            parameters.debugViewTilesMaterial.EnableKeyword("DISABLE_TILE_MODE");
+                        else
+                            parameters.debugViewTilesMaterial.DisableKeyword("DISABLE_TILE_MODE");
 
                         CoreUtils.DrawFullScreen(cmd, parameters.debugViewTilesMaterial, 0);
                     }
