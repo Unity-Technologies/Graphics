@@ -77,6 +77,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix for lookdev toggling renderers that are set to non editable or are hidden in the inspector.
 - Fixed issue with mipmap debug mode not properly resetting full screen mode (and viceversa). 
 - Added unsupported message when using tile debug mode with MSAA.
+- Light quality setting for contact shadow set to on for High quality by default.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
