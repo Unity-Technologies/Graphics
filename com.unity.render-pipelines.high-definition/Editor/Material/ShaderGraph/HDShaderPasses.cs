@@ -891,7 +891,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static DefineCollection RaytracingIndirectDefines = new DefineCollection
         {
             { Defines.shadowLow },
-            { Defines.raytracingOptimized },
+            { Defines.raytracingRaytraced },
             { CoreKeywordDescriptors.HasLightloop, 1 },
         };
 
@@ -945,7 +945,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static DefineCollection RaytracingVisibilityDefines = new DefineCollection
         {
-            { Defines.raytracingDefault },
+            { Defines.raytracingRaytraced },
         };
 
 #endregion
@@ -1010,7 +1010,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static DefineCollection RaytracingForwardDefines = new DefineCollection
         {
             { Defines.shadowLow },
-            { Defines.raytracingDefault },
+            { Defines.raytracingRaytraced },
             { CoreKeywordDescriptors.HasLightloop, 1 },
         };
 
@@ -1072,7 +1072,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static DefineCollection RaytracingGBufferDefines = new DefineCollection
         {
             { Defines.shadowLow },
-            { Defines.raytracingOptimized },
+            { Defines.raytracingRaytraced },
         };
 
 #endregion
@@ -1190,7 +1190,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static DefineCollection RaytracingSubsurfaceDefines = new DefineCollection
         {
             { Defines.shadowLow },
-            { Defines.raytracingOptimized },
+            { Defines.raytracingRaytraced },
         };
 
 #endregion
@@ -1205,8 +1205,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static DefineCollection shadowHigh = new DefineCollection { {CoreKeywordDescriptors.Shadow, 2} };
 
             // Raytracing Quality
-            public static DefineCollection raytracingDefault = new DefineCollection { {RayTracingQualityNode.GetRayTracingQualityKeyword(), 0} };
-            public static DefineCollection raytracingOptimized = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 1} };
+            public static DefineCollection raytracingDefault = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0} };
+            public static DefineCollection raytracingRaytraced = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 1} };
         }
 
 #endregion

@@ -27,6 +27,9 @@ EditorBuildSettings:
     path: Assets/Scenes/105_ReflectionsDenoised2.unity
     guid: a2f4b7b418d52794aa591bc7a751de61
   - enabled: 1
+    path: Assets/Scenes/105_ReflectionsAndGlobalIlluminationCollision.unity
+    guid: 1531a86794539a5409d036038ffbcbad
+  - enabled: 1
     path: Assets/Scenes/201_LargeAmbientOcclusion.unity
     guid: 41a04a0db6c8e4e4eb54296e4521c3e5
   - enabled: 1
@@ -41,6 +44,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/301_GlobalIlluminationPerfFull.unity
     guid: c54ecbf7af984ec4093589a91febdb7b
+  - enabled: 1
+    path: Assets/Scenes/301_GlobalIlluminationPerfFullLightLayers.unity
+    guid: 2fc58ab7827101349bf564221bd93f53
   - enabled: 1
     path: Assets/Scenes/302_GlobalIlluminationPerfHalf.unity
     guid: 0bac4262f1a14eb42acc13ccf10599c7
