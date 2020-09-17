@@ -271,7 +271,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // Piecewise function indexed by value ranges.
         private readonly Dictionary<Vector2, Piece> m_PiecewiseFunctionMap = new Dictionary<Vector2, Piece>();
 
-        static void NewTransformation(float x0, float x1, float y0, float y1, out float m, out float b)
+        static void ComputeTransformationParameters(float x0, float x1, float y0, float y1, out float m, out float b)
         {
             m = (y0 - y1) / (x0 - x1);
             b = (m * -x0) + y0;
@@ -305,10 +305,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 piece.domain = new Vector2(x0, x1);
                 piece.range  = new Vector2(y0, y1);
 
-                NewTransformation(x0, x1, y0, y1, out piece.directM, out piece.directB);
+                ComputeTransformationParameters(x0, x1, y0, y1, out piece.directM, out piece.directB);
 
                 // Compute the inverse
-                NewTransformation(y0, y1, x0, x1, out piece.inverseM, out piece.inverseB);
+                ComputeTransformationParameters(y0, y1, x0, x1, out piece.inverseM, out piece.inverseB);
 
                 m_PiecewiseFunctionMap.Add(sortedRanges[i].value, piece);
             }
@@ -322,6 +322,8 @@ namespace UnityEditor.Rendering.HighDefinition
             return ValueToSlider(piecewise, value);
         }
 
+        // Search for the corresponding piece-wise function to a value on the domain and update the input piece to it.
+        // Returns true if search was successful and an update was made, false otherwise.
         bool UpdatePiece(ref Piece piece, float x)
         {
             foreach (var pair in m_PiecewiseFunctionMap)
@@ -385,7 +387,7 @@ namespace UnityEditor.Rendering.HighDefinition
         private LightUnit m_Unit;
 
         // Note: these should be in sync with LightUnit
-        private static string[] m_UnitNames =
+        private static string[] k_UnitNames =
         {
             "Lumen",
             "Candela",
@@ -423,7 +425,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // Convert the internal lumens into the actual light unit value
             value = HDLightUI.ConvertLightIntensity(LightUnit.Lumen, m_Unit, m_Light, m_Editor, value);
-            unit = m_UnitNames[(int)m_Unit];
+            unit = k_UnitNames[(int)m_Unit];
 
             return base.GetLightUnitTooltip(baseTooltip, value, unit);
         }
