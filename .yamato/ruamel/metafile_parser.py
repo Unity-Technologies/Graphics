@@ -1,19 +1,32 @@
 from copy import deepcopy
+import json
 
-def format_metafile(metafile, shared, unfold_agents_root_keys=[], unfold_test_platforms_root_keys=[]):
+def format_metafile(metafile, shared, latest_editor_versions, unfold_agents_root_keys=[], unfold_test_platforms_root_keys=[]):
     '''Formats the metafile by retrieving all missing information from the shared metafile. This includes unfolding platform details, agent aliases etc.'''
-    metafile['editors'] = _get_editors(metafile, shared)
-    metafile['target_editor'] = shared['target_editor']
-    metafile['target_branch'] = shared['target_branch']
+    metafile['editors'] = _get_editors(metafile, shared, latest_editor_versions)
+    metafile['target_editor'] = metafile.get('target_editor', shared.get('target_editor'))
+    metafile['target_branch'] = metafile.get('target_branch', shared.get('target_branch'))
+    metafile['target_branch_editor_ci'] = metafile.get('target_branch_editor_ci', shared.get('target_branch_editor_ci'))
     metafile['platforms'] = _unfold_platforms(metafile, shared)
     metafile = _unfold_individual_agents(metafile, shared, root_keys=unfold_agents_root_keys)
     metafile = _unfold_test_platforms(metafile, shared, root_keys=unfold_test_platforms_root_keys)
     return metafile
 
-def _get_editors(metafile, shared):
+def _get_editors(metafile, shared, latest_editor_versions):
     '''Retrieves the editors from shared metafile, if not overriden by 'override_editors' in metafile.'''
-    override_editors = metafile.get("override_editors", None)
-    return override_editors if override_editors is not None else shared['editors']
+    editors = shared['editors']
+    for editor in editors:
+        if str(editor['track']).lower() != 'CUSTOM-REVISION'.lower():
+            editor['revisions'] = {}
+            revisions = [{k:v} for k,v in latest_editor_versions['editor_versions'].items() if str(editor['track']) in k] # get all revisions for this track
+            for rev in revisions:
+                for k,v in rev.items(): # TODO loops over the single dict value, see if there is a better way
+                    editor['revisions'][k] = v
+            
+    #print(json.dumps(editors, indent=2))
+    return editors
+
+
 
 def _unfold_individual_agents(metafile, shared, root_keys=[]):
     '''Unfolds all agents by their alias names corresponding to 'non_project_agents' in the shared metafile.

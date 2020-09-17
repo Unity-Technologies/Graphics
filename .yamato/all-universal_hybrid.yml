@@ -10,13 +10,6 @@ All_Universal_Hybrid_trunk:
          rerun: on-new-revision
       -  path: .yamato/universal_hybrid-osx-metal.yml#Universal_Hybrid_OSX_Metal_playmode_trunk
          rerun: on-new-revision
-All_Universal_Hybrid_fast-trunk:
-    name: All Universal_Hybrid CI - fast-trunk
-    dependencies:
-      -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_playmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/universal_hybrid-osx-metal.yml#Universal_Hybrid_OSX_Metal_playmode_fast-trunk
-         rerun: on-new-revision
 All_Universal_Hybrid_CUSTOM-REVISION:
     name: All Universal_Hybrid CI - CUSTOM-REVISION
     dependencies:
