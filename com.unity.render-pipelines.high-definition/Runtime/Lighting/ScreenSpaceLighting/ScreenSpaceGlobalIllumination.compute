@@ -448,8 +448,8 @@ void CONVERT_YCOCG_TO_RGB(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gr
 
     // Convert the signal back to a color
     float3 color;
-    float4 ySH = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture0RW, currentCoord);
-    float3 cocgB = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture1RW, currentCoord).xyz;
+    float4 ySH = _IndirectDiffuseTexture0RW[COORD_TEXTURE2D_X(currentCoord)]; 
+    float3 cocgB = _IndirectDiffuseTexture1RW[COORD_TEXTURE2D_X(currentCoord)].xyz;
     ConvertYCoCgToRGBUtil(ySH, cocgB.xy, normalData.normalWS, color);
 
     // We invert the tonemap
