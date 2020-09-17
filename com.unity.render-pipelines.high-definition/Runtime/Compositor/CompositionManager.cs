@@ -817,5 +817,19 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         static public CompositionManager GetInstance() =>
             s_CompositorInstance ?? (s_CompositorInstance = GameObject.FindObjectOfType(typeof(CompositionManager), true) as CompositionManager);
 
+        // Returns true if the input camera is stacked on top of another one
+        static public bool IsThisCameraStacked(HDCamera hdCamera)
+        {
+            AdditionalCompositorData compositorData = null;
+            hdCamera.camera.TryGetComponent<AdditionalCompositorData>(out compositorData);
+
+            if (compositorData)
+            {
+                // if the camera is part of a camera stack, the clear color texture will not be null
+                return (compositorData.clearColorTexture != null);
+            }
+            return false;
+        }
+
     }
 }

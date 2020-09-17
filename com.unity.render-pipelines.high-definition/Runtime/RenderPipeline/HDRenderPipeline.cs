@@ -4036,7 +4036,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     // When rendering debug material we shouldn't rely on a depth prepass for optimizing the alpha clip test. As it is control on the material inspector side
                     // we must override the state here.
 
-                    CoreUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(), ClearFlag.All, Color.clear);
+                    // [case 1273223] When the camera is stacked on top of another one, we don't want to clear the debug view RT (required to make stacking work with AOVs in the graphics compositor) 
+                    ClearFlag clearFlags = Compositor.CompositionManager.IsThisCameraStacked(hdCamera) ? ClearFlag.None : ClearFlag.All;
+
+                    CoreUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(), clearFlags, Color.clear);
                     // Render Opaque forward
                     var rendererListOpaque = RendererList.Create(CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_AllForwardOpaquePassNames, m_CurrentRendererConfigurationBakedLighting, stateBlock: m_DepthStateOpaque));
                     DrawOpaqueRendererList(renderContext, cmd, hdCamera.frameSettings, rendererListOpaque);

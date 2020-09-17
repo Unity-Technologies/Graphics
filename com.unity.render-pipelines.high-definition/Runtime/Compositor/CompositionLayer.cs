@@ -586,7 +586,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
             m_LayerCamera.targetTexture = targetLayer.GetRenderTarget(false);
 
-            if (targetLayer.m_AOVBitmask == 0)
+            // Setup the custom clear pass for camera stacking
             {
                 if (layerPositionInStack != 0)
                 {
@@ -599,7 +599,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     }
                     if (m_Type != LayerType.Image)
                     {
-                        compositorData.clearColorTexture = targetLayer.GetRenderTarget(false);
+                        compositorData.clearColorTexture = targetLayer.GetRenderTarget();
                     }
                     cameraData.volumeLayerMask |= 1 << 31;
                 }
