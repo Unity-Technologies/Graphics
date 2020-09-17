@@ -903,6 +903,9 @@ namespace UnityEngine.Rendering.Universal
 
             // Used when subtractive mode is selected
             Shader.SetGlobalVector(ShaderPropertyId.subtractiveShadowColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.subtractiveShadowColor));
+
+            // Workaround for Shadergraph bug
+            Shader.SetGlobalColor(ShaderPropertyId.rendererColor, Color.white);
         }
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
