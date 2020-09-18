@@ -47,7 +47,7 @@ test_hdrp_template_windows_trunk:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u abc09f7f75a1373b0b1442612132cd8a46ab744d -c editor --wait --published-only
+      -  unity-downloader-cli -u 222 -c editor --wait --published-only
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-hd
@@ -71,7 +71,7 @@ test_hdrp_template_windows_trunk_dependencies:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u abc09f7f75a1373b0b1442612132cd8a46ab744d -c editor --wait --published-only
+      -  unity-downloader-cli -u 222 -c editor --wait --published-only
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci template test -u .\.Editor --type updated-dependencies-tests --project-path com.unity.template-hd
@@ -93,7 +93,7 @@ test_universal_template_windows_trunk:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u abc09f7f75a1373b0b1442612132cd8a46ab744d -c editor --wait --published-only
+      -  unity-downloader-cli -u 222 -c editor --wait --published-only
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-universal
@@ -115,7 +115,7 @@ test_universal_template_windows_trunk_dependencies:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u abc09f7f75a1373b0b1442612132cd8a46ab744d -c editor --wait --published-only
+      -  unity-downloader-cli -u 222 -c editor --wait --published-only
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci template test -u .\.Editor --type updated-dependencies-tests --project-path com.unity.template-universal
@@ -231,7 +231,7 @@ test_hdrp_template_windows_2020.2:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u ef376aff2859 -c editor --wait --published-only
+      -  unity-downloader-cli -u 111 -c editor --wait --published-only
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-hd
@@ -255,7 +255,7 @@ test_hdrp_template_windows_2020.2_dependencies:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u ef376aff2859 -c editor --wait --published-only
+      -  unity-downloader-cli -u 111 -c editor --wait --published-only
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci template test -u .\.Editor --type updated-dependencies-tests --project-path com.unity.template-hd
@@ -277,7 +277,7 @@ test_universal_template_windows_2020.2:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u ef376aff2859 -c editor --wait --published-only
+      -  unity-downloader-cli -u 111 -c editor --wait --published-only
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-universal
@@ -299,7 +299,7 @@ test_universal_template_windows_2020.2_dependencies:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u ef376aff2859 -c editor --wait --published-only
+      -  unity-downloader-cli -u 111 -c editor --wait --published-only
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci template test -u .\.Editor --type updated-dependencies-tests --project-path com.unity.template-universal
