@@ -7,7 +7,8 @@ namespace UnityEditor.ShaderGraph
     // this class is used to track asset dependencies in shadergraphs and subgraphs
     // that is: it tracks files that the shadergraph or subgraph must access to generate the shader
     // this data is used to automatically re-import the shadergraphs or subgraphs when any of the tracked files change
-    public class AssetCollection
+    [GenerationAPI]
+    internal class AssetCollection
     {
         [Flags]
         public enum Flags
@@ -18,15 +19,15 @@ namespace UnityEditor.ShaderGraph
             IncludeInExportPackage =    1 << 3      // This asset should be pulled into any .unitypackages built via "Export Package.."
         }
 
-        public Dictionary<GUID, Flags> assets = new Dictionary<GUID, Flags>();
+        internal Dictionary<GUID, Flags> assets = new Dictionary<GUID, Flags>();
 
-        public IEnumerable<GUID> assetGUIDs { get { return assets.Keys; } }
+        internal IEnumerable<GUID> assetGUIDs { get { return assets.Keys; } }
 
         public AssetCollection()
         {
         }
 
-        public void Clear()
+        internal void Clear()
         {
             assets.Clear();
         }
