@@ -1,6 +1,6 @@
 # all_package_ci needs dependencies for package_test_dependencies (currently commented out due to breaking)
 packages:
-  - name: Core
+  - name: Core  
     id: core
     packagename: com.unity.render-pipelines.core
     dependencies:
