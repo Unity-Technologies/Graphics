@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
@@ -56,9 +57,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnPreviewGUI(Rect r, GUIStyle background)
         {
-            m_PreviewedTextures.Clear();
-            foreach (var p in m_TypedTargets)
-                m_PreviewedTextures.Add(p.texture);
+            RepopulatePreviewedTextures();
 
             var space = Vector2.one;
             var rowSize = Mathf.CeilToInt(Mathf.Sqrt(m_PreviewedTextures.Count));
@@ -86,10 +85,20 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        private void RepopulatePreviewedTextures()
+        {
+            m_PreviewedTextures.Clear();
+            foreach (var p in m_TypedTargets)
+                m_PreviewedTextures.Add(p.texture);
+        }
+
         public override void OnPreviewSettings()
         {
             if (s_MipMapLow == null)
                 InitIcons();
+
+            if (m_PreviewedTextures.Any(t => t == null || t.Equals(null)))
+                RepopulatePreviewedTextures();
 
             int mipmapCount = m_PreviewedTextures.Count > 0 ? m_PreviewedTextures[0].mipmapCount : 1;
 
