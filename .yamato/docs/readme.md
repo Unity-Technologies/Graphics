@@ -158,7 +158,7 @@ platforms:
     agents_project_OpenGLCore: # agents used by all OSX OpenGLCore project jobs
       default:
         type: Unity::VM::osx
-        image: buildfarm/mac:stable
+        image: package-ci/mac:stable
         flavor: m1.mac
     agent_package: 
       type: Unity::VM::osx
@@ -358,6 +358,7 @@ override_editors:
 
 
 ### {project_name}.metafile: project jobs configuration
+If the project is just a high-level job only consisting of dependencies, then `project.folder`, `test_platforms`, and `platforms` can be left out (i.e. you only need to specify `project.name` and `all.dependencies`).
 ```
 # project details
 project:

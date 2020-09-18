@@ -12,7 +12,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // Ambient occlusion
         public Vector4 _AmbientOcclusionParam; // xyz occlusion color, w directLightStrenght
 
-        public Vector4 _IndirectLightingMultiplier; // .x indirect diffuse multiplier (use with indirect lighting volume controler)
+        public float _IndirectDiffuseLightingMultiplier;
+        public uint _IndirectDiffuseLightingLayers;
+        public float _ReflectionLightingMultiplier;
+        public uint _ReflectionLightingLayers;
 
         // Screen space refraction
         public float   _SSRefractionInvScreenWeightDistance; // Distance for screen space smoothstep with fallback

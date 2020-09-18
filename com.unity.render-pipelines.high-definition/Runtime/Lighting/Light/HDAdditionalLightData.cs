@@ -2362,6 +2362,11 @@ namespace UnityEngine.Rendering.HighDefinition
             DisableCachedShadowSlot();
             m_ShadowMapRenderedSinceLastRequest = false;
 
+            if (emissiveMeshRenderer != null && !emissiveMeshRenderer.Equals(null))
+            {
+                emissiveMeshRenderer.gameObject.layer = m_AreaLightEmissiveMeshLayer;
+            }
+
 #if UNITY_EDITOR
             // If modification are due to change on prefab asset that are non overridden on this prefab instance
             if (PrefabUtility.IsPartOfPrefabInstance(this) && ((PrefabUtility.GetCorrespondingObjectFromOriginalSource(this) as HDAdditionalLightData)?.needRefreshPrefabInstanceEmissiveMeshes ?? false))
@@ -2672,6 +2677,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Force to clamp the shape if we changed the type of the light
             shapeWidth = m_ShapeWidth;
             shapeHeight = m_ShapeHeight;
+
+#if UNITY_EDITOR
+            legacyLight.areaSize = new Vector2(shapeWidth, shapeHeight);
+#endif
         }
 
         /// <summary>

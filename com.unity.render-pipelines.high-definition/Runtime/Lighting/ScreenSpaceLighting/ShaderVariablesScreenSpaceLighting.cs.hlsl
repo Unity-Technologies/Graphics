@@ -11,7 +11,10 @@
     float4 _DepthPyramidScale;
     float4 _CameraMotionVectorsScale;
     float4 _AmbientOcclusionParam;
-    float4 _IndirectLightingMultiplier;
+    float _IndirectDiffuseLightingMultiplier;
+    uint _IndirectDiffuseLightingLayers;
+    float _ReflectionLightingMultiplier;
+    uint _ReflectionLightingLayers;
     float _SSRefractionInvScreenWeightDistance;
 
 

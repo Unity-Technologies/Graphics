@@ -77,7 +77,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     node.owner.owner.RegisterCompleteObjectUndo("Change Function Source");
                     node.functionSource = guidString;
-                    Draw(node);
                     node.ValidateNode();
                     node.Dirty(ModificationScope.Graph);
                 }

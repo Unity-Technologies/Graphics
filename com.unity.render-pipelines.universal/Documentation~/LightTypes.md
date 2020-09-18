@@ -42,6 +42,15 @@ The following additional properties are available to the __Freeform__ Light type
 | Freeform Light in edit mode                | Resulting Light Effect               |
 
 
+When creating a __Freeform__ Light, take care to avoid self-intersection as this may cause unintended lighting results. Self-intersection may occur by creating outlines where edges cross one another, or by enlarging falloff until it overlaps itself. To prevent such issues, it is recommended to edit the shape of the Light until the conditions creating the self-intersection no longer occur.
+
+| ![Freeform Self Intersection](Images/2D/2D_FreeformOutlineIntersection0.png) | ![Freeform Self Intersection](Images/2D/2D_FreeformOutlineIntersection1.png) |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Outline self-intersection in Edit mode.                      | Light effect with a black triangular artifact                |
+
+| ![Freeform Self Intersection](Images/2D/2D_FreeformFalloffIntersection0.png) | ![Freeform Self Intersection](Images/2D/2D_FreeformFalloffIntersection1.png) |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Falloff overlap in Edit mode                                 | Light effect with double lighted areas with overlapping falloff |
 
 ## Sprite
 

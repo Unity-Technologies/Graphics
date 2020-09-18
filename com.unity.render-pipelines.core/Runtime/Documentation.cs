@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering
         //[HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "some-page" + Documentation.endURL)]
         //It cannot support String.Format nor string interpolation
         internal const string baseURL = "https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@";
-        internal const string version = "8.2";
+        internal const string version = "8.3";
         internal const string subURL = "/manual/";
         internal const string endURL = ".html";
 
