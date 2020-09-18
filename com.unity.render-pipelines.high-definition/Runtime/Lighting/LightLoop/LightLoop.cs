@@ -3045,11 +3045,27 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void ClearLightList(in BuildGPULightListParameters parameters, CommandBuffer cmd, ComputeBuffer bufferToClear)
         {
+            const int MaxThreadGroup = 1 << 16;
+            const int GroupSize = 64;
+
             cmd.SetComputeBufferParam(parameters.clearLightListCS, parameters.clearLightListKernel, HDShaderIDs._LightListToClear, bufferToClear);
             cmd.SetComputeIntParam(parameters.clearLightListCS, HDShaderIDs._LightListEntries, bufferToClear.count);
 
-            int groupSize = 64;
-            cmd.DispatchCompute(parameters.clearLightListCS, parameters.clearLightListKernel, (bufferToClear.count + groupSize - 1) / groupSize, 1, 1);
+            // Buffer size may exceed 1 << 16 (65535) which is the maximum thread group size for a compute dispatch
+            // We use several dispatches to clear the buffer
+            var threadGroupsX = (bufferToClear.count + GroupSize - 1) / GroupSize;
+            var threadGroupsXCount = threadGroupsX / MaxThreadGroup;
+            for (var i = 0; i < threadGroupsXCount; ++i)
+            {
+                cmd.SetComputeIntParam(parameters.clearLightListCS, HDShaderIDs._Offset, i * MaxThreadGroup);
+                cmd.DispatchCompute(parameters.clearLightListCS, parameters.clearLightListKernel, MaxThreadGroup, 1, 1);
+            }
+            var leftOver = threadGroupsXCount % MaxThreadGroup;
+            if (leftOver != 0)
+            {
+                cmd.SetComputeIntParam(parameters.clearLightListCS, HDShaderIDs._Offset, threadGroupsXCount * MaxThreadGroup);
+                cmd.DispatchCompute(parameters.clearLightListCS, parameters.clearLightListKernel, leftOver, 1, 1);
+            }
         }
 
         static void ClearLightLists(    in BuildGPULightListParameters parameters,

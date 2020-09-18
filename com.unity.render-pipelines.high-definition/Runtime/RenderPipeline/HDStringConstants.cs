@@ -125,6 +125,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int g_vLayeredOffsetsBuffer = Shader.PropertyToID("g_vLayeredOffsetsBuffer");
 
         public static readonly int _LightListToClear = Shader.PropertyToID("_LightListToClear");
+        public static readonly int _Offset = Shader.PropertyToID("_Offset");
         public static readonly int _LightListEntries = Shader.PropertyToID("_LightListEntries");
 
         public static readonly int _ViewTilesFlags = Shader.PropertyToID("_ViewTilesFlags");

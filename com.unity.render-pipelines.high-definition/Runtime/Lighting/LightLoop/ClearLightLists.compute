@@ -2,10 +2,12 @@
 
 RWStructuredBuffer<uint>  _LightListToClear;
 int _LightListEntries;
+int _Offset;
 
 [numthreads(64, 1, 1)]
 void ClearList(uint3 id : SV_DispatchThreadID)
 {
-    if (id.x < (uint)_LightListEntries)
-        _LightListToClear[id.x] = 0;
+    int x = id.x + _Offset;
+    if (x < (uint)_LightListEntries)
+        _LightListToClear[x] = 0;
 }
