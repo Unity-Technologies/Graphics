@@ -81,6 +81,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added unsupported message when using tile debug mode with MSAA.
 - Fixed SSGI compilation issues on PS4.
 - Fixed an exception thrown when closing the look dev because there is no active SRP anymore.
+- Fixed an issue where entering playmode would close the LookDev window.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
