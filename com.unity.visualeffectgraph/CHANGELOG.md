@@ -48,6 +48,7 @@ The version number for this package has increased due to a version update of a r
 - New operator : Sample Signed distance field
 - Added Output Event Handler API
 - Added Output Event Handler Samples
+- Added ExposedProperty custom Property Drawer
 
 ### Fixed
 - Moved VFX Event Tester Window visibility to Component Play Controls SceneView Window
