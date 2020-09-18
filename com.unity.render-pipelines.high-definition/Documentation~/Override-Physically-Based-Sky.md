@@ -37,7 +37,7 @@ To change how much the atmosphere attenuates light, you can change the density o
 
 | **Property**                   | **Description**                                         |
 | ------------------------------ | ------------------------------------------------------- |
-| **Type**                       | Indicates a preset HDRP uses to simplify the Inspector. Selecting Earth will only show properties suitable to simulate Earth. |
+| **Type**                       | Indicates a preset HDRP uses to simplify the Inspector. If you select **Earth (Simple)** or **Earth (Advanced)**, the Inspector only shows properties suitable to simulate Earth. |
 
 ### Planet
 
