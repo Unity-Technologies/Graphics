@@ -155,45 +155,62 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static float ProjectionMatrixAspect(in Matrix4x4 matrix)
             => -matrix.m11 / matrix.m00;
 
-        internal static Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(float verticalFoV, Vector2 lensShift, Vector4 screenSize, Matrix4x4 worldToViewMatrix, bool renderToCubemap, float aspectRatio = -1)
+        internal static Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(bool isOrthographic, float verticalFoV, Vector2 lensShift, Vector4 screenSize, Matrix4x4 worldToViewMatrix, bool renderToCubemap, float aspectRatio = -1)
         {
-            aspectRatio = aspectRatio < 0 ? screenSize.x * screenSize.w : aspectRatio;
+            Matrix4x4 result;
 
-            // Compose the view space version first.
-            // V = -(X, Y, Z), s.t. Z = 1,
-            // X = (2x / resX - 1) * tan(vFoV / 2) * ar = x * [(2 / resX) * tan(vFoV / 2) * ar] + [-tan(vFoV / 2) * ar] = x * [-m00] + [-m20]
-            // Y = (2y / resY - 1) * tan(vFoV / 2)      = y * [(2 / resY) * tan(vFoV / 2)]      + [-tan(vFoV / 2)]      = y * [-m11] + [-m21]
-
-            float tanHalfVertFoV = Mathf.Tan(0.5f * verticalFoV);
-
-            // Compose the matrix.
-            float m21 = (1.0f - 2.0f * lensShift.y) * tanHalfVertFoV;
-            float m11 = -2.0f * screenSize.w * tanHalfVertFoV;
-
-            float m20 = (1.0f - 2.0f * lensShift.x) * tanHalfVertFoV * aspectRatio;
-            float m00 = -2.0f * screenSize.z * tanHalfVertFoV * aspectRatio;
-
-            if (renderToCubemap)
+            if (isOrthographic)
             {
-                // Flip Y.
-                m11 = -m11;
-                m21 = -m21;
+                // Goal: find M, s.t. M * P = -F, where P is the pixel coord vector and F is direction of the focal axis of the camera in the world space.
+                // -F = (V)^-1 * [0,0,1,0]^T, where V is the world-to-view matrix.
+                // -F = (R * T)^-1 * [0,0,1,0]^T = (T^-1) * (R^-1) * [0,0,1,0]^T = (T^-1) * (R^T) * [0,0,1,0]^T.
+                Vector3 negF = worldToViewMatrix.GetRow(2);
+
+                result = Matrix4x4.zero;
+                result.SetColumn(3, new Vector4(negF.x, negF.y, negF.z, 1));
+            }
+            else
+            {
+                aspectRatio = aspectRatio < 0 ? screenSize.x * screenSize.w : aspectRatio;
+
+                // Compose the view space version first.
+                // V = -(X, Y, Z), s.t. Z = 1,
+                // X = (2x / resX - 1) * tan(vFoV / 2) * ar = x * [(2 / resX) * tan(vFoV / 2) * ar] + [-tan(vFoV / 2) * ar] = x * [-m00] + [-m20]
+                // Y = (2y / resY - 1) * tan(vFoV / 2)      = y * [(2 / resY) * tan(vFoV / 2)]      + [-tan(vFoV / 2)]      = y * [-m11] + [-m21]
+
+                float tanHalfVertFoV = Mathf.Tan(0.5f * verticalFoV);
+
+                // Compose the matrix.
+                float m21 = (1.0f - 2.0f * lensShift.y) * tanHalfVertFoV;
+                float m11 = -2.0f * screenSize.w * tanHalfVertFoV;
+
+                float m20 = (1.0f - 2.0f * lensShift.x) * tanHalfVertFoV * aspectRatio;
+                float m00 = -2.0f * screenSize.z * tanHalfVertFoV * aspectRatio;
+
+                if (renderToCubemap)
+                {
+                    // Flip Y.
+                    m11 = -m11;
+                    m21 = -m21;
+                }
+
+                var viewSpaceRasterTransform = new Matrix4x4(new Vector4(m00, 0.0f, 0.0f, 0.0f),
+                        new Vector4(0.0f, m11, 0.0f, 0.0f),
+                        new Vector4(m20, m21, -1.0f, 0.0f),
+                        new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+
+                // Remove the translation component.
+                var homogeneousZero = new Vector4(0, 0, 0, 1);
+                worldToViewMatrix.SetColumn(3, homogeneousZero);
+
+                // Flip the Z to make the coordinate system left-handed.
+                worldToViewMatrix.SetRow(2, -worldToViewMatrix.GetRow(2));
+
+                result = worldToViewMatrix.transpose * viewSpaceRasterTransform;
             }
 
-            var viewSpaceRasterTransform = new Matrix4x4(new Vector4(m00, 0.0f, 0.0f, 0.0f),
-                    new Vector4(0.0f, m11, 0.0f, 0.0f),
-                    new Vector4(m20, m21, -1.0f, 0.0f),
-                    new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-
-            // Remove the translation component.
-            var homogeneousZero = new Vector4(0, 0, 0, 1);
-            worldToViewMatrix.SetColumn(3, homogeneousZero);
-
-            // Flip the Z to make the coordinate system left-handed.
-            worldToViewMatrix.SetRow(2, -worldToViewMatrix.GetRow(2));
-
             // Transpose for HLSL.
-            return Matrix4x4.Transpose(worldToViewMatrix.transpose * viewSpaceRasterTransform);
+            return Matrix4x4.Transpose(result);
         }
 
         internal static float ComputZPlaneTexelSpacing(float planeDepth, float verticalFoV, float resolutionY)

@@ -1330,7 +1330,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             Vector2 lensShift = camera.GetGateFittedLensShift();
 
-            return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, resolution, viewConstants.viewMatrix, false, aspect);
+            return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(camera.orthographic, verticalFoV, lensShift, resolution, viewConstants.viewMatrix, false, aspect);
         }
 
         void Dispose()
