@@ -153,6 +153,7 @@ MonoBehaviour:
   m_RenderPipelineRayTracingResources: {fileID: 0}
   m_DefaultVolumeProfile: {fileID: 11400000, guid: aea7ff43876258748be47d8751e0e9d5,
     type: 2}
+  m_LensAttenuation: 0
   m_DefaultLookDevProfile: {fileID: 11400000, guid: 254c4fe87beb7be4fa72e1681edbed02,
     type: 2}
   m_RenderingPathDefaultCameraFrameSettings:
@@ -222,7 +223,7 @@ MonoBehaviour:
     supportTransparentBackface: 1
     supportTransparentDepthPrepass: 1
     supportTransparentDepthPostpass: 1
-    colorBufferFormat: 74
+    colorBufferFormat: 48
     supportCustomPass: 1
     customBufferFormat: 12
     supportedLitShaderMode: 1
@@ -239,6 +240,7 @@ MonoBehaviour:
     msaaSampleCount: 8
     supportMotionVectors: 1
     supportRuntimeDebugDisplay: 0
+    supportRuntimeAOVAPI: 0
     supportDitheringCrossFade: 0
     supportTerrainHole: 0
     supportProbeVolume: 0
@@ -250,13 +252,13 @@ MonoBehaviour:
     lightLoopSettings:
       cookieAtlasSize: 512
       cookieFormat: 74
-      pointCookieSize: 128
       cookieAtlasLastValidMip: 0
       cookieTexArraySize: 16
       planarReflectionAtlasSize: 2048
       reflectionProbeCacheSize: 64
       reflectionCubemapSize: 256
       reflectionCacheCompressed: 0
+      reflectionProbeFormat: 74
       skyReflectionSize: 256
       skyLightingOverrideLayerMask:
         serializedVersion: 2
@@ -268,6 +270,7 @@ MonoBehaviour:
       maxEnvLightsOnScreen: 64
       maxDecalsOnScreen: 512
       maxPlanarReflectionOnScreen: 16
+      maxLightsPerClusterCell: 8
     hdShadowInitParams:
       maxShadowRequests: 128
       directionalShadowsDepthBits: 32
@@ -308,7 +311,7 @@ MonoBehaviour:
     postProcessSettings:
       m_LutSize: 32
       lutFormat: 48
-      bufferFormat: 74
+      bufferFormat: 48
     dynamicResolutionSettings:
       enabled: 0
       maxPercentage: 100
@@ -338,6 +341,7 @@ MonoBehaviour:
       - 13
       DoFResolution: 040000000200000001000000
       DoFHighQualityFiltering: 000101
+      DoFPhysicallyBased: 000000
       MotionBlurSampleCount: 04000000080000000c000000
       BloomRes: 040000000200000002000000
       BloomHighQualityFiltering: 000101
@@ -427,7 +431,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 802c802428a2d9640a87e821dfcdd9e8, type: 2}
   beforeTransparentCustomPostProcesses: []
   beforeTAACustomPostProcesses: []
-  beforePostProcessCustomPostProcesses: []
+  beforePostProcessCustomPostProcesses:
+  - UnityEngine.Rendering.HighDefinition.Compositor.ChromaKeying, Unity.RenderPipelines.HighDefinition.Runtime,
+    Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  - UnityEngine.Rendering.HighDefinition.Compositor.AlphaInjection, Unity.RenderPipelines.HighDefinition.Runtime,
+    Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   afterPostProcessCustomPostProcesses: []
   virtualTexturingSettings:
     streamingCpuCacheSizeInMegaBytes: 256
