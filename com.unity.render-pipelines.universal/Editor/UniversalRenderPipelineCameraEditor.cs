@@ -626,7 +626,10 @@ namespace UnityEditor.Rendering.Universal
         void DrawPostProcessingOverlay(UniversalRenderPipelineAsset rpAsset)
         {
             EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderPostProcessing, Styles.renderPostProcessing);
-            DoPostProcessingHelpBox(rpAsset);
+
+            bool isPostProcessingEnabled = IsPostProcessingEnabled(rpAsset);
+            if (!isPostProcessingEnabled)
+                EditorGUILayout.HelpBox(Styles.disabledPostprocessing, MessageType.Warning);
         }
 
         void DrawOutputSettings(UniversalRenderPipelineAsset rpAsset)
@@ -815,53 +818,53 @@ namespace UnityEditor.Rendering.Universal
         {
             EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderPostProcessing, Styles.renderPostProcessing);
 
-            DoPostProcessingHelpBox(rpAsset);
+            bool isPostProcessingEnabled = IsPostProcessingEnabled(rpAsset);
+            GUI.enabled = isPostProcessingEnabled;
 
             // Draw Final Post-processing
             DrawIntPopup(m_AdditionalCameraDataAntialiasing, Styles.antialiasing, Styles.antialiasingOptions, Styles.antialiasingValues);
 
             // If AntiAliasing has mixed value we do not draw the sub menu
-            if (m_AdditionalCameraDataAntialiasing.hasMultipleDifferentValues)
+            if (!m_AdditionalCameraDataAntialiasing.hasMultipleDifferentValues)
             {
-                return;
+                var selectedAntialiasing = (AntialiasingMode)m_AdditionalCameraDataAntialiasing.intValue;
+
+                if (selectedAntialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(m_AdditionalCameraDataAntialiasingQuality, Styles.antialiasingQuality);
+                    if (CoreEditorUtils.buildTargets.Contains(GraphicsDeviceType.OpenGLES2))
+                        EditorGUILayout.HelpBox("Sub-pixel Morphological Anti-Aliasing isn't supported on GLES2 platforms.", MessageType.Warning);
+                    EditorGUI.indentLevel--;
+                }
+
+                EditorGUILayout.PropertyField(m_AdditionalCameraDataStopNaN, Styles.stopNaN);
+                EditorGUILayout.PropertyField(m_AdditionalCameraDataDithering, Styles.dithering);
             }
 
-            var selectedAntialiasing = (AntialiasingMode)m_AdditionalCameraDataAntialiasing.intValue;
-
-            if (selectedAntialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing)
-            {
-                EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(m_AdditionalCameraDataAntialiasingQuality, Styles.antialiasingQuality);
-                if (CoreEditorUtils.buildTargets.Contains(GraphicsDeviceType.OpenGLES2))
-                    EditorGUILayout.HelpBox("Sub-pixel Morphological Anti-Aliasing isn't supported on GLES2 platforms.", MessageType.Warning);
-                EditorGUI.indentLevel--;
-            }
-
-            EditorGUILayout.PropertyField(m_AdditionalCameraDataStopNaN, Styles.stopNaN);
-            EditorGUILayout.PropertyField(m_AdditionalCameraDataDithering, Styles.dithering);
+            GUI.enabled = true;
+            if (!isPostProcessingEnabled)
+                EditorGUILayout.HelpBox(Styles.disabledPostprocessing, MessageType.Warning);
         }
 
-        void DoPostProcessingHelpBox(UniversalRenderPipelineAsset rpAsset)
+        bool IsPostProcessingEnabled(UniversalRenderPipelineAsset rpAsset)
         {
-            if (m_AdditionalCameraDataRendererProp.hasMultipleDifferentValues)
-            {
-                return;
-            }
-
             int rendererIndex = m_AdditionalCameraDataRendererProp.intValue != -1 ? m_AdditionalCameraDataRendererProp.intValue : rpAsset.m_DefaultRendererIndex;
             var rendererData = rpAsset.m_RendererDataList[rendererIndex];
 
             var forwardRendererData = rendererData as ForwardRendererData;
             if (forwardRendererData != null && !forwardRendererData.postProcessIncluded && m_AdditionalCameraDataRenderPostProcessing.boolValue)
             {
-                EditorGUILayout.HelpBox(Styles.disabledPostprocessing, MessageType.Warning);
+                return false;
             }
 
             var deferredRendererData = rendererData as DeferredRendererData;
             if (deferredRendererData != null && !deferredRendererData.postProcessIncluded && m_AdditionalCameraDataRenderPostProcessing.boolValue)
             {
-                EditorGUILayout.HelpBox(Styles.disabledPostprocessing, MessageType.Warning);
+                return false;
             }
+
+            return true;
         }
 
         bool DrawLayerMask(SerializedProperty prop, ref LayerMask mask, GUIContent style)
