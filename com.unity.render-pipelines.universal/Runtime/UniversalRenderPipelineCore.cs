@@ -444,6 +444,8 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 desc = camera.targetTexture.descriptor;
+                desc.width = camera.pixelWidth;
+                desc.height = camera.pixelHeight;
                 // SystemInfo.SupportsRenderTextureFormat(camera.targetTexture.descriptor.colorFormat)
                 // will assert on R8_SINT since it isn't a valid value of RenderTextureFormat.
                 // If this is fixed then we can implement debug statement to the user explaining why some

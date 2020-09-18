@@ -214,7 +214,9 @@ namespace UnityEngine.Rendering.Universal
         {
             // always dispose unmanaged resources
             m_PostProcessPass.Cleanup();
-            // m_FinalPostProcessPass.Cleanup() ?
+            m_FinalPostProcessPass.Cleanup();
+            m_ColorGradingLutPass.Cleanup();
+
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_CopyDepthMaterial);
             CoreUtils.Destroy(m_SamplingMaterial);
@@ -310,7 +312,7 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.xr.enabled)
             {
                 // URP can't handle msaa/size mismatch between depth RT and color RT(for now we create intermediate depth to ensure they match)
-                createDepthTexture |= createColorTexture && cameraTargetDescriptor.msaaSamples != cameraData.xr.renderTargetDesc.msaaSamples;
+                createDepthTexture |= createColorTexture;
             }
 #endif
 

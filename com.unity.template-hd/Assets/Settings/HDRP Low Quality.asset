@@ -280,7 +280,7 @@ MonoBehaviour:
       cachedPunctualLightShadowAtlas: 2048
       cachedAreaLightShadowAtlas: 2048
       shadowResolutionDirectional:
-        m_Values: 00010000000200000004000000080000
+        m_Values: 80000000000100000002000000040000
         m_SchemaId:
           m_Id: With4Levels
       shadowResolutionPunctual:
@@ -291,7 +291,7 @@ MonoBehaviour:
         m_Values: 00010000000200000004000000080000
         m_SchemaId:
           m_Id: With4Levels
-      maxDirectionalShadowMapResolution: 2048
+      maxDirectionalShadowMapResolution: 1024
       maxPunctualShadowMapResolution: 2048
       maxAreaShadowMapResolution: 2048
       supportScreenSpaceShadows: 0
@@ -304,7 +304,7 @@ MonoBehaviour:
       perChannelMask: 1
     postProcessSettings:
       m_LutSize: 32
-      lutFormat: 52
+      lutFormat: 48
       bufferFormat: 74
     dynamicResolutionSettings:
       enabled: 0
@@ -323,18 +323,18 @@ MonoBehaviour:
       occlusionMesh: 1
       cameraJitter: 0
     postProcessQualitySettings:
-      NearBlurSampleCount: 030000000500000008000000
+      NearBlurSampleCount: 030000000400000004000000
       NearBlurMaxRadius:
       - 2
-      - 4
-      - 7
-      FarBlurSampleCount: 04000000070000000e000000
+      - 3
+      - 3
+      FarBlurSampleCount: 040000000500000005000000
       FarBlurMaxRadius:
       - 5
-      - 8
-      - 13
-      DoFResolution: 040000000200000001000000
-      DoFHighQualityFiltering: 000101
+      - 6
+      - 6
+      DoFResolution: 040000000400000002000000
+      DoFHighQualityFiltering: 000100
       DoFPhysicallyBased: 000000
       MotionBlurSampleCount: 04000000080000000c000000
       BloomRes: 040000000200000002000000
@@ -357,13 +357,13 @@ MonoBehaviour:
       m_SchemaId:
         m_Id: With3Levels
     lightingQualitySettings:
-      AOStepCount: 040000000600000010000000
-      AOFullRes: 000001
-      AOMaximumRadiusPixels: 200000002800000050000000
-      AOBilateralUpsample: 000101
-      AODirectionCount: 010000000200000004000000
-      ContactShadowSampleCount: 060000000a00000010000000
-      SSRMaxRaySteps: 100000002000000040000000
+      AOStepCount: 030000000400000006000000
+      AOFullRes: 000000
+      AOMaximumRadiusPixels: 180000002000000020000000
+      AOBilateralUpsample: 000000
+      AODirectionCount: 010000000100000002000000
+      ContactShadowSampleCount: 04000000060000000a000000
+      SSRMaxRaySteps: 080000001000000020000000
       RTAORayLength:
       - 0.5
       - 3
