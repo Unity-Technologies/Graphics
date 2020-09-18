@@ -239,7 +239,7 @@ namespace UnityEditor.Rendering.LookDev
             // in case the window where open when last editor session finished.
             // (Else it will open at start and has nothing to display).
             if (!LookDev.open)
-                LookDev.Open();
+                LookDev.Initialize(this);
 
             titleContent = Style.k_WindowTitleAndIcon;
 
