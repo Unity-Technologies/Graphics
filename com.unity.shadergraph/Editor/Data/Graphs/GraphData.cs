@@ -298,15 +298,91 @@ namespace UnityEditor.ShaderGraph
         internal static SaveGraphDelegate onSaveGraph;
 
         #region Targets
+
+        // Serialized list of user-selected active targets, sorted in displayName order (to maintain deterministic serialization order)
+        // some of these may be MultiJsonInternal.UnknownTargetType if we can't recognize the type of the target
         [SerializeField]
         List<JsonData<Target>> m_ActiveTargets = new List<JsonData<Target>>();
 
-        [NonSerialized]
-        List<Target> m_ValidTargets = new List<Target>();
+        // this stores all of the current possible Target types (including any unknown target types we serialized in)
+        class PotentialTarget
+        {
+            // the potential Target
+            Target m_Target;
 
+            // a Target is either known (we know the Type) or unknown (can't find a matching definition of the Type)
+            // Targets of unknown type are stored in an UnknownTargetType
+            private Type m_KnownType;
+            private MultiJsonInternal.UnknownTargetType m_UnknownTarget;
+
+            public PotentialTarget(Target target)
+            {
+                m_Target = target;
+
+                if (target is MultiJsonInternal.UnknownTargetType)
+                {
+                    m_UnknownTarget = (MultiJsonInternal.UnknownTargetType)target;
+                    m_KnownType = null;
+                }
+                else
+                {
+                    m_UnknownTarget = null;
+                    m_KnownType = target.GetType();
+                }
+            }
+
+            public bool IsUnknown()
+            {
+                return m_UnknownTarget != null;
+            }
+
+            public Type knownType { get { return m_KnownType; } }
+
+            public bool Is(Target t)
+            {
+                return t == m_Target;
+            }
+
+            public string GetDisplayName()
+            {
+                return m_Target.displayName;
+            }
+
+            public void ReplaceStoredTarget(Target t)
+            {
+                if (m_KnownType != null)
+                    Assert.IsTrue(t.GetType() == m_KnownType);
+                m_Target = t;
+            }
+
+            public Target GetTarget()
+            {
+                return m_Target;
+            }
+        }
+        [NonSerialized]
+        List<PotentialTarget> m_AllPotentialTargets = new List<PotentialTarget>();
+
+        public int GetTargetIndex(Target t)
+        {
+            int result = m_AllPotentialTargets.FindIndex(pt => pt.Is(t));
+            Assert.IsTrue(result != -1);
+            return result;
+        }
+
+        public string[] GetValidTargetDisplayNames()
+        {
+            string[] displayNames = new string[m_AllPotentialTargets.Count];
+            for (int validIndex = 0; validIndex < m_AllPotentialTargets.Count; validIndex++)
+            {
+                displayNames[validIndex] = m_AllPotentialTargets[validIndex].GetDisplayName();
+            }
+            return displayNames;
+        }
+
+        // this list is populated by graph validation, and lists all of the targets that nodes did not like
         [NonSerialized]
         List<Target> m_UnsupportedTargets = new List<Target>();
-
         public List<Target> unsupportedTargets { get => m_UnsupportedTargets; }
 
         public int activeTargetBitmask
@@ -316,9 +392,9 @@ namespace UnityEditor.ShaderGraph
                 int targetBitmask = 0;
                 foreach (var target in m_ActiveTargets.SelectValue())
                 {
-                    int targetIndex = m_ValidTargets.FindIndex(t => t.GetType() == target.GetType());
-                    Assert.IsTrue(targetIndex >= 0);
-                    int targetFlag = (1 << targetIndex);
+                    int validIndex = GetTargetIndex(target);
+                    Assert.IsTrue(validIndex >= 0);
+                    int targetFlag = (1 << validIndex);
                     targetBitmask = targetBitmask | targetFlag;
                 }
                 return targetBitmask;
@@ -326,20 +402,43 @@ namespace UnityEditor.ShaderGraph
 
             set
             {
-                m_ActiveTargets.Clear();
-                for (int targetIndex = 0; targetIndex < m_ValidTargets.Count; targetIndex++)
+                bool needsSort = false;
+                for (int targetIndex = 0; targetIndex < m_AllPotentialTargets.Count; targetIndex++)
                 {
-                    Target target = m_ValidTargets[targetIndex];
+                    var target = m_AllPotentialTargets[targetIndex];
+                    int activeIndex = m_ActiveTargets.FindIndex(at => target.Is(at));
+
                     int targetFlag = (1 << targetIndex);
                     if ((value & targetFlag) != 0)
                     {
-                        m_ActiveTargets.Add(target);
+                        // add to active targets (if not already active)
+                        if (activeIndex < 0)
+                        {
+                            m_ActiveTargets.Add(target.GetTarget());
+                            needsSort = true;
+                        }
+                    }
+                    else
+                    {
+                        // remove from active targets
+                        if (activeIndex >= 0)
+                        {
+                            m_ActiveTargets.RemoveAt(activeIndex);
+                        }
                     }
                 }
+                if (needsSort)
+                    SortActiveTargets();
             }
         }
 
-        public List<Target> validTargets => m_ValidTargets;
+        private Comparison<Target> targetComparison = new Comparison<Target>((a, b) => string.Compare(a.displayName, b.displayName));
+        public void SortActiveTargets()
+        {
+            activeTargets.Sort(targetComparison);
+        }
+
+        public IEnumerable<Target> allPotentialTargets => m_AllPotentialTargets.Select(x => x.GetTarget());
         public DataValueEnumerable<Target> activeTargets => m_ActiveTargets.SelectValue();
 
         // TODO: Need a better way to handle this
@@ -352,23 +451,22 @@ namespace UnityEditor.ShaderGraph
 #endif
         #endregion
 
-        private Comparison<Target> targetComparison = new Comparison<Target>((a, b) => string.Compare(a.displayName, b.displayName));
-
         public GraphData()
         {
             m_GroupItems[null] = new List<IGroupItem>();
             GetBlockFieldDescriptors();
-            GetTargets();
+            AddKnownTargetsToPotentialTargets();
         }
 
+        // used to initialize the graph with targets, i.e. when creating new graphs via the popup menu
         public void InitializeOutputs(Target[] targets, BlockFieldDescriptor[] blockDescriptors)
         {
-            if(targets == null)
+            if (targets == null)
                 return;
 
-            foreach(var target in targets)
+            foreach (var target in targets)
             {
-                if(m_ValidTargets.Any(x => x.GetType().Equals(target.GetType())))
+                if (GetTargetIndex(target) >= 0)
                 {
                     m_ActiveTargets.Add(target);
                 }
@@ -416,48 +514,57 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        void GetTargets()
+        void AddKnownTargetsToPotentialTargets()
         {
-            // Find all valid Targets
-            var typeCollection = TypeCache.GetTypesDerivedFrom<Target>();
-            foreach(var type in typeCollection)
+            Assert.AreEqual(m_AllPotentialTargets.Count, 0);
+
+            // Find all valid Targets by looking in the TypeCache
+            var targetTypes = TypeCache.GetTypesDerivedFrom<Target>();
+            foreach (var type in targetTypes)
             {
                 if(type.IsAbstract || type.IsGenericType || !type.IsClass)
                     continue;
 
-                var target = (Target)Activator.CreateInstance(type);
-                if(!target.isHidden)
+                // create a new instance of the Target, to represent the potential Target
+                // NOTE: this instance may be replaced later if we serialize in an Active Target of that type
+                var target = (Target) Activator.CreateInstance(type);
+                if (!target.isHidden)
                 {
-                    m_ValidTargets.Add(target);
+                    m_AllPotentialTargets.Add(new PotentialTarget(target));
                 }
             }
         }
 
         public void UpdateActiveTargets(bool reevaluateActivity = true)
         {
-            // Update active TargetImplementation list
-            if(m_ActiveTargets != null)
+            Assert.IsTrue(m_ActiveTargets != null);
             {
-                var targetCount = m_ValidTargets.Count;
-                for(int targetIndex = 0; targetIndex < targetCount; targetIndex++)
+                // whenever an unknown target becomes deactivated
+                // we remove it from the list of potential targets
+                for(int targetIndex = 0; targetIndex < m_AllPotentialTargets.Count; targetIndex++)
                 {
-                    //if we no longer have an unknown target as active, remove it
-                    if (m_ValidTargets[targetIndex] is MultiJsonInternal.UnknownTargetType)
+                    var validTarget = m_AllPotentialTargets[targetIndex];
+                    if (validTarget.IsUnknown())
                     {
-                        m_ValidTargets.RemoveAt(targetIndex);
+                        bool targetActive = (m_ActiveTargets.FindIndex(x => validTarget.Is(x)) >= 0);
+                        if (!targetActive)
+                        {
+                            m_AllPotentialTargets.RemoveAt(targetIndex);
 
-                        // need to back up the index, since we just deleted the target in the list
-                        targetIndex--;
+                            // need to back up the index, since we just deleted the target in the list
+                            targetIndex--;
+                        }
                     }
                 }
             }
+
             if (reevaluateActivity)
             {
                 ValidateGraph();
                 NodeUtils.ReevaluateActivityOfNodeList(m_Nodes.SelectValue());
             }
-            //deal with the fact that target order might switch if unknown targets are collected
-            activeTargets.Sort(targetComparison);
+
+            SortActiveTargets();
         }
 
         public void ClearChanges()
@@ -1952,18 +2059,22 @@ namespace UnityEditor.ShaderGraph
                     m_VertexContext.position = oldPosition;
                     m_FragmentContext.position = new Vector2(oldPosition.x, oldPosition.y + 200);
 
-                    // Try to upgrade all valid targets from master node
-                    // On ShaderGraph side we dont know what Targets exist so make no assumptions
-                    if(masterNode != null)
+                    // Try to upgrade all potential targets from master node
+                    if (masterNode != null)
                     {
-                        foreach(var target in m_ValidTargets)
+                        foreach (var potentialTarget in m_AllPotentialTargets)
                         {
-                            if(!(target is ILegacyTarget legacyTarget))
+                            if (potentialTarget.IsUnknown())
                                 continue;
 
-                            if(!legacyTarget.TryUpgradeFromMasterNode(masterNode, out var newBlockMap))
+                            var target = potentialTarget.GetTarget();
+                            if (!(target is ILegacyTarget legacyTarget))
                                 continue;
 
+                            if (!legacyTarget.TryUpgradeFromMasterNode(masterNode, out var newBlockMap))
+                                continue;
+
+                            // upgrade succeeded!  Activate it
                             m_ActiveTargets.Add(target);
                             UpgradeFromBlockMap(newBlockMap);
                         }
@@ -2086,21 +2197,26 @@ namespace UnityEditor.ShaderGraph
             DeserializeContextData(m_VertexContext, ShaderStage.Vertex);
             DeserializeContextData(m_FragmentContext, ShaderStage.Fragment);
 
-            foreach(var target in m_ActiveTargets.SelectValue())
+            // there should be no unknown potential targets at this point
+            Assert.IsFalse(m_AllPotentialTargets.Any(pt => pt.IsUnknown()));
+
+            foreach (var target in m_ActiveTargets.SelectValue())
             {
-                //need to mark the target as valid just so other logic doesnt break
-                if(target.GetType() == typeof(MultiJsonInternal.UnknownTargetType))
+                var targetType = target.GetType();
+                if (targetType == typeof(MultiJsonInternal.UnknownTargetType))
                 {
-                    m_ValidTargets.Add(target);
+                    // register any active UnknownTargetType as a potential target
+                    m_AllPotentialTargets.Add(new PotentialTarget(target));
                 }
-                var activeTargetCurrent = m_ValidTargets.FirstOrDefault(x => x.GetType() == target.GetType());
-                var targetIndex = m_ValidTargets.IndexOf(activeTargetCurrent);
-                // m_ActiveTargetBitmask = m_ActiveTargetBitmask | (1 << targetIndex);
-                m_ValidTargets[targetIndex] = target;
+                else
+                {
+                    // active known targets should replace the stored Target in AllPotentialTargets
+                    int targetIndex = m_AllPotentialTargets.FindIndex(pt => pt.knownType == targetType);
+                    m_AllPotentialTargets[targetIndex].ReplaceStoredTarget(target);
+                }
             }
 
             UpdateActiveTargets(false);
-
         }
 
         private void ReplaceNodeWithNode(LegacyUnknownTypeNode nodeToReplace, AbstractMaterialNode nodeReplacement)

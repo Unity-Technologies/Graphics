@@ -20,9 +20,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         PostTargetSettingsChangedCallback m_postChangeTargetSettingsCallback;
         ChangeConcretePrecisionCallback m_postChangeConcretePrecisionCallback;
 
-        Dictionary<string, bool> m_TargetFoldouts = new Dictionary<string, bool>();
-
-        List<string> userOrderedTargetNameList = new List<string>();
+        Dictionary<Target, bool> m_TargetFoldouts = new Dictionary<Target, bool>();
 
         public void GetPropertyData(
             PostTargetSettingsChangedCallback postChangeValueCallback,
@@ -49,7 +47,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             targetSettingsLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             element.Add(new PropertyRow(targetSettingsLabel));
 
-            var targetNameList = graphData.validTargets.Select(x => x.displayName).ToArray();
+            var targetNameList = graphData.GetValidTargetDisplayNames();
 
             element.Add(new PropertyRow(new Label("Targets")), (row) =>
                 {
@@ -66,49 +64,31 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     }));
                 });
 
-
-            // Initialize from the active targets whenever user changes them
-            // Is there a way to retain order even with that?
-            if (userOrderedTargetNameList.Count != graphData.activeTargets.Count())
-            {
-                var activeTargetNames = graphData.activeTargets.Select(x => x.displayName);
-                userOrderedTargetNameList = activeTargetNames.ToList();
-            }
-
-            var reorderableTextListView = new ReorderableListView<string>(userOrderedTargetNameList);
-            reorderableTextListView.OnListReorderedCallback += list =>
-            {
-                userOrderedTargetNameList = (List<string>)list;
-                onChange();
-            };
-            element.Add(reorderableTextListView);
-
             // Iterate active TargetImplementations
-            foreach(var targetName in reorderableTextListView.TextList)
+            foreach(var target in graphData.activeTargets)
             {
                 // Ensure enabled state is being tracked and get value
                 bool foldoutActive;
-                if(!m_TargetFoldouts.TryGetValue(targetName, out foldoutActive))
+                if (!m_TargetFoldouts.TryGetValue(target, out foldoutActive))
                 {
                     foldoutActive = true;
-                    m_TargetFoldouts.Add(targetName, foldoutActive);
+                    m_TargetFoldouts.Add(target, foldoutActive);
                 }
 
                 // Create foldout
-                var foldout = new Foldout() { text = targetName, value = foldoutActive, name = "foldout" };
+                var foldout = new Foldout() { text = target.displayName, value = foldoutActive, name = "foldout" };
                 element.Add(foldout);
                 foldout.AddToClassList("MainFoldout");
                 foldout.RegisterValueChangedCallback(evt =>
                 {
                     // Update foldout value and rebuild
-                    m_TargetFoldouts[targetName] = evt.newValue;
+                    m_TargetFoldouts[target] = evt.newValue;
                     foldout.value = evt.newValue;
                     onChange();
                 });
 
-                if(foldout.value)
+                if (foldout.value)
                 {
-                    var target = graphData.validTargets.Find(x => x.displayName == targetName);
                     // Get settings for Target
                     var context = new TargetPropertyGUIContext();
                     target.GetPropertiesGUI(ref context, onChange, RegisterActionToUndo);
