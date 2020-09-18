@@ -31,7 +31,7 @@ class EditorTests
         }
     }
 
-    // When creating a new forward renderer asset it should not log any errors or throw exceptions.
+    // When creating a new standard renderer asset it should not log any errors or throw exceptions.
     [Test]
     public void CreateStandardRendererAssetWithoutErrors()
     {

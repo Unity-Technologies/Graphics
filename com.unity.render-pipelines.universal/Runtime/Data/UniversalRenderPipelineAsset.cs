@@ -213,7 +213,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Pipeline Asset (Forward Renderer)", priority = CoreUtils.assetCreateMenuPriority1)]
+        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Pipeline Asset (Standard Renderer)", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateUniversalPipeline()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateUniversalPipelineAsset>(),
@@ -242,7 +242,7 @@ namespace UnityEngine.Rendering.Universal
                 // 2D renderer is experimental
                 case RendererType._2DRenderer:
                     return CreateInstance<Experimental.Rendering.Universal.Renderer2DData>();
-                // Forward Renderer is the fallback renderer that works on all platforms
+                // Standard Renderer is the fallback renderer that works on all platforms
                 default:
                     return CreateInstance<StandardRendererData>();
             }
