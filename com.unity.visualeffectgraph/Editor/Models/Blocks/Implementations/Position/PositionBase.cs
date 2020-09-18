@@ -153,7 +153,6 @@ namespace UnityEditor.VFX.Block
                 case PositionMode.ThicknessAbsolute:
                 case PositionMode.ThicknessRelative:
                 {
-                    //TODOPAUL : double check this function, I think radius and thickness may have been swapped at some point
                     if (positionMode == PositionMode.ThicknessAbsolute)
                         thickness = thickness / radius;
 
