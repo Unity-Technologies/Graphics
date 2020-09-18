@@ -393,14 +393,14 @@ namespace UnityEditor.Rendering.Universal
             for (int rendererIndex = 0; rendererIndex < rendererCount; ++rendererIndex)
             {
                 ScriptableRenderer renderer = pipelineAsset.GetRenderer(rendererIndex);
-                if (renderer is ForwardRenderer)
+                if (renderer is StandardRenderer)
                 {
-                    ForwardRenderer forwardRenderer = (ForwardRenderer)renderer;
-                    if (forwardRenderer.renderingMode == RenderingMode.Deferred)
+                    StandardRenderer standardRenderer = (StandardRenderer)renderer;
+                    if (standardRenderer.renderingMode == RenderingMode.Deferred)
                     {
                         hasDeferredRenderer |= true;
-                        withAccurateGbufferNormals |= forwardRenderer.accurateGbufferNormals;
-                        withoutAccurateGbufferNormals |= !forwardRenderer.accurateGbufferNormals;
+                        withAccurateGbufferNormals |= standardRenderer.accurateGbufferNormals;
+                        withoutAccurateGbufferNormals |= !standardRenderer.accurateGbufferNormals;
                     }
                 }
 
