@@ -110,6 +110,10 @@ namespace UnityEngine.Rendering.Universal
             ShaderData.instance.Dispose();
             DeferredShaderData.instance.Dispose();
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+            m_XRSystem?.Dispose();
+#endif
+
 #if UNITY_EDITOR
             SceneViewDrawMode.ResetDrawMode();
 #endif
@@ -358,12 +362,7 @@ namespace UnityEngine.Rendering.Universal
                 if (baseCameraData.xr.enabled)
                 {
                     xrActive = true;
-                    baseCameraData.cameraTargetDescriptor = baseCameraData.xr.renderTargetDesc;
-                    if (baseCameraData.isHdrEnabled)
-                    {
-                        baseCameraData.cameraTargetDescriptor.graphicsFormat = originalTargetDesc.graphicsFormat;
-                    }
-                    baseCameraData.cameraTargetDescriptor.msaaSamples = originalTargetDesc.msaaSamples;
+
                     // Update cameraData for XR
                     Rect cameraRect = baseCamera.rect;
                     Rect xrViewport = baseCameraData.xr.GetViewport();
@@ -371,9 +370,20 @@ namespace UnityEngine.Rendering.Universal
                                                         cameraRect.y * xrViewport.height + xrViewport.y,
                                                         cameraRect.width * xrViewport.width,
                                                         cameraRect.height * xrViewport.height);
-                    baseCameraData.pixelWidth  = (int)(cameraRect.width * xrViewport.width);
-                    baseCameraData.pixelHeight = (int)(cameraRect.height * xrViewport.height);
+                    Rect camPixelRect = baseCameraData.pixelRect;
+                    baseCameraData.pixelWidth  = (int)System.Math.Round(camPixelRect.width + camPixelRect.x) - (int)System.Math.Round(camPixelRect.x);
+                    baseCameraData.pixelHeight = (int)System.Math.Round(camPixelRect.height + camPixelRect.y) - (int)System.Math.Round(camPixelRect.y);
                     baseCameraData.aspectRatio = (float)baseCameraData.pixelWidth / (float)baseCameraData.pixelHeight;
+
+                    // Update intermediate camera target descriptor for XR
+                    baseCameraData.cameraTargetDescriptor = baseCameraData.xr.renderTargetDesc;
+                    if (baseCameraData.isHdrEnabled)
+                    {
+                        baseCameraData.cameraTargetDescriptor.graphicsFormat = originalTargetDesc.graphicsFormat;
+                    }
+                    baseCameraData.cameraTargetDescriptor.msaaSamples = originalTargetDesc.msaaSamples;
+                    baseCameraData.cameraTargetDescriptor.width = baseCameraData.pixelWidth;
+                    baseCameraData.cameraTargetDescriptor.height = baseCameraData.pixelHeight;
                 }
 #endif
             BeginCameraRendering(context, baseCamera);
