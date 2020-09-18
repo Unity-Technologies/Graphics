@@ -4,6 +4,7 @@ project:
 test_platforms:
   - type: Standalone
     name: performance_playmode_counters
+    is_performance: True
     extra_utr_flags:
       - --report-performance-data
       - --performance-project-id=URP_Performance
@@ -18,14 +19,26 @@ test_platforms:
       - --extra-editor-arg="-managedstrippinglevel=Low"
       - --extra-editor-arg="-allowdebugging-" 
       - --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
-  - type: playmode
+  - type: Standalone
     name: performance_playmode_memory
+    is_performance: True
     extra_utr_flags:
       - --report-performance-data
       - --performance-project-id=URP_Performance
       - --testfilter=Memory
-  - type: playmode
+    extra_utr_flags_build:
+      - --extra-editor-arg="Editor.Setup" 
+      - --extra-editor-arg="-playergraphicsapi=Direct3D11" ###############
+      - --extra-editor-arg="-colorspace=Linear" 
+      - --extra-editor-arg="-scriptingbackend=mono" 
+      - --extra-editor-arg="-apicompatibilitylevel=NET_4_6" 
+      - --extra-editor-arg="-stripenginecode-" 
+      - --extra-editor-arg="-managedstrippinglevel=Low"
+      - --extra-editor-arg="-allowdebugging-" 
+      - --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+  - type: editmode
     name: performance_editmode_build
+    is_performance: True
     extra_utr_flags:
       - --report-performance-data
       - --performance-project-id=URP_Performance

@@ -68,22 +68,23 @@ URP_Performance_Android_Vulkan_performance_playmode_memory_trunk:
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:android
          rerun: on-new-revision
+      -  path: .yamato/urp_performance-android-vulkan.yml#Build_URP_Performance_Android_Vulkan_Player_trunk
+         rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli --source-file %YAMATO_SOURCE_DIR%/unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\URP_Performance --editor-location=WindowsEditor --artifacts_path=test-results --report-performance-data --performance-project-id=URP_Performance --testfilter=Memory
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --timeout=1200 --player-load-path=players --report-performance-data --performance-project-id=URP_Performance --testfilter=Memory --scripting-backend=il2cpp --editor-location=WindowsEditor
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+    skip_checkout: true
 URP_Performance_Android_Vulkan_performance_editmode_build_trunk:
     name: URP_Performance on Android_Vulkan_performance_editmode_build on version trunk
     agent:
@@ -105,7 +106,7 @@ URP_Performance_Android_Vulkan_performance_editmode_build_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\URP_Performance --editor-location=WindowsEditor --artifacts_path=test-results --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+                 utr --suite=editor --platform=editmode --testproject=TestProjects\URP_Performance --editor-location=WindowsEditor --artifacts_path=test-results --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -176,22 +177,23 @@ URP_Performance_Android_Vulkan_performance_playmode_memory_fast-trunk:
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:android
          rerun: on-new-revision
+      -  path: .yamato/urp_performance-android-vulkan.yml#Build_URP_Performance_Android_Vulkan_Player_fast-trunk
+         rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli --source-file %YAMATO_SOURCE_DIR%/unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\URP_Performance --editor-location=WindowsEditor --artifacts_path=test-results --report-performance-data --performance-project-id=URP_Performance --testfilter=Memory
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --timeout=1200 --player-load-path=players --report-performance-data --performance-project-id=URP_Performance --testfilter=Memory --scripting-backend=il2cpp --editor-location=WindowsEditor
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+    skip_checkout: true
 URP_Performance_Android_Vulkan_performance_editmode_build_fast-trunk:
     name: URP_Performance on Android_Vulkan_performance_editmode_build on version fast-trunk
     agent:
@@ -213,7 +215,7 @@ URP_Performance_Android_Vulkan_performance_editmode_build_fast-trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\URP_Performance --editor-location=WindowsEditor --artifacts_path=test-results --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+                 utr --suite=editor --platform=editmode --testproject=TestProjects\URP_Performance --editor-location=WindowsEditor --artifacts_path=test-results --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -287,22 +289,23 @@ URP_Performance_Android_Vulkan_performance_playmode_memory_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
+      -  path: .yamato/urp_performance-android-vulkan.yml#Build_URP_Performance_Android_Vulkan_Player_CUSTOM-REVISION
+         rerun: always
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli --source-file %YAMATO_SOURCE_DIR%/unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\URP_Performance --editor-location=WindowsEditor --artifacts_path=test-results --report-performance-data --performance-project-id=URP_Performance --testfilter=Memory
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --timeout=1200 --player-load-path=players --report-performance-data --performance-project-id=URP_Performance --testfilter=Memory --scripting-backend=il2cpp --editor-location=WindowsEditor
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+    skip_checkout: true
 URP_Performance_Android_Vulkan_performance_editmode_build_CUSTOM-REVISION:
     name: URP_Performance on Android_Vulkan_performance_editmode_build on version CUSTOM-REVISION
     agent:
@@ -325,7 +328,7 @@ URP_Performance_Android_Vulkan_performance_editmode_build_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\URP_Performance --editor-location=WindowsEditor --artifacts_path=test-results --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+                 utr --suite=editor --platform=editmode --testproject=TestProjects\URP_Performance --editor-location=WindowsEditor --artifacts_path=test-results --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:

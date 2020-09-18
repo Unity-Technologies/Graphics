@@ -52,16 +52,14 @@ URP_Performance_OSX_OpenGLCore_performance_playmode_memory_trunk:
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:macos
          rerun: on-new-revision
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --report-performance-data --performance-project-id=URP_Performance --testfilter=Memory
+      -  path: .yamato/urp_performance-osx-openglcore.yml#Build_URP_Performance_OSX_OpenGLCore_Player_trunk
+         rerun: on-new-revision
+    commands: []
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+    skip_checkout: true
 URP_Performance_OSX_OpenGLCore_performance_editmode_build_trunk:
     name: URP_Performance on OSX_OpenGLCore_performance_editmode_build on version trunk
     agent:
@@ -78,7 +76,7 @@ URP_Performance_OSX_OpenGLCore_performance_editmode_build_trunk:
       -  chmod +x TestProjects/URP_Performance/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  cd TestProjects/URP_Performance && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -132,16 +130,14 @@ URP_Performance_OSX_OpenGLCore_performance_playmode_memory_fast-trunk:
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:macos
          rerun: on-new-revision
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --report-performance-data --performance-project-id=URP_Performance --testfilter=Memory
+      -  path: .yamato/urp_performance-osx-openglcore.yml#Build_URP_Performance_OSX_OpenGLCore_Player_fast-trunk
+         rerun: on-new-revision
+    commands: []
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+    skip_checkout: true
 URP_Performance_OSX_OpenGLCore_performance_editmode_build_fast-trunk:
     name: URP_Performance on OSX_OpenGLCore_performance_editmode_build on version fast-trunk
     agent:
@@ -158,7 +154,7 @@ URP_Performance_OSX_OpenGLCore_performance_editmode_build_fast-trunk:
       -  chmod +x TestProjects/URP_Performance/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  cd TestProjects/URP_Performance && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -215,16 +211,14 @@ URP_Performance_OSX_OpenGLCore_performance_playmode_memory_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --report-performance-data --performance-project-id=URP_Performance --testfilter=Memory
+      -  path: .yamato/urp_performance-osx-openglcore.yml#Build_URP_Performance_OSX_OpenGLCore_Player_CUSTOM-REVISION
+         rerun: always
+    commands: []
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+    skip_checkout: true
 URP_Performance_OSX_OpenGLCore_performance_editmode_build_CUSTOM-REVISION:
     name: URP_Performance on OSX_OpenGLCore_performance_editmode_build on version CUSTOM-REVISION
     agent:
@@ -242,7 +236,7 @@ URP_Performance_OSX_OpenGLCore_performance_editmode_build_CUSTOM-REVISION:
       -  chmod +x TestProjects/URP_Performance/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  cd TestProjects/URP_Performance && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:

@@ -60,11 +60,17 @@ URP_Performance_iPhone_Metal_performance_playmode_memory_trunk:
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:ios
          rerun: on-new-revision
-    commands: []
+      -  path: .yamato/urp_performance-iphone-metal.yml#Build_URP_Performance_iPhone_Metal_Player_trunk
+         rerun: on-new-revision
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --report-performance-data --performance-project-id=URP_Performance --testfilter=Memory
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+    skip_checkout: true
 URP_Performance_iPhone_Metal_performance_editmode_build_trunk:
     name: URP_Performance on iPhone_Metal_performance_editmode_build on version trunk
     agent:
@@ -138,11 +144,17 @@ URP_Performance_iPhone_Metal_performance_playmode_memory_fast-trunk:
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:ios
          rerun: on-new-revision
-    commands: []
+      -  path: .yamato/urp_performance-iphone-metal.yml#Build_URP_Performance_iPhone_Metal_Player_fast-trunk
+         rerun: on-new-revision
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --report-performance-data --performance-project-id=URP_Performance --testfilter=Memory
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+    skip_checkout: true
 URP_Performance_iPhone_Metal_performance_editmode_build_fast-trunk:
     name: URP_Performance on iPhone_Metal_performance_editmode_build on version fast-trunk
     agent:
@@ -219,11 +231,17 @@ URP_Performance_iPhone_Metal_performance_playmode_memory_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
-    commands: []
+      -  path: .yamato/urp_performance-iphone-metal.yml#Build_URP_Performance_iPhone_Metal_Player_CUSTOM-REVISION
+         rerun: always
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --report-performance-data --performance-project-id=URP_Performance --testfilter=Memory
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+    skip_checkout: true
 URP_Performance_iPhone_Metal_performance_editmode_build_CUSTOM-REVISION:
     name: URP_Performance on iPhone_Metal_performance_editmode_build on version CUSTOM-REVISION
     agent:
