@@ -83,7 +83,7 @@ URP_Performance_Win_Vulkan_performance_editmode_build_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=editor --platform=WindowsStandalone64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/URP_Performance && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -168,7 +168,7 @@ URP_Performance_Win_Vulkan_performance_editmode_build_fast-trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=editor --platform=WindowsStandalone64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/URP_Performance && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -257,7 +257,7 @@ URP_Performance_Win_Vulkan_performance_editmode_build_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=editor --platform=WindowsStandalone64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/URP_Performance && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
