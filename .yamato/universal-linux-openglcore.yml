@@ -47,28 +47,6 @@ Universal_Linux_OpenGLCore_editmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-Universal_Linux_OpenGLCore_playmode_perf_build_trunk:
-    name: Universal on Linux_OpenGLCore_playmode_perf_build on version trunk
-    agent:
-        type: Unity::VM::GPU
-        image: cds-ops/ubuntu-18.04-base:stable
-        flavor: b1.large
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:trunk:linux
-         rerun: on-new-revision
-    commands:
-      -  sudo -H pip install --upgrade pip
-      -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
-      -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --extra-editor-arg="-force-glcore"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
 Universal_Linux_OpenGLCore_playmode_fast-trunk:
     name: Universal on Linux_OpenGLCore_playmode on version fast-trunk
     agent:
@@ -109,28 +87,6 @@ Universal_Linux_OpenGLCore_editmode_fast-trunk:
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-glcore"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-Universal_Linux_OpenGLCore_playmode_perf_build_fast-trunk:
-    name: Universal on Linux_OpenGLCore_playmode_perf_build on version fast-trunk
-    agent:
-        type: Unity::VM::GPU
-        image: cds-ops/ubuntu-18.04-base:stable
-        flavor: b1.large
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:fast-trunk:linux
-         rerun: on-new-revision
-    commands:
-      -  sudo -H pip install --upgrade pip
-      -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
-      -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --extra-editor-arg="-force-glcore"
     artifacts:
         logs:
             paths:
@@ -177,29 +133,6 @@ Universal_Linux_OpenGLCore_editmode_CUSTOM-REVISION:
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-glcore"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-Universal_Linux_OpenGLCore_playmode_perf_build_CUSTOM-REVISION:
-    name: Universal on Linux_OpenGLCore_playmode_perf_build on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM::GPU
-        image: cds-ops/ubuntu-18.04-base:stable
-        flavor: b1.large
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:linux
-         rerun: always
-    commands:
-      -  sudo -H pip install --upgrade pip
-      -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
-      -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --extra-editor-arg="-force-glcore"
     artifacts:
         logs:
             paths:
