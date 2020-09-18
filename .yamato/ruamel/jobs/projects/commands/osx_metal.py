@@ -1,6 +1,6 @@
 
 from ruamel.yaml.scalarstring import PreservedScalarString as pss
-from ...shared.constants import REPOSITORY_NAME, TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS, VAR_UPM_REGISTRY, UNITY_DOWNLOADER_CLI_URL, UTR_INSTALL_URL
+from ...shared.constants import REPOSITORY_NAME, TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS, VAR_UPM_REGISTRY, UNITY_DOWNLOADER_CLI_URL, UTR_INSTALL_URL,get_unity_downloader_cli_cmd
 from ...shared.utr_utils import utr_editmode_flags, utr_playmode_flags, utr_standalone_not_split_flags
 
 def _cmd_base(project_folder, platform, utr_flags, editor):
@@ -56,4 +56,4 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor):
 
 
 def cmd_standalone_build(project_folder, platform, api, test_platform, editor):
-    raise Exception('osx_metal: standalone_split set to true but build commands not specified')
+    raise NotImplementedError('osx_metal: standalone_split set to true but build commands not specified')

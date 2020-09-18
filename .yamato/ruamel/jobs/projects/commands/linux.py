@@ -1,8 +1,8 @@
-from ...shared.constants import TEST_PROJECTS_DIR,PATH_UNITY_REVISION, PATH_TEST_RESULTS, UNITY_DOWNLOADER_CLI_URL, UTR_INSTALL_URL
+from ...shared.constants import TEST_PROJECTS_DIR,PATH_UNITY_REVISION, PATH_TEST_RESULTS, UNITY_DOWNLOADER_CLI_URL, UTR_INSTALL_URL,get_unity_downloader_cli_cmd
 from ...shared.utr_utils import utr_editmode_flags, utr_playmode_flags, utr_standalone_split_flags,utr_standalone_not_split_flags, utr_standalone_build_flags
 
 
-def _cmd_base(project_folder, platform, utr_flags):
+def _cmd_base(project_folder, platform, utr_flags, editor):
     return [ 
         f'sudo -H pip install --upgrade pip',
         f'sudo -H pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
@@ -44,4 +44,4 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor):
 
 
 def cmd_standalone_build(project_folder, platform, api, test_platform, editor):
-    raise Exception('linux: split build not specified')
+    raise NotImplementedError('linux: split build not specified')
