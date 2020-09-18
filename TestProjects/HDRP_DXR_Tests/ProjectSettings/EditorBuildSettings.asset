@@ -171,7 +171,7 @@ EditorBuildSettings:
     path: Assets/Scenes/905_Materials_SG_TransparentRTR.unity
     guid: cc33ef2ea5450204ab4fab18d90afaec
   - enabled: 1
-    path: Assets/Scenes/1000_RaytracingQualityKeyword_MaterialQuality_Indirect_Optimized.unity
+    path: Assets/Scenes/1000_RaytracingQualityKeyword_MaterialQuality_Indirect.unity
     guid: f2a5323c1c8df664cb7dd65071c61ab0
   - enabled: 1
     path: Assets/Scenes/1000_RaytracingQualityKeyword_RR_Default.unity
