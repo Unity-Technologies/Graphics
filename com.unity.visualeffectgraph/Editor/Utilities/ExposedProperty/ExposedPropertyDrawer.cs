@@ -6,7 +6,7 @@ using UnityEngine.VFX.Utility;
 namespace UnityEditor.VFX.Utility
 {
     [CustomPropertyDrawer(typeof(ExposedProperty))]
-    public class ExposedPropertyDrawer : PropertyDrawer
+    class ExposedPropertyDrawer : PropertyDrawer
     {
         const string k_PropertyName = "m_Name";
 
