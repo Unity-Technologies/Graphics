@@ -6,8 +6,8 @@ editor_version_names:
 - 2020.2_latest_public
 - 2020.2_staging
 
-editor_versions: 
-  2020.2_latest_internal:  
+editor_versions:
+  2020.2_latest_internal:
     android:
       revision: ef376aff2859
       version: 2020.2.0b3
@@ -41,17 +41,17 @@ editor_versions:
       version: 2020.2.0b2
   2020.2_staging:
     android:
-      revision: f9fbc966404c821b1b86076990d1529489925596
+      revision: f408da6397b2a49c9a209f29254ff648a6e91ee0
       version: ''
     ios:
-      revision: f9fbc966404c821b1b86076990d1529489925596
+      revision: f408da6397b2a49c9a209f29254ff648a6e91ee0
       version: ''
     linux:
-      revision: f9fbc966404c821b1b86076990d1529489925596
+      revision: f408da6397b2a49c9a209f29254ff648a6e91ee0
       version: ''
     macos:
-      revision: f9fbc966404c821b1b86076990d1529489925596
+      revision: f408da6397b2a49c9a209f29254ff648a6e91ee0
       version: ''
     windows:
-      revision: f9fbc966404c821b1b86076990d1529489925596
+      revision: f408da6397b2a49c9a209f29254ff648a6e91ee0
       version: ''
