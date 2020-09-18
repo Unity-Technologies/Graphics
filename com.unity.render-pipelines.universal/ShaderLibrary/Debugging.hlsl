@@ -97,6 +97,17 @@ DebugData CreateDebugData(half3 brdfDiffuse, half3 brdfSpecular, float2 uv)
     return debugData;
 }
 
+DebugData CreateDebugData(float2 uv)
+{
+    DebugData debugData;
+
+    debugData.brdfDiffuse = half3(0, 0, 0);
+    debugData.brdfSpecular = half3(0, 0, 0);
+    debugData.uv = uv;
+
+    return debugData;
+}
+
 // Set of colors that should still provide contrast for the Color-blind
 #define kPurpleColor float4(156.0 / 255.0, 79.0 / 255.0, 255.0 / 255.0, 1.0) // #9C4FFF
 #define kRedColor float4(203.0 / 255.0, 48.0 / 255.0, 34.0 / 255.0, 1.0) // #CB3022
