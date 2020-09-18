@@ -21,7 +21,7 @@ editor_versions:
       revision: abc09f7f75a1373b0b1442612132cd8a46ab744d
       version: ''
     windows:
-      revision: 222
+      revision: abc09f7f75a1373b0b1442612132cd8a46ab744d
       version: ''
   trunk_latest_public:
     android:

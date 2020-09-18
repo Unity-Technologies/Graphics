@@ -21,7 +21,7 @@ editor_versions:
       revision: ef376aff2859
       version: 2020.2.0b3
     windows:
-      revision: 111
+      revision: ef376aff2859
       version: 2020.2.0b3
   2020.2_latest_public:
     android:
