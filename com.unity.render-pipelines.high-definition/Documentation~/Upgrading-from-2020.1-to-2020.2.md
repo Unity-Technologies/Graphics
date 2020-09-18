@@ -143,6 +143,19 @@ by respectively
 ```
 For an example of best practices to apply decals to a material, see the `ApplyDecalToSurfaceData()` function in the LitDecalData.hlsl file.
 
+From 10.x, the decal functions prototype in shader code has changed. A new vertex normal parameters have been added to allow to handle angle based fading.
+The prototype for the function `GetDecalSurfaceData()` has changed from:
+`DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)`
+to:
+ `DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, inout float alpha)`
+
+The prototype for the function `ApplyDecalToSurfaceData()` in various Material has changed from:
+`void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, inout SurfaceData surfaceData)`
+to:
+ `void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData)`
+
+
+
 ## Custom pass API
 
 The signature of the Execute function has changed to simplify the parameters, now it only takes a CustomPassContext as its input:
