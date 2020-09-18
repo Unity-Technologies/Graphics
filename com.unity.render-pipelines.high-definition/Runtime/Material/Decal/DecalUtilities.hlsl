@@ -5,7 +5,7 @@ DECLARE_DBUFFER_TEXTURE(_DBufferTexture);
 
 // In order that the lod for with transpartent decal better match the lod for opaque decal
 // We use ComputeTextureLOD with bias == 0.5
-void EvalDecalMask( PositionInputs posInput, float3 positionRWSDdx, float3 positionRWSDdy, DecalData decalData,
+void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRWSDdx, float3 positionRWSDdy, DecalData decalData,
                     inout float4 DBuffer0, inout float4 DBuffer1, inout float4 DBuffer2, inout float2 DBuffer3, inout float alpha)
 {
     // Get the relative world camera to decal matrix
@@ -29,6 +29,17 @@ void EvalDecalMask( PositionInputs posInput, float3 positionRWSDdx, float3 posit
         // Following code match the code in DecalData.hlsl used for DBuffer. It have the same kind of condition and similar code structure
         uint affectFlags = (int)(decalData.blendParams.z + 0.5f); // 1 albedo, 2 normal, 4 metal, 8 AO, 16 smoothness
         float fadeFactor = decalData.normalToWorld[0][3];
+        // Check if this decal projector require angle fading
+        float2 angleFade = float2(decalData.normalToWorld[1][3], decalData.normalToWorld[2][3]);
+
+        if (angleFade.x > 0.0f) // if angle fade is enabled
+        {
+            float dotAngle = 1.0 - dot(vtxNormal, decalData.normalToWorld[2]);
+            // See equation in DecalSystem.cs - simplified to a madd here
+            float angleFadeFactor = 1.0 - saturate(dotAngle * angleFade.x + angleFade.y);
+            fadeFactor *= angleFadeFactor;
+        }
+
         float albedoMapBlend = fadeFactor;
         float maskMapBlend = fadeFactor;
 
@@ -172,7 +183,7 @@ DecalData FetchDecal(uint index)
 }
 #endif
 
-DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
+DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, inout float alpha)
 {
 #if defined(_SURFACE_TYPE_TRANSPARENT) && defined(HAS_LIGHTLOOP)  // forward transparent using clustered decals
     uint decalCount, decalStart;
@@ -234,7 +245,7 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
         {
             v_decalListOffset++;
             if (!isRejected)
-                EvalDecalMask(posInput, positionRWSDdx, positionRWSDdy, s_decalData, DBuffer0, DBuffer1, DBuffer2, DBuffer3, alpha);
+                EvalDecalMask(posInput, vtxNormal, positionRWSDdx, positionRWSDdy, s_decalData, DBuffer0, DBuffer1, DBuffer2, DBuffer3, alpha);
         }
 
     }

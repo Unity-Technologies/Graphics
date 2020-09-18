@@ -89,26 +89,23 @@ void Frag(  PackedVaryingsToPS packedInput,
 
     float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
-    // Check if this decal projector require angle fading
-    float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
-    float2 angleFade = float2(normalToWorld[1][3], normalToWorld[2][3]);
-
-    if (angleFade.x > 0.0f) // if angle fade is enabled
+    // For now we only allow angle fading when decal layers are enabled
+    // TODO: Reconstructing normal from depth buffer result in poor result.
+    // We may revisit it in the future
+    // This is example code:  float3 vtxNormal = normalize(cross(ddy(posInput.positionWS), ddx(posInput.positionWS)));
+    // But better implementation (and costlier) can be find here: https://atyuwen.github.io/posts/normal-reconstruction/
+    if (_EnableDecalLayers)
     {
-        float dotAngle = 0.0f;
-        if (_EnableDecalLayers)
-        {
-            dotAngle = 1.0 - dot(material.geomNormalWS, normalToWorld[2]);
-        }
-        else
-        {
-            // recover vertex normal from (incomplete) depth buffer could have various aritfacts at edge geometry (in particular
-            // as we don't render a full depth buffer depends on context)
-            float3 vtxNormal = normalize(cross(ddy(posInput.positionWS), ddx(posInput.positionWS)));
-            dotAngle = 1.0 - dot(vtxNormal, normalToWorld[2]);
-        }
+        // Check if this decal projector require angle fading
+        float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
+        float2 angleFade = float2(normalToWorld[1][3], normalToWorld[2][3]);
 
-        angleFadeFactor = 1.0 - saturate(dotAngle * angleFade.x + angleFade.y);
+        if (angleFade.x > 0.0f) // if angle fade is enabled
+        {
+            float dotAngle = 1.0 - dot(material.geomNormalWS, normalToWorld[2]);
+            // See equation in DecalSystem.cs - simplified to a madd here
+            angleFadeFactor = 1.0 - saturate(dotAngle * angleFade.x + angleFade.y);
+        }
     }
 
 #else // Decal mesh
