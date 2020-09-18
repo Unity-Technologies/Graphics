@@ -23,7 +23,7 @@ def cmd_playmode(project_folder, platform, api, test_platform):
     return  _cmd_base(project_folder, platform["components"], utr_args)
 
 def cmd_standalone(project_folder, platform, api, test_platform):
-    raise Exception("OSX_OpenGlCore standalone should not be called")
+    return []
 
 def cmd_standalone_build(project_folder, platform, api, test_platform):
-    raise Exception("OSX_OpenGlCore standalone should not be called")
+    return []
