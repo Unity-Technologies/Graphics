@@ -26,6 +26,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static readonly GUIContent postProcessData = EditorGUIUtility.TrTextContent("Post-processing Data", "Resources (textures, shaders, etc.) required by post-processing effects.");
 
             public static readonly GUIContent cameraSortingLayerTextureBound = EditorGUIUtility.TrTextContent("Camera Sorting Layers Texture Bound", "Layers from back most to selected bounds will be rendered to _CameraSortingLayersTexture");
+            public static readonly GUIContent cameraSortingLayerDownsampling = EditorGUIUtility.TrTextContent("Camera Sorting Layers Downsampling Method", "Method used to copy _CameraSortingLayersTexture");
         }
 
         struct LightBlendStyleProps
@@ -51,6 +52,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         SerializedProperty m_UseCameraSortingLayersTexture;
         SerializedProperty m_CameraSortingLayersTextureBound;
+        SerializedProperty m_CameraSortingLayerDownsamplingMethod;
 
         Analytics.Renderer2DAnalytics m_Analytics = Analytics.Renderer2DAnalytics.instance;
         Renderer2DData m_Renderer2DData;
@@ -102,6 +104,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             m_CameraSortingLayersTextureBound = serializedObject.FindProperty("m_CameraSortingLayersTextureBound");
             m_UseCameraSortingLayersTexture = serializedObject.FindProperty("m_UseCameraSortingLayersTexture");
+            m_CameraSortingLayerDownsamplingMethod = serializedObject.FindProperty("m_CameraSortingLayerDownsamplingMethod");
 
             m_UseDepthStencilBuffer = serializedObject.FindProperty("m_UseDepthStencilBuffer");
             m_PostProcessData = serializedObject.FindProperty("m_PostProcessData");
@@ -112,6 +115,36 @@ namespace UnityEditor.Experimental.Rendering.Universal
         private void OnDestroy()
         {
             SendModifiedAnalytics(m_Analytics);
+        }
+
+
+        public void CameraSortingLayerGUI()
+        {
+            SortingLayer[] sortingLayers = SortingLayer.layers;
+            string[] optionNames = new string[sortingLayers.Length + 1];
+            int[] optionIds = new int[sortingLayers.Length + 1];
+            optionNames[0] = "Disabled";
+            optionIds[0] = -1;
+
+            int currentOptionIndex = 0;
+            for (int i = 0; i < sortingLayers.Length; i++)
+            {
+                optionNames[i + 1] = sortingLayers[i].name;
+                optionIds[i + 1] = sortingLayers[i].id;
+                if (sortingLayers[i].id == m_CameraSortingLayersTextureBound.intValue)
+                    currentOptionIndex = i + 1;
+            }
+
+
+            int selectedOptionIndex = !m_UseCameraSortingLayersTexture.boolValue ? 0 : currentOptionIndex;
+            selectedOptionIndex = EditorGUILayout.Popup(Styles.cameraSortingLayerTextureBound, selectedOptionIndex, optionNames);
+
+            m_UseCameraSortingLayersTexture.boolValue = selectedOptionIndex != 0;
+            m_CameraSortingLayersTextureBound.intValue = optionIds[selectedOptionIndex];
+
+            EditorGUI.BeginDisabledGroup(!m_UseCameraSortingLayersTexture.boolValue);
+            EditorGUILayout.PropertyField(m_CameraSortingLayerDownsamplingMethod, Styles.cameraSortingLayerDownsampling);
+            EditorGUI.EndDisabledGroup();
         }
 
         public override void OnInspectorGUI()
@@ -188,29 +221,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             if(m_DefaultMaterialType.intValue == (int)Renderer2DData.Renderer2DDefaultMaterialType.Custom)
                 EditorGUILayout.PropertyField(m_DefaultCustomMaterial, Styles.defaultCustomMaterial);
 
-            //EditorGUILayout.PropertyField(m_CameraLayersTextureBound, );
-
-            SortingLayer[] sortingLayers = SortingLayer.layers;
-            string[] optionNames = new string[sortingLayers.Length + 1];
-            int[] optionIds = new int[sortingLayers.Length + 1];
-            optionNames[0] = "Disabled";
-            optionIds[0] = -1;
-
-            int currentOptionIndex = 0;
-            for (int i = 0; i < sortingLayers.Length; i++)
-            {
-                optionNames[i + 1] = sortingLayers[i].name;
-                optionIds[i + 1] = sortingLayers[i].id;
-                if (sortingLayers[i].id == m_CameraLayersTextureBound.intValue)
-                    currentOptionIndex = i + 1;
-            }
-
-
-            int selectedOptionIndex = !m_UseCameraLayersTexture.boolValue ? 0 : currentOptionIndex;
-            selectedOptionIndex = EditorGUILayout.Popup(Styles.cameraSortingLayerTextureBound, selectedOptionIndex, optionNames);
-
-            m_UseCameraLayersTexture.boolValue = selectedOptionIndex != 0;
-            m_CameraLayersTextureBound.intValue = optionIds[selectedOptionIndex];
+            CameraSortingLayerGUI();
 
             m_WasModified |= serializedObject.hasModifiedProperties;
             serializedObject.ApplyModifiedProperties();
