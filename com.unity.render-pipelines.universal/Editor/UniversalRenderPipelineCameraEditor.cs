@@ -212,8 +212,6 @@ namespace UnityEditor.Rendering.Universal
         }
         void UpdateCameras()
         {
-            camera.GetComponent<UniversalAdditionalCameraData>().UpdateCameraStack();
-
             var o = new PropertyFetcher<UniversalAdditionalCameraData>(m_AdditionalCameraDataSO);
             m_AdditionalCameraDataCameras = o.Find("m_Cameras");
 
@@ -310,7 +308,9 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUIUtility.labelWidth = labelWidth;
             }
             else
-            {                
+            {
+                camera.GetComponent<UniversalAdditionalCameraData>().UpdateCameraStack();
+
                 // Need to clean out the errorCamera list here.
                 errorCameras.Clear();
             }

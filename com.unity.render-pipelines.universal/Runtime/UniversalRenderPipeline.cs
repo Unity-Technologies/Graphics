@@ -293,12 +293,18 @@ namespace UnityEngine.Rendering.Universal
             if (cameraStack != null)
             {
                 var baseCameraRendererType = baseCameraAdditionalData?.scriptableRenderer.GetType();
+                bool shouldUpdateCameraStack = false;
 
                 for (int i = 0; i < cameraStack.Count; ++i)
                 {
                     Camera currCamera = cameraStack[i];
+                    if (currCamera == null)
+                    {
+                        shouldUpdateCameraStack = true;
+                        continue;
+                    }
 
-                    if (currCamera != null && currCamera.isActiveAndEnabled)
+                    if (currCamera.isActiveAndEnabled)
                     {
                         currCamera.TryGetComponent<UniversalAdditionalCameraData>(out var data);
 
@@ -322,6 +328,10 @@ namespace UnityEngine.Rendering.Universal
                         anyPostProcessingEnabled |= data.renderPostProcessing;
                         lastActiveOverlayCameraIndex = i;
                     }
+                }
+                if(shouldUpdateCameraStack)
+                {
+                    baseCameraAdditionalData.UpdateCameraStack();
                 }
             }
 
