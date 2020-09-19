@@ -75,6 +75,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField, Reload("Runtime/Data/PostProcessData.asset")]
         PostProcessData m_PostProcessData = null;
 
+        internal Material m_BlitMaterial;
+        internal Material m_SamplingMaterial;
+
         public float hdrEmulationScale => m_HDREmulationScale;
         public Light2DBlendStyle[] lightBlendStyles => m_LightBlendStyles;
         internal bool useDepthStencilBuffer => m_UseDepthStencilBuffer;
@@ -94,6 +97,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal bool useCameraSortingLayerTexture => m_UseCameraSortingLayersTexture;
         internal int cameraSortingLayerTextureBound => m_CameraSortingLayersTextureBound;
         internal Downsampling cameraSortingLayerDownsamplingMethod => m_CameraSortingLayerDownsamplingMethod;
+
+        internal Material blitMaterial => m_BlitMaterial;
+        internal Material samplingMaterial => m_SamplingMaterial;
 
         protected override ScriptableRenderer Create()
         {
@@ -127,6 +133,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 shadowMaterials = new Material[totalMaterials];
             if(removeSelfShadowMaterials == null || removeSelfShadowMaterials.Length == 0)
                 removeSelfShadowMaterials = new Material[totalMaterials];
+
+            m_BlitMaterial = CoreUtils.CreateEngineMaterial(blitShader);
+            m_SamplingMaterial = CoreUtils.CreateEngineMaterial(samplingShader);
         }
 
         // transient data

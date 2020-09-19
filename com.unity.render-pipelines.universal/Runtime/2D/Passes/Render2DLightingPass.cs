@@ -81,6 +81,30 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return sortingLayers.Length-1;
         }
 
+        private void CopyCameraSortingLayerRenderTexture(ScriptableRenderContext context, RenderingData renderingData)
+        {
+            var cmd = CommandBufferPool.Get();
+            cmd.Clear();
+            this.CreateCameraSortingLayerRenderTexture(renderingData, cmd, m_Renderer2DData.cameraSortingLayerDownsamplingMethod);
+
+            Material copyMaterial = m_Renderer2DData.cameraSortingLayerDownsamplingMethod == Downsampling._4xBox ? m_Renderer2DData.samplingMaterial : m_Renderer2DData.blitMaterial;
+            RenderingUtils.Blit(cmd, colorAttachment, m_Renderer2DData.cameraSortingLayerRenderTarget.id, copyMaterial, 0, false);
+            cmd.SetRenderTarget(colorAttachment);
+            cmd.SetGlobalTexture("_CameraSortingLayerTexture", m_Renderer2DData.cameraSortingLayerRenderTarget.id);
+            context.ExecuteCommandBuffer(cmd);
+        }
+
+        private short GetCameraSortingLayerBoundsIndex(SortingLayer[] sortingLayers)
+        {
+            for (short i = 0; i < sortingLayers.Length; i++)
+            {
+                if (sortingLayers[i].id == m_Renderer2DData.cameraSortingLayerTextureBound)
+                    return (short)sortingLayers[i].value;
+            }
+
+            return short.MinValue;
+        }
+
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var isLitView = true;
@@ -100,6 +124,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             filterSettings.layerMask = -1;
             filterSettings.renderingLayerMask = 0xFFFFFFFF;
             filterSettings.sortingLayerRange = SortingLayerRange.all;
+
+            short cameraSortingLayerBoundsIndex = GetCameraSortingLayerBoundsIndex(cachedSortingLayers);
 
             var isSceneLit = m_Renderer2DData.lightCullResult.IsSceneLit();
             if (isSceneLit)
@@ -178,8 +204,26 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment, ClearFlag.None, Color.white);
                         context.ExecuteCommandBuffer(cmd);
 
+                        
                         Profiler.BeginSample("RenderSpritesWithLighting - Draw Transparent Renderers");
-                        context.DrawRenderers(renderingData.cullResults, ref combinedDrawSettings, ref filterSettings);
+
+                        // If our camera sorting layer texture bound is inside our batch we need to break up the DrawRenderers into two batches
+                        if (cameraSortingLayerBoundsIndex >= lowerBound && cameraSortingLayerBoundsIndex < upperBound && m_Renderer2DData.useCameraSortingLayerTexture)
+                        {
+                            filterSettings.sortingLayerRange = new SortingLayerRange(lowerBound, cameraSortingLayerBoundsIndex);
+                            context.DrawRenderers(renderingData.cullResults, ref combinedDrawSettings, ref filterSettings);
+                            CopyCameraSortingLayerRenderTexture(context, renderingData);
+
+                            filterSettings.sortingLayerRange = new SortingLayerRange((short)(cameraSortingLayerBoundsIndex + 1), upperBound);
+                            context.DrawRenderers(renderingData.cullResults, ref combinedDrawSettings, ref filterSettings);
+                        }
+                        else
+                        {
+                            context.DrawRenderers(renderingData.cullResults, ref combinedDrawSettings, ref filterSettings);
+                            if (cameraSortingLayerBoundsIndex == upperBound && m_Renderer2DData.useCameraSortingLayerTexture)
+                                CopyCameraSortingLayerRenderTexture(context, renderingData);
+                        }
+
                         Profiler.EndSample();
 
                         if (lightStats.totalVolumetricUsage > 0)
