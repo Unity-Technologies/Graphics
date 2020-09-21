@@ -466,15 +466,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.lightingTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                         { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Lighting_Texture" }));
                     passData.prevLightingTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Prev_Lighting_Texture" }));
+                        { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Prev_Lighting_Texture" }));
 
-                    passData.ssrAccumPointTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Accum_Texture" }));
+                    //passData.ssrAccumPointTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                    //    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Accum_Texture" }));
 
                     builder.SetRenderFunc(
                     (RenderSSRPassData data, RenderGraphContext context) =>
                     {
                         RenderSSR(data.parameters,
+                                    hdCamera,
                                     GetBlueNoiseManager(),
                                     data.depthBuffer,
                                     data.depthPyramid,

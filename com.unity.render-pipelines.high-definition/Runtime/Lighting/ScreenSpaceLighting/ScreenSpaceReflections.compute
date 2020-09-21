@@ -79,7 +79,7 @@ TEXTURE2D_X(_DepthTexture);
        TEXTURE2D_X(        _SsrHitPointTexture);
     RW_TEXTURE2D_X(float4, _SsrPrevLightingTexture);
     RW_TEXTURE2D_X(float4, _SsrLightingTextureRW);
-       TEXTURE2D_X(        _SSRAccumTexture);
+    RW_TEXTURE2D_X(float4, _SSRAccumTexture);
 #endif
 
     TEXTURE2D_X(            _SsrClearCoatMaskTexture);
@@ -844,6 +844,7 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
                 _SsrPrevLightingTexture[COORD_TEXTURE2D_X(positionSS)],
                 _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)],
                 lerp(_SsrAccumulationAmount, 1.0f, speed));
+        _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = _SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)];
     }
 }
 

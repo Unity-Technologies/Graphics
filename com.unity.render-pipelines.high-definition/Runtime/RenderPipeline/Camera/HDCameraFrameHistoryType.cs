@@ -23,6 +23,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Depth1,
         /// <summary>Ambient Occlusion buffer.</summary>
         AmbientOcclusion,
+        /// <summary>Screen Space Reflection Accumulation.</summary>
+        ScreenSpaceReflectionAccumulation,
         /// <summary>Ray traced ambient occlusion buffer.</summary>
         RaytracedAmbientOcclusion,
         /// <summary>Ray traced shadow history buffer.</summary>
