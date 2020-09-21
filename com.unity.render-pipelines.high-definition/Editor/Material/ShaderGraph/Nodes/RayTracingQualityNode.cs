@@ -8,34 +8,35 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class RayTracingNode
+    [FormerName("UnityEditor.Rendering.HighDefinition.RayTracingNode")]
+    class RayTracingQualityNode
     {
-        private const string k_KeywordHigh = "RAYTRACING_SHADER_GRAPH_HIGH";
-        private const string k_KeywordLow = "RAYTRACING_SHADER_GRAPH_LOW";
+        private const string k_KeywordDefault = "RAYTRACING_SHADER_GRAPH_DEFAULT";
+        private const string k_KeywordRaytraced = "RAYTRACING_SHADER_GRAPH_RAYTRACED";
 
-        public enum RaytracingVariant
+        public enum RayTracingQualityVariant
         {
-            High,
-            Low
+            Default,
+            Raytraced
         }
 
-        public static string RaytracingVariantKeyword(RaytracingVariant variant)
+        public static string RaytracingVariantKeyword(RayTracingQualityVariant variant)
         {
             switch (variant)
             {
-                case RaytracingVariant.High: return k_KeywordHigh;
-                case RaytracingVariant.Low: return k_KeywordLow;
+                case RayTracingQualityVariant.Default: return k_KeywordDefault;
+                case RayTracingQualityVariant.Raytraced: return k_KeywordRaytraced;
                 default: throw new ArgumentOutOfRangeException(nameof(variant));
             }
         }
 
         [BuiltinKeyword]
         [SuppressMessage("ReSharper", "UnusedMember.Local")]
-        public static KeywordDescriptor GetRayTracingKeyword()
+        public static KeywordDescriptor GetRayTracingQualityKeyword()
         {
             return new KeywordDescriptor()
             {
-                displayName = "Raytracing",
+                displayName = "Raytracing Quality",
                 referenceName = "RAYTRACING_SHADER_GRAPH",
                 type = KeywordType.Enum,
                 definition = KeywordDefinition.Predefined,
@@ -43,8 +44,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 value = 0,
                 entries = new KeywordEntry[]
                 {
-                    new KeywordEntry("High", "HIGH"),
-                    new KeywordEntry("Low", "LOW"),
+                    new KeywordEntry("Default", "DEFAULT"),
+                    new KeywordEntry("Raytraced", "RAYTRACED"),
                 },
             };
         }
