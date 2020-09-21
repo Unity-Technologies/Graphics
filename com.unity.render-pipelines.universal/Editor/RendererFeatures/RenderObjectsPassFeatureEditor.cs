@@ -189,12 +189,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
             rect.y += Styles.defaultLineSpace;
 
             // Rendering Layer mask
-            RenderPipelineAsset urpAsset = UniversalRenderPipeline.asset;
-            string[] layerNames;
-            if (urpAsset && urpAsset.renderingLayerMaskNames != null)
-                layerNames = urpAsset.renderingLayerMaskNames;
-            else
-                layerNames = EditorUtils.defaultRenderingLayerNames;
+            RenderPipelineAsset asset = UniversalRenderPipeline.asset;
+            string[] layerNames = asset != null ? asset.renderingLayerMaskNames : EditorUtils.defaultRenderingLayerNames;
 
             EditorGUI.BeginProperty(rect, Styles.renderingLayerMask, m_RenderingLayerMask);
             var mask = EditorGUI.MaskField(rect, Styles.renderingLayerMask, m_RenderingLayerMask.intValue, layerNames);

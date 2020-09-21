@@ -200,7 +200,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // We reserve a few layers for internal URP usage
                 int i = 0;
-                for (; i < 24; ++i)
+                for (; i < 20; ++i)
                 {
                     m_RenderingLayerMaskNames[i] = string.Format("URP Reserved {0}", i);
                 }
