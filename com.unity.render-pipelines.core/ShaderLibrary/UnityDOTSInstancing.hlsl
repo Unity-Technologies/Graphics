@@ -150,14 +150,35 @@ uint GetDOTSInstanceIndex()
     return unity_DOTSVisibleInstances[unity_InstanceID].VisibleData.x;
 }
 
-uint GetDOTSTransformOffset()
+static const uint DOTSTransformOffsetMask = 0x3fffffff;
+static const uint DOTSTransformLocalToWorldMask = 0x80000000;
+static const uint DOTSTransformLocalToWorldPrevFrameMask = 0x40000000;
+static const uint DOTSTransformBytesPerMatrix = 3 * 16;
+
+uint GetDOTSTransformRawData()
 {
-    return unity_DOTSVisibleInstances[unity_InstanceID].VisibleData.y & 0x7fffffff;
+    return unity_DOTSVisibleInstances[unity_InstanceID].VisibleData.y;
 }
 
-bool GetDOTSTransformIsStatic()
+uint GetDOTSTransformOffset()
 {
-    return (unity_DOTSVisibleInstances[unity_InstanceID].VisibleData.y & 0x80000000) == 0;
+    return GetDOTSTransformRawData() & DOTSTransformOffsetMask;
+}
+
+uint GetDOTSLocalToWorldOffset()
+{
+    // Highest bit is 0 if LocalToWorld is the first matrix
+    // Highest bit is 1 if LocalToWorld is the third matrix
+    bool currentIs0 = !(GetDOTSTransformRawData() & DOTSTransformLocalToWorldMask);
+    return currentIs0 ? 0 : (2 * DOTSTransformBytesPerMatrix);
+}
+
+uint GetDOTSLocalToWorldPrevFrameOffset()
+{
+    // Highest bit is 0 if LocalToWorldPrevFrame is the first matrix
+    // Highest bit is 1 if LocalToWorldPrevFrame is the third matrix
+    bool previousIs0 = !(GetDOTSTransformRawData() & DOTSTransformLocalToWorldPrevFrameMask);
+    return previousIs0 ? 0 : (2 * DOTSTransformBytesPerMatrix);
 }
 
 uint ComputeDOTSInstanceDataAddress(uint metadata, uint stride)
@@ -240,22 +261,18 @@ float4x4 LoadDOTSInstancedData_float4x4_from_float3x4(uint metadata)
 
 float4x4 LoadDOTSInstancedMatrixLocalToWorld()
 {
-    // LocalToWorld is the first matrix, stored in float3x4
-    return LoadDOTSInstancedMatrix_float4x4_from_float3x4(GetDOTSTransformOffset() + 0 * 16);
+    return LoadDOTSInstancedMatrix_float4x4_from_float3x4(GetDOTSTransformOffset() + GetDOTSLocalToWorldOffset());
 }
 
 float4x4 LoadDOTSInstancedMatrixWorldToLocal()
 {
-    // WorldToLocal is the second matrix, stored in float3x4
-    return LoadDOTSInstancedMatrix_float4x4_from_float3x4(GetDOTSTransformOffset() + 3 * 16);
+    // WorldToLocal is always the second matrix, stored in float3x4
+    return LoadDOTSInstancedMatrix_float4x4_from_float3x4(GetDOTSTransformOffset() + DOTSTransformBytesPerMatrix);
 }
 
 float4x4 LoadDOTSInstancedMatrixLocalToWorldPrevFrame()
 {
-    // If the transform is static, use the current frame matrix as the previous frame matrix.
-    // If the transform is not static, use the third matrix.
-    uint prevFrameOffset = GetDOTSTransformIsStatic() ? 0 : (6 * 16);
-    return LoadDOTSInstancedMatrix_float4x4_from_float3x4(GetDOTSTransformOffset() + prevFrameOffset);
+    return LoadDOTSInstancedMatrix_float4x4_from_float3x4(GetDOTSTransformOffset() + GetDOTSLocalToWorldPrevFrameOffset());
 }
 
 float2x4 LoadDOTSInstancedData_float2x4(uint metadata)
@@ -273,4 +290,3 @@ float2x4 LoadDOTSInstancedData(float2x4 dummy, uint metadata) { return LoadDOTSI
 #endif // UNITY_DOTS_INSTANCING_ENABLED
 
 #endif // UNITY_DOTS_INSTANCING_INCLUDED
-
