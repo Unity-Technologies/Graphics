@@ -180,6 +180,41 @@ namespace UnityEngine.Rendering.Universal
         public const int k_MinLutSize = 16;
         public const int k_MaxLutSize = 65;
 
+        [NonSerialized] private string[] m_RenderingLayerMaskNames;
+
+        /// <summary>
+        ///   <para>Returns the list of names used to display Rendering Layer Mask UI for this pipeline.</para>
+        ///   <para>The first 24 masks are reserved for URP.</para>
+        /// </summary>
+        /// <returns>
+        ///   <para>Array of 32 Rendering Layer Mask names.</para>
+        /// </returns>
+        public override string[] renderingLayerMaskNames
+        {
+            get
+            {
+                if (m_RenderingLayerMaskNames != null)
+                    return m_RenderingLayerMaskNames;
+
+                m_RenderingLayerMaskNames = new string[32];
+
+                // We reserve a few layers for internal URP usage
+                int i = 0;
+                for (; i < 24; ++i)
+                {
+                    m_RenderingLayerMaskNames[i] = string.Format("URP Reserved {0}", i);
+                }
+
+                // The remaining layers are available
+                for (; i < m_RenderingLayerMaskNames.Length; ++i)
+                {
+                    m_RenderingLayerMaskNames[i] = string.Format("Unused {0}", i);
+                }
+
+                return m_RenderingLayerMaskNames;
+            }
+        }
+
 #if UNITY_EDITOR
         [NonSerialized]
         internal UniversalRenderPipelineEditorResources m_EditorResourcesAsset;

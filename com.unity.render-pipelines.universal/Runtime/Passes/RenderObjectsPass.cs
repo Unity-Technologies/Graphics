@@ -40,7 +40,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         RenderStateBlock m_RenderStateBlock;
 
-        public RenderObjectsPass(string profilerTag, RenderPassEvent renderPassEvent, string[] shaderTags, RenderQueueType renderQueueType, int layerMask, RenderObjects.CustomCameraSettings cameraSettings)
+        public RenderObjectsPass(string profilerTag, RenderPassEvent renderPassEvent, string[] shaderTags, RenderQueueType renderQueueType, int layerMask, RenderObjects.CustomCameraSettings cameraSettings, uint renderingLayerMask = uint.MaxValue)
         {
             m_ProfilerTag = profilerTag;
             m_ProfilingSampler = new ProfilingSampler(profilerTag);
@@ -51,7 +51,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             RenderQueueRange renderQueueRange = (renderQueueType == RenderQueueType.Transparent)
                 ? RenderQueueRange.transparent
                 : RenderQueueRange.opaque;
-            m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
+            m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask, renderingLayerMask);
 
             if (shaderTags != null && shaderTags.Length > 0)
             {
@@ -70,8 +70,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         }
 
-        internal RenderObjectsPass(URPProfileId profileId, RenderPassEvent renderPassEvent, string[] shaderTags, RenderQueueType renderQueueType, int layerMask, RenderObjects.CustomCameraSettings cameraSettings)
-        : this(profileId.GetType().Name, renderPassEvent, shaderTags, renderQueueType, layerMask, cameraSettings)
+        internal RenderObjectsPass(URPProfileId profileId, RenderPassEvent renderPassEvent, string[] shaderTags, RenderQueueType renderQueueType, int layerMask, RenderObjects.CustomCameraSettings cameraSettings, uint renderingLayerMask = uint.MaxValue)
+        : this(profileId.GetType().Name, renderPassEvent, shaderTags, renderQueueType, layerMask, cameraSettings, renderingLayerMask)
         {
             m_ProfilingSampler = ProfilingSampler.Get(profileId);
         }
@@ -120,9 +120,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
-
-                context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings,
-                    ref m_RenderStateBlock);
+                context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
 
                 if (m_CameraSettings.overrideCamera && m_CameraSettings.restoreCamera && !cameraData.xr.enabled)
                 {

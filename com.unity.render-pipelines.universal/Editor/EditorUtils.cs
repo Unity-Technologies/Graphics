@@ -25,6 +25,23 @@ namespace UnityEditor.Rendering.Universal
         public const int lwrpAssetCreateMenuPriorityGroup2 = CoreUtils.assetCreateMenuPriority1 + 50;
         public const int lwrpAssetCreateMenuPriorityGroup3 = lwrpAssetCreateMenuPriorityGroup2 + 50;
 
+        private static string[] m_DefaultRenderingLayerNames;
+        internal static string[] defaultRenderingLayerNames
+        {
+            get
+            {
+                if (m_DefaultRenderingLayerNames == null)
+                {
+                    m_DefaultRenderingLayerNames = new string[32];
+                    for (int i = 0; i < m_DefaultRenderingLayerNames.Length; ++i)
+                    {
+                        m_DefaultRenderingLayerNames[i] = string.Format("Layer{0}", i + 1);
+                    }
+                }
+                return m_DefaultRenderingLayerNames;
+            }
+        }
+
         internal class Styles
         {
             //Measurements

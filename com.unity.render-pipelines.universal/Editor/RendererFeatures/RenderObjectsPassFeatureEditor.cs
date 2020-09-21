@@ -3,6 +3,9 @@ using UnityEngine;
 using UnityEditorInternal;
 using UnityEngine.Experimental.Rendering.Universal;
 using System.Collections.Generic;
+using UnityEditor.Rendering.Universal;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Experimental.Rendering.Universal
 {
@@ -21,6 +24,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 		    //Filters
 		    public static GUIContent renderQueueFilter = new GUIContent("Queue", "Only render objects in the selected render queue range.");
 		    public static GUIContent layerMask = new GUIContent("Layer Mask", "Only render objects in a layer that match the given layer mask.");
+		    public static GUIContent renderingLayerMask = new GUIContent("Rendering Layer Mask", "Only render objects that match the given rendering layer mask.");
 		    public static GUIContent shaderPassFilter = new GUIContent("LightMode Tags", "Controls which shader passes to render by filtering by LightMode tag.");
 
 		    //Render Options
@@ -54,6 +58,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 	    private SerializedProperty m_FilterSettings;
 	    private SerializedProperty m_RenderQueue;
 	    private SerializedProperty m_LayerMask;
+	    private SerializedProperty m_RenderingLayerMask;
 	    private SerializedProperty m_ShaderPasses;
 	    //Render props
 	    private SerializedProperty m_OverrideMaterial;
@@ -88,6 +93,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_FilterSettings = property.FindPropertyRelative("filterSettings");
             m_RenderQueue = m_FilterSettings.FindPropertyRelative("RenderQueueType");
             m_LayerMask = m_FilterSettings.FindPropertyRelative("LayerMask");
+            m_RenderingLayerMask = m_FilterSettings.FindPropertyRelative("RenderingLayerMask");
             m_ShaderPasses = m_FilterSettings.FindPropertyRelative("PassNames");
 
             //Render options
@@ -129,6 +135,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 				m_PassTag.stringValue = passName;
 				property.serializedObject.ApplyModifiedProperties();
 			}
+            EditorGUI.EndProperty();
 
 			//Forward Callbacks
 			EditorGUI.PropertyField(rect, m_Callback, Styles.callback);
@@ -158,7 +165,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
 				EditorGUI.indentLevel--;
 			}
 
-			EditorGUI.EndProperty();
 			if (EditorGUI.EndChangeCheck())
 				property.serializedObject.ApplyModifiedProperties();
 	    }
@@ -168,23 +174,42 @@ namespace UnityEditor.Experimental.Rendering.Universal
 		    m_FiltersFoldout.value = EditorGUI.Foldout(rect, m_FiltersFoldout.value, Styles.filtersHeader, true);
 		    SaveHeaderBool(m_FiltersFoldout);
 		    rect.y += Styles.defaultLineSpace;
-		    if (m_FiltersFoldout.value)
-		    {
-			    EditorGUI.indentLevel++;
-			    //Render queue filter
-			    EditorGUI.PropertyField(rect, m_RenderQueue, Styles.renderQueueFilter);
-			    rect.y += Styles.defaultLineSpace;
-			    //Layer mask
-			    EditorGUI.PropertyField(rect, m_LayerMask, Styles.layerMask);
-			    rect.y += Styles.defaultLineSpace;
-			    //Shader pass list
-                EditorGUI.PropertyField(rect, m_ShaderPasses, Styles.shaderPassFilter, true);
-                rect.y += EditorGUI.GetPropertyHeight(m_ShaderPasses);
-                EditorGUI.indentLevel--;
-            }
-	    }
 
-	    void DoMaterialOverride(ref Rect rect)
+            if (!m_FiltersFoldout.value)
+                return;
+
+            EditorGUI.indentLevel++;
+
+            // Render queue filter
+            EditorGUI.PropertyField(rect, m_RenderQueue, Styles.renderQueueFilter);
+            rect.y += Styles.defaultLineSpace;
+
+            // Layer mask
+            EditorGUI.PropertyField(rect, m_LayerMask, Styles.layerMask);
+            rect.y += Styles.defaultLineSpace;
+
+            // Rendering Layer mask
+            RenderPipelineAsset urpAsset = UniversalRenderPipeline.asset;
+            string[] layerNames;
+            if (urpAsset && urpAsset.renderingLayerMaskNames != null)
+                layerNames = urpAsset.renderingLayerMaskNames;
+            else
+                layerNames = EditorUtils.defaultRenderingLayerNames;
+
+            EditorGUI.BeginProperty(rect, Styles.renderingLayerMask, m_RenderingLayerMask);
+            var mask = EditorGUI.MaskField(rect, Styles.renderingLayerMask, m_RenderingLayerMask.intValue, layerNames);
+            EditorGUI.EndProperty();
+            m_RenderingLayerMask.longValue = (uint)mask;
+            rect.y += Styles.defaultLineSpace;
+
+            // Shader pass list
+            EditorGUI.PropertyField(rect, m_ShaderPasses, Styles.shaderPassFilter, true);
+            rect.y += EditorGUI.GetPropertyHeight(m_ShaderPasses);
+
+            EditorGUI.indentLevel--;
+        }
+
+        void DoMaterialOverride(ref Rect rect)
 	    {
 		    //Override material
 		    EditorGUI.PropertyField(rect, m_OverrideMaterial, Styles.overrideMaterial);
