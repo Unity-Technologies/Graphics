@@ -3,6 +3,8 @@ project:
   folder: VisualEffectGraph_URP
 test_platforms:
   - type: Standalone
+    timeout:
+      OSX_Metal: 2400
   - type: playmode
 #  - type: editmode
 platforms:

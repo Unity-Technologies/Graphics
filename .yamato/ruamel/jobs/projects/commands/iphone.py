@@ -14,7 +14,7 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor):
 
 def cmd_standalone(project_folder, platform, api, test_platform, editor):
 
-    utr_args = utr_standalone_split_flags(platform_spec='', platform='iOS', player_load_path='players',player_conn_ip=None, timeout=None)
+    utr_args = utr_standalone_split_flags(platform_spec='', platform='iOS', player_load_path='players',player_conn_ip=None)
     utr_args.extend(test_platform["extra_utr_flags"])
 
     return [
@@ -26,7 +26,7 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor):
         
 def cmd_standalone_build(project_folder, platform, api, test_platform, editor):
 
-    utr_args = utr_standalone_build_flags(platform_spec='', platform='iOS', testproject=f'{TEST_PROJECTS_DIR}/{project_folder}', player_save_path=PATH_PLAYERS, timeout=None)
+    utr_args = utr_standalone_build_flags(platform_spec='', platform='iOS', testproject=f'{TEST_PROJECTS_DIR}/{project_folder}', player_save_path=PATH_PLAYERS)
     utr_args.extend(test_platform["extra_utr_flags_build"])
 
     return [

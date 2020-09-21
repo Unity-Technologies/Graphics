@@ -14,6 +14,8 @@ test_platforms:
       - --extra-editor-arg="-rendergraph-tests"
   - type: editmode
   - type: Standalone
+    timeout:
+      OSX_Metal: 2400
 platforms:
   - name: Win
     apis:

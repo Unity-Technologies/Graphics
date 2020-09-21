@@ -19,7 +19,7 @@ Universal_Hybrid_Android_Vulkan_Standalone_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --timeout=1200 --player-load-path=players --compilation-errors-as-warnings --scripting-backend=il2cpp --editor-location=WindowsEditor
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --compilation-errors-as-warnings --scripting-backend=il2cpp --editor-location=WindowsEditor --timeout 1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -44,7 +44,7 @@ Build_Universal_Hybrid_Android_Vulkan_Player_trunk:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalHybridTest --editor-location=WindowsEditor --artifacts_path=test-results --timeout=1200 --player-save-path=players --build-only --compilation-errors-as-warnings --scripting-backend=il2cpp --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalHybridTest --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --compilation-errors-as-warnings --scripting-backend=il2cpp --timeout 1200 --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
     artifacts:
         logs:
             paths:
@@ -69,7 +69,7 @@ Universal_Hybrid_Android_Vulkan_Standalone_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --timeout=1200 --player-load-path=players --compilation-errors-as-warnings --scripting-backend=il2cpp --editor-location=WindowsEditor
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --compilation-errors-as-warnings --scripting-backend=il2cpp --editor-location=WindowsEditor --timeout 1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -97,7 +97,7 @@ Build_Universal_Hybrid_Android_Vulkan_Player_CUSTOM-REVISION:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalHybridTest --editor-location=WindowsEditor --artifacts_path=test-results --timeout=1200 --player-save-path=players --build-only --compilation-errors-as-warnings --scripting-backend=il2cpp --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalHybridTest --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --compilation-errors-as-warnings --scripting-backend=il2cpp --timeout 1200 --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
     artifacts:
         logs:
             paths:

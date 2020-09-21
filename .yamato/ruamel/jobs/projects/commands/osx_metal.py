@@ -1,6 +1,6 @@
 
 from ruamel.yaml.scalarstring import PreservedScalarString as pss
-from ...shared.constants import REPOSITORY_NAME, TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS, VAR_UPM_REGISTRY, UNITY_DOWNLOADER_CLI_URL, UTR_INSTALL_URL,get_unity_downloader_cli_cmd
+from ...shared.constants import REPOSITORY_NAME, TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS, VAR_UPM_REGISTRY, UNITY_DOWNLOADER_CLI_URL, UTR_INSTALL_URL,get_unity_downloader_cli_cmd, get_timeout
 from ...shared.utr_utils import utr_editmode_flags, utr_playmode_flags, utr_standalone_not_split_flags
 
 def _cmd_base(project_folder, platform, utr_flags, editor):
@@ -48,10 +48,10 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor):
         platform_spec='OSX',
         testproject=f'/Users/bokken/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}',
         editor_location=f'/Users/bokken/.Editor',
-        artifacts_path=f'/Users/bokken/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}/{PATH_TEST_RESULTS}',
-        timeout=2400
+        artifacts_path=f'/Users/bokken/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}/{PATH_TEST_RESULTS}'
     )
     utr_args.extend(test_platform["extra_utr_flags"])
+    utr_args.append(f'--timeout {get_timeout(test_platform, "OSX_Metal")}')
     return  _cmd_base(project_folder, platform, utr_args, editor)
 
 

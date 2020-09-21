@@ -151,13 +151,6 @@ editors:
     cmd: -u trunk # used only by editor job
   - ...
 
-# test platforms with their corresponding command args (dict)
-test_platforms:   
-  Standalone: --suite=playmode --platform=Standalone
-  playmode: --suite=playmode
-  playmode_XR: --suite=playmode --extra-editor-arg="-xr-tests"
-  editmode: --suite=editor --platform=editmode
-
 # specifies platform details for each platform 
 platforms:
   Win:
@@ -470,13 +463,20 @@ project:
 
 # test platforms to generate jobs for
 test_platforms:
-  - type:Standalone
+  - type: Standalone
     extra_utr_flags: # specify additional utr flags to run for this project and test platform
       - --some-extra-utr-flag
     extra_utr_flags_build:
       - --some-extra-utr-flag # additional utr flags for build (only available for standalone type)
-  - type:playmode
-  - type:editmode
+    timeout: 3000 # overrides default timeout 1200 for all platforms which use this property in cmd files
+    # timeout: # overrides default timeout per platform (for unspecified platforms, default is used)
+    #  OSX_Metal: 2400 
+    #  Win: 3000 
+    timeout_build: 3000 # overrides default timeout 1200 for all platforms which use this property in cmd files (only for split build jobs)
+    # timeout_build: # overrides default timeout per platform (for unspecified platforms, default is used)
+    #  Win: 3000 
+  - type: playmode
+  - type: editmode
   - type: playmode # custom testplatform: specify the 'base' type, name it to what you want, and add any additional flags
     name: playmode_XR
     extra_utr_flags:
