@@ -1,3 +1,7 @@
+
+using System;
+using UnityEngine.Scripting.APIUpdating;
+
 namespace UnityEditor.Rendering.LWRP
 {
     // This is to keep the namespace UnityEditor.Rendering.LWRP alive,
@@ -5,4 +9,12 @@ namespace UnityEditor.Rendering.LWRP
     internal class Deprecated
     {
     }
+}
+
+namespace UnityEditor.Rendering.Universal
+{
+    [Obsolete("ForwardRendererDataEditor has been deprecated. Use StandardRendererDataEditor instead (UnityUpgradable) -> StandardRendererDataEditor", true)]
+    [MovedFrom("UnityEditor.Rendering.LWRP")]
+    public class ForwardRendererDataEditor
+    { }
 }
