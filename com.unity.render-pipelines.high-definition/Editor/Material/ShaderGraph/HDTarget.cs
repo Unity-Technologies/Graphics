@@ -827,6 +827,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
         };
 
+        public static DefineCollection ForwardUnlit = new DefineCollection
+        {
+            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
+        };
+
         public static DefineCollection BackThenFront = new DefineCollection
         {
             { CoreKeywordDescriptors.HasLightloop, 1 },
