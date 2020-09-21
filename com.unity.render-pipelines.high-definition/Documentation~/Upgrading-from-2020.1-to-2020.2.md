@@ -143,6 +143,8 @@ by respectively
 ```
 For an example of best practices to apply decals to a material, see the `ApplyDecalToSurfaceData()` function in the LitDecalData.hlsl file.
 
+From 10.x, HDRP adds a new fullscreen debug pass named `FullScreenDebug`. Any object using a material which doesn't contain this pass will no be rendered during the fullscreen debug pass.
+
 ## Custom pass API
 
 The signature of the Execute function has changed to simplify the parameters, now it only takes a CustomPassContext as its input:
@@ -165,3 +167,8 @@ With:
 ```
 protected override void Execute(CustomPassContext ctx) { ... }
 ```
+
+## Density Volume Mask Texture
+
+Previously, to convert a 2D flipbook texture to the 3D format Density Mask Textures require, you needed to use the __Density Volume Texture Tool__ in the __Window > Rendering__ menu.
+From Unity 2020.2, you can now do this conversion directly through the __Texture Importer__. For information on how to use the importer to convert the flipbook texture, see the [Density Volume documentation](Density-Volume.md).

@@ -1195,6 +1195,47 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
 #endregion
 
+#region FullScreen Debug
+
+        public static PassDescriptor GenerateFullScreenDebug()
+        {
+            return new PassDescriptor
+            {
+                // Definition
+                displayName = "FullScreenDebug",
+                referenceName = "SHADERPASS_FULLSCREEN_DEBUG",
+                lightMode = "FullScreenDebug",
+                useInPreview = false,
+
+                // Collections
+                pragmas = CorePragmas.Basic,
+                renderStates = FullScreenDebugRenderState,
+                includes = GenerateIncludes(),
+            };
+
+            IncludeCollection GenerateIncludes()
+            {
+                return new IncludeCollection
+                {
+                    { CoreIncludes.CorePregraph },
+                    { CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph },
+                    { CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph },
+                    { CoreIncludes.CoreUtility },
+                    { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph },
+                    { CoreIncludes.kPassFullScreenDebug, IncludeLocation.Postgraph },
+                };
+            }
+        }
+
+        public static RenderStateCollection FullScreenDebugRenderState = new RenderStateCollection
+        {
+            { RenderState.Cull(CoreRenderStates.Uniforms.cullMode) },
+            { RenderState.ZWrite(ZWrite.Off) },
+            { RenderState.ZTest(ZTest.LEqual) },
+        };
+
+#endregion
+
 #region Define Utility
 
         public static class Defines
