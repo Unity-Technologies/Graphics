@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEditorInternal;
 using UnityEngine.Experimental.Rendering.Universal;
 using System.Collections.Generic;
+using UnityEditor.Rendering.Universal;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -77,23 +78,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         private List<SerializedObject> m_properties = new List<SerializedObject>();
 
-        private static string[] m_DefaultRenderingLayerNames;
-        private static string[] defaultRenderingLayerNames
-        {
-            get
-            {
-                if (m_DefaultRenderingLayerNames == null)
-                {
-                    m_DefaultRenderingLayerNames = new string[32];
-                    for (int i = 0; i < m_DefaultRenderingLayerNames.Length; ++i)
-                    {
-                        m_DefaultRenderingLayerNames[i] = string.Format("Layer{0}", i + 1);
-                    }
-                }
-                return m_DefaultRenderingLayerNames;
-            }
-        }
-
         private void Init(SerializedProperty property)
         {
             //Header bools
@@ -151,6 +135,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 				m_PassTag.stringValue = passName;
 				property.serializedObject.ApplyModifiedProperties();
 			}
+            EditorGUI.EndProperty();
 
 			//Forward Callbacks
 			EditorGUI.PropertyField(rect, m_Callback, Styles.callback);
@@ -180,7 +165,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
 				EditorGUI.indentLevel--;
 			}
 
-			EditorGUI.EndProperty();
 			if (EditorGUI.EndChangeCheck())
 				property.serializedObject.ApplyModifiedProperties();
 	    }
@@ -206,14 +190,17 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             // Rendering Layer mask
             RenderPipelineAsset urpAsset = UniversalRenderPipeline.asset;
-            if (urpAsset != null)
-            {
-                EditorGUI.BeginProperty(rect, Styles.renderingLayerMask, m_RenderingLayerMask);
-                string[] layerNames = urpAsset.renderingLayerMaskNames ?? defaultRenderingLayerNames;
-                m_RenderingLayerMask.intValue = EditorGUI.MaskField(rect, Styles.renderingLayerMask, m_RenderingLayerMask.intValue, layerNames);
-                EditorGUI.EndProperty();
-                rect.y += Styles.defaultLineSpace;
-            }
+            string[] layerNames;
+            if (urpAsset && urpAsset.renderingLayerMaskNames != null)
+                layerNames = urpAsset.renderingLayerMaskNames;
+            else
+                layerNames = EditorUtils.defaultRenderingLayerNames;
+
+            EditorGUI.BeginProperty(rect, Styles.renderingLayerMask, m_RenderingLayerMask);
+            var mask = EditorGUI.MaskField(rect, Styles.renderingLayerMask, m_RenderingLayerMask.intValue, layerNames);
+            EditorGUI.EndProperty();
+            m_RenderingLayerMask.longValue = (uint)mask;
+            rect.y += Styles.defaultLineSpace;
 
             // Shader pass list
             EditorGUI.PropertyField(rect, m_ShaderPasses, Styles.shaderPassFilter, true);
