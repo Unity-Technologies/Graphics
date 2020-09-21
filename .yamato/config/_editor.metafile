@@ -14,8 +14,8 @@ editor_priming_agent: cds_ops_ubuntu_small
 editor_pin_agent: package_ci_ubuntu_small
 
 # remove the following once editor pinning is done. these values will be picked up from __shared
-target_branch_editor_ci: yamato/update-unity-versions-ep-ci
-target_branch: yamato/update-unity-versions
+#target_branch_editor_ci: yamato/update-unity-versions-ep-ci
+#target_branch: yamato/update-unity-versions
 
 
 ### Configuration required by update_revisions.py
