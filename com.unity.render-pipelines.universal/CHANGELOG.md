@@ -4,6 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [7.5.2] - 2020-09-14
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [7.5.1] - 2020-09-02
 
 ### Added
@@ -27,6 +32,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue that caused some properties in the camera to not be bold and highlighted when edited in prefab mode. [case 1230082](https://issuetracker.unity3d.com/issues/urp-camera-prefab-fields-render-type-renderer-background-type-are-not-bolded-and-highlighted-when-edited-in-prefab-mode)
 - Fixed an issue that impacted MSAA performance on iOS/Metal [case 1219054](https://issuetracker.unity3d.com/issues/urp-ios-msaa-has-a-bigger-negative-impact-on-performance-when-using-urp-compared-to-built-in-rp)
 - Fixed division by zero in `V_SmithJointGGX` function.
+- Fixed not using the local skybox on the camera game object when Lighting>environment skybox was set to null.
+- Fixed an issue with a render texture failing assertion when chosing an invalid format. [case 1271034](https://issuetracker.unity3d.com/issues/the-error-occurs-when-a-render-texture-which-has-a-certain-color-format-is-applied-to-the-cameras-output-target)
 - Fixed an issue that caused the unity_CameraToWorld matrix to have z flipped values. [case 1257518](https://issuetracker.unity3d.com/issues/parameter-unity-cameratoworld-dot-13-23-33-is-inverted-when-using-universal-rp-7-dot-4-1-and-newer)
 
 ## [7.4.1] - 2020-06-03

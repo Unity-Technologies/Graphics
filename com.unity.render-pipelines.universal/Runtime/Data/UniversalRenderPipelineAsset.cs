@@ -343,8 +343,20 @@ namespace UnityEngine.Rendering.Universal
 
         void DestroyRenderers()
         {
-            foreach (var renderer in m_Renderers)
-                renderer?.Dispose();
+            if (m_Renderers == null)
+                return;
+
+            for (int i = 0; i < m_Renderers.Length; i++)
+                DestroyRenderer(ref m_Renderers[i]);
+        }
+
+        void DestroyRenderer(ref ScriptableRenderer renderer)
+        {
+            if (renderer != null)
+            {
+                renderer.Dispose();
+                renderer = null;
+            }
         }
 
         protected override void OnValidate()
@@ -367,7 +379,11 @@ namespace UnityEngine.Rendering.Universal
 
         void CreateRenderers()
         {
-            m_Renderers = new ScriptableRenderer[m_RendererDataList.Length];
+            DestroyRenderers();
+
+            if (m_Renderers == null || m_Renderers.Length != m_RendererDataList.Length)
+                m_Renderers = new ScriptableRenderer[m_RendererDataList.Length];
+
             for (int i = 0; i < m_RendererDataList.Length; ++i)
             {
                 if (m_RendererDataList[i] != null)
@@ -420,6 +436,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (scriptableRendererData.isInvalidated || m_Renderers[m_DefaultRendererIndex] == null)
                 {
+                    DestroyRenderer(ref m_Renderers[m_DefaultRendererIndex]);
                     m_Renderers[m_DefaultRendererIndex] = scriptableRendererData.InternalCreateRenderer();
                 }
 
@@ -452,7 +469,10 @@ namespace UnityEngine.Rendering.Universal
             // This renderer data is outdated or invalid, we recreate the renderer
             // so we construct all render passes with the updated data
             if (m_RendererDataList[index].isInvalidated || m_Renderers[index] == null)
+            {
+                DestroyRenderer(ref m_Renderers[index]);
                 m_Renderers[index] = m_RendererDataList[index].InternalCreateRenderer();
+            }
 
             return m_Renderers[index];
         }
