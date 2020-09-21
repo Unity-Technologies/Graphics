@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering
             speedAction = map.AddAction("speed", binding: "<Gamepad>/dpad");
             yMoveAction = map.AddAction("yMove");
 
-            lookAction.AddBinding("<Gamepad>/rightStick").WithProcessor("scaleVector2(x=10, y=10)");
+            lookAction.AddBinding("<Gamepad>/rightStick").WithProcessor("scaleVector2(x=15, y=15)");
             moveAction.AddCompositeBinding("Dpad")
                 .With("Up", "<Keyboard>/w")
                 .With("Up", "<Keyboard>/upArrow")
