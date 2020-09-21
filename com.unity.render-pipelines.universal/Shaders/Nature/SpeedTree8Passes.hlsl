@@ -3,6 +3,7 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
+#include "SpeedTreeUtility.hlsl"
 
 struct SpeedTreeVertexInput
 {
@@ -49,6 +50,7 @@ struct SpeedTreeVertexDepthOutput
 {
     half2 uv                        : TEXCOORD0;
     half4 color                     : TEXCOORD1;
+    half3 viewDirWS                 : TEXCOORD2;
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_VERTEX_OUTPUT_STEREO
@@ -287,6 +289,8 @@ SpeedTreeVertexDepthOutput SpeedTree8VertDepth(SpeedTreeVertexInput input)
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
 
+    output.viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
+
 #ifdef SHADOW_CASTER
     half3 normalWS = TransformObjectToWorldNormal(input.normal);
     float4 positionCS = TransformWorldToHClip(ApplyShadowBias(vertexInput.positionWS, normalWS, _LightDirection));
@@ -339,7 +343,12 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
 
 #if !defined(SHADER_QUALITY_LOW)
     #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-        LODDitheringTransition(input.interpolated.clipPos.xy, unity_LODFade.x);
+        #ifdef EFFECT_BUMP
+            half3 viewDirectionWS = half3(input.interpolated.normalWS.w, input.interpolated.tangentWS.w, input.interpolated.bitangentWS.w);
+        #else
+            half3 viewDirectionWS = input.interpolated.viewDirWS;
+        #endif
+        LODDitheringTransition(ComputeFadeMaskSeed(viewDirectionWS, input.interpolated.clipPos.xy), unity_LODFade.x);
     #endif
 #endif
 
@@ -442,7 +451,7 @@ half4 SpeedTree8FragDepth(SpeedTreeVertexDepthOutput input) : SV_Target
 
 #if !defined(SHADER_QUALITY_LOW)
     #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-        LODDitheringTransition(input.clipPos.xy, unity_LODFade.x);
+        LODDitheringTransition(ComputeFadeMaskSeed(input.viewDirWS, input.clipPos.xy), unity_LODFade.x);
     #endif
 #endif
 
@@ -487,6 +496,7 @@ SpeedTreeVertexDepthNormalOutput SpeedTree8VertDepthNormal(SpeedTreeVertexInput 
         output.bitangentWS.w = viewDirWS.z;
     #else
         output.normalWS = normalWS;
+        output.viewDirWS = viewDirWS;
     #endif
 
     output.clipPos = vertexInput.positionCS;
@@ -499,7 +509,12 @@ half4 SpeedTree8FragDepthNormal(SpeedTreeDepthNormalFragmentInput input) : SV_Ta
 
     #if !defined(SHADER_QUALITY_LOW)
         #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-            LODDitheringTransition(input.interpolated.clipPos.xy, unity_LODFade.x);
+	#ifdef EFFECT_BUMP
+        	half3 viewDirectionWS = half3(input.interpolated.normalWS.w, input.interpolated.tangentWS.w, input.interpolated.bitangentWS.w);
+	#else
+	        half3 viewDirectionWS = input.interpolated.viewDirWS;
+	#endif
+        LODDitheringTransition(ComputeFadeMaskSeed(viewDirectionWS, input.interpolated.clipPos.xy), unity_LODFade.x);
         #endif
     #endif
 
