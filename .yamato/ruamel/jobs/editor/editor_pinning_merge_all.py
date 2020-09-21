@@ -39,7 +39,7 @@ class Editor_PinningMergeAllJob():
             f'git pull',
             f'pipenv run python3 .yamato/ruamel/build.py',
             f'git add .yamato/*.yml',
-            f'git commit -m "[CI] Updated .ymls to new revision"',
+            f'git commit -m "[CI] Updated .ymls to new revision" --allow-empty',
             f'git push'
         ]
 
