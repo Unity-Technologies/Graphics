@@ -121,7 +121,7 @@ namespace UnityEngine.Rendering.Universal
             CameraCaptureBridge.enabled = false;
         }
 
-        protected override void Render(ScriptableRenderContext context,  Camera[] cameras)
+        protected override void Render(ScriptableRenderContext renderContext,  Camera[] cameras)
         {
             Render(renderContext, new List<Camera>(cameras));
         }
