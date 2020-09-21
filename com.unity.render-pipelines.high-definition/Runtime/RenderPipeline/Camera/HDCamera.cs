@@ -175,6 +175,7 @@ namespace UnityEngine.Rendering.HighDefinition
 //SensorSDK - Begin - Tonemapping support
         public RTHandle internalLogLut; // ARGBHalf
         public Vector4 logLutSettings;
+        public RayTracingAccelerationStructure accelerationStructure;
 //SensorSDK - End - Tonemapping support
 
         internal Vector4[]              frustumPlaneEquations;

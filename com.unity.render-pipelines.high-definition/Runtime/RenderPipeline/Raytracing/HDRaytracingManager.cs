@@ -358,6 +358,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ValidRayTracingClusterCulling = false;
             bool rayTracedShadow = false;
 
+//SensorSDK - Begin - Expose acceleration structure to avoid building our own into the custom pass
+            hdCamera.accelerationStructure = m_CurrentRAS;
+//SensorSDK - End - Expose acceleration structure to avoid building our own into the custom pass
+
             // fetch all the lights in the scene
             HDAdditionalLightData[] hdLightArray = UnityEngine.GameObject.FindObjectsOfType<HDAdditionalLightData>();
 
