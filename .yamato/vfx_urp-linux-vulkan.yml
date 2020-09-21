@@ -16,7 +16,7 @@ VFX_URP_Linux_Vulkan_Standalone_trunk:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
-      -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli -u abc09f7f75a1373b0b1442612132cd8a46ab744d -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
         logs:
@@ -35,7 +35,7 @@ VFX_URP_Linux_Vulkan_playmode_trunk:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
-      -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli -u abc09f7f75a1373b0b1442612132cd8a46ab744d -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:

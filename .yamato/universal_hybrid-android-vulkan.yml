@@ -40,7 +40,7 @@ Build_Universal_Hybrid_Android_Vulkan_Player_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u abc09f7f75a1373b0b1442612132cd8a46ab744d -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0

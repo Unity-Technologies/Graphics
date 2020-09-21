@@ -17,7 +17,7 @@ ShaderGraph_OSX_Metal_Standalone_trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install --user unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only'
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli -u abc09f7f75a1373b0b1442612132cd8a46ab744d -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
                  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/ShaderGraph && ~/Graphics/TestProjects/ShaderGraph/utr --suite=playmode --platform=StandaloneOSX  --testproject=/Users/bokken/Graphics/TestProjects/ShaderGraph --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results --timeout=2400"
@@ -43,7 +43,7 @@ ShaderGraph_OSX_Metal_playmode_trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install --user unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only'
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli -u abc09f7f75a1373b0b1442612132cd8a46ab744d -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
                  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/ShaderGraph && ~/Graphics/TestProjects/ShaderGraph/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/ShaderGraph --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results"
