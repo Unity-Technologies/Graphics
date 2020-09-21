@@ -112,9 +112,9 @@ public class UniversalGraphicsTests
             var rendererList = pipelineAsset.m_RendererDataList;
             for(int i=0; i<rendererList.Length; i++)
             {
-                if(rendererList[i].GetType() == typeof(ForwardRendererData))
+                if(rendererList[i].GetType() == typeof(StandardRendererData))
                 {
-                    var forwardData = (ForwardRendererData) rendererList[i];
+                    var forwardData = (StandardRendererData) rendererList[i];
                     forwardData.renderingMode = RenderingMode.Deferred;
                 }
             }
