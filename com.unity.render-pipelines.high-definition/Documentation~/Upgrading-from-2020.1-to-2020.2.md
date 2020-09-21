@@ -154,7 +154,7 @@ The prototype for the function `ApplyDecalToSurfaceData()` in various Material h
 to:
  `void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData)`
 
-
+From 10.x, HDRP adds a new fullscreen debug pass named `FullScreenDebug`. Any object using a material based on a shader which doesn't contain this pass will no be rendered during the fullscreen debug pass.
 
 ## Custom pass API
 

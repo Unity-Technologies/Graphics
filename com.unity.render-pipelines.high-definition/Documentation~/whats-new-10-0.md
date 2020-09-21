@@ -77,6 +77,11 @@ For more information, see the Lighting panel section in the [HDRP debug window](
 
 The Render Pipeline Debug window now has a new Volume panel which you can use to visualize the Volume components that affect a specific Camera. For each Volume that contributes to the final interpolated value, this panel shows the value of each property and whether or not it is overridden. It also calculates the Volume's influence percentage using the Volume's weight and blend distance. For more information, see the Volume panel section in the [HDRP debug window](Render-Pipeline-Debug-Window.md#VolumePanel).
 
+#### Quad Overdraw and Vertex Density
+
+Quad Overdraw highlights GPU quads running multiple fragment shaders, which is mainly caused by small or thin triangles while Vertex Density displays pixels running multiple vertex shaders.
+This is mainly due to Meshes far away or with too many details so it can help finding GameObjects in you scene that need LODs.  (This modes are currently not supported on Metal)
+
 ### Alpha to Mask
 
 This version of HDRP adds support for alpha to mask (or alpha to coverage) to all HDRP and Shader Graph shaders.
