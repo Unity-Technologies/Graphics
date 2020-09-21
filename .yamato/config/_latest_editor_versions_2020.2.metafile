@@ -21,7 +21,7 @@ editor_versions:
       revision: ef376aff2859
       version: 2020.2.0b3
     windows:
-      revision: 111
+      revision: ef376aff2859
       version: 2020.2.0b3
   2020.2_latest_public:
     android:
@@ -41,17 +41,17 @@ editor_versions:
       version: 2020.2.0b2
   2020.2_staging:
     android:
-      revision: f408da6397b2a49c9a209f29254ff648a6e91ee0
+      revision: 4ddb31178f9c097b15abff1c38668658c22429b2
       version: ''
     ios:
-      revision: f408da6397b2a49c9a209f29254ff648a6e91ee0
+      revision: 4ddb31178f9c097b15abff1c38668658c22429b2
       version: ''
     linux:
-      revision: f408da6397b2a49c9a209f29254ff648a6e91ee0
+      revision: 4ddb31178f9c097b15abff1c38668658c22429b2
       version: ''
     macos:
-      revision: f408da6397b2a49c9a209f29254ff648a6e91ee0
+      revision: 4ddb31178f9c097b15abff1c38668658c22429b2
       version: ''
     windows:
-      revision: f408da6397b2a49c9a209f29254ff648a6e91ee0
+      revision: 4ddb31178f9c097b15abff1c38668658c22429b2
       version: ''
