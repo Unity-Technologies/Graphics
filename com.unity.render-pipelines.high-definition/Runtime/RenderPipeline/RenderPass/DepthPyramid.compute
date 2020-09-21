@@ -14,8 +14,10 @@ CBUFFER_END
 
 #if UNITY_REVERSED_Z
 # define MIN_DEPTH(l, r) max(l, r)
+# define MAX_DEPTH(l, r) min(l, r)
 #else
 # define MIN_DEPTH(l, r) min(l, r)
+# define MAX_DEPTH(l, r) max(l, r)
 #endif
 
 // Downsample a depth texture by taking the min value of sampled pixels
@@ -39,7 +41,7 @@ void KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
     float4 depths = float4(p00, p10, p01, p11);
 
     // Select the closest sample
-    float minDepth = MIN_DEPTH(MIN_DEPTH(depths.x, depths.y), MIN_DEPTH(depths.z, depths.w));
+    float minDepth = MAX_DEPTH(MAX_DEPTH(depths.x, depths.y), MAX_DEPTH(depths.z, depths.w));
 
     _DepthMipChain[COORD_TEXTURE2D_X(dstOffset + dispatchThreadId.xy)] = minDepth;
 }
