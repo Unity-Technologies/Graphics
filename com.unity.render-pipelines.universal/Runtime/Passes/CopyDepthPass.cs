@@ -17,6 +17,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         private RenderTargetHandle destination { get; set; }
         internal bool AllocateRT  { get; set; }
         Material m_CopyDepthMaterial;
+        // Option to use procedural draw instead of cmd.blit
+        bool m_UseDrawProcedural;
 
         public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial)
         {
@@ -58,13 +60,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Debug.LogErrorFormat("Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.", m_CopyDepthMaterial, GetType().Name);
                 return;
             }
+            m_UseDrawProcedural = renderingData.cameraData.xr.enabled;
 
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyDepth)))
             {
-                RenderTargetIdentifier depthSurface = source.Identifier();
-                RenderTargetIdentifier copyDepthSurface = destination.Identifier();
-
                 RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
                 int cameraSamples = descriptor.msaaSamples;
 
@@ -100,22 +100,39 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 cmd.SetGlobalTexture("_CameraDepthAttachment", source.Identifier());
 
-                // Blit has logic to flip projection matrix when rendering to render texture.
-                // Currently the y-flip is handled in CopyDepthPass.hlsl by checking _ProjectionParams.x
-                // If you replace this Blit with a Draw* that sets projection matrix double check
-                // to also update shader.
-                // scaleBias.x = flipSign
-                // scaleBias.y = scale
-                // scaleBias.z = bias
-                // scaleBias.w = unused
-                float flipSign = (cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
-                Vector4 scaleBiasRt = (flipSign < 0.0f)
-                    ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
-                    : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
-                cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
 
-                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
 
+                if (m_UseDrawProcedural)
+                {
+                    // XR flip logic is not the same as non-XR case because XR uses draw procedure
+                    // and draw procedure does not need to take projection matrix yflip into account
+                    // XRTODO: handle scalebias and scalebiasRt for src and dst separately
+                    float flipSign = (cameraData.IsCameraProjectionMatrixFlipped()) ? 1.0f : -1.0f;
+                    Vector4 scaleBiasRt = (flipSign < 0.0f)
+                        ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
+                        : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
+                    cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
+
+                    cmd.DrawProcedural(Matrix4x4.identity, m_CopyDepthMaterial, 0, MeshTopology.Quads, 4);
+                }
+                else
+                {
+                    // Blit has logic to flip projection matrix when rendering to render texture.
+                    // Currently the y-flip is handled in CopyDepthPass.hlsl by checking _ProjectionParams.x
+                    // If you replace this Blit with a Draw* that sets projection matrix double check
+                    // to also update shader.
+                    // scaleBias.x = flipSign
+                    // scaleBias.y = scale
+                    // scaleBias.z = bias
+                    // scaleBias.w = unused
+                    float flipSign = (cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
+                    Vector4 scaleBiasRt = (flipSign < 0.0f)
+                        ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
+                        : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
+                    cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
+
+                    cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
+                }
             }
 
             context.ExecuteCommandBuffer(cmd);

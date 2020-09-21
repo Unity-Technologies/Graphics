@@ -288,12 +288,6 @@ namespace UnityEngine.Rendering.Universal
             // The copying of depth should normally happen after rendering opaques.
             // But if we only require it for post processing or the scene camera then we do it after rendering transparent objects
             m_CopyDepthPass.renderPassEvent = (!requiresDepthTexture && (applyPostProcessing || isSceneViewCamera)) ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingOpaques;
-
-            // XRTODO: CopyDepth pass is disabled in XR due to required work to handle camera matrices in URP and y-flip.
-            // IF this condition is removed make sure the CopyDepthPass.cs is working properly on all XR modes. This requires PureXR SDK integration.
-            if (cameraData.xr.enabled && requiresDepthTexture)
-                requiresDepthPrepass = true;
-
             bool createColorTexture = RequiresIntermediateColorTexture(ref cameraData);
             createColorTexture |= (rendererFeatures.Count != 0);
             createColorTexture |= renderPassInputs.requiresColorTexture;
@@ -396,7 +390,9 @@ namespace UnityEngine.Rendering.Universal
             }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.hasValidOcclusionMesh)
+            // URP uses writes to depth buffer for the XR occlusion mesh pass.
+            // When copy depth is required, we turn off occlusion pass so that depth buffer contains valid data
+            if (cameraData.xr.hasValidOcclusionMesh && !cameraData.xr.copyDepth)
                 EnqueuePass(m_XROcclusionMeshPass);
 #endif
 
