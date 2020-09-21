@@ -349,7 +349,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var triangles = new NativeArray<ushort>(indexCount, Allocator.Temp);
             var centerIndex = (ushort)(2 * sides);
 
-            // Color will contain r,g = x,y extrusion direction, a = alpha. b is unused at the moment. The inner shape should not be extruded
+            // Only Alpha value in Color channel is ever used. May remove it or keep it for batching params in the future.
             var color = new Color(0, 0, 0, 1);
             vertices[centerIndex] = new ParametricLightMeshVertex
             {

@@ -60,7 +60,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     using Path = List<IntPoint>;
     using Paths = List<List<IntPoint>>;
 
-    public struct DoublePoint
+    internal struct DoublePoint
     {
         public double X;
         public double Y;
@@ -86,7 +86,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     // PolyTree & PolyNode classes
     //------------------------------------------------------------------------------
 
-    public class PolyTree : PolyNode
+    internal class PolyTree : PolyNode
     {
         internal List<PolyNode> m_AllPolys = new List<PolyNode>();
 
@@ -121,7 +121,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
     }
 
-    public class PolyNode
+    internal class PolyNode
     {
         internal PolyNode m_Parent;
         internal Path m_polygon = new Path();
@@ -343,7 +343,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     //------------------------------------------------------------------------------
     //------------------------------------------------------------------------------
 
-    public struct IntPoint
+    internal struct IntPoint
     {
         public ClipInt N;
         public ClipInt X;
@@ -401,7 +401,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
     }// end struct IntPoint
 
-    public struct IntRect
+    internal struct IntRect
     {
         public ClipInt left;
         public ClipInt top;
@@ -458,14 +458,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal TEdge PrevInSEL;
     };
 
-    public class IntersectNode
+    internal class IntersectNode
     {
         internal TEdge Edge1;
         internal TEdge Edge2;
         internal IntPoint Pt;
     };
 
-    public class MyIntersectNodeSort : IComparer<IntersectNode>
+    internal class MyIntersectNodeSort : IComparer<IntersectNode>
     {
         public int Compare(IntersectNode node1, IntersectNode node2)
         {
@@ -525,7 +525,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal IntPoint OffPt;
     };
 
-    public class ClipperBase
+    internal class ClipperBase
     {
         internal const double horizontal = -3.4E+38;
         internal const int Skip = -2;
@@ -1365,7 +1365,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         //------------------------------------------------------------------------------
     } //end ClipperBase
 
-    public class Clipper : ClipperBase
+    internal class Clipper : ClipperBase
     {
         //InitOptions that can be passed to the constructor ...
         public const int ioReverseSolution = 1;
@@ -4551,7 +4551,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         //------------------------------------------------------------------------------
     } //end Clipper
 
-    public class ClipperOffset
+    internal class ClipperOffset
     {
         private Paths m_destPolys;
         private Path m_srcPoly;
