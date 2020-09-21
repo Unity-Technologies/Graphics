@@ -62,11 +62,11 @@ namespace UnityEngine.Rendering.HighDefinition
             ShadowResult shadowResult = new ShadowResult();
             BuildGPULightListOutput gpuLightListOutput = new BuildGPULightListOutput();
 
-            // TODO RENDERGRAPH: This should probably be moved somewhere else for the sake of consistency.
-            RenderTransparencyOverdraw(m_RenderGraph, prepassOutput.depthBuffer, cullingResults, hdCamera);
-
             if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() && m_CurrentDebugDisplaySettings.IsFullScreenDebugPassEnabled())
             {
+                // Stop Single Pass is after post process.
+                StartXRSinglePass(m_RenderGraph, hdCamera);
+
                 RenderFullScreenDebug(m_RenderGraph, colorBuffer, prepassOutput.depthBuffer, cullingResults, hdCamera);
             }
             else if (m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled() || m_CurrentDebugDisplaySettings.IsMaterialValidationEnabled() || CoreUtils.IsSceneLightingDisabled(hdCamera.camera))

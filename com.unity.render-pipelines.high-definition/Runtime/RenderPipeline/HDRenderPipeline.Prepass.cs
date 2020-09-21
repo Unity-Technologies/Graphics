@@ -272,6 +272,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // However if the generated HTile will be used for something else but SSR, this should be made NOT resolve only and
                 // re-enabled in the shader.
                 BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, resolveOnly: true, ref result);
+
+                RenderTransparencyOverdraw(renderGraph, result.depthBuffer, cullingResults, hdCamera);
             }
 
             return result;
