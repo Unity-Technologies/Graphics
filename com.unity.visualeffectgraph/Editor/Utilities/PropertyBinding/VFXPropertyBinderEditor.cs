@@ -65,7 +65,7 @@ namespace UnityEditor.Experimental.VFX.Utility
             EditorGUILayout.Space();
             if (EditorGUI.EndChangeCheck())
                 serializedObject.ApplyModifiedProperties();
-            if (m_ElementEditor != null)
+            if (m_ElementEditor != null && m_ElementEditor.target != null && m_ElementEditor.serializedObject.targetObject != null)
             {
                 EditorGUI.BeginChangeCheck();
 
