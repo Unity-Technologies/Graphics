@@ -264,6 +264,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added path tracing test scene for normal mapping.
 - Added missing API documentation.
 - Remove CloudLayer
+- Added quad overdraw and vertex density debug modes.
 
 ### Fixed
 - fix when saved HDWizard window tab index out of range (1260273)
