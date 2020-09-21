@@ -41,6 +41,7 @@ The version number for this package has increased due to a version update of a r
 - fix issue with multiselection and objectfields [Case 1250378](https://issuetracker.unity3d.com/issues/vfx-removing-texture-asset-while-multiediting-working-incorrectly)
 - Handle correctly disabled alphaTreshold material slot in shaderGraph.
 - Allow world position usage in shaderGraph plugged into an alpha/opacity output [Case 1259511](https://issuetracker.unity3d.com/product/unity/issues/guid/1259511/)
+- GPU Evaluation of Construct Matrix
 
 ## [7.4.1] - 2020-06-03
 
