@@ -310,35 +310,7 @@ half4 GetMipCountDebugColor(InputData inputData, float2 uv)
     fc *= GetTextNumber(mipCount, inputData.positionWS) * 2.0;
 
     return SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv) * 0.2 + fc;
-    return fc;
 }
-
-float3 GetTextureDataDebug(InputData inputData, uint paramId, float2 uv, float4 texelSize, float4 mipInfo, float3 originalColor)
-{
-    float3 outColor = originalColor;
-
-    switch (paramId)
-    {
-    case DEBUG_MIPMAPMODE_MIP_LEVEL:
-        outColor = GetMipLevelDebugColor(inputData, texelSize.zw, uv);
-        break;
-    case DEBUG_MIPMAPMODE_MIP_COUNT:
-        outColor = GetMipCountDebugColor(inputData, uv);
-        break;
-    case DEBUG_MIPMAPMODE_MIP_COUNT_REDUCTION:
-        //outColor = GetDebugMipReductionColor(_BaseMap, mipInfo);
-        break;
-    //case DEBUG_MIPMAPMODE_STREAMING_MIP_BUDGET:
-    //    outColor = GetDebugStreamingMipColor(tex, mipInfo);
-    //    break;
-    //case DEBUG_MIPMAPMODE_STREAMING_MIP:
-    //    outColor = GetDebugStreamingMipColorBlended(originalColor, tex, mipInfo);
-    //    break;
-    }
-
-    return outColor;
-}
-
 
 bool CalculateValidationColorForDebug(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 color)
 {
@@ -384,14 +356,28 @@ bool CalculateValidationColorForDebug(InputData inputData, SurfaceData surfaceDa
 
 bool CalculateValidationColorForMipMaps(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 color)
 {
-    if (_DebugMipIndex > 0)
-    {
-        half3 debugCol = GetTextureDataDebug(inputData, _DebugMipIndex, debugData.uv, _BaseMap_TexelSize, _BaseMap_MipInfo, surfaceData.albedo);
-        color = half4(debugCol, 1.0f);
-        return true;
-    }
+    color = half4(surfaceData.albedo, 1);
 
-    return false;
+    switch (_DebugMipIndex)
+    {
+        case DEBUG_MIPMAPMODE_MIP_LEVEL:
+            color = GetMipLevelDebugColor(inputData, _BaseMap_TexelSize.zw, debugData.uv);
+            return true;
+        case DEBUG_MIPMAPMODE_MIP_COUNT:
+            color = GetMipCountDebugColor(inputData, debugData.uv);
+            return true;
+        case DEBUG_MIPMAPMODE_MIP_COUNT_REDUCTION:
+            //color = GetDebugMipReductionColor(_BaseMap, mipInfo);
+            return true;
+        //case DEBUG_MIPMAPMODE_STREAMING_MIP_BUDGET:
+        //    color = GetDebugStreamingMipColor(tex, mipInfo);
+        //    break;
+        //case DEBUG_MIPMAPMODE_STREAMING_MIP:
+        //    color = GetDebugStreamingMipColorBlended(originalColor, tex, mipInfo);
+        //    break;
+        default:
+            return false;
+    }
 }
 
 bool CalculateColorForDebugMaterial(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 color)

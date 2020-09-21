@@ -817,7 +817,8 @@ half4 CalculateDebugShadowCascadeColor(InputData inputData)
 
 half4 CalculateDebugLightingComplexityColor(InputData inputData)
 {
-    float4 lut[5] = {
+    float4 lut[5] =
+    {
             float4(0, 1, 0, 0),
             float4(0.25, 0.75, 0, 0),
             float4(0.498, 0.5019, 0.0039, 0),
@@ -847,7 +848,7 @@ half4 CalculateDebugLightingComplexityColor(InputData inputData)
     return fc;
 }
 
-bool MainDebugMethod(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 debugColor)
+bool CanDebugOverrideOutputColor(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 debugColor)
 {
     if(_DebugMaterialIndex == DEBUG_LIGHTING_COMPLEXITY)
     {
@@ -906,7 +907,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     DebugData debugData = CreateDebugData(brdfData.diffuse, brdfData.specular, inputData.uv);
     half4 debugColor;
 
-    if(MainDebugMethod(inputData, surfaceData, debugData, debugColor))
+    if(CanDebugOverrideOutputColor(inputData, surfaceData, debugData, debugColor))
     {
         return debugColor;
     }
@@ -1018,7 +1019,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     DebugData debugData = CreateDebugData(inputData.uv);
     half4 debugColor;
 
-    if(MainDebugMethod(inputData, surfaceData, debugData, debugColor))
+    if(CanDebugOverrideOutputColor(inputData, surfaceData, debugData, debugColor))
     {
         return debugColor;
     }
@@ -1084,4 +1085,38 @@ half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 sp
     return UniversalFragmentBlinnPhong(inputData, diffuse, specularGloss, smoothness, emission, alpha);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+/// Unlit
+////////////////////////////////////////////////////////////////////////////////
+half4 UniversalFragmentUnlit(InputData inputData, half3 color, half alpha)
+{
+    SurfaceData surfaceData = (SurfaceData)0;
+
+    surfaceData.albedo = color;
+    surfaceData.alpha = alpha;
+    surfaceData.emission = half3(0, 0, 0);
+    surfaceData.metallic = 0;
+    surfaceData.occlusion = 0;
+    surfaceData.smoothness = 0;
+    surfaceData.specular = half3(0, 0, 0);
+    surfaceData.clearCoatMask = 0;
+    surfaceData.clearCoatSmoothness = 1;
+    surfaceData.normalTS = half3(0, 0, 1);
+
+    #if defined(_DEBUG_SHADER)
+    DebugData debugData = CreateDebugData(inputData.uv);
+    half4 debugColor;
+
+    if(CanDebugOverrideOutputColor(inputData, surfaceData, debugData, debugColor))
+    {
+        return debugColor;
+    }
+    #endif
+
+    #ifdef _ALPHAPREMULTIPLY_ON
+    color *= alpha;
+    #endif
+
+    return half4(color, alpha);
+}
 #endif

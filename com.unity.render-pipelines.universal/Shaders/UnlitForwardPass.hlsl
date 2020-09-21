@@ -1,21 +1,61 @@
+
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+
 struct Attributes
 {
-    float4 positionOS       : POSITION;
-    float2 uv               : TEXCOORD0;
+    float4 positionOS : POSITION;
+    float2 uv : TEXCOORD0;
+
+    #if defined(_DEBUG_SHADER)
+    float3 normalOS : NORMAL;
+    float4 tangentOS : TANGENT;
+    #endif
+
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct Varyings
 {
-    float2 uv        : TEXCOORD0;
-    float fogCoord  : TEXCOORD1;
-    float4 vertex : SV_POSITION;
+    float2 uv : TEXCOORD0;
+    float fogCoord : TEXCOORD1;
+    float4 positionCS : SV_POSITION;
+
+    #if defined(_DEBUG_SHADER)
+    float3 positionWS : TEXCOORD2;
+    float3 normalWS : TEXCOORD3;
+    float3 viewDirWS : TEXCOORD4;
+    #endif
 
     UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-Varyings vert(Attributes input)
+void InitializeInputData(Varyings input, out InputData inputData)
+{
+    #if defined(_DEBUG_SHADER)
+    inputData.positionWS = input.positionWS;
+    inputData.normalWS = input.normalWS;
+    inputData.viewDirectionWS = input.viewDirWS;
+    #else
+    inputData.positionWS = input.positionCS;
+    inputData.normalWS = half3(0, 0, 1);
+    inputData.viewDirectionWS = half3(0, 0, 1);
+    #endif
+    inputData.shadowCoord = 0;
+    inputData.fogCoord = 0;
+    inputData.vertexLighting = half3(0, 0, 0);
+    inputData.bakedGI = half3(0, 0, 0);
+    inputData.normalizedScreenSpaceUV = 0;
+
+    inputData.normalTS = half3(0, 0, 1);
+    inputData.vertexSH = half3(0, 0, 0);
+
+    #if defined(_DEBUG_SHADER)
+    inputData.uv = input.uv;
+    #endif
+}
+
+Varyings UniversalVertexUnlit(Attributes input)
 {
     Varyings output = (Varyings)0;
 
@@ -24,14 +64,28 @@ Varyings vert(Attributes input)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
-    output.vertex = vertexInput.positionCS;
+
+    output.positionCS = vertexInput.positionCS;
     output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
     output.fogCoord = ComputeFogFactor(vertexInput.positionCS.z);
+
+    #if defined(_DEBUG_SHADER)
+    // normalWS and tangentWS already normalize.
+    // this is required to avoid skewing the direction during interpolation
+    // also required for per-vertex lighting and SH evaluation
+    VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
+    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
+
+    // already normalized from normal transform to WS.
+    output.positionWS = vertexInput.positionWS;
+    output.normalWS = normalInput.normalWS;
+    output.viewDirWS = viewDirWS;
+    #endif
 
     return output;
 }
 
-half4 frag(Varyings input) : SV_Target
+half4 UniversalFragmentUnlit(Varyings input) : SV_Target
 {
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -40,13 +94,15 @@ half4 frag(Varyings input) : SV_Target
     half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
     half3 color = texColor.rgb * _BaseColor.rgb;
     half alpha = texColor.a * _BaseColor.a;
+
     AlphaDiscard(alpha, _Cutoff);
 
-    #ifdef _ALPHAPREMULTIPLY_ON
-    color *= alpha;
-    #endif
+    InputData inputData = (InputData)0;
+    InitializeInputData(input, inputData);
 
-    color = MixFog(color, input.fogCoord);
+    half4 finalColor = UniversalFragmentUnlit(inputData, color, alpha);
 
-    return half4(color, alpha);
+    finalColor.rgb = MixFog(finalColor, input.fogCoord);
+
+    return finalColor;
 }
