@@ -12,16 +12,15 @@ namespace UnityEngine.Rendering.Universal
         public virtual void FrameCleanup(CommandBuffer cmd) => OnCameraCleanup(cmd);
     }
 
+    [Obsolete("This is obsolete, please use shadowCascadeCount instead.", false)]
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum ShadowCascadesOption
+    {
+        NoCascades,
+        TwoCascades,
+        FourCascades,
+    }
     public partial class UniversalRenderPipelineAsset
     {
-        [Obsolete("This is obsolete, please use shadowCascadeCount instead.", false)]
-        [MovedFrom("UnityEngine.Rendering.LWRP")] public enum ShadowCascadesOption
-        {
-            NoCascades,
-            TwoCascades,
-            FourCascades,
-        }
-
 #pragma warning disable 618 // Obsolete warning
         [Obsolete("This is obsolete, please use shadowCascadeCount instead.", false)]
         [SerializeField] ShadowCascadesOption m_ShadowCascades = ShadowCascadesOption.NoCascades;
