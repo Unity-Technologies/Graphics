@@ -305,7 +305,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(parameters.ssGICS, parameters.convertKernel, HDShaderIDs._NormalBufferTexture, resources.normalBuffer);
             cmd.SetComputeBufferParam(parameters.ssGICS, parameters.convertKernel, HDShaderIDs._DepthPyramidMipLevelOffsets, parameters.offsetBuffer);
             cmd.SetComputeTextureParam(parameters.ssGICS, parameters.convertKernel, HDShaderIDs._IndirectDiffuseTexture0RW, resources.inoutBuffer0);
-            cmd.SetComputeTextureParam(parameters.ssGICS, parameters.convertKernel, HDShaderIDs._IndirectDiffuseTexture1RW, resources.inputBufer1);
+            cmd.SetComputeTextureParam(parameters.ssGICS, parameters.convertKernel, HDShaderIDs._IndirectDiffuseTexture1, resources.inputBufer1);
             cmd.DispatchCompute(parameters.ssGICS, parameters.convertKernel, numTilesXHR, numTilesYHR, parameters.viewCount);
         }
 

@@ -16,19 +16,6 @@ All_ShaderGraph_trunk:
          rerun: on-new-revision
       -  path: .yamato/all-shadergraph_stereo.yml#All_ShaderGraph_Stereo_trunk
          rerun: on-new-revision
-All_ShaderGraph_fast-trunk:
-    name: All ShaderGraph CI - fast-trunk
-    dependencies:
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_Standalone_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/shadergraph-osx-openglcore.yml#ShaderGraph_OSX_OpenGLCore_editmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/all-shadergraph_stereo.yml#All_ShaderGraph_Stereo_fast-trunk
-         rerun: on-new-revision
 All_ShaderGraph_CUSTOM-REVISION:
     name: All ShaderGraph CI - CUSTOM-REVISION
     dependencies:

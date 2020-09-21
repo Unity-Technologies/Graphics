@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -27,6 +27,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
 - Fixed GPU hang on D3D12 on xbox. 
+- Fixed game view artifacts on resizing when hardware dynamic resolution was enabled
+- Fixed black line artifacts occurring when Lanczos upsampling was set for dynamic resolution
 - Fixed Amplitude -> Min/Max parametrization conversion
 - Fixed CoatMask block appearing when creating lit master node (case 1264632)
 - Fixed issue with SceneEV100 debug mode indicator when rescaling the window.
@@ -77,6 +79,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix for lookdev toggling renderers that are set to non editable or are hidden in the inspector.
 - Fixed issue with mipmap debug mode not properly resetting full screen mode (and viceversa). 
 - Added unsupported message when using tile debug mode with MSAA.
+- Fixed SSGI compilation issues on PS4.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
@@ -98,6 +101,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved SSGI out of preview.
 - Skip an unneeded depth buffer copy on consoles. 
 - Replaced the Density Volume Texture Tool with the new 3D Texture Importer.
+- Rename Raytracing Node to Raytracing Quality Keyword and rename high and low inputs as default and raytraced. All raytracing effects now use the raytraced mode but path tracing.
 
 ## [10.0.0] - 2019-06-10
 
@@ -260,8 +264,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added path tracing test scene for normal mapping.
 - Added missing API documentation.
 - Remove CloudLayer
+- Added quad overdraw and vertex density debug modes.
 
 ### Fixed
+- fix when saved HDWizard window tab index out of range (1260273)
 - Fix when rescale probe all direction below zero (1219246)
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
 - Sorting, undo, labels, layout in the Lighting Explorer.

@@ -374,7 +374,6 @@ namespace UnityEditor.Rendering
             if (!m_ActiveParent.WantsFocus)
             {
                 EditorGUI.FocusTextInControl("ComponentSearch");
-                Focus();
             }
 
             var searchRect = GUILayoutUtility.GetRect(10, 20);
