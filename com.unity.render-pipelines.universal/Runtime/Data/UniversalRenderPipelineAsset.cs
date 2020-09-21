@@ -184,7 +184,7 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         ///   <para>Returns the list of names used to display Rendering Layer Mask UI for this pipeline.</para>
-        ///   <para>The first 24 masks are reserved for URP.</para>
+        ///   <para>The first 20 masks are reserved for URP.</para>
         /// </summary>
         /// <returns>
         ///   <para>Array of 32 Rendering Layer Mask names.</para>
@@ -198,7 +198,7 @@ namespace UnityEngine.Rendering.Universal
 
                 m_RenderingLayerMaskNames = new string[32];
 
-                // We reserve a few layers for internal URP usage
+                // URP reserves some layers for internal usage
                 int i = 0;
                 for (; i < 20; ++i)
                 {
