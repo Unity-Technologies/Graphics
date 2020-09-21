@@ -290,14 +290,11 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // Override to provide a custom profiling name
-        protected internal virtual string profilingName { get; }
-
-        private readonly ProfilingSampler m_ProfilingExecute;
+        protected ProfilingSampler profilingExecute { get; set; }
 
         public ScriptableRenderer(ScriptableRendererData data)
         {
-            profilingName = data.name;
-            m_ProfilingExecute = new ProfilingSampler("ScriptableRenderer.Execute: " + profilingName);
+            profilingExecute = new ProfilingSampler(nameof(ScriptableRenderer) + "." + nameof(ScriptableRenderer.Execute)+ ": " + data.name);
 
             foreach (var feature in data.rendererFeatures)
             {
@@ -387,7 +384,7 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = cameraData.camera;
 
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, m_ProfilingExecute))
+            using (new ProfilingScope(cmd, profilingExecute))
             {
                 InternalStartRendering(context, ref renderingData);
 
@@ -483,7 +480,6 @@ namespace UnityEngine.Rendering.Universal
                 // Opaque blocks...
                 if (blockRangeLengths[RenderPassBlock.MainRenderingOpaque] > 0)
                 {
-                    //using var profScope = UniversalProfilingCache.GetGPUScope(cmd, "ExecuteBlock: Opaque");
                     using var profScope = UniversalProfilingCache.GetGPUCPUScope(cmd, nameof(RenderPassBlock.MainRenderingOpaque));
                     ExecuteBlock(RenderPassBlock.MainRenderingOpaque, blockRanges, context, ref renderingData);
                 }
