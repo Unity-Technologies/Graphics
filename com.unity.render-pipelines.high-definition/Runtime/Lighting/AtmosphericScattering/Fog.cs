@@ -13,6 +13,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Enables the fog.")]
         public BoolParameter enabled = new BoolParameter(false);
 
+        [Tooltip("TMP.")]
+        public BoolParameter tmp_opt = new BoolParameter(true);
+
+
         /// <summary>Fog color mode.</summary>
         public FogColorParameter colorMode = new FogColorParameter(FogColorMode.SkyColor);
         /// <summary>Fog color.</summary>
