@@ -1,6 +1,7 @@
 
 from .editor_priming import Editor_PrimingJob
 from .editor_pinning_merge_all import Editor_PinningMergeAllJob
+from .editor_priming_min_editor import Editor_PrimingMinEditorJob
 from .editor_pinning_merge_revisions import Editor_PinningMergeRevisionsJob
 from .editor_pinning_target_to_ci import Editor_PinningTargetToCIJob
 from .editor_pinning_update import Editor_PinningUpdateJob
@@ -16,6 +17,9 @@ def create_editor_yml(metafile):
         for editor in metafile['editors']:
             job = Editor_PrimingJob(platform, editor, metafile["editor_priming_agent"])
             yml[job.job_id] = job.yml
+        
+        job = Editor_PrimingMinEditorJob(platform, metafile["editor_priming_agent"])
+        yml[job.job_id] = job.yml
 
     yml_files[editor_priming_filepath()] = yml
 

@@ -14,8 +14,6 @@ Shader "Hidden/Universal Render Pipeline/Sampling"
             Cull Off
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
             #pragma vertex FullscreenVert
             #pragma fragment FragBoxDownsample
 

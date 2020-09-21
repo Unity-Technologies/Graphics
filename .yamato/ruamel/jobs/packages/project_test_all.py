@@ -1,5 +1,5 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
-from ..shared.namer import projectcontext_filepath, projectcontext_job_id_test_all, projectcontext_job_id_test
+from ..shared.namer import projectcontext_filepath, projectcontext_job_id_test_all, projectcontext_job_id_test, projectcontext_job_id_test_min_editor
 from ..shared.yml_job import YMLJob
 from ..shared.constants import NPM_UPMCI_INSTALL_URL
 
@@ -17,6 +17,8 @@ class Project_AllPackageCiJob():
         dependencies = []
         for platform in platforms:
             dependencies.append(f'{projectcontext_filepath()}#{projectcontext_job_id_test(platform["os"],editor["track"])}')
+            if str(editor["track"]).lower() == "trunk":
+                dependencies.append(f'{projectcontext_filepath()}#{projectcontext_job_id_test_min_editor(platform["os"])}')
                 #dependencies.append(f'{packages_filepath()}#{package_job_id_test_dependencies(package["id"],platform["os"],editor["track"])}')
         
         # construct job
