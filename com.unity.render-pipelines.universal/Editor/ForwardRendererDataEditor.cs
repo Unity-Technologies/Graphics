@@ -13,8 +13,12 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent RendererTitle = new GUIContent("Forward Renderer", "Custom Forward Renderer for Universal RP.");
             public static readonly GUIContent PostProcessLabel = new GUIContent("Post Process Data", "The asset containing references to shaders and Textures that the Renderer uses for post-processing.");
             public static readonly GUIContent FilteringLabel = new GUIContent("Filtering", "Controls filter rendering settings for this renderer.");
-            public static readonly GUIContent OpaqueMask = new GUIContent("Opaque Layer Mask", "Controls which opaque layers this renderer draws.");
-            public static readonly GUIContent TransparentMask = new GUIContent("Transparent Layer Mask", "Controls which transparent layers this renderer draws.");
+            public static readonly GUIContent OpaqueLabel = new GUIContent("Opaque", "");
+            public static readonly GUIContent OpaqueMask = new GUIContent("Layer Mask", "Controls which opaque layers this renderer draws.");
+            public static readonly GUIContent OpaqueRenderingLayerMask = new GUIContent("Rendering Layer Mask", "Controls which opaque rendering layers this renderer draws.");
+            public static readonly GUIContent TransparentLabel = new GUIContent("Transparent", "");
+            public static readonly GUIContent TransparentMask = new GUIContent("Layer Mask", "Controls which transparent rendering layers this renderer draws.");
+            public static readonly GUIContent TransparentRenderingLayerMask = new GUIContent("Rendering Layer Mask", "Controls which transparent layers this renderer draws.");
             public static readonly GUIContent LightingLabel = new GUIContent("Lighting", "Settings related to lighting and rendering paths.");
             public static readonly GUIContent RenderingModeLabel = new GUIContent("Rendering Path", "Select a rendering path.");
             public static readonly GUIContent accurateGbufferNormalsLabel = EditorGUIUtility.TrTextContent("Accurate G-buffer normals", "Normals in G-buffer use octahedron encoding/decoding. This improves visual quality but might reduce performance.");
@@ -25,7 +29,9 @@ namespace UnityEditor.Rendering.Universal
         }
 
         SerializedProperty m_OpaqueLayerMask;
+        SerializedProperty m_OpaqueRenderingLayerMask;
         SerializedProperty m_TransparentLayerMask;
+        SerializedProperty m_TransparentRenderingLayerMask;
 #if ENABLE_RENDERING_PATH_UI
         SerializedProperty m_RenderingMode;
         SerializedProperty m_AccurateGbufferNormals;
@@ -39,7 +45,9 @@ namespace UnityEditor.Rendering.Universal
         private void OnEnable()
         {
             m_OpaqueLayerMask = serializedObject.FindProperty("m_OpaqueLayerMask");
+            m_OpaqueRenderingLayerMask = serializedObject.FindProperty("m_OpaqueRenderingLayerMask");
             m_TransparentLayerMask = serializedObject.FindProperty("m_TransparentLayerMask");
+            m_TransparentRenderingLayerMask = serializedObject.FindProperty("m_TransparentRenderingLayerMask");
 #if ENABLE_RENDERING_PATH_UI
             m_RenderingMode = serializedObject.FindProperty("m_RenderingMode");
             m_AccurateGbufferNormals = serializedObject.FindProperty("m_AccurateGbufferNormals");
@@ -56,6 +64,9 @@ namespace UnityEditor.Rendering.Universal
         {
             serializedObject.Update();
 
+            RenderPipelineAsset asset = UniversalRenderPipeline.asset;
+            string[] layerNames = asset != null ? asset.renderingLayerMaskNames : EditorUtils.defaultRenderingLayerNames;
+
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(Styles.RendererTitle, EditorStyles.boldLabel); // Title
             EditorGUI.indentLevel++;
@@ -65,8 +76,17 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUILayout.LabelField(Styles.FilteringLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
+            EditorGUILayout.LabelField(Styles.OpaqueLabel, EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_OpaqueLayerMask, Styles.OpaqueMask);
+            m_OpaqueRenderingLayerMask.longValue = (uint) EditorGUILayout.MaskField(Styles.OpaqueRenderingLayerMask, m_OpaqueRenderingLayerMask.intValue, layerNames);
+            EditorGUI.indentLevel--;
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(Styles.TransparentLabel, EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_TransparentLayerMask, Styles.TransparentMask);
+            m_TransparentRenderingLayerMask.longValue = (uint)EditorGUILayout.MaskField(Styles.TransparentRenderingLayerMask, m_TransparentRenderingLayerMask.intValue, layerNames);
+            EditorGUI.indentLevel--;
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 
