@@ -233,6 +233,50 @@ namespace UnityEngine.Rendering.Universal.Internal
             public int instanceCount;
         }
 
+        static readonly string[] k_TileDeferredPassNames = new string[] {
+            "Tiled Deferred Punctual Light (Lit)",
+            "Tiled Deferred Punctual Light (SimpleLit)"
+        };
+
+        static readonly string[] k_StencilDeferredPassNames = new string[] {
+            "Stencil Volume",
+            "Deferred Punctual Light (Lit)",
+            "Deferred Punctual Light (SimpleLit)",
+            "Deferred Directional Light (Lit)",
+            "Deferred Directional Light (SimpleLit)",
+            "ClearStencilPartial",
+            "Fog"
+        };
+
+        internal enum TileDeferredPasses
+        {
+            PunctualLit,
+            PunctualSimpleLit,
+        };
+
+        internal enum StencilDeferredPasses
+        {
+            StencilVolume,
+            PunctualLit,
+            PunctualSimpleLit,
+            DirectionalLit,
+            DirectionalSimpleLit,
+            ClearStencilPartial,
+            Fog
+        };
+
+        // Used to initialize all RenderTargetHandles.
+        internal enum GBufferHandles
+        {
+            DepthAsColor = 0,
+            Albedo = 1,
+            SpecularMetallic = 2,
+            NormalSmoothness = 3,
+            Lighting = 4,
+            ShadowMask = 5,
+            Count = 6
+        }
+
         static readonly string k_SetupLights = "SetupLights";
         static readonly string k_DeferredPass = "Deferred Pass";
         static readonly string k_TileDepthInfo = "Tile Depth Info";
@@ -246,18 +290,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         private static readonly ProfilingSampler m_ProfilingDeferredPass = new ProfilingSampler(k_DeferredPass);
         private static readonly ProfilingSampler m_ProfilingTileDepthInfo = new ProfilingSampler(k_TileDepthInfo);
         private static readonly ProfilingSampler m_ProfilingSetupLightConstants = new ProfilingSampler(k_SetupLightConstants);
-
-        // Used to initialize all RenderTargetHandles.
-        internal enum GBufferHandles
-        {
-            DepthAsColor = 0,
-            Albedo = 1,
-            SpecularMetallic = 2,
-            NormalSmoothness = 3,
-            Lighting = 4,
-            ShadowMask = 5,
-            Count = 6
-        }
 
         internal int GbufferDepthIndex { get { return UseRenderPass ? 0 : -1; } }
         internal int GBufferAlbedoIndex { get { return GbufferDepthIndex + 1; } }
@@ -366,6 +398,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Hold all shaders for stencil-volume deferred shading.
         Material m_StencilDeferredMaterial;
 
+        int[] m_StencilDeferredPasses;
+        int[] m_TileDeferredPasses;
+
         // Avoid memory allocations.
         Matrix4x4[] m_ScreenToWorld = new Matrix4x4[2];
 
@@ -386,6 +421,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_TileDepthInfoMaterial = tileDepthInfoMaterial;
             m_TileDeferredMaterial = tileDeferredMaterial;
             m_StencilDeferredMaterial = stencilDeferredMaterial;
+
+            m_TileDeferredPasses = new int[k_TileDeferredPassNames.Length];
+            for (int pass = 0; pass < k_TileDeferredPassNames.Length; ++pass)
+                m_TileDeferredPasses[pass] = m_TileDeferredMaterial.FindPass(k_TileDeferredPassNames[pass]);
+
+            m_StencilDeferredPasses = new int[k_StencilDeferredPassNames.Length];
+            for (int pass = 0; pass < k_StencilDeferredPassNames.Length; ++pass)
+                m_StencilDeferredPasses[pass] = m_StencilDeferredMaterial.FindPass(k_StencilDeferredPassNames[pass]);
 
             m_TileDeferredMaterial.SetInt(ShaderConstants._LitStencilRef, (int)StencilUsage.MaterialLit);
             m_TileDeferredMaterial.SetInt(ShaderConstants._LitStencilReadMask, (int)StencilUsage.MaterialMask);
@@ -455,10 +498,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             DeferredShaderData.instance.ResetBuffers();
 
             Camera camera = renderingData.cameraData.camera;
-            // Support for dynamic resolution: on platforms where it is not supported, the scale factors are always 1.0.
-            // Bug: camera.ScaledPixelWidth/Height is not correct on first frame in editor playmode.
-            this.RenderWidth = Mathf.CeilToInt(ScalableBufferManager.widthScaleFactor * camera.pixelWidth);
-            this.RenderHeight = Mathf.CeilToInt(ScalableBufferManager.heightScaleFactor * camera.pixelHeight);
+            // Support for dynamic resolution.
+            this.RenderWidth = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.widthScaleFactor * camera.pixelWidth) : camera.pixelWidth;
+            this.RenderHeight = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.heightScaleFactor * camera.pixelHeight) : camera.pixelHeight;
 
             if (this.TiledDeferredShading)
             {
@@ -1011,7 +1053,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             using (new ProfilingScope(cmd, m_ProfilingSamplerClearStencilPartialPass))
             {
-                cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 6);
+                cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.ClearStencilPartial]);
             }
         }
 
@@ -1417,8 +1459,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                         cmd.SetGlobalBuffer(ShaderConstants._RelLightList, dc.relLightList);
 
                     cmd.SetGlobalInt(ShaderConstants._InstanceOffset, dc.instanceOffset);
-                    cmd.DrawProcedural(Matrix4x4.identity, m_TileDeferredMaterial, 0, topology, vertexCount, dc.instanceCount); // Lit
-                    cmd.DrawProcedural(Matrix4x4.identity, m_TileDeferredMaterial, 1, topology, vertexCount, dc.instanceCount); // SimpleLit
+                    cmd.DrawProcedural(Matrix4x4.identity, m_TileDeferredMaterial, m_TileDeferredPasses[(int)TileDeferredPasses.PunctualLit], topology, vertexCount, dc.instanceCount);
+                    cmd.DrawProcedural(Matrix4x4.identity, m_TileDeferredMaterial, m_TileDeferredPasses[(int)TileDeferredPasses.PunctualSimpleLit], topology, vertexCount, dc.instanceCount);
                 }
             }
 
@@ -1505,8 +1547,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalInt(ShaderConstants._LightFlags, lightFlags);
 
                 // Lighting pass.
-                cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 3); // Lit
-                cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 4); // SimpleLit
+                cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.DirectionalLit]);
+                cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.DirectionalSimpleLit]);
             }
 
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
@@ -1556,11 +1598,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
 
                 // Stencil pass.
-                cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 0);
+                cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.StencilVolume]);
 
                 // Lighting pass.
-                cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 1); // Lit
-                cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 2); // SimpleLit
+                cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.PunctualLit]);
+                cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.PunctualSimpleLit]);
             }
 
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
@@ -1612,11 +1654,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
 
                 // Stencil pass.
-                cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 0);
+                cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.StencilVolume]);
 
                 // Lighting pass.
-                cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 1); // Lit
-                cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 2); // SimpleLit
+                cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.PunctualLit]);
+                cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.PunctualSimpleLit]);
             }
 
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
@@ -1636,7 +1678,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (new ProfilingScope(cmd, m_ProfilingSamplerDeferredFogPass))
             {
                 // Fog parameters and shader variant keywords are already set externally.
-                cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 5);
+                cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.Fog]);
             }
         }
 
