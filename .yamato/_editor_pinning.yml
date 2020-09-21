@@ -4,7 +4,7 @@
 # Read more under .yamato/docs/readme.md 
 
 editor-pinning-target-to-ci:
-    name: Merge yamato/update-unity-versions-ep to yamato/update-unity-versions-ep-ci
+    name: Merge yamato/update-unity-versions to yamato/update-unity-versions-ep-ci
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -15,16 +15,16 @@ editor-pinning-target-to-ci:
       -  echo $GIT_BRANCH
       -  |5-
 
-                     if [[ "$GIT_BRANCH" != "yamato/update-unity-versions-ep" ]]; then
-                         echo "Should run on 'yamato/update-unity-versions-ep' but is running on '$GIT_BRANCH'"
+                     if [[ "$GIT_BRANCH" != "yamato/update-unity-versions" ]]; then
+                         echo "Should run on 'yamato/update-unity-versions' but is running on '$GIT_BRANCH'"
                          exit 1
                      fi
       -  git fetch
-      -  git checkout yamato/update-unity-versions-ep
+      -  git checkout yamato/update-unity-versions
       -  git checkout yamato/update-unity-versions-ep-ci
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  git merge yamato/update-unity-versions-ep --ff
+      -  git merge yamato/update-unity-versions --ff
       -  git push
 editor-pinning-update:
     name: Update pinned editor versions
@@ -43,8 +43,8 @@ editor-pinning-update:
       -  sudo apt-get install yamato-parser -y
       -  |5-
 
-                     if [[ "$GIT_BRANCH" != "yamato/update-unity-versions-ep" ]]; then
-                         echo "Should run on 'yamato/update-unity-versions-ep' but is running on '$GIT_BRANCH'"
+                     if [[ "$GIT_BRANCH" != "yamato/update-unity-versions" ]]; then
+                         echo "Should run on 'yamato/update-unity-versions' but is running on '$GIT_BRANCH'"
                          exit 1
                      fi
       -  git config --global user.name "noreply@unity3d.com"
@@ -54,10 +54,10 @@ editor-pinning-update:
       -  .yamato/_editor_pinning.yml#editor-pinning-target-to-ci
     triggers:
         recurring:
-          -  branch: yamato/update-unity-versions-ep
+          -  branch: yamato/update-unity-versions
              frequency: 0 * * ?
 editor-pinning-merge-revisions-trunk:
-    name: Merge [trunk] revisions to yamato/update-unity-versions-ep [no ABV]
+    name: Merge [trunk] revisions to yamato/update-unity-versions [no ABV]
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -79,9 +79,9 @@ editor-pinning-merge-revisions-trunk:
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch yamato/update-unity-versions-ep --track trunk
+      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch yamato/update-unity-versions --track trunk
 editor-pinning-merge-revisions-trunk-abv:
-    name: Merge [trunk] revisions to yamato/update-unity-versions-ep [ABV]
+    name: Merge [trunk] revisions to yamato/update-unity-versions [ABV]
     allow_failure: true
     dependencies:
       -  .yamato/_abv.yml#all_project_ci_trunk
@@ -106,9 +106,9 @@ editor-pinning-merge-revisions-trunk-abv:
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch yamato/update-unity-versions-ep --track trunk
+      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch yamato/update-unity-versions --track trunk
 editor-pinning-merge-revisions-2020.2:
-    name: Merge [2020.2] revisions to yamato/update-unity-versions-ep [no ABV]
+    name: Merge [2020.2] revisions to yamato/update-unity-versions [no ABV]
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -130,9 +130,9 @@ editor-pinning-merge-revisions-2020.2:
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch yamato/update-unity-versions-ep --track 2020.2
+      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch yamato/update-unity-versions --track 2020.2
 editor-pinning-merge-revisions-2020.2-abv:
-    name: Merge [2020.2] revisions to yamato/update-unity-versions-ep [ABV]
+    name: Merge [2020.2] revisions to yamato/update-unity-versions [ABV]
     allow_failure: true
     dependencies:
       -  .yamato/_abv.yml#all_project_ci_2020.2
@@ -157,7 +157,7 @@ editor-pinning-merge-revisions-2020.2-abv:
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch yamato/update-unity-versions-ep --track 2020.2
+      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch yamato/update-unity-versions --track 2020.2
 editor-pinning-merge-all:
     name: Merge all [no ABV] [no CI]
     agent:
@@ -183,11 +183,11 @@ editor-pinning-merge-all:
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  git checkout yamato/update-unity-versions-ep
+      -  git checkout yamato/update-unity-versions
       -  git pull
       -  pipenv run python3 .yamato/ruamel/build.py
       -  git add .yamato/*.yml
-      -  git commit -m "[CI] Updated .ymls to new revision"
+      -  git commit -m "[CI] Updated .ymls to new revision" --allow-empty
       -  git push
 editor-pinning-merge-all-abv:
     name: Merge all [ABV] [CI]
@@ -216,9 +216,9 @@ editor-pinning-merge-all-abv:
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  git checkout yamato/update-unity-versions-ep
+      -  git checkout yamato/update-unity-versions
       -  git pull
       -  pipenv run python3 .yamato/ruamel/build.py
       -  git add .yamato/*.yml
-      -  git commit -m "[CI] Updated .ymls to new revision"
+      -  git commit -m "[CI] Updated .ymls to new revision" --allow-empty
       -  git push

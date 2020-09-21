@@ -29,9 +29,9 @@ class Project_AllPackageCiJob():
                 f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
                 f'upm-ci package izon -t',
                 f'upm-ci package izon -d'])
-        if editor['track'] == f'fast-{target_editor}':
+        #if editor['track'] == f'{target_editor}':
             # trigger the job when updating the docs to avoid merging jpg images (this is not allowed by the package validation suite)
-            job.set_trigger_on_expression(f'pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.any match ["**/Documentation*/**/*"]')
+        #    job.set_trigger_on_expression(f'pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.any match ["**/Documentation*/**/*"]')
         return job
         
     

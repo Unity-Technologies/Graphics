@@ -1,6 +1,6 @@
 abv: # specify the editor versions for which to create the expression trigger for all_project_ci job
   trigger_editors:
-    - trunk
+    - 2020.2
   projects:
     - name: Universal
     - name: ShaderGraph
@@ -10,6 +10,7 @@ abv: # specify the editor versions for which to create the expression trigger fo
 nightly:
   allowed_editors: # specify the editor versions for which to create nightly jobs
     - trunk
+    - 2020.2
   extra_dependencies: # additional project jobs to run nightly (in addition to ABV and smoke tests)
     - project: Universal
       platform: Android
