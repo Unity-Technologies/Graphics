@@ -299,7 +299,7 @@ test_all_project_windows_2020.2:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 111 -c editor --wait --published-only
+      -  unity-downloader-cli -u f408da6397b2a49c9a209f29254ff648a6e91ee0 -c editor --wait --published-only
       -  upm-ci project test -u .\.Editor --project-path TestProjects/SRP_SmokeTest --type vetting-tests
     artifacts:
         logs:
@@ -316,7 +316,7 @@ test_all_project_macos_2020.2:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u ef376aff2859 -c editor --wait --published-only
+      -  unity-downloader-cli -u f408da6397b2a49c9a209f29254ff648a6e91ee0 -c editor --wait --published-only
       -  upm-ci project test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path TestProjects/SRP_SmokeTest --type vetting-tests
     artifacts:
         logs:

@@ -106,7 +106,7 @@ Build_ShaderGraph_Win_Vulkan_Player_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraph/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/ShaderGraph && unity-downloader-cli -u 111 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/ShaderGraph && unity-downloader-cli -u f408da6397b2a49c9a209f29254ff648a6e91ee0 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
@@ -126,7 +126,7 @@ ShaderGraph_Win_Vulkan_playmode_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraph/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/ShaderGraph && unity-downloader-cli -u 111 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/ShaderGraph && unity-downloader-cli -u f408da6397b2a49c9a209f29254ff648a6e91ee0 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
@@ -143,7 +143,7 @@ ShaderGraph_Win_Vulkan_editmode_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraph/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/ShaderGraph && unity-downloader-cli -u 111 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/ShaderGraph && unity-downloader-cli -u f408da6397b2a49c9a209f29254ff648a6e91ee0 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:

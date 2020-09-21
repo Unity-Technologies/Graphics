@@ -60,7 +60,7 @@ URPUpdate_BoatAttack_Win_Vulkan_playmode_2020.2:
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.shadergraph" /Y
-      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && unity-downloader-cli -u 111 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && unity-downloader-cli -u f408da6397b2a49c9a209f29254ff648a6e91ee0 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
@@ -81,7 +81,7 @@ URPUpdate_BoatAttack_Win_Vulkan_editmode_2020.2:
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.shadergraph" /Y
-      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && unity-downloader-cli -u 111 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && unity-downloader-cli -u f408da6397b2a49c9a209f29254ff648a6e91ee0 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
