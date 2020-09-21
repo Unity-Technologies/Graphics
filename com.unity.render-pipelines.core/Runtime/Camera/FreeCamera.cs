@@ -62,10 +62,12 @@ namespace UnityEngine.Rendering
         void RegisterInputs()
         {
 #if USE_INPUT_SYSTEM
-            lookAction = new InputAction("look", binding: "<Mouse>/delta");
-            moveAction = new InputAction("move", binding: "<Gamepad>/leftStick");
-            speedAction = new InputAction("speed", binding: "<Gamepad>/dpad");
-            yMoveAction = new InputAction("yMove");
+            var map = new InputActionMap("Free Camera");
+
+            lookAction = map.AddAction("look", binding: "<Mouse>/delta");
+            moveAction = map.AddAction("move", binding: "<Gamepad>/leftStick");
+            speedAction = map.AddAction("speed", binding: "<Gamepad>/dpad");
+            yMoveAction = map.AddAction("yMove");
 
             lookAction.AddBinding("<Gamepad>/rightStick").WithProcessor("scaleVector2(x=10, y=10)");
             moveAction.AddCompositeBinding("Dpad")
@@ -87,27 +89,12 @@ namespace UnityEngine.Rendering
                 .With("Down", "<Keyboard>/q")
                 .With("Up", "<Gamepad>/rightshoulder")
                 .With("Down", "<Gamepad>/leftshoulder");
-            
+
             moveAction.Enable();
             lookAction.Enable();
             speedAction.Enable();
             fireAction.Enable();
             yMoveAction.Enable();
-
-            // moveAction.performed += (e) => {
-            //     Debug.Log("GHIOWHG", e.ReadValue<Vector2>());
-            // };
-
-            // // Create an Action Map with Actions.
-            // var map = new InputActionMap("Gameplay");
-            // var lookAction = map.AddAction("look");
-            // lookAction.AddBinding("<Gamepad>/leftStick");
-
-            // // Create an Action Asset.
-            // var asset = ScriptableObject.CreateInstance<InputActionAsset>();
-            // var gameplayMap = new InputActionMap("gameplay");
-            // asset.AddActionMap(gameplayMap);
-            // var lookAction = gameplayMap.AddAction("look", "<Gamepad>/leftStick");
 #endif
 
 #if UNITY_EDITOR && !USE_INPUT_SYSTEM
