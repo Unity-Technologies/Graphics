@@ -47,7 +47,7 @@ class ForwardToStandardRendererPostprocessor : AssetPostprocessor
             SerializedProperty scriptPropertyAsset = soAsset.FindProperty("m_RequireDepthTexture");
             soAsset.Update();
             bool tmp = scriptPropertyAsset.boolValue;
-            scriptPropertyAsset.boolValue = scriptPropertyAsset.boolValue? false : true; //make the changes
+            scriptPropertyAsset.boolValue = !scriptPropertyAsset.boolValue; //make the changes
             soAsset.ApplyModifiedProperties();
             scriptPropertyAsset.boolValue = tmp; //revert the changes
             soAsset.ApplyModifiedProperties();
