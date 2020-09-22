@@ -143,6 +143,10 @@ by respectively
 ```
 For an example of best practices to apply decals to a material, see the `ApplyDecalToSurfaceData()` function in the LitDecalData.hlsl file.
 
+From Unity 2020.2, the Raytracing keyword in Shader Graph has been renamed to Raytracing Quality and the RAYTRACING_SHADER_GRAPH_LOW and RAYTRACING_SHADER_GRAPH_HIGH defines are now RAYTRACING_SHADER_GRAPH_DEFAULT and RAYTRACING_SHADER_GRAPH_RAYTRACED respectively. Unless you used these defines in custom Shader code, you do not need to do anything because Shader Graph automatically regenerates its Shaders with the correct defines when you load the Project.
+
+From 10.x, HDRP adds a new fullscreen debug pass named `FullScreenDebug`. Any object using a material which doesn't contain this pass will no be rendered during the fullscreen debug pass.
+
 From Unity 2020.2, a parameter `positionNDC` has been added to the function `SampleEnv`. It's prototype has changed from:
 `float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod, float rangeCompressionFactorCompensation, int sliceIdx = 0)`
 to:
@@ -150,6 +154,9 @@ to:
 For example, the call in the Lit shader has been updated to:
 `float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness), lightData.rangeCompressionFactorCompensation, posInput.positionNDC);`
 
+## raytracing
+
+From Unity 2020.2, the Raytracing Node in shader graph now apply the raytraced path (previously low path) to all raytraced effects but path tracing.
 
 ## Custom pass API
 

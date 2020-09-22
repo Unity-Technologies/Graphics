@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -101,6 +101,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved SSGI out of preview.
 - Skip an unneeded depth buffer copy on consoles. 
 - Replaced the Density Volume Texture Tool with the new 3D Texture Importer.
+- Rename Raytracing Node to Raytracing Quality Keyword and rename high and low inputs as default and raytraced. All raytracing effects now use the raytraced mode but path tracing.
 
 ## [10.0.0] - 2019-06-10
 
@@ -263,6 +264,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added path tracing test scene for normal mapping.
 - Added missing API documentation.
 - Remove CloudLayer
+- Added quad overdraw and vertex density debug modes.
 
 ### Fixed
 - fix when saved HDWizard window tab index out of range (1260273)
@@ -818,6 +820,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed glitch in Project settings window when selecting diffusion profiles in material section (case 1253090)
 - Fixed issue with light layers bigger than 8 (and above the supported range). 
 - Fixed issue with culling layer mask of area light's emissive mesh 
+- Fixed overused the atlas for Animated/Render Target Cookies (1259930).
 - Fixed errors when switching area light to disk shape while an area emissive mesh was displayed.
 - Fixed default frame settings MSAA toggle for reflection probes (case 1247631)
 - Fixed the transparent SSR dependency not being properly disabled according to the asset dependencies (1260271).
