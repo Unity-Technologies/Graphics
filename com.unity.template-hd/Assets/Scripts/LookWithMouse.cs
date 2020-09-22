@@ -28,7 +28,7 @@ public class LookWithMouse : MonoBehaviour
 
         if (Mouse.current != null)
         {
-            var delta = Mouse.current.delta.ReadValue() / 5.0f;
+            var delta = Mouse.current.delta.ReadValue() / 15.0f;
             mouseX += delta.x;
             mouseY += delta.y;
         }
