@@ -55,13 +55,13 @@ half4 SampleAlbedo(float2 uv, float3 blendUv, half4 color, float4 particleColor,
 
 half4 SampleAlbedo(TEXTURE2D_PARAM(albedoMap, sampler_albedoMap), ParticleParams params)
 {
-    half4 albedo = BlendTexture(TEXTURE2D_ARGS(albedoMap, sampler_albedoMap), params.uv, params.blendUv) * params.color;
+    half4 albedo = BlendTexture(TEXTURE2D_ARGS(albedoMap, sampler_albedoMap), params.uv, params.blendUv) * params.baseColor;
 
     half4 colorAddSubDiff = half4(0, 0, 0, 0);
     #if defined (_COLORADDSUBDIFF_ON)
         colorAddSubDiff = _BaseColorAddSubDiff;
     #endif
-    albedo = MixParticleColor(albedo, params.particleColor, colorAddSubDiff);
+    albedo = MixParticleColor(albedo, params.vertexColor, colorAddSubDiff);
 
     AlphaDiscard(albedo.a, _Cutoff);
 

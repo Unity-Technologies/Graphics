@@ -11,9 +11,9 @@
 struct ParticleParams
 {
     float4 positionWS;
-    float4 particleColor;
+    float4 vertexColor;
     float4 projectedPosition;
-    half4 color;
+    half4 baseColor;
     float3 blendUv;
     float2 uv;
 };
@@ -23,8 +23,8 @@ void InitParticleParams(VaryingsParticle input, out ParticleParams output)
     output = (ParticleParams) 0;
     output.uv = input.texcoord;
     output.positionWS = input.positionWS;
-    output.color = _BaseColor;
-    output.particleColor = input.color;
+    output.baseColor = _BaseColor;
+    output.vertexColor = input.color;
 
     #if defined(_FLIPBOOKBLENDING_ON)
         output.blendUv = input.texcoord2AndBlend;
