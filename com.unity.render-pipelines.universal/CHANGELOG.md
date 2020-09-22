@@ -35,6 +35,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where, if URP was not in use, you would sometimes get errors about 2D Lights when going through the menus.
 - Fixed GC when using XR single-pass automated tests.
 - Fixed resolution of intermediate textures when rendering to part of a render texture. [case 1261287](https://issuetracker.unity3d.com/product/unity/issues/guid/1261287/)
+- Fixed XR mirroView sRGB issue when color space is gamma.
+- Fixed an issue where XR eye textures are recreated multiple times per frame due to per camera MSAA change.
+- Fixed an issue wehre XR mirror view selector stuck. 
 
 ## [10.0.0] - 2019-06-10
 ### Added
