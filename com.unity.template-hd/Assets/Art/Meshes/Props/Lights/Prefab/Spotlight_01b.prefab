@@ -252,31 +252,11 @@ PrefabInstance:
       propertyPath: m_LocalScale.z
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 2606308269258677512, guid: 43a2c40dd5bb4f6449d77cd82d533131, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 2897031892463655715, guid: 43a2c40dd5bb4f6449d77cd82d533131, type: 3}
       propertyPath: m_Name
       value: Spotlight_Spot_01b
       objectReference: {fileID: 0}
     - target: {fileID: 2897031892463655715, guid: 43a2c40dd5bb4f6449d77cd82d533131, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7121601065988640605, guid: 43a2c40dd5bb4f6449d77cd82d533131, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7688618708944324686, guid: 43a2c40dd5bb4f6449d77cd82d533131, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8451763577038506063, guid: 43a2c40dd5bb4f6449d77cd82d533131, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8771126682916276584, guid: 43a2c40dd5bb4f6449d77cd82d533131, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 0
       objectReference: {fileID: 0}

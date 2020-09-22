@@ -523,6 +523,9 @@ namespace UnityEditor.Rendering.Universal
             for (int i = 0; i < rendererCount; i++)
             {
                 ScriptableRenderer renderer = pipelineAsset.GetRenderer(i);
+                if (renderer == null)
+                    continue;
+
                 GraphicsDeviceType[] unsupportedAPIs = renderer.unsupportedGraphicsDeviceTypes;
 
                 for (int apiIndex = 0; apiIndex < unsupportedAPIs.Length; apiIndex++)
