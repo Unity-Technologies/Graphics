@@ -15,7 +15,6 @@ class ForwardToStandardRendererPostprocessor : AssetPostprocessor
         string fwdRendererScriptFilePath = AssetDatabase.GUIDToAssetPath ("de640fe3d0db1804a85f9fc8f5cadab6");
         var fwdRendererScriptObj = AssetDatabase.LoadAssetAtPath(fwdRendererScriptFilePath,typeof(Object));
 
-        //Count for debug
         int noOfFwdRendererData = 0;
 
         //Gets all the Renderer Assets in project
@@ -55,4 +54,3 @@ class ForwardToStandardRendererPostprocessor : AssetPostprocessor
         }
     }
 }
-
