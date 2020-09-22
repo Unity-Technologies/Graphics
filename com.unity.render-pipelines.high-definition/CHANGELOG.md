@@ -858,6 +858,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Reduced the number of global keyword used in deferredTile.shader
 - Fixed incorrect processing of Ambient occlusion probe (9% error was introduced)
 - Fixed multiedition of framesettings drop down (case 1270044)
+- Fixed planar probe gizmo
 
 ### Changed
 - Improve MIP selection for decals on Transparents
