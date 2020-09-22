@@ -404,17 +404,3 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: Android Vulkan 143 regressed test scene
-  - FilteredScene: {fileID: 102900000, guid: fe73f67a2bc4933468c714f164c6596d, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 11
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Android GLES3 max additional lights regression. '
-  - FilteredScene: {fileID: 102900000, guid: 169aede566e462449812f4bfb3f8d20d, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 11
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Android GLES3 max additional lights regression. '
