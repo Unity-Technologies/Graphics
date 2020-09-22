@@ -49,7 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
                 return;
 
-            BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, ref prepassOutput);
+            BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, resolveOnly: false, ref prepassOutput);
 
             TextureHandle depthStencilBuffer = prepassOutput.depthBuffer;
             TextureHandle depthTexture = prepassOutput.depthPyramidTexture;
