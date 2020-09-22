@@ -92,7 +92,7 @@ float GetPunctualShadowClosestDistance(HDShadowContext shadowContext, SamplerSta
 
 float GetRectAreaShadowAttenuation(HDShadowContext shadowContext, float2 positionSS, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float L_dist)
 {
-#if (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER))
+#if !defined(SHADER_API_XBOXONE) && (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER))
     shadowDataIndex = WaveReadLaneFirst(shadowDataIndex);
 #endif
     HDShadowData sd = shadowContext.shadowDatas[shadowDataIndex];
