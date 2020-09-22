@@ -265,6 +265,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             HLSLPROGRAM
+            #pragma exclude_renderers gles
+            #pragma target 4.5
 
             #pragma multi_compile_vertex _ _SPOT
 
@@ -298,6 +300,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             HLSLPROGRAM
+            #pragma exclude_renderers gles
+            #pragma target 4.5
 
             #pragma multi_compile _POINT _SPOT
             #pragma multi_compile_fragment _LIT
@@ -337,6 +341,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             HLSLPROGRAM
+            #pragma exclude_renderers gles
+            #pragma target 4.5
 
             #pragma multi_compile _POINT _SPOT
             #pragma multi_compile_fragment _SIMPLELIT
@@ -375,6 +381,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             HLSLPROGRAM
+            #pragma exclude_renderers gles
+            #pragma target 4.5
 
             #pragma multi_compile _DIRECTIONAL
             #pragma multi_compile_fragment _LIT
@@ -415,6 +423,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             HLSLPROGRAM
+            #pragma exclude_renderers gles
+            #pragma target 4.5
 
             #pragma multi_compile _DIRECTIONAL
             #pragma multi_compile_fragment _SIMPLELIT
@@ -433,30 +443,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             ENDHLSL
         }
 
-        // 5 - Legacy fog
-        Pass
-        {
-            Name "Fog"
-
-            ZTest NotEqual
-            ZWrite Off
-            Cull Off
-            Blend OneMinusSrcAlpha SrcAlpha, Zero One
-            BlendOp Add, Add
-
-            HLSLPROGRAM
-
-            #pragma multi_compile _FOG
-            #pragma multi_compile FOG_LINEAR FOG_EXP FOG_EXP2
-
-            #pragma vertex Vertex
-            #pragma fragment FragFog
-            //#pragma enable_d3d11_debug_symbols
-
-            ENDHLSL
-        }
-
-        // 6 - Clear stencil partial
+        // 5 - Clear stencil partial
         Pass
         {
             Name "ClearStencilPartial"
@@ -477,10 +464,37 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             HLSLPROGRAM
+            #pragma exclude_renderers gles
+            #pragma target 4.5
 
             #pragma multi_compile _CLEAR_STENCIL_PARTIAL
             #pragma vertex Vertex
             #pragma fragment FragWhite
+
+            ENDHLSL
+        }
+
+        // 6 - Legacy fog
+        Pass
+        {
+            Name "Fog"
+
+            ZTest NotEqual
+            ZWrite Off
+            Cull Off
+            Blend OneMinusSrcAlpha SrcAlpha, Zero One
+            BlendOp Add, Add
+
+            HLSLPROGRAM
+            #pragma exclude_renderers gles
+            #pragma target 4.5
+
+            #pragma multi_compile _FOG
+            #pragma multi_compile FOG_LINEAR FOG_EXP FOG_EXP2
+
+            #pragma vertex Vertex
+            #pragma fragment FragFog
+            //#pragma enable_d3d11_debug_symbols
 
             ENDHLSL
         }
