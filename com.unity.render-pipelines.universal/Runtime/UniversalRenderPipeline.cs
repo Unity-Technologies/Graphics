@@ -133,7 +133,10 @@ namespace UnityEngine.Rendering.Universal
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
             SetupPerFrameShaderConstants();
-
+#if ENABLE_VR && ENABLE_XR_MODULE
+            // Update XR MSAA level per frame.
+            XRSystem.UpdateMSAALevel(asset.msaaSampleCount);
+#endif
             SortCameras(cameras);
             for (int i = 0; i < cameras.Length; ++i)
             {
@@ -556,6 +559,9 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.isDitheringEnabled = false;
                 cameraData.antialiasing = AntialiasingMode.None;
                 cameraData.antialiasingQuality = AntialiasingQuality.High;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                cameraData.xrRendering = false;
+#endif
             }
             else if (baseAdditionalCameraData != null)
             {
@@ -565,6 +571,9 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.isDitheringEnabled = baseAdditionalCameraData.dithering;
                 cameraData.antialiasing = baseAdditionalCameraData.antialiasing;
                 cameraData.antialiasingQuality = baseAdditionalCameraData.antialiasingQuality;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                cameraData.xrRendering = baseAdditionalCameraData.allowXRRendering;
+#endif
             }
             else
             {
@@ -574,6 +583,9 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.isDitheringEnabled = false;
                 cameraData.antialiasing = AntialiasingMode.None;
                 cameraData.antialiasingQuality = AntialiasingQuality.High;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                cameraData.xrRendering = true;
+#endif
             }
 
             ///////////////////////////////////////////////////////////////////
@@ -586,6 +598,12 @@ namespace UnityEngine.Rendering.Universal
             int msaaSamples = 1;
             if (baseCamera.allowMSAA && settings.msaaSampleCount > 1 && rendererSupportsMSAA)
                 msaaSamples = (baseCamera.targetTexture != null) ? baseCamera.targetTexture.antiAliasing : settings.msaaSampleCount;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            // Use XR's MSAA if camera is XR camera. XR MSAA needs special handle here because it is not per Camera.
+            // Multiple cameras could render into the same XR display and they should share the same MSAA level.
+            if (cameraData.xrRendering)
+                msaaSamples = XRSystem.GetMSAALevel();
+#endif
 
             cameraData.isHdrEnabled = baseCamera.allowHDR && settings.supportsHDR;
 
@@ -604,7 +622,6 @@ namespace UnityEngine.Rendering.Universal
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             cameraData.xr = m_XRSystem.emptyPass;
-            XRSystem.UpdateMSAALevel(msaaSamples);
             XRSystem.UpdateRenderScale(cameraData.renderScale);
 #else
             cameraData.xr = XRPass.emptyPass;
@@ -648,9 +665,6 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
                 cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
                 cameraData.renderer = asset.scriptableRenderer;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                cameraData.xrRendering = false;
-#endif
             }
             else if (additionalCameraData != null)
             {
@@ -661,9 +675,6 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresDepthTexture = additionalCameraData.requiresDepthTexture;
                 cameraData.requiresOpaqueTexture = additionalCameraData.requiresColorTexture;
                 cameraData.renderer = additionalCameraData.scriptableRenderer;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                cameraData.xrRendering = additionalCameraData.allowXRRendering;
-#endif
             }
             else
             {
@@ -673,9 +684,6 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
                 cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
                 cameraData.renderer = asset.scriptableRenderer;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                cameraData.xrRendering = true;
-#endif
             }
 
             // Disable depth and color copy. We should add it in the renderer instead to avoid performance pitfalls
