@@ -23,7 +23,7 @@ To expose these properties, select a Composition Layer in the **Render Schedule*
 | **Color Buffer Format** | Specifies the format to use for this layer's color buffer.   |
 | **Resolution**          | Specifies the pixel resolution of this layer. If you use **Full**, the layer's resolution corresponds to the main Camera in the Scene. If you use **Half** or **Quarter** resolution for a layer, it improves performance when Unity renders that layer, but if you combine layers of different resolutions, artifacts may occur depending on the content and the compositing operation. |
 | **Output Renderer**     | Specifies a Renderer to direct the output of this layer to. The compositor overrides and automatically updates the **_BaseColorMap** Texture from the Material attached to this Renderer. This is useful when the selected Renderer should be visible by a Camera on another layer. |
-| **AOVs**                | Specifies the type of output variable in this layer. Aside from Color, you can also output variables like **Albedo**, **Normal**, or **Smoothness**. This option affects all Cameras stacked in this layer. |
+| **AOVs**                | Specifies the type of output variable in this layer. Aside from Color, you can also output variables like **Albedo**, **Normal**, or **Smoothness**. This option affects all Cameras stacked in this layer. To make this functionality work in the Unity Player, enable **Runtime AOV API** in the [HDRP Asset](HDRP-Asset.md).  |
 
 ## Sub-layer Properties
 
