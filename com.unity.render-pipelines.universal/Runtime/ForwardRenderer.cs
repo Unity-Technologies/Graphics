@@ -394,11 +394,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-            // URP uses writes to depth buffer for the XR occlusion mesh pass. 
-            // When copy depth is required, we turn off occlusion pass so that depth buffer contains valid data.
-            // This is required because otherwise, the occlusion mesh area in depth buffer contains near clip plane value
-            // and this could cause issue when doing depth based reprojection.
-            if (cameraData.xr.hasValidOcclusionMesh && !cameraData.xr.copyDepth)
+            if (cameraData.xr.hasValidOcclusionMesh)
                 EnqueuePass(m_XROcclusionMeshPass);
 #endif
 
