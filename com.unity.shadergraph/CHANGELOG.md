@@ -12,6 +12,7 @@ The version number for this package has increased due to a version update of a r
 ### Added
 - Added parallax mapping node and parallax occlusion mapping node.
 - Added the possibility to have multiple POM node in a single graph.
+- Added better error feedback when SampleVirtualTexture nodes run into issues with the VirtualTexture property inputs
 
 ### Changed
 - Added method chaining support to shadergraph collection API.
