@@ -143,7 +143,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        bool m_NoFeedback;
+        bool m_NoFeedback;          // aka !AutomaticStreaming
         public bool noFeedback
         {
             get
@@ -156,7 +156,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_NoFeedback = value;
-                UpdateNodeAfterDeserialization();       // rebuilds all slots
+                RebuildAllSlots(true);
                 Dirty(ModificationScope.Topological);   // slots ShaderStageCapability could have changed, so trigger Topo change
             }
         }
