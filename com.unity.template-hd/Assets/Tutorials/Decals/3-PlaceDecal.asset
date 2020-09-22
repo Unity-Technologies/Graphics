@@ -43,17 +43,23 @@ MonoBehaviour:
         Place it somewhere in the 3rd room, make sure it is sligtly above the floor.
 
 
-        Recommended
-        values:
-
-        Postition X:58 Y:2.16 Z:-0.15
-
-        Rotation X:90 Y:180
-        Z:52
+        Tip:
+        While decal is selected, hold ctrl+shift, a white rectangle gizmo will appear.
+        This gizmo can help you place objects just above surfaces, just remember
+        to lift it up a bit on the Y axis when done.
 
 
-        Now you should be able to see the decal but It won''t look
-        like a puddle just yet.'
+        If you want to match
+        the exact location, you can use these settings:
+
+        Postition X:58 Y:2.16
+        Z:-0.15
+
+        Rotation X:90 Y:180 Z:52
+
+
+        Now you should be able
+        to see the decal but It won''t look like a puddle just yet.'
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
