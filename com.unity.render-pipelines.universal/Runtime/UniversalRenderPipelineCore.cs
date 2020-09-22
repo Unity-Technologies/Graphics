@@ -627,43 +627,4 @@ namespace UnityEngine.Rendering.Universal
             lightOcclusionProbeChannel.y = occlusionProbeChannel == -1 ? 1f : 0f;
         }
     }
-
-    internal enum URPProfileId
-    {
-        // CPU
-        UniversalRenderTotal,
-        UpdateVolumeFramework,
-        RenderCameraStack,
-
-        // GPU
-        AdditionalLightsShadow,
-        ColorGradingLUT,
-        CopyColor,
-        CopyDepth,
-        DepthNormalPrepass,
-        DepthPrepass,
-
-        // DrawObjectsPass
-        DrawOpaqueObjects,
-        DrawTransparentObjects,
-
-        // RenderObjectsPass
-        //RenderObjects,
-
-        MainLightShadow,
-        ResolveShadows,
-        SSAO,
-
-        // PostProcessPass
-        StopNaNs,
-        SMAA,
-        GaussianDepthOfField,
-        BokehDepthOfField,
-        MotionBlur,
-        PaniniProjection,
-        UberPostProcess,
-        Bloom,
-
-        FinalBlit
-    }
 }
