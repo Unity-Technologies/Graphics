@@ -1,6 +1,6 @@
 abv: # specify the editor versions for which to create the expression trigger for all_project_ci job
   trigger_editors:
-    - fast-trunk
+    - trunk
   projects:
     - name: Universal
     - name: ShaderGraph
@@ -34,16 +34,28 @@ nightly:
         - editmode
         - playmode
         # - playmode_XR # uncomment once bug fixed on XR side 
+    - project: URPUpdate
+      platform: Win
+      api: DX11
+      test_platforms:
+        - editmode
+        - playmode
+    - project: URPUpdate_Top_Asset_Store
+      platform: Win
+      api: DX11
+      test_platforms:
+        - editmode
+        - playmode
 smoke_test: # specifications for smoke tests
   folder: SRP_SmokeTest
   agent: sdet_win_large # used for editmode
   agent_gpu: sdet_win_large_gpu  # used for non-editmode
   test_platforms:
-    - Standalone
+    #- Standalone
     - playmode
     - editmode
 trunk_verification: # jobs to include in trunk verification job
-  dependencies:
+  dependencies:          
     - project: Universal
       platform: Win
       api: DX11
