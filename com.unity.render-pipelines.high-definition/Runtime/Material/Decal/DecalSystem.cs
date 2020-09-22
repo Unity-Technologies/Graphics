@@ -458,7 +458,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return res;
             }
 
-            public void UpdateCachedData(DecalHandle handle, DecalProjector.CachedDecalData data)
+            public void UpdateCachedData(DecalHandle handle, in DecalProjector.CachedDecalData data)
             {
                 int index = handle.m_Index;
                 m_CachedDecalToWorld[index] = data.localToWorld * data.sizeOffset;
@@ -509,7 +509,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Update memory allocation and assign decal handle, then update cached data
-            public DecalHandle AddDecal(int materialID, DecalProjector.CachedDecalData data)
+            public DecalHandle AddDecal(int materialID, in DecalProjector.CachedDecalData data)
             {
                 // increase array size if no space left
                 if (m_DecalsCount == m_Handles.Length)
