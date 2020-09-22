@@ -29,7 +29,7 @@ class Template_TestJob():
             commands.append(f'cp {PATH_PACKAGES_temp}/**/upm-ci~/packages/*.tgz upm-ci~/packages')
         if template.get('hascodependencies', None) is not None:
             commands.append(platform["copycmd"])
-        commands.append(f'upm-ci template test -u {platform["editorpath"]} --project-path {template["packagename"]}')
+        commands.append(f'upm-ci template test -u {platform["editorpath"]} --project-path {template["packagename"]} --semver-type minor')
 
 
         # construct job
