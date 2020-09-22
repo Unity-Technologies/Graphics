@@ -194,9 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // TODO: remove me, I am just a temporary debug texture. :-)
         // RTHandle m_SsrDebugTexture;
         RTHandle m_SsrHitPointTexture;
-        //RTHandle m_SsrCurrentTexture;
         RTHandle m_SsrLightingTexture;
-        //RTHandle m_SsrPrevLightingTexture;
         // MSAA Versions of regular textures
         RTHandle m_CameraColorMSAABuffer;
         RTHandle m_OpaqueAtmosphericScatteringMSAABuffer;  // Necessary to perform dual-source (polychromatic alpha) blending which is not supported by Unity
@@ -746,9 +744,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (settings.supportSSR)
             {
                 m_SsrHitPointTexture = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, name: "SSR_Hit_Point_Texture");
-                //m_SsrCurrentTexture = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, name: "SSR_Accum_Texture");
                 m_SsrLightingTexture = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, name: "SSR_Lighting_Texture");
-                //m_SsrPrevLightingTexture = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, name: "SSR_Prev_Lighting_Texture");
             }
 
             // Let's create the MSAA textures
@@ -803,9 +799,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // RTHandles.Release(m_SsrDebugTexture);
             RTHandles.Release(m_SsrHitPointTexture);
-            //RTHandles.Release(m_SsrCurrentTexture);
             RTHandles.Release(m_SsrLightingTexture);
-            //RTHandles.Release(m_SsrPrevLightingTexture);
 
             RTHandles.Release(m_CameraColorMSAABuffer);
             RTHandles.Release(m_OpaqueAtmosphericScatteringMSAABuffer);
@@ -4739,7 +4733,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(cs, parameters.accumulateKernel, HDShaderIDs._SsrHitPointTexture, SsrHitPointTexture);
                 cmd.SetComputeTextureParam(cs, parameters.accumulateKernel, HDShaderIDs._SSRAccumTexture, ssrAccum);
                 cmd.SetComputeTextureParam(cs, parameters.accumulateKernel, HDShaderIDs._SsrLightingTextureRW, ssrLightingTexture);
-                cmd.SetComputeTextureParam(cs, parameters.accumulateKernel, HDShaderIDs._SsrPrevLightingTexture, ssrAccumPrev);
+                cmd.SetComputeTextureParam(cs, parameters.accumulateKernel, HDShaderIDs._SsrAccumPrev, ssrAccumPrev);
                 cmd.SetComputeTextureParam(cs, parameters.accumulateKernel, HDShaderIDs._SsrClearCoatMaskTexture, clearCoatMask);
                 cmd.SetComputeTextureParam(cs, parameters.accumulateKernel, HDShaderIDs._CameraMotionVectorsTexture, motionVectorsBuffer);
 
@@ -5481,11 +5475,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         // and much faster than fully overwriting them from within SSR shaders.
                         // CoreUtils.SetRenderTarget(cmd, hdCamera, m_SsrDebugTexture,    ClearFlag.Color, Color.clear);
                         CoreUtils.SetRenderTarget(cmd, m_SsrHitPointTexture, ClearFlag.Color, Color.clear);
-                        //if (ssrLightingTexture != null)
-                        //    CoreUtils.SetRenderTarget(cmd, ssrLightingTexture, ClearFlag.Color, Color.clear);
-                        //CoreUtils.Swap<RTHandle>(ref m_SsrLightingTexture, ref m_SsrPrevLightingTexture);
-                        //CoreUtils.SetRenderTarget(cmd, m_SsrLightingTexture, ClearFlag.Color, Color.clear);
-                        //cmd.CopyTexture(m_SsrLightingTexture, m_SsrPrevLightingTexture);
                         CoreUtils.SetRenderTarget(cmd, m_SsrLightingTexture, ClearFlag.None);
                         CoreUtils.SetRenderTarget(cmd, ssrAccumulation, ClearFlag.Color, Color.clear);
                     }

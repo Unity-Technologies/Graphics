@@ -77,7 +77,7 @@ TEXTURE2D_X(_DepthTexture);
     RW_TEXTURE2D_X(float4, _SSRAccumTexture);
 #else //if defined(SSR_ACCUMULATE)
        TEXTURE2D_X(        _SsrHitPointTexture);
-    RW_TEXTURE2D_X(float4, _SsrPrevLightingTexture);
+    RW_TEXTURE2D_X(float4, _SsrAccumPrev);
     RW_TEXTURE2D_X(float4, _SsrLightingTextureRW);
     RW_TEXTURE2D_X(float4, _SSRAccumTexture);
 #endif
@@ -151,18 +151,13 @@ bool SampleGGX(float roughness_,
     float3 localL = 2.0 * VdotH * localH - localV;
     outgoingDir = mul(localL, localToWorld);
 
-    //if (localL.z < 0.001 || !IsAbove(mtlData, outgoingDir))
     if (localL.z < 0.001)
         return false;
 
-    //float pdfNoGV = D_AnisoGGX(roughnessX, roughnessY, localH) / (4.0 * localV.z);
-    //float pdfNoGV = D_AnisoGGX(roughness, roughness, localH) / (4.0 * localV.z);
     float pdfNoGV = D_GGX(localH.z, roughness);
-    //float lambdaVPlusOne = Lambda_AnisoGGX(roughnessX, roughnessY, localV) + 1.0;
     float lambdaVPlusOne = Lambda_GGX(roughness, localV) + 1.0;
     pdf = pdfNoGV / lambdaVPlusOne;
 
-    //float lambdaL = Lambda_AnisoGGX(roughnessX, roughnessY, localL);
     float lambdaL = Lambda_GGX(roughness, localL);
     fresnel = F_Schlick(fresnel0, VdotH);
     value = fresnel * pdfNoGV / (lambdaVPlusOne + lambdaL);
@@ -280,10 +275,9 @@ float3 GetWorldSpacePosition(uint2 positionSS)
     float  deviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, positionSS).r;
 #endif
 
-    //float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw);
-    float2 positionNDC = positionSS;// *_ScreenSize.zw + (0.5 * _ScreenSize.zw);
+    float2 positionNDC = positionSS *_ScreenSize.zw + (0.5 * _ScreenSize.zw);
 
-    return ComputeWorldSpacePosition(positionNDC, deviceDepth, UNITY_MATRIX_I_VP/*UNITY_MATRIX_PREV_I_VP*/);
+    return ComputeWorldSpacePosition(positionNDC, deviceDepth, UNITY_MATRIX_I_VP);
 }
 
 float2 GetWorldSpacePoint(uint2 positionSS, out float3 positionSrcWS, out float3 positionDstWS)
@@ -292,7 +286,6 @@ float2 GetWorldSpacePoint(uint2 positionSS, out float3 positionSrcWS, out float3
 
     float4 hitData = _SsrHitPointTexture[COORD_TEXTURE2D_X(positionSS)];
     uint2 positionDstSS = (hitData.xy - (0.5 * _ScreenSize.zw)) / _ScreenSize.zw;
-    //uint2 positionDstSS = hitData.xy;
 
     positionDstWS = GetWorldSpacePosition(positionDstSS);
 
@@ -638,13 +631,12 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     uint2 positionSS0 = dispatchThreadId.xy;
 
     float3 N;
-    float perceptualRoughness0;
-    GetNormalAndPerceptualRoughness(positionSS0, N, perceptualRoughness0);
+    float perceptualRoughness;
+    GetNormalAndPerceptualRoughness(positionSS0, N, perceptualRoughness);
 
     // Compute the actual roughness
-    float roughness0 = PerceptualRoughnessToRoughness(perceptualRoughness0);
-
-    roughness0 = clamp(roughness0, MIN_GGX_ROUGHNESS, MAX_GGX_ROUGHNESS);
+    float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
+    roughness = clamp(roughness, MIN_GGX_ROUGHNESS, MAX_GGX_ROUGHNESS);
 
     // TODO: this texture is sparse (mostly black). Can we avoid reading every texel? How about using Hi-S?
     float2 hitPositionNDC = LOAD_TEXTURE2D_X(_SsrHitPointTexture, positionSS0).xy;
@@ -661,29 +653,10 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
 
     float2 uv = float2(positionSS0) * _ColorPyramidUvScaleAndLimitPrevFrame.xy;
 
-    float pdf0, weight0;
-    float dist0;
-    float NdotL0, NdotH0, VdotH0, NdotV0;
-    float3 R0, V0, N0;
-    float3 positionWS0;
-    float perceptualRoughness;
-    GetHitInfos(positionSS0, hitPositionNDC, perceptualRoughness, positionWS0, pdf0, weight0, N0, R0, V0, dist0, NdotL0, NdotH0, VdotH0, NdotV0);
-
     float4 accum = _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS0)];
 
     float opacity = 1.0f;
 
-    if (NdotL0 < 0.001f || pdf0 < 0.001f)
-    {
-        return;
-    }
-    float2 hitUV0 = hitPositionNDC.xy * _ColorPyramidUvScaleAndLimitPrevFrame.xy;
-    if ((hitUV0.x < 0) || (hitUV0.x > _ColorPyramidUvScaleAndLimitPrevFrame.z) ||
-        (hitUV0.y < 0) || (hitUV0.y > _ColorPyramidUvScaleAndLimitPrevFrame.w))
-    {
-        // Off-screen.
-        return;
-    }
     if (max(hitPositionNDC.x, hitPositionNDC.y) == 0)
     { 
         // Miss.
@@ -732,9 +705,6 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
 
     if (wAll > 0.0f)
     {
-        //float2 coordLUT = Remap01ToHalfTexelCoord(float2(sqrt(NdotV0), roughness0), FGDTEXTURE_RESOLUTION);
-        //float E = SAMPLE_TEXTURE2D_LOD(_PreIntegratedFGD_GGXDisneyDiffuse, s_linear_clamp_sampler, coordLUT, 0).y;
-        //float E0 = (1.0 - E) / E;
         _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS0)] = outputs / wAll;
     }
 }
@@ -805,11 +775,7 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
         {
             float4 data = _SSRAccumTexture[COORD_TEXTURE2D_X(int2(positionSS) + int2(x, y))];
             float4 hitData = _SsrHitPointTexture[COORD_TEXTURE2D_X(int2(positionSS) + int2(x, y))];
-            //float sigma = lerp(0.125f, 16.0f, saturate(data.w/128.f));
-            //float sigma = lerp(0.125f, 32.0f, saturate(var));
-            //float sigma = lerp(0.125f, 32.0f, saturate(dist));
-            //if (dot(data.rgb, float3(1, 1, 1) > 0.0f))
-            //if (data.w > 0.0f)
+
             uint3 intCol = asuint(data.rgb);
             bool  isPosFin = Max3(intCol.r, intCol.g, intCol.b) < 0x7F800000;
 
@@ -828,23 +794,22 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
         output = output / tot;
         float2 motionVectorNDC;
         DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(hitPositionNDC.xy, 1.0f - 0.5f * _ScreenSize.zw)* _RTHandleScale.xy, 0), motionVectorNDC);
-        //motionVectorNDC *= _ColorPyramidUvScaleAndLimitPrevFrame.xy;
         float speedDst = length(motionVectorNDC);
 
         float2 motionVectorCenterNDC;
         float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw);
         DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(positionNDC, 1.0f - 0.5f * _ScreenSize.zw)* _RTHandleScale.xy, 0), motionVectorCenterNDC);
-        //motionVectorCenterNDC *= _ColorPyramidUvScaleAndLimitPrevFrame.xy;
         float speedSrc = length(motionVectorCenterNDC);
         float speed = (speedDst + speedDst);
         speed = speed > 0.0f ? 1.0f : 0.0f;
 
-        _SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] =
-            lerp(
-                _SsrPrevLightingTexture[COORD_TEXTURE2D_X(positionSS)],
-                _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)],
-                lerp(_SsrAccumulationAmount, 1.0f, speed));
-        _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = _SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)];
+        float4 result = lerp(
+                            _SsrAccumPrev[COORD_TEXTURE2D_X(positionSS)],
+                            _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)],
+                            lerp(_SsrAccumulationAmount, 1.0f, speed));
+
+        _SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] = result;
+        _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = result;
     }
 }
 

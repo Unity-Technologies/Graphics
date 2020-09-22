@@ -398,9 +398,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle colorPyramid;
             public TextureHandle stencilBuffer;
             public TextureHandle hitPointsTexture;
-            public TextureHandle ssrAccumPointTexture;
+            public TextureHandle ssrAccum;
             public TextureHandle lightingTexture;
-            public TextureHandle prevLightingTexture;
+            public TextureHandle ssrAccumPrev;
             public TextureHandle clearCoatMask;
             public ComputeBufferHandle coarseStencilBuffer;
             //public TextureHandle debugTexture;
@@ -444,6 +444,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     var colorPyramid = renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain));
 
+                    hdCamera.AllocateScreenSpaceAccumulationHistoryBuffer(1.0f); // SSR is computed on fullscreen == 1.0f
+
+                    var ssrAccum = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation));
+                    var ssrAccumPrev = renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation));
+
                     passData.parameters = PrepareSSRParameters(hdCamera, m_DepthBufferMipChainInfo, transparent);
                     passData.depthBuffer = builder.ReadTexture(prepassOutput.depthBuffer);
                     passData.depthPyramid = builder.ReadTexture(prepassOutput.depthPyramidTexture);
@@ -463,13 +468,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     // and much faster than fully overwriting them from within SSR shaders.
                     passData.hitPointsTexture = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
                         { colorFormat = GraphicsFormat.R16G16_UNorm, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Hit_Point_Texture" });
-                    passData.lightingTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                        { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Lighting_Texture" }));
-                    passData.prevLightingTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                        { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Prev_Lighting_Texture" }));
-
-                    //passData.ssrAccumPointTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    //    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Accum_Texture" }));
+                    passData.lightingTexture = builder.WriteTexture(ssrAccum);
+                    passData.ssrAccum = builder.WriteTexture(ssrAccum);
+                    passData.ssrAccumPrev = builder.WriteTexture(ssrAccumPrev);
 
                     builder.SetRenderFunc(
                     (RenderSSRPassData data, RenderGraphContext context) =>
@@ -485,9 +486,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                     data.stencilBuffer,
                                     data.clearCoatMask,
                                     data.colorPyramid,
-                                    data.ssrAccumPointTexture,
+                                    data.ssrAccum,
                                     data.lightingTexture,
-                                    data.prevLightingTexture,
+                                    data.ssrAccumPrev,
                                     data.coarseStencilBuffer,
                                     context.cmd, context.renderContext);
                     });
