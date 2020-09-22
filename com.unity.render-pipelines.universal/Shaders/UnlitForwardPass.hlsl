@@ -48,7 +48,11 @@ void InitializeInputData(Varyings input, out InputData inputData)
     inputData.normalizedScreenSpaceUV = 0;
 
     inputData.normalTS = half3(0, 0, 1);
+    #if defined(LIGHTMAP_ON)
+    inputData.lightmapUV = half2(0, 0);
+    #else
     inputData.vertexSH = half3(0, 0, 0);
+    #endif
 
     #if defined(_DEBUG_SHADER)
     inputData.uv = input.uv;

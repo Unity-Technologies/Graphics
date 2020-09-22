@@ -1,9 +1,7 @@
+
 using System;
-using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEditor.ShaderGraph;
-using UnityEngine.Rendering;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Legacy;
@@ -132,6 +130,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     { UnlitPasses.Unlit },
                     { CorePasses.ShadowCaster },
                     { CorePasses.DepthOnly },
+                    { UnlitPasses.DebugMaterial },
                 },
             };
 
@@ -142,10 +141,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     var unlit = UnlitPasses.Unlit;
                     var shadowCaster = CorePasses.ShadowCaster;
                     var depthOnly = CorePasses.DepthOnly;
+                    var debugMaterial = UnlitPasses.DebugMaterial;
 
                     unlit.pragmas = CorePragmas.DOTSForward;
                     shadowCaster.pragmas = CorePragmas.DOTSInstanced;
                     depthOnly.pragmas = CorePragmas.DOTSInstanced;
+                    debugMaterial.pragmas = CorePragmas.DOTSForward;
 
                     return new SubShaderDescriptor()
                     {
@@ -157,6 +158,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                             { unlit },
                             { shadowCaster },
                             { depthOnly },
+                            { debugMaterial },
                         },
                     };
                 }
@@ -170,7 +172,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static PassDescriptor Unlit = new PassDescriptor
             {
                 // Definition
-                displayName = "Pass",
+                displayName = "Universal Forward Unlit",
                 referenceName = "SHADERPASS_UNLIT",
                 useInPreview = true,
 
@@ -191,6 +193,69 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas = CorePragmas.Forward,
                 keywords = UnlitKeywords.Unlit,
                 includes = UnlitIncludes.Unlit,
+            };
+
+            public static PassDescriptor DebugMaterial = new PassDescriptor
+            {
+                // Definition
+                displayName = "Debug Material",
+                referenceName = "SHADERPASS_DEBUGMATERIAL",
+                lightMode = "DebugMaterial",
+                useInPreview = true,
+
+                // Template
+                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = CoreBlockMasks.FragmentColorAlpha,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                requiredFields = UnlitRequiredFields.DebugMaterial,
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                // Conditional State
+                renderStates = CoreRenderStates.Default,
+                pragmas = CorePragmas.Forward,
+                keywords = UnlitKeywords.Unlit,
+                includes = UnlitIncludes.Unlit,
+                defines = UnlitDefines.Debug,
+            };
+        }
+#endregion
+
+#region RequiredFields
+        static class UnlitRequiredFields
+        {
+            public static readonly FieldCollection DebugMaterial = new FieldCollection()
+            {
+                StructFields.Attributes.uv1, // needed for meta vertex position
+                StructFields.Varyings.texCoord1,
+                StructFields.Varyings.positionWS,
+                StructFields.Varyings.normalWS,
+                StructFields.Varyings.tangentWS, // needed for vertex lighting
+                StructFields.Varyings.viewDirectionWS,
+            };
+        }
+#endregion
+
+#region Defines
+        static class UnlitDefines
+        {
+            public static readonly KeywordDescriptor DebugShader = new KeywordDescriptor()
+            {
+                displayName = "Debug Shader",
+                referenceName = "_DEBUG_SHADER",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Local,
+            };
+
+            public static readonly DefineCollection Debug = new DefineCollection()
+            {
+                {DebugShader, 1},
             };
         }
 #endregion
