@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed XR mirroView sRGB issue when color space is gamma.
 - Fixed an issue where XR eye textures are recreated multiple times per frame due to per camera MSAA change.
 - Fixed an issue wehre XR mirror view selector stuck. 
+- Fixed XR occlusion mesh shader compilation error with GLES2. [case 1279514](https://issuetracker.unity3d.com/product/unity/issues/guid/1279514)
 
 ## [10.0.0] - 2019-06-10
 ### Added
