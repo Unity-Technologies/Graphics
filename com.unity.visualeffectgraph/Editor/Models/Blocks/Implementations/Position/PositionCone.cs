@@ -63,7 +63,8 @@ namespace UnityEditor.VFX.Block
                                                    || e.name == "ArcCone_radius0"
                                                    || e.name == "ArcCone_radius1"
                                                    || e.name == "ArcCone_height"
-                                                   || e.name == "ArcSequencer"))
+                                                   || e.name == "ArcSequencer"
+                                                   || e.name == "HeightSequencer"))
                     yield return p;
 
                 VFXExpression radius0 = allSlots.First(e => e.name == "ArcCone_radius0").exp;
