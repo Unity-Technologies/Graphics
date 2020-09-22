@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added option for 11-11-10 format for cube reflection probes.
 - Added an optional check in the HDRP DXR Wizard to verify 64 bits target architecture
 - Added option to display timing stats in the debug menu as an average over 1 second. 
+- Added a light unit slider to provide users more context when authoring physically based values.
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
@@ -80,6 +81,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with mipmap debug mode not properly resetting full screen mode (and viceversa). 
 - Added unsupported message when using tile debug mode with MSAA.
 - Fixed SSGI compilation issues on PS4.
+- Fixed "Screen position out of view frustum" error when camera is on exactly the planar reflection probe plane.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
