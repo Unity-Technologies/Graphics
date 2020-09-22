@@ -209,6 +209,15 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void OutputSmoothPlanarReflection(CommandBuffer cmd, RenderTexture sourceColor, RenderTexture target)
+        {
+            int currentTexWidth = sourceColor.width;
+            int currentTexHeight = sourceColor.height;
+
+            // The first color level can be copied straight away in the mip chain. Unfortunately due to a format incompatibility, we have to go through a compute shader copy.
+            cmd.CopyTexture(sourceColor, 0, 0, 0, 0, sourceColor.width, sourceColor.height, target, 0, 0, 0, 0);
+        }
+
         void BuildColorAndDepthMipChain(CommandBuffer cmd, RenderTexture sourceColor, RenderTexture sourceDepth, ref PlanarTextureFilteringParameters planarTextureFilteringParameters)
         {
             int currentTexWidth = sourceColor.width;
@@ -278,6 +287,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         override public void FilterPlanarTexture(CommandBuffer cmd, RenderTexture source, ref PlanarTextureFilteringParameters planarTextureFilteringParameters, RenderTexture target)
         {
+            // If we need to export a smooth planar, the code path is different.
+            if (planarTextureFilteringParameters.smoothPlanarReflection)
+            {
+                OutputSmoothPlanarReflection(cmd, source, target);
+                return;
+            }
+
             // First we need to make sure that our intermediate textures are the big enough to do our process (these textures are squares)
             CheckIntermediateTexturesSize(source.width, source.height);
 

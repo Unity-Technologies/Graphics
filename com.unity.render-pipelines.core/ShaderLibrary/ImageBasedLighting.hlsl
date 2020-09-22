@@ -32,6 +32,12 @@ real PerceptualRoughnessToMipmapLevel(real perceptualRoughness)
     return PerceptualRoughnessToMipmapLevel(perceptualRoughness, UNITY_SPECCUBE_LOD_STEPS);
 }
 
+// This function is the same as the previous one, but allows us to ignore all the mipmaps and always read from the mip0.
+real PerceptualRoughnessToMipmapLevel_LODFlag(real perceptualRoughness, real logFlag)
+{
+    return PerceptualRoughnessToMipmapLevel(perceptualRoughness, UNITY_SPECCUBE_LOD_STEPS * logFlag);
+}
+
 // The *accurate* version of the non-linear remapping. It works by
 // approximating the cone of the specular lobe, and then computing the MIP map level
 // which (approximately) covers the footprint of the lobe with a single texel.

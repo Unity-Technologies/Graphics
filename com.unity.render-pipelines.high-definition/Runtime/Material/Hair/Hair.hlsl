@@ -555,7 +555,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // Note: using influenceShapeType and projectionShapeType instead of (lightData|proxyData).shapeType allow to make compiler optimization in case the type is know (like for sky)
     EvaluateLight_EnvIntersection(positionWS, bsdfData.normalWS, lightData, influenceShapeType, R, weight);
 
-    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness), lightData.rangeCompressionFactorCompensation, posInput.positionNDC);
+    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, PerceptualRoughnessToMipmapLevel_LODFlag(preLightData.iblPerceptualRoughness, lightData.hasMipMaps), lightData.rangeCompressionFactorCompensation, posInput.positionNDC);
     weight *= preLD.a; // Used by planar reflection to discard pixel
 
     envLighting = preLightData.specularFGD * preLD.rgb;

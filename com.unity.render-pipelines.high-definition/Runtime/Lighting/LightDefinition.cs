@@ -226,7 +226,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 influenceRight;
 
         public Vector3 influenceExtents;
-        public float unused00;
+        public float hasMipMaps;
 
         public Vector3 blendDistancePositive;
         public Vector3 blendDistanceNegative;
