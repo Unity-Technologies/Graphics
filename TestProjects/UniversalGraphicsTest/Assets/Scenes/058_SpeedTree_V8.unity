@@ -97,7 +97,8 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 0}
+  m_LightingDataAsset: {fileID: 112000004, guid: 936ff1ffe8b26a44fb57bc2211bd35af,
+    type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: e2c62cc492f7f3945b1b1ac901ffc5e8,
     type: 2}
 --- !u!196 &4
@@ -363,7 +364,7 @@ PrefabInstance:
     - target: {fileID: -927199367670048503, guid: 963e0425798c18546a875cb71184f8a4,
         type: 3}
       propertyPath: m_Name
-      value: Broadleaf_Desktop_Field_OptionsOff_Billboard
+      value: Broadleaf_Desktop_Field_OptionsOff_Billboard_Fade
       objectReference: {fileID: 0}
     - target: {fileID: -927199367670048503, guid: 963e0425798c18546a875cb71184f8a4,
         type: 3}
@@ -398,22 +399,37 @@ PrefabInstance:
     - target: {fileID: 5551014577142218206, guid: 963e0425798c18546a875cb71184f8a4,
         type: 3}
       propertyPath: m_LODs.Array.data[0].screenRelativeHeight
-      value: 0.999
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5551014577142218206, guid: 963e0425798c18546a875cb71184f8a4,
         type: 3}
       propertyPath: m_LODs.Array.data[1].screenRelativeHeight
-      value: 0.999
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5551014577142218206, guid: 963e0425798c18546a875cb71184f8a4,
         type: 3}
       propertyPath: m_LODs.Array.data[2].screenRelativeHeight
-      value: 0
+      value: 0.15
       objectReference: {fileID: 0}
     - target: {fileID: 5551014577142218206, guid: 963e0425798c18546a875cb71184f8a4,
         type: 3}
       propertyPath: m_LODs.Array.data[3].screenRelativeHeight
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5551014577142218206, guid: 963e0425798c18546a875cb71184f8a4,
+        type: 3}
+      propertyPath: m_AnimateCrossFading
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5551014577142218206, guid: 963e0425798c18546a875cb71184f8a4,
+        type: 3}
+      propertyPath: m_LODs.Array.data[2].fadeTransitionWidth
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5551014577142218206, guid: 963e0425798c18546a875cb71184f8a4,
+        type: 3}
+      propertyPath: m_LODs.Array.data[3].fadeTransitionWidth
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6761605395300417192, guid: 963e0425798c18546a875cb71184f8a4,
         type: 3}
@@ -683,10 +699,15 @@ MonoBehaviour:
     TargetWidth: 1000
     TargetHeight: 600
     PerPixelCorrectnessThreshold: 0.001
+    PerPixelGammaThreshold: 0.003921569
+    PerPixelAlphaThreshold: 0.003921569
     AverageCorrectnessThreshold: 0.005
+    IncorrectPixelsThreshold: 0.0000038146973
     UseHDR: 0
     UseBackBuffer: 0
     ImageResolution: 0
+    ActiveImageTests: 1
+    ActivePixelTests: 7
   WaitFrames: 0
   XRCompatible: 1
 --- !u!1 &516620772
@@ -1776,7 +1797,7 @@ PrefabInstance:
     - target: {fileID: -927199367670048503, guid: 963e0425798c18546a875cb71184f8a4,
         type: 3}
       propertyPath: m_Name
-      value: Broadleaf_Desktop_Field_OptionsOff_LOD0
+      value: Broadleaf_Desktop_Field_OptionsOff_LOD0_Fade
       objectReference: {fileID: 0}
     - target: {fileID: -927199367670048503, guid: 963e0425798c18546a875cb71184f8a4,
         type: 3}
@@ -1826,7 +1847,12 @@ PrefabInstance:
     - target: {fileID: 5551014577142218206, guid: 963e0425798c18546a875cb71184f8a4,
         type: 3}
       propertyPath: m_LODs.Array.data[0].screenRelativeHeight
-      value: 0
+      value: 0.13
+      objectReference: {fileID: 0}
+    - target: {fileID: 5551014577142218206, guid: 963e0425798c18546a875cb71184f8a4,
+        type: 3}
+      propertyPath: m_Size
+      value: 18.883451
       objectReference: {fileID: 0}
     - target: {fileID: 8306173236054992017, guid: 963e0425798c18546a875cb71184f8a4,
         type: 3}
