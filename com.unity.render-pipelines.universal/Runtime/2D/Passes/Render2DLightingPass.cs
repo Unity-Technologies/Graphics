@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
-using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine.Rendering;
 using UnityEngine.Profiling;
@@ -82,7 +80,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             ScriptableRenderContext context,
             ref RenderingData renderingData,
             FilteringSettings filterSettings,
-            DrawingSettings combinedDrawSettings)
+            DrawingSettings drawSettings)
         {
             using(new ProfilingScope(cmd, m_ProfilingDrawRenderers))
             {
@@ -91,7 +89,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 for (var i = 0; i < batchSize; i++)
                 {
-                    var layerBatch = layerBatches[startIndex + i];
+                    ref var layerBatch = ref layerBatches[startIndex + i];
 
                     using(new ProfilingScope(cmd, m_ProfilingDrawLayerBatch))
                     {
@@ -115,7 +113,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             for (var blendStyleIndex = 0; blendStyleIndex < k_ShapeLightTextureIDs.Length; blendStyleIndex++)
                             {
                                 cmd.SetGlobalTexture(k_ShapeLightTextureIDs[blendStyleIndex], Texture2D.blackTexture);
-                                RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleIndex == 0 ? true : false);
+                                RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleIndex == 0);
                             }
                         }
 
@@ -123,11 +121,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         cmd.Clear();
 
                         filterSettings.sortingLayerRange = layerBatch.layerRange;
-                        context.DrawRenderers(renderingData.cullResults, ref combinedDrawSettings, ref filterSettings);
+                        context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
 
                         if (layerBatch.lightStats.totalVolumetricUsage > 0)
                         {
-                            this.RenderLightVolumes(renderingData, cmd, layerBatch.layerToRender, colorAttachment, depthAttachment);
+                            var sampleName = "Render 2D Light Volumes";
+                            cmd.BeginSample(sampleName);
+                            this.RenderLightVolumes(renderingData, cmd, layerBatch.firstLayerToRender, colorAttachment, depthAttachment, m_Renderer2DData.lightCullResult.visibleLights);
+                            cmd.EndSample(sampleName);
                         }
                     }
                 }
@@ -177,7 +178,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             }
                         }
 
-                        this.RenderLights(renderingData, cmd, layerBatch.layerToRender, layerBatch);
+                        this.RenderLights(renderingData, cmd, layerBatch.firstLayerToRender, layerBatch);
                     }
                 }
             }

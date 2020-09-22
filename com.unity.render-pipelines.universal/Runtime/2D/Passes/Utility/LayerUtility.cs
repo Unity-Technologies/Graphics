@@ -4,8 +4,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 {
     internal struct LayerBatch
     {
-        public bool enabled;
-        public int layerToRender;
+        public int firstLayerToRender;
         public SortingLayerRange layerRange;
         public LightStats lightStats;
         public unsafe fixed bool renderTargetUsed[4];
@@ -71,8 +70,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 // renderer within this range share the same set of lights so they should be rendered together
                 var sortingLayerRange = new SortingLayerRange(lowerBound, upperBound);
 
-                layerBatch.enabled = true;
-                layerBatch.layerToRender = layerToRender;
+                layerBatch.firstLayerToRender = layerToRender;
                 layerBatch.layerRange = sortingLayerRange;
                 layerBatch.lightStats = lightStats;
 
@@ -102,10 +100,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 for(var i = 0; i < s_LayerBatches.Length; i++)
                     s_LayerBatches[i].Init(i);
             }
-
-            // reset them
-            for (var i = 0; i < s_LayerBatches.Length; i++)
-                s_LayerBatches[i].enabled = false;
 
             return s_LayerBatches;
         }

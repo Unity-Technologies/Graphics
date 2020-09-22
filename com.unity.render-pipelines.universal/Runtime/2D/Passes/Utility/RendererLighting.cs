@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Unity.Collections;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -157,11 +156,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cmd.ReleaseTemporaryRT(pass.rendererData.shadowsRenderTarget.id);
         }
 
-
-        private static bool RenderLightSet(IRenderPass2D pass, RenderingData renderingData, int blendStyleIndex, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights)
+        private static void RenderLightSet(IRenderPass2D pass, RenderingData renderingData, int blendStyleIndex, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights)
         {
-            var renderedAnyLight = false;
-
             foreach (var light in lights)
             {
                 if (light != null &&
@@ -179,7 +175,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         continue;
 
                     ShadowRendering.RenderShadows(pass, renderingData, cmd, layerToRender, light, light.shadowIntensity, renderTexture, renderTexture);
-                    renderedAnyLight = true;
 
                     if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                         cmd.SetGlobalTexture(k_CookieTexID, light.lightCookieSprite.texture);
@@ -206,11 +201,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     }
                 }
             }
-
-            return renderedAnyLight;
         }
 
-        private static void RenderLightVolumeSet(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture, List<Light2D> lights)
+        public static void RenderLightVolumes(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture, List<Light2D> lights)
         {
             for (var i = 0; i < lights.Count; i++)
             {
@@ -421,23 +414,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     cmd.EndSample(sampleName);
                 }
             }
-        }
-
-        public static void RenderLightVolumes(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTarget, RenderTargetIdentifier depthTarget)
-        {
-            var sampleName = "Render 2D Light Volumes";
-            cmd.BeginSample(sampleName);
-
-            RenderLightVolumeSet(
-                pass, renderingData,
-                cmd,
-                layerToRender,
-                renderTarget,
-                depthTarget,
-                pass.rendererData.lightCullResult.visibleLights
-            );
-
-            cmd.EndSample(sampleName);
         }
 
         private static void SetBlendModes(Material material, BlendMode src, BlendMode dst)
