@@ -20,12 +20,14 @@ namespace UnityEngine.Rendering.Universal
 
         // XR SDK display interface
         static List<XRDisplaySubsystem> displayList = new List<XRDisplaySubsystem>();
-        XRDisplaySubsystem display = null;
+        XRDisplaySubsystem              display = null;
+        // XRSDK does not support msaa per XR display. All displays share the same msaa level.
+        static  int                     msaaLevel = 1;
 
         // Internal resources used by XR rendering
-        Material occlusionMeshMaterial = null;
-        Material mirrorViewMaterial = null;
-        MaterialPropertyBlock mirrorViewMaterialProperty = new MaterialPropertyBlock();
+        Material                        occlusionMeshMaterial = null;
+        Material                        mirrorViewMaterial = null;
+        MaterialPropertyBlock           mirrorViewMaterialProperty = new MaterialPropertyBlock();
 
         RenderTexture testRenderTexture = null;
 
@@ -90,6 +92,12 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 0; i < displayList.Count; i++)
                 displayList[i].SetMSAALevel(level);
 #endif
+            msaaLevel = level;
+        }
+
+        internal static int GetMSAALevel()
+        {
+            return msaaLevel;
         }
 
         internal static void UpdateRenderScale(float renderScale)
@@ -329,6 +337,7 @@ namespace UnityEngine.Rendering.Universal
         {
             public static readonly int _SourceTexArraySlice = Shader.PropertyToID("_SourceTexArraySlice");
             public static readonly int _SRGBRead            = Shader.PropertyToID("_SRGBRead");
+            public static readonly int _SRGBWrite           = Shader.PropertyToID("_SRGBWrite");
         }
 
         internal void RenderMirrorView(CommandBuffer cmd, Camera camera)
@@ -361,7 +370,10 @@ namespace UnityEngine.Rendering.Universal
                                                         new Vector4(blitParam.srcRect.width, blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.y);
                             Vector4 scaleBiasRt = new Vector4(blitParam.destRect.width, blitParam.destRect.height, blitParam.destRect.x, blitParam.destRect.y);
 
+                            // Eye texture is always gamma corrected, use explicit sRGB read in shader if srcTex formats is not sRGB format. sRGB format will have implicit sRGB read so it is already handled.
                             mirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBRead, (blitParam.srcTex.sRGB) ? 0 : 1);
+                            // Perform explicit sRGB write in shader if color space is gamma
+                            mirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBWrite, (QualitySettings.activeColorSpace == ColorSpace.Linear) ? 0 : 1);
                             mirrorViewMaterialProperty.SetTexture(ShaderPropertyId.sourceTex, blitParam.srcTex);
                             mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBias, scaleBias);
                             mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
@@ -426,17 +438,25 @@ namespace UnityEngine.Rendering.Universal
                     RenderTextureDescriptor rtDesc = cameraData.cameraTargetDescriptor;
                     rtDesc.dimension = TextureDimension.Tex2DArray;
                     rtDesc.volumeDepth = 2;
-
-                    // If camera renders to subrect and it renders to backbuffer, we adjust size to match back buffer
-                    if (!cameraData.isDefaultViewport && cameraData.targetTexture == null)
+                    // If camera renders to subrect, we adjust size to match back buffer/target texture
+                    if (!cameraData.isDefaultViewport)
                     {
-                        rtDesc.width = (int)(rtDesc.width / cameraData.camera.rect.width);
-                        rtDesc.height = (int)(rtDesc.height / cameraData.camera.rect.height);
+                        if (cameraData.targetTexture == null)
+                        {
+                            rtDesc.width = (int)(rtDesc.width / cameraData.camera.rect.width);
+                            rtDesc.height = (int)(rtDesc.height / cameraData.camera.rect.height);
+                        }
+                        else
+                        {
+                            rtDesc.width = (int)(cameraData.targetTexture.width);
+                            rtDesc.height = (int)(cameraData.targetTexture.height);
+                        }
                     }
                     testRenderTexture = RenderTexture.GetTemporary(rtDesc);
 
                     testMirrorViewMaterial = mirrorViewMaterial;
                     testMirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBRead, (testRenderTexture.sRGB) ? 0 : 1);
+                    testMirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBWrite, (QualitySettings.activeColorSpace == ColorSpace.Linear) ? 0 : 1);
                     testMirrorViewMaterialProperty.SetTexture(ShaderPropertyId.sourceTex, testRenderTexture);
                 }
 
