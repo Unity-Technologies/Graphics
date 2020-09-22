@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
-  m_Name: 5-StartPage
+  m_Name: 4-Final
   m_EditorClassIdentifier: 
   m_Paragraphs:
     m_Items:
@@ -23,7 +23,7 @@ MonoBehaviour:
       m_Tutorial: {fileID: 0}
       m_Icons:
         m_Items: []
-      m_Image: {fileID: 0}
+      m_Image: {fileID: 2800000, guid: c38468c65bf2c794996ce45041832cfc, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -32,8 +32,22 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Page title
-      m_Description: Put your tutorial narrative description here
+      m_Summary: Congratulations!
+      m_Description: 'You completed the tutorial. Cookies are pretty simple, but
+        they can bring a huge boost of quality to your projects lighting. Here are
+        a few links that might be useful:
+
+
+        href="https://blogs.unity3d.com/2019/02/05/create-high-quality-light-fixtures-in-unity/"<a>How
+        to create cookie textures</a>
+
+
+        href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/manual/IES-Profile.html"<a>IES
+        profiles</a>
+
+
+        Note: You do not need to save in order to follow other
+        tutorials.'
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
