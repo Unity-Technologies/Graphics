@@ -574,6 +574,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             m_TexturePool.Cleanup();
             m_ComputeBufferPool.Cleanup();
+
+            RTHandles.Release(m_CurrentBackbuffer);
         }
 
         void LogTextureCreation(TextureResource rt)
