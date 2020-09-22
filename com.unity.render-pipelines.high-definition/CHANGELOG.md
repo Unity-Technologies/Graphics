@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed AOV export of depth buffer which now correctly export linear depth (case 1265001)
 - Fixed issue that caused the decal atlas to not be updated upon changing of the decal textures content.
 - Fixed "Screen position out of view frustum" error when camera is at exactly the planar reflection probe location.
+- Fixed an issue that caused a null reference when deleting camera component in a prefab. (case 1244430)
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
