@@ -302,7 +302,8 @@ namespace UnityEditor.ShaderGraph
         // Serialized list of user-selected active targets, sorted in displayName order (to maintain deterministic serialization order)
         // some of these may be MultiJsonInternal.UnknownTargetType if we can't recognize the type of the target
         [SerializeField]
-        List<JsonData<Target>> m_ActiveTargets = new List<JsonData<Target>>();
+        List<JsonData<Target>> m_ActiveTargets = new List<JsonData<Target>>();      // After adding to this list, you MUST call SortActiveTargets()
+        public DataValueEnumerable<Target> activeTargets => m_ActiveTargets.SelectValue();
 
         // this stores all of the current possible Target types (including any unknown target types we serialized in)
         class PotentialTarget
@@ -321,7 +322,7 @@ namespace UnityEditor.ShaderGraph
 
                 if (target is MultiJsonInternal.UnknownTargetType)
                 {
-                    m_UnknownTarget = (MultiJsonInternal.UnknownTargetType)target;
+                    m_UnknownTarget = (MultiJsonInternal.UnknownTargetType) target;
                     m_KnownType = null;
                 }
                 else
@@ -362,11 +363,16 @@ namespace UnityEditor.ShaderGraph
         }
         [NonSerialized]
         List<PotentialTarget> m_AllPotentialTargets = new List<PotentialTarget>();
+        public IEnumerable<Target> allPotentialTargets => m_AllPotentialTargets.Select(x => x.GetTarget());
+
+        public int GetTargetIndexByKnownType(Type targetType)
+        {
+            return m_AllPotentialTargets.FindIndex(pt => pt.knownType == targetType);
+        }
 
         public int GetTargetIndex(Target t)
         {
             int result = m_AllPotentialTargets.FindIndex(pt => pt.Is(t));
-            Assert.IsTrue(result != -1);
             return result;
         }
 
@@ -380,6 +386,38 @@ namespace UnityEditor.ShaderGraph
             return displayNames;
         }
 
+        public void SetTargetActive(Target target, bool skipSort = false)
+        {
+            int activeIndex = m_ActiveTargets.IndexOf(target);
+            if (activeIndex < 0)
+            {
+                activeIndex = m_ActiveTargets.Count;
+                m_ActiveTargets.Add(target);
+            }
+
+            // active known targets should replace the stored Target in AllPotentialTargets
+            Type targetType = target.GetType();
+            int targetIndex = GetTargetIndexByKnownType(targetType);
+            if (targetIndex >= 0)
+                m_AllPotentialTargets[targetIndex].ReplaceStoredTarget(target);
+
+            if (!skipSort)
+                SortActiveTargets();
+        }
+
+        public void SetTargetInactive(Target target)
+        {
+            int activeIndex = m_ActiveTargets.IndexOf(target);
+            if (activeIndex < 0)
+                return;
+
+            int targetIndex = GetTargetIndex(target);
+            // if a target was in the active targets, it should also have been in the potential targets list
+            Assert.IsTrue(targetIndex >= 0);
+
+            m_ActiveTargets.RemoveAt(activeIndex);
+        }
+
         // this list is populated by graph validation, and lists all of the targets that nodes did not like
         [NonSerialized]
         List<Target> m_UnsupportedTargets = new List<Target>();
@@ -389,8 +427,10 @@ namespace UnityEditor.ShaderGraph
         {
             get
             {
+                // return a bitmask flagging the current active targets
+                // NOTE: since we're just using an int as the bitmask, we can't support more than 31 Targets
                 int targetBitmask = 0;
-                foreach (var target in m_ActiveTargets.SelectValue())
+                foreach (var target in activeTargets)
                 {
                     int validIndex = GetTargetIndex(target);
                     Assert.IsTrue(validIndex >= 0);
@@ -402,6 +442,7 @@ namespace UnityEditor.ShaderGraph
 
             set
             {
+                // make the set of active targets match the bitmask
                 bool needsSort = false;
                 for (int targetIndex = 0; targetIndex < m_AllPotentialTargets.Count; targetIndex++)
                 {
@@ -411,22 +452,21 @@ namespace UnityEditor.ShaderGraph
                     int targetFlag = (1 << targetIndex);
                     if ((value & targetFlag) != 0)
                     {
-                        // add to active targets (if not already active)
                         if (activeIndex < 0)
                         {
-                            m_ActiveTargets.Add(target.GetTarget());
+                            SetTargetActive(target.GetTarget(), true);
                             needsSort = true;
                         }
                     }
                     else
                     {
-                        // remove from active targets
                         if (activeIndex >= 0)
                         {
-                            m_ActiveTargets.RemoveAt(activeIndex);
+                            SetTargetInactive(target.GetTarget());
                         }
                     }
                 }
+
                 if (needsSort)
                     SortActiveTargets();
             }
@@ -437,9 +477,6 @@ namespace UnityEditor.ShaderGraph
         {
             activeTargets.Sort(targetComparison);
         }
-
-        public IEnumerable<Target> allPotentialTargets => m_AllPotentialTargets.Select(x => x.GetTarget());
-        public DataValueEnumerable<Target> activeTargets => m_ActiveTargets.SelectValue();
 
         // TODO: Need a better way to handle this
 #if VFX_GRAPH_10_0_0_OR_NEWER
@@ -466,11 +503,12 @@ namespace UnityEditor.ShaderGraph
 
             foreach (var target in targets)
             {
-                if (GetTargetIndex(target) >= 0)
+                if (GetTargetIndexByKnownType(target.GetType()) >= 0)
                 {
-                    m_ActiveTargets.Add(target);
+                    SetTargetActive(target, true);
                 }
             }
+            SortActiveTargets();
 
             if(blockDescriptors != null)
             {
@@ -543,15 +581,14 @@ namespace UnityEditor.ShaderGraph
                 // we remove it from the list of potential targets
                 for(int targetIndex = 0; targetIndex < m_AllPotentialTargets.Count; targetIndex++)
                 {
-                    var validTarget = m_AllPotentialTargets[targetIndex];
-                    if (validTarget.IsUnknown())
+                    var potentialTarget = m_AllPotentialTargets[targetIndex];
+                    if (potentialTarget.IsUnknown())
                     {
-                        bool targetActive = (m_ActiveTargets.FindIndex(x => validTarget.Is(x)) >= 0);
+                        bool targetActive = m_ActiveTargets.IndexOf(potentialTarget.GetTarget()) >= 0;
                         if (!targetActive)
                         {
                             m_AllPotentialTargets.RemoveAt(targetIndex);
-
-                            // need to back up the index, since we just deleted the target in the list
+                            // need to back up the index, since we just removed the target from the potential list
                             targetIndex--;
                         }
                     }
@@ -1611,8 +1648,9 @@ namespace UnityEditor.ShaderGraph
                 // Ensure target inits correctly
                 var context = new TargetSetupContext();
                 target.Setup(ref context);
-                m_ActiveTargets.Add(target);
+                SetTargetActive(target, true);
             }
+            SortActiveTargets();
 
             // Active blocks
             var activeBlocks = GetActiveBlocksForAllActiveTargets();
@@ -2075,9 +2113,10 @@ namespace UnityEditor.ShaderGraph
                                 continue;
 
                             // upgrade succeeded!  Activate it
-                            m_ActiveTargets.Add(target);
+                            SetTargetActive(target, true);
                             UpgradeFromBlockMap(newBlockMap);
                         }
+                        SortActiveTargets();
                     }
 
                     // Clean up after upgrade

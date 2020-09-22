@@ -77,10 +77,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
             GraphData graph = new GraphData();
             graph.AddContexts();
 
-            // Add VFX target via the bitmask
-            var vfxTarget = graph.validTargets.FirstOrDefault(x => x is VFXTarget);
-            var targetIndex = graph.validTargets.IndexOf(vfxTarget);
-            graph.activeTargetBitmask = 1 << targetIndex;
+            var vfxTarget = graph.allPotentialTargets.FirstOrDefault(x => x is VFXTarget);
+            graph.SetTargetActive(vfxTarget);
             graph.UpdateActiveTargets();
 
             Assert.IsNotNull(graph.activeTargets);
@@ -90,17 +88,53 @@ namespace UnityEditor.ShaderGraph.UnitTests
         }
 
         [Test]
+        public void ActiveTargetsArePotentialTargets()
+        {
+            s_ForceVFXFakeTargetVisible = true;
+            GraphData graph = new GraphData();
+            graph.AddContexts();
+
+            var vfxTarget = new VFXTarget();
+            graph.SetTargetActive(vfxTarget);
+            Assert.IsTrue(graph.allPotentialTargets.Contains(vfxTarget));
+
+            s_ForceVFXFakeTargetVisible = false;
+        }
+
+        [Test]
+        public void GetTargetIndexWorks()
+        {
+            s_ForceVFXFakeTargetVisible = true;
+
+            GraphData graph = new GraphData();
+            graph.AddContexts();
+
+            int targetIndex = graph.GetTargetIndexByKnownType(typeof(VFXTarget));
+            Assert.IsTrue(targetIndex >= 0);
+
+            var vfxTarget = new VFXTarget();
+            graph.SetTargetActive(vfxTarget);
+
+            var targetIndex2 = graph.GetTargetIndex(vfxTarget);
+            Assert.AreEqual(targetIndex, targetIndex2);
+           
+            var nonActiveVFXTarget = new VFXTarget();
+            Assert.AreEqual(-1, graph.GetTargetIndex(nonActiveVFXTarget));
+
+            s_ForceVFXFakeTargetVisible = false;
+        }
+
+        [Test]
         public void CanRemoveTarget()
         {
             s_ForceVFXFakeTargetVisible = true;
             GraphData graph = new GraphData();
             graph.AddContexts();
-            graph.InitializeOutputs(new [] { new VFXTarget() }, null);
 
-            // Remove VFX target via the bitmask
-            var vfxTarget = graph.validTargets.FirstOrDefault(x => x is VFXTarget);
-            var targetIndex = graph.validTargets.IndexOf(vfxTarget);
-            graph.activeTargetBitmask = graph.activeTargetBitmask >> targetIndex;
+            var vfxTarget = new VFXTarget();
+            graph.InitializeOutputs(new [] { vfxTarget }, null);
+
+            graph.SetTargetInactive(vfxTarget);
             graph.UpdateActiveTargets();
 
             Assert.IsNotNull(graph.activeTargets);
@@ -134,10 +168,10 @@ namespace UnityEditor.ShaderGraph.UnitTests
             graph.AddContexts();
             graph.InitializeOutputs(new [] { new VFXTarget() }, new BlockFieldDescriptor[] { BlockFields.SurfaceDescription.BaseColor, BlockFields.SurfaceDescription.NormalTS } );
 
-            // Remove VFX target via the bitmask
-            var vfxTarget = graph.validTargets.FirstOrDefault(x => x is VFXTarget);
-            var targetIndex = graph.validTargets.IndexOf(vfxTarget);
-            graph.activeTargetBitmask = graph.activeTargetBitmask >> targetIndex;
+            // Remove VFX target
+            var vfxTarget = graph.allPotentialTargets.FirstOrDefault(x => x is VFXTarget);
+            graph.SetTargetInactive(vfxTarget);
+
             graph.UpdateActiveTargets();
             var activeBlocks = graph.GetActiveBlocksForAllActiveTargets();
             graph.UpdateActiveBlocks(activeBlocks);
