@@ -66,9 +66,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 drawSettings.perObjectData = PerObjectData.None;
 
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
-                cmd.SetGlobalVector(ShaderPropertyId.availableTexturesParams, new Vector4(0f, 0f, 0f, 1f));
-            }
 
+            }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

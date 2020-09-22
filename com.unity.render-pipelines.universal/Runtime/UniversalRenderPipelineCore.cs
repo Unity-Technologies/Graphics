@@ -257,7 +257,6 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int projectionParams = Shader.PropertyToID("_ProjectionParams");
         public static readonly int zBufferParams = Shader.PropertyToID("_ZBufferParams");
         public static readonly int orthoParams = Shader.PropertyToID("unity_OrthoParams");
-        public static readonly int availableTexturesParams = Shader.PropertyToID("_AvailableTexturesParams");
 
         public static readonly int viewMatrix = Shader.PropertyToID("unity_MatrixV");
         public static readonly int projectionMatrix = Shader.PropertyToID("glstate_matrix_projection");

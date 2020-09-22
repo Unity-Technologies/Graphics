@@ -44,10 +44,6 @@ half4 _MainLightColor;
 // w: directLightStrength
 half4 _AmbientOcclusionParam;
 
-// xyz are currently unused
-// w: Depth Texture
-half4 _AvailableTexturesParams;
-
 half4 _AdditionalLightsCount;
 
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
