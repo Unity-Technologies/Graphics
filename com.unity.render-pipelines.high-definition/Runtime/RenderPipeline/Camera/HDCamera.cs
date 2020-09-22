@@ -1229,7 +1229,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// It is different from the aspect ratio of <paramref name="resolution"/> for anamorphic projections.
         /// </param>
         /// <returns></returns>
-        Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(ViewConstants viewConstants, Vector4 resolution, float aspect = -1)
+//SensorSDK - Begin - Expose some function for the camera code
+        public Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(ViewConstants viewConstants, Vector4 resolution, float aspect = -1)
+//SensorSDK - End - Expose some function for the camera code
         {
             // In XR mode, use a more generic matrix to account for asymmetry in the projection
             if (xr.enabled)
