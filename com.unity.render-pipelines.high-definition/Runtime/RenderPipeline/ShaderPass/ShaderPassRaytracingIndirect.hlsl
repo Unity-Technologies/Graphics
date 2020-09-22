@@ -25,7 +25,7 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
     rayIntersection.t = travelDistance;
     rayIntersection.cone.width += travelDistance * rayIntersection.cone.spreadAngle;
 
-    PositionInputs posInput = GetPositionInput(rayIntersection.pixelCoord, _ScreenSize.zw);
+    PositionInputs posInput = GetPositionInput(rayIntersection.pixelCoord, _ScreenSize.zw, fragInput.positionRWS);
 
     // Build the surfacedata and builtindata
     SurfaceData surfaceData;
