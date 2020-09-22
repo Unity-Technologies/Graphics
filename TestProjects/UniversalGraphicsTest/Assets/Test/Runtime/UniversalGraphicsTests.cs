@@ -155,7 +155,10 @@ public class UniversalGraphicsTests
         "015_CameraMulti_FPSCam",
 
         //Deferred-only test scenes
-        "010_AdditionalLightsSorted_Deferred"
+        "010_AdditionalLightsSorted_Deferred",
+
+        //Dynamic resolution
+        "127_DynamicScaling_DOF"
     };
 
 
