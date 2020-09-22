@@ -107,7 +107,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cameraData">CameraData containing camera matrices information.</param>
         void SetPerCameraShaderVariables(CommandBuffer cmd, ref CameraData cameraData)
         {
-            using var profScope = UniversalProfilingCache.GetGPUCPUScope(cmd, "SetPerCameraShaderVariables");
+            using var profScope = UniversalProfiling.GetGpuCpuScope(cmd, nameof(SetPerCameraShaderVariables));
 
             Camera camera = cameraData.camera;
 
@@ -407,7 +407,7 @@ namespace UnityEngine.Rendering.Universal
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                using (UniversalProfilingCache.GetGPUCPUScope(cmd, "Sort Render Passes"))
+                using (UniversalProfiling.GetGpuCpuScope(cmd, "Sort Render Passes"))
                 {
                     // Sort the render pass queue
                     SortStable(m_ActiveRenderPassQueue);
@@ -435,12 +435,12 @@ namespace UnityEngine.Rendering.Universal
                     blockRangeLengths[i] = blockRanges[i + 1] - blockRanges[i];
                 }
 
-                using (UniversalProfilingCache.GetGPUCPUScope(cmd, "SetupLights"))
+                using (UniversalProfiling.GetGpuCpuScope(cmd, nameof(SetupLights)))
                 {
                     SetupLights(context, ref renderingData);
                 }
 
-                using (UniversalProfilingCache.GetGPUCPUScope(cmd, nameof(RenderPassBlock.BeforeRendering)))
+                using (UniversalProfiling.GetGpuCpuScope(cmd, nameof(RenderPassBlock.BeforeRendering)))
                 {
                     // Before Render Block. This render blocks always execute in mono rendering.
                     // Camera is not setup. Lights are not setup.
@@ -448,7 +448,7 @@ namespace UnityEngine.Rendering.Universal
                     ExecuteBlock(RenderPassBlock.BeforeRendering, blockRanges, context, ref renderingData);
                 }
 
-                using (UniversalProfilingCache.GetGPUCPUScope(cmd, "Setup Camera"))
+                using (UniversalProfiling.GetGpuCpuScope(cmd, "Setup Camera"))
                 {
                     // This is still required because of the following reasons:
                     // - Camera billboard properties.
@@ -480,14 +480,14 @@ namespace UnityEngine.Rendering.Universal
                 // Opaque blocks...
                 if (blockRangeLengths[RenderPassBlock.MainRenderingOpaque] > 0)
                 {
-                    using var profScope = UniversalProfilingCache.GetGPUCPUScope(cmd, nameof(RenderPassBlock.MainRenderingOpaque));
+                    using var profScope = UniversalProfiling.GetGpuCpuScope(cmd, nameof(RenderPassBlock.MainRenderingOpaque));
                     ExecuteBlock(RenderPassBlock.MainRenderingOpaque, blockRanges, context, ref renderingData);
                 }
 
                 // Transparent blocks...
                 if (blockRangeLengths[RenderPassBlock.MainRenderingTransparent] > 0)
                 {
-                    using var profScope = UniversalProfilingCache.GetGPUCPUScope(cmd, nameof(RenderPassBlock.MainRenderingTransparent));
+                    using var profScope = UniversalProfiling.GetGpuCpuScope(cmd, nameof(RenderPassBlock.MainRenderingTransparent));
                     ExecuteBlock(RenderPassBlock.MainRenderingTransparent, blockRanges, context, ref renderingData);
                 }
 
@@ -497,7 +497,7 @@ namespace UnityEngine.Rendering.Universal
                 // In this block after rendering drawing happens, e.g, post processing, video player capture.
                 if (blockRangeLengths[RenderPassBlock.AfterRendering] > 0)
                 {
-                    using var profScope = UniversalProfilingCache.GetGPUCPUScope(cmd, nameof(RenderPassBlock.AfterRendering));
+                    using var profScope = UniversalProfiling.GetGpuCpuScope(cmd, nameof(RenderPassBlock.AfterRendering));
                     ExecuteBlock(RenderPassBlock.AfterRendering, blockRanges, context, ref renderingData);
                 }
 
@@ -577,7 +577,7 @@ namespace UnityEngine.Rendering.Universal
 
         void ClearRenderingState(CommandBuffer cmd)
         {
-            using var profScope = UniversalProfilingCache.GetGPUCPUScope(cmd, "ClearRenderingState");
+            using var profScope = UniversalProfiling.GetGpuCpuScope(cmd, nameof(ClearRenderingState));
 
             // Reset per-camera shader keywords. They are enabled depending on which render passes are executed.
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadows);
@@ -629,8 +629,8 @@ namespace UnityEngine.Rendering.Universal
 
             CommandBuffer cmd = CommandBufferPool.Get();
 
-            // Track CPU only as GPU markers for this scope was "too noisy".
-            using (UniversalProfilingCache.GetCPUScope(UniversalProfilingCache.RenderPass.Configure))
+            // Track CPU only as GPU markers for this scope were "too noisy".
+            using (UniversalProfiling.GetCpuScope(UniversalProfiling.RenderPass.Configure))
             {
                 renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
                 SetRenderPassAttachments(cmd, renderPass, ref cameraData);
@@ -956,7 +956,7 @@ namespace UnityEngine.Rendering.Universal
         void InternalStartRendering(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (UniversalProfilingCache.GetGPUCPUScope(cmd,"InternalStartRendering"))
+            using (UniversalProfiling.GetGpuCpuScope(cmd, nameof(InternalStartRendering)))
             {
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
                 {
@@ -971,7 +971,7 @@ namespace UnityEngine.Rendering.Universal
         void InternalFinishRendering(ScriptableRenderContext context, bool resolveFinalTarget)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (UniversalProfilingCache.GetGPUCPUScope(cmd,"InternalFinishRendering"))
+            using (UniversalProfiling.GetGpuCpuScope(cmd, nameof(InternalFinishRendering)))
             {
 
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)

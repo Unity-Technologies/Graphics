@@ -416,7 +416,7 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            using var profScope = UniversalProfilingCache.GetCPUScope(MethodBase.GetCurrentMethod());
+            using var profScope = UniversalProfiling.GetCpuScope(MethodBase.GetCurrentMethod());
 
             m_ForwardLights.Setup(context, ref renderingData);
         }
@@ -425,7 +425,7 @@ namespace UnityEngine.Rendering.Universal
         public override void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters,
             ref CameraData cameraData)
         {
-            using var profScope = UniversalProfilingCache.GetCPUScope(MethodBase.GetCurrentMethod());
+            using var profScope = UniversalProfiling.GetCpuScope(MethodBase.GetCurrentMethod());
 
             // TODO: PerObjectCulling also affect reflection probes. Enabling it for now.
             // if (asset.additionalLightsRenderingMode == LightRenderingMode.Disabled ||
@@ -507,7 +507,7 @@ namespace UnityEngine.Rendering.Universal
         void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor, bool createColor, bool createDepth)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (UniversalProfilingCache.GetGPUCPUScope(cmd, "ForwardRenderer.CreateCameraRenderTarget"))
+            using (UniversalProfiling.GetGpuCpuScope(cmd, MethodBase.GetCurrentMethod()))
             {
                 int msaaSamples = descriptor.msaaSamples;
                 if (createColor)
