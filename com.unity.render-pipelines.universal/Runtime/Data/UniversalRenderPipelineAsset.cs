@@ -82,6 +82,7 @@ namespace UnityEngine.Rendering.Universal
         AllShaders,
     }
 
+    [Obsolete("PipelineDebugLevel is unused and has no effect.", false)]
     public enum PipelineDebugLevel
     {
         Disabled,
@@ -156,7 +157,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_UseSRPBatcher = true;
         [SerializeField] bool m_SupportsDynamicBatching = false;
         [SerializeField] bool m_MixedLightingSupported = true;
-        [SerializeField] PipelineDebugLevel m_DebugLevel = PipelineDebugLevel.Disabled;
+        [SerializeField][Obsolete] PipelineDebugLevel m_DebugLevel;
 
         // Adaptive performance settings
         [SerializeField] bool m_UseAdaptivePerformance = true;
@@ -602,9 +603,10 @@ namespace UnityEngine.Rendering.Universal
             set { m_ShaderVariantLogLevel = value; }
         }
 
+        [Obsolete("PipelineDebugLevel is deprecated. Calling debugLevel is not necessary.", false)]
         public PipelineDebugLevel debugLevel
         {
-            get => m_DebugLevel;
+            get => PipelineDebugLevel.Disabled ;
         }
 
         public bool useSRPBatcher
