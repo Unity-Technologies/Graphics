@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -57,6 +57,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     node.owner.owner.RegisterCompleteObjectUndo("Change Function Name");
                     node.functionName = m_FunctionName.value;
+                    m_FunctionName.SetValueWithoutNotify(node.functionName);
                     node.ValidateNode();
                     node.Dirty(ModificationScope.Graph);
                 }

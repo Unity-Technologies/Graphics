@@ -69,7 +69,26 @@ namespace UnityEditor.ShaderGraph
         public string functionName
         {
             get => m_FunctionName;
-            set => m_FunctionName = value;
+            set
+            {
+                m_FunctionName = MakeValidHlslIdentifier(value);
+            }
+        }
+
+        public string MakeValidHlslIdentifier(string id)
+        {
+            List<char> funcName = id.ToList();
+            for (int i = 0; i < funcName.Count; i++)
+            {
+                char c = funcName[i];
+                bool valid = (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c == '_') || (i > 0 && c >= '0' && c <= '9');
+                if (!valid)
+                {
+                    funcName.RemoveAt(i);
+                    i--;
+                }
+            }
+            return new string(funcName.ToArray());
         }
 
         public static string defaultFunctionName => k_DefaultFunctionName;
