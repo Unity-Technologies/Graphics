@@ -27,6 +27,8 @@ publish_core:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#test_core_windows_trunk
       -  .yamato/_packages.yml#test_core_macos_trunk
+      -  .yamato/_packages.yml#test_core_windows_2020.2
+      -  .yamato/_packages.yml#test_core_macos_2020.2
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\core\upm-ci~\packages\* upm-ci~\packages
@@ -46,6 +48,8 @@ publish_core_dry:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#test_core_windows_trunk
       -  .yamato/_packages.yml#test_core_macos_trunk
+      -  .yamato/_packages.yml#test_core_windows_2020.2
+      -  .yamato/_packages.yml#test_core_macos_2020.2
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\core\upm-ci~\packages\* upm-ci~\packages
@@ -79,6 +83,8 @@ publish_lwrp:
       -  .yamato/_packages.yml#pack_lwrp
       -  .yamato/_packages.yml#test_lwrp_windows_trunk
       -  .yamato/_packages.yml#test_lwrp_macos_trunk
+      -  .yamato/_packages.yml#test_lwrp_windows_2020.2
+      -  .yamato/_packages.yml#test_lwrp_macos_2020.2
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\lwrp\upm-ci~\packages\* upm-ci~\packages
@@ -98,6 +104,8 @@ publish_lwrp_dry:
       -  .yamato/_packages.yml#pack_lwrp
       -  .yamato/_packages.yml#test_lwrp_windows_trunk
       -  .yamato/_packages.yml#test_lwrp_macos_trunk
+      -  .yamato/_packages.yml#test_lwrp_windows_2020.2
+      -  .yamato/_packages.yml#test_lwrp_macos_2020.2
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\lwrp\upm-ci~\packages\* upm-ci~\packages
@@ -131,6 +139,8 @@ publish_shadergraph:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#test_shadergraph_windows_trunk
       -  .yamato/_packages.yml#test_shadergraph_macos_trunk
+      -  .yamato/_packages.yml#test_shadergraph_windows_2020.2
+      -  .yamato/_packages.yml#test_shadergraph_macos_2020.2
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\shadergraph\upm-ci~\packages\* upm-ci~\packages
@@ -150,6 +160,8 @@ publish_shadergraph_dry:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#test_shadergraph_windows_trunk
       -  .yamato/_packages.yml#test_shadergraph_macos_trunk
+      -  .yamato/_packages.yml#test_shadergraph_windows_2020.2
+      -  .yamato/_packages.yml#test_shadergraph_macos_2020.2
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\shadergraph\upm-ci~\packages\* upm-ci~\packages
@@ -183,6 +195,8 @@ publish_hdrp:
       -  .yamato/_packages.yml#pack_hdrp
       -  .yamato/_packages.yml#test_hdrp_windows_trunk
       -  .yamato/_packages.yml#test_hdrp_macos_trunk
+      -  .yamato/_packages.yml#test_hdrp_windows_2020.2
+      -  .yamato/_packages.yml#test_hdrp_macos_2020.2
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\hdrp\upm-ci~\packages\* upm-ci~\packages
@@ -202,6 +216,8 @@ publish_hdrp_dry:
       -  .yamato/_packages.yml#pack_hdrp
       -  .yamato/_packages.yml#test_hdrp_windows_trunk
       -  .yamato/_packages.yml#test_hdrp_macos_trunk
+      -  .yamato/_packages.yml#test_hdrp_windows_2020.2
+      -  .yamato/_packages.yml#test_hdrp_macos_2020.2
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\hdrp\upm-ci~\packages\* upm-ci~\packages
@@ -235,6 +251,8 @@ publish_universal:
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_packages.yml#test_universal_windows_trunk
       -  .yamato/_packages.yml#test_universal_macos_trunk
+      -  .yamato/_packages.yml#test_universal_windows_2020.2
+      -  .yamato/_packages.yml#test_universal_macos_2020.2
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\universal\upm-ci~\packages\* upm-ci~\packages
@@ -254,6 +272,8 @@ publish_universal_dry:
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_packages.yml#test_universal_windows_trunk
       -  .yamato/_packages.yml#test_universal_macos_trunk
+      -  .yamato/_packages.yml#test_universal_windows_2020.2
+      -  .yamato/_packages.yml#test_universal_macos_2020.2
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\universal\upm-ci~\packages\* upm-ci~\packages
@@ -287,6 +307,8 @@ publish_vfx:
       -  .yamato/_packages.yml#pack_vfx
       -  .yamato/_packages.yml#test_vfx_windows_trunk
       -  .yamato/_packages.yml#test_vfx_macos_trunk
+      -  .yamato/_packages.yml#test_vfx_windows_2020.2
+      -  .yamato/_packages.yml#test_vfx_macos_2020.2
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\vfx\upm-ci~\packages\* upm-ci~\packages
@@ -306,6 +328,8 @@ publish_vfx_dry:
       -  .yamato/_packages.yml#pack_vfx
       -  .yamato/_packages.yml#test_vfx_windows_trunk
       -  .yamato/_packages.yml#test_vfx_macos_trunk
+      -  .yamato/_packages.yml#test_vfx_windows_2020.2
+      -  .yamato/_packages.yml#test_vfx_macos_2020.2
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\vfx\upm-ci~\packages\* upm-ci~\packages
@@ -339,6 +363,8 @@ publish_config:
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#test_config_windows_trunk
       -  .yamato/_packages.yml#test_config_macos_trunk
+      -  .yamato/_packages.yml#test_config_windows_2020.2
+      -  .yamato/_packages.yml#test_config_macos_2020.2
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\config\upm-ci~\packages\* upm-ci~\packages
@@ -358,6 +384,8 @@ publish_config_dry:
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#test_config_windows_trunk
       -  .yamato/_packages.yml#test_config_macos_trunk
+      -  .yamato/_packages.yml#test_config_windows_2020.2
+      -  .yamato/_packages.yml#test_config_macos_2020.2
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\config\upm-ci~\packages\* upm-ci~\packages
