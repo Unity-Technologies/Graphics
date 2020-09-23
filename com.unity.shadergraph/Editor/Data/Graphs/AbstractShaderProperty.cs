@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -33,8 +32,6 @@ namespace UnityEditor.ShaderGraph.Internal
         }
 
         public ConcretePrecision concretePrecision => m_ConcretePrecision;
-
-        internal virtual bool showPrecisionField => true;
 
         internal void ValidateConcretePrecision(ConcretePrecision graphPrecision)
         {

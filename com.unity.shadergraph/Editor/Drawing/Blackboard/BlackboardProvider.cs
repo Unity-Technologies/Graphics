@@ -206,7 +206,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if (t.IsAbstract)
                     continue;
-                if (t.GetCustomAttributes(typeof(HideInInspector), true).Length > 0)
+
+                // Shader Keywords are handled differently
+                if (t == typeof(ShaderKeyword))
                     continue;
 
                 string name = ObjectNames.NicifyVariableName(t.Name.Replace("ShaderProperty", ""));

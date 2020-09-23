@@ -129,7 +129,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public AbstractShaderProperty AsShaderProperty()
         {
-            var prop = new DiffusionProfileShaderProperty { value = new SerializableDiffusionProfile{ diffusionProfile = diffusionProfile } };
+            var prop = new DiffusionProfileShaderProperty { value = diffusionProfile };
             if (diffusionProfile != null)
                 prop.displayName = diffusionProfile.name;
             return prop;

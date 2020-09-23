@@ -13,65 +13,7 @@ using static UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers.ShaderInp
 namespace UnityEditor.Rendering.HighDefinition
 {
     [Serializable]
-    class SerializableDiffusionProfile : ISerializationCallbackReceiver
-    {
-        [SerializeField]
-        string m_SerializedDiffusionProfile;
-
-        [SerializeField]
-        string m_Guid;
-
-        [NonSerialized]
-        DiffusionProfileSettings m_DiffusionProfile;
-
-        [Serializable]
-        class DiffusionProfileHelper
-        {
-#pragma warning disable 649
-            public DiffusionProfileSettings profile;
-#pragma warning restore 649
-        }
-
-        public DiffusionProfileSettings diffusionProfile
-        {
-            get
-            {
-                if (!string.IsNullOrEmpty(m_SerializedDiffusionProfile))
-                {
-                    var diffusionProfileHelper = new DiffusionProfileHelper();
-                    EditorJsonUtility.FromJsonOverwrite(m_SerializedDiffusionProfile, diffusionProfileHelper);
-                    m_SerializedDiffusionProfile = null;
-                    m_Guid = null;
-                    m_DiffusionProfile = diffusionProfileHelper.profile;
-                }
-                else if (!string.IsNullOrEmpty(m_Guid) && m_DiffusionProfile == null)
-                {
-                    m_DiffusionProfile = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(AssetDatabase.GUIDToAssetPath(m_Guid));
-                    m_Guid = null;
-                }
-
-                return m_DiffusionProfile;
-            }
-            set
-            {
-                m_DiffusionProfile = value;
-                m_Guid = null;
-                m_SerializedDiffusionProfile = null;
-            }
-        }
-
-        public void OnBeforeSerialize()
-        {
-            m_SerializedDiffusionProfile = EditorJsonUtility.ToJson(new DiffusionProfileHelper { profile = diffusionProfile }, false);
-        }
-
-        public void OnAfterDeserialize()
-        {
-        }
-    }
-
-    [Serializable]
-    class DiffusionProfileShaderProperty : AbstractShaderProperty<SerializableDiffusionProfile>, IShaderPropertyDrawer
+    class DiffusionProfileShaderProperty : AbstractShaderProperty<LazyLoadReference<DiffusionProfileSettings>>, IShaderPropertyDrawer
     {
         internal DiffusionProfileShaderProperty()
         {
@@ -83,8 +25,6 @@ namespace UnityEditor.Rendering.HighDefinition
         internal override bool isRenamable => true;
         internal override bool isGpuInstanceable => true;
 
-        internal override bool showPrecisionField => false;
-    
         public override PropertyType propertyType => PropertyType.Vector1;
 
         string assetReferenceName => $"{referenceName}_Asset";
@@ -94,10 +34,10 @@ namespace UnityEditor.Rendering.HighDefinition
             uint hash = 0;
             Vector4 asset = Vector4.zero;
 
-            if (value?.diffusionProfile != null)
+            if (value.isSet)
             {
-                hash = value.diffusionProfile.profile.hash;
-                asset = HDUtils.ConvertGUIDToVector4(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(value.diffusionProfile)));
+                hash = value.asset.profile.hash;
+                asset = HDUtils.ConvertGUIDToVector4(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(value.asset)));
             }
 
             /// <summary>Float to string convertion function without any loss of precision</summary>
@@ -115,7 +55,7 @@ $@"[DiffusionProfile]{referenceName}(""{displayName}"", Float) = {f2s(HDShadowUt
         internal override AbstractMaterialNode ToConcreteNode()
         {
             var node = new DiffusionProfileNode();
-            node.diffusionProfile = value.diffusionProfile;
+            node.diffusionProfile = value.asset;
             return node;
         }
 
@@ -124,7 +64,7 @@ $@"[DiffusionProfile]{referenceName}(""{displayName}"", Float) = {f2s(HDShadowUt
             return new PreviewProperty(propertyType)
             {
                 name = referenceName,
-                floatValue = value?.diffusionProfile != null ? HDShadowUtils.Asfloat(value.diffusionProfile.profile.hash) : 0
+                floatValue = value.isSet ? HDShadowUtils.Asfloat(value.asset.profile.hash) : 0
             };
         }
 
@@ -147,10 +87,10 @@ $@"[DiffusionProfile]{referenceName}(""{displayName}"", Float) = {f2s(HDShadowUt
             propertySheet.Add(diffusionProfileDrawer.CreateGUI(
                 newValue => {
                     preChangeValueCallback("Changed Diffusion Profile");
-                    value = new SerializableDiffusionProfile{ diffusionProfile = newValue };
+                    value = newValue;
                     postChangeValueCallback(true);
                 },
-                value?.diffusionProfile,
+                value.asset,
                 "Diffusion Profile",
                 out var _));
         }
