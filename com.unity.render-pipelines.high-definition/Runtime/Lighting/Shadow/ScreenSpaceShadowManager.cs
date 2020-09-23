@@ -238,7 +238,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 default:
                     s_ScreenSpaceShadowsMat.EnableKeyword("SHADOW_MEDIUM");
                     break;
-            }            
+            }
 
             // Allocate the final result texture
             int numShadowTextures = Math.Max((int)Math.Ceiling(m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots / 4.0f), 1);
@@ -286,7 +286,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        
+
         bool RenderLightScreenSpaceShadows(HDCamera hdCamera, CommandBuffer cmd)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingLightShadow)))
@@ -299,10 +299,16 @@ namespace UnityEngine.Rendering.HighDefinition
                         // This matches the directional light
                         if (!m_CurrentScreenSpaceShadowData[lightIdx].valid) continue;
 
-                        // Fetch the light data and additional light data
-                        LightData currentLight = m_lightList.lights[m_CurrentScreenSpaceShadowData[lightIdx].lightDataIndex];
-                        HDAdditionalLightData currentAdditionalLightData = m_CurrentScreenSpaceShadowData[lightIdx].additionalLightData;
+                        HDAdditionalLightData extraLightData = m_CurrentScreenSpaceShadowData[lightIdx].additionalLightData;
+                        int lightDataIndex = m_CurrentScreenSpaceShadowData[lightIdx].lightDataIndex;
 
+                        BoundedEntityCategory category  = BoundedEntityCategory.Count;
+                        GPULightType          lightType = GPULightType.Point;
+
+                        EvaluateGPULightType(extraLightData.type, extraLightData.spotLightShape, extraLightData.areaLightShape,
+                                             ref category, ref lightType);
+
+                        /* Broken in XR, fix later
                         // Trigger the right algorithm based on the light type
                         switch (currentLight.lightType)
                         {
@@ -318,6 +324,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
                             break;
                         }
+                        */
                     }
                 }
                 return true;

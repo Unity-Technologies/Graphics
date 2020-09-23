@@ -47,7 +47,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public fixed float _VBufferCoordToViewDirWS[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
 
         public float _VBufferUnitDepthTexelSpacing;
-        public uint _NumVisibleDensityVolumes;
+        public uint _DensityVolumeCount;
         public float _CornetteShanksConstant;
         public uint _VBufferHistoryIsValid;
 
@@ -676,7 +676,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int j = 0; j < 16; ++j)
                     cb._VBufferCoordToViewDirWS[i * 16 + j] = m_PixelCoordToViewDirWS[i][j];
             cb._VBufferUnitDepthTexelSpacing = HDUtils.ComputZPlaneTexelSpacing(1.0f, vFoV, resolution.y);
-            cb._NumVisibleDensityVolumes = (uint)m_VisibleVolumeBounds.Count;
+            cb._DensityVolumeCount = (uint)m_VisibleVolumeBounds.Count;
             cb._CornetteShanksConstant = CornetteShanksPhasePartConstant(fog.anisotropy.value);
             cb._VBufferHistoryIsValid = hdCamera.volumetricHistoryIsValid ? 1u : 0u;
 
@@ -740,7 +740,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var currParams = hdCamera.vBufferParams[currIdx];
 
             parameters.viewCount = hdCamera.viewCount;
-            parameters.tiledLighting = HasLightToCull() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
+            parameters.tiledLighting = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass) && m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.DensityVolume) > 0;
+
             bool optimal = currParams.voxelSize == 8;
 
             parameters.voxelizationCS = m_VolumeVoxelizationCS;

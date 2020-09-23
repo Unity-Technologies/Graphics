@@ -39,7 +39,7 @@ void Frag(  PackedVaryingsToPS packedInput,
     DecalSurfaceData surfaceData;
     float clipValue = 1.0;
 
-#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)    
+#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
 
 	float depth = LoadCameraDepth(input.positionSS.xy);
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
@@ -114,7 +114,7 @@ void Frag(  PackedVaryingsToPS packedInput,
     uint i;
     for (i = 0; i < _DirectionalLightCount; ++i)
     {
-        DirectionalLightData light = _DirectionalLightDatas[i];
+        DirectionalLightData light = _DirectionalLightData[i];
         outColor.rgb += surfaceData.baseColor.rgb * light.color * saturate(dot(surfaceData.normalWS.xyz, -light.forward.xyz));
     }
 

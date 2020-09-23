@@ -123,7 +123,7 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
 
         for (uint i = 0; i < _DirectionalLightCount; i++)
         {
-            DirectionalLightData light = _DirectionalLightDatas[i];
+            DirectionalLightData light = _DirectionalLightData[i];
 
             // Use scalar or integer cores (more efficient).
             bool interactsWithSky = asint(light.distanceFromCamera) >= 0;

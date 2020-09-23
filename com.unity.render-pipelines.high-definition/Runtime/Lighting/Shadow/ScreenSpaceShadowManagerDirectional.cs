@@ -196,7 +196,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle intermediateBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA1);
             RTHandle intermediateDistanceBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.RG0);
             // Is the history still valid?
-            int dirShadowIndex = m_CurrentSunLightDirectionalLightData.screenSpaceShadowIndex & (int)LightDefinitions.s_ScreenSpaceShadowIndexMask;
+            int dirShadowIndex = m_CurrentSunLightDirectionalLightData.screenSpaceShadowIndex & (int)TiledLightingConstants.s_ScreenSpaceShadowIndexMask;
             float historyValidity = EvaluateHistoryValidityDirectionalShadow(hdCamera, dirShadowIndex, m_CurrentSunLightAdditionalLightData);
 
             // Grab the history buffers for shadows
@@ -246,7 +246,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Write the result texture to the screen space shadow buffer
-            int dirShadowIndex = m_CurrentSunLightDirectionalLightData.screenSpaceShadowIndex & (int)LightDefinitions.s_ScreenSpaceShadowIndexMask;
+            int dirShadowIndex = m_CurrentSunLightDirectionalLightData.screenSpaceShadowIndex & (int)TiledLightingConstants.s_ScreenSpaceShadowIndexMask;
             WriteScreenSpaceShadowParameters wsssParams = PrepareWriteScreenSpaceShadowParameters(hdCamera, dirShadowIndex, m_CurrentSunLightAdditionalLightData.colorShadow ? ScreenSpaceShadowType.Color : ScreenSpaceShadowType.GrayScale);
             WriteScreenSpaceShadowResources wsssResources = PrepareWriteScreenSpaceShadowResources(outputShadowBuffer);
             ExecuteWriteScreenSpaceShadow(cmd, wsssParams, wsssResources);

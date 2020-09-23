@@ -284,24 +284,24 @@ LightData FetchLight(uint start, uint i)
 {
     uint j = FetchIndex(start, i);
 
-    return _LightDatas[j];
+    return _LightData[j];
 }
 
 LightData FetchLight(uint index)
 {
-    return _LightDatas[index];
+    return _LightData[index];
 }
 
 EnvLightData FetchEnvLight(uint start, uint i)
 {
     int j = FetchIndex(start, i);
 
-    return _EnvLightDatas[j];
+    return _EnvLightData[j];
 }
 
 EnvLightData FetchEnvLight(uint index)
 {
-    return _EnvLightDatas[index];
+    return _EnvLightData[index];
 }
 
 // In the first 8 bits of the target we store the max fade of the contact shadows as a byte

@@ -49,7 +49,7 @@ void EvalDecalMask( PositionInputs posInput, float3 positionRWSDdx, float3 posit
                 float2 sampleDiffuseDdx = positionDSDdx.xz * decalData.diffuseScaleBias.xy; // factor in the atlas scale
                 float2 sampleDiffuseDdy = positionDSDdy.xz * decalData.diffuseScaleBias.xy;
                 float  lodDiffuse = ComputeTextureLOD(sampleDiffuseDdx, sampleDiffuseDdy, _DecalAtlasResolution, 0.5);
-               
+
                 src *= SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, sampleDiffuse, lodDiffuse);
             }
 
@@ -163,12 +163,12 @@ DecalData FetchDecal(uint start, uint i)
 #else
     int j = start + i;
 #endif
-    return _DecalDatas[j];
+    return _DecalData[j];
 }
 
 DecalData FetchDecal(uint index)
 {
-    return _DecalDatas[index];
+    return _DecalData[index];
 }
 #endif
 

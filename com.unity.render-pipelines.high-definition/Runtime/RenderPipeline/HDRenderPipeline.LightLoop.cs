@@ -143,8 +143,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.globalLightListAtomic = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(1, sizeof(uint)) { name = "LightListAtomic"});
                 passData.AABBBoundsBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(m_MaxViewCount * 2 * tileAndClusterData.maxLightCount, 4 * sizeof(float)) { name = "AABBBoundBuffer" });
 
-                var nrTilesX = (m_MaxCameraWidth + LightDefinitions.s_TileSizeFptl - 1) / LightDefinitions.s_TileSizeFptl;
-                var nrTilesY = (m_MaxCameraHeight + LightDefinitions.s_TileSizeFptl - 1) / LightDefinitions.s_TileSizeFptl;
+                var nrTilesX = (m_MaxCameraWidth + TiledLightingConstants.s_TileSizeFptl - 1) / TiledLightingConstants.s_TileSizeFptl;
+                var nrTilesY = (m_MaxCameraHeight + TiledLightingConstants.s_TileSizeFptl - 1) / TiledLightingConstants.s_TileSizeFptl;
                 var nrTiles = nrTilesX * nrTilesY * m_MaxViewCount;
                 const int capacityUShortsPerTile = 32;
                 const int dwordsPerTile = (capacityUShortsPerTile + 1) >> 1; // room for 31 lights and a nrLights value.
@@ -156,14 +156,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.output.lightList = builder.WriteComputeBuffer(
                         renderGraph.CreateComputeBuffer(new ComputeBufferDesc((int)LightCategory.Count * dwordsPerTile * nrTiles, sizeof(uint)) { name = "LightList" }));
                     passData.output.tileList = builder.WriteComputeBuffer(
-                        renderGraph.CreateComputeBuffer(new ComputeBufferDesc(LightDefinitions.s_NumFeatureVariants * nrTiles, sizeof(uint)) { name = "TileList" }));
+                        renderGraph.CreateComputeBuffer(new ComputeBufferDesc(TiledLightingConstants.s_NumFeatureVariants * nrTiles, sizeof(uint)) { name = "TileList" }));
                     passData.output.tileFeatureFlags = builder.WriteComputeBuffer(
                         renderGraph.CreateComputeBuffer(new ComputeBufferDesc(nrTiles, sizeof(uint)) { name = "TileFeatureFlags" }));
                     // DispatchIndirect: Buffer with arguments has to have three integer numbers at given argsOffset offset: number of work groups in X dimension, number of work groups in Y dimension, number of work groups in Z dimension.
                     // DrawProceduralIndirect: Buffer with arguments has to have four integer numbers at given argsOffset offset: vertex count per instance, instance count, start vertex location, and start instance location
                     // Use use max size of 4 unit for allocation
                     passData.output.dispatchIndirectBuffer = builder.WriteComputeBuffer(
-                        renderGraph.CreateComputeBuffer(new ComputeBufferDesc(m_MaxViewCount * LightDefinitions.s_NumFeatureVariants * 4, sizeof(uint), ComputeBufferType.IndirectArguments) { name = "DispatchIndirectBuffer" }));
+                        renderGraph.CreateComputeBuffer(new ComputeBufferDesc(m_MaxViewCount * TiledLightingConstants.s_NumFeatureVariants * 4, sizeof(uint), ComputeBufferType.IndirectArguments) { name = "DispatchIndirectBuffer" }));
                 }
 
                 // Big Tile buffer
@@ -174,12 +174,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     var nrBigTiles = nrBigTilesX * nrBigTilesY * m_MaxViewCount;
                     // TODO: (Nick) In the case of Probe Volumes, this buffer could be trimmed down / tuned more specifically to probe volumes if we added a s_MaxNrBigTileProbeVolumesPlusOne value.
                     passData.output.bigTileLightList = builder.WriteComputeBuffer(
-                        renderGraph.CreateComputeBuffer(new ComputeBufferDesc(LightDefinitions.s_MaxNrBigTileLightsPlusOne * nrBigTiles, sizeof(uint)) { name = "BigTiles" }));
+                        renderGraph.CreateComputeBuffer(new ComputeBufferDesc(TiledLightingConstants.s_MaxNrBigTileLightsPlusOne * nrBigTiles, sizeof(uint)) { name = "BigTiles" }));
                 }
 
                 // Cluster buffers
-                var nrClustersX = (m_MaxCameraWidth + LightDefinitions.s_TileSizeClustered - 1) / LightDefinitions.s_TileSizeClustered;
-                var nrClustersY = (m_MaxCameraHeight + LightDefinitions.s_TileSizeClustered - 1) / LightDefinitions.s_TileSizeClustered;
+                var nrClustersX = (m_MaxCameraWidth + TiledLightingConstants.s_TileSizeClustered - 1) / TiledLightingConstants.s_TileSizeClustered;
+                var nrClustersY = (m_MaxCameraHeight + TiledLightingConstants.s_TileSizeClustered - 1) / TiledLightingConstants.s_TileSizeClustered;
                 var nrClusterTiles = nrClustersX * nrClustersY * m_MaxViewCount;
 
                 passData.output.perVoxelOffset = builder.WriteComputeBuffer(
@@ -200,12 +200,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     var buildLightListResources = PrepareBuildGPULightListResources(context, data);
 
                     ClearLightLists(data.buildGPULightListParameters, buildLightListResources, context.cmd);
-                    GenerateLightsScreenSpaceAABBs(data.buildGPULightListParameters, buildLightListResources, context.cmd);
+                    // GenerateLightsScreenSpaceAABBs(data.buildGPULightListParameters, buildLightListResources, context.cmd);
                     BigTilePrepass(data.buildGPULightListParameters, buildLightListResources, context.cmd);
-                    BuildPerTileLightList(data.buildGPULightListParameters, buildLightListResources, ref tileFlagsWritten, context.cmd);
-                    VoxelLightListGeneration(data.buildGPULightListParameters, buildLightListResources, context.cmd);
+                    // BuildPerTileLightList(data.buildGPULightListParameters, buildLightListResources, ref tileFlagsWritten, context.cmd);
+                    // VoxelLightListGeneration(data.buildGPULightListParameters, buildLightListResources, context.cmd);
 
-                    BuildDispatchIndirectArguments(data.buildGPULightListParameters, buildLightListResources, tileFlagsWritten, context.cmd);
+                    // BuildDispatchIndirectArguments(data.buildGPULightListParameters, buildLightListResources, tileFlagsWritten, context.cmd);
                 });
 
                 return passData.output;
@@ -500,7 +500,6 @@ namespace UnityEngine.Rendering.HighDefinition
         class RenderContactShadowPassData
         {
             public ContactShadowsParameters     parameters;
-            public LightLoopLightData           lightLoopLightData;
             public TextureHandle                depthTexture;
             public TextureHandle                contactShadowsTexture;
             public ComputeBufferHandle          lightList;
@@ -520,7 +519,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool clearBuffer = m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.ContactShadows;
 
                 passData.parameters = PrepareContactShadowsParameters(hdCamera, firstMipOffsetY);
-                passData.lightLoopLightData = m_LightLoopLightData;
                 passData.lightList = builder.ReadComputeBuffer(lightLists.lightList);
                 passData.depthTexture = builder.ReadTexture(depthTexture);
                 passData.contactShadowsTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
@@ -531,7 +529,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (RenderContactShadowPassData data, RenderGraphContext context) =>
                 {
-                    RenderContactShadows(data.parameters, data.contactShadowsTexture, data.depthTexture, data.lightLoopLightData, data.lightList, context.cmd);
+                    RenderContactShadows(data.parameters, data.contactShadowsTexture, data.depthTexture, data.lightList, context.cmd);
                 });
             }
 

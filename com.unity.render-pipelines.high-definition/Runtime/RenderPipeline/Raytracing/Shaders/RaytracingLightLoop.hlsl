@@ -1,8 +1,8 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingLightCluster.hlsl"
 
-#define USE_LIGHT_CLUSTER 
+#define USE_LIGHT_CLUSTER
 
-void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, 
+void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData,
                 float reflectionHierarchyWeight, float refractionHierarchyWeight, float3 reflection, float3 transmission,
 			    out LightLoopOutput lightLoopOutput)
 {
@@ -17,11 +17,11 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
     // Initialize the contactShadow and contactShadowFade fields
     InvalidateConctactShadow(posInput, context);
-    
+
     // Evaluate sun shadows.
     if (_DirectionalShadowIndex >= 0)
     {
-        DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
+        DirectionalLightData light = _DirectionalLightData[_DirectionalShadowIndex];
 
         // TODO: this will cause us to load from the normal buffer first. Does this cause a performance problem?
         float3 L = -light.forward;
@@ -43,7 +43,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     // Indices of the subranges to process
     uint lightStart = 0, lightEnd = 0;
 
-    // The light cluster is in actual world space coordinates, 
+    // The light cluster is in actual world space coordinates,
     #ifdef USE_LIGHT_CLUSTER
     // Get the actual world space position
     float3 actualWSPos = GetAbsolutePositionWS(posInput.positionWS);
@@ -99,7 +99,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
 // Environment cubemap test lightlayers, sky don't test it
 #define EVALUATE_BSDF_ENV(envLightData, TYPE, type) if (IsMatchingLightLayer(envLightData.lightLayers, builtinData.renderingLayers)) { EVALUATE_BSDF_ENV_SKY(envLightData, TYPE, type) }
-    
+
     #ifdef USE_LIGHT_CLUSTER
     // Get the punctual light count
     GetLightCountAndStartCluster(actualWSPos, LIGHTCATEGORY_ENV, lightStart, lightEnd, cellIndex);
@@ -157,16 +157,16 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     // We loop over all the directional lights given that there is no culling for them
     for (i = 0; i < _DirectionalLightCount; ++i)
     {
-        if (IsMatchingLightLayer(_DirectionalLightDatas[i].lightLayers, builtinData.renderingLayers))
+        if (IsMatchingLightLayer(_DirectionalLightData[i].lightLayers, builtinData.renderingLayers))
         {
-            DirectLighting lighting = EvaluateBSDF_Directional(context, V, posInput, preLightData, _DirectionalLightDatas[i], bsdfData, builtinData);
+            DirectLighting lighting = EvaluateBSDF_Directional(context, V, posInput, preLightData, _DirectionalLightData[i], bsdfData, builtinData);
             AccumulateDirectLighting(lighting, aggregateLighting);
         }
     }
 
 
     #ifdef USE_LIGHT_CLUSTER
-    // Let's loop through all the 
+    // Let's loop through all the
     GetLightCountAndStartCluster(actualWSPos, LIGHTCATEGORY_AREA, lightStart, lightEnd, cellIndex);
     #else
     lightStart = _PunctualLightCountRT;

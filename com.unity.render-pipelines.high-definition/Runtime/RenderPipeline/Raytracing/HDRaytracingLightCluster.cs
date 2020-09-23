@@ -300,10 +300,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Reserve space in the cookie atlas
                     m_RenderPipeline.ReserveCookieAtlasTexture(currentLight, light, currentLight.type);
 
-               
+
                     // Grab the light range
                     float lightRange = light.range;
-                    
+
                     if (currentLight.type != HDLightType.Area)
                     {
                         m_LightVolumesCPUArray[realIndex].range = new Vector3(lightRange, lightRange, lightRange);
@@ -497,12 +497,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     continue;
                 }
 
-                // Evaluate all the light type data that we need
-                LightCategory lightCategory = LightCategory.Count;
-                GPULightType gpuLightType = GPULightType.Point;
-                LightVolumeType lightVolumeType = LightVolumeType.Count;
-                HDLightType lightType = additionalLightData.type;
-                HDRenderPipeline.EvaluateGPULightType(lightType, additionalLightData.spotLightShape, additionalLightData.areaLightShape, ref lightCategory, ref gpuLightType, ref lightVolumeType);
+                BoundedEntityCategory lightCategory = BoundedEntityCategory.Count;
+                GPULightType          gpuLightType  = GPULightType.Point;
+
+                HDRenderPipeline.EvaluateGPULightType(additionalLightData.type, additionalLightData.spotLightShape, additionalLightData.areaLightShape, ref lightCategory, ref gpuLightType);
 
                 // Fetch the light component for this light
                 additionalLightData.gameObject.TryGetComponent(out lightComponent);
@@ -519,7 +517,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 processedData.lightDistanceFade = HDUtils.ComputeLinearDistanceFade(processedData.distanceToCamera, additionalLightData.fadeDistance);
                 processedData.isBakedShadowMask = HDRenderPipeline.IsBakedShadowMaskLight(lightComponent);
 
-                // Build a visible light 
+                // Build a visible light
                 Color finalColor = lightComponent.color.linear * lightComponent.intensity;
                 if (additionalLightData.useColorTemperature)
                     finalColor *= Mathf.CorrelatedColorTemperatureToRGB(lightComponent.colorTemperature);
@@ -539,7 +537,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector3 lightDimensions =  new Vector3(0.0f, 0.0f, 0.0f);
 
                 // Use the shared code to build the light data
-                m_RenderPipeline.GetLightData(cmd, hdCamera, hdShadowSettings, visibleLight, lightComponent, in processedData, 
+                m_RenderPipeline.GetLightData(cmd, hdCamera, hdShadowSettings, visibleLight, lightComponent, in processedData,
                     shadowIndex, contactShadowScalableSetting, isRasterization: false, ref lightDimensions, ref screenSpaceShadowIndex, ref screenSpaceChannelSlot, ref lightData);
 
                 // We make the light position camera-relative as late as possible in order
@@ -587,10 +585,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 var envLightData = new EnvLightData();
                 m_RenderPipeline.GetEnvLightData(cmd, hdCamera, processedProbe, ref envLightData);
 
-                // We make the light position camera-relative as late as possible in order
-                // to allow the preceding code to work with the absolute world space coordinates.
-                Vector3 camPosWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
-                HDRenderPipeline.UpdateEnvLighCameraRelativetData(ref envLightData, camPosWS);
+                if (ShaderConfig.s_CameraRelativeRendering != 0)
+                {
+                    Vector3 camPosWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
+
+                    // Caution: 'EnvLightData.positionRWS' is camera-relative after this point.
+                    envLightData.capturePositionRWS -= camPosWS;
+                    envLightData.influencePositionRWS -= camPosWS;
+                    envLightData.proxyPositionRWS -= camPosWS;
+                }
 
                 m_EnvLightDataCPUArray.Add(envLightData);
             }
@@ -729,14 +732,14 @@ namespace UnityEngine.Rendering.HighDefinition
 			  // If there is no lights to process or no environment not the shader is missing
             if (totalLightCount == 0 || rayTracingLights.lightCount == 0 || !m_RenderPipeline.GetRayTracingState())
                 return;
-			
+
             // Cull the lights within the evaluated cluster range
             CullLights(cmd);
 
             // Build the light Cluster
             BuildLightCluster(hdCamera, cmd);
         }
-        
+
         public void ReserveCookieAtlasSlots( HDRayTracingLights rayTracingLights)
         {
             for (int lightIdx = 0; lightIdx < rayTracingLights.hdLightArray.Count; ++lightIdx)

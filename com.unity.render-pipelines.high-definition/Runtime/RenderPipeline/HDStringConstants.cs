@@ -113,9 +113,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _EnvCubemapTextures = Shader.PropertyToID("_EnvCubemapTextures");
         public static readonly int _Env2DTextures = Shader.PropertyToID("_Env2DTextures");
-        public static readonly int _DirectionalLightDatas = Shader.PropertyToID("_DirectionalLightDatas");
-        public static readonly int _LightDatas = Shader.PropertyToID("_LightDatas");
-        public static readonly int _EnvLightDatas = Shader.PropertyToID("_EnvLightDatas");
+
+        public static readonly int _DirectionalLightData  = Shader.PropertyToID(nameof(_DirectionalLightData));
+        public static readonly int _DirectionalLightCount = Shader.PropertyToID(nameof(_DirectionalLightCount));
+        public static readonly int _PunctualLightData     = Shader.PropertyToID(nameof(_PunctualLightData));
+        public static readonly int _PunctualLightCount    = Shader.PropertyToID(nameof(_PunctualLightCount));
+        public static readonly int _AreaLightData         = Shader.PropertyToID(nameof(_AreaLightData));
+        public static readonly int _AreaLightCount        = Shader.PropertyToID(nameof(_AreaLightCount));
+        public static readonly int _EnvLightData          = Shader.PropertyToID(nameof(_EnvLightData));
+        public static readonly int _EnvLightCount         = Shader.PropertyToID(nameof(_EnvLightCount));
+        public static readonly int _DecalData             = Shader.PropertyToID(nameof(_DecalData));
+        public static readonly int _DecalCount            = Shader.PropertyToID(nameof(_DecalCount));
+        public static readonly int _DensityVolumeData     = Shader.PropertyToID(nameof(_DensityVolumeData));
+        public static readonly int _DensityVolumeCount    = Shader.PropertyToID(nameof(_DensityVolumeCount));
 
         public static readonly int _ProbeVolumeBounds = Shader.PropertyToID("_ProbeVolumeBounds");
         public static readonly int _ProbeVolumeDatas = Shader.PropertyToID("_ProbeVolumeDatas");
@@ -197,7 +207,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _NormalToWorldID = Shader.PropertyToID("_NormalToWorld");
         public static readonly int _DecalAtlas2DID = Shader.PropertyToID("_DecalAtlas2D");
         public static readonly int _DecalHTileTexture = Shader.PropertyToID("_DecalHTileTexture");
-        public static readonly int _DecalDatas = Shader.PropertyToID("_DecalDatas");
         public static readonly int _DecalNormalBufferStencilReadMask = Shader.PropertyToID("_DecalNormalBufferStencilReadMask");
         public static readonly int _DecalNormalBufferStencilRef = Shader.PropertyToID("_DecalNormalBufferStencilRef");
         public static readonly int _DecalPrepassTexture = Shader.PropertyToID("_DecalPrepassTexture");

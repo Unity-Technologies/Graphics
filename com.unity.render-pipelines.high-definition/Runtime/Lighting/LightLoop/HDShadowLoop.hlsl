@@ -30,7 +30,7 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
         // Evaluate sun shadows.
         if (_DirectionalShadowIndex >= 0)
         {
-            DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
+            DirectionalLightData light = _DirectionalLightData[_DirectionalShadowIndex];
 
             // TODO: this will cause us to load from the normal buffer first. Does this cause a performance problem?
             float3 wi = -light.forward;
