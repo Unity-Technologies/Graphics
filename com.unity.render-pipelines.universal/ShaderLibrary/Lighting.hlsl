@@ -1088,6 +1088,78 @@ half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 sp
 ////////////////////////////////////////////////////////////////////////////////
 /// Unlit
 ////////////////////////////////////////////////////////////////////////////////
+half4 UniversalFragmentBakedLit(InputData inputData, SurfaceData surfaceData)
+{
+    #ifdef _ALPHAPREMULTIPLY_ON
+    surfaceData.albedo *= alpha;
+    #endif
+
+    #if defined(_DEBUG_SHADER)
+    DebugData debugData = CreateDebugData(inputData.uv);
+    half4 debugColor;
+
+    if(CanDebugOverrideOutputColor(inputData, surfaceData, debugData, debugColor))
+    {
+        return debugColor;
+    }
+    #endif
+
+    half4 finalColor = half4(surfaceData.albedo, surfaceData.alpha);
+
+    if(IsLightingFeatureEnabled(DEBUG_PBR_LIGHTING_ENABLE_GI))
+    {
+        finalColor.rgb *= inputData.bakedGI;
+    }
+
+    #if defined(_SCREEN_SPACE_OCCLUSION)
+    finalColor.rgb *= SampleAmbientOcclusion(inputData.normalizedScreenSpaceUV);
+    #endif
+
+    finalColor.rgb = MixFog(finalColor.rgb, inputData.fogCoord);
+
+    return finalColor;
+}
+
+half4 UniversalFragmentBakedLit(InputData inputData, half3 color, half alpha, half3 normalTS)
+{
+    SurfaceData surfaceData = (SurfaceData)0;
+
+    surfaceData.albedo = color;
+    surfaceData.alpha = alpha;
+    surfaceData.emission = half3(0, 0, 0);
+    surfaceData.metallic = 0;
+    surfaceData.occlusion = 0;
+    surfaceData.smoothness = 0;
+    surfaceData.specular = half3(0, 0, 0);
+    surfaceData.clearCoatMask = 0;
+    surfaceData.clearCoatSmoothness = 1;
+    surfaceData.normalTS = normalTS;
+
+    return UniversalFragmentBakedLit(inputData, surfaceData);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Unlit
+////////////////////////////////////////////////////////////////////////////////
+half4 UniversalFragmentUnlit(InputData inputData, SurfaceData surfaceData)
+{
+    #if defined(_ALPHAPREMULTIPLY_ON)
+    surfaceData.albedo *= alpha;
+    #endif
+
+    #if defined(_DEBUG_SHADER)
+    DebugData debugData = CreateDebugData(inputData.uv);
+    half4 debugColor;
+
+    if(CanDebugOverrideOutputColor(inputData, surfaceData, debugData, debugColor))
+    {
+        return debugColor;
+    }
+    #endif
+
+    return half4(surfaceData.albedo, surfaceData.alpha);
+}
+
 half4 UniversalFragmentUnlit(InputData inputData, half3 color, half alpha)
 {
     SurfaceData surfaceData = (SurfaceData)0;
@@ -1103,20 +1175,6 @@ half4 UniversalFragmentUnlit(InputData inputData, half3 color, half alpha)
     surfaceData.clearCoatSmoothness = 1;
     surfaceData.normalTS = half3(0, 0, 1);
 
-    #if defined(_DEBUG_SHADER)
-    DebugData debugData = CreateDebugData(inputData.uv);
-    half4 debugColor;
-
-    if(CanDebugOverrideOutputColor(inputData, surfaceData, debugData, debugColor))
-    {
-        return debugColor;
-    }
-    #endif
-
-    #ifdef _ALPHAPREMULTIPLY_ON
-    color *= alpha;
-    #endif
-
-    return half4(color, alpha);
+    return UniversalFragmentUnlit(inputData, surfaceData);
 }
 #endif
