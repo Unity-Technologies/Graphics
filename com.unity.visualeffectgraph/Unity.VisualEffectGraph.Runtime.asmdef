@@ -1,8 +1,10 @@
 {
     "name": "Unity.VisualEffectGraph.Runtime",
+    "rootNamespace": "",
     "references": [
         "Unity.Timeline",
-        "Unity.ugui"
+        "Unity.ugui",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -47,5 +49,6 @@
             "expression": "0.0.0",
             "define": "ENABLE_INPUT_SYSTEM_PACKAGE"
         }
-    ]
+    ],
+    "noEngineReferences": false
 }

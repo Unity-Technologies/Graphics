@@ -1,3 +1,8 @@
+#if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
+    #define USE_INPUT_SYSTEM
+    using UnityEngine.InputSystem;
+#endif
+
 using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
@@ -16,7 +21,11 @@ namespace UnityEngine.VFX.Utility
         [VFXPropertyBinding("System.Single"), SerializeField, UnityEngine.Serialization.FormerlySerializedAs("m_KeySmoothParameter")]
         protected ExposedProperty m_KeySmoothProperty = "KeySmooth";
 
+#if USE_INPUT_SYSTEM
+        public Key InputSystemKey  = InputSystem.Key.Space;
+#else
         public KeyCode Key = KeyCode.Space;
+#endif
         public float SmoothSpeed = 2.0f;
         public bool UseKeySmooth = true;
 
@@ -31,13 +40,22 @@ namespace UnityEngine.VFX.Utility
         {
             if (UseKeySmooth)
             {
+#if USE_INPUT_SYSTEM
+                if (Keyboard.current != null)
+                    m_CachedSmoothValue = Keyboard.current[InputSystemKey].isPressed ? 1.0f : 0.0f;
+#else
                 m_CachedSmoothValue = Input.GetKeyDown(Key) ? 1.0f : 0.0f;
+#endif
             }
         }
 
         public override void UpdateBinding(VisualEffect component)
         {
+#if USE_INPUT_SYSTEM
+            bool press = Keyboard.current != null ? Keyboard.current[InputSystemKey].isPressed : false;
+#else
             bool press = Input.GetKey(Key);
+#endif
             component.SetBool(m_KeyProperty, press);
             if (UseKeySmooth)
             {
@@ -49,7 +67,11 @@ namespace UnityEngine.VFX.Utility
 
         public override string ToString()
         {
+#if USE_INPUT_SYSTEM
+            return string.Format("Key: '{0}' -> {1}", m_KeySmoothProperty, InputSystemKey.ToString());
+#else
             return string.Format("Key: '{0}' -> {1}", m_KeySmoothProperty, Key.ToString());
+#endif
         }
     }
 }
