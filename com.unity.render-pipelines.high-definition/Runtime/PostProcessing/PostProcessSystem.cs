@@ -911,6 +911,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4          bloomBicubicParams;
             public Vector4          bloomDirtTileOffset;
             public Vector4          bloomThreshold;
+
+            public Vector4          alphaScaleBias;
         }
 
         UberPostParameters PrepareUberPostParameters(HDCamera hdCamera, bool isSceneView)
@@ -944,8 +946,21 @@ namespace UnityEngine.Rendering.HighDefinition
             PrepareChromaticAberrationParameters(ref parameters, featureFlags);
             PrepareVignetteParameters(ref parameters, featureFlags);
             PrepareUberBloomParameters(ref parameters, hdCamera);
+            PrepareAlphaScaleParameters(ref parameters, hdCamera);
 
             return parameters;
+        }
+
+        void PrepareAlphaScaleParameters(ref UberPostParameters parameters, HDCamera camera)
+        {
+            if (m_EnableAlpha)
+            {
+                parameters.alphaScaleBias = Compositor.CompositionManager.GetAlphaScaleAndBiasForCamera(camera);
+            }
+            else
+            {
+                parameters.alphaScaleBias = new Vector4(1.0f, 0.0f, 0.0f, 0.0f);
+            }
         }
 
         static void DoUberPostProcess(in UberPostParameters parameters,
@@ -982,6 +997,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeVectorParam(parameters.uberPostCS, HDShaderIDs._BloomDirtScaleOffset, parameters.bloomDirtTileOffset);
             cmd.SetComputeVectorParam(parameters.uberPostCS, HDShaderIDs._BloomThreshold, parameters.bloomThreshold);
 
+            // Alpha scale and bias (only used when alpha is enabled)
+            cmd.SetComputeVectorParam(parameters.uberPostCS, HDShaderIDs._AlphaScaleBias, parameters.alphaScaleBias);
 
             // Dispatch uber post
             cmd.SetComputeVectorParam(parameters.uberPostCS, "_DebugFlags", new Vector4(parameters.outputColorLog ? 1 : 0, 0, 0, 0));
