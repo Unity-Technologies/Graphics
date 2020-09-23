@@ -20,14 +20,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
         NativeArray<int> m_EndIndices;
         ImageAlpha m_ImageAlpha;
 
-        public CreateBoundsJob(ImageAlpha imageAlpha, List<Vector2[]> outlines)
+        public CreateBoundsJob(ImageAlpha imageAlpha, Vector2[][] outlines)
         {
             m_ImageAlpha = imageAlpha;
             m_LineMask = new NativeArray<byte>(imageAlpha.width * imageAlpha.height, Allocator.Persistent, NativeArrayOptions.ClearMemory);
 
             // Count the elements used
             int totalOutlineElements = 0;
-            for (int outlineIdx = 0; outlineIdx < outlines.Count; outlineIdx++)
+            for (int outlineIdx = 0; outlineIdx < outlines.Length; outlineIdx++)
             {
                 Vector2[] outline = outlines[outlineIdx];
                 for (int outlineElementIdx = 0; outlineElementIdx < outline.Length; outlineElementIdx++)
@@ -35,10 +35,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
 
             m_Outlines = new NativeArray<float2>(totalOutlineElements, Allocator.Persistent);
-            m_EndIndices = new NativeArray<int>(outlines.Count, Allocator.Persistent);
+            m_EndIndices = new NativeArray<int>(outlines.Length, Allocator.Persistent);
 
             int elementsCopied = 0;
-            for (int outlineIdx = 0; outlineIdx < outlines.Count; outlineIdx++)
+            for (int outlineIdx = 0; outlineIdx < outlines.Length; outlineIdx++)
             {
                 Vector2[] outline = outlines[outlineIdx];
                 for (int outlineElementIdx = 0; outlineElementIdx < outline.Length; outlineElementIdx++)

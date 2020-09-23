@@ -118,12 +118,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             shapeTesselatedHandler(vertices, indices, uvs, isOpaque);
         }
 
-        public static void TesselateShapes(List<Vector2[]> customOutline, RectInt region, Action<Vector3[], int[], Vector2[], bool> shapeTesselatedHandler)
+        public static void TesselateShapes(Vector2[][] customOutline, RectInt region, Action<Vector3[], int[], Vector2[], bool> shapeTesselatedHandler)
         {
             Tess tess = new Tess();
 
             // Add Custom Outline if one exists
-            if (customOutline != null && customOutline.Count > 0)
+            if (customOutline != null && customOutline.Length > 0)
             {
                 foreach (Vector2[] contourPath in customOutline)
                 {
@@ -253,7 +253,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
 
 
-        public static void MakeShapes(ShapeLibrary shapeLib, List<Vector2[]> customOutline, Texture2D texture, short minAlphaCutoff, float minimumArea)
+        public static void MakeShapes(ShapeLibrary shapeLib, Vector2[][] customOutline, Texture2D texture, short minAlphaCutoff, float minimumArea)
         {
             List<Shape> outlines = new List<Shape>();
 
@@ -268,7 +268,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             ImageAlpha unprocessedImageAlpha = new ImageAlpha(rect.z, rect.w);
             unprocessedImageAlpha.Copy(texture, rect);
 
-            bool hasCustomOutline = customOutline != null && customOutline.Count > 0;
+            bool hasCustomOutline = customOutline != null && customOutline.Length > 0;
             if (hasCustomOutline)
             { 
                 CreateBoundsJob createBoundsJob = new CreateBoundsJob(unprocessedImageAlpha, customOutline);

@@ -34,21 +34,21 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return nativeArray;
         }
 
-
-        List<Vector2[]> TransformOutline(List<Vector2[]> customOutline, Vector2 offset, float scale)
+        Vector2[][] TransformOutline(Vector2[][] customOutline, Vector2 offset, float scale)
         {
-            if (customOutline != null && customOutline.Count > 0)
+            if (customOutline != null && customOutline.Length > 0)
             {
-                List<Vector2[]> retOutline = new List<Vector2[]>();
+                Vector2[][] retOutline = new Vector2[customOutline.Length][];
 
-                foreach (Vector2[] outline in customOutline)
+                for(int outlineIndex=0; outlineIndex < customOutline.Length; outlineIndex++)
                 {
+                    Vector2[] outline = customOutline[outlineIndex];
                     Vector2[] transformedOutline = new Vector2[outline.Length];
 
                     for (int i = 0; i < outline.Length; i++)
                         transformedOutline[i] = scale * outline[i] + offset;
 
-                    retOutline.Add(transformedOutline);
+                    retOutline[outlineIndex] = transformedOutline;
                 }
 
                 return retOutline;
@@ -75,7 +75,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 allVertices.Add(vertices[i] / pixelsPerUnit - v3Pivot);
         }
 
-        void CreateSplitSpriteMesh(Sprite sprite, Vector2 pivot, List<Vector2[]> customOutline, float pixelsPerUnit)
+        void CreateSplitSpriteMesh(Sprite sprite, Vector2 pivot, Vector2[][] customOutline, float pixelsPerUnit)
         {
             ShapeLibrary shapeLibrary = new ShapeLibrary();
             Texture2D texture = sprite.texture;
@@ -94,7 +94,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             // Tesselate shapes made with MakeShapes
             GenerateMeshes.TesselateShapes(shapeLibrary, (vertices, triangles, uvs, isOpaque) => AddGeometry(vertices, triangles, uvs, pivot, pixelsPerUnit, isOpaque, colorTriangles, depthTriangles, allVertices));
 
-            if (customOutline != null && customOutline.Count > 0)
+            if (customOutline != null && customOutline.Length > 0)
                 GenerateMeshes.TesselateShapes(customOutline, rect, (vertices, triangles, uvs, isOpaque) => AddGeometry(vertices, triangles, uvs, pivot, pixelsPerUnit, false, colorTriangles, depthTriangles, allVertices));
 
             NativeArray<Vector3> nativeVertices = ListToNativeArray<Vector3>(allVertices);
@@ -135,9 +135,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     float width = texture.width / correctedPPU;
                     float height = texture.height / correctedPPU;
                     Vector2 spriteSize = new Vector2(width, height);
-                    Vector2 pivotOffset = textureImporter.spritePivot * spriteSize;  // This is probably wrong. Should use rect instead.
+                    Vector2 pivotOffset = textureImporter.spritePivot * spriteSize;
 
-                    List<Vector2[]> transformedOutline = TransformOutline(textureImporter.spriteOutline, textureCenter, textureRescale);
+                    Vector2[][] spriteOutline = textureImporter.spriteOutline;
+                    Vector2[][] transformedOutline = TransformOutline(spriteOutline, textureCenter, textureRescale);
                     CreateSplitSpriteMesh(sprites[0], pivotOffset, transformedOutline, correctedPPU);
                 }
                 else if (textureImporter.spriteImportMode == SpriteImportMode.Multiple)
@@ -149,8 +150,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         Vector2 spriteSize = new Vector2(width, height);
                         Vector2 pivotOffset = new Vector2(sprites[i].pivot.x / sprites[i].rect.width, sprites[i].pivot.y / sprites[i].rect.height) * spriteSize;
 
-                        List<Vector2[]> transformedOutline = TransformOutline(textureImporter.spritesheet[i].outline, textureCenter, textureRescale);
-                        CreateSplitSpriteMesh(sprites[i], pivotOffset, transformedOutline, correctedPPU);
+                        SpriteMetaData[] metadata = textureImporter.spritesheet;
+                        Vector2[][] outlines = metadata[i].outline;
+                        Vector2[] outline = outlines[0];
+
+                        Vector2[][] transformedOutline = TransformOutline(metadata[i].outline, textureCenter, textureRescale);
+                        //CreateSplitSpriteMesh(sprites[i], pivotOffset, transformedOutline, correctedPPU);
                     }
                 }
             }
