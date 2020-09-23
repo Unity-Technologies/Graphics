@@ -40,6 +40,7 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
     output.vertexLighting = half3(0.0h, 0.0h, 0.0h);
     output.bakedGI = SampleSHPixel(input.vertexSH, output.normalWS);
     output.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
+    output.shadowMask = half4(1, 1, 1, 1);
 }
 
 inline void InitializeParticleSimpleLitSurfaceData(VaryingsParticle input, out SurfaceData outSurfaceData)

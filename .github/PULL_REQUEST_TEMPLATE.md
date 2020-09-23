@@ -32,7 +32,7 @@ Why is this PR needed, what hard problem is it solving/fixing?
 **Automated Tests**: What did you setup? (Add a screenshot or the reference image of the test please)
 
 **Yamato**: (Select your branch):
-https://yamato.prd.cds.internal.unity3d.com/jobs/902-Graphics
+https://yamato.cds.internal.unity3d.com/jobs/902-Graphics
 
 Any test projects to go with this to help reviewers?
 
