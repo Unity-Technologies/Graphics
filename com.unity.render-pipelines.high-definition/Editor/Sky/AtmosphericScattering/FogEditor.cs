@@ -9,8 +9,6 @@ namespace UnityEditor.Rendering.HighDefinition
     class FogEditor : VolumeComponentEditor
     {
         protected SerializedDataParameter m_Enabled;
-        protected SerializedDataParameter m_tmp_opt;
-
         protected SerializedDataParameter m_MaxFogDistance;
         protected SerializedDataParameter m_ColorMode;
         protected SerializedDataParameter m_Color;
@@ -53,8 +51,6 @@ namespace UnityEditor.Rendering.HighDefinition
             var o = new PropertyFetcher<Fog>(serializedObject);
 
             m_Enabled = Unpack(o.Find(x => x.enabled));
-            m_tmp_opt = Unpack(o.Find(x => x.tmp_opt));
-
             m_MaxFogDistance = Unpack(o.Find(x => x.maxFogDistance));
 
             // Fog Color
@@ -85,7 +81,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnInspectorGUI()
         {
             PropertyField(m_Enabled, s_Enabled);
-            PropertyField(m_tmp_opt, new GUIContent("opt"));
 
             PropertyField(m_MeanFreePath, s_MeanFreePathLabel);
             PropertyField(m_BaseHeight, s_BaseHeightLabel);

@@ -74,9 +74,6 @@ RW_TEXTURE3D(float4, _VBufferFeedback);
 TEXTURE3D(_VBufferHistory);
 TEXTURE3D(_VBufferDensity);                     // RGB = scattering, A = extinction
 
-// Input texture that holds the offset for every level of the depth pyramid
-StructuredBuffer<int2>  _DepthPyramidMipLevelOffsets;
-
 //--------------------------------------------------------------------------------------------------
 // Implementation
 //--------------------------------------------------------------------------------------------------
@@ -90,8 +87,6 @@ struct JitteredRay
     float3 xDirDerivWS;
     float3 yDirDerivWS;
     float  geomDist;
-
-    float TMP_MAX_DEPTH;
 };
 
 struct VoxelLighting
@@ -242,8 +237,6 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
                                          uint lightCount, uint lightStart, float3 centerWS,
                                          JitteredRay ray, float t0, float t1, float dt, float rndVal, float extinction, float anisotropy)
 {
-
-
     VoxelLighting lighting;
     ZERO_INITIALIZE(VoxelLighting, lighting);
 
@@ -567,12 +560,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         }
 
         #ifdef SUPPORT_LOCAL_LIGHTS
-#if defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS)
-        if (!WaveActiveAllTrue(lightCount == 0))
-
-#endif
         {
-
             VoxelLighting lighting = EvaluateVoxelLightingLocal(context, featureFlags, posInput,
                                                                 lightCount, lightStart,
                                                                 centerWS, ray, t0, t1, dt, rndVal,
@@ -680,16 +668,6 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // TODO: re-enable tone mapping after implementing pre-exposure.
         _VBufferLighting[voxelCoord] = LinearizeRGBD(float4(/*FastTonemap*/(totalRadiance), opticalDepth)) * float4(GetCurrentExposureMultiplier().xxx, 1);
 
-#if defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS)
-       // if (t1 > WaveActiveMax(ray.geomDist))
-        if (t1 > ray.TMP_MAX_DEPTH && _HaveToPad > 0.1)
-#else
-        if (t1  > ray.TMP_MAX_DEPTH && _HaveToPad > 0.1)
-#endif
-        {
-            break;
-        }
-      //  _VBufferLighting[voxelCoord] = float4(ray.geomDist > ray.TMP_MAX_DEPTH, t1, ray.geomDist, ray.TMP_MAX_DEPTH);
         // Compute the optical depth up to the end of the interval.
         opticalDepth += 0.5 * blendValue.a;
 
@@ -774,13 +752,6 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
         // Convert it to distance along the ray. Doesn't work with tilt shift, etc.
         float linearDepth = LinearEyeDepth(deviceDepth, _ZBufferParams);
         ray.geomDist = linearDepth * rcp(dot(ray.jitterDirWS, F));
-
-        uint2 mipcOORD = pixelCoord >> 4;
-        uint2 mipOff = _DepthPyramidMipLevelOffsets[4];
-
-        float dd = LOAD_TEXTURE2D_X(_CameraDepthTexture, mipOff + mipcOORD).r;
-
-        ray.TMP_MAX_DEPTH = LinearEyeDepth(dd, _ZBufferParams)  * rcp(dot(ray.jitterDirWS, F));
     }
 #endif
 

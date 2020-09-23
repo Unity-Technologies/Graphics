@@ -862,13 +862,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool                         enableReprojection;
             public int                          viewCount;
             public bool                         filterVolume;
-            public ComputeBuffer offsetBufferData;
-            public bool opt;
             public ShaderVariablesVolumetric    volumetricCB;
             public ShaderVariablesLightList     lightListCB;
         }
 
-        VolumetricLightingParameters PrepareVolumetricLightingParameters(HDCamera hdCamera, in HDUtils.PackedMipChainInfo depthPyramid, int frameIndex)
+        VolumetricLightingParameters PrepareVolumetricLightingParameters(HDCamera hdCamera, int frameIndex)
         {
             var parameters = new VolumetricLightingParameters();
 
@@ -908,14 +906,9 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.viewCount = hdCamera.viewCount;
             parameters.filterVolume = ((int)fog.denoisingMode.value & (int)FogDenoisingMode.Gaussian) != 0;
 
-            parameters.opt = fog.tmp_opt.value;
-
             UpdateShaderVariableslVolumetrics(ref m_ShaderVariablesVolumetricCB, hdCamera, parameters.resolution, frameIndex);
-            m_ShaderVariablesVolumetricCB._HaveToPad = parameters.opt ? 1.0f : 0.0f;
             parameters.volumetricCB = m_ShaderVariablesVolumetricCB;
             parameters.lightListCB = m_ShaderVariablesLightListCB;
-
-            parameters.offsetBufferData = depthPyramid.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
 
             return parameters;
         }
@@ -935,7 +928,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs._CameraDepthTexture, depthTexture);  // Read
             cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs._VBufferDensity,  densityBuffer);  // Read
             cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs._VBufferLighting, lightingBuffer); // Write
-            cmd.SetComputeBufferParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs._DepthPyramidMipLevelOffsets, parameters.offsetBufferData);
 
             if (parameters.enableReprojection)
             {
@@ -975,7 +967,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
-            var parameters = PrepareVolumetricLightingParameters(hdCamera, m_SharedRTManager.GetDepthBufferMipChainInfo(), frameIndex);
+            var parameters = PrepareVolumetricLightingParameters(hdCamera, frameIndex);
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricLighting)))
             {

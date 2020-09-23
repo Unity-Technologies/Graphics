@@ -603,7 +603,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
-                var parameters = PrepareVolumetricLightingParameters(hdCamera, m_DepthBufferMipChainInfo, frameIndex);
+                var parameters = PrepareVolumetricLightingParameters(hdCamera, frameIndex);
 
                 using (var builder = renderGraph.AddRenderPass<VolumetricLightingPassData>("Volumetric Lighting", out var passData))
                 {
