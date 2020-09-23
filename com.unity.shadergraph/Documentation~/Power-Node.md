@@ -4,7 +4,7 @@
 
 Returns the result of input **A** to the power of input **B**.
 
-Warning: If the input **A** is negative, the output may be inconsistent or NaN.
+Note: If the input **A** is negative, the output might be inconsistent or NaN.
 
 ## Ports
 
