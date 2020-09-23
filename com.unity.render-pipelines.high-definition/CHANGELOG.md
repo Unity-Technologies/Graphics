@@ -105,6 +105,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Skip an unneeded depth buffer copy on consoles. 
 - Replaced the Density Volume Texture Tool with the new 3D Texture Importer.
 - Rename Raytracing Node to Raytracing Quality Keyword and rename high and low inputs as default and raytraced. All raytracing effects now use the raytraced mode but path tracing.
+- Moved diffusion profile list to the HDRP default settings panel.
 
 ## [10.0.0] - 2019-06-10
 

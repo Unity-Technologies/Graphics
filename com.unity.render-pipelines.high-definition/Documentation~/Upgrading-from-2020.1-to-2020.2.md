@@ -185,3 +185,12 @@ protected override void Execute(CustomPassContext ctx) { ... }
 
 Previously, to convert a 2D flipbook texture to the 3D format Density Mask Textures require, you needed to use the __Density Volume Texture Tool__ in the __Window > Rendering__ menu.
 From Unity 2020.2, you can now do this conversion directly through the __Texture Importer__. For information on how to use the importer to convert the flipbook texture, see the [Density Volume documentation](Density-Volume.md).
+
+## Diffusion Profiles
+
+The diffusion profile list have been moved from the HDRP asset inspector UI to the **Default HDRP Settings** (in the project settings window).
+
+This change can affect you if you had multiple HDRP asset setup as **Quality Settings**. In this case if one or more of your HDRP assets in the **Quality Settings** had a different diffusion profile than the one assigned in the **Graphics Settings**, then, the lists on HDRP assets are lost. The only list that is now relevant is the one in the **Default HDRP Settings**.
+
+We recommend to put all the diffusion profiles used in your project in the HDRP Asset assigned in the **Graphics Settings** before upgrading. This operation will prevent any issue after the upgrade regarding lost diffusion profile in the project.
+
