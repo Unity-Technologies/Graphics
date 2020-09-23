@@ -444,10 +444,22 @@ float HalfTexelOffset(float f)
     return (a * f) + b;
 }
 
-float4 SampleGradient(float v, float u)
+float SnapToTexel(float f)
 {
-    float2 uv = float2(HalfTexelOffset(saturate(u)), v);
+    const float kInvTextureWidth = 1.0f / 128.0f;
+    return f - fmod(f, kInvTextureWidth) + 0.5f * kInvTextureWidth;
+}
+
+float4 SampleGradient(float2 gradientData, float u)
+{
+    float2 uv = float2(HalfTexelOffset(saturate(u)), gradientData.x);
+	if (gradientData.y > 0.5f) uv.x = SnapToTexel(uv.x);
     return bakedTexture.SampleLevel(samplerbakedTexture, uv, 0);
+}
+
+float4 SampleGradient(float gradientData, float u)
+{
+	return SampleGradient(float2(gradientData, 0.0f), u);
 }
 
 float SampleCurve(float4 curveData, float u)
