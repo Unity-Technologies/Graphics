@@ -61,7 +61,5 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 
     half4 finalColor = UniversalFragmentUnlit(inputData, surfaceDescription.BaseColor, alpha);
 
-    //finalColor.rgb = MixFog(finalColor, packedInput.fogCoord);
-
     return finalColor;
 }
