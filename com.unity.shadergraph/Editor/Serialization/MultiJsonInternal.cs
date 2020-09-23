@@ -387,6 +387,7 @@ namespace UnityEditor.ShaderGraph.Serialization
             {
                 isDeserializing = true;
                 currentRoot = root;
+                root.ChangeVersion(0); //Same issue as described in CreateInstance
                 for (var index = 0; index < entries.Count; index++)
                 {
                     var entry = entries[index];
