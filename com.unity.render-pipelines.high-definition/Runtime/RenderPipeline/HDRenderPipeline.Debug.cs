@@ -108,7 +108,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.debugParameters = debugParameters;
                 passData.input = builder.ReadTexture(inputFullScreenDebug);
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
-                passData.fullscreenBuffer = builder.ReadComputeBuffer(m_DebugFullScreenComputeBuffer);
+                // On Vulkan, not binding the Random Write Target will result in an invalid drawcall.
+                // To avoid that, if the compute buffer is invalid, we bind a dummy compute buffer anyway.
+                if (m_DebugFullScreenComputeBuffer.IsValid())
+                    passData.fullscreenBuffer = builder.ReadComputeBuffer(m_DebugFullScreenComputeBuffer);
+                else
+                    passData.fullscreenBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(4, sizeof(uint)));
                 passData.output = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                 { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, name = "ResolveFullScreenDebug" }));
 
