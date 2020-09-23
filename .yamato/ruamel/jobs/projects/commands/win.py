@@ -118,7 +118,7 @@ def install_unity_config(project_folder):
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test.metadata-manager@0.1.0-preview --project-path .',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.cli-project-setup@0.2.0-preview --project-path .',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git\"',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.shaderanalysis@s0.1.0-preview --project-path .',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.shaderanalysis@0.1.0-preview --project-path .',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git\"',
 		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable com.unity.testing.graphics-performance --project-path .',
