@@ -1,5 +1,9 @@
 # Upgrade to version 10.0.x of Shader Graph
 
+## Rename of Vector 1 property and Float precision
+
+Shader Graph have renamed the property **Vector 1** to **Float** in both the Vector 1 Node and the expose parameter list. The Precision **Float** have also be rename **Single**. Behavior is exactly the same, only the name have change.
+
 ## Master Stack graph output
 
 Shader Graph has removed the Master Nodes and introduced a more flexible [Master Stack](Master-Stack.md) solution for defining graph output in 10.0. You can still open all graphs created in previous versions, because Shader Graph automatically upgrades them. This page describes the expected behavior and explains when you might need to perform manual upgrade steps.
