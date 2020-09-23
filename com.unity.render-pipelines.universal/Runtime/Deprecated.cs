@@ -21,6 +21,27 @@ namespace UnityEngine.Rendering.Universal
     public sealed class ForwardRenderer
     {
         public ForwardRenderer(ForwardRendererData data)
-        {}
+        {
+        }
+
+        public void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            throw new NotSupportedException("ForwardRenderer has been deprecated. Use StandardRenderer instead");
+        }
+
+        public void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            throw new NotSupportedException("ForwardRenderer has been deprecated. Use StandardRenderer instead");
+        }
+
+        public void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters, ref CameraData cameraData)
+        {
+            throw new NotSupportedException("ForwardRenderer has been deprecated. Use StandardRenderer instead");
+        }
+
+        public void FinishRendering(CommandBuffer cmd)
+        {
+            throw new NotSupportedException("ForwardRenderer has been deprecated. Use StandardRenderer instead");
+        }
     }
 }

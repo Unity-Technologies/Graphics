@@ -6,7 +6,7 @@ using UnityEngine.Scripting.APIUpdating;
 namespace UnityEditor.Rendering.Universal
 {
     [CustomEditor(typeof(StandardRendererData), true)]
-    [MovedFrom("UnityEditor.Rendering.LWRP")] public class StandardRendererDataEditor : ScriptableRendererDataEditor
+    public class StandardRendererDataEditor : ScriptableRendererDataEditor
     {
         private static class Styles
         {
