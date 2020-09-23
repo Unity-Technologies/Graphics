@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
-  m_Name: 2-Select
+  m_Name: 3-QualitySettings
   m_EditorClassIdentifier: 
   m_Paragraphs:
     m_Items:
-    - m_Type: 7
+    - m_Type: 6
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -23,8 +23,8 @@ MonoBehaviour:
       m_Tutorial: {fileID: 0}
       m_Icons:
         m_Items: []
-      m_Image: {fileID: 0}
-      m_Video: {fileID: 32900000, guid: 1973bd32fe28a7541b6e4582e2ed70c9, type: 3}
+      m_Image: {fileID: 2800000, guid: d6ce199728e307c40a8648be6fba7989, type: 3}
+      m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
@@ -32,19 +32,28 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Inspect Light cookie
-      m_Description: 'Light cookies can be assigned in the Light component. Lets
-        find one and inspect how its currently set up.
+      m_Summary: Quality settings
+      m_Description: 'It is a good practice to have multiple HDRP assets with different
+        settings for different performance targets.
 
 
-        1) Select the light
-        illuminating the wall, it should be called <b>Light_Spot_1600lm</b>
+        1) Go to <b>Edit->Project
+        Settings->Quality</b>, we have 3 quality levels <b>High, Medium, Low</b>
 
         2)
-        Scroll down in the inspector window until you see <b>Cookie</b> field
+        <b>Medium</b> is currently active and the default one. Lets switcht to <b>Low
+        Quality</b>
 
-        3)
-        Notice a texture called <b>SpotLight_Cookie</b> is assigned'
+        3) Notice the fog is now gone and it should also affect
+        your framerate
+
+        4) Change back to <b>Medium Quality</b>
+
+
+        Optionally
+        you can locate the <b>Low</b> asset in Settings folder and verify that indeed
+        <b>Lighting->Volumetrics</b> are off. Also you can try switching to <b>High</b>
+        and see what effect it has on the shadows in the second room.'
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -60,12 +69,12 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
   m_CameraSettings:
-    m_CameraMode: 0
+    m_CameraMode: 1
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 0
-    m_Pivot: {x: 0, y: 0, z: 0}
-    m_Rotation: {x: 0, y: 0, z: 0, w: 0}
+    m_Size: 9.263008
+    m_Pivot: {x: 42.387405, y: 0.6678132, z: 5.398338}
+    m_Rotation: {x: -0.04070032, y: -0.6076249, z: 0.031211035, w: -0.79263395}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
@@ -74,7 +83,7 @@ MonoBehaviour:
       m_ComponentIndex: 0
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
-    m_Enabled: 0
+    m_Enabled: 1
   m_NextButton: Next
   m_DoneButton: Done
   m_CompletedSound: {fileID: 0}

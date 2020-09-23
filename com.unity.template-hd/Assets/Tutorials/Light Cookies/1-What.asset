@@ -35,7 +35,7 @@ MonoBehaviour:
       m_Summary: What are Light Cookies?
       m_Description: 'A Light Cookie is a RGB Texture that the Light projects, to
         create silhouettes or patterned illumination for the Light. They simulate
-        the occlusion and defects of the lamp and light bulbs.
+        occlusion and defects of the lamp and light bulbs.
 
 '
       m_InstructionBoxTitle: 

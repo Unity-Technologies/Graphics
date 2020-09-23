@@ -46,7 +46,7 @@ MonoBehaviour:
         Notice: the light shape changes, the edges no longer have a smooth transition
         and some fine details are lost around the center
 
-        4) Press <b>ctrl+z</b>
+        4) Press <b>Ctrl+Z</b>
         to undo the change
 
 

@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
-  m_Name: 2-Select
+  m_Name: 2-HDRPasset
   m_EditorClassIdentifier: 
   m_Paragraphs:
     m_Items:
-    - m_Type: 7
+    - m_Type: 6
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -23,8 +23,8 @@ MonoBehaviour:
       m_Tutorial: {fileID: 0}
       m_Icons:
         m_Items: []
-      m_Image: {fileID: 0}
-      m_Video: {fileID: 32900000, guid: 1973bd32fe28a7541b6e4582e2ed70c9, type: 3}
+      m_Image: {fileID: 2800000, guid: 749ba053606eca64ca35059b95caa4db, type: 3}
+      m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
@@ -32,19 +32,18 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Inspect Light cookie
-      m_Description: 'Light cookies can be assigned in the Light component. Lets
-        find one and inspect how its currently set up.
-
-
-        1) Select the light
-        illuminating the wall, it should be called <b>Light_Spot_1600lm</b>
-
-        2)
-        Scroll down in the inspector window until you see <b>Cookie</b> field
-
-        3)
-        Notice a texture called <b>SpotLight_Cookie</b> is assigned'
+      m_Summary: HDRP asset
+      m_Description: "HDRP asset controls the global rendering settings of your Project.
+        If a feature is disabled in the asset, Unity will not allocate memory or
+        execute code for that specific feature. So turning off unused features in
+        your project might give you a performance boost, use less memory or improve
+        build times for free.\n\nLets quickly check how that works. \n\n1) Select
+        the <b>HDRP Medium quality</b> asset from the previous step. Its located
+        in <b>Assets->Settings</b> folder\n2) In the <i>Inspector</i> window expand
+        <b>Lighting</b> and disable <b>Screen Space Ambient Occlusion</b>\n3) Notice
+        the visual change it has on the flower pot\n4) Turn the feature back on\n\nMaybe
+        you have discovered we have 2 more HDRP asset files in Settings folder. We
+        will see how theyre used in the next step."
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -60,12 +59,12 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
   m_CameraSettings:
-    m_CameraMode: 0
+    m_CameraMode: 1
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 0
-    m_Pivot: {x: 0, y: 0, z: 0}
-    m_Rotation: {x: 0, y: 0, z: 0, w: 0}
+    m_Size: 9.263008
+    m_Pivot: {x: 69.40036, y: -5.7951083, z: -14.271114}
+    m_Rotation: {x: -0.04817033, y: -0.9510056, z: 0.23606408, w: -0.194026}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
@@ -74,7 +73,7 @@ MonoBehaviour:
       m_ComponentIndex: 0
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
-    m_Enabled: 0
+    m_Enabled: 1
   m_NextButton: Next
   m_DoneButton: Done
   m_CompletedSound: {fileID: 0}

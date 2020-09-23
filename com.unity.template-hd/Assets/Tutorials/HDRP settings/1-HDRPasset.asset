@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
-  m_Name: 2-Select
+  m_Name: 1-HDRPasset
   m_EditorClassIdentifier: 
   m_Paragraphs:
     m_Items:
-    - m_Type: 7
+    - m_Type: 6
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -24,7 +24,7 @@ MonoBehaviour:
       m_Icons:
         m_Items: []
       m_Image: {fileID: 0}
-      m_Video: {fileID: 32900000, guid: 1973bd32fe28a7541b6e4582e2ed70c9, type: 3}
+      m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
@@ -32,19 +32,14 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Inspect Light cookie
-      m_Description: 'Light cookies can be assigned in the Light component. Lets
-        find one and inspect how its currently set up.
-
-
-        1) Select the light
-        illuminating the wall, it should be called <b>Light_Spot_1600lm</b>
-
-        2)
-        Scroll down in the inspector window until you see <b>Cookie</b> field
-
-        3)
-        Notice a texture called <b>SpotLight_Cookie</b> is assigned'
+      m_Summary: HDRP asset
+      m_Description: "First lets make sure Unity uses HDRP for rendering\n\n1) Go
+        to <b>Edit>Project Settings>Graphics</b> \n2) Verify that in the <i>Scriptable
+        Render Pipeline Settings</i> field, <b>HDRP Medium Quality</b> is assigned\n\nIf
+        you were to clear this field Unity would switch rendering from HDRP to Builtin,
+        most of the objects would no longer be visible due to HDRP specific shaders
+        being used.\n\nFor more information about different Scriptable Pipelines
+        visit <a href=\"https://unity.com/srp\">https://unity.com/srp</a>"
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 

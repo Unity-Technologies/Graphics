@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
-  m_Name: 2-Select
+  m_Name: 5-Final
   m_EditorClassIdentifier: 
   m_Paragraphs:
     m_Items:
-    - m_Type: 7
+    - m_Type: 6
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -24,7 +24,7 @@ MonoBehaviour:
       m_Icons:
         m_Items: []
       m_Image: {fileID: 0}
-      m_Video: {fileID: 32900000, guid: 1973bd32fe28a7541b6e4582e2ed70c9, type: 3}
+      m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
@@ -32,19 +32,19 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Inspect Light cookie
-      m_Description: 'Light cookies can be assigned in the Light component. Lets
-        find one and inspect how its currently set up.
+      m_Summary: Congratulations!
+      m_Description: 'Those are the basics of HDRP settings. Heres some additional
+        documentation:
 
 
-        1) Select the light
-        illuminating the wall, it should be called <b>Light_Spot_1600lm</b>
+        <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/manual/HDRP-Asset.html">HDRP
+        asset</a>
 
-        2)
-        Scroll down in the inspector window until you see <b>Cookie</b> field
+        <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/manual/HDRP-Asset.html">Scalability
+        (Quality levels)</a>
 
-        3)
-        Notice a texture called <b>SpotLight_Cookie</b> is assigned'
+        <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/manual/Frame-Settings.html">Frame
+        Settings</a>'
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
