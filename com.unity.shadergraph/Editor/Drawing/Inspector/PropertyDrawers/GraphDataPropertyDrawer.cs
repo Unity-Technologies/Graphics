@@ -8,6 +8,7 @@ using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEditorInternal;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
@@ -49,6 +50,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             var targetNameList = graphData.GetValidTargetDisplayNames();
 
+            //once the listview is hooked up, this should be removed
             element.Add(new PropertyRow(new Label("Targets")), (row) =>
                 {
                     row.Add(new IMGUIContainer(() => {
@@ -63,6 +65,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         }
                     }));
                 });
+
+            //initial pass for the UI removing maskfield, currently has no actual functionality
+            // target name list in constrctor should actually be a list of the currently active targets
+            var targetList = new ReorderableListView<string>(targetNameList.ToList<string>(), "Active Targets");
+            //menuoptions should be assigned to a list of valid targets that are not currently active
+            targetList.MenuOptions = targetNameList.ToList<string>();
+            element.Add(targetList);
+            //the proper callbacks to translate the list view into target data need to be added here
 
             // Iterate active TargetImplementations
             foreach(var target in graphData.activeTargets)

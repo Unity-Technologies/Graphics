@@ -9,20 +9,36 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     internal class ReorderableListView<T> : VisualElement
     {
+        //this was made to be a generic adapter but is currently only used for target settings
+        //up to us if we want to adapt this for our needs or create a new ReorderableList manager for targets 
         ReorderableList m_ReorderableList;
         List<string> m_TextList = new List<string>();
+        List<string> m_MenuOptions = new List<string>();
         List<T> m_DataList;
         IMGUIContainer m_Container;
         GUIStyle m_LabelStyle;
         int m_SelectedIndex = -1;
-        string headerLabel => "Reorder data:";
+        string headerLabel;
 
         public List<string> TextList => m_TextList;
+        //populates the options for the drop down menu on add item
+        public List<string> MenuOptions 
+        {
+            get { return m_MenuOptions; }
+            set { m_MenuOptions = value; }
+        }
+
+        //temporarily added add and remove callbacks just in case we need them 
+        internal delegate void ListRemoveItemDelegate(IList<T> removeList);
+        public ListRemoveItemDelegate OnListItemRemovedCallback;
+
+        internal delegate void ListAddItemDelegate(IList<T> addList);
+        public ListAddItemDelegate OnListItemAddedCallback;
 
         internal delegate void ListReorderedDelegate(IList<T> reorderedList);
         public ListReorderedDelegate OnListReorderedCallback;
 
-        internal ReorderableListView(List<T> dataList)
+        internal ReorderableListView(List<T> dataList, string header = "Reorder data:") //added override for header text
         {
             m_DataList = dataList;
             try
@@ -36,6 +52,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 Debug.Log("Exception: " + e.ToString() + " while handling ReorderableListView of type: " + typeof(T).ToString());
             }
+            headerLabel = header;
 
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/ReorderableSlotListView"));
             m_Container = new IMGUIContainer(() => OnGUIHandler()) {name = "ListContainer"};
@@ -46,9 +63,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             m_DataList = dataList;
             // Create reorderable list from data list
-            m_ReorderableList = new ReorderableList(dataList, typeof(int), true, true, true, true);
-            m_ReorderableList.displayAdd = false;
-            m_ReorderableList.displayRemove = false;
+            m_ReorderableList = new ReorderableList(dataList, typeof(int), false, true, true, true); //temporarily not actually reorderable
         }
 
         private void OnGUIHandler()
@@ -105,6 +120,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Add callback delegates
             m_ReorderableList.onSelectCallback += SelectEntry;
             m_ReorderableList.onReorderCallback += ReorderEntries;
+            m_ReorderableList.onAddDropdownCallback += AddEntry; //adds items from a limited list of options
         }
 
         private void SelectEntry(ReorderableList list)
@@ -118,6 +134,23 @@ namespace UnityEditor.ShaderGraph.Drawing
             RecreateList(concreteList);
             OnListReorderedCallback(concreteList);
         }
+
+        private void AddEntry(Rect buttonRect, ReorderableList list)
+        {
+            //created the drop down menu on add item from the listview
+            var menu = new GenericMenu();
+            foreach (var entry in m_MenuOptions)
+            {
+                menu.AddItem(new GUIContent(entry), false, AddDataItem);
+            }
+            menu.ShowAsContext();
+        }
+
+        private void AddDataItem()
+        {
+            //needs to actually add items to the data list
+        }
+
     }
 }
 
