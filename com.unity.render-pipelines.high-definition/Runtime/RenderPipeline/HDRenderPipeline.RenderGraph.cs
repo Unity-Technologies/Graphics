@@ -220,7 +220,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // At this point, the color buffer has been filled by either debug views are regular rendering so we can push it here.
             var colorPickerTexture = PushColorPickerDebugTexture(m_RenderGraph, colorBuffer);
 
-            RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.normalBuffer, customPassCullingResults, CustomPassInjectionPoint.BeforePostProcess, aovRequest, aovBuffers);
+            RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, CustomPassInjectionPoint.BeforePostProcess, aovRequest, aovBuffers);
 
             if (aovRequest.isValid)
             {
@@ -236,7 +236,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             PushFullScreenExposureDebugTexture(m_RenderGraph, postProcessDest);
 
-            RenderCustomPass(m_RenderGraph, hdCamera, postProcessDest, prepassOutput.depthBuffer, prepassOutput.normalBuffer, customPassCullingResults, CustomPassInjectionPoint.AfterPostProcess, aovRequest, aovBuffers);
+            RenderCustomPass(m_RenderGraph, hdCamera, postProcessDest, prepassOutput, customPassCullingResults, CustomPassInjectionPoint.AfterPostProcess, aovRequest, aovBuffers);
 
             CopyXRDepth(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, backBuffer);
 
@@ -897,7 +897,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // To allow users to fetch the current color buffer, we temporarily bind the camera color buffer
             SetGlobalColorForCustomPass(renderGraph, currentColorPyramid);
 
-            RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.normalBuffer, customPassCullingResults, CustomPassInjectionPoint.BeforePreRefraction, aovRequest, aovBuffers);
+            RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, CustomPassInjectionPoint.BeforePreRefraction, aovRequest, aovBuffers);
 
             // Render pre-refraction objects
             RenderForwardTransparent(renderGraph, hdCamera, colorBuffer, prepassOutput, vtFeedbackBuffer, volumetricLighting, ssrLightingBuffer, null, lightLists, shadowResult, cullingResults, true);
@@ -909,7 +909,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // We don't have access to the color pyramid with transparent if rough refraction is disabled
-            RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.normalBuffer, customPassCullingResults, CustomPassInjectionPoint.BeforeTransparent, aovRequest, aovBuffers);
+            RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, CustomPassInjectionPoint.BeforeTransparent, aovRequest, aovBuffers);
 
             // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
             RenderForwardTransparent(renderGraph, hdCamera, colorBuffer, prepassOutput, vtFeedbackBuffer, volumetricLighting, ssrLightingBuffer, currentColorPyramid, lightLists, shadowResult, cullingResults, false);
@@ -1468,8 +1468,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool RenderCustomPass(  RenderGraph                 renderGraph,
                                 HDCamera                    hdCamera,
                                 TextureHandle               colorBuffer,
-                                TextureHandle               depthBuffer,
-                                TextureHandle               normalBuffer,
+                                in PrepassOutput            prepassOutput,
                                 CullingResults              cullingResults,
                                 CustomPassInjectionPoint    injectionPoint,
                                 AOVRequestData              aovRequest,
@@ -1501,8 +1500,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Render Graph Specific textures
                     colorBufferRG = colorBuffer,
                     nonMSAAColorBufferRG = m_NonMSAAColorBuffer,
-                    depthBufferRG = depthBuffer,
-                    normalBufferRG = normalBuffer,
+                    depthBufferRG = prepassOutput.depthBuffer,
+                    normalBufferRG = prepassOutput.resolvedNormalBuffer,
+                    motionVectorBufferRG = prepassOutput.resolvedMotionVectorsBuffer
                 };
                 executed |= customPass.Execute(renderGraph, hdCamera, cullingResults, customPassTargets);
             }
