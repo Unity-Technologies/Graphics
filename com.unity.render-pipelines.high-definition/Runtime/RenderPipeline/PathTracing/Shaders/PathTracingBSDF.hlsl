@@ -1,6 +1,7 @@
 #ifndef UNITY_PATH_TRACING_BSDF_INCLUDED
 #define UNITY_PATH_TRACING_BSDF_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/SubSurface.hlsl"
 
 #define DELTA_PDF 1000000.0
