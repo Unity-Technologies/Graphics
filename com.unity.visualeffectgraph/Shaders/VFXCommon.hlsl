@@ -153,7 +153,8 @@ float3 SampleSDFDerivatives(VFXSampler3D s, float3 coords, float level = 0.0f)
 float GetDistanceFromSDF(VFXSampler3D s, float3 uvw, float3 extents, float level = 0.0f)
 {
     float3 projUVW = saturate(uvw);
-    float dist = SampleSDF(s, projUVW, level);
+    float scalingFactor = max(extents.x, max(extents.y, extents.z));
+    float dist = SampleSDF(s, projUVW, level) * scalingFactor;
     float3 absPos = abs(uvw - 0.5f);
     float outsideDist = max(absPos.x, max(absPos.y, absPos.z));
     if (outsideDist > 0.5f) // Check whether point is outside the box
@@ -327,45 +328,72 @@ float FixedRand(uint seed)
 ///////////////////
 // Mesh sampling //
 ///////////////////
-float4 SampleMeshFloat4(Buffer<float> vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
+
+float   FetchBuffer(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load(offset << 2)); }
+float2  FetchBuffer2(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load2(offset << 2)); }
+float3  FetchBuffer3(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load3(offset << 2)); }
+float4  FetchBuffer4(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load4(offset << 2)); }
+
+float4 SampleMeshFloat4(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
 {
-    if (channelOffset == -1)
-        return float4(0.0f, 0.0f, 0.0f, 0.0f);
-    uint offset = vertexIndex * vertexStride + channelOffset;
-    return float4(vertices[offset], vertices[offset + 1u], vertices[offset + 2u], vertices[offset + 3u]);
+    float4 r = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    [branch]
+    if (channelOffset != -1)
+    {
+        uint offset = vertexIndex * vertexStride + channelOffset;
+        r = FetchBuffer4(vertices, offset);
+    }
+    return r;
 }
 
-float3 SampleMeshFloat3(Buffer<float> vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
+float3 SampleMeshFloat3(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
 {
-    if (channelOffset == -1)
-        return float3(0.0f, 0.0f, 0.0f);
-    uint offset = vertexIndex * vertexStride + channelOffset;
-    return float3(vertices[offset], vertices[offset + 1u], vertices[offset + 2u]);
+    float3 r = float3(0.0f, 0.0f, 0.0f);
+    [branch]
+    if (channelOffset != -1)
+    {
+        uint offset = vertexIndex * vertexStride + channelOffset;
+        r = FetchBuffer3(vertices, offset);
+    }
+    return r;
 }
 
-float2 SampleMeshFloat2(Buffer<float> vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
+float2 SampleMeshFloat2(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
 {
-    if (channelOffset == -1)
-        return float2(0.0f, 0.0f);
-    uint offset = vertexIndex * vertexStride + channelOffset;
-    return float2(vertices[offset], vertices[offset + 1]);
+    float2 r = float2(0.0f, 0.0f);
+    [branch]
+    if (channelOffset != -1)
+    {
+        uint offset = vertexIndex * vertexStride + channelOffset;
+        r = FetchBuffer2(vertices, offset);
+    }
+    return r;
 }
 
-float SampleMeshFloat(Buffer<float> vertices, int vertexIndex, int channelOffset, int vertexStride)
+float SampleMeshFloat(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
 {
-    if (channelOffset == -1)
-        return 0.0f;
-    int offset = vertexIndex * vertexStride + channelOffset;
-    return vertices[offset];
+    float r = 0.0f;
+    [branch]
+    if (channelOffset != -1)
+    {
+        uint offset = vertexIndex * vertexStride + channelOffset;
+        r = FetchBuffer(vertices, offset);
+    }
+    return r;
 }
 
-float4 SampleMeshColor(Buffer<float> vertices, int vertexIndex, int channelOffset, int vertexStride)
+float4 SampleMeshColor(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
 {
-    if (channelOffset == -1)
-        return float4(0.0f, 0.0f, 0.0f, 0.0f);
-    uint colorByte = asuint(vertices[vertexIndex * vertexStride + channelOffset]);
-    float4 colorSRGB = float4(uint4(colorByte, colorByte >> 8, colorByte >> 16, colorByte >> 24) & 255) / 255.0f;
-    return float4(pow(abs(colorSRGB.rgb), 2.2f), colorSRGB.a); //Approximative SRGBToLinear
+    float4 r = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    [branch]
+    if (channelOffset != -1)
+    {
+        uint offset = vertexIndex * vertexStride + channelOffset;
+        uint colorByte = asuint(FetchBuffer(vertices, offset));
+        float4 colorSRGB = float4(uint4(colorByte, colorByte >> 8, colorByte >> 16, colorByte >> 24) & 255) / 255.0f;
+        r = float4(pow(abs(colorSRGB.rgb), 2.2f), colorSRGB.a); //Approximative SRGBToLinear
+    }
+    return r;
 }
 
 ///////////////////////////
@@ -443,6 +471,13 @@ float SampleCurve(float4 curveData, float u)
 ///////////
 // Utils //
 ///////////
+float4x4 VFXCreateMatrixFromColumns(float4 i, float4 j, float4 k, float4 o)
+{
+    return float4x4(i.x, j.x, k.x, o.x,
+                    i.y, j.y, k.y, o.y,
+                    i.z, j.z, k.z, o.z,
+                    i.w, j.w, k.w, o.w);
+}
 
 // Invert 3D transformation matrix (not perspective). Adapted from graphics gems 2.
 // Inverts upper left by calculating its determinant and multiplying it to the symmetric

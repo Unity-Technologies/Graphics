@@ -37,6 +37,7 @@ namespace UnityEditor.VFX
 
         public VFXExpressionSampleSDFNormal(VFXExpression texture, VFXExpression inverseTRS, VFXExpression uvw, VFXExpression mipLevel)
             : base(Flags.InvalidOnCPU, new VFXExpression[4] { texture, inverseTRS, uvw, mipLevel })
+
         { }
 
         sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
@@ -44,7 +45,8 @@ namespace UnityEditor.VFX
 
         public sealed override string GetCodeString(string[] parents)
         {
-            return string.Format("VFXSafeNormalize(mul( float4(GetNormalFromSDF(VFX_SAMPLER({0}), {2}, {3}),0.0f), {1}).xyz )", parents[0], parents[1], parents[2], parents[3]);
+            return string.Format("VFXSafeNormalize(mul(float4(GetNormalFromSDF(VFX_SAMPLER({0}), {2}, {3}),0.0f), {1}).xyz )", parents[0], parents[1], parents[2], parents[3]);
+
 
         }
     }

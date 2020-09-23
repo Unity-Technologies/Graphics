@@ -4445,6 +4445,9 @@ MonoBehaviour:
   - {fileID: 8926484042661614859}
   m_OutputSlots:
   - {fileID: 8926484042661615195}
+  m_Type:
+    m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+      PublicKeyToken=b77a5c561934e089
   condition: 2
 --- !u!114 &8926484042661614858
 MonoBehaviour:
