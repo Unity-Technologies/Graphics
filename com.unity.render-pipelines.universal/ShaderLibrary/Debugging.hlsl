@@ -2,12 +2,6 @@
 #ifndef UNIVERSAL_DEBUGGING_INCLUDED
 #define UNIVERSAL_DEBUGGING_INCLUDED
 
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
-
-float4 _BaseMap_TexelSize;
-float4 _BaseMap_MipInfo;
-
 #define DEBUG_UNLIT 1
 #define DEBUG_DIFFUSE 2
 #define DEBUG_SPECULAR 3
@@ -62,6 +56,15 @@ sampler2D _DebugNumberTexture;
 #define DEBUG_VALIDATION_ALBEDO 3
 #define DEBUG_VALIDATION_METAL 4
 int _DebugValidationIndex;
+
+#if defined(_DEBUG_SHADER)
+
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
+
+float4 _BaseMap_TexelSize;
+float4 _BaseMap_MipInfo;
+
 half _AlbedoMinLuminance = 0.01;
 half _AlbedoMaxLuminance = 0.90;
 half _AlbedoSaturationTolerance = 0.214;
@@ -453,5 +456,7 @@ bool CalculateColorForDebug(InputData inputData, SurfaceData surfaceData, DebugD
         return false;
     }
 }
+
+#endif
 
 #endif
