@@ -429,7 +429,6 @@ UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 #define _ThicknessRemap1         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__ThicknessRemap1)
 #define _ThicknessRemap2         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__ThicknessRemap2)
 #define _ThicknessRemap3         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__ThicknessRemap3)
-#endif
 
 #else
 
