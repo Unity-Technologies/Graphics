@@ -53,7 +53,7 @@ bool SampleVolumeScatteringPosition(inout float sample, inout float t, inout flo
 #endif
 
     // FIXME: not quite sure what the sigmaS, sigmaT values are supposed to be...
-    const float sigmaS = (t == FLT_MAX) ? 1.0 : Luminance(_HeightFogBaseScattering.xyz);
+    const float sigmaS = (t == FLT_MAX) ? 1.0 : sqrt(Luminance(_HeightFogBaseScattering.xyz));
     const float sigmaT = _HeightFogBaseExtinction;
     const float transmittanceMax = exp(-tMax * sigmaT);
 
