@@ -115,6 +115,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // RT Cluster
         RaytracingBuildCluster,
         RaytracingCullLights,
+        RaytracingDebugCluster,
         // RTR
         RaytracingReflectionDirectionGeneration,
         RaytracingReflectionEvaluation,

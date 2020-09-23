@@ -82,6 +82,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added unsupported message when using tile debug mode with MSAA.
 - Fixed SSGI compilation issues on PS4.
 - Fixed "Screen position out of view frustum" error when camera is on exactly the planar reflection probe plane.
+- Fixed the Ray-Tracing related Debug Display not working in render graph mode.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
