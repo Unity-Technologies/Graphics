@@ -32,6 +32,105 @@ HDRP now includes new debug modes that can help you to set the correct exposure 
 
 For more information about the debug modes, see [Exposure](Override-Exposure.md) and [Render Pipeline Debug](Render-Pipeline-Debug-Window.md).
 
+
+### Scalability settings
+
+This version of HDRP includes scalability settings for fog and subsurface scattering. These settings allow for more control over the performance and quality of volumetric lighting.
+
+### Screen-space global illumination
+
+![](Images/HDRPFeatures-SSGI.png)
+
+This version of HDRP introduces screen-space global illumination (SSGI) as a fallback for ray-traced global illumination (RTGI). It is an algorithm that accesses indirect diffuse lighting the environment generates. It works in the same way as the [Screen Space Reflection](Override-Screen-Space-Reflection.md) in that it uses ray marching to calculate the result.
+
+Since this feature is a fallback for RTGI, for more information, see [Ray-traced Global Illumination](Ray-Traced-Global-Illumination.md). This feature is still in preview.
+
+### Custom Pass AOV Export
+
+![img](Images/aov_example.png)
+This feature allows you to export arbitrary data from custom pass injection points using an extension of the Arbitrary Output Variables (AOV) API in HDRP. An example use-case is for exporting “Object IDs” that are rendered with a custom pass. For information about the feature and example scripts, see the [AOV documentation](AOVs.md).
+
+### Debug modes
+
+#### Light debug view
+
+![](Images/LightDebugView.png)
+
+To help you to debug lighting in your Scene, HDRP now includes various lighting debug view modes that allow you to separate the various components of the light into multiple parts. These debug modes are also available in the [AOV](AOVs.md) API to allow recorders to export them. The new lighting debug modes are:
+
+- Diffuse
+- Specular
+- Direct diffuse
+- Direct specular
+- Indirect diffuse
+- Reflection
+- Refraction
+
+#### Light Layer debug mode
+
+HDRP now includes a new [light layer](Light-Layers.md) debug mode which can display the light layers assigned to each GameObject or can highlight GameObjects which match the light layers of a specific Light.
+
+For more information, see the Lighting panel section in the [HDRP debug window](Render-Pipeline-Debug-Window.md).
+
+#### Volume debug mode
+![](Images/VolumeDebugMode.png)
+
+The Render Pipeline Debug window now has a new Volume panel which you can use to visualize the Volume components that affect a specific Camera. For each Volume that contributes to the final interpolated value, this panel shows the value of each property and whether or not it is overridden. It also calculates the Volume's influence percentage using the Volume's weight and blend distance. For more information, see the Volume panel section in the [HDRP debug window](Render-Pipeline-Debug-Window.md#VolumePanel).
+
+#### Quad Overdraw and Vertex Density
+
+Quad Overdraw highlights GPU quads running multiple fragment shaders, which is mainly caused by small or thin triangles while Vertex Density displays pixels running multiple vertex shaders.
+This is mainly due to Meshes far away or with too many details so it can help finding GameObjects in you scene that need LODs.  (This modes are currently not supported on Metal)
+
+### Alpha to Mask
+
+This version of HDRP adds support for alpha to mask (or alpha to coverage) to all HDRP and Shader Graph shaders.
+
+For more information, see the Alpha to Mask property in [Alpha Clipping](Alpha-Clipping.md).
+
+### Range attenuation for box-shaped spotlights
+
+This version of HDRP adds a range attenuation checkbox to box-shaped spotlights, which makes the Light shine uniformly across its range.
+
+For more information, see the [Light component documentation](Light-Component.md).
+
+### Parallax occlusion mapping for emissive maps
+
+This version of HDRP adds support for emissive maps with parallax occlusion mapping.
+
+### Screen-space reflection on transparent Materials
+
+HDRP's screen-space reflection (SSR) solution now support transparent materials. This is useful for transparent surfaces such as windows or water.
+
+### Fabric, Hair, and Eye material examples
+
+HDRP now includes a new sample that contains example fabric and hair materials. You can use these materials as references to more quickly develop fabric and hair materials for your application. HDRP now also includes an eye Shader Graph which you can use to create a realistic eye Material. There are also new HDRP-specific Shader Graph nodes which allow you to more easier customize this eye Shader Graph.
+
+### Decal Layers
+
+This version of HDRP introduces Decal Layers which allow you to specify which decals affect which Materials on a layer by layer basis. For more information about Decal Layers, see the [Decal documentation](Decal.md).
+
+### HDRI Flowmap
+
+The [HDRI Sky](Override-HDRI-Sky.md) override now contains a new property to allow you to apply a flowmap to the sky cubemap.
+
+For more information, see the [HDRI Sky documentation](Override-HDRI-Sky.md).
+
+### Graphics Compositor (in Preview)
+
+![](Images/Compositor-HDRPTemplateWithLogo.png)
+The Graphics Compositor allows real-time compositing operations between layers of 3D content, static images, and videos.
+
+The tool support three types of compositing techniques:
+
+- Graph-based compositions, guided from a Shader Graph.
+- Camera stacking compositions, where multiple cameras render to the same render target, the result of which can then be used in graph-based composition.
+- 3D composition, where you insert composition layers into a 3D Scene to allow for effects like reflections/refractions between composited layers on 3D GameObject.
+
+Overall, this tool allows you to compose a final frame by mixing images and videos with 3D content in real-time inside Unity, without the need of an external compositing tool.
+
+For information about the feature, see the [HDRP Compositor documentation](Compositor-Main.md).
+
 ### Path tracing
 
 #### Path-traced depth of field
@@ -70,136 +169,10 @@ Path tracing now supports Lit and Unlit Shader Graph nodes.
 
 Note that the graph should not contain nodes that rely on screen-space differentials (ddx, ddy). Nodes that compute the differences between the current pixel and a neighboring one do not compute correctly when you use ray tracing.
 
-### Scalability settings
-
-This version of HDRP includes scalability settings for fog and subsurface scattering. These settings allow for more control over the performance and quality of volumetric lighting.
-
-### Screen-space global illumination (in preview)
-
-This version of HDRP introduces screen-space global illumination (SSGI) as a fallback for ray-traced global illumination (RTGI). It is an algorithm that accesses indirect diffuse lighting the environment generates. It works in the same way as the [Screen Space Reflection](Override-Screen-Space-Reflection.md) in that it uses ray marching to calculate the result.
-
-Since this feature is a fallback for RTGI, for more information, see [Ray-traced Global Illumination](Ray-Traced-Global-Illumination.md). This feature is still in preview.
-
-### Custom Pass AOV Export
-
-![img](Images/aov_example.png)
-This feature allows you to export arbitrary data from custom pass injection points using an extension of the Arbitrary Output Variables (AOV) API in HDRP. An example use-case is for exporting “Object IDs” that are rendered with a custom pass. For information about the feature and example scripts, see the [AOV documentation](AOVs.md).
-
-### Debug modes
-
-#### Light debug view
-
-![](Images/LightDebugView.png)
-
-To help you to debug lighting in your Scene, HDRP now includes various lighting debug view modes that allow you to separate the various components of the light into multiple parts. These debug modes are also available in the [AOV](AOVs.md) API to allow recorders to export them. The new lighting debug modes are:
-
-- Diffuse
-- Specular
-- Direct diffuse
-- Direct specular
-- Indirect diffuse
-- Reflection
-- Refraction
-
-#### Light Layer debug mode
-
-HDRP now includes a new [light layer](Light-Layers.md) debug mode which can display the light layers assigned to each GameObject or can highlight GameObjects which match the light layers of a specific Light.
-
-For more information, see the Lighting panel section in the [HDRP debug window](Render-Pipeline-Debug-Window.md).
-
-#### Volume debug mode
-![](Images/VolumeDebugMode.png)
-
-The Render Pipeline Debug window now has a new Volume panel which you can use to visualize the Volume components that affect a specific Camera. For each Volume that contributes to the final interpolated value, this panel shows the value of each property and whether or not it is overridden. It also calculates the Volume's influence percentage using the Volume's weight and blend distance. For more information, see the Volume panel section in the [HDRP debug window](Render-Pipeline-Debug-Window.md#VolumePanel).
-
-### Alpha to Mask
-
-This version of HDRP adds support for alpha to mask (or alpha to coverage) to all HDRP and Shader Graph shaders.
-
-For more information, see the Alpha to Mask property in [Alpha Clipping](Alpha-Clipping.md).
-
-### Range attenuation for box-shaped spotlights
-
-This version of HDRP adds a range attenuation checkbox to box-shaped spotlights, which makes the Light shine uniformly across its range.
-
-For more information, see the [Light component documentation](Light-Component.md).
-
-### Parallax occlusion mapping for emissive maps
-
-This version of HDRP adds support for emissive maps with parallax occlusion mapping.
-
-### Screen-space reflection on transparent Materials
-
-HDRP's screen-space reflection (SSR) solution now support transparent materials. This is useful for transparent surfaces such as windows or water.
-
-### Fabric and Hair material examples
-
-HDRP now includes a new sample that contains example fabric and hair materials. You can use these materials as references to more quickly develop fabric and hair materials for your application.
-
-### Decal Layers
-
-This version of HDRP introduces Decal Layers which allow you to specify which decals affect which Materials on a layer by layer basis. For more information about Decal Layers, see the [Decal documentation](Decal.md).
-
-### Eye Shader Graph
-
-HDRP now includes an eye Shader Graph which you can use to create a realistic eye Material. There are also new HDRP-specific Shader Graph nodes which allow you to more easier customize this eye Shader Graph.
-
-### HDRI Flowmap
-
-The [HDRI Sky](Override-HDRI-Sky.md) override now contains a new property to allow you to apply a flowmap to the sky cubemap.
-
-For more information, see the [HDRI Sky documentation](Override-HDRI-Sky.md).
-
-### Cloud Layer Override (in preview)
-
-![](Images/HDRPFeatures-CloudLayer.png)
-
-This feature allows you to blend a texture with any sky available in the HDRP [volume system](Volumes.md). You can also use a flow map to apply a distortion effect, like wind.
-
-For information about the feature, see the [Cloud Layer documentation](Override-Cloud-Layer.md). For an example of integration in a custom sky, see the [Custom Sky documentation](Creating-a-Custom-Sky.md)
-
-### Graphics Compositor (in Preview)
-
-![](Images/Compositor-HDRPTemplateWithLogo.png)
-The Graphics Compositor allows real-time compositing operations between layers of 3D content, static images, and videos.
-
-The tool support three types of compositing techniques:
-
-- Graph-based compositions, guided from a Shader Graph.
-- Camera stacking compositions, where multiple cameras render to the same render target, the result of which can then be used in graph-based composition.
-- 3D composition, where you insert composition layers into a 3D Scene to allow for effects like reflections/refractions between composited layers on 3D GameObject.
-
-Overall, this tool allows you to compose a final frame by mixing images and videos with 3D content in real-time inside Unity, without the need of an external compositing tool.
-
-For information about the feature, see the [HDRP Compositor documentation](Compositor-Main.md).
-
 ## Improvements
 
 The following is a list of improvements Unity made to the High Definition Render Pipeline in version 10.0. Each entry includes a summary of the improvement and, if relevant, a link to any documentation.
 
-### Ray tracing
-
-#### Fallback for transparents
-
-Before this version, if transparent GameObjects were set up for [recursive rendering](Ray-Tracing-Recursive-Rendering.md) and you did not use recursive rendering in your Scene, they would disappear. Also, if they were not refractive, they would appear opaque. Now, HDRP has a set off fallbacks so the visuals of transparent GameObjects are coherent with and without recursive rendering and refraction.
-
-#### Shadow quality
-
-The denoiser for [ray-traced shadows](Ray-Traced-Shadows.md) now produces higher quality shadows.
-
-#### Colored shadows
-
-HDRP now supports colored ray-traced shadows for transparent and transmissive GameObjects.
-
-For more information, see [ray-traced shadows](Ray-Traced-Shadows.md).
-
-#### ray-traced reflection on transparent Materials
-
-HDRP's ray-traced reflection (RTR) solution now support transparent materials. This is useful for transparent surfaces such as windows or water.
-
-#### Virtual Reality (VR)
-
-Ray tracing now supports VR. However, since ray tracing is resource intensive and VR amplifies this, the performance is very slow.
 
 ### Scene view Camera properties
 
@@ -209,7 +182,11 @@ For information on HDRP's Scene view Camera properties, see [Scene view Camera](
 
 ### Shadow caching system
 
-This version of HDRP improves on shadow atlas and shadow caching management. You can now stagger cascade shadows which means you can update each cascade independently. Cached shadows (those that use **OnEnable**) render everything they can see independently of the main view. This version also introduces more API which you can use to more finely control cached shadows. For more information, see [Shadows](Shadows-in-HDRP.md)
+This version of HDRP improves on shadow atlas and shadow caching management. You can now stagger cascade shadows which means you can update each cascade independently. Cached shadows (those that use **OnEnable**) render everything they can see independently of the main view. This version also introduces more API which you can use to more finely control cached shadows. For more information, see [Shadows](Shadows-in-HDRP.md).
+
+### Custom post-processing: new injection point
+
+This version of HDRP introduces a new injection point for custom post-processing effects. You can now inject custom post-processing effects before the [temporal anti-aliasing](Anti-Aliasing.md#TAA) pass.
 
 ### Compute shaders now use multi-compile
 
@@ -247,9 +224,15 @@ You can now control the texture mapping mode for all textures in the [AxF Shader
 
 For more information about this improvement, see [AxF Shader](AxF-Shader.md).
 
-### Contact Shadows Improvements
+### Contact shadows improvements
 
-More control is given for contact shadows, in particular now a bias can be set to avoid self intersection issues and a new thickness parameter is introduced to fill gaps that can be left by contact shadows. 
+More options are now available for [contact shadows](Override-Contact-Shadows.md). You can now set a bias to avoid self-intersection issues as well as use a new thickness property to fill gaps that contact shadows can leave.
+
+### Light component user experience
+
+![](Images/NewLightUX.png)
+
+The [Light component](Light-Component.md) now includes a visualization to help you set the intensity of your lights using [physical light units](Physical-Light-Units.md).
 
 ### Exposure
 
@@ -268,6 +251,30 @@ Auto-exposure systems calculate the average scene luminance and try to map this 
 From this version, within the rendering of your main Camera, you can now render GameObjects from another point of view (a disabled camera for example). The new API also comes with built-in support for rendering Depth, Normal and Tangent into an RTHandle.
 
 You can also use this Camera override to render some GameObjects with a different field of view, like arms in a first-person application.
+
+### Ray tracing
+
+#### Fallback for transparents
+
+Before this version, if transparent GameObjects were set up for [recursive rendering](Ray-Tracing-Recursive-Rendering.md) and you did not use recursive rendering in your Scene, they would disappear. Also, if they were not refractive, they would appear opaque. Now, HDRP has a set off fallbacks so the visuals of transparent GameObjects are coherent with and without recursive rendering and refraction.
+
+#### Shadow quality
+
+The denoiser for [ray-traced shadows](Ray-Traced-Shadows.md) now produces higher quality shadows.
+
+#### Colored shadows
+
+HDRP now supports colored ray-traced shadows for transparent and transmissive GameObjects.
+
+For more information, see [ray-traced shadows](Ray-Traced-Shadows.md).
+
+#### Ray-traced reflection on transparent Materials
+
+HDRP's ray-traced reflection (RTR) solution now support transparent materials. This is useful for transparent surfaces such as windows or water.
+
+#### Virtual Reality (VR)
+
+Ray tracing now supports VR. However, since ray tracing is resource intensive and VR amplifies this, the performance is very slow.
 
 ## Issues resolved
 

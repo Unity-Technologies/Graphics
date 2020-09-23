@@ -109,7 +109,7 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
     input.vertexLighting = IN.fogFactorAndVertexLight.yzw;
 
     input.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, input.normalWS);
-    input.normalizedScreenSpaceUV = IN.clipPos.xy;
+    input.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(IN.clipPos);
 }
 
 #ifndef TERRAIN_SPLAT_BASEPASS
@@ -387,13 +387,8 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     BRDFData brdfData;
     InitializeBRDFData(albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, alpha, brdfData);
 
-    Light mainLight = GetMainLight(inputData.shadowCoord);                                      // TODO move this to a separate full-screen single gbuffer pass?
-    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0)); // TODO move this to a separate full-screen single gbuffer pass?
-
     half4 color;
     color.rgb = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
-
-    color.rgb += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS, false); // TODO move this to a separate full-screen single gbuffer pass?
     color.a = alpha;
 
     SplatmapFinalColor(color, inputData.fogCoord);

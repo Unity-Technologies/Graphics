@@ -1,4 +1,4 @@
-from . import win, osx_openglcore, osx_metal, linux, android, osx_metal_split, linux_split, iphone
+from . import win, osx_openglcore, osx_metal, linux, android, osx_metal_split, linux_split, iphone, internal
 
 cmd_map = {
     'win' : {
@@ -30,11 +30,19 @@ cmd_map = {
         'not_standalone': iphone.cmd_not_standalone,
         'standalone' : iphone.cmd_standalone,
         'standalone_build' : iphone.cmd_standalone_build
-    }
-    
+    },
+    'internal' : {
+        'not_standalone': internal.cmd_not_standalone,
+        'standalone' : internal.cmd_standalone,
+        'standalone_build' : internal.cmd_standalone_build
+    }  
 }
 
 
-def get_cmd(platform_name, api, test_platform_type):
-    # Returns commands from platformname_apiname key if such key is present, or from platformname otherwise 
-    return cmd_map.get(f'{platform_name}_{api["name"]}'.lower(), cmd_map.get(platform_name.lower()))[test_platform_type]
+def get_cmd(platform_name, api, test_platform_type, key):
+    if key != "":
+        return cmd_map.get(key)[test_platform_type]
+    else:
+        # Returns commands from platformname_apiname key if such key is present, or from platformname otherwise 
+        return cmd_map.get(f'{platform_name}_{api["name"]}'.lower(), cmd_map.get(platform_name.lower()))[test_platform_type]
+

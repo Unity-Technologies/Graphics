@@ -18,7 +18,18 @@ namespace UnityEditor.ShaderGraph
         Vector2 m_DefaultValue = Vector2.zero;
 
         [SerializeField]
-        string[] m_Labels;
+        string[] m_Labels; // this can be null, which means fallback to k_LabelDefaults
+
+        static readonly string[] k_LabelDefaults = { "X", "Y" };
+        string[] labels
+        {
+            get
+            {
+                if ((m_Labels == null) || (m_Labels.Length != k_LabelDefaults.Length))
+                    return k_LabelDefaults;
+                return m_Labels;
+            }
+        }
 
         public Vector2MaterialSlot()
         {
@@ -31,13 +42,20 @@ namespace UnityEditor.ShaderGraph
             SlotType slotType,
             Vector2 value,
             ShaderStageCapability stageCapability = ShaderStageCapability.All,
-            string label1 = "X",
-            string label2 = "Y",
+            string label1 = null,
+            string label2 = null,
             bool hidden = false)
             : base(slotId, displayName, shaderOutputName, slotType, stageCapability, hidden)
         {
             m_Value = value;
-            m_Labels = new[] { label1, label2 };
+            if ((label1 != null) || (label2 != null))
+            {
+                m_Labels = new[]
+                {
+                    label1 ?? k_LabelDefaults[0],
+                    label2 ?? k_LabelDefaults[1]
+                };
+            }
         }
 
         public Vector2 defaultValue { get { return m_DefaultValue; } }
@@ -52,7 +70,7 @@ namespace UnityEditor.ShaderGraph
 
         public override VisualElement InstantiateControl()
         {
-            return new MultiFloatSlotControlView(owner, m_Labels, () => value, (newValue) => value = newValue);
+            return new MultiFloatSlotControlView(owner, labels, () => value, (newValue) => value = newValue);
         }
 
         protected override string ConcreteSlotValueAsVariable()
