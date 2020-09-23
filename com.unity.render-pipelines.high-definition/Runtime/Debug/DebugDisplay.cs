@@ -103,6 +103,10 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthOfFieldCoc,
         /// <summary>Display Transparency Overdraw.</summary>
         TransparencyOverdraw,
+        /// <summary>Display Quad Overdraw.</summary>
+        QuadOverdraw,
+        /// <summary>Display Vertex Density.</summary>
+        VertexDensity,
         /// <summary>Display Requested Virtual Texturing tiles, colored by the mip</summary>
         RequestedVirtualTextureTiles,
         /// <summary>Maximum Full Screen Rendering debug mode value (used internally).</summary>
@@ -226,6 +230,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public MSAASamples msaaSamples = MSAASamples.None;
             /// <summary>Index of screen space shadow to display.</summary>
             public uint screenSpaceShadowIndex = 0;
+            /// <summary>Max quad cost for quad overdraw display.</summary>
+            public uint maxQuadCost = 5;
+            /// <summary>Max vertex density for vertex density display.</summary>
+            public uint maxVertexDensity = 10;
             /// <summary>Display ray tracing ray count per frame.</summary>
             public bool countRays = false;
 
@@ -292,6 +300,15 @@ namespace UnityEngine.Rendering.HighDefinition
             FillFullScreenDebugEnum(ref s_LightingFullScreenDebugStrings, ref s_LightingFullScreenDebugValues, FullScreenDebugMode.MinLightingFullScreenDebug, FullScreenDebugMode.MaxLightingFullScreenDebug);
             FillFullScreenDebugEnum(ref s_RenderingFullScreenDebugStrings, ref s_RenderingFullScreenDebugValues, FullScreenDebugMode.MinRenderingFullScreenDebug, FullScreenDebugMode.MaxRenderingFullScreenDebug);
             FillFullScreenDebugEnum(ref s_MaterialFullScreenDebugStrings, ref s_MaterialFullScreenDebugValues, FullScreenDebugMode.MinMaterialFullScreenDebug, FullScreenDebugMode.MaxMaterialFullScreenDebug);
+
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+            {
+                // Disable QuadOverdraw and VertexDensity on metal as they are not supported
+                s_RenderingFullScreenDebugStrings = s_RenderingFullScreenDebugStrings.Where((val, idx) => (idx + FullScreenDebugMode.MinRenderingFullScreenDebug) != FullScreenDebugMode.VertexDensity).ToArray();
+                s_RenderingFullScreenDebugValues = s_RenderingFullScreenDebugValues.Where((val, idx) => (idx + FullScreenDebugMode.MinRenderingFullScreenDebug) != FullScreenDebugMode.VertexDensity).ToArray();
+                s_RenderingFullScreenDebugStrings = s_RenderingFullScreenDebugStrings.Where((val, idx) => (idx + FullScreenDebugMode.MinRenderingFullScreenDebug) != FullScreenDebugMode.QuadOverdraw).ToArray();
+                s_RenderingFullScreenDebugValues = s_RenderingFullScreenDebugValues.Where((val, idx) => (idx + FullScreenDebugMode.MinRenderingFullScreenDebug) != FullScreenDebugMode.QuadOverdraw).ToArray();
+            }
 
             FillTileClusterDebugEnum();
 
@@ -452,6 +469,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool IsDebugFullScreenEnabled()
         {
             return data.fullScreenDebugMode != FullScreenDebugMode.None;
+        }
+
+        /// <summary>
+        /// Returns true if a full screen debug display supporting the FullScreenDebug pass is enabled.
+        /// </summary>
+        /// <returns>True if a full screen debug display supporting the FullScreenDebug pass is enabled.</returns>
+        internal bool IsFullScreenDebugPassEnabled()
+        {
+            return data.fullScreenDebugMode == FullScreenDebugMode.QuadOverdraw ||
+                data.fullScreenDebugMode == FullScreenDebugMode.VertexDensity;
         }
 
         /// <summary>
@@ -1638,6 +1665,26 @@ namespace UnityEngine.Rendering.HighDefinition
                     children =
                     {
                         new DebugUI.FloatField {displayName = "Max Pixel Cost", getter = () => data.transparencyDebugSettings.maxPixelCost, setter = value => data.transparencyDebugSettings.maxPixelCost = value, min = () => 0.25f, max = () => 2048.0f}
+                    }
+                });
+            }
+            else if (data.fullScreenDebugMode == FullScreenDebugMode.QuadOverdraw)
+            {
+                widgetList.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.UIntField {displayName = "Max Quad Cost", getter = () => data.maxQuadCost, setter = value => data.maxQuadCost = value, min = () => 1, max = () => 10}
+                    }
+                });
+            }
+            else if (data.fullScreenDebugMode == FullScreenDebugMode.VertexDensity)
+            {
+                widgetList.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.UIntField {displayName = "Max Vertex Density", getter = () => data.maxVertexDensity, setter = value => data.maxVertexDensity = value, min = () => 1, max = () => 100}
                     }
                 });
             }
