@@ -800,7 +800,7 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
         float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw);
         DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(positionNDC, 1.0f - 0.5f * _ScreenSize.zw)* _RTHandleScale.xy, 0), motionVectorCenterNDC);
         float speedSrc = length(motionVectorCenterNDC);
-        float speed = (speedDst + speedDst);
+        float speed = saturate((speedDst + speedDst) * 0.5f);
         speed = speed > 0.0f ? 1.0f : 0.0f;
 
         float4 result = lerp(
