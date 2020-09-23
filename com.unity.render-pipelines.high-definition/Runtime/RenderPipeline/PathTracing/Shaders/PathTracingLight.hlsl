@@ -78,7 +78,7 @@ bool IsPointLightActive(LightData lightData, float3 position, float3 normal)
     // Offset the light position towards the back, to account for the radius,
     // then check whether we are still within the dilated cone angle
     float cosTheta2 = Sq(lightData.angleOffset / lightData.angleScale);
-    float3 lightOffset = sqrt(lightData.size.x * cosTheta2 / (1.0 - cosTheta2)) * lightData.forward;
+    float3 lightOffset = sqrt(lightData.size.x / (1.0 - cosTheta2)) * lightData.forward;
     float lightCos = dot(normalize(lightVec + lightOffset), lightData.forward);
 
     return lightCos * lightData.angleScale + lightData.angleOffset > 0.0;
@@ -535,7 +535,7 @@ bool GetPointLightInterval(LightData lightData, float3 rayOrigin, float3 rayDire
     float cosTheta2 = Sq(lightData.angleOffset / lightData.angleScale);
 
     // Offset light origin to account for light radius
-    lightVec += sqrt(lightData.size.x * cosTheta2 / (1.0 - cosTheta2)) * lightData.forward;
+    lightVec += sqrt(lightData.size.x / (1.0 - cosTheta2)) * lightData.forward;
     float LdotV = dot(lightData.forward, lightVec);
 
     float a = Sq(LdotD) - cosTheta2;

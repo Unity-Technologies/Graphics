@@ -104,6 +104,10 @@ bool SampleVolumeScatteringPosition(inout float sample, inout float t, inout flo
     }
     else
     {
+        // Let's (avoid very low transmittance, for robustness sake (minor bias)
+        if (transmittanceMax < 0.01)
+            sample = sample * 0.99 / (1.0 - transmittanceMax);
+
         // Log sampling
         float transmittance = 1.0 - sample;
         t = -log(transmittance) / sigmaT;
