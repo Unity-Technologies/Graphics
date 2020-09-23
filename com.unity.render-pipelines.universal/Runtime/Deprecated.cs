@@ -18,28 +18,29 @@ namespace UnityEngine.Rendering.Universal
     /// It uses a classic forward rendering strategy with per-object light culling.
     /// </summary>
     [Obsolete("ForwardRenderer has been deprecated. Use StandardRenderer instead (UnityUpgradable) -> StandardRenderer", true)]
-    public sealed class ForwardRenderer
+    public sealed class ForwardRenderer: ScriptableRenderer
     {
-        public ForwardRenderer(ForwardRendererData data)
-        {
-        }
-
-        public void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
+        public ForwardRenderer(ForwardRendererData data) : base(data)
         {
             throw new NotSupportedException("ForwardRenderer has been deprecated. Use StandardRenderer instead");
         }
 
-        public void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             throw new NotSupportedException("ForwardRenderer has been deprecated. Use StandardRenderer instead");
         }
 
-        public void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters, ref CameraData cameraData)
+        public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             throw new NotSupportedException("ForwardRenderer has been deprecated. Use StandardRenderer instead");
         }
 
-        public void FinishRendering(CommandBuffer cmd)
+        public override void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters, ref CameraData cameraData)
+        {
+            throw new NotSupportedException("ForwardRenderer has been deprecated. Use StandardRenderer instead");
+        }
+
+        public override void FinishRendering(CommandBuffer cmd)
         {
             throw new NotSupportedException("ForwardRenderer has been deprecated. Use StandardRenderer instead");
         }
