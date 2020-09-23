@@ -151,7 +151,7 @@ public class UniversalGraphicsTests
         //Camera stacking (014 still fails)
         "111_CameraStackMSAA",
         "123_CameraStackingClear",
-        //"014_CameraMulti_MiniMap",
+        "014_CameraMulti_MiniMap",
         "015_CameraMulti_FPSCam",
 
         //Deferred-only test scenes
