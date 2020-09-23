@@ -22,9 +22,15 @@
     #endif
 #endif
 
-#if defined(_ADDITIONAL_LIGHTS) || defined(_MAIN_LIGHT_SHADOWS_CASCADE)
-    #define REQUIRES_WORLD_SPACE_POS_INTERPOLATOR
+#if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
+    #define SAMPLE_SHADOWMASK(uv) SAMPLE_TEXTURE2D(unity_ShadowMask, samplerunity_ShadowMask, uv);
+#elif !defined (LIGHTMAP_ON)
+    #define SAMPLE_SHADOWMASK(uv) unity_ProbesOcclusion;
+#else
+    #define SAMPLE_SHADOWMASK(uv) half4(1, 1, 1, 1);
 #endif
+
+#define REQUIRES_WORLD_SPACE_POS_INTERPOLATOR
 
 SCREENSPACE_TEXTURE(_ScreenSpaceShadowmapTexture);
 SAMPLER(sampler_ScreenSpaceShadowmapTexture);
@@ -52,7 +58,7 @@ half4       _MainLightShadowOffset0;
 half4       _MainLightShadowOffset1;
 half4       _MainLightShadowOffset2;
 half4       _MainLightShadowOffset3;
-half4       _MainLightShadowParams;  // (x: shadowStrength, y: 1.0 if soft shadows, 0.0 otherwise)
+half4       _MainLightShadowParams;  // (x: shadowStrength, y: 1.0 if soft shadows, 0.0 otherwise, z: oneOverFadeDist, w: minusStartFade)
 float4      _MainLightShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
 #ifndef SHADER_API_GLES3
 CBUFFER_END
@@ -232,7 +238,9 @@ float4 TransformWorldToShadowCoord(float3 positionWS)
     half cascadeIndex = 0;
 #endif
 
-    return mul(_MainLightWorldToShadow[cascadeIndex], float4(positionWS, 1.0));
+    float4 shadowCoord = mul(_MainLightWorldToShadow[cascadeIndex], float4(positionWS, 1.0));
+
+    return float4(shadowCoord.xyz, cascadeIndex);
 }
 
 half MainLightRealtimeShadow(float4 shadowCoord)
@@ -272,6 +280,65 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
     return SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_AdditionalLightsShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, true);
 }
 
+half GetShadowFade(float3 positionWS)
+{
+    float3 camToPixel = positionWS - _WorldSpaceCameraPos;
+    float distanceCamToPixel2 = dot(camToPixel, camToPixel);
+
+    half fade = saturate(distanceCamToPixel2 * _MainLightShadowParams.z + _MainLightShadowParams.w);
+    return fade * fade;
+}
+
+half MixRealtimeAndBakedShadows(half realtimeShadow, half bakedShadow, half shadowFade)
+{
+#if defined(LIGHTMAP_SHADOW_MIXING)
+    return min(lerp(realtimeShadow, 1, shadowFade), bakedShadow);
+#else
+    return lerp(realtimeShadow, bakedShadow, shadowFade);
+#endif
+}
+
+half BakedShadow(half4 shadowMask, half4 occlusionProbeChannels)
+{
+    // shadowMaskSelector.x is -1 if there is no shadow mask
+    // Note that we override shadow value (in case we don't have any dynamic shadow)
+    half bakedShadow = occlusionProbeChannels.x >= 0 ? dot(shadowMask, occlusionProbeChannels) : 1.0h;
+    return bakedShadow;
+}
+
+half MainLightShadow(float4 shadowCoord, float3 positionWS, half4 shadowMask, half4 occlusionProbeChannels)
+{
+    half realtimeShadow = MainLightRealtimeShadow(shadowCoord);
+    half bakedShadow = BakedShadow(shadowMask, occlusionProbeChannels);
+
+#ifdef MAIN_LIGHT_CALCULATE_SHADOWS
+    half shadowFade = GetShadowFade(positionWS);
+#else
+    half shadowFade = 1.0h;
+#endif
+#ifdef _MAIN_LIGHT_SHADOWS_CASCADE
+    // shadowCoord.w represents shadow cascade index
+    // in case we are out of shadow cascade we need to set shadow fade to 1.0 for correct blending
+    shadowFade = shadowCoord.w == 4 ? 1.0h : shadowFade;
+#endif
+
+    return MixRealtimeAndBakedShadows(realtimeShadow, bakedShadow, shadowFade);
+}
+
+half AdditionalLightShadow(int lightIndex, float3 positionWS, half4 shadowMask, half4 occlusionProbeChannels)
+{
+    half realtimeShadow = AdditionalLightRealtimeShadow(lightIndex, positionWS);
+    half bakedShadow = BakedShadow(shadowMask, occlusionProbeChannels);
+
+#ifdef ADDITIONAL_LIGHT_CALCULATE_SHADOWS
+    half shadowFade = GetShadowFade(positionWS);
+#else
+    half shadowFade = 1.0h;
+#endif
+
+    return MixRealtimeAndBakedShadows(realtimeShadow, bakedShadow, shadowFade);
+}
+
 float4 GetShadowCoord(VertexPositionInputs vertexInput)
 {
     return TransformWorldToShadowCoord(vertexInput.positionWS);
@@ -294,6 +361,13 @@ float3 ApplyShadowBias(float3 positionWS, float3 normalWS, float3 lightDirection
 
 // Renamed -> _MainLightShadowParams
 #define _MainLightShadowData _MainLightShadowParams
+
+// Deprecated: Use GetShadowFade instead.
+float ApplyShadowFade(float shadowAttenuation, float3 positionWS)
+{
+    float fade = GetShadowFade(positionWS);
+    return shadowAttenuation + (1 - shadowAttenuation) * fade * fade;
+}
 
 // Deprecated: Use GetMainLightShadowParams instead.
 half GetMainLightShadowStrength()

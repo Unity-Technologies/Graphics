@@ -84,7 +84,14 @@ namespace UnityEngine.Rendering.Universal
                 Matrix4x4 inverseProjectionMatrix = Matrix4x4.Inverse(gpuProjectionMatrix);
                 Matrix4x4 inverseViewProjection = inverseViewMatrix * inverseProjectionMatrix;
 
-                cmd.SetGlobalMatrix(ShaderPropertyId.cameraToWorldMatrix, inverseViewMatrix);
+                // There's an inconsistency in handedness between unity_matrixV and unity_WorldToCamera
+                // Unity changes the handedness of unity_WorldToCamera (see Camera::CalculateMatrixShaderProps)
+                // we will also change it here to avoid breaking existing shaders. (case 1257518)
+                Matrix4x4 worldToCameraMatrix = Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)) * viewMatrix;
+                Matrix4x4 cameraToWorldMatrix = worldToCameraMatrix.inverse;
+                cmd.SetGlobalMatrix(ShaderPropertyId.worldToCameraMatrix, worldToCameraMatrix);
+                cmd.SetGlobalMatrix(ShaderPropertyId.cameraToWorldMatrix, cameraToWorldMatrix);
+
                 cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewMatrix, inverseViewMatrix);
                 cmd.SetGlobalMatrix(ShaderPropertyId.inverseProjectionMatrix, inverseProjectionMatrix);
                 cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewAndProjectionMatrix, inverseViewProjection);
@@ -115,6 +122,12 @@ namespace UnityEngine.Rendering.Universal
                 scaledCameraHeight = (float)cameraData.cameraTargetDescriptor.height;
                 cameraWidth = (float)cameraData.cameraTargetDescriptor.width;
                 cameraHeight = (float)cameraData.cameraTargetDescriptor.height;
+            }
+
+            if (camera.allowDynamicResolution)
+            {
+                scaledCameraWidth *= ScalableBufferManager.widthScaleFactor;
+                scaledCameraHeight *= ScalableBufferManager.heightScaleFactor;
             }
 
             float near = camera.nearClipPlane;
@@ -299,6 +312,9 @@ namespace UnityEngine.Rendering.Universal
             // Dispose all renderer features...
             for (int i = 0; i < m_RendererFeatures.Count; ++i)
             {
+                if (rendererFeatures[i] == null)
+                    continue;
+
                 rendererFeatures[i].Dispose();
             }
 
@@ -488,13 +504,6 @@ namespace UnityEngine.Rendering.Universal
         {
             var cameraClearFlags = cameraData.camera.clearFlags;
 
-#if UNITY_EDITOR
-            // We need public API to tell if FrameDebugger is active and enabled. In that case
-            // we want to force a clear to see properly the drawcall stepping.
-            // For now, to fix FrameDebugger in Editor, we force a clear.
-            cameraClearFlags = CameraClearFlags.SolidColor;
-#endif
-
             // Universal RP doesn't support CameraClearFlags.DepthOnly and CameraClearFlags.Nothing.
             // CameraClearFlags.DepthOnly has the same effect of CameraClearFlags.SolidColor
             // CameraClearFlags.Nothing clears Depth on PC/Desktop and in mobile it clears both
@@ -539,7 +548,9 @@ namespace UnityEngine.Rendering.Universal
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightsPixel);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.SoftShadows);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive); // Backward compatibility
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.LightmapShadowMixing);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.ShadowsShadowMask);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
         }
 
@@ -596,7 +607,7 @@ namespace UnityEngine.Rendering.Universal
         {
             Camera camera = cameraData.camera;
             ClearFlag cameraClearFlag = GetCameraClearFlag(ref cameraData);
-            
+
             // Invalid configuration - use current attachment setup
             // Note: we only check color buffers. This is only technically correct because for shadowmaps and depth only passes
             // we bind depth as color and Unity handles it underneath. so we never have a situation that all color buffers are null and depth is bound.
@@ -720,7 +731,7 @@ namespace UnityEngine.Rendering.Universal
                     // early return so we don't change current render target setup.
                     if (renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingOpaques)
                         return;
-                    
+
                     // Otherwise default is the pipeline camera target.
                     passColorAttachment = m_CameraColorTarget;
                     passDepthAttachment = m_CameraDepthTarget;

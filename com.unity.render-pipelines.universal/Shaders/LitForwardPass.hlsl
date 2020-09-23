@@ -3,7 +3,8 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
-#if defined(_PARALLAXMAP) && (SHADER_TARGET >= 30)
+// GLES2 has limited amount of interpolators
+#if defined(_PARALLAXMAP) && !defined(SHADER_API_GLES)
 #define REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR
 #endif
 
@@ -84,7 +85,8 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
-    inputData.normalizedScreenSpaceUV = input.positionCS.xy;
+    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
+    inputData.shadowMask = SAMPLE_SHADOWMASK(input.lightmapUV);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -171,7 +173,7 @@ half4 LitPassFragment(Varyings input) : SV_Target
     half4 color = UniversalFragmentPBR(inputData, surfaceData);
 
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
-    color.a = OutputAlpha(color.a);
+    color.a = OutputAlpha(color.a, _Surface);
 
     return color;
 }
