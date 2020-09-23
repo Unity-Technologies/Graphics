@@ -71,7 +71,10 @@ namespace UnityEditor.ShaderGraph
             get => m_FunctionName;
             set
             {
-                m_FunctionName = MakeValidHlslIdentifier(value);
+                if (value == k_DefaultFunctionName)
+                    m_FunctionName = value;
+                else
+                    m_FunctionName = MakeValidHlslIdentifier(value);
             }
         }
 
