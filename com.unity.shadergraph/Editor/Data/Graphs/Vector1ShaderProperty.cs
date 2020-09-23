@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.Internal
     {
         internal Vector1ShaderProperty()
         {
-            displayName = "Vector1";
+            displayName = "Float";
         }
         
         public override PropertyType propertyType => PropertyType.Vector1;
