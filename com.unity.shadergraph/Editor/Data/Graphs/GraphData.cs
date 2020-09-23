@@ -1187,17 +1187,50 @@ namespace UnityEditor.ShaderGraph
                 {
                     // If the property is not in the current graph, do check if the
                     // property can be made into a concrete node.
-                    if (!m_Properties.Select(x => x.guid).Contains(propertyNode.propertyGuid))
+                    // [SKY_BEGIN] - plu - Porting https://github.com/Unity-Technologies/Graphics/pull/1932/files# to
+                    // resolve an issue where copying a property node from a shader graph to another converts it to
+                    // inline
+                    
+                    // retrieve the properties of the node being pasted
+                    var propertyNodeToPaste = graphToPaste.metaProperties.FirstOrDefault(x => x.guid == propertyNode.propertyGuid);
+                    
+                    // Retrieve a matching property in the graphif it exists 
+                    var matchingProperty = m_Properties.Find(x => (x.guid == propertyNodeToPaste.guid) || 
+                        (x.propertyType == propertyNodeToPaste.propertyType && x.referenceName == propertyNodeToPaste.referenceName ));
+                    
+                    if (matchingProperty == null)
                     {
-                        // If the property is in the serialized paste graph, make the property node into a property node.
-                        var pastedGraphMetaProperties = graphToPaste.metaProperties.Where(x => x.guid == propertyNode.propertyGuid);
-                        if (pastedGraphMetaProperties.Any())
-                        {
-                            pastedNode = pastedGraphMetaProperties.FirstOrDefault().ToConcreteNode();
-                            pastedNode.drawState = node.drawState;
-                            nodeGuidMap[oldGuid] = pastedNode.guid;
-                        }
+                        pastedNode = propertyNodeToPaste.ToConcreteNode();
+
+                        // some property nodes cannot be concretized..  fail to paste them
+                        if (pastedNode == null)
+                            continue;
+
+                        pastedNode.drawState = node.drawState;
+                        nodeGuidMap[oldGuid] = pastedNode.guid;
                     }
+                    else
+                    {
+                        // A matching property was found, so assign it to the node
+                        propertyNode.drawState = node.drawState;
+                        nodeGuidMap[oldGuid] = pastedNode.guid;
+                        propertyNode.owner = this;
+                        propertyNode.propertyGuid = matchingProperty.guid;
+                    }
+                    // START_DELETE                  
+                    //if (!m_Properties.Select(x => x.guid).Contains(propertyNode.propertyGuid))
+                    //{
+                        // // If the property is in the serialized paste graph, make the property node into a property node.
+                        // var pastedGraphMetaProperties = graphToPaste.metaProperties.Where(x => x.guid == propertyNode.propertyGuid );
+                        // if (pastedGraphMetaProperties.Any())
+                        // {
+                        //     pastedNode = pastedGraphMetaProperties.FirstOrDefault().ToConcreteNode();
+                        //     pastedNode.drawState = node.drawState;
+                        //     nodeGuidMap[oldGuid] = pastedNode.guid;
+                        // }
+                    //}
+                    // END_DELETE
+                    // [SKY_END]
                 }
 
                 AbstractMaterialNode abstractMaterialNode = (AbstractMaterialNode)node;
