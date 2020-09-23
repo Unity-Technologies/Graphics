@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="ScriptableRenderer"/>
     /// <seealso cref="ScriptableRenderPass"/>
     [ExcludeFromPreset]
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public abstract class ScriptableRendererFeature : ScriptableObject//, IDisposable
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public abstract class ScriptableRendererFeature : ScriptableObject
     {
         [SerializeField, HideInInspector] private bool m_Active = true;
         /// <summary>
@@ -48,19 +48,6 @@ namespace UnityEngine.Rendering.Universal
         public void SetActive(bool active)
         {
             m_Active = active;
-        }
-
-        /// <summary>
-        /// Disposable pattern implementation.
-        /// </summary>
-        internal void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
         }
     }
 }
