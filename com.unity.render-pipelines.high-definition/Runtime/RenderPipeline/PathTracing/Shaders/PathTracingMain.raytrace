@@ -67,6 +67,11 @@ void MissCamera(inout PathIntersection pathIntersection : SV_RayPayload)
 
         // Reinject the environment value
         pathIntersection.value += envValue;
+
+        // Bias the result (making it too dark), but reduces fireflies a lot
+        float intensity = Luminance(pathIntersection.value) * GetCurrentExposureMultiplier();
+        if (intensity > _RaytracingIntensityClamp)
+            pathIntersection.value *= _RaytracingIntensityClamp / intensity;
     }
 }
 

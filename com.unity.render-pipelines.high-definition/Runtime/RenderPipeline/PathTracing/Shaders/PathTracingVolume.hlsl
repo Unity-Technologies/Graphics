@@ -104,18 +104,12 @@ bool SampleVolumeScatteringPosition(inout float sample, inout float t, inout flo
     }
     else
     {
-        // Re-scale the sample (and offset it so that we sample between tMin and tMax)
-        const float transmittanceMin = exp(-tMin * sigmaT);
-        float transmittanceRatio = (transmittanceMin - transmittanceMax) / (1.0 - transmittanceMax);
-    
         // Log sampling
-        sample = 1.0 - transmittanceMin + sample * transmittanceRatio;
-
         float transmittance = 1.0 - sample;
         t = -log(transmittance) / sigmaT;
 
         // Set the pdf
-        pdf *= pdfVol * sigmaT * transmittance / transmittanceRatio;
+        pdf *= pdfVol * sigmaT * transmittance;
     }
 
     return true;
