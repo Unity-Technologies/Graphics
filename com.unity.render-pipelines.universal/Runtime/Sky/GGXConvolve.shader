@@ -60,6 +60,7 @@ Shader "Hidden/Universal Render Pipeline/GGXConvolve"
                 float perceptualRoughness = MipmapLevelToPerceptualRoughness(_Level);
                 float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
                 uint  sampleCount = GetIBLRuntimeFilterSampleCount(_Level);
+                sampleCount = min(sampleCount, 34); // Don't have more than 34 samples in URP yet
 
                 float4 val = IntegrateLD(TEXTURECUBE_ARGS(_MainTex, s_trilinear_clamp_sampler),
                                          _GgxIblSamples,
@@ -69,7 +70,7 @@ Shader "Hidden/Universal Render Pipeline/GGXConvolve"
                                          _InvOmegaP,
                                          sampleCount, // Must be a Fibonacci number
                                          true,
-                                         false); // TODO Enable precomputed samples
+                                         true);
 
                 return val;
             }
