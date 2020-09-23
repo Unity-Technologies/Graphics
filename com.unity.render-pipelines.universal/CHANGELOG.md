@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Smooth shadow fading.
 
 ### Changed
-- ForwardRenderer is renamed StandardRenderer.
+- ForwardRenderer is renamed StandardRenderer and now supports both forward and deferred render modes.
 
 ### Fixed
 - Fixed an issue were the filter window could not be defocused using the mouse. [case 1242032](https://issuetracker.unity3d.com/issues/urp-volume-override-window-doesnt-disappear-when-clicked-on-the-other-windows-in-the-editor)
