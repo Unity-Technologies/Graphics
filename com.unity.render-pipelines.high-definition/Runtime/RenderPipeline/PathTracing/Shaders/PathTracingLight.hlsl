@@ -1,6 +1,18 @@
 #ifndef UNITY_PATH_TRACING_LIGHT_INCLUDED
 #define UNITY_PATH_TRACING_LIGHT_INCLUDED
 
+// This is just because it need to be defined, shadow maps are not used.
+#define SHADOW_LOW
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/CookieSampling.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/SphericalQuad.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RayTracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
+
 // How many lights (at most) do we support at one given shading point
 // FIXME: hardcoded limits are evil, this LightList should instead be put together in C#
 #define MAX_LOCAL_LIGHT_COUNT 16
@@ -77,12 +89,18 @@ bool IsDistantLightActive(DirectionalLightData lightData, float3 normal)
     return dot(normal, lightData.forward) < sin(lightData.angularDiameter * 0.5);
 }
 
-LightList CreateLightList(float3 position, float3 normal, uint lightLayers)
+LightList CreateLightList(float3 position, float3 normal, uint lightLayers, bool withLocal = true, bool withDistant = true)
 {
     LightList list;
+    uint i;
 
     // First take care of local lights (point, area)
-    uint i, localPointCount, localCount;
+    list.localCount = 0;
+    list.localPointCount = 0;
+
+if (withLocal)
+{
+    uint localPointCount, localCount;
 
 #ifdef USE_LIGHT_CLUSTER
     if (PointInsideCluster(position))
@@ -102,7 +120,7 @@ LightList CreateLightList(float3 position, float3 normal, uint lightLayers)
 #endif
 
     // First point lights (including spot lights)
-    for (list.localPointCount = 0, i = 0; i < localPointCount && list.localPointCount < MAX_LOCAL_LIGHT_COUNT; i++)
+    for (i = 0; i < localPointCount && list.localPointCount < MAX_LOCAL_LIGHT_COUNT; i++)
     {
 #ifdef USE_LIGHT_CLUSTER
         const LightData lightData = FetchClusterLightIndex(list.cellIndex, i);
@@ -134,10 +152,13 @@ LightList CreateLightList(float3 position, float3 normal, uint lightLayers)
             )
             list.localIndex[list.localCount++] = i;
     }
+}
 
     // Then filter the active distant lights (directional)
     list.distantCount = 0;
 
+if (withDistant)
+{
     for (i = 0; i < _DirectionalLightCount && list.distantCount < MAX_DISTANT_LIGHT_COUNT; i++)
     {
         if (IsMatchingLightLayer(_DirectionalLightDatas[i].lightLayers, lightLayers)
@@ -147,6 +168,7 @@ LightList CreateLightList(float3 position, float3 normal, uint lightLayers)
             )
             list.distantIndex[list.distantCount++] = i;
     }
+}
 
     // Compute the weights, used for the lights PDF (we split 50/50 between local and distant, if both are present)
     list.localWeight = list.localCount ? (list.distantCount ? 0.5 : 1.0) : 0.0;
@@ -297,7 +319,7 @@ bool SampleLights(LightList lightList,
             dist = sqrt(sqDist);
             outgoingDir /= dist;
 
-            if (dot(normal, outgoingDir) < 0.001)
+            if (any(normal) && dot(normal, outgoingDir) < 0.001)
                 return false;
 
             float cosTheta = -dot(outgoingDir, lightData.forward);
@@ -331,7 +353,7 @@ bool SampleLights(LightList lightList,
                 pdf = DELTA_PDF;
             }
 
-            if (dot(normal, outgoingDir) < 0.001)
+            if (any(normal) && dot(normal, outgoingDir) < 0.001)
                 return false;
 
             value = GetPunctualEmission(lightData, outgoingDir, dist) * pdf;
@@ -364,7 +386,7 @@ bool SampleLights(LightList lightList,
             outgoingDir = -lightData.forward;
         }
 
-        if (dot(normal, outgoingDir) < 0.001)
+        if (any(normal) && dot(normal, outgoingDir) < 0.001)
             return false;
 
         dist = FLT_INF;
@@ -446,6 +468,155 @@ void EvaluateLights(LightList lightList,
             }
         }
     }
+}
+
+// Functions used by volumetric sampling
+
+bool SolvePoly2(float a, float b, float c, out float x1, out float x2)
+{
+    float det = Sq(b) - 4.0 * a * c;
+
+    if (det < 0.0)
+        return false;
+
+    float sqrtDet = sqrt(det);
+    x1 = (-b - sign(a) * sqrtDet) / (2.0 * a);
+    x2 = (-b + sign(a) * sqrtDet) / (2.0 * a);
+
+    return true;
+}
+
+bool GetSphereInterval(float3 lightToPos, float radius, float3 rayDirection, out float tMin, out float tMax)
+{
+    // We consider Direction to be normalized => a = 1
+    float b = 2.0 * dot(rayDirection, lightToPos);
+    float c = Length2(lightToPos) - Sq(radius);
+
+    float t1, t2;
+    if (!SolvePoly2(1.0, b, c, t1, t2))
+        return false;
+
+    tMin = max(t1, 0.0);
+    tMax = max(t2, 0.0);
+
+    return tMin < tMax;
+}
+
+bool GetRectAreaLightInterval(LightData lightData, float3 rayOrigin, float3 rayDirection, out float tMin, out float tMax)
+{
+    float3 lightVec = rayOrigin - GetAbsolutePositionWS(lightData.positionRWS);
+
+    if (!GetSphereInterval(lightVec, lightData.range, rayDirection, tMin, tMax))
+        return false;
+
+    float LdotD = dot(lightData.forward, rayDirection);
+    float t = -dot(lightData.forward, lightVec) / LdotD;
+    if (LdotD > 0.0)
+        tMin = max(tMin, t);
+    else
+        tMax = min(tMax, t);
+
+    return tMin < tMax;
+}
+
+bool GetPointLightInterval(LightData lightData, float3 rayOrigin, float3 rayDirection, out float tMin, out float tMax)
+{
+    float3 lightVec = rayOrigin - GetAbsolutePositionWS(lightData.positionRWS);
+    
+    if (!GetSphereInterval(lightVec, lightData.range, rayDirection, tMin, tMax))
+        return false;
+
+    // This is just a point light (no spot cone angle)
+    if (lightData.lightType == GPULIGHTTYPE_POINT)
+        return true;
+
+    // Intersect our ray with the spot light's cone
+    float LdotD = dot(lightData.forward, rayDirection);
+    float cosTheta2 = Sq(lightData.angleOffset / lightData.angleScale);
+
+    // Offset light origin to account for light radius
+    lightVec += sqrt(lightData.size.x / (1.0 - cosTheta2)) * lightData.forward;
+    float LdotV = dot(lightData.forward, lightVec);
+
+    float a = Sq(LdotD) - cosTheta2;
+    float b = 2.0 * (LdotD * LdotV - dot(rayDirection, lightVec) * cosTheta2);
+    float c = Sq(LdotV) - Length2(lightVec) * cosTheta2;
+
+    float t1, t2;
+    if (!SolvePoly2(a, b, c, t1, t2))
+        return false;
+
+    // Check validity of the intersections (we want them with the front cone only)
+    bool t1Valid = dot(lightVec + t1 * rayDirection, lightData.forward) > 0.0;
+    bool t2Valid = dot(lightVec + t2 * rayDirection, lightData.forward) > 0.0;
+
+    if (t1Valid)
+    {
+        if (t2Valid)
+        {
+            tMin = max(t1, tMin);
+            tMax = min(t2, tMax);
+        }
+        else
+        {
+            tMax = min(t1, tMax);
+        }
+    }
+    else
+    {
+        if (t2Valid)
+        {
+            tMin = max(t2, tMin);
+        }
+        else
+        {
+            tMin = 0.0;
+            tMax = 0.0;
+        }
+    }
+
+    return tMin < tMax;
+}
+
+float GetLocalLightsInterval(float3 rayOrigin, float3 rayDirection, out float tMin, out float tMax)
+{
+    tMin = FLT_MAX;
+    tMax = 0.0;
+
+    float tLightMin, tLightMax;
+
+    // First process point lights
+    uint i = 0, n = _PunctualLightCountRT, localCount = 0;
+    for (; i < n; i++)
+    {
+        if (GetPointLightInterval(_LightDatasRT[i], rayOrigin, rayDirection, tLightMin, tLightMax))
+        {
+            tMin = min(tMin, tLightMin);
+            tMax = max(tMax, tLightMax);
+            localCount++;
+        }
+    }
+
+    // Then area lights
+    n += _AreaLightCountRT;
+    for (; i < n; i++)
+    {
+        if (GetRectAreaLightInterval(_LightDatasRT[i], rayOrigin, rayDirection, tLightMin, tLightMax))
+        {
+            tMin = min(tMin, tLightMin);
+            tMax = max(tMax, tLightMax);
+            localCount++;
+        }
+    }
+
+    uint lightCount = localCount + _DirectionalLightCount;
+
+    return lightCount ? float(localCount) / lightCount : -1.0;
+}
+
+LightList CreateLightList(float3 position, bool sampleLocalLights)
+{
+    return CreateLightList(position, 0.0, ~0, sampleLocalLights, !sampleLocalLights);
 }
 
 #endif // UNITY_PATH_TRACING_LIGHT_INCLUDED
