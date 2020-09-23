@@ -355,31 +355,12 @@ namespace UnityEngine.Rendering.Universal
                 if (baseCameraData.xr.enabled)
                 {
                     xrActive = true;
-
-                    // Update cameraData for XR
-                    Rect cameraRect = baseCamera.rect;
-                    Rect xrViewport = baseCameraData.xr.GetViewport();
-                    baseCameraData.pixelRect = new Rect(cameraRect.x * xrViewport.width + xrViewport.x,
-                                                        cameraRect.y * xrViewport.height + xrViewport.y,
-                                                        cameraRect.width * xrViewport.width,
-                                                        cameraRect.height * xrViewport.height);
-                    Rect camPixelRect = baseCameraData.pixelRect;
-                    baseCameraData.pixelWidth  = (int)System.Math.Round(camPixelRect.width + camPixelRect.x) - (int)System.Math.Round(camPixelRect.x);
-                    baseCameraData.pixelHeight = (int)System.Math.Round(camPixelRect.height + camPixelRect.y) - (int)System.Math.Round(camPixelRect.y);
-                    baseCameraData.aspectRatio = (float)baseCameraData.pixelWidth / (float)baseCameraData.pixelHeight;
-
-                    // Update intermediate camera target descriptor for XR
-                    baseCameraData.cameraTargetDescriptor = baseCameraData.xr.renderTargetDesc;
-                    if (baseCameraData.isHdrEnabled)
-                    {
-                        baseCameraData.cameraTargetDescriptor.graphicsFormat = originalTargetDesc.graphicsFormat;
-                    }
-                    baseCameraData.cameraTargetDescriptor.msaaSamples = originalTargetDesc.msaaSamples;
-                    baseCameraData.cameraTargetDescriptor.width = baseCameraData.pixelWidth;
-                    baseCameraData.cameraTargetDescriptor.height = baseCameraData.pixelHeight;
+                    // Helper function for updating cameraData with xrPass Data
+                    m_XRSystem.UpdateCameraData(ref baseCameraData, baseCameraData.xr);
                 }
 #endif
-            BeginCameraRendering(context, baseCamera);
+                
+                BeginCameraRendering(context, baseCamera);
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
                 //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
                 VFX.VFXManager.PrepareCamera(baseCamera);
