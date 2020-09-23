@@ -127,7 +127,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 generatesPreview = true,
                 passes = new PassCollection
                 {
-                    { UnlitPasses.Unlit },
+                    { UnlitPasses.Forward },
                     { CorePasses.ShadowCaster },
                     { CorePasses.DepthOnly },
                     { UnlitPasses.DebugMaterial },
@@ -138,7 +138,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 get
                 {
-                    var unlit = UnlitPasses.Unlit;
+                    var unlit = UnlitPasses.Forward;
                     var shadowCaster = CorePasses.ShadowCaster;
                     var depthOnly = CorePasses.DepthOnly;
                     var debugMaterial = UnlitPasses.DebugMaterial;
@@ -169,10 +169,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #region Pass
         static class UnlitPasses
         {
-            public static PassDescriptor Unlit = new PassDescriptor
+            public static PassDescriptor Forward = new PassDescriptor
             {
                 // Definition
-                displayName = "Universal Forward Unlit",
+                displayName = "Universal Forward",
                 referenceName = "SHADERPASS_UNLIT",
                 useInPreview = true,
 
