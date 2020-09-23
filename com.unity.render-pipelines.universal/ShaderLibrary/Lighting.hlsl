@@ -985,7 +985,18 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
 half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
     half smoothness, half occlusion, half3 emission, half alpha)
 {
-    SurfaceData surfaceData = CreateSurfaceData(albedo, metallic, specular, smoothness, occlusion, emission, alpha);
+    SurfaceData surfaceData;
+
+    surfaceData.albedo = albedo;
+    surfaceData.specular = specular;
+    surfaceData.metallic = metallic;
+    surfaceData.smoothness = smoothness;
+    surfaceData.normalTS = half3(0, 0, 1);
+    surfaceData.emission = emission;
+    surfaceData.occlusion = occlusion;
+    surfaceData.alpha = alpha;
+    surfaceData.clearCoatMask = 0;
+    surfaceData.clearCoatSmoothness = 1;
 
     return UniversalFragmentPBR(inputData, surfaceData);
 }
@@ -1002,7 +1013,7 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
 ////////////////////////////////////////////////////////////////////////////////
 half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)
 {
-    SurfaceData surfaceData = (SurfaceData)0;
+    SurfaceData surfaceData;
 
     surfaceData.albedo = diffuse;
     surfaceData.alpha = alpha;
@@ -1091,7 +1102,7 @@ half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 sp
 half4 UniversalFragmentBakedLit(InputData inputData, SurfaceData surfaceData)
 {
     #ifdef _ALPHAPREMULTIPLY_ON
-    surfaceData.albedo *= alpha;
+    surfaceData.albedo *= surfaceData.alpha;
     #endif
 
     #if defined(_DEBUG_SHADER)
@@ -1122,14 +1133,14 @@ half4 UniversalFragmentBakedLit(InputData inputData, SurfaceData surfaceData)
 
 half4 UniversalFragmentBakedLit(InputData inputData, half3 color, half alpha, half3 normalTS)
 {
-    SurfaceData surfaceData = (SurfaceData)0;
+    SurfaceData surfaceData;
 
     surfaceData.albedo = color;
     surfaceData.alpha = alpha;
     surfaceData.emission = half3(0, 0, 0);
     surfaceData.metallic = 0;
-    surfaceData.occlusion = 0;
-    surfaceData.smoothness = 0;
+    surfaceData.occlusion = 1;
+    surfaceData.smoothness = 1;
     surfaceData.specular = half3(0, 0, 0);
     surfaceData.clearCoatMask = 0;
     surfaceData.clearCoatSmoothness = 1;
@@ -1144,7 +1155,7 @@ half4 UniversalFragmentBakedLit(InputData inputData, half3 color, half alpha, ha
 half4 UniversalFragmentUnlit(InputData inputData, SurfaceData surfaceData)
 {
     #if defined(_ALPHAPREMULTIPLY_ON)
-    surfaceData.albedo *= alpha;
+    surfaceData.albedo *= surfaceData.alpha;
     #endif
 
     #if defined(_DEBUG_SHADER)
@@ -1162,14 +1173,14 @@ half4 UniversalFragmentUnlit(InputData inputData, SurfaceData surfaceData)
 
 half4 UniversalFragmentUnlit(InputData inputData, half3 color, half alpha)
 {
-    SurfaceData surfaceData = (SurfaceData)0;
+    SurfaceData surfaceData;
 
     surfaceData.albedo = color;
     surfaceData.alpha = alpha;
     surfaceData.emission = half3(0, 0, 0);
     surfaceData.metallic = 0;
-    surfaceData.occlusion = 0;
-    surfaceData.smoothness = 0;
+    surfaceData.occlusion = 1;
+    surfaceData.smoothness = 1;
     surfaceData.specular = half3(0, 0, 0);
     surfaceData.clearCoatMask = 0;
     surfaceData.clearCoatSmoothness = 1;

@@ -32,8 +32,10 @@ struct Varyings
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData)
+InputData CreateInputData(Varyings input, half3 normalTS)
 {
+    InputData inputData;
+
     #if defined(_DEBUG_SHADER)
     inputData.positionWS = input.positionWS;
     inputData.normalWS = input.normalWS;
@@ -67,6 +69,8 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     #if defined(_DEBUG_SHADER)
     inputData.uv = input.uv0AndFogCoord.xy;
     #endif
+
+    return inputData;
 }
 
 Varyings BakedLitForwardPassVertex(Attributes input)
@@ -107,18 +111,16 @@ half4 BakedLitForwardPassFragment(Varyings input) : SV_Target
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
+    half2 uv = input.uv0AndFogCoord.xy;
     #if defined(_NORMALMAP)
     half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap)).xyz;
     #else
     half3 normalTS = half3(0, 0, 1);
     #endif
-    half2 uv = input.uv0AndFogCoord.xy;
+    InputData inputData = CreateInputData(input, normalTS);
     half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
     half3 color = texColor.rgb * _BaseColor.rgb;
     half alpha = texColor.a * _BaseColor.a;
-
-    InputData inputData = (InputData)0;
-    InitializeInputData(input, normalTS, inputData);
 
     AlphaDiscard(alpha, _Cutoff);
 

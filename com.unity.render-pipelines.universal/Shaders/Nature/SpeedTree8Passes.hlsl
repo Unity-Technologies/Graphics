@@ -441,13 +441,25 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     return BRDFDataToGbuffer(brdfData, inputData, smoothness, emission + color);
 
 #else
-    SurfaceData surfaceData = CreateSurfaceData(albedo, metallic, specular, smoothness, occlusion, emission, alpha, normalTs);
+    SurfaceData surfaceData;
+
+    surfaceData.albedo = albedo;
+    surfaceData.specular = specular;
+    surfaceData.metallic = metallic;
+    surfaceData.smoothness = smoothness;
+    surfaceData.normalTS = normalTs;
+    surfaceData.emission = emission;
+    surfaceData.occlusion = occlusion;
+    surfaceData.alpha = alpha;
+    surfaceData.clearCoatMask = 0;
+    surfaceData.clearCoatSmoothness = 1;
 
 #if defined(_DEBUG_SHADER)
     inputData.uv = uv;
 #endif
 
     half4 color = UniversalFragmentPBR(inputData, surfaceData);
+
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     color.a = OutputAlpha(color.a, _Surface);
 
