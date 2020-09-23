@@ -76,6 +76,8 @@ namespace UnityEditor.ShaderGraph
             set { m_Name = value; }
         }
 
+        public string[] synonyms;
+
         protected virtual string documentationPage => name;
         public virtual string documentationURL => NodeUtils.GetDocumentationString(documentationPage);
 
