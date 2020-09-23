@@ -1191,13 +1191,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Make new inputs from the copied graph
             foreach (ShaderInput input in copyGraph.inputs)
             {
-                ShaderInput copiedInput;
-
                 switch(input)
                 {
                     case AbstractShaderProperty property:
-                        copiedInput = DuplicateShaderInputs(input, graphView.graph, indicies[BlackboardProvider.k_PropertySectionIndex]);
-
                         // Increment for next within the same section
                         if (indicies[BlackboardProvider.k_PropertySectionIndex] >= 0)
                             indicies[BlackboardProvider.k_PropertySectionIndex]++;
@@ -1207,7 +1203,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         foreach (var node in dependentPropertyNodes)
                         {
                             node.owner = graphView.graph;
-                            node.property = (AbstractShaderProperty)copiedInput;
+                            node.property = (AbstractShaderProperty)DuplicateShaderInputs(input, graphView.graph, indicies[BlackboardProvider.k_PropertySectionIndex]);
                         }
                         break;
 
@@ -1215,8 +1211,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                         // Don't duplicate built-in keywords within the same graph
                         if ((input as ShaderKeyword).isBuiltIn && graphView.graph.keywords.Where(p => p.referenceName == input.referenceName).Any())
                             continue;
-
-                        copiedInput = DuplicateShaderInputs(input, graphView.graph, indicies[BlackboardProvider.k_KeywordSectionIndex]);
 
                         // Increment for next within the same section
                         if (indicies[BlackboardProvider.k_KeywordSectionIndex] >= 0)
@@ -1227,7 +1221,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         foreach (var node in dependentKeywordNodes)
                         {
                             node.owner = graphView.graph;
-                            node.keyword = (ShaderKeyword)copiedInput;
+                            node.keyword = (ShaderKeyword)DuplicateShaderInputs(input, graphView.graph, indicies[BlackboardProvider.k_KeywordSectionIndex]);
                         }
 
                         // Pasting a new Keyword so need to test against variant limit

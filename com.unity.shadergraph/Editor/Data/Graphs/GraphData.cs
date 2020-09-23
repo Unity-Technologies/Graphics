@@ -1554,7 +1554,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         propertyNode.property = property;
                     }
-                    if(property == null)
+                    else
                     {
                         pastedNode = propertyNode.property.ToConcreteNode();
                         // some property nodes cannot be concretized..  fail to paste them
