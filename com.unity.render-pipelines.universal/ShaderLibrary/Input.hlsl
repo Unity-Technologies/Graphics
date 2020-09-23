@@ -25,6 +25,7 @@ struct InputData
     half3   vertexLighting;
     half3   bakedGI;
     float2  normalizedScreenSpaceUV;
+    half4   shadowMask;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -39,6 +40,7 @@ float4 _ScaledScreenParams;
 
 float4 _MainLightPosition;
 half4 _MainLightColor;
+half4 _MainLightOcclusionProbes;
 
 // xyz are currently unused
 // w directLightStrength
