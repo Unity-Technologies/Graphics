@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.Universal
                 new GUIContent("Both"),
             };
             public static int[] xrTargetEyeValues = { 0, 1 };
-            public static readonly GUIContent xrTargetEye = EditorGUIUtility.TrTextContent("Target Eye", "Allows XR rendering if target eye sets to both eye. Disable XR for this camera otherwise.");
+            public static readonly GUIContent xrTargetEye = EditorGUIUtility.TrTextContent("Target Eye", "Allows XR rendering if target eye sets to both eye. Disable XR for this camera otherwise. When XR is disabled, MSAA UI will be hide. All XR cameras share the same MSAA level sepcified in URP PipelineAsset Settings. All effects that are not compatible with XR will be disabled as well, such as lens distortion.");
 #endif
             public static readonly GUIContent targetTextureLabel = EditorGUIUtility.TrTextContent("Output Texture", "The texture to render this camera into, if none then this camera renders to screen.");
 
@@ -717,6 +717,10 @@ namespace UnityEditor.Rendering.Universal
 
         void DrawMSAA()
         {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if(m_AdditionalCameraDataAllowXRRendering.boolValue)
+                return;
+#endif
             Rect controlRect = EditorGUILayout.GetControlRect(true);
             EditorGUI.BeginProperty(controlRect, Styles.allowMSAA, settings.allowMSAA);
             int selectedValue = !settings.allowMSAA.boolValue ? 0 : 1;
@@ -940,28 +944,13 @@ namespace UnityEditor.Rendering.Universal
                 return;
             }
 
-            var isAssetEditing = EditorUtility.IsPersistent(camera);
-            try
+            Undo.SetCurrentGroupName("Remove Universal Camera");
+            var additionalCameraData = camera.GetComponent<UniversalAdditionalCameraData>();
+            if (additionalCameraData)
             {
-                if (isAssetEditing)
-                {
-                    AssetDatabase.StartAssetEditing();
-                }
-                Undo.SetCurrentGroupName("Remove Universal Camera");
-                var additionalCameraData = camera.GetComponent<UniversalAdditionalCameraData>();
-                if (additionalCameraData != null)
-                {
-                    Undo.DestroyObjectImmediate(additionalCameraData);
-                }
-                Undo.DestroyObjectImmediate(camera);
+                Undo.DestroyObjectImmediate(additionalCameraData);
             }
-            finally
-            {
-                if (isAssetEditing)
-                {
-                    AssetDatabase.StopAssetEditing();
-                }
-            }
+            Undo.DestroyObjectImmediate(camera);
         }
     }
 }
