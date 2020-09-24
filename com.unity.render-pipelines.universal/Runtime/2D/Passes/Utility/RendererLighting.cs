@@ -136,9 +136,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmd.DisableShaderKeyword(keyword);
         }
 
-        public static void ReleaseRenderTextures(this IRenderPass2D pass, CommandBuffer cmd, LayerBatch[] layerBatches)
+        public static void ReleaseRenderTextures(this IRenderPass2D pass, CommandBuffer cmd, List<LayerBatch> layerBatches)
         {
-            for (var l = 0; l < layerBatches.Length; l++)
+            for (var l = 0; l < layerBatches.Count; l++)
             {
                 unsafe
                 {

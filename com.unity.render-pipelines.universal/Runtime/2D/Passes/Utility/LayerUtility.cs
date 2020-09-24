@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.Universal
@@ -7,7 +8,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public int firstLayerToRender;
         public SortingLayerRange layerRange;
         public LightStats lightStats;
-        public unsafe fixed bool renderTargetUsed[4];
         public unsafe fixed int renderTargetIds[4];
 
         public void Init(int index)
@@ -24,7 +24,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
     internal static class LayerUtility
     {
-        private static LayerBatch[] s_LayerBatches;
+        private static List<LayerBatch> s_LayerBatches;
 
         private static bool CompareLightsInLayer(int layerIndex1, int layerIndex2, SortingLayer[] sortingLayers, ILight2DCullResult lightCullResult)
         {
@@ -49,14 +49,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return sortingLayers.Length-1;
         }
 
-        public static int CalculateBatches(SortingLayer[] cachedSortingLayers, LayerBatch[] layerBatches, ILight2DCullResult lightCullResult)
+        public static void CalculateBatches(SortingLayer[] cachedSortingLayers, List<LayerBatch> layerBatches, ILight2DCullResult lightCullResult)
         {
-            var batchCount = 0;
+            layerBatches.Clear();
+
             for (var i = 0; i < cachedSortingLayers.Length;)
             {
                 var layerToRender = cachedSortingLayers[i].id;
                 var lightStats = lightCullResult.GetLightStatsByLayer(layerToRender);
-                ref var layerBatch = ref layerBatches[batchCount++];
+                var layerBatch = new LayerBatch();
+                layerBatch.Init(i);
 
                 // find the highest layer that share the same set of lights as this layer
                 var upperLayerInBatch = FindUpperBoundInBatch(i, cachedSortingLayers, lightCullResult);
@@ -74,32 +76,22 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 layerBatch.layerRange = sortingLayerRange;
                 layerBatch.lightStats = lightStats;
 
+                layerBatches.Add(layerBatch);
+
                 i = upperLayerInBatch + 1;
             }
-
-            return batchCount;
         }
 
-        public static LayerBatch[] GetCachedLayerBatches()
+        public static List<LayerBatch> GetCachedLayerBatches()
         {
             var count = Light2DManager.GetCachedSortingLayer().Length;
-            var needInit = s_LayerBatches == null;
-            s_LayerBatches ??= new LayerBatch[count];
+            s_LayerBatches ??= new List<LayerBatch>(count);
 
 #if UNITY_EDITOR
             // we should fix. Make a non allocating version of this
-            if(!Application.isPlaying && s_LayerBatches.Length != count)
-            {
-                s_LayerBatches = new LayerBatch[count];
-                needInit = true;
-            }
+            if(!Application.isPlaying && s_LayerBatches.Capacity != count)
+                s_LayerBatches = new List<LayerBatch>(count);
 #endif
-
-            if (needInit)
-            {
-                for(var i = 0; i < s_LayerBatches.Length; i++)
-                    s_LayerBatches[i].Init(i);
-            }
 
             return s_LayerBatches;
         }

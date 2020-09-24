@@ -73,7 +73,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
 
         private void DrawRenderers(
-            LayerBatch[] layerBatches,
+            List<LayerBatch> layerBatches,
             int startIndex,
             int batchSize,
             CommandBuffer cmd,
@@ -89,7 +89,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 for (var i = 0; i < batchSize; i++)
                 {
-                    ref var layerBatch = ref layerBatches[startIndex + i];
+                    var layerBatch = layerBatches[startIndex + i];
 
                     using(new ProfilingScope(cmd, m_ProfilingDrawLayerBatch))
                     {
@@ -99,12 +99,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             {
                                 for (var blendStyleIndex = 0; blendStyleIndex < k_ShapeLightTextureIDs.Length; blendStyleIndex++)
                                 {
-                                    var used = layerBatch.renderTargetUsed[blendStyleIndex];
+                                    var blendStyleMask = (uint)(1 << blendStyleIndex);
+                                    var blendStyleUsed = (layerBatch.lightStats.blendStylesUsed & blendStyleMask) > 0;
 
-                                    if (used)
+                                    if (blendStyleUsed)
                                         cmd.SetGlobalTexture(k_ShapeLightTextureIDs[blendStyleIndex], new RenderTargetIdentifier(layerBatch.renderTargetIds[blendStyleIndex]));
 
-                                    RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, used);
+                                    RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleUsed);
                                 }
                             }
                         }
@@ -136,7 +137,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
 
         private void DrawLightTextures(
-            LayerBatch[] layerBatches,
+            List<LayerBatch> layerBatches,
             int startIndex,
             int batchSize,
             CommandBuffer cmd,
@@ -151,7 +152,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 for (var i = 0; i < batchSize; i++)
                 {
-                    ref var layerBatch = ref layerBatches[startIndex + i];
+                    var layerBatch = layerBatches[startIndex + i];
 
                     if (layerBatch.lightStats.totalNormalMapUsage > 0)
                     {
@@ -169,7 +170,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             {
                                 var blendStyleMask = (uint) (1 << blendStyleIndex);
                                 var blendStyleUsed = (layerBatch.lightStats.blendStylesUsed & blendStyleMask) > 0;
-                                layerBatch.renderTargetUsed[blendStyleIndex] = blendStyleUsed;
 
                                 if (!blendStyleUsed)
                                     continue;
@@ -222,8 +222,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmd.SetGlobalColor(k_RendererColorID, Color.white);
                 this.SetShapeLightShaderGlobals(cmd);
 
-                var batchCount = LayerUtility.CalculateBatches(cachedSortingLayers, layerBatches, m_Renderer2DData.lightCullResult);
+                LayerUtility.CalculateBatches(cachedSortingLayers, layerBatches, m_Renderer2DData.lightCullResult);
+                var batchCount = layerBatches.Count;
                 var batchSize = m_Renderer2DData.batchSize;
+
                 for (var i = 0; i < batchCount; i += batchSize)
                 {
                     var effectiveBatchSize = math.min(batchSize, batchCount - i);
