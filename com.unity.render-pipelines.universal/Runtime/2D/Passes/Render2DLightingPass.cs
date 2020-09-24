@@ -163,6 +163,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         filterSettings.sortingLayerRange = layerBatch.layerRange;
                         context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
 
+                        // Immediately release light buffer textures after we're done using them, so that the temporary RTs can be re-used for the next batches.
+                        unsafe
+                        {
+                            for (var blendStyleIndex = 0; blendStyleIndex < blendStylesCount; blendStyleIndex++)
+                            {
+                                cmd.ReleaseTemporaryRT(layerBatch.renderTargetIds[blendStyleIndex]);
+                            }
+                        }
+
                         // Draw light volumes
                         if (layerBatch.lightStats.totalVolumetricUsage > 0)
                         {

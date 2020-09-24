@@ -138,18 +138,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public static void ReleaseRenderTextures(this IRenderPass2D pass, CommandBuffer cmd, List<LayerBatch> layerBatches)
         {
-            for (var l = 0; l < layerBatches.Count; l++)
-            {
-                unsafe
-                {
-                    var layerBatch = layerBatches[l];
-                    for (var i = 0; i < pass.rendererData.lightBlendStyles.Length; i++)
-                    {
-                        cmd.ReleaseTemporaryRT(layerBatch.renderTargetIds[i]);
-                    }
-                }
-            }
-
             pass.rendererData.isNormalsRenderTargetValid = false;
             pass.rendererData.normalsRenderTargetScale = 0.0f;
             cmd.ReleaseTemporaryRT(pass.rendererData.normalsRenderTarget.id);
