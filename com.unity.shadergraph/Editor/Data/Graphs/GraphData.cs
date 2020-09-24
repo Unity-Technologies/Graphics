@@ -1194,20 +1194,28 @@ namespace UnityEditor.ShaderGraph
                     // retrieve the properties of the node being pasted
                     var propertyNodeToPaste = graphToPaste.metaProperties.FirstOrDefault(x => x.guid == propertyNode.propertyGuid);
                     
-                    // Retrieve a matching property in the graphif it exists 
-                    var matchingProperty = m_Properties.Find(x => (x.guid == propertyNodeToPaste.guid) || 
-                        (x.propertyType == propertyNodeToPaste.propertyType && x.referenceName == propertyNodeToPaste.referenceName ));
+                    // Retrieve a matching property in the graph if it exists 
+                    AbstractShaderProperty matchingProperty = null;
                     
+                    if (propertyNodeToPaste != null)
+                    {
+                        matchingProperty = m_Properties.Find(x => (x.guid == propertyNodeToPaste.guid) || 
+                        (x.propertyType == propertyNodeToPaste.propertyType && x.referenceName == propertyNodeToPaste.referenceName ));
+                    }
+                
                     if (matchingProperty == null)
                     {
-                        pastedNode = propertyNodeToPaste.ToConcreteNode();
+                        if (propertyNodeToPaste != null)
+                        {
+                            pastedNode = propertyNodeToPaste.ToConcreteNode();
 
-                        // some property nodes cannot be concretized..  fail to paste them
-                        if (pastedNode == null)
-                            continue;
+                            // some property nodes cannot be concretized..  fail to paste them
+                            if (pastedNode == null)
+                                continue;
 
-                        pastedNode.drawState = node.drawState;
-                        nodeGuidMap[oldGuid] = pastedNode.guid;
+                            pastedNode.drawState = node.drawState;
+                            nodeGuidMap[oldGuid] = pastedNode.guid;    
+                        }
                     }
                     else
                     {
