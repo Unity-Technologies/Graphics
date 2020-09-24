@@ -562,12 +562,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         passData.nearBokehTileList = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(dofParameters.threadGroup8.x * dofParameters.threadGroup8.y, sizeof(uint), ComputeBufferType.Append) { name = "Bokeh Near Tile List" });
                         passData.farBokehTileList = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(dofParameters.threadGroup8.x * dofParameters.threadGroup8.y, sizeof(uint), ComputeBufferType.Append) { name = "Bokeh Far Tile List" });
 
-                        passData.bokehNearKernel = builder.ReadComputeBuffer(builder.WriteComputeBuffer(passData.bokehNearKernel));
-                        passData.bokehFarKernel = builder.ReadComputeBuffer(builder.WriteComputeBuffer(passData.bokehFarKernel));
-                        passData.bokehIndirectCmd = builder.ReadComputeBuffer(builder.WriteComputeBuffer(passData.bokehIndirectCmd));
-                        passData.nearBokehTileList = builder.ReadComputeBuffer(builder.WriteComputeBuffer(passData.nearBokehTileList));
-                        passData.farBokehTileList = builder.ReadComputeBuffer(builder.WriteComputeBuffer(passData.farBokehTileList));
-
                         builder.SetRenderFunc(
                         (DepthofFieldData data, RenderGraphContext ctx) =>
                         {
