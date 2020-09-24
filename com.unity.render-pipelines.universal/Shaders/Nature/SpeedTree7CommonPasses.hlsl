@@ -122,7 +122,11 @@ void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputD
     #endif
     #if defined(_NORMALMAP)
     inputData.tangentMatrixWS = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
-    #endif 
+    #endif
+
+    #if defined(_DEBUG_SHADER)
+    inputData.uv = input.uvHueVariation.xy;
+    #endif
 }
 
 #ifdef GBUFFER

@@ -202,6 +202,42 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
 
             ENDHLSL
         }
+
+        Pass
+        {
+            Name "DebugMaterial"
+            Tags { "LightMode" = "DebugMaterial" }
+
+            HLSLPROGRAM
+
+            #pragma vertex SpeedTree7Vert
+            #pragma fragment SpeedTree7Frag
+
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+            #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
+            #pragma multi_compile_fog
+
+            #pragma multi_compile_instancing
+            #pragma instancing_options assumeuniformscaling maxcount:50
+
+            #pragma shader_feature_local GEOM_TYPE_BRANCH GEOM_TYPE_BRANCH_DETAIL GEOM_TYPE_FROND GEOM_TYPE_LEAF GEOM_TYPE_MESH
+            #pragma shader_feature_local EFFECT_BUMP
+            #pragma shader_feature_local EFFECT_HUE_VARIATION
+
+            #define ENABLE_WIND
+            #define VERTEX_COLOR
+            #define _DEBUG_SHADER
+
+            #include "SpeedTree7Input.hlsl"
+            #include "SpeedTree7Passes.hlsl"
+
+            ENDHLSL
+        }
     }
 
     Dependency "BillboardShader" = "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
