@@ -49,9 +49,18 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return sortingLayers.Length-1;
         }
 
-        public static void CalculateBatches(SortingLayer[] cachedSortingLayers, List<LayerBatch> layerBatches, ILight2DCullResult lightCullResult)
+        public static List<LayerBatch> CalculateBatches(SortingLayer[] cachedSortingLayers, ILight2DCullResult lightCullResult)
         {
-            layerBatches.Clear();
+            var count = Light2DManager.GetCachedSortingLayer().Length;
+            s_LayerBatches ??= new List<LayerBatch>(count);
+
+#if UNITY_EDITOR
+            // we should fix. Make a non allocating version of this
+            if (!Application.isPlaying && s_LayerBatches.Capacity != count)
+                s_LayerBatches = new List<LayerBatch>(count);
+#endif
+
+            s_LayerBatches.Clear();
 
             for (var i = 0; i < cachedSortingLayers.Length;)
             {
@@ -76,22 +85,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 layerBatch.layerRange = sortingLayerRange;
                 layerBatch.lightStats = lightStats;
 
-                layerBatches.Add(layerBatch);
+                s_LayerBatches.Add(layerBatch);
 
                 i = upperLayerInBatch + 1;
             }
-        }
-
-        public static List<LayerBatch> GetCachedLayerBatches()
-        {
-            var count = Light2DManager.GetCachedSortingLayer().Length;
-            s_LayerBatches ??= new List<LayerBatch>(count);
-
-#if UNITY_EDITOR
-            // we should fix. Make a non allocating version of this
-            if(!Application.isPlaying && s_LayerBatches.Capacity != count)
-                s_LayerBatches = new List<LayerBatch>(count);
-#endif
 
             return s_LayerBatches;
         }
