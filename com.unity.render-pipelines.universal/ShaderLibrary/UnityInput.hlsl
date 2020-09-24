@@ -210,7 +210,7 @@ SAMPLER(samplerunity_SpecCube0);
 TEXTURE2D(unity_Lightmap);
 SAMPLER(samplerunity_Lightmap);
 TEXTURE2D_ARRAY(unity_Lightmaps);
-SAMPLER(samplerunity_Lightmaps);
+SAMPLER(samplerunity_Lightmaps_linear_clamp);
 
 // Dual or directional lightmap (always used with unity_Lightmap, so can share sampler)
 TEXTURE2D(unity_LightmapInd);
@@ -219,7 +219,7 @@ TEXTURE2D_ARRAY(unity_LightmapsInd);
 TEXTURE2D(unity_ShadowMask);
 SAMPLER(samplerunity_ShadowMask);
 TEXTURE2D_ARRAY(unity_ShadowMasks);
-SAMPLER(samplerunity_ShadowMasks);
+SAMPLER(samplerunity_ShadowMasks_linear_clamp);
 
 // ----------------------------------------------------------------------------
 

@@ -24,7 +24,7 @@
 
 #if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
     #ifdef UNITY_DOTS_INSTANCING_ENABLED
-        #define SAMPLE_SHADOWMASK(uv) SAMPLE_TEXTURE2D_ARRAY(unity_ShadowMasks, samplerunity_ShadowMasks, uv, unity_LightmapIndex.x);
+        #define SAMPLE_SHADOWMASK(uv) SAMPLE_TEXTURE2D_ARRAY(unity_ShadowMasks, samplerunity_ShadowMasks_linear_clamp, uv, unity_LightmapIndex.x);
     #else
         #define SAMPLE_SHADOWMASK(uv) SAMPLE_TEXTURE2D(unity_ShadowMask, samplerunity_ShadowMask, uv);
     #endif
