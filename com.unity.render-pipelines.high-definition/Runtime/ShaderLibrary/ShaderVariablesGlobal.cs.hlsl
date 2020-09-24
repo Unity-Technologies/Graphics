@@ -11,6 +11,7 @@
 #define RENDERING_LIGHT_LAYERS_MASK_SHIFT (0)
 #define RENDERING_DECAL_LAYERS_MASK (65280)
 #define RENDERING_DECAL_LAYERS_MASK_SHIFT (8)
+#define DEFAULT_RENDERING_LAYER_MASK (257)
 #define MAX_ENV2DLIGHT (32)
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesGlobal
@@ -149,9 +150,9 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     uint _EnableDecalLayers;
     float4 _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7];
     int _TransparentCameraOnlyMotionVectors;
+    float _GlobalTessellationFactorMultiplier;
     float _Pad8;
     float _Pad9;
-    float _Pad10;
 CBUFFER_END
 
 

@@ -215,6 +215,12 @@
 #define WaveGetLaneCount ERROR_ON_UNSUPPORTED_FUNCTION(WaveGetLaneCount)
 #endif
 
+#if defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS)
+// Helper macro to compute lane swizzle offset starting from andMask, orMask and xorMask.
+// IMPORTANT, to guarantee compatibility with all platforms, the masks need to be constant literals (constants at compile time)
+#define LANE_SWIZZLE_OFFSET(andMask, orMask, xorMask)  (andMask | (orMask << 5) | (xorMask << 10))
+#endif
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonDeprecated.hlsl"
 
 #if !defined(SHADER_API_GLES)
@@ -1058,6 +1064,16 @@ PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, uint2 t
 PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize)
 {
     return GetPositionInput(positionSS, invScreenSize, uint2(0, 0));
+}
+
+// For Raytracing only
+// This function does not initialize deviceDepth and linearDepth
+PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float3 positionWS)
+{
+    PositionInputs posInput = GetPositionInput(positionSS, invScreenSize, uint2(0, 0));
+    posInput.positionWS = positionWS;
+
+    return posInput;
 }
 
 // From forward
