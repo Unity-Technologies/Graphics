@@ -291,7 +291,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public HDCamera         hdCamera;
         }
 
-        RenderAccumulationParameters PrepareRenderAccumulationParameters(HDCamera hdCamera, bool needExposure)
+        RenderAccumulationParameters PrepareRenderAccumulationParameters(HDCamera hdCamera, bool needExposure, bool inputFromRadianceTexture)
         {
             var parameters = new RenderAccumulationParameters();
 
@@ -301,6 +301,11 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.needExposure = needExposure;
             parameters.hdCamera = hdCamera;
 
+            parameters.accumulationCS.shaderKeywords = null;
+            if (inputFromRadianceTexture)
+            {
+                parameters.accumulationCS.EnableKeyword("INPUT_FROM_RADIANCE_TEXTURE");
+            }
             return parameters;
         }
 
@@ -310,7 +315,8 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle history = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing)
                 ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.PathTracing, PathTracingHistoryBufferAllocatorFunction, 1);
 
-            var parameters = PrepareRenderAccumulationParameters(hdCamera, needExposure);
+            bool inputFromRadianceTexture = !inputTexture.Equals(outputTexture);
+            var parameters = PrepareRenderAccumulationParameters(hdCamera, needExposure, inputFromRadianceTexture);
             RenderAccumulation(parameters, inputTexture, outputTexture, history, cmd);
         }
 
@@ -332,10 +338,15 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeIntParam(accumulationShader, HDShaderIDs._AccumulationNumSamples, (int)parameters.subFrameManager.subFrameCount);
             cmd.SetComputeTextureParam(accumulationShader, parameters.accumulationKernel, HDShaderIDs._AccumulatedFrameTexture, historyTexture);
             cmd.SetComputeTextureParam(accumulationShader, parameters.accumulationKernel, HDShaderIDs._CameraColorTextureRW, outputTexture);
-            cmd.SetComputeTextureParam(accumulationShader, parameters.accumulationKernel, HDShaderIDs._RadianceTexture, inputTexture);
             cmd.SetComputeVectorParam(accumulationShader, HDShaderIDs._AccumulationWeights, frameWeights);
             cmd.SetComputeIntParam(accumulationShader, HDShaderIDs._AccumulationNeedsExposure, parameters.needExposure ? 1 : 0);
             cmd.DispatchCompute(accumulationShader, parameters.accumulationKernel, (parameters.hdCamera.actualWidth + 7) / 8, (parameters.hdCamera.actualHeight + 7) / 8, parameters.hdCamera.viewCount);
+
+            accumulationShader.shaderKeywords = null;
+            if (!inputTexture.Equals(outputTexture))
+            {
+                cmd.SetComputeTextureParam(accumulationShader, parameters.accumulationKernel, HDShaderIDs._RadianceTexture, inputTexture);
+            }
 
             // Increment the iteration counter, if we haven't converged yet
             if (camData.currentIteration < parameters.subFrameManager.subFrameCount)
