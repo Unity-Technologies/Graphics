@@ -22,8 +22,6 @@ void InitParticleParams(VaryingsParticle input, out ParticleParams output)
 {
     output = (ParticleParams) 0;
     output.uv = input.texcoord;
-    output.positionWS = input.positionWS;
-    output.baseColor = _BaseColor;
     output.vertexColor = input.color;
 
     #if defined(_FLIPBOOKBLENDING_ON)
@@ -32,10 +30,15 @@ void InitParticleParams(VaryingsParticle input, out ParticleParams output)
         output.blendUv = float3(0,0,0);
     #endif
 
-    #if defined(_SOFTPARTICLES_ON) || defined(_FADING_ON) || defined(_DISTORTION_ON)
-        output.projectedPosition = input.projectedPosition;
-    #else
-        output.projectedPosition = float4(0,0,0,0);
+    #if !defined(PARTICLES_EDITOR)
+        output.positionWS = input.positionWS;
+        output.baseColor = _BaseColor;
+
+        #if defined(_SOFTPARTICLES_ON) || defined(_FADING_ON) || defined(_DISTORTION_ON)
+            output.projectedPosition = input.projectedPosition;
+        #else
+            output.projectedPosition = float4(0,0,0,0);
+        #endif
     #endif
 }
 

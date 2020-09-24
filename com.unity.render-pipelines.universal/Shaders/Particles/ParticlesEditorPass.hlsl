@@ -1,7 +1,6 @@
 #ifndef UNIVERSAL_PARTICLES_EDITOR_PASS_INCLUDED
 #define UNIVERSAL_PARTICLES_EDITOR_PASS_INCLUDED
 
-#define PARTICLES_EDITOR
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesInput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
 

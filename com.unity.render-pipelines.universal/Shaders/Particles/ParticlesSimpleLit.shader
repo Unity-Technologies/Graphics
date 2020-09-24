@@ -196,6 +196,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             Cull Off
 
             HLSLPROGRAM
+            #define PARTICLES_EDITOR
             #pragma target 2.0
 
             // -------------------------------------
@@ -229,6 +230,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             Cull Off
 
             HLSLPROGRAM
+            #define PARTICLES_EDITOR
             #pragma target 2.0
 
             // -------------------------------------
