@@ -9,7 +9,6 @@ using Unity.Collections;
 using UnityEditor.Experimental.AssetImporters;
 
 
-
 namespace UnityEngine.Experimental.Rendering.Universal
 {
     public class SpritePreprocessor : AssetPostprocessor
@@ -147,15 +146,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     {
                         float width = sprites[i].rect.width / correctedPPU;
                         float height = sprites[i].rect.height / correctedPPU;
+
                         Vector2 spriteSize = new Vector2(width, height);
                         Vector2 pivotOffset = new Vector2(sprites[i].pivot.x / sprites[i].rect.width, sprites[i].pivot.y / sprites[i].rect.height) * spriteSize;
 
-                        SpriteMetaData[] metadata = textureImporter.spritesheet;
-                        Vector2[][] outlines = metadata[i].outline;
-                        Vector2[] outline = outlines[0];
-
-                        Vector2[][] transformedOutline = TransformOutline(metadata[i].outline, textureCenter, textureRescale);
-                        //CreateSplitSpriteMesh(sprites[i], pivotOffset, transformedOutline, correctedPPU);
+                        Vector2[][] transformedOutline = TransformOutline(textureImporter.spritesheet[i].outline, textureCenter, textureRescale);
+                        CreateSplitSpriteMesh(sprites[i], pivotOffset, transformedOutline, correctedPPU);
                     }
                 }
             }
