@@ -214,6 +214,29 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return path;
         }
 
+        // Rough shape only used in Inspector for quick preview. 
+        internal static List<Vector2> GetOutlinePath(Vector3[] shapePath, float offsetDistance)
+        {
+            const float kClipperScale = 10000.0f;
+            List<IntPoint> path = new List<IntPoint>();
+            List<Vector2> output = new List<Vector2>();
+            for (var i = 0; i < shapePath.Length; ++i)
+            {
+                var newPoint = new Vector2(shapePath[i].x, shapePath[i].y) * kClipperScale;
+                path.Add(new IntPoint((System.Int64) (newPoint.x), (System.Int64) (newPoint.y)));
+            }
+            List<List<IntPoint>> solution = new List<List<IntPoint>>();
+            ClipperOffset clipOffset = new ClipperOffset(2048.0f);
+            clipOffset.AddPath(path, JoinType.jtRound, EndType.etClosedPolygon);
+            clipOffset.Execute(ref solution, kClipperScale * offsetDistance, path.Count);
+            if (solution.Count > 0)
+            {
+                for (int i = 0; i < solution[0].Count; ++i)
+                    output.Add(new Vector2(solution[0][i].X / kClipperScale, solution[0][i].Y / kClipperScale));
+            }
+            return output;
+        }
+
         public static Bounds GenerateShapeMesh(Mesh mesh, Vector3[] shapePath, float falloffDistance)
         {
 
@@ -241,7 +264,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             // Create falloff geometry
             List<IntPoint> path = new List<IntPoint>();
-            var pointNoise = new System.Random();
             for (var i = 0; i < inputPointCount; ++i)
             {
                 var newPoint = new Vector2(inner[i].Position.X, inner[i].Position.Y) * kClipperScale;
