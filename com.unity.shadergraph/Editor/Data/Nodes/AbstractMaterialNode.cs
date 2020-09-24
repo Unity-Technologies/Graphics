@@ -749,7 +749,7 @@ namespace UnityEditor.ShaderGraph
             return defaultVariableName;
         }
 
-        public MaterialSlot AddSlot(MaterialSlot slot, bool findPrevInstance = true)
+        public MaterialSlot AddSlot(MaterialSlot slot, bool attemptToModifyExistingInstance = true)
         {
             if(slot == null)
             {
@@ -761,7 +761,7 @@ namespace UnityEditor.ShaderGraph
                 return foundSlot;
 
             // Try to keep the existing instance to avoid unnecessary changes to file
-            if (findPrevInstance && foundSlot != null && slot.GetType() == foundSlot.GetType())
+            if (attemptToModifyExistingInstance && foundSlot != null && slot.GetType() == foundSlot.GetType())
             {
                 foundSlot.displayName = slot.RawDisplayName();
                 foundSlot.CopyDefaultValue(slot);
@@ -769,8 +769,28 @@ namespace UnityEditor.ShaderGraph
             }
 
             // this will remove any old slots and then add the new one
-            m_Slots.RemoveAll(x => x.value.id == slot.id);
-            m_Slots.Add(slot);
+            // we keep the existing ordering by trying to replace the first match
+            bool insertedSlot = false;
+            for (int x = 0; x < m_Slots.Count; x++)
+            {
+                var existingSlot = m_Slots[x];
+                if (existingSlot.value.id == slot.id)
+                {
+                    if (!insertedSlot)
+                    {
+                        m_Slots[x] = slot;
+                        insertedSlot = true;
+                    }
+                    else
+                    {
+                        // this is a duplicate slot id... remove it
+                        m_Slots.RemoveAt(x);
+                        x--;
+                    }
+                }
+            }
+            if (!insertedSlot)
+                m_Slots.Add(slot);
             slot.owner = this;
 
             OnSlotsChanged();
