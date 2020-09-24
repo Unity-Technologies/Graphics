@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an optional check in the HDRP DXR Wizard to verify 64 bits target architecture
 - Added option to display timing stats in the debug menu as an average over 1 second. 
 - Added a light unit slider to provide users more context when authoring physically based values.
+- Added a new volume component parameter to control the max ray length of directional lights(case 1279849).
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
@@ -106,6 +107,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Replaced the Density Volume Texture Tool with the new 3D Texture Importer.
 - Rename Raytracing Node to Raytracing Quality Keyword and rename high and low inputs as default and raytraced. All raytracing effects now use the raytraced mode but path tracing.
 - Moved diffusion profile list to the HDRP default settings panel.
+- Removed the max clamp value for the RTR, RTAO and RTGI's ray length (case 1279849).
 
 ## [10.0.0] - 2019-06-10
 
