@@ -1,4 +1,5 @@
 using System;
+using UnityEditor.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -53,13 +54,18 @@ namespace UnityEngine.Rendering.HighDefinition
         // Here we need to have one parameter in the diffusion profile parameter because the deserialization call the default constructor
         public DiffusionProfile(bool dontUseDefaultConstructor)
         {
+            ResetToDefault();
+        }
+
+        public void ResetToDefault()
+        {
             scatteringDistance = Color.grey;
-            transmissionTint   = Color.white;
-            texturingMode      = TexturingMode.PreAndPostScatter;
-            transmissionMode   = TransmissionMode.ThinObject;
-            thicknessRemap     = new Vector2(0f, 5f);
-            worldScale         = 1f;
-            ior                = 1.4f; // Typical value for skin specular reflectance
+            transmissionTint = Color.white;
+            texturingMode = TexturingMode.PreAndPostScatter;
+            transmissionMode = TransmissionMode.ThinObject;
+            thicknessRemap = new Vector2(0f, 5f);
+            worldScale = 1f;
+            ior = 1.4f; // Typical value for skin specular reflectance
         }
 
         internal void Validate()
@@ -221,6 +227,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             UnityEditor.Rendering.HighDefinition.DiffusionProfileHashTable.UpdateDiffusionProfileHashNow(this);
 #endif
+        }
+
+        internal void Reset()
+        {
+            if (profile.hash == 0)
+            {
+                profile.ResetToDefault();
+                profile.hash = DiffusionProfileHashTable.GenerateUniqueHash(this);
+            }
         }
 
         internal void UpdateCache()
