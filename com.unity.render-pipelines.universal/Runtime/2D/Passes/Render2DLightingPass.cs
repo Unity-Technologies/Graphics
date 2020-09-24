@@ -72,82 +72,20 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        private void DrawRenderers(
+        private void DrawLayerBatches(
             List<LayerBatch> layerBatches,
             int startIndex,
             int batchSize,
             CommandBuffer cmd,
             ScriptableRenderContext context,
             ref RenderingData renderingData,
-            FilteringSettings filterSettings,
-            DrawingSettings drawSettings)
-        {
-            using(new ProfilingScope(cmd, m_ProfilingDrawRenderers))
-            {
-                // and the main render target
-                CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment, ClearFlag.None, Color.white);
-
-                for (var i = 0; i < batchSize; i++)
-                {
-                    var layerBatch = layerBatches[startIndex + i];
-
-                    using(new ProfilingScope(cmd, m_ProfilingDrawLayerBatch))
-                    {
-                        if (layerBatch.lightStats.totalLights > 0)
-                        {
-                            unsafe
-                            {
-                                for (var blendStyleIndex = 0; blendStyleIndex < k_ShapeLightTextureIDs.Length; blendStyleIndex++)
-                                {
-                                    var blendStyleMask = (uint)(1 << blendStyleIndex);
-                                    var blendStyleUsed = (layerBatch.lightStats.blendStylesUsed & blendStyleMask) > 0;
-
-                                    if (blendStyleUsed)
-                                        cmd.SetGlobalTexture(k_ShapeLightTextureIDs[blendStyleIndex], new RenderTargetIdentifier(layerBatch.renderTargetIds[blendStyleIndex]));
-
-                                    RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleUsed);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            for (var blendStyleIndex = 0; blendStyleIndex < k_ShapeLightTextureIDs.Length; blendStyleIndex++)
-                            {
-                                cmd.SetGlobalTexture(k_ShapeLightTextureIDs[blendStyleIndex], Texture2D.blackTexture);
-                                RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleIndex == 0);
-                            }
-                        }
-
-                        context.ExecuteCommandBuffer(cmd);
-                        cmd.Clear();
-
-                        filterSettings.sortingLayerRange = layerBatch.layerRange;
-                        context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
-
-                        if (layerBatch.lightStats.totalVolumetricUsage > 0)
-                        {
-                            var sampleName = "Render 2D Light Volumes";
-                            cmd.BeginSample(sampleName);
-                            this.RenderLightVolumes(renderingData, cmd, layerBatch.firstLayerToRender, colorAttachment, depthAttachment, m_Renderer2DData.lightCullResult.visibleLights);
-                            cmd.EndSample(sampleName);
-                        }
-                    }
-                }
-            }
-        }
-
-        private void DrawLightTextures(
-            List<LayerBatch> layerBatches,
-            int startIndex,
-            int batchSize,
-            CommandBuffer cmd,
-            ScriptableRenderContext context,
-            ref RenderingData renderingData,
-            FilteringSettings filterSettings,
-            DrawingSettings normalsDrawSettings)
+            ref FilteringSettings filterSettings,
+            ref DrawingSettings normalsDrawSettings,
+            ref DrawingSettings drawSettings)
         {
             var blendStylesCount = m_Renderer2DData.lightBlendStyles.Length;
 
+            // Draw lights
             using (new ProfilingScope(cmd, m_ProfilingDrawLights))
             {
                 for (var i = 0; i < batchSize; i++)
@@ -179,6 +117,60 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         }
 
                         this.RenderLights(renderingData, cmd, layerBatch.firstLayerToRender, layerBatch);
+                    }
+                }
+            }
+
+            // Draw renderers
+            using (new ProfilingScope(cmd, m_ProfilingDrawRenderers))
+            {
+                CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment, ClearFlag.None, Color.white);
+
+                for (var i = 0; i < batchSize; i++)
+                {
+                    using (new ProfilingScope(cmd, m_ProfilingDrawLayerBatch))
+                    {
+                        var layerBatch = layerBatches[startIndex + i];
+
+                        if (layerBatch.lightStats.totalLights > 0)
+                        {
+                            unsafe
+                            {
+                                for (var blendStyleIndex = 0; blendStyleIndex < blendStylesCount; blendStyleIndex++)
+                                {
+                                    var blendStyleMask = (uint)(1 << blendStyleIndex);
+                                    var blendStyleUsed = (layerBatch.lightStats.blendStylesUsed & blendStyleMask) > 0;
+
+                                    if (blendStyleUsed)
+                                        cmd.SetGlobalTexture(k_ShapeLightTextureIDs[blendStyleIndex], new RenderTargetIdentifier(layerBatch.renderTargetIds[blendStyleIndex]));
+
+                                    RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleUsed);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            for (var blendStyleIndex = 0; blendStyleIndex < k_ShapeLightTextureIDs.Length; blendStyleIndex++)
+                            {
+                                cmd.SetGlobalTexture(k_ShapeLightTextureIDs[blendStyleIndex], Texture2D.blackTexture);
+                                RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleIndex == 0);
+                            }
+                        }
+
+                        context.ExecuteCommandBuffer(cmd);
+                        cmd.Clear();
+
+                        filterSettings.sortingLayerRange = layerBatch.layerRange;
+                        context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
+
+                        // Draw light volumes
+                        if (layerBatch.lightStats.totalVolumetricUsage > 0)
+                        {
+                            var sampleName = "Render 2D Light Volumes";
+                            cmd.BeginSample(sampleName);
+                            this.RenderLightVolumes(renderingData, cmd, layerBatch.firstLayerToRender, colorAttachment, depthAttachment, m_Renderer2DData.lightCullResult.visibleLights);
+                            cmd.EndSample(sampleName);
+                        }
                     }
                 }
             }
@@ -227,8 +219,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 for (var i = 0; i < batchCount; i += batchSize)
                 {
                     var effectiveBatchSize = math.min(batchSize, batchCount - i);
-                    DrawLightTextures(layerBatches, i, effectiveBatchSize, cmd, context, ref renderingData, filterSettings, normalsDrawSettings);
-                    DrawRenderers(layerBatches, i, effectiveBatchSize, cmd, context, ref renderingData, filterSettings, combinedDrawSettings);
+                    DrawLayerBatches(layerBatches, i, effectiveBatchSize, cmd, context, ref renderingData, ref filterSettings, ref normalsDrawSettings, ref combinedDrawSettings);
                 }
 
                 this.ReleaseRenderTextures(cmd, layerBatches);
