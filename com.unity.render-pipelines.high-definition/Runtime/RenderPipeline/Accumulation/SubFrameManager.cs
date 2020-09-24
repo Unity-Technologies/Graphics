@@ -338,14 +338,13 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeIntParam(accumulationShader, HDShaderIDs._AccumulationNumSamples, (int)parameters.subFrameManager.subFrameCount);
             cmd.SetComputeTextureParam(accumulationShader, parameters.accumulationKernel, HDShaderIDs._AccumulatedFrameTexture, historyTexture);
             cmd.SetComputeTextureParam(accumulationShader, parameters.accumulationKernel, HDShaderIDs._CameraColorTextureRW, outputTexture);
-            cmd.SetComputeVectorParam(accumulationShader, HDShaderIDs._AccumulationWeights, frameWeights);
-            cmd.SetComputeIntParam(accumulationShader, HDShaderIDs._AccumulationNeedsExposure, parameters.needExposure ? 1 : 0);
-            cmd.DispatchCompute(accumulationShader, parameters.accumulationKernel, (parameters.hdCamera.actualWidth + 7) / 8, (parameters.hdCamera.actualHeight + 7) / 8, parameters.hdCamera.viewCount);
-
             if (!inputTexture.Equals(outputTexture))
             {
                 cmd.SetComputeTextureParam(accumulationShader, parameters.accumulationKernel, HDShaderIDs._RadianceTexture, inputTexture);
             }
+            cmd.SetComputeVectorParam(accumulationShader, HDShaderIDs._AccumulationWeights, frameWeights);
+            cmd.SetComputeIntParam(accumulationShader, HDShaderIDs._AccumulationNeedsExposure, parameters.needExposure ? 1 : 0);
+            cmd.DispatchCompute(accumulationShader, parameters.accumulationKernel, (parameters.hdCamera.actualWidth + 7) / 8, (parameters.hdCamera.actualHeight + 7) / 8, parameters.hdCamera.viewCount);
 
             // Increment the iteration counter, if we haven't converged yet
             if (camData.currentIteration < parameters.subFrameManager.subFrameCount)
