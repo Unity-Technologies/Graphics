@@ -15,7 +15,7 @@ struct AttributesParticle
         float2 texcoords : TEXCOORD0;
     #endif
 
-    #if !defined(PARTICLES_EDITOR)
+    #if !defined(PARTICLES_EDITOR_META_PASS)
         float3 normal : NORMAL;
         float4 tangent : TANGENT;
     #endif
@@ -32,7 +32,7 @@ struct VaryingsParticle
         float3 texcoord2AndBlend    : TEXCOORD5;
     #endif
 
-    #if !defined(PARTICLES_EDITOR)
+    #if !defined(PARTICLES_EDITOR_META_PASS)
         float4 positionWS           : TEXCOORD1;
 
         #ifdef _NORMALMAP

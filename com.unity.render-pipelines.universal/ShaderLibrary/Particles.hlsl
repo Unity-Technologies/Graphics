@@ -30,7 +30,7 @@ void InitParticleParams(VaryingsParticle input, out ParticleParams output)
         output.blendUv = float3(0,0,0);
     #endif
 
-    #if !defined(PARTICLES_EDITOR)
+    #if !defined(PARTICLES_EDITOR_META_PASS)
         output.positionWS = input.positionWS;
         output.baseColor = _BaseColor;
 
