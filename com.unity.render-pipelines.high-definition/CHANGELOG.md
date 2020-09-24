@@ -83,6 +83,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed SSGI compilation issues on PS4.
 - Fixed "Screen position out of view frustum" error when camera is on exactly the planar reflection probe plane.
 - Workaround issue that caused objects using eye shader to not be rendered on xbox.
+- Fix decal being applied twice with LOD Crossfade.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
