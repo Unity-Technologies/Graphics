@@ -1598,6 +1598,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public Vector4 taaParameters;
             public Vector4 taaFilterWeights;
+            public bool motionVectorRejection;
         }
 
         TemporalAntiAliasingParameters PrepareTAAParameters(HDCamera camera, bool PostDOF = false)
@@ -1647,7 +1648,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.temporalAAMaterial.EnableKeyword("ANTI_RINGING");
             }
 
-            if (camera.taaMotionVectorRejection > 0)
+            parameters.motionVectorRejection = camera.taaMotionVectorRejection > 0;
+            if (parameters.motionVectorRejection)
             {
                 parameters.temporalAAMaterial.EnableKeyword("ENABLE_MV_REJECTION");
             }
@@ -1708,7 +1710,7 @@ namespace UnityEngine.Rendering.HighDefinition
             taaParams.taaPropertyBlock.SetTexture(HDShaderIDs._CameraMotionVectorsTexture, motionVecTexture);
             taaParams.taaPropertyBlock.SetTexture(HDShaderIDs._InputTexture, source);
             taaParams.taaPropertyBlock.SetTexture(HDShaderIDs._InputHistoryTexture, prevHistory);
-            if (prevMVLen != null)
+            if (prevMVLen != null && taaParams.motionVectorRejection)
             {
                 taaParams.taaPropertyBlock.SetTexture(HDShaderIDs._InputVelocityMagnitudeHistory, prevMVLen);
             }
@@ -1725,7 +1727,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CoreUtils.SetRenderTarget(cmd, destination, depthBuffer);
             cmd.SetRandomWriteTarget(1, nextHistory);
-            if (nextMVLen != null)
+            if (nextMVLen != null && taaParams.motionVectorRejection)
             {
                 cmd.SetRandomWriteTarget(2, nextMVLen);
             }
