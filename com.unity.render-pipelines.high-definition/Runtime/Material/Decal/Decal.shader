@@ -78,6 +78,8 @@ Shader "HDRP/Decal"
     #pragma shader_feature_local _MATERIAL_AFFECTS_MASKMAP
 
     #pragma multi_compile_instancing
+    // enable dithering LOD crossfade
+    #pragma multi_compile _ LOD_FADE_CROSSFADE
 
     //-------------------------------------------------------------------------------------
     // Include
@@ -86,6 +88,7 @@ Shader "HDRP/Decal"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 
     // All our shaders use same name for entry point
     #pragma vertex Vert
