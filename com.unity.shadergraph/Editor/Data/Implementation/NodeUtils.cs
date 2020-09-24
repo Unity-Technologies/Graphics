@@ -557,6 +557,19 @@ namespace UnityEditor.Graphing
             return safeName;
         }
 
+        public static string RemoveNonHlslIdentifierCharacters(string originalId)
+        {
+            StringBuilder hlslId = new StringBuilder(originalId.Length);
+            for (int i = 0; i < originalId.Length; i++)
+            {
+                char c = originalId[i];
+                bool valid = (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c == '_') || (i > 0 && c >= '0' && c <= '9');
+                if (valid)
+                    hlslId.Append(c);
+            }
+            return hlslId.ToString();
+        }
+
         private static string GetDisplaySafeName(string input)
         {
             //strip valid display characters from slot name
