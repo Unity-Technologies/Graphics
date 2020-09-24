@@ -2531,7 +2531,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // changes the direction vs the coat.)
 
     // Sample the pre-integrated environment lighting
-    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness), lightData.rangeCompressionFactorCompensation);
+    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness), lightData.rangeCompressionFactorCompensation, posInput.positionNDC);
     weight *= preLD.w; // Used by planar reflection to discard pixel
 
     envLighting = GetSpecularIndirectDimmer() * preLightData.specularFGD * preLD.xyz;
@@ -2559,7 +2559,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         float   coeff = _CarPaint2_CTCoeffs[lobeIndex];
 
         float   lobeMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness[lobeIndex]);
-        float4  preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, lobeMipLevel, lightData.rangeCompressionFactorCompensation);
+        float4  preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, lobeMipLevel, lightData.rangeCompressionFactorCompensation, posInput.positionNDC);
 
         //todotodo: try removing coeff
         envLighting += coeff * GetCarPaintSpecularFGDForLobe(preLightData, lobeIndex) * preLD.xyz;
@@ -2578,14 +2578,14 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // Sample flakes
     //TODO_FLAKES
     float   flakesMipLevel = 0;   // Flakes are supposed to be perfect mirrors
-    envLighting += preLightData.singleFlakesComponent * SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, flakesMipLevel, lightData.rangeCompressionFactorCompensation).xyz;
+    envLighting += preLightData.singleFlakesComponent * SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, flakesMipLevel, lightData.rangeCompressionFactorCompensation, posInput.positionNDC).xyz;
 
     #else // USE_COOK_TORRANCE_MULTI_LOBES
 
     // Single lobe approach
     // We computed an average mip level stored in preLightData.iblPerceptualRoughness that we use for all CT lobes
     // Sample the actual environment lighting
-    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness), lightData.rangeCompressionFactorCompensation);
+    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness), lightData.rangeCompressionFactorCompensation, posInput.positionNDC);
     float3  envLighting;
 
     envLighting = preLightData.specularCTFGDSingleLobe * GetSpecularIndirectDimmer();
@@ -2619,7 +2619,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         //envLighting *= Sq(1.0 - preLightData.coatFGD);
 
         // Then add the environment lighting reflected by the clearcoat (with mip level 0, like mirror)
-        float4  preLD = SampleEnv(lightLoopContext, lightData.envIndex, lightWS_Clearcoat, 0.0, lightData.rangeCompressionFactorCompensation);
+        float4  preLD = SampleEnv(lightLoopContext, lightData.envIndex, lightWS_Clearcoat, 0.0, lightData.rangeCompressionFactorCompensation, posInput.positionNDC);
         envLighting += preLightData.coatFGD * preLD.xyz * bsdfData.clearcoatColor;
     }
 

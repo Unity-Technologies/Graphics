@@ -20,6 +20,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
             #pragma multi_compile SHOW_LIGHT_CATEGORIES SHOW_FEATURE_VARIANTS
             #pragma multi_compile _ IS_DRAWPROCEDURALINDIRECT
+            #pragma multi_compile _ DISABLE_TILE_MODE
 
             //-------------------------------------------------------------------------------------
             // Include
@@ -244,6 +245,24 @@ Shader "Hidden/HDRP/DebugViewTiles"
 
                 float4 result = float4(0.0, 0.0, 0.0, 0.0);
 
+#ifdef DISABLE_TILE_MODE
+                // Tile debug mode is not supported in MSAA (only cluster)
+                int maxLights = 32;
+                const int textSize = 23;
+                const int text[textSize] = {'N', 'o', 't', ' ', 's', 'u', 'p', 'p', 'o', 'r', 't', 'e', 'd', ' ', 'w', 'i', 't', 'h', ' ', 'M', 'S', 'A', 'A'};
+                if (input.positionCS.y < DEBUG_FONT_TEXT_HEIGHT)
+                {
+                    float4 result2 = float4(.1,.1,.1,.9);
+
+                    uint2 unormCoord = input.positionCS.xy;
+                    float3 textColor = float3(0.5f, 0.5f, 0.5f);
+                    uint2 textLocation = uint2(0, 0);
+                    for (int i = 0; i < textSize; i++)
+                        DrawCharacter(text[i], textColor, unormCoord, textLocation, result2.rgb, 1, text[i] >= 97 ? 7 : 10);
+
+                    result = AlphaBlend(result, result2);
+                }
+#else
                 // Tile overlap counter
                 if (n >= 0)
                 {
@@ -320,6 +339,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
 
                     result = AlphaBlend(result, result2);
                 }
+#endif
 #endif
 
                 return result;
