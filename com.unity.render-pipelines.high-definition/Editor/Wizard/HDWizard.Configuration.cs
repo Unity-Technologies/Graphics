@@ -610,15 +610,11 @@ namespace UnityEditor.Rendering.HighDefinition
             if (WillEditorUseFirstGraphicsAPI(target))
             {
                 if (EditorUtility.DisplayDialog("Changing editor graphics device",
-                    "You've changed the active graphics API. This requires a restart of the Editor. After restarting finish fixing DXR configuration by launching the wizard again.",
+                    "You've changed the active graphics API. This requires a restart of the Editor. After restarting, finish fixing DXR configuration by launching the wizard again.",
                     "Restart Editor", "Not now"))
                 {
-                    if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
-                    {
-                        HDProjectSettings.wizardNeedRestartAfterChangingToDX12 = false;
-                        RequestCloseAndRelaunchWithCurrentArguments();
-                        GUIUtility.ExitGUI();
-                    }
+                    HDProjectSettings.wizardNeedRestartAfterChangingToDX12 = false;
+                    RequestCloseAndRelaunchWithCurrentArguments();
                 }
                 else
                     EditorApplication.quitting += () => HDProjectSettings.wizardNeedRestartAfterChangingToDX12 = false;
