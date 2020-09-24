@@ -1,8 +1,6 @@
 # Post-processing in the Universal Render Pipeline
 
-The Universal Render Pipeline (URP) includes its own implementation of [post-processing](https://docs.unity3d.com/Manual/PostProcessingOverview.html), so you do not need to install any other package. URP is not compatible with the post-processing version 2 package. 
-
-This implementation uses the same [Volume](http://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Volumes.html) system as the [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?preview=1). You can add post-processing effects to your Camera in the same way you add any other [Volume Override](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@6.9/manual/Volume-Components.html).
+The Universal Render Pipeline (URP) includes an integrated implementation of [post-processing](https://docs.unity3d.com/Manual/PostProcessingOverview.html) stack for optimal performace, so you do not need to install any other package. URP is not compatible with the [post-processing version 2](https://docs.unity3d.com/Packages/com.unity.postprocessing@2.2/manual/index.html) package. 
 
 The images below show a Scene with and without URP post-processing.
 
@@ -14,6 +12,13 @@ With post-processing:
 
 ![](Images/AssetShots/Beauty/SceneWithPost.png)
 
+## Enabling Post-processing
+
+In order to use post-processing you have enable it by toggling the `Post Processing` in the camera and add a [Volume](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@10.0/manual/Volumes.html) component. You can add post-processing effects to your Camera in the same way you add any other [Volume Override](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@6.9/manual/Volume-Components.html).
+
+![](Images/post-proc/camera-post-processing.jpg)
+
+**Note:** Post-processing is not supported when using GLES2.
 
 ## Post-processing in URP for mobile devices
 
