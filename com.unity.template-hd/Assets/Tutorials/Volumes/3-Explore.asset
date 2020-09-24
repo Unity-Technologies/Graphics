@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
-  m_Name: 4-HDRPdefaultSettings
+  m_Name: 3-Explore
   m_EditorClassIdentifier: 
   m_Paragraphs:
     m_Items:
@@ -23,7 +23,7 @@ MonoBehaviour:
       m_Tutorial: {fileID: 0}
       m_Icons:
         m_Items: []
-      m_Image: {fileID: 2800000, guid: a62b9f596f0ca7e4d9b58f8aa075d6b9, type: 3}
+      m_Image: {fileID: 2800000, guid: 32e996e62ec9f404f8c0020d0156e947, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -32,31 +32,19 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: HDRP Default settings
-      m_Description: 'This is a very imporant topic. Its a common question to hear
-        "Why is there bloom in my empty scene?" or "Where is the fog coming from?"
-
-
-        In
-        HDRP we have some default effects applied for all scenes in the project.
-        These can range from post procesing to fog or even visual sky.
-
-
-        1)
-        Go to <b>Edit->Project Settings->HDRP Default Settings</b> and review Volume
-        components list.
-
-        2) Disable HDRI Sky. The scenes sky should become
-        black.
-
-        3) Undo your changes
-
-
-        For convenience, we also added
-        an instance of these settings in the scene. Use the search of the <i>Hierarchy</i>
-        window to find <b>Volume Global</b> gameobject. Adding them did not change
-        the way our scene is rendered, but allows us to edit these settings  without
-        opening <i>Project Settings</i> window.'
+      m_Summary: Explopre local volume
+      m_Description: "Next to <b>Volume Global</b> we have 6 more volumes. These
+        are all local and we will take a look at what they do in this step.\n\n1)
+        Select <b>Volume Room 3</b> turn it On and Off. Notice the volume covers
+        the 3rd room fully\n2) Move your scene view inside the volume\n3) Take a
+        look at <b>Volume Room 3</b> overrides. It has only 3: Exposure, White Balance
+        and Fog \n4) Disable Exposure override, notice scene gets darker\n5) Undo
+        your change\n\nThis volume only has 3 overrides because it inherits all the
+        settings like Tonemapping from the <b>Global</b> volume, so we do not need
+        to add them again.\n\nIf we move the camera out of this room, for example
+        back to the outdoor room and toggle the same exposure override. There would
+        be no visible change, because our camera is no longer inside the volumes
+        influence area."
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -76,8 +64,8 @@ MonoBehaviour:
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 9.263008
-    m_Pivot: {x: -3.9521856, y: 8.887987, z: 0.19994575}
-    m_Rotation: {x: -0.048603315, y: -0.70418245, z: -0.048467714, w: 0.70677584}
+    m_Pivot: {x: 55.172962, y: 0.585897, z: -2.3486288}
+    m_Rotation: {x: 0.0377412, y: 0.9622667, z: -0.19487314, w: 0.18641798}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 

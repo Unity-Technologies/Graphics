@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
-  m_Name: 4-HDRPdefaultSettings
+  m_Name: 6-Final
   m_EditorClassIdentifier: 
   m_Paragraphs:
     m_Items:
@@ -23,7 +23,7 @@ MonoBehaviour:
       m_Tutorial: {fileID: 0}
       m_Icons:
         m_Items: []
-      m_Image: {fileID: 2800000, guid: a62b9f596f0ca7e4d9b58f8aa075d6b9, type: 3}
+      m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -32,31 +32,11 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: HDRP Default settings
-      m_Description: 'This is a very imporant topic. Its a common question to hear
-        "Why is there bloom in my empty scene?" or "Where is the fog coming from?"
-
-
-        In
-        HDRP we have some default effects applied for all scenes in the project.
-        These can range from post procesing to fog or even visual sky.
-
-
-        1)
-        Go to <b>Edit->Project Settings->HDRP Default Settings</b> and review Volume
-        components list.
-
-        2) Disable HDRI Sky. The scenes sky should become
-        black.
-
-        3) Undo your changes
-
-
-        For convenience, we also added
-        an instance of these settings in the scene. Use the search of the <i>Hierarchy</i>
-        window to find <b>Volume Global</b> gameobject. Adding them did not change
-        the way our scene is rendered, but allows us to edit these settings  without
-        opening <i>Project Settings</i> window.'
+      m_Summary: Congratulations!
+      m_Description: "You completed the Volumes tutorial! \n\nFor more details check
+        out <a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/manual/Volumes.html\">Volumes
+        documentation.</a>\n\nNote: You do not need to save in order to follow other
+        tutorials.\n"
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -72,12 +52,12 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
   m_CameraSettings:
-    m_CameraMode: 1
+    m_CameraMode: 0
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 9.263008
-    m_Pivot: {x: -3.9521856, y: 8.887987, z: 0.19994575}
-    m_Rotation: {x: -0.048603315, y: -0.70418245, z: -0.048467714, w: 0.70677584}
+    m_Size: 0
+    m_Pivot: {x: 0, y: 0, z: 0}
+    m_Rotation: {x: 0, y: 0, z: 0, w: 0}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
@@ -86,7 +66,7 @@ MonoBehaviour:
       m_ComponentIndex: 0
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
-    m_Enabled: 1
+    m_Enabled: 0
   m_NextButton: Next
   m_DoneButton: Done
   m_CompletedSound: {fileID: 0}

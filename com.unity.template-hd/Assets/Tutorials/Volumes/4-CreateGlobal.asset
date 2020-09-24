@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
-  m_Name: 4-HDRPdefaultSettings
+  m_Name: 4-CreateGlobal
   m_EditorClassIdentifier: 
   m_Paragraphs:
     m_Items:
@@ -23,7 +23,7 @@ MonoBehaviour:
       m_Tutorial: {fileID: 0}
       m_Icons:
         m_Items: []
-      m_Image: {fileID: 2800000, guid: a62b9f596f0ca7e4d9b58f8aa075d6b9, type: 3}
+      m_Image: {fileID: 2800000, guid: 32e996e62ec9f404f8c0020d0156e947, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -32,31 +32,36 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: HDRP Default settings
-      m_Description: 'This is a very imporant topic. Its a common question to hear
-        "Why is there bloom in my empty scene?" or "Where is the fog coming from?"
+      m_Summary: Create a global volume
+      m_Description: 'Alright we have the basic understanding how volumes work, lets
+        create our own volume to put the knowledge into practice.
 
 
-        In
-        HDRP we have some default effects applied for all scenes in the project.
-        These can range from post procesing to fog or even visual sky.
+        1) Go
+        to <b>Gameobject->Volume->Global Volume</b>
+
+        2) Select the newly
+        created Global volume and in the <i>Inspector</i> window, click button <b>New</b>.
+        This will create a volume profile that will hold all of our overrides
+
+        3)
+        Click <b>Add Override</b>
+
+        4) Choose <b>Post-processing->Color adjustments</b>
+
+        5)
+        Enable <b>Saturation</b>
+
+        6) Set the value to <b>-100</b>
+
+        7)
+        Set priority to <b>1</b>. This wont have any effect this time, but its highly
+        recommended not to have multiple global volumes with the same priority. It
+        can cause confusion if both try to modify the same paramter.
 
 
-        1)
-        Go to <b>Edit->Project Settings->HDRP Default Settings</b> and review Volume
-        components list.
-
-        2) Disable HDRI Sky. The scenes sky should become
-        black.
-
-        3) Undo your changes
-
-
-        For convenience, we also added
-        an instance of these settings in the scene. Use the search of the <i>Hierarchy</i>
-        window to find <b>Volume Global</b> gameobject. Adding them did not change
-        the way our scene is rendered, but allows us to edit these settings  without
-        opening <i>Project Settings</i> window.'
+        Look
+        around in the scene. Wherever you go, everything should be black and white.'
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -76,8 +81,8 @@ MonoBehaviour:
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 9.263008
-    m_Pivot: {x: -3.9521856, y: 8.887987, z: 0.19994575}
-    m_Rotation: {x: -0.048603315, y: -0.70418245, z: -0.048467714, w: 0.70677584}
+    m_Pivot: {x: 21.250538, y: 1.3553921, z: 2.6726072}
+    m_Rotation: {x: -0.047298957, y: 0.5634607, z: -0.03231157, w: -0.82422185}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
