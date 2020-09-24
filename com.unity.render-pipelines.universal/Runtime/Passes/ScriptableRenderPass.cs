@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
@@ -29,6 +30,7 @@ namespace UnityEngine.Rendering.Universal
         BeforeRenderingShadows = 50,
         AfterRenderingShadows = 100,
         BeforeRenderingPrePasses = 150,
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("Obsolete, to match the capital from 'Prepass' to 'PrePass'")]
         BeforeRenderingPrepasses = 151,
         AfterRenderingPrePasses = 200,
