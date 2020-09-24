@@ -560,7 +560,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (camera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
                     {
-                        Debug.Log(camera + " | " + camera.camera.cameraType);
                         using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CustomPostProcessBeforeTAA)))
                         {
                             foreach (var typeString in HDRenderPipeline.defaultAsset.beforeTAACustomPostProcesses)
@@ -4003,18 +4002,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RTHandle source = colorBuffer;
 
-            if (camera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CustomPostProcessAfterOpaqueAndSky)))
             {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CustomPostProcessAfterOpaqueAndSky)))
-                {
-                    bool needsBlitToColorBuffer = false;
-                    foreach (var typeString in HDRenderPipeline.defaultAsset.beforeTransparentCustomPostProcesses)
-                        needsBlitToColorBuffer |= RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
+                bool needsBlitToColorBuffer = false;
+                foreach (var typeString in HDRenderPipeline.defaultAsset.beforeTransparentCustomPostProcesses)
+                    needsBlitToColorBuffer |= RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
 
-                    if (needsBlitToColorBuffer)
-                    {
-                        HDUtils.BlitCameraTexture(cmd, source, colorBuffer);
-                    }
+                if (needsBlitToColorBuffer)
+                {
+                    HDUtils.BlitCameraTexture(cmd, source, colorBuffer);
                 }
             }
 
