@@ -32,7 +32,7 @@ Shader "Universal Render Pipeline/Baked Lit"
         Pass
         {
             Name "BakedLit"
-            Tags{ "LightMode" = "UniversalForward" }
+            Tags{ "LightMode" = "UniversalForwardOnly" }
 
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
@@ -230,7 +230,7 @@ Shader "Universal Render Pipeline/Baked Lit"
         Pass
         {
             Name "BakedLit"
-            Tags{ "LightMode" = "UniversalForward" }
+            Tags{ "LightMode" = "UniversalForwardOnly" }
 
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore

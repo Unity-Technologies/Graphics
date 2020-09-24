@@ -113,7 +113,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.Clear();
                     bool overrideMaterial = isSceneOverrideActive || attributeDebugIndex != VertexAttributeDebugMode.None;
 
-                    RenderingUtils.RenderObjectWithDebug(context, ref renderingData, filterSettings, sortFlags, overrideMaterial);
+                    RenderObjectWithDebug(context, m_ShaderTagIdList, ref renderingData, filterSettings, sortFlags, overrideMaterial);
                 }
                 else
                 {

@@ -296,7 +296,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     { PassVariant(LitPasses.DepthNormalOnly, CorePragmas.DOTSInstanced) },
                     { PassVariant(LitPasses.Meta,            CorePragmas.DOTSDefault) },
                     { PassVariant(LitPasses._2D,             CorePragmas.DOTSDefault) },
-                    { PassVariant(LitPasses.DebugMaterial,   CorePragmas.DOTSDefault) },
+                    { PassVariant(LitPasses.DebugMaterial,   CorePragmas.DOTSForward) },
                 },
             };
 
@@ -316,6 +316,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     { PassVariant(LitPasses.DepthNormalOnly, CorePragmas.DOTSInstanced) },
                     { PassVariant(LitPasses.Meta,            CorePragmas.DOTSDefault)   },
                     { PassVariant(LitPasses._2D,             CorePragmas.DOTSDefault)   },
+                    { PassVariant(LitPasses.DebugMaterial,   CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.DOTSForward, LitDefines.ComplexLit)   },
                 },
             };
 

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using UnityEditor.Rendering;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
@@ -95,6 +97,22 @@ namespace UnityEngine.Rendering.Universal
         ScriptableRenderPassInput m_Input = ScriptableRenderPassInput.None;
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
+
+        private static readonly ShaderTagId s_DebugMaterialShaderTagId = new ShaderTagId("DebugMaterial");
+
+        private static Material s_ReplacementMaterial;
+        protected static Material replacementMaterial
+        {
+            get
+            {
+                if(s_ReplacementMaterial == null)
+                {
+                    s_ReplacementMaterial = new Material(Shader.Find("Hidden/Universal Render Pipeline/Debug/Replacement"));
+                }
+
+                return s_ReplacementMaterial;
+            }
+        }
 
         public ScriptableRenderPass()
         {
@@ -316,6 +334,71 @@ namespace UnityEngine.Rendering.Universal
         public static bool operator >(ScriptableRenderPass lhs, ScriptableRenderPass rhs)
         {
             return lhs.renderPassEvent > rhs.renderPassEvent;
+        }
+
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        protected void RenderObjectWithDebug(ScriptableRenderContext context, List<ShaderTagId> shaderTagIds, ref RenderingData renderingData,
+            FilteringSettings filterSettings, SortingCriteria sortingCriteria, bool overrideMaterial)
+        {
+            DrawingSettings debugSettings = overrideMaterial
+                ? CreateDrawingSettings(shaderTagIds, ref renderingData, sortingCriteria)
+                : CreateDrawingSettings(s_DebugMaterialShaderTagId, ref renderingData, sortingCriteria);
+
+            if (overrideMaterial)
+            {
+                var sceneOverrideMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
+                bool wireframe = false;
+
+                debugSettings.overrideMaterial = replacementMaterial;
+
+                switch (sceneOverrideMode)
+                {
+                    case SceneOverrides.Overdraw:
+                        debugSettings.overrideMaterialPassIndex = 0;
+                        break;
+
+                    case SceneOverrides.Wireframe:
+                    case SceneOverrides.SolidWireframe:
+                        debugSettings.overrideMaterialPassIndex = 1;
+                        wireframe = true;
+                        break;
+                }
+
+                if (DebugDisplaySettings.Instance.materialSettings.VertexAttributeDebugIndexData != VertexAttributeDebugMode.None)
+                {
+                    debugSettings.overrideMaterialPassIndex = 2;
+                }
+
+                if (wireframe)
+                {
+                    RenderStateBlock rsBlock = new RenderStateBlock();
+
+                    if (sceneOverrideMode == SceneOverrides.SolidWireframe)
+                    {
+                        replacementMaterial.SetColor("_DebugColor", Color.white);
+                        context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
+
+                        rsBlock.rasterState = new RasterState(CullMode.Back, -1, -1, true);
+                        rsBlock.mask = RenderStateMask.Raster;
+                    }
+
+                    context.Submit();
+                    GL.wireframe = true;
+                    replacementMaterial.SetColor("_DebugColor", Color.black);
+
+                    context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings, ref rsBlock);
+                    context.Submit();
+                    GL.wireframe = false;
+                }
+                else
+                {
+                    context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
+                }
+            }
+            else
+            {
+                context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
+            }
         }
     }
 }

@@ -139,7 +139,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                     bool overrideMaterial = isSceneOverrideActive;
 
-                    RenderingUtils.RenderObjectWithDebug(context, ref renderingData,
+                    RenderObjectWithDebug(context, m_ShaderTagIdList, ref renderingData,
                         m_FilteringSettings, sortingCriteria, overrideMaterial);
                 }
                 else

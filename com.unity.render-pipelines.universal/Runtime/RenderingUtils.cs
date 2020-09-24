@@ -108,25 +108,6 @@ namespace UnityEngine.Rendering.Universal
             new ShaderTagId("VertexLM"),
         };
 
-        static List<ShaderTagId> m_DebugShaderPassNames = new List<ShaderTagId>
-        {
-            new ShaderTagId("DebugMaterial"),
-            new ShaderTagId("UniversalForward")
-        };
-
-        static Material m_ReplacementMaterial;
-
-        internal static Material replacementMaterial
-        {
-            get
-            {
-                if (m_ReplacementMaterial == null)
-                    m_ReplacementMaterial = new Material(Shader.Find("Hidden/Universal Render Pipeline/Debug/Replacement"));
-
-                return m_ReplacementMaterial;
-            }
-        }
-
         static Mesh s_FullscreenMesh = null;
 
         /// <summary>
@@ -348,80 +329,6 @@ namespace UnityEngine.Rendering.Universal
                 errorSettings.SetShaderPassName(i, m_LegacyShaderPassNames[i]);
 
             context.DrawRenderers(cullResults, ref errorSettings, ref filterSettings);
-        }
-
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal static void RenderObjectWithDebug(ScriptableRenderContext context, ref RenderingData renderingData,
-            FilteringSettings filterSettings, SortingCriteria sortingCriteria, bool overrideMaterial)
-        {
-            SortingSettings sortingSettings = new SortingSettings(renderingData.cameraData.camera) { criteria = sortingCriteria };
-            int overrideMaterialIndex = overrideMaterial ? 1 : 0;
-            ShaderTagId passId = m_DebugShaderPassNames[overrideMaterialIndex];
-            DrawingSettings debugSettings = new DrawingSettings(passId, sortingSettings)
-            {
-                perObjectData = renderingData.perObjectData,
-                mainLightIndex = renderingData.lightData.mainLightIndex,
-                enableDynamicBatching = renderingData.supportsDynamicBatching,
-
-                // Disable instancing for preview cameras. This is consistent with the built-in forward renderer.
-                enableInstancing = renderingData.cameraData.cameraType != CameraType.Preview
-            };
-
-            if (overrideMaterial)
-            {
-                var sceneOverrideMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
-                bool wireframe = false;
-
-                debugSettings.overrideMaterial = replacementMaterial;
-
-                switch (sceneOverrideMode)
-                {
-                    case SceneOverrides.Overdraw:
-                        debugSettings.overrideMaterialPassIndex = 0;
-                        break;
-
-                    case SceneOverrides.Wireframe:
-                    case SceneOverrides.SolidWireframe:
-                        debugSettings.overrideMaterialPassIndex = 1;
-                        wireframe = true;
-                        break;
-                }
-
-                if (DebugDisplaySettings.Instance.materialSettings.VertexAttributeDebugIndexData != VertexAttributeDebugMode.None)
-                {
-                    debugSettings.overrideMaterialPassIndex = 2;
-                }
-
-                if (wireframe)
-                {
-                    RenderStateBlock rsBlock = new RenderStateBlock();
-
-                    if (sceneOverrideMode == SceneOverrides.SolidWireframe)
-                    {
-                        replacementMaterial.SetColor("_DebugColor", Color.white);
-                        context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
-
-                        rsBlock.rasterState = new RasterState(CullMode.Back, -1, -1, true);
-                        rsBlock.mask = RenderStateMask.Raster;
-                    }
-
-                    context.Submit();
-                    GL.wireframe = true;
-                    replacementMaterial.SetColor("_DebugColor", Color.black);
-
-                    context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings, ref rsBlock);
-                    context.Submit();
-                    GL.wireframe = false;
-                }
-                else
-                {
-                    context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
-                }
-            }
-            else
-            {
-                context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
-            }
         }
 
         // Caches render texture format support. SystemInfo.SupportsRenderTextureFormat and IsFormatSupported allocate memory due to boxing.

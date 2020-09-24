@@ -36,7 +36,6 @@ Shader "Universal Render Pipeline/Unlit"
         Pass
         {
             Name "Unlit"
-            Tags{"LightMode" = "UniversalForward"}
 
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
@@ -148,7 +147,6 @@ Shader "Universal Render Pipeline/Unlit"
         Pass
         {
             Name "Unlit"
-            Tags{"LightMode" = "UniversalForward"}
 
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore
