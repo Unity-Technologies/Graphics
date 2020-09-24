@@ -858,12 +858,6 @@ namespace UnityEditor.Rendering.Universal
                 return false;
             }
 
-            var deferredRendererData = rendererData as DeferredRendererData;
-            if (deferredRendererData != null && !deferredRendererData.postProcessIncluded && m_AdditionalCameraDataRenderPostProcessing.boolValue)
-            {
-                return false;
-            }
-
             return true;
         }
 
