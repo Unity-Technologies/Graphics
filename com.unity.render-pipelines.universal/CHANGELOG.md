@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.1.0] - 2019-08-04
 ### Added
+- Added support for the Shadowmask Mixed Lighting Mode (Forward only), which supports up to four baked-shadow Lights.
 - Added ComplexLit shader for advanced material features such as clear coat.
 
 ### Added
@@ -36,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed not using the local skybox on the camera game object when the Skybox Material property in the Lighting window was set to null.
 - Fixed an issue where, if URP was not in use, you would sometimes get errors about 2D Lights when going through the menus.
 - Fixed GC when using XR single-pass automated tests.
+- Fixed an issue that caused a null reference when deleting camera component in a prefab. [case 1244430](https://issuetracker.unity3d.com/issues/urp-argumentnullexception-error-is-thrown-on-removing-camera-component-from-camera-prefab)
 - Fixed resolution of intermediate textures when rendering to part of a render texture. [case 1261287](https://issuetracker.unity3d.com/product/unity/issues/guid/1261287/)
 - Fixed XR mirroView sRGB issue when color space is gamma.
 - Fixed an issue where XR eye textures are recreated multiple times per frame due to per camera MSAA change.
