@@ -216,9 +216,10 @@ SAMPLER(samplerunity_Lightmaps);
 TEXTURE2D(unity_LightmapInd);
 TEXTURE2D_ARRAY(unity_LightmapsInd);
 
-// We can have shadowMask only if we have lightmap, so no sampler
 TEXTURE2D(unity_ShadowMask);
+SAMPLER(samplerunity_ShadowMask);
 TEXTURE2D_ARRAY(unity_ShadowMasks);
+SAMPLER(samplerunity_ShadowMasks);
 
 // ----------------------------------------------------------------------------
 
