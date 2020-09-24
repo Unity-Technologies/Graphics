@@ -114,10 +114,6 @@ Pass
         #ifdef _MATERIAL_AFFECTS_ALBEDO
             $SurfaceDescription.BaseColor:      surfaceData.baseColor.xyz = surfaceDescription.BaseColor;
             $SurfaceDescription.Alpha:          surfaceData.baseColor.w = surfaceDescription.Alpha * fadeFactor;
-            if (surfaceData.baseColor.w > 0)
-            {
-                surfaceData.HTileMask |= DBUFFERHTILEBIT_DIFFUSE;
-            }
         #endif
 
         #ifdef _MATERIAL_AFFECTS_NORMAL
@@ -129,10 +125,6 @@ Pass
             #endif
 
             $SurfaceDescription.NormalAlpha:    surfaceData.normalWS.w = surfaceDescription.NormalAlpha * fadeFactor;
-            if (surfaceData.normalWS.w > 0)
-            {
-                surfaceData.HTileMask |= DBUFFERHTILEBIT_NORMAL;
-            }
         #else
             #if (SHADERPASS == SHADERPASS_FORWARD_PREVIEW) // Default to vertex normal
                 $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(float3(0.0, 0.0, 0.1), fragInputs.tangentToWorld));
@@ -150,11 +142,7 @@ Pass
                 $SurfaceDescription.MAOSAlpha:  surfaceData.MAOSBlend.x = surfaceDescription.MAOSAlpha * fadeFactor;
                 $SurfaceDescription.MAOSAlpha:  surfaceData.MAOSBlend.y = surfaceDescription.MAOSAlpha * fadeFactor;
             #endif
-
-            if (surfaceData.mask.w > 0)
-            {
-                surfaceData.HTileMask |= DBUFFERHTILEBIT_MASK;
-            }                                                        
+                                                      
         #endif
     }
 
