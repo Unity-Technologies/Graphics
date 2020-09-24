@@ -110,6 +110,10 @@ namespace UnityEngine.Rendering.Universal
             ShaderData.instance.Dispose();
             DeferredShaderData.instance.Dispose();
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+            m_XRSystem?.Dispose();
+#endif
+
 #if UNITY_EDITOR
             SceneViewDrawMode.ResetDrawMode();
 #endif
@@ -129,7 +133,10 @@ namespace UnityEngine.Rendering.Universal
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
             SetupPerFrameShaderConstants();
-
+#if ENABLE_VR && ENABLE_XR_MODULE
+            // Update XR MSAA level per frame.
+            XRSystem.UpdateMSAALevel(asset.msaaSampleCount);
+#endif
             SortCameras(cameras);
             for (int i = 0; i < cameras.Length; ++i)
             {
@@ -348,12 +355,7 @@ namespace UnityEngine.Rendering.Universal
                 if (baseCameraData.xr.enabled)
                 {
                     xrActive = true;
-                    baseCameraData.cameraTargetDescriptor = baseCameraData.xr.renderTargetDesc;
-                    if (baseCameraData.isHdrEnabled)
-                    {
-                        baseCameraData.cameraTargetDescriptor.graphicsFormat = originalTargetDesc.graphicsFormat;
-                    }
-                    baseCameraData.cameraTargetDescriptor.msaaSamples = originalTargetDesc.msaaSamples;
+
                     // Update cameraData for XR
                     Rect cameraRect = baseCamera.rect;
                     Rect xrViewport = baseCameraData.xr.GetViewport();
@@ -361,9 +363,20 @@ namespace UnityEngine.Rendering.Universal
                                                         cameraRect.y * xrViewport.height + xrViewport.y,
                                                         cameraRect.width * xrViewport.width,
                                                         cameraRect.height * xrViewport.height);
-                    baseCameraData.pixelWidth  = (int)(cameraRect.width * xrViewport.width);
-                    baseCameraData.pixelHeight = (int)(cameraRect.height * xrViewport.height);
+                    Rect camPixelRect = baseCameraData.pixelRect;
+                    baseCameraData.pixelWidth  = (int)System.Math.Round(camPixelRect.width + camPixelRect.x) - (int)System.Math.Round(camPixelRect.x);
+                    baseCameraData.pixelHeight = (int)System.Math.Round(camPixelRect.height + camPixelRect.y) - (int)System.Math.Round(camPixelRect.y);
                     baseCameraData.aspectRatio = (float)baseCameraData.pixelWidth / (float)baseCameraData.pixelHeight;
+
+                    // Update intermediate camera target descriptor for XR
+                    baseCameraData.cameraTargetDescriptor = baseCameraData.xr.renderTargetDesc;
+                    if (baseCameraData.isHdrEnabled)
+                    {
+                        baseCameraData.cameraTargetDescriptor.graphicsFormat = originalTargetDesc.graphicsFormat;
+                    }
+                    baseCameraData.cameraTargetDescriptor.msaaSamples = originalTargetDesc.msaaSamples;
+                    baseCameraData.cameraTargetDescriptor.width = baseCameraData.pixelWidth;
+                    baseCameraData.cameraTargetDescriptor.height = baseCameraData.pixelHeight;
                 }
 #endif
             BeginCameraRendering(context, baseCamera);
@@ -536,6 +549,9 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.isDitheringEnabled = false;
                 cameraData.antialiasing = AntialiasingMode.None;
                 cameraData.antialiasingQuality = AntialiasingQuality.High;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                cameraData.xrRendering = false;
+#endif
             }
             else if (baseAdditionalCameraData != null)
             {
@@ -545,6 +561,9 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.isDitheringEnabled = baseAdditionalCameraData.dithering;
                 cameraData.antialiasing = baseAdditionalCameraData.antialiasing;
                 cameraData.antialiasingQuality = baseAdditionalCameraData.antialiasingQuality;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                cameraData.xrRendering = baseAdditionalCameraData.allowXRRendering;
+#endif
             }
             else
             {
@@ -554,6 +573,9 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.isDitheringEnabled = false;
                 cameraData.antialiasing = AntialiasingMode.None;
                 cameraData.antialiasingQuality = AntialiasingQuality.High;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                cameraData.xrRendering = true;
+#endif
             }
 
             ///////////////////////////////////////////////////////////////////
@@ -566,6 +588,12 @@ namespace UnityEngine.Rendering.Universal
             int msaaSamples = 1;
             if (baseCamera.allowMSAA && settings.msaaSampleCount > 1 && rendererSupportsMSAA)
                 msaaSamples = (baseCamera.targetTexture != null) ? baseCamera.targetTexture.antiAliasing : settings.msaaSampleCount;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            // Use XR's MSAA if camera is XR camera. XR MSAA needs special handle here because it is not per Camera.
+            // Multiple cameras could render into the same XR display and they should share the same MSAA level.
+            if (cameraData.xrRendering)
+                msaaSamples = XRSystem.GetMSAALevel();
+#endif
 
             cameraData.isHdrEnabled = baseCamera.allowHDR && settings.supportsHDR;
 
@@ -584,7 +612,6 @@ namespace UnityEngine.Rendering.Universal
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             cameraData.xr = m_XRSystem.emptyPass;
-            XRSystem.UpdateMSAALevel(msaaSamples);
             XRSystem.UpdateRenderScale(cameraData.renderScale);
 #else
             cameraData.xr = XRPass.emptyPass;
@@ -628,9 +655,6 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
                 cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
                 cameraData.renderer = asset.scriptableRenderer;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                cameraData.xrRendering = false;
-#endif
             }
             else if (additionalCameraData != null)
             {
@@ -641,9 +665,6 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresDepthTexture = additionalCameraData.requiresDepthTexture;
                 cameraData.requiresOpaqueTexture = additionalCameraData.requiresColorTexture;
                 cameraData.renderer = additionalCameraData.scriptableRenderer;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                cameraData.xrRendering = additionalCameraData.allowXRRendering;
-#endif
             }
             else
             {
@@ -653,9 +674,6 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
                 cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
                 cameraData.renderer = asset.scriptableRenderer;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                cameraData.xrRendering = true;
-#endif
             }
 
             // Disable depth and color copy. We should add it in the renderer instead to avoid performance pitfalls
@@ -759,25 +777,9 @@ namespace UnityEngine.Rendering.Universal
 
             // We no longer use screen space shadows in URP.
             // This change allows us to have particles & transparent objects receive shadows.
-            shadowData.requiresScreenSpaceShadowResolve = false;// shadowData.supportsMainLightShadows && supportsScreenSpaceShadows && settings.shadowCascadeOption != ShadowCascadesOption.NoCascades;
+            shadowData.requiresScreenSpaceShadowResolve = false;
 
-            int shadowCascadesCount;
-            switch (settings.shadowCascadeOption)
-            {
-                case ShadowCascadesOption.FourCascades:
-                    shadowCascadesCount = 4;
-                    break;
-
-                case ShadowCascadesOption.TwoCascades:
-                    shadowCascadesCount = 2;
-                    break;
-
-                default:
-                    shadowCascadesCount = 1;
-                    break;
-            }
-
-            shadowData.mainLightShadowCascadesCount = shadowCascadesCount;//(shadowData.requiresScreenSpaceShadowResolve) ? shadowCascadesCount : 1;
+            shadowData.mainLightShadowCascadesCount = settings.shadowCascadeCount;
             shadowData.mainLightShadowmapWidth = settings.mainLightShadowmapResolution;
             shadowData.mainLightShadowmapHeight = settings.mainLightShadowmapResolution;
 
@@ -789,6 +791,10 @@ namespace UnityEngine.Rendering.Universal
 
                 case 2:
                     shadowData.mainLightShadowCascadesSplit = new Vector3(settings.cascade2Split, 1.0f, 0.0f);
+                    break;
+
+                case 3:
+                    shadowData.mainLightShadowCascadesSplit = new Vector3(settings.cascade3Split.x, settings.cascade3Split.y, 0.0f);
                     break;
 
                 default:

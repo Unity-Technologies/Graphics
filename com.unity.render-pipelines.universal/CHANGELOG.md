@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed PostProssingData to optional in ForwardRenderer and DeferredRenderer. Builds will no longer include post processing shaders and textures when it will be disabled.
 
 ### Fixed
+- Fixed an issue were the filter window could not be defocused using the mouse. [case 1242032](https://issuetracker.unity3d.com/issues/urp-volume-override-window-doesnt-disappear-when-clicked-on-the-other-windows-in-the-editor)
+- Fixed camera backgrounds not matching between editor and build when background is set to 'Uninitialized'. [case 1224369](https://issuetracker.unity3d.com/issues/urp-uninitialized-camera-background-type-does-not-match-between-the-build-and-game-view)
 - Fixed a case where main light hard shadows would not work if any other light is present with soft shadows.[case 1250829](https://issuetracker.unity3d.com/issues/main-light-shadows-are-ignored-in-favor-of-additional-lights-shadows)
 - Fixed issue that caused color grading to not work correctly with camera stacking. [case 1263193](https://issuetracker.unity3d.com/product/unity/issues/guid/1263193/)
 - Fixed an issue that caused an infinite asset database reimport when running Unity in command line with -testResults argument.
@@ -33,6 +35,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with a render texture failing assertion when chosing an invalid format. [case 1222676](https://issuetracker.unity3d.com/issues/the-error-occurs-when-a-render-texture-which-has-a-certain-color-format-is-applied-to-the-cameras-output-target)
 - Fixed an issue that caused the unity_CameraToWorld matrix to have z flipped values. [case 1257518](https://issuetracker.unity3d.com/issues/parameter-unity-cameratoworld-dot-13-23-33-is-inverted-when-using-universal-rp-7-dot-4-1-and-newer)
 - Fixed not using the local skybox on the camera game object when the Skybox Material property in the Lighting window was set to null.
+- Fixed an issue where, if URP was not in use, you would sometimes get errors about 2D Lights when going through the menus.
+- Fixed GC when using XR single-pass automated tests.
+- Fixed resolution of intermediate textures when rendering to part of a render texture. [case 1261287](https://issuetracker.unity3d.com/product/unity/issues/guid/1261287/)
+- Fixed XR mirroView sRGB issue when color space is gamma.
+- Fixed an issue where XR eye textures are recreated multiple times per frame due to per camera MSAA change.
+- Fixed an issue wehre XR mirror view selector stuck. 
 
 ## [10.0.0] - 2019-06-10
 ### Added
@@ -62,6 +70,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Shader Preprocessor strips gbuffer shader variants if DeferredRenderer is not in the list of renderers in any Scriptable Pipeline Assets.
 - Added an option to enable/disable Adaptive Performance when the Adaptive Performance package is available in the project.
 - Added support for 3DsMax's 2021 Simplified Physical Material from FBX files in the Model Importer.
+- Added GI to SpeedTree
 - Added support for DXT5nm-style normal maps on Android, iOS and tvOS
 - Added stencil override support for deferred renderer.
 - Added a warning message when a renderer is used with an unsupported graphics API, as the deferred renderer does not officially support GL-based platforms.
@@ -110,6 +119,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Eliminated some unnecessary clearing of render targets when using the 2D Renderer.
 - The rendering of 2D lights is more effient as sorting layers affected by the same set of lights are now batched.
 - Removed the 8 renderer limit from URP Asset.
+- Merged the deferred renderer into the forward renderer.
 - Changing the default value of Skip Iterations to 1 in Bloom effect editor
 - Use SystemInfo to check if multiview is supported instead of being platform hardcoded
 - Default attachment setup behaviour for ScriptableRenderPasses that execute before rendering opaques is now set use current the active render target setup. This improves performance in some situations.
