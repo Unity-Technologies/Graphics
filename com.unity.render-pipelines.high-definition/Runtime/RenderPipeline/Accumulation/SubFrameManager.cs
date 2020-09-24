@@ -342,7 +342,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeIntParam(accumulationShader, HDShaderIDs._AccumulationNeedsExposure, parameters.needExposure ? 1 : 0);
             cmd.DispatchCompute(accumulationShader, parameters.accumulationKernel, (parameters.hdCamera.actualWidth + 7) / 8, (parameters.hdCamera.actualHeight + 7) / 8, parameters.hdCamera.viewCount);
 
-            accumulationShader.shaderKeywords = null;
             if (!inputTexture.Equals(outputTexture))
             {
                 cmd.SetComputeTextureParam(accumulationShader, parameters.accumulationKernel, HDShaderIDs._RadianceTexture, inputTexture);
