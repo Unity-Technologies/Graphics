@@ -196,6 +196,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 numSubMeshes = skinnedMesh.sharedMesh.subMeshCount;
             }
 
+            // Let's clamp the number of sub-meshes to avoid throwing an unwated error
+            numSubMeshes = Mathf.Min(numSubMeshes, maxNumSubMeshes);
+
             // Get the layer of this object
             int objectLayerValue = 1 << currentRenderer.gameObject.layer;
 
@@ -359,10 +362,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RayTracedShadowsRequired = false;
             m_RayTracedContactShadowsRequired = false;
 
-            // If the camera does not have a ray tracing frame setting
-            // or it is a preview camera (due to the fact that the sphere does not exist as a game object we can't create the RTAS)
-            // we do not want to build a RTAS
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)|| hdCamera.camera.cameraType == CameraType.Preview)
+            // If the camera does not have a ray tracing frame setting or it is a preview camera (due to the fact that the sphere does not exist as a game object we can't create the RTAS) we do not want to build a RTAS
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
                 return;
 
             // We only support ray traced shadows if the camera supports ray traced shadows
@@ -566,6 +567,16 @@ namespace UnityEngine.Rendering.HighDefinition
             else
         #endif
             return hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)m_FrameCount % 8;
+        }
+
+        internal int RayTracingFrameIndex(HDCamera hdCamera, int targetFrameCount = 8)
+        {
+            #if UNITY_HDRP_DXR_TESTS_DEFINE
+            if (Application.isPlaying)
+                return 0;
+            else
+            #endif
+                return (int)hdCamera.GetCameraFrameCount() % targetFrameCount;
         }
 
         internal bool RayTracingLightClusterRequired(HDCamera hdCamera)
