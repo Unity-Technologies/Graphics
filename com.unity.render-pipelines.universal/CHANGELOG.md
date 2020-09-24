@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed camera backgrounds not matching between editor and build when background is set to 'Uninitialized'. [case 1224369](https://issuetracker.unity3d.com/issues/urp-uninitialized-camera-background-type-does-not-match-between-the-build-and-game-view)
+- Fixed an issue where gamma correction was being applied twice for Google VR on iOS devices when FXAA was enabled. [case 1251402](https://issuetracker.unity3d.com/issues/metal-urp-ios-google-vr-ios-white-filter-appears-when-using-fxaa-plus-post-processing-plus-single-pass-stereo-rendering-mode)
 
 ## [7.5.1] - 2020-09-02
 
