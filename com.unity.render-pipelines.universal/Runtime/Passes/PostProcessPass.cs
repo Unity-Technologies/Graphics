@@ -231,7 +231,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // If eye texture color format is linear, we do explicit sRGB convertion
 #if ENABLE_VR && ENABLE_VR_MODULE
             if (cameraData.isStereoEnabled)
-                requiresSRGBConversion = !XRGraphics.eyeTextureDesc.sRGB;
+                requiresSRGBConversion = !XRGraphics.eyeTextureDesc.sRGB && (QualitySettings.activeColorSpace == ColorSpace.Linear);
 #endif
             return requiresSRGBConversion;
         }
