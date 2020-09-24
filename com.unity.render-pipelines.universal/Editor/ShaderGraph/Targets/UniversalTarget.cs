@@ -741,6 +741,24 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
         };
 
+        public static readonly KeywordDescriptor LightmapShadowMixing = new KeywordDescriptor()
+        {
+            displayName = "Lightmap Shadow Mixing",
+            referenceName = "LIGHTMAP_SHADOW_MIXING",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static readonly KeywordDescriptor ShadowsShadowmask = new KeywordDescriptor()
+        {
+            displayName = "Shadows Shadowmask",
+            referenceName = "SHADOWS_SHADOWMASK",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
         public static readonly KeywordDescriptor SmoothnessChannel = new KeywordDescriptor()
         {
             displayName = "Smoothness Channel",
