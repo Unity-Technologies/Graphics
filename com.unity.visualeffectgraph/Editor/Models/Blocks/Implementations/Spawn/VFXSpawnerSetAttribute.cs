@@ -78,10 +78,10 @@ namespace UnityEditor.VFX.Block
                     {
                         default:
                         case RandomMode.PerComponent:
-                            random = new VFXExpressionCombine(Enumerable.Repeat(0, size).Select(_ => new VFXExpressionRandom(false, new RandId(this, 1))).ToArray());
+                            random = new VFXExpressionCombine(Enumerable.Range(0, size).Select(i => new VFXExpressionRandom(false, new RandId(this, i))).ToArray());
                             break;
                         case RandomMode.Uniform:
-                            random = new VFXExpressionCombine(Enumerable.Repeat(new VFXExpressionRandom(false, new RandId(this, 2)), size).ToArray());
+                            random = new VFXExpressionCombine(Enumerable.Repeat(new VFXExpressionRandom(false, new RandId(this, 0)), size).ToArray());
                             break;
                     }
                 }
