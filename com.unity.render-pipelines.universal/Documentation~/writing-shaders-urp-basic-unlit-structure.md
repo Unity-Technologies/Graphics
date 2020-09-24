@@ -150,6 +150,7 @@ Possible values for `LightMode` tag are:
 *UniversalGBuffer*: Renders objects geometry without evaluating any light contribution. Used in deferred rendering mode.
 
 *UniversalForwardOnly*: Same as *UniversalForward*, however used for both forward and deferred rendering modes. This is useful when you want to render objects in forward while the pipeline is in deferred mode because they contain additional data that doens't fit the GBuffer, f.ex, clear coat normals. If you want a shader to render in both forward and deferred, declare both 
+
 *UniversalForward* and *UniversalGBuffer* passes. If you want a material to render in forward regarless of the rendering mode you should declare only a *UniversalForwardOnly* pass.
 
 *Universal2D*: Renders objects and evaluate 2D lights. Used in 2D renderer.
