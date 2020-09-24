@@ -49,9 +49,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return sortingLayers.Length-1;
         }
 
-        public static List<LayerBatch> CalculateBatches(SortingLayer[] cachedSortingLayers, ILight2DCullResult lightCullResult)
+        public static List<LayerBatch> CalculateBatches(ILight2DCullResult lightCullResult)
         {
-            var count = Light2DManager.GetCachedSortingLayer().Length;
+            var cachedSortingLayers = Light2DManager.GetCachedSortingLayer();
+            var count = cachedSortingLayers.Length;
             s_LayerBatches ??= new List<LayerBatch>(count);
 
 #if UNITY_EDITOR

@@ -205,7 +205,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var isSceneLit = m_Renderer2DData.lightCullResult.IsSceneLit();
             if (isSceneLit)
             {
-                var cachedSortingLayers = Light2DManager.GetCachedSortingLayer();
                 var combinedDrawSettings = CreateDrawingSettings(k_ShaderTags, ref renderingData, SortingCriteria.CommonTransparent);
                 var normalsDrawSettings = CreateDrawingSettings(k_NormalsRenderingPassName, ref renderingData, SortingCriteria.CommonTransparent);
 
@@ -221,7 +220,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmd.SetGlobalColor(k_RendererColorID, Color.white);
                 this.SetShapeLightShaderGlobals(cmd);
 
-                var layerBatches = LayerUtility.CalculateBatches(cachedSortingLayers, m_Renderer2DData.lightCullResult);
+                var layerBatches = LayerUtility.CalculateBatches(m_Renderer2DData.lightCullResult);
                 var batchCount = layerBatches.Count;
                 var batchSize = m_Renderer2DData.batchSize;
 
