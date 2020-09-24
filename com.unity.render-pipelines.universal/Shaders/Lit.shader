@@ -218,7 +218,11 @@ Shader "Universal Render Pipeline/Lit"
 
             //--------------------------------------
             // Metal 2
-            #pragma multi_compile_fragment _ METAL2_ENABLED
+            // Use multi_compile instead of multi_compile_fragment, because
+            // we're defining REQUIRES_WORLD_SPACE_POS_INTERPOLATOR macro,
+            // which should be applied to both vs and fs to ensure the same
+            // Varyings definition.
+            #pragma multi_compile _ METAL2_ENABLED
             
             //--------------------------------------
             // GPU Instancing
@@ -227,6 +231,11 @@ Shader "Universal Render Pipeline/Lit"
             #pragma vertex LitGBufferPassVertex
             #pragma fragment LitGBufferPassFragment
             //#pragma enable_d3d11_debug_symbols
+
+            // We can use world position to save some F32 ALU
+            #if defined(METAL2_ENABLED)
+                #define REQUIRES_WORLD_SPACE_POS_INTERPOLATOR
+            #endif
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitGBufferPass.hlsl"

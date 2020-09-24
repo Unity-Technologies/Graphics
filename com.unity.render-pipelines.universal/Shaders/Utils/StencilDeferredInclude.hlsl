@@ -112,21 +112,22 @@ half4 DeferredShading(Varyings input) : SV_Target
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
     
-#if !defined(METAL2_ENABLED)
-    // Using SAMPLE_TEXTURE2D is faster than using LOAD_TEXTURE2D on iOS platforms (5% faster shader).
-    // Possible reason: HLSLcc upcasts Load() operation to float, which doesn't happen for Sample()?
-    float2 screen_uv = (input.screenUV.xy / input.screenUV.z);
-    float d        = SAMPLE_TEXTURE2D_X_LOD(_CameraDepthTexture, my_point_clamp_sampler, screen_uv, 0).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
-    half4 gbuffer0 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer0, my_point_clamp_sampler, screen_uv, 0);
-    half4 gbuffer1 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer1, my_point_clamp_sampler, screen_uv, 0);
-    half4 gbuffer2 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer2, my_point_clamp_sampler, screen_uv, 0);
-#else
-    float d;
-    half4 gbuffer0;
-    half4 gbuffer1;
-    half4 gbuffer2;
-    LoadGBufferFromImageBlock(d, gbuffer0, gbuffer1, gbuffer2);
-#endif
+    #if !defined(METAL2_ENABLED)
+        // Using SAMPLE_TEXTURE2D is faster than using LOAD_TEXTURE2D on iOS platforms (5% faster shader).
+        // Possible reason: HLSLcc upcasts Load() operation to float, which doesn't happen for Sample()?
+        float2 screen_uv = (input.screenUV.xy / input.screenUV.z);
+        float d        = SAMPLE_TEXTURE2D_X_LOD(_CameraDepthTexture, my_point_clamp_sampler, screen_uv, 0).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
+        half4 gbuffer0 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer0, my_point_clamp_sampler, screen_uv, 0);
+        half4 gbuffer1 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer1, my_point_clamp_sampler, screen_uv, 0);
+        half4 gbuffer2 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer2, my_point_clamp_sampler, screen_uv, 0);
+    #else
+        float d;
+        half4 gbuffer0;
+        half4 gbuffer1;
+        half4 gbuffer2;
+        float3 posWS;
+        LoadGBufferFromImageBlock(posWS, d, gbuffer0, gbuffer1, gbuffer2);
+    #endif
 
 
     #if XR_MODE
@@ -139,7 +140,7 @@ half4 DeferredShading(Varyings input) : SV_Target
         posCS.y = -posCS.y;
         #endif
         float3 posWS = ComputeWorldSpacePosition(posCS, UNITY_MATRIX_I_VP);
-    #else
+    #elif !defined(METAL2_ENABLED)
         // We can fold all this into 1 neat matrix transform, unless in XR Single Pass mode at the moment.
         float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
         posWS.xyz *= rcp(posWS.w);

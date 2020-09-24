@@ -26,12 +26,21 @@ struct FragmentOutput
 // FragmentOutput will be convert to imageblock_FragmentOutput_t at the end of the fragment shader
 #if METAL2_ENABLED
 
+#define GBUFFER_0 __RasterOrderGroup_0_StorageFormat_rgba8unorm__GBuffer0
+#define GBUFFER_1 __RasterOrderGroup_0_StorageFormat_rgba8unorm__GBuffer1
+#if defined(_GBUFFER_NORMALS_OCT)
+    #define GBUFFER_2 __RasterOrderGroup_0_StorageFormat_rgba8unorm__GBuffer2
+#else
+    #define GBUFFER_2 __RasterOrderGroup_0_StorageFormat_rgba8snorm__GBuffer2
+#endif
+#define GBUFFER_GEO __RasterOrderGroup_0__WPos_Depth
+
 struct imageblock_FragmentOutput_t
 {
-    half4 __RasterOrderGroup_0__GBuffer0;
-    half4 __RasterOrderGroup_0__GBuffer1;
-    half4 __RasterOrderGroup_0__GBuffer2;
-    float __RasterOrderGroup_0__Depth;
+    half4 GBUFFER_0;
+    half4 GBUFFER_1;
+    half4 GBUFFER_2;
+    float4 GBUFFER_GEO;
 };
 
 #define VAR(name, var) name##[0].##var
@@ -39,36 +48,38 @@ struct imageblock_FragmentOutput_t
 
 RWStructuredBuffer<imageblock_FragmentOutput_t> GBUFFER_NM;
 
-half4 GbufferToImageBlock(FragmentOutput output, float depth)
+half4 GbufferToImageBlock(FragmentOutput output, float3 posWS, float depth)
 {
-    VAR(GBUFFER_NM, __RasterOrderGroup_0__GBuffer0) = output.GBuffer0;
-    VAR(GBUFFER_NM, __RasterOrderGroup_0__GBuffer1) = output.GBuffer1;
-    VAR(GBUFFER_NM, __RasterOrderGroup_0__GBuffer2) = output.GBuffer2;
-    VAR(GBUFFER_NM, __RasterOrderGroup_0__Depth) = depth;
+    VAR(GBUFFER_NM, GBUFFER_0) = output.GBuffer0;
+    VAR(GBUFFER_NM, GBUFFER_1) = output.GBuffer1;
+    VAR(GBUFFER_NM, GBUFFER_2) = output.GBuffer2;
+    VAR(GBUFFER_NM, GBUFFER_GEO) = float4(posWS, depth) ;
     return output.GBuffer3;
 }
 
 float LoadDepthFromImageBlock()
 {
-    return VAR(GBUFFER_NM, __RasterOrderGroup_0__Depth);
+    return VAR(GBUFFER_NM, GBUFFER_GEO.w);
 }
 
-void LoadGBufferFromImageBlock(out float d, out half4 gbuffer0, out half4 gbuffer1, out half4 gbuffer2)
+void LoadGBufferFromImageBlock(out float3 wpos, out float d, out half4 gbuffer0, out half4 gbuffer1, out half4 gbuffer2)
 {
-    d = LoadDepthFromImageBlock();
-    gbuffer0 = VAR(GBUFFER_NM, __RasterOrderGroup_0__GBuffer0);
-    gbuffer1 = VAR(GBUFFER_NM, __RasterOrderGroup_0__GBuffer1);
-    gbuffer2 = VAR(GBUFFER_NM, __RasterOrderGroup_0__GBuffer2);
+    float4 f = VAR(GBUFFER_NM, GBUFFER_GEO);
+    wpos = f.xyz;
+    d = f.w;
+    gbuffer0 = VAR(GBUFFER_NM, GBUFFER_0);
+    gbuffer1 = VAR(GBUFFER_NM, GBUFFER_1);
+    gbuffer2 = VAR(GBUFFER_NM, GBUFFER_2);
 }
 
 #define GBUFFER_PASS_OUTPUT_TYPE half4
-#define CONVERT_GBUFFER(GBUFFER, DEPTH) GbufferToImageBlock(GBUFFER, DEPTH)
+#define CONVERT_GBUFFER(GBUFFER, WPos, clipZ) GbufferToImageBlock(GBUFFER, WPos, clipZ)
 #define GBUFFER_PASS_OUTPUT_SEMANTICS :SV_Target0
 
 #else
 
 #define GBUFFER_PASS_OUTPUT_TYPE FragmentOutput
-#define CONVERT_GBUFFER(GBUFFER, DEPTH) GBUFFER
+#define CONVERT_GBUFFER(GBUFFER, WPos, clipZ) GBUFFER
 #define GBUFFER_PASS_OUTPUT_SEMANTICS
 
 #endif  // METAL2_ENABLED

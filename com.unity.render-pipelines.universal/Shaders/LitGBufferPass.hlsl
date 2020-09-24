@@ -157,10 +157,14 @@ GBUFFER_PASS_OUTPUT_TYPE LitGBufferPassFragment(Varyings input) GBUFFER_PASS_OUT
 
     color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS, specularHighlightsOff); // TODO move this to a separate full-screen single gbuffer pass?
 
+#if METAL2_ENABLED
     return CONVERT_GBUFFER(
         BRDFDataToGbuffer(brdfData, inputData, surfaceData.smoothness, surfaceData.emission + color),
-        input.positionCS.z
-    );
+        input.positionWS,
+        input.positionCS.z);
+#else
+    return BRDFDataToGbuffer(brdfData, inputData, surfaceData.smoothness, surfaceData.emission + color);
+#endif
 }
 
 #endif

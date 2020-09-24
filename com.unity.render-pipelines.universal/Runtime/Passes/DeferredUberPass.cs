@@ -49,7 +49,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void ConfigureTileParameters(ScriptableRenderContext context)
         {
             int threadGroupMemoryLength = 0;
-            int imageBlockSampleLength = 8*3+16;
+            int imageBlockSampleLength = 48;
             context.SetTileParams(tileWidth, tileHeight, threadGroupMemoryLength, imageBlockSampleLength);
         }
 
