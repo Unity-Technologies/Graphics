@@ -75,6 +75,7 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
     output.bakedGI = SampleSHPixel(input.vertexSH, output.normalWS);
     output.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
     output.normalTS = normalTS;
+    output.shadowMask = half4(1, 1, 1, 1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -38,6 +38,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
+
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature_local _NORMALMAP
@@ -234,6 +235,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore
             #pragma target 2.0
+
 
             // -------------------------------------
             // Material Keywords

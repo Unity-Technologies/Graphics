@@ -63,6 +63,8 @@ void InitializeInputData(GrassVertexOutput input, out InputData inputData)
 
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
+    inputData.shadowMask = SAMPLE_SHADOWMASK(input.lightmapUV);
+
     inputData.normalTS = input.normal;
     #if defined(LIGHTMAP_ON)
     inputData.lightmapUV = input.lightmapUV;
@@ -187,11 +189,12 @@ half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
     InputData inputData;
     InitializeInputData(input, inputData);
 
-    half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData.albedo, half4(surfaceData.specular, surfaceData.smoothness), surfaceData.smoothness, surfaceData.emission, surfaceData.alpha);
 
 #ifdef TERRAIN_GBUFFER
+    half4 color = half4(inputData.bakedGI * surfaceData.albedo + surfaceData.emission, surfaceData.alpha);
     return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit);
 #else
+    half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData.albedo, half4(surfaceData.specular, surfaceData.smoothness), surfaceData.smoothness, surfaceData.emission, surfaceData.alpha);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     return color;
 #endif
