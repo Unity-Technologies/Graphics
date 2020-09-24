@@ -427,7 +427,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // Doesn't create texture for Overlay cameras as they are already overlaying on top of created textures.
                 if (intermediateRenderTexture)
-                    CreateCameraRenderTarget(context, ref cameraTargetDescriptor, createColorTexture, createDepthTexture);
+                    CreateCameraRenderTarget(context, ref cameraTargetDescriptor);
             }
             else
             {
@@ -704,7 +704,7 @@ namespace UnityEngine.Rendering.Universal
                 m_TileDepthInfoTexture,
                 m_ActiveCameraDepthAttachment, m_GBufferHandles
             );
-            
+
             EnqueuePass(m_GBufferPass);
 
             EnqueuePass(m_RenderOpaqueForwardOnlyPass);
