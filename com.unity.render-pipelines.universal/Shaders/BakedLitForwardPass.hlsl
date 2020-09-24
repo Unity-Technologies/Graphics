@@ -50,6 +50,7 @@ InputData CreateInputData(Varyings input, half3 normalTS)
     inputData.vertexLighting = half3(0, 0, 0);
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
+    inputData.shadowMask = half4(1, 1, 1, 1);
     inputData.normalTS = normalTS;
 
     #if defined(LIGHTMAP_ON)
