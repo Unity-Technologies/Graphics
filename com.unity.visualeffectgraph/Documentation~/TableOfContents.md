@@ -21,7 +21,6 @@
   * [Using Visual Effects with Timeline](Timeline.md)
   * [Property Binders](PropertyBinders.md)
   * [Event Binders](EventBinders.md)
-  * [Output Event Handlers](OutputEventHandlers.md)
 * Pipeline Tools
   * [ExposedProperty Helper](ExposedPropertyHelper.md)
   * [Vector Fields](VectorFields.md)
