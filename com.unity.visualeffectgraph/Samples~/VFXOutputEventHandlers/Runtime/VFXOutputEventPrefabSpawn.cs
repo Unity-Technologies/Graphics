@@ -200,6 +200,10 @@ namespace UnityEngine.VFX.Utility
                         m_TimesToLive[i] -= dt;
                 }
             }
+            else
+            {
+                DisposeInstances();
+            }
         }
     }
 }
