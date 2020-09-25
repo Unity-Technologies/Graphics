@@ -39,7 +39,7 @@ To expose these properties, select a Sub-layer in the **Render Schedule**.
 | **Clear Depth**| Specifies whether Unity clears the depth buffer before it draws the contents of this Sub-layer. |
 | **Clear Alpha** |Specifies whether Unity clears the alpha channel before it draws the contents of this Sub-layer. If you enable this property, post-processing only affects pixels drawn by previous Sub-layers. Otherwise, post-processing also affects pixels drawn in previous Composition Layers.|
 | **Clear Color** |Overrides the **Background Type** for this Sub-layer. By default, this has the same value as **Background Type** on the Sub-layer's Camera. To override this value, enable the checkbox then select the new value from the drop-down.|
-| **Anti-aliasing** |Overrides the **Anti-aliasing** mode for this Sub-layer. By default, this has the same value as **Anti-aliasing** on the Sub-layer's Camera.|
+| **Post Anti-aliasing** |Overrides the **Postprocess Anti-aliasing** mode for this Sub-layer. By default, this has the same value as **Postprocess Anti-aliasing** on the Sub-layer's Camera.|
 | **Culling Mask** |Overrides the **Culling Mask** for this Sub-layer. By default, this has the same value as **Culling Mask** on the Sub-layer's Camera.|
 | **Volume Mask** |Overrides the **Volume Layer Mask** for this Sub-layer. By default, this has the same value as **Volume Layer Mask** on the Sub-layer's Camera. You can use this to have different post-processing effects for each Sub-layer.|
 | **Input Filters**| A list of [filters](#Sub-layer-filters) to apply to this Sub-layer. |

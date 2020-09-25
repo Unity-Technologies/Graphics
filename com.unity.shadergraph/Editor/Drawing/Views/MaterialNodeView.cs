@@ -340,7 +340,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         string ConvertToShader(GenerationMode mode)
         {
-            var generator = new Generator(node.owner, node, mode, node.name);
+            var generator = new Generator(node.owner, node, mode, node.name, null);
             return generator.generatedShader;
         }
 
