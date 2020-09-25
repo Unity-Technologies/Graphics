@@ -29,6 +29,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue when undoing a change in diffuse profile list after deleting the volume profile.
 - Fixed a static lighting flickering issue caused by having an active planar probe in the scene while rendering inspector preview.
 - Fixed an issue where even when set to OnDemand, the sky lighting would still be updated when changing sky parameters.
+- Fixed SSS materials appearing black in matcap mode.
+- Fixed rendering of custom passes in the Custom Pass Volume inspector
 
 ### Changed
 - Remove MSAA debug mode when renderpipeline asset has no MSAA
