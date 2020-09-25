@@ -218,7 +218,7 @@ namespace UnityEngine.Rendering.Universal
         // Static samplers for absolute control & speed. No allocations, no overhead.
         // Suitable for loops or repeatedly called functions with a static name.
         // Roughly categorized using structs.
-        public struct Pipeline
+        public static class Pipeline
         {
             public static readonly ProfilingSampler beginFrameRendering  = new ProfilingSampler("BeginFrameRendering");
             public static readonly ProfilingSampler endFrameRendering    = new ProfilingSampler("EndFrameRendering");
