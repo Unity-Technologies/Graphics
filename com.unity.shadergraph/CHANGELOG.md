@@ -28,6 +28,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue where ShaderGraph shaders did not reimport automatically when some of the included files changed [1269634]
 - Fixed an issue where building a context menu on a dragging block node would leave it floating and undo/redo would result in a soft-lock
 - Fixed an issue where ShaderGraph was logging error when edited in play mode [1274148].
+- Fixed an issue where renaming a property in the blackboard at creation would trigger an error.
 
 ## [10.0.0] - 2019-06-10
 ### Added
