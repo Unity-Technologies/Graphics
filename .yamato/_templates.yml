@@ -415,13 +415,9 @@ all_template_ci_trunk:
         flavor: b1.large
     dependencies:
       -  .yamato/_templates.yml#test_hdrp_template_windows_trunk
-      -  .yamato/_templates.yml#test_hdrp_template_windows_trunk_dependencies
       -  .yamato/_templates.yml#test_universal_template_windows_trunk
-      -  .yamato/_templates.yml#test_universal_template_windows_trunk_dependencies
       -  .yamato/_templates.yml#test_hdrp_template_macos_trunk
-      -  .yamato/_templates.yml#test_hdrp_template_macos_trunk_dependencies
       -  .yamato/_templates.yml#test_universal_template_macos_trunk
-      -  .yamato/_templates.yml#test_universal_template_macos_trunk_dependencies
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
@@ -434,13 +430,9 @@ all_template_ci_CUSTOM-REVISION:
         flavor: b1.large
     dependencies:
       -  .yamato/_templates.yml#test_hdrp_template_windows_CUSTOM-REVISION
-      -  .yamato/_templates.yml#test_hdrp_template_windows_CUSTOM-REVISION_dependencies
       -  .yamato/_templates.yml#test_universal_template_windows_CUSTOM-REVISION
-      -  .yamato/_templates.yml#test_universal_template_windows_CUSTOM-REVISION_dependencies
       -  .yamato/_templates.yml#test_hdrp_template_macos_CUSTOM-REVISION
-      -  .yamato/_templates.yml#test_hdrp_template_macos_CUSTOM-REVISION_dependencies
       -  .yamato/_templates.yml#test_universal_template_macos_CUSTOM-REVISION
-      -  .yamato/_templates.yml#test_universal_template_macos_CUSTOM-REVISION_dependencies
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
