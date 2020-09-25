@@ -2,7 +2,7 @@
 
 ## Description
 
-Defines a constant **Float** value in the shader using an **Integer** field. Can be converted to a **Float   ** type [Property](Property-Types.md) with a **Mode** setting of **Integer** via the [Node's](Node.md) context menu.
+Defines a constant **Float** value in the shader using an **Integer** field. Can be converted to a **Float** type [Property](Property-Types.md) with a **Mode** setting of **Integer** via the [Node's](Node.md) context menu.
 
 ## Ports
 

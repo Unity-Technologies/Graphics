@@ -1,8 +1,8 @@
-# Float    Node
+# Float Node
 
 ## Description
 
-Defines a **Float** value in the shader. If [Port](Port.md) **X** is not connected with an [Edge](Edge.md) this [Node](Node.md) defines a constant **Float   **.
+Defines a **Float** value in the shader. If [Port](Port.md) **X** is not connected with an [Edge](Edge.md) this [Node](Node.md) defines a constant **Float**.
 
 ## Ports
 

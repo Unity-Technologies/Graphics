@@ -2,7 +2,7 @@
 
 ## Description
 
-Defines a constant **Float** value in the shader using a **Slider** field. Can be converted to a **Float   ** type [Property](Property-Types.md) with a **Mode** setting of **Slider** via the [Node's](Node.md) context menu.
+Defines a constant **Float** value in the shader using a **Slider** field. Can be converted to a **Float** type [Property](Property-Types.md) with a **Mode** setting of **Slider** via the [Node's](Node.md) context menu.
 
 ## Ports
 
