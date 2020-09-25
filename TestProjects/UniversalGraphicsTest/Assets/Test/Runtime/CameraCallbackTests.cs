@@ -15,6 +15,7 @@ public class CameraCallbackTests : ScriptableRendererFeature
 	static RenderTargetHandle afterPost;
 	static RenderTargetHandle afterAll;
 
+    BlitPass m_BlitRenderPassesToScreen;
     Material m_SamplingMaterial;
 
 	public CameraCallbackTests()
@@ -43,28 +44,10 @@ public class CameraCallbackTests : ScriptableRendererFeature
         if (data.shaders.samplingPS == null)
             return;
 
-        m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
+        if (m_SamplingMaterial == null)
+            m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
 	}
 
-	internal class ClearColorPass : ScriptableRenderPass
-    {
-        RenderTargetIdentifier m_ColorHandle;
-
-        public ClearColorPass(RenderPassEvent renderPassEvent, RenderTargetIdentifier colorHandle)
-        {
-            m_ColorHandle = colorHandle;
-            this.renderPassEvent = renderPassEvent;
-        }
-
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            var cmd = CommandBufferPool.Get("Clear Color");
-            cmd.SetRenderTarget(m_ColorHandle);
-            cmd.ClearRenderTarget(true, true, Color.yellow);
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
-        }
-    }
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
         Downsampling downSamplingMethod = UniversalRenderPipeline.asset.opaqueDownsampling;
@@ -90,17 +73,44 @@ public class CameraCallbackTests : ScriptableRendererFeature
         var copyAfterEverything = new CopyColorPass(RenderPassEvent.AfterRenderingPostProcessing, m_SamplingMaterial);
         copyAfterEverything.Setup(afterPost.id, afterAll, downSamplingMethod);
 
-        var BlitRenderPassesToScreen = new BlitPass(RenderPassEvent.AfterRendering, cameraColorTarget);
+        if (m_BlitRenderPassesToScreen == null)
+            m_BlitRenderPassesToScreen = new BlitPass(RenderPassEvent.AfterRendering, cameraColorTarget);
 
         // Inserts out of order so we also test render passes sort correctly
         renderer.EnqueuePass(copyAfterEverything);
-        renderer.EnqueuePass(BlitRenderPassesToScreen);
+        renderer.EnqueuePass(m_BlitRenderPassesToScreen);
         renderer.EnqueuePass(copyAfterOpaquePass);
         renderer.EnqueuePass(copyAfterSkyboxPass);
         renderer.EnqueuePass(copyAfterSkyboxPass2);
         renderer.EnqueuePass(copyAfterTransparents);
         renderer.EnqueuePass(clearRenderPass);
         renderer.EnqueuePass(copyBeforeOpaquePass);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        CoreUtils.Destroy(m_SamplingMaterial);
+        m_BlitRenderPassesToScreen?.Cleanup();
+    }
+
+    internal class ClearColorPass : ScriptableRenderPass
+    {
+        RenderTargetIdentifier m_ColorHandle;
+
+        public ClearColorPass(RenderPassEvent renderPassEvent, RenderTargetIdentifier colorHandle)
+        {
+            m_ColorHandle = colorHandle;
+            this.renderPassEvent = renderPassEvent;
+        }
+
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            var cmd = CommandBufferPool.Get("Clear Color");
+            cmd.SetRenderTarget(m_ColorHandle);
+            cmd.ClearRenderTarget(true, true, Color.yellow);
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+        }
     }
 
 	class BlitPass : ScriptableRenderPass
@@ -157,5 +167,10 @@ public class CameraCallbackTests : ScriptableRendererFeature
 
 			base.OnCameraCleanup(cmd);
 		}
+
+        public void Cleanup()
+        {
+            CoreUtils.Destroy(m_BlitMaterial);
+        }
 	}
 }

@@ -105,6 +105,59 @@ From 10.x,SHADERPASS for TransparentDepthPrepass and TransparentDepthPostpass id
 10.x introduces a new multi-compile for Depth Prepass and Motion vector pass to allow for support of the Decal Layers feature. These passes now require you to add #pragma multi_compile _ WRITE_DECAL_BUFFER.
 
 From 10.x, the shader code for the Decal.shader has changed. Previously, the code used around 16 passes to handle the rendering of different decal attributes. It now only uses four passes: DBufferProjector, DecalProjectorForwardEmissive, DBufferMesh, DecalMeshForwardEmissive. Some pass names are also different. DBufferProjector and DBufferMesh now use a multi_compile DECALS_3RT DECALS_4RT to handle the differents variants and the shader stripper has been updated as well. Various Shader Decal Properties have been renamed/changed to match a new set of AffectXXX properties (_AlbedoMode, _MaskBlendMode, _MaskmapMetal, _MaskmapAO, _MaskmapSmoothness, _Emissive have been changed to _AffectAlbedo, _AffectNormal, _AffectAO, _AffectMetal, _AffectSmoothness, _AffectEmission - Keyword _ALBEDOCONTRIBUTION is now _MATERIAL_AFFECTS_ALBEDO and two new keywords, _MATERIAL_AFFECTS_NORMAL, _MATERIAL_AFFECTS_MASKMAP, have been added). These new properties now match with properties from the Decal Shader Graph which are now exposed in the Material. A Material upgrade process automatically upgrades all the Decal Materials. However, if your project includes any C# scripts that create or manipulate a Decal Material, you need to update the scripts to use the new properties and keyword; the migration does not work on procedurally generated Decal Materials.
+
+From 10.x, HDRP changed the shader code for the decal application inside a material. In previous versions, HDRP performed an optimization named "HTile", which relied on an HTileMask. After further investigation, it appears this optimization is no longer a win so, because of this, HDRP has removed all the code relating to it. This includes the HTileMask member in DecalSurfaceData and the DBufferHTileBit structure and the associated flag. To update your custom shaders, remove the DBUFFERHTILEBIT_DIFFUSE, DBUFFERHTILEBIT_NORMAL and DBUFFERHTILEBIT_MASK defines, as they no longer exist, and instead check if the weight of individual attributes is non-neutral. For example in your ApplyDecalToSurfaceData() function, replace the following lines:
+```
+    if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_DIFFUSE)
+    {
+      (...)
+    }
+
+    if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_NORMAL)
+    {
+      (...)
+    }
+
+    if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_MASK)
+    {
+        (...) ComputeFresnel0((decalSurfaceData.HTileMask & DBUFFERHTILEBIT_DIFFUSE) ? (...));
+    }
+```
+by respectively
+```
+    if (decalSurfaceData.baseColor.w  < 1.0)
+    {
+      (...)
+    }
+
+    if (decalSurfaceData.normalWS.w < 1.0)
+    {
+      (...)
+    }
+
+    if (decalSurfaceData.MAOSBlend.x < 1.0 || decalSurfaceData.MAOSBlend.y < 1.0 || decalSurfaceData.mask.w)
+    {
+        (...) ComputeFresnel0((decalSurfaceData.baseColor.w  < 1.0) ? (...));
+    }
+
+```
+For an example of best practices to apply decals to a material, see the `ApplyDecalToSurfaceData()` function in the LitDecalData.hlsl file.
+
+From Unity 2020.2, the Raytracing keyword in Shader Graph has been renamed to Raytracing Quality and the RAYTRACING_SHADER_GRAPH_LOW and RAYTRACING_SHADER_GRAPH_HIGH defines are now RAYTRACING_SHADER_GRAPH_DEFAULT and RAYTRACING_SHADER_GRAPH_RAYTRACED respectively. Unless you used these defines in custom Shader code, you do not need to do anything because Shader Graph automatically regenerates its Shaders with the correct defines when you load the Project.
+
+From 10.x, HDRP adds a new fullscreen debug pass named `FullScreenDebug`. Any object using a material which doesn't contain this pass will no be rendered during the fullscreen debug pass.
+
+From Unity 2020.2, a parameter `positionNDC` has been added to the function `SampleEnv`. It's prototype has changed from:
+`float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod, float rangeCompressionFactorCompensation, int sliceIdx = 0)`
+to:
+`float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod, float rangeCompressionFactorCompensation, float2 positionNDC, int sliceIdx = 0)`
+For example, the call in the Lit shader has been updated to:
+`float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness), lightData.rangeCompressionFactorCompensation, posInput.positionNDC);`
+
+## raytracing
+
+From Unity 2020.2, the Raytracing Node in shader graph now apply the raytraced path (previously low path) to all raytraced effects but path tracing.
+
 ## Custom pass API
 
 The signature of the Execute function has changed to simplify the parameters, now it only takes a CustomPassContext as its input:
@@ -127,3 +180,17 @@ With:
 ```
 protected override void Execute(CustomPassContext ctx) { ... }
 ```
+
+## Density Volume Mask Texture
+
+Previously, to convert a 2D flipbook texture to the 3D format Density Mask Textures require, you needed to use the __Density Volume Texture Tool__ in the __Window > Rendering__ menu.
+From Unity 2020.2, you can now do this conversion directly through the __Texture Importer__. For information on how to use the importer to convert the flipbook texture, see the [Density Volume documentation](Density-Volume.md).
+
+## Diffusion Profiles
+
+The diffusion profile list have been moved from the HDRP asset inspector UI to the **Default HDRP Settings** (in the project settings window).
+
+This change can affect you if you had multiple HDRP asset setup as **Quality Settings**. In this case if one or more of your HDRP assets in the **Quality Settings** had a different diffusion profile than the one assigned in the **Graphics Settings**, then, the lists on HDRP assets are lost. The only list that is now relevant is the one in the **Default HDRP Settings**.
+
+We recommend to put all the diffusion profiles used in your project in the HDRP Asset assigned in the **Graphics Settings** before upgrading. This operation will prevent any issue after the upgrade regarding lost diffusion profile in the project.
+
