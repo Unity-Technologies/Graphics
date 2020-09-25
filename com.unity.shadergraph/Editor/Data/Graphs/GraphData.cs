@@ -1601,9 +1601,8 @@ namespace UnityEditor.ShaderGraph
                 // Check if the keyword nodes need to have their keywords copied.
                 if (node is KeywordNode keywordNode)
                 {
-                    var index = graphToPaste.metaKeywords.TakeWhile(x => x != keywordNode.keyword).Count();
-                    var originalId = graphToPaste.metaKeywordIds.ElementAt(index);
-                    var keyword = m_Keywords.SelectValue().FirstOrDefault(x => x.objectId == originalId);
+                    var keyword = m_Keywords.SelectValue().FirstOrDefault(x => x.objectId == keywordNode.keyword.objectId
+                                                                      || (x.keywordType == keywordNode.keyword.keywordType && x.referenceName == keywordNode.keyword.referenceName));
                     if (keyword != null)
                     {
                         keywordNode.keyword = keyword;
