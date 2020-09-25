@@ -1219,30 +1219,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                 switch(input)
                 {
                     case AbstractShaderProperty property:
+                        var copiedProperty = (AbstractShaderProperty) DuplicateShaderInputs(input, graphView.graph, indicies[BlackboardProvider.k_PropertySectionIndex]);
+                        graphView.graph.SanitizeGraphInputReferenceName(copiedProperty, input.referenceName);
+
+                        // Increment for next within the same section
+                        if (indicies[BlackboardProvider.k_PropertySectionIndex] >= 0)
+                            indicies[BlackboardProvider.k_PropertySectionIndex]++;
 
                         // Update the property nodes that depends on the copied node
                         var dependentPropertyNodes = copyGraph.GetNodes<PropertyNode>().Where(x => x.property == input);
-                        var duplicateProperties = graphView.graph.properties.Where(x => x.objectId == property.objectId
-                                                                           || (x.propertyType == property.propertyType && x.referenceName == property.referenceName));
-                        AbstractShaderProperty propToUse = null;
-                        if (duplicateProperties.Any() && dependentPropertyNodes.Any())
-                        {
-                            propToUse = duplicateProperties.First();
-                        }
-                        else
-                        {
-                            propToUse = (AbstractShaderProperty)DuplicateShaderInputs(input, graphView.graph, indicies[BlackboardProvider.k_PropertySectionIndex]);
-                            propToUse.overrideReferenceName = input.referenceName;
-                            // Increment for next within the same section
-                            if (indicies[BlackboardProvider.k_PropertySectionIndex] >= 0)
-                                indicies[BlackboardProvider.k_PropertySectionIndex]++;
-
-                        }
-
                         foreach (var node in dependentPropertyNodes)
                         {
                             node.owner = graphView.graph;
-                            node.property = propToUse;
+                            node.property = copiedProperty;
                         }
                         break;
 
@@ -1251,29 +1240,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if ((input as ShaderKeyword).isBuiltIn && graphView.graph.keywords.Where(p => p.referenceName == input.referenceName).Any())
                             continue;
 
+                        var copiedKeyword = (ShaderKeyword)DuplicateShaderInputs(input, graphView.graph, indicies[BlackboardProvider.k_KeywordSectionIndex]);
+                        graphView.graph.SanitizeGraphInputReferenceName(copiedKeyword, input.referenceName);
+
+                        // Increment for next within the same section
+                        if (indicies[BlackboardProvider.k_KeywordSectionIndex] >= 0)
+                            indicies[BlackboardProvider.k_KeywordSectionIndex]++;
 
                         // Update the keyword nodes that depends on the copied node
                         var dependentKeywordNodes = copyGraph.GetNodes<KeywordNode>().Where(x => x.keyword == input);
-                        var duplicateKeywords = graphView.graph.keywords.Where(x => x.objectId == shaderKeyword.objectId
-                                                                           || (x.keywordType == shaderKeyword.keywordType && x.referenceName == shaderKeyword.referenceName));
-                        ShaderKeyword keywordToUse = null;
-                        if (duplicateKeywords.Any() && dependentKeywordNodes.Any())
-                        {
-                            keywordToUse = duplicateKeywords.First();
-                        }
-                        else
-                        {
-                            keywordToUse = (ShaderKeyword)DuplicateShaderInputs(input, graphView.graph, indicies[BlackboardProvider.k_PropertySectionIndex]);
-                            keywordToUse.overrideReferenceName = input.referenceName;
-                            // Increment for next within the same section
-                            if (indicies[BlackboardProvider.k_KeywordSectionIndex] >= 0)
-                                indicies[BlackboardProvider.k_KeywordSectionIndex]++;
-                        }
-
                         foreach (var node in dependentKeywordNodes)
                         {
                             node.owner = graphView.graph;
-                            node.keyword = keywordToUse;
+                            node.keyword = copiedKeyword;
                         }
 
                         // Pasting a new Keyword so need to test against variant limit
