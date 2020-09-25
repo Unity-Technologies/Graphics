@@ -75,13 +75,33 @@ bool IsPointLightActive(LightData lightData, float3 position, float3 normal)
     if (lightTangentDist * abs(lightTangentDist) > lightData.size.x)
         return false;
 
-    // Offset the light position towards the back, to account for the radius,
-    // then check whether we are still within the dilated cone angle
-    float cosTheta2 = Sq(lightData.angleOffset / lightData.angleScale);
-    float3 lightOffset = sqrt(lightData.size.x / (1.0 - cosTheta2)) * lightData.forward;
-    float lightCos = dot(normalize(lightVec + lightOffset), lightData.forward);
+    // If this is an omni-directional point light, we're done
+    if (lightData.lightType == GPULIGHTTYPE_POINT)
+        return true;
 
-    return lightCos * lightData.angleScale + lightData.angleOffset > 0.0;
+    // Check that we are on the right side of the light plane
+    float z = dot(lightVec, lightData.forward);
+    if (z < 0.0)
+        return false;
+
+    if (lightData.lightType == GPULIGHTTYPE_SPOT)
+    {
+        // Offset the light position towards the back, to account for the radius,
+        // then check whether we are still within the dilated cone angle
+        float sinTheta2 = 1.0 - Sq(lightData.angleOffset / lightData.angleScale);
+        float3 lightRadiusOffset = sqrt(lightData.size.x / sinTheta2) * lightData.forward;
+        float lightCos = dot(normalize(lightVec + lightRadiusOffset), lightData.forward);
+
+        return lightCos * lightData.angleScale + lightData.angleOffset > 0.0;
+    }
+
+    // Our light type is either BOX or PYRAMID
+    float x = abs(dot(lightVec, lightData.right));
+    float y = abs(dot(lightVec, lightData.up));
+
+    return (lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX) ?
+        x < 1 && y < 1 : // BOX
+        x < z && y < z;  // PYRAMID
 }
 
 bool IsDistantLightActive(DirectionalLightData lightData, float3 normal)

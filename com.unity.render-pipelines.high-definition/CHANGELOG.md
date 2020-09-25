@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an optional check in the HDRP DXR Wizard to verify 64 bits target architecture
 - Added option to display timing stats in the debug menu as an average over 1 second. 
 - Added a light unit slider to provide users more context when authoring physically based values.
+- Added a way to check the normals through the material views.
+- Added Simple mode to Earth Preset for PBR Sky
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
@@ -82,6 +84,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added unsupported message when using tile debug mode with MSAA.
 - Fixed SSGI compilation issues on PS4.
 - Fixed "Screen position out of view frustum" error when camera is on exactly the planar reflection probe plane.
+- Workaround issue that caused objects using eye shader to not be rendered on xbox.
+- Fixed GC allocation when using XR single-pass test mode.
+- Fixed text in cascades shadow split being truncated.
+- Fixed rendering of custom passes in the Custom Pass Volume inspector
+- Force probe to render again if first time was during async shader compilation to avoid having cyan objects.
+- Fixed for lookdev library field not being refreshed upon opening a library from the environment library inspector.
+- Fixed serialization issue with matcap scale intensity.
+- Close Add Override popup of Volume Inspector when the popup looses focus (case 1258571)
+- Light quality setting for contact shadow set to on for High quality by default.
+- Fixed an exception thrown when closing the look dev because there is no active SRP anymore.
+- Fixed alignment of framesettings in HDRP Default Settings
+- Fixed an exception thrown when closing the look dev because there is no active SRP anymore.
+- Fixed an issue where entering playmode would close the LookDev window.
+- Fixed shader compilation issue with Hair shader and debug display mode
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
@@ -104,6 +120,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Skip an unneeded depth buffer copy on consoles. 
 - Replaced the Density Volume Texture Tool with the new 3D Texture Importer.
 - Rename Raytracing Node to Raytracing Quality Keyword and rename high and low inputs as default and raytraced. All raytracing effects now use the raytraced mode but path tracing.
+- Moved diffusion profile list to the HDRP default settings panel.
+- Skip biquadratic resampling of vbuffer when volumetric fog filtering is enabled.
+- Optimized Grain and sRGB Dithering.
+- On platforms that allow it skip the first mip of the depth pyramid and compute it alongside the depth buffer used for low res transparents.
+- When trying to install the local configuration package, if another one is already present the user is now asked whether they want to keep it or not.
 
 ## [10.0.0] - 2019-06-10
 
