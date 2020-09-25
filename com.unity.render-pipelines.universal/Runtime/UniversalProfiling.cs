@@ -239,7 +239,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly ProfilingSampler Submit = new ProfilingSampler(nameof(ScriptableRenderContext) + "." + nameof(ScriptableRenderContext.Submit));
         };
 
-        public struct XR
+        public static class XR
         {
             public static readonly ProfilingSampler MirrorView = new ProfilingSampler("XR Mirror View");
         };
