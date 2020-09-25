@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added option for 11-11-10 format for cube reflection probes.
 - Added an optional check in the HDRP DXR Wizard to verify 64 bits target architecture
 - Added option to display timing stats in the debug menu as an average over 1 second. 
+- Added a light unit slider to provide users more context when authoring physically based values.
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
@@ -80,6 +81,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with mipmap debug mode not properly resetting full screen mode (and viceversa). 
 - Added unsupported message when using tile debug mode with MSAA.
 - Fixed SSGI compilation issues on PS4.
+- Fixed "Screen position out of view frustum" error when camera is on exactly the planar reflection probe plane.
+- Workaround issue that caused objects using eye shader to not be rendered on xbox.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
@@ -102,6 +105,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Skip an unneeded depth buffer copy on consoles. 
 - Replaced the Density Volume Texture Tool with the new 3D Texture Importer.
 - Rename Raytracing Node to Raytracing Quality Keyword and rename high and low inputs as default and raytraced. All raytracing effects now use the raytraced mode but path tracing.
+- Moved diffusion profile list to the HDRP default settings panel.
+- Skip biquadratic resampling of vbuffer when volumetric fog filtering is enabled.
+- Optimized Grain and sRGB Dithering.
+- On platforms that allow it skip the first mip of the depth pyramid and compute it alongside the depth buffer used for low res transparents.
 - Various improvements for the Volumetric Fog.
 
 ## [10.0.0] - 2019-06-10
@@ -859,6 +866,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Reduced the number of global keyword used in deferredTile.shader
 - Fixed incorrect processing of Ambient occlusion probe (9% error was introduced)
 - Fixed multiedition of framesettings drop down (case 1270044)
+- Fixed planar probe gizmo
 
 ### Changed
 - Improve MIP selection for decals on Transparents
