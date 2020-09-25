@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -20,11 +20,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added remapping options for Depth Pyramid debug view mode
 - Added an option to support AOV shader at runtime in HDRP settings (case 1265070)
 - Added support of SSGI in the render graph mode.
+- Added option for 11-11-10 format for cube reflection probes.
+- Added an optional check in the HDRP DXR Wizard to verify 64 bits target architecture
+- Added option to display timing stats in the debug menu as an average over 1 second. 
+- Added a light unit slider to provide users more context when authoring physically based values.
+- Added a way to check the normals through the material views.
 - Added Simple mode to Earth Preset for PBR Sky
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
 - Fixed GPU hang on D3D12 on xbox. 
+- Fixed game view artifacts on resizing when hardware dynamic resolution was enabled
+- Fixed black line artifacts occurring when Lanczos upsampling was set for dynamic resolution
 - Fixed Amplitude -> Min/Max parametrization conversion
 - Fixed CoatMask block appearing when creating lit master node (case 1264632)
 - Fixed issue with SceneEV100 debug mode indicator when rescaling the window.
@@ -53,6 +60,43 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed TAA issue and hardware dynamic resolution.
 - Fixed a static lighting flickering issue caused by having an active planar probe in the scene while rendering inspector preview.
 - Fixed an issue where even when set to OnDemand, the sky lighting would still be updated when changing sky parameters.
+- Fixed an error message trigerred when a mesh has more than 32 sub-meshes (case 1274508).
+- Fixed RTGI getting noisy for grazying angle geometry (case 1266462).
+- Fixed an issue with TAA history management on pssl.
+- Fixed the global illumination volume override having an unwanted advanced mode (case 1270459).
+- Fixed screen space shadow option displayed on directional shadows while they shouldn't (case 1270537).
+- Fixed the handling of undo and redo actions in the graphics compositor (cases 1268149, 1266212, 1265028)
+- Fixed issue with composition graphs that include virtual textures, cubemaps and other non-2D textures (cases 1263347, 1265638).
+- Fixed issues when selecting a new composition graph or setting it to None (cases 1263350, 1266202)
+- Fixed ArgumentNullException when saving shader graphs after removing the compositor from the scene (case 1268658)
+- Fixed issue with updating the compositor output when not in play mode (case 1266216)
+- Fixed warning with area mesh (case 1268379)
+- Fixed issue with diffusion profile not being updated upon reset of the editor. 
+- Fixed an issue that lead to corrupted refraction in some scenarios on xbox.
+- Fixed for light loop scalarization not happening. 
+- Fixed issue with stencil not being set in rendergraph mode.
+- Fixed for post process being overridable in reflection probes even though it is not supported.
+- Fixed RTGI in performance mode when light layers are enabled on the asset.
+- Fixed SSS materials appearing black in matcap mode.
+- Fixed a collision in the interaction of RTR and RTGI.
+- Fix for lookdev toggling renderers that are set to non editable or are hidden in the inspector.
+- Fixed issue with mipmap debug mode not properly resetting full screen mode (and viceversa). 
+- Added unsupported message when using tile debug mode with MSAA.
+- Fixed SSGI compilation issues on PS4.
+- Fixed "Screen position out of view frustum" error when camera is on exactly the planar reflection probe plane.
+- Workaround issue that caused objects using eye shader to not be rendered on xbox.
+- Fixed GC allocation when using XR single-pass test mode.
+- Fixed text in cascades shadow split being truncated.
+- Fixed rendering of custom passes in the Custom Pass Volume inspector
+- Force probe to render again if first time was during async shader compilation to avoid having cyan objects.
+- Fixed for lookdev library field not being refreshed upon opening a library from the environment library inspector.
+- Fixed serialization issue with matcap scale intensity.
+- Close Add Override popup of Volume Inspector when the popup looses focus (case 1258571)
+- Light quality setting for contact shadow set to on for High quality by default.
+- Fixed an exception thrown when closing the look dev because there is no active SRP anymore.
+- Fixed alignment of framesettings in HDRP Default Settings
+- Fixed an exception thrown when closing the look dev because there is no active SRP anymore.
+- Fixed an issue where entering playmode would close the LookDev window.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
@@ -61,6 +105,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Preparation pass for RTSSShadows to be supported by render graph.
 - Changed the way the ray tracing property is displayed on the material (QOL 1265297).
 - Exposed lens attenuation mode in default settings and remove it as a debug mode.
+- Composition layers without any sub layers are now cleared to black to avoid confusion (case 1265061).
+- Slight reduction of VGPR used by area light code.
+- Changed thread group size for contact shadows (save 1.1ms on PS4)
+- Make sure distortion stencil test happens before pixel shader is run.
+- Small optimization that allows to skip motion vector prepping when the whole wave as velocity of 0.
+- Improved performance to avoid generating coarse stencil buffer when not needed.
+- Remove HTile generation for decals (faster without).
+- Improving SSGI Filtering and fixing a blend issue with RTGI.
+- Changed the Trackball UI so that it allows explicit numeric values.
+- Reduce the G-buffer footprint of anisotropic materials
+- Moved SSGI out of preview.
+- Skip an unneeded depth buffer copy on consoles. 
+- Replaced the Density Volume Texture Tool with the new 3D Texture Importer.
+- Rename Raytracing Node to Raytracing Quality Keyword and rename high and low inputs as default and raytraced. All raytracing effects now use the raytraced mode but path tracing.
+- Moved diffusion profile list to the HDRP default settings panel.
+- Skip biquadratic resampling of vbuffer when volumetric fog filtering is enabled.
+- Optimized Grain and sRGB Dithering.
+- On platforms that allow it skip the first mip of the depth pyramid and compute it alongside the depth buffer used for low res transparents.
+- When trying to install the local configuration package, if another one is already present the user is now asked whether they want to keep it or not.
 
 ## [10.0.0] - 2019-06-10
 
@@ -222,8 +285,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added API to check if a Camera, Light or ReflectionProbe is compatible with HDRP.
 - Added path tracing test scene for normal mapping.
 - Added missing API documentation.
+- Remove CloudLayer
+- Added quad overdraw and vertex density debug modes.
 
 ### Fixed
+- fix when saved HDWizard window tab index out of range (1260273)
 - Fix when rescale probe all direction below zero (1219246)
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -776,6 +842,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed glitch in Project settings window when selecting diffusion profiles in material section (case 1253090)
 - Fixed issue with light layers bigger than 8 (and above the supported range). 
 - Fixed issue with culling layer mask of area light's emissive mesh 
+- Fixed overused the atlas for Animated/Render Target Cookies (1259930).
 - Fixed errors when switching area light to disk shape while an area emissive mesh was displayed.
 - Fixed default frame settings MSAA toggle for reflection probes (case 1247631)
 - Fixed the transparent SSR dependency not being properly disabled according to the asset dependencies (1260271).
@@ -812,8 +879,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed multiple volumes, planar reflection, and decal projector position when creating them from the menu.
 - Reduced the number of global keyword used in deferredTile.shader
 - Fixed incorrect processing of Ambient occlusion probe (9% error was introduced)
-- Fixed an error message trigerred when a mesh has more than 32 sub-meshes (case 1274508).
-- Fixed RTGI getting noisy for grazying angle geometry (case 1266462).
+- Fixed multiedition of framesettings drop down (case 1270044)
+- Fixed planar probe gizmo
 
 ### Changed
 - Improve MIP selection for decals on Transparents

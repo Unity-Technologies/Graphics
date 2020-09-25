@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var res = AllocTextureArray(numTextures);
             m_NumMipLevels = GetNumMips(width, height);
 
-            var desc = new RenderTextureDescriptor(width, width, format, 0)
+            var desc = new RenderTextureDescriptor(width, height, format, 0)
             {
                 // autoGenerateMips is true by default
                 dimension = TextureDimension.Tex2DArray,

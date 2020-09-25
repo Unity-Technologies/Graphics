@@ -338,7 +338,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // For regular reflection probes, we need to convolve with all the BSDF functions
-                GraphicsFormat probeCacheFormat = lightLoopSettings.reflectionCacheCompressed ? GraphicsFormat.RGB_BC6H_SFloat : GraphicsFormat.R16G16B16A16_SFloat;
+                GraphicsFormat probeCacheFormat = lightLoopSettings.reflectionProbeFormat == ReflectionAndPlanarProbeFormat.R11G11B10 ?
+                                                  GraphicsFormat.B10G11R11_UFloatPack32 : GraphicsFormat.R16G16B16A16_SFloat;
+
+                // BC6H requires CPP feature not yet available
+                //if (lightLoopSettings.reflectionCacheCompressed)
+                //{
+                //    probeCacheFormat = GraphicsFormat.RGB_BC6H_SFloat;
+                //}
+
                 int reflectionCubeSize = lightLoopSettings.reflectionProbeCacheSize;
                 int reflectionCubeResolution = (int)lightLoopSettings.reflectionCubemapSize;
                 if (ReflectionProbeCache.GetApproxCacheSizeInByte(reflectionCubeSize, reflectionCubeResolution, iBLFilterBSDFArray.Length) > k_MaxCacheSize)
@@ -346,7 +354,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 reflectionProbeCache = new ReflectionProbeCache(defaultResources, iBLFilterBSDFArray, reflectionCubeSize, reflectionCubeResolution, probeCacheFormat, true);
 
                 // For planar reflection we only convolve with the GGX filter, otherwise it would be too expensive
-                GraphicsFormat planarProbeCacheFormat = (GraphicsFormat)hdrpAsset.currentPlatformRenderPipelineSettings.colorBufferFormat;
+                GraphicsFormat planarProbeCacheFormat = (GraphicsFormat)hdrpAsset.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
                 int reflectionPlanarResolution = (int)lightLoopSettings.planarReflectionAtlasSize;
                 reflectionPlanarProbeCache = new PlanarReflectionProbeCache(defaultResources, (IBLFilterGGX)iBLFilterBSDFArray[0], reflectionPlanarResolution, planarProbeCacheFormat, true);
             }
@@ -1975,16 +1983,29 @@ namespace UnityEngine.Rendering.HighDefinition
             switch (influence.envShape)
             {
                 case EnvShapeType.Box:
-                    envLightData.blendNormalDistancePositive = influence.boxBlendNormalDistancePositive;
-                    envLightData.blendNormalDistanceNegative = influence.boxBlendNormalDistanceNegative;
                     envLightData.blendDistancePositive = influence.boxBlendDistancePositive;
                     envLightData.blendDistanceNegative = influence.boxBlendDistanceNegative;
-                    envLightData.boxSideFadePositive = influence.boxSideFadePositive;
-                    envLightData.boxSideFadeNegative = influence.boxSideFadeNegative;
+                    if (envIndex >= 0) // Reflection Probes
+                    {
+                        envLightData.blendNormalDistancePositive = influence.boxBlendNormalDistancePositive;
+                        envLightData.blendNormalDistanceNegative = influence.boxBlendNormalDistanceNegative;
+                        envLightData.boxSideFadePositive = influence.boxSideFadePositive;
+                        envLightData.boxSideFadeNegative = influence.boxSideFadeNegative;
+                    }
+                    else // Planar Probes
+                    {
+                        envLightData.blendNormalDistancePositive = Vector3.zero;
+                        envLightData.blendNormalDistanceNegative = Vector3.zero;
+                        envLightData.boxSideFadePositive = Vector3.one;
+                        envLightData.boxSideFadeNegative = Vector3.one;
+                    }
                     break;
                 case EnvShapeType.Sphere:
-                    envLightData.blendNormalDistancePositive.x = influence.sphereBlendNormalDistance;
                     envLightData.blendDistancePositive.x = influence.sphereBlendDistance;
+                    if (envIndex >= 0) // Reflection Probes
+                        envLightData.blendNormalDistancePositive.x = influence.sphereBlendNormalDistance;
+                    else // Planar Probes
+                        envLightData.blendNormalDistancePositive.x = 0;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("Unknown EnvShapeType");
@@ -3778,7 +3799,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.params2 = new Vector4(firstMipOffsetY, contactShadowMinDist, contactShadowFadeIn, m_ContactShadows.rayBias.value * 0.01f);
             parameters.params3 = new Vector4(m_ContactShadows.sampleCount, m_ContactShadows.thicknessScale.value * 10.0f , 0.0f, 0.0f);
 
-            int deferredShadowTileSize = 16; // Must match DeferreDirectionalShadow.compute
+            int deferredShadowTileSize = 8; // Must match ContactShadows.compute
             parameters.numTilesX = (hdCamera.actualWidth + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
             parameters.numTilesY = (hdCamera.actualHeight + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
             parameters.viewCount = hdCamera.viewCount;
@@ -4205,6 +4226,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         parameters.debugViewTilesMaterial.DisableKeyword(!bUseClustered ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                         parameters.debugViewTilesMaterial.EnableKeyword("SHOW_LIGHT_CATEGORIES");
                         parameters.debugViewTilesMaterial.DisableKeyword("SHOW_FEATURE_VARIANTS");
+                        if (!bUseClustered && hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+                            parameters.debugViewTilesMaterial.EnableKeyword("DISABLE_TILE_MODE");
+                        else
+                            parameters.debugViewTilesMaterial.DisableKeyword("DISABLE_TILE_MODE");
 
                         CoreUtils.DrawFullScreen(cmd, parameters.debugViewTilesMaterial, 0);
                     }

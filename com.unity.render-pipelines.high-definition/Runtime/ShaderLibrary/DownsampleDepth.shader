@@ -5,6 +5,7 @@ Shader "Hidden/HDRP/DownsampleDepth"
         #pragma target 4.5
         #pragma editor_sync_compilation
         #pragma multi_compile_local MIN_DOWNSAMPLE CHECKERBOARD_DOWNSAMPLE
+        #pragma multi_compile_local _ OUTPUT_FIRST_MIP_OF_MIPCHAIN
         #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -50,6 +51,15 @@ Shader "Hidden/HDRP/DownsampleDepth"
 #endif
         }
 
+#ifdef OUTPUT_FIRST_MIP_OF_MIPCHAIN
+    #ifdef SHADER_API_PSSL
+        RW_TEXTURE2D_X(float, _OutputTexture) : register(u0);
+    #else
+        RW_TEXTURE2D_X(float, _OutputTexture) : register(u1);
+    #endif
+        float4 _DstOffset;
+#endif
+
         void Frag(Varyings input, out float outputDepth : SV_Depth)
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -60,10 +70,15 @@ Shader "Hidden/HDRP/DownsampleDepth"
             depths.z = LoadCameraDepth(fullResUpperCorner + uint2(1, 0));
             depths.w = LoadCameraDepth(fullResUpperCorner + uint2(1, 1));
 
+            float minDepth = MinDepth(depths);
         #if MIN_DOWNSAMPLE
-            outputDepth = MinDepth(depths);
+            outputDepth = minDepth;
         #elif CHECKERBOARD_DOWNSAMPLE
-            outputDepth = (uint(input.positionCS.x + input.positionCS.y) & 1) > 0 ? MinDepth(depths) : MaxDepth(depths);
+            outputDepth = (uint(input.positionCS.x + input.positionCS.y) & 1) > 0 ? minDepth : MaxDepth(depths);
+        #endif
+
+        #ifdef OUTPUT_FIRST_MIP_OF_MIPCHAIN
+            _OutputTexture[COORD_TEXTURE2D_X(_DstOffset.xy + input.positionCS.xy)] = minDepth;
         #endif
         }
 

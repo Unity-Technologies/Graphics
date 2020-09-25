@@ -26,6 +26,15 @@ namespace UnityEngine.Rendering.HighDefinition
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
             var target = renderRequest.target;
 
+            var renderGraphParams = new RenderGraphParameters()
+            {
+                scriptableRenderContext = renderContext,
+                commandBuffer = commandBuffer,
+                currentFrameIndex = GetFrameCount()
+            };
+
+            m_RenderGraph.Begin(renderGraphParams);
+
 #if UNITY_EDITOR
             var showGizmos = camera.cameraType == CameraType.Game
                 || camera.cameraType == CameraType.SceneView;
@@ -56,7 +65,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO RENDERGRAPH: This should probably be moved somewhere else for the sake of consistency.
             RenderTransparencyOverdraw(m_RenderGraph, prepassOutput.depthBuffer, cullingResults, hdCamera);
 
-            if (m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled() || m_CurrentDebugDisplaySettings.IsMaterialValidationEnabled() || CoreUtils.IsSceneLightingDisabled(hdCamera.camera))
+            if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() && m_CurrentDebugDisplaySettings.IsFullScreenDebugPassEnabled())
+            {
+                RenderFullScreenDebug(m_RenderGraph, colorBuffer, prepassOutput.depthBuffer, cullingResults, hdCamera);
+            }
+            else if (m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled() || m_CurrentDebugDisplaySettings.IsMaterialValidationEnabled() || CoreUtils.IsSceneLightingDisabled(hdCamera.camera))
             {
                 // Stop Single Pass is after post process.
                 StartXRSinglePass(m_RenderGraph, hdCamera);
@@ -270,7 +283,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderGizmos(m_RenderGraph, hdCamera, colorBuffer, GizmoSubset.PostImageEffects);
 
-            ExecuteRenderGraph(m_RenderGraph, hdCamera, m_MSAASamples, m_FrameCount, renderContext, commandBuffer );
+            m_RenderGraph.Execute();
 
             if (aovRequest.isValid)
             {
@@ -280,21 +293,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     aovRequest.Execute(commandBuffer, aovBuffers, RenderOutputProperties.From(hdCamera));
                 }
             }
-        }
-
-        static void ExecuteRenderGraph(RenderGraph renderGraph, HDCamera hdCamera, MSAASamples msaaSample, int frameIndex, ScriptableRenderContext renderContext, CommandBuffer cmd)
-        {
-            var renderGraphParams = new RenderGraphExecuteParams()
-            {
-                scriptableRenderContext = renderContext,
-                commandBuffer = cmd,
-                renderingWidth = hdCamera.actualWidth,
-                renderingHeight = hdCamera.actualHeight,
-                msaaSamples = msaaSample,
-                currentFrameIndex = frameIndex
-            };
-
-            renderGraph.Execute(renderGraphParams);
         }
 
         class FinalBlitPassData
@@ -667,41 +665,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        class DownsampleDepthForLowResPassData
-        {
-            public Material                    downsampleDepthMaterial;
-            public TextureHandle    depthTexture;
-            public TextureHandle    downsampledDepthBuffer;
-        }
-
-        TextureHandle DownsampleDepthForLowResTransparency(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture)
-        {
-            using (var builder = renderGraph.AddRenderPass<DownsampleDepthForLowResPassData>("Downsample Depth Buffer for Low Res Transparency", out var passData, ProfilingSampler.Get(HDProfileId.DownsampleDepth)))
-            {
-                // TODO: Add option to switch modes at runtime
-                if (m_Asset.currentPlatformRenderPipelineSettings.lowresTransparentSettings.checkerboardDepthBuffer)
-                {
-                    m_DownsampleDepthMaterial.EnableKeyword("CHECKERBOARD_DOWNSAMPLE");
-                }
-
-                passData.downsampleDepthMaterial = m_DownsampleDepthMaterial;
-                passData.depthTexture = builder.ReadTexture(depthTexture);
-                passData.downsampledDepthBuffer = builder.UseDepthBuffer(renderGraph.CreateTexture(
-                    new TextureDesc(Vector2.one * 0.5f, true, true) { depthBufferBits = DepthBits.Depth32, name = "LowResDepthBuffer" }), DepthAccess.Write);
-
-                builder.SetRenderFunc(
-                (DownsampleDepthForLowResPassData data, RenderGraphContext context) =>
-                {
-                    //CoreUtils.SetRenderTarget(cmd, m_SharedRTManager.GetLowResDepthBuffer());
-                    //cmd.SetViewport(new Rect(0, 0, hdCamera.actualWidth * 0.5f, hdCamera.actualHeight * 0.5f));
-
-                    context.cmd.DrawProcedural(Matrix4x4.identity, data.downsampleDepthMaterial, 0, MeshTopology.Triangles, 3, 1, null);
-                });
-
-                return passData.downsampledDepthBuffer;
-            }
-        }
-
         class RenderLowResTransparentPassData
         {
             public ShaderVariablesGlobal    globalCB;
@@ -907,9 +870,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent))
             {
-                var downsampledDepth = DownsampleDepthForLowResTransparency(renderGraph, hdCamera, prepassOutput.depthPyramidTexture);
-                var lowResTransparentBuffer = RenderLowResTransparent(renderGraph, hdCamera, downsampledDepth, cullingResults);
-                UpsampleTransparent(renderGraph, hdCamera, colorBuffer, lowResTransparentBuffer, downsampledDepth);
+                var lowResTransparentBuffer = RenderLowResTransparent(renderGraph, hdCamera, prepassOutput.downsampledDepthBuffer, cullingResults);
+                UpsampleTransparent(renderGraph, hdCamera, colorBuffer, lowResTransparentBuffer, prepassOutput.downsampledDepthBuffer);
             }
 
             // Fill depth buffer to reduce artifact for transparent object during postprocess
