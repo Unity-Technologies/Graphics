@@ -71,6 +71,10 @@ void InitializeInputData(GrassVertexOutput input, out InputData inputData)
     #else
     inputData.vertexSH = input.vertexSH;
     #endif
+
+    #if defined(_DEBUG_SHADER)
+    inputData.uv = input.uv;
+    #endif
 }
 
 

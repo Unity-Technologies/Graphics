@@ -949,7 +949,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
                                     inputData.normalWS, inputData.viewDirectionWS);
     }
 
-    if(IsLightingFeatureEnabled(DEBUG_PBR_LIGHTING_ENABLE_PBR_LIGHTING))
+    if(IsLightingFeatureEnabled(DEBUG_PBR_LIGHTING_ENABLE_MAIN_LIGHT))
     {
         color += LightingPhysicallyBased(brdfData, brdfDataClearCoat,
                                          mainLight,
