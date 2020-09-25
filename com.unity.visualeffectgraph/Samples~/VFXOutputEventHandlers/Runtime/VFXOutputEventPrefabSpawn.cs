@@ -105,7 +105,7 @@ namespace UnityEngine.VFX.Utility
                     m_TimesToLive = new float[m_InstanceCount];
                 }
 #if UNITY_EDITOR
-                var prefabAssetType = UnityEditor.PrefabUtility.GetPrefabAssetType(m_PrefabToSpawn);
+                var prefabAssetType = m_PrefabToSpawn != null ? UnityEditor.PrefabUtility.GetPrefabAssetType(m_PrefabToSpawn) : UnityEditor.PrefabAssetType.NotAPrefab;
 #endif
                 for (int i = 0; i < m_Instances.Length; i++)
                 {
