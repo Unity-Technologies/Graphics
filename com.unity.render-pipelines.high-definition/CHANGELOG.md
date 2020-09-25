@@ -117,6 +117,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Skip biquadratic resampling of vbuffer when volumetric fog filtering is enabled.
 - Optimized Grain and sRGB Dithering.
 - On platforms that allow it skip the first mip of the depth pyramid and compute it alongside the depth buffer used for low res transparents.
+- When trying to install the local configuration package, if another one is already present the user is now asked whether they want to keep it or not.
 
 ## [10.0.0] - 2019-06-10
 
