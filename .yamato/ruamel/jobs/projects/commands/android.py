@@ -53,7 +53,7 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor):
     utr_args = utr_standalone_split_flags(platform_spec='', platform='Android', testproject=f'{TEST_PROJECTS_DIR}\{project_folder}', player_load_path=PATH_PLAYERS, player_conn_ip=None)
     utr_args.extend(test_platform["extra_utr_flags"])
     utr_args.extend(['--scripting-backend=il2cpp', f'--editor-location=WindowsEditor'])
-    utr_args.append(f'--timeout {get_timeout(test_platform, "Android")}')
+    utr_args.append(f'--timeout={get_timeout(test_platform, "Android")}')
 
 
     return [ 
@@ -73,7 +73,7 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor):
     utr_args = utr_standalone_build_flags(platform_spec='', platform='Android', testproject=f'{TEST_PROJECTS_DIR}\\{project_folder}', player_save_path=PATH_PLAYERS, editor_location='WindowsEditor')
     utr_args.extend(test_platform["extra_utr_flags_build"])
     utr_args.extend(['--scripting-backend=il2cpp'])
-    utr_args.append(f'--timeout {get_timeout(test_platform, "Android", build=True)}')
+    utr_args.append(f'--timeout={get_timeout(test_platform, "Android", build=True)}')
 
 
     if api["name"].lower() =='vulkan':

@@ -51,7 +51,7 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor):
         artifacts_path=f'/Users/bokken/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}/{PATH_TEST_RESULTS}'
     )
     utr_args.extend(test_platform["extra_utr_flags"])
-    utr_args.append(f'--timeout {get_timeout(test_platform, "OSX_Metal")}')
+    utr_args.append(f'--timeout={get_timeout(test_platform, "OSX_Metal")}')
     return  _cmd_base(project_folder, platform, utr_args, editor)
 
 
