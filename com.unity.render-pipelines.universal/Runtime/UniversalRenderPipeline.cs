@@ -365,31 +365,12 @@ namespace UnityEngine.Rendering.Universal
                 if (baseCameraData.xr.enabled)
                 {
                     xrActive = true;
-
-                    // Update cameraData for XR
-                    Rect cameraRect = baseCamera.rect;
-                    Rect xrViewport = baseCameraData.xr.GetViewport();
-                    baseCameraData.pixelRect = new Rect(cameraRect.x * xrViewport.width + xrViewport.x,
-                                                        cameraRect.y * xrViewport.height + xrViewport.y,
-                                                        cameraRect.width * xrViewport.width,
-                                                        cameraRect.height * xrViewport.height);
-                    Rect camPixelRect = baseCameraData.pixelRect;
-                    baseCameraData.pixelWidth  = (int)System.Math.Round(camPixelRect.width + camPixelRect.x) - (int)System.Math.Round(camPixelRect.x);
-                    baseCameraData.pixelHeight = (int)System.Math.Round(camPixelRect.height + camPixelRect.y) - (int)System.Math.Round(camPixelRect.y);
-                    baseCameraData.aspectRatio = (float)baseCameraData.pixelWidth / (float)baseCameraData.pixelHeight;
-
-                    // Update intermediate camera target descriptor for XR
-                    baseCameraData.cameraTargetDescriptor = baseCameraData.xr.renderTargetDesc;
-                    if (baseCameraData.isHdrEnabled)
-                    {
-                        baseCameraData.cameraTargetDescriptor.graphicsFormat = originalTargetDesc.graphicsFormat;
-                    }
-                    baseCameraData.cameraTargetDescriptor.msaaSamples = originalTargetDesc.msaaSamples;
-                    baseCameraData.cameraTargetDescriptor.width = baseCameraData.pixelWidth;
-                    baseCameraData.cameraTargetDescriptor.height = baseCameraData.pixelHeight;
+                    // Helper function for updating cameraData with xrPass Data
+                    m_XRSystem.UpdateCameraData(ref baseCameraData, baseCameraData.xr);
                 }
 #endif
-            BeginCameraRendering(context, baseCamera);
+                
+                BeginCameraRendering(context, baseCamera);
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
                 //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
                 VFX.VFXManager.PrepareCamera(baseCamera);
@@ -514,7 +495,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 reflectionProbeModes = SupportedRenderingFeatures.ReflectionProbeModes.None,
                 defaultMixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.Subtractive,
-                mixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.Subtractive | SupportedRenderingFeatures.LightmapMixedBakeModes.IndirectOnly,
+                mixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.Subtractive | SupportedRenderingFeatures.LightmapMixedBakeModes.IndirectOnly | SupportedRenderingFeatures.LightmapMixedBakeModes.Shadowmask,
                 lightmapBakeTypes = LightmapBakeType.Baked | LightmapBakeType.Mixed,
                 lightmapsModes = LightmapsMode.CombinedDirectional | LightmapsMode.NonDirectional,
                 lightProbeProxyVolumes = false,
@@ -787,25 +768,9 @@ namespace UnityEngine.Rendering.Universal
 
             // We no longer use screen space shadows in URP.
             // This change allows us to have particles & transparent objects receive shadows.
-            shadowData.requiresScreenSpaceShadowResolve = false;// shadowData.supportsMainLightShadows && supportsScreenSpaceShadows && settings.shadowCascadeOption != ShadowCascadesOption.NoCascades;
+            shadowData.requiresScreenSpaceShadowResolve = false;
 
-            int shadowCascadesCount;
-            switch (settings.shadowCascadeOption)
-            {
-                case ShadowCascadesOption.FourCascades:
-                    shadowCascadesCount = 4;
-                    break;
-
-                case ShadowCascadesOption.TwoCascades:
-                    shadowCascadesCount = 2;
-                    break;
-
-                default:
-                    shadowCascadesCount = 1;
-                    break;
-            }
-
-            shadowData.mainLightShadowCascadesCount = shadowCascadesCount;//(shadowData.requiresScreenSpaceShadowResolve) ? shadowCascadesCount : 1;
+            shadowData.mainLightShadowCascadesCount = settings.shadowCascadeCount;
             shadowData.mainLightShadowmapWidth = settings.mainLightShadowmapResolution;
             shadowData.mainLightShadowmapHeight = settings.mainLightShadowmapResolution;
 
@@ -817,6 +782,10 @@ namespace UnityEngine.Rendering.Universal
 
                 case 2:
                     shadowData.mainLightShadowCascadesSplit = new Vector3(settings.cascade2Split, 1.0f, 0.0f);
+                    break;
+
+                case 3:
+                    shadowData.mainLightShadowCascadesSplit = new Vector3(settings.cascade3Split.x, settings.cascade3Split.y, 0.0f);
                     break;
 
                 default:
@@ -866,7 +835,7 @@ namespace UnityEngine.Rendering.Universal
 
         static PerObjectData GetPerObjectLightFlags(int additionalLightsCount)
         {
-            var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightData | PerObjectData.OcclusionProbe;
+            var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightData | PerObjectData.OcclusionProbe | PerObjectData.ShadowMask;
 
             if (additionalLightsCount > 0)
             {
