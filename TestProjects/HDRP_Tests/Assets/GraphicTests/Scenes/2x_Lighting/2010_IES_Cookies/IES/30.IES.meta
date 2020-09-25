@@ -1,0 +1,27 @@
+fileFormatVersion: 2
+guid: f22a3d7a21251b9408d983ccd3611d98
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 9801397f829a1ed42984340315cbf362, type: 3}
+  iesMetaData:
+    FileFormatVersion: LM-63-1991
+    IESPhotometricType: Type C
+    IESMaximumIntensity: 4850
+    IESMaximumIntensityUnit: Lumens
+    Manufacturer: KURT VERSEN
+    LuminaireCatalogNumber: C7394
+    LuminaireDescription: DOWNLIGHT
+    LampCatalogNumber: T-4 FR MC
+    LampDescription: 250W FROST
+    PrefabLightType: 0
+    SpotAngle: 120
+    iesSize: 128
+    ApplyLightAttenuation: 1
+    UseIESMaximumIntensity: 1
+    CookieCompression: 2
+    LightAimAxisRotation: -90
