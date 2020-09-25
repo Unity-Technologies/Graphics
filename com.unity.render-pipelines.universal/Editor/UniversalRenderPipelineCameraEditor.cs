@@ -661,6 +661,8 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(m_AdditionalCameraDataCameraTypeProp, Styles.cameraType);
             if (EditorGUI.EndChangeCheck())
             {
+                camera.targetDisplay = (((CameraRenderType)m_AdditionalCameraDataCameraTypeProp.intValue) == CameraRenderType.Base)
+                    ? 0 : -1;
                 UpdateCameras();
             }
         }
