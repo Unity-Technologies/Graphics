@@ -6,8 +6,6 @@ namespace UnityEditor.VFX.Utility
     [CustomEditor(typeof(VFXOutputEventCinemachineCameraShake))]
     class VFXOutputEventCinemachineCameraShakeEditor : VFXOutputEventHandlerEditor
     {
-        VFXOutputEventCinemachineCameraShake m_RigidbodyEventHandler;
-
         SerializedProperty m_CinemachineImpulseSource;
         SerializedProperty m_AttributeSpace;
 
