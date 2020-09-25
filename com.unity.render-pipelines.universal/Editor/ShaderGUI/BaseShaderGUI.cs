@@ -36,6 +36,13 @@ namespace UnityEditor
             Both = 0
         }
 
+        public enum DoubleSidedNormalMode
+        {
+            Flip = 0,
+            Mirror = 1,
+            None = 2
+        }
+
         protected class Styles
         {
             // Catergories
@@ -56,6 +63,9 @@ namespace UnityEditor
 
             public static readonly GUIContent cullingText = new GUIContent("Render Face",
                 "Specifies which faces to cull from your geometry. Front culls front faces. Back culls backfaces. None means that both sides are rendered.");
+
+            public static readonly GUIContent normalModeText = new GUIContent("Normal Mode",
+                "Specifies the method used to modify the normal base.\nMirror: Mirrors the normals with the vertex normal plane.\nFlip: Flips the normal.");
 
             public static readonly GUIContent alphaClipText = new GUIContent("Alpha Clipping",
                 "Makes your Material act like a Cutout shader. Use this to create a transparent effect with hard edges between opaque and transparent areas.");
@@ -96,6 +106,8 @@ namespace UnityEditor
         protected MaterialProperty blendModeProp { get; set; }
 
         protected MaterialProperty cullingProp { get; set; }
+
+        protected MaterialProperty doubleSidedConstantsProp { get; set; }
 
         protected MaterialProperty alphaClipProp { get; set; }
 
@@ -154,6 +166,7 @@ namespace UnityEditor
             emissionMapProp = FindProperty("_EmissionMap", properties, false);
             emissionColorProp = FindProperty("_EmissionColor", properties, false);
             queueOffsetProp = FindProperty("_QueueOffset", properties, false);
+            doubleSidedConstantsProp = FindProperty("_DoubleSidedConstants", properties);
         }
 
         public override void OnGUI(MaterialEditor materialEditorIn, MaterialProperty[] properties)
@@ -248,6 +261,26 @@ namespace UnityEditor
                 materialEditor.RegisterPropertyChangeUndo(Styles.cullingText.text);
                 cullingProp.floatValue = (float)culling;
                 material.doubleSidedGI = (RenderFace)cullingProp.floatValue != RenderFace.Front;
+            }
+
+            if (culling != RenderFace.Front)
+            {
+                var normalMode = (DoubleSidedNormalMode) doubleSidedConstantsProp.vectorValue.w;
+
+                EditorGUI.BeginChangeCheck();
+                EditorGUI.indentLevel++;
+                normalMode = (DoubleSidedNormalMode) EditorGUILayout.EnumPopup(Styles.normalModeText, normalMode);
+                EditorGUI.indentLevel--;
+                if (EditorGUI.EndChangeCheck())
+                {
+                    materialEditor.RegisterPropertyChangeUndo(Styles.normalModeText.text);
+                    Vector4 newConstants = Vector4.zero;
+                    if(normalMode == DoubleSidedNormalMode.Flip) newConstants = new Vector4(-1,-1,-1,0);
+                    else if(normalMode == DoubleSidedNormalMode.Mirror) newConstants = new Vector4(1,1,-1,1);
+                    else if(normalMode == DoubleSidedNormalMode.None) newConstants = new Vector4(1,1,1,2);
+
+                    doubleSidedConstantsProp.vectorValue = newConstants;
+                }
             }
 
             EditorGUI.showMixedValue = false;
@@ -417,6 +450,13 @@ namespace UnityEditor
             // Shader specific keyword functions
             shadingModelFunc?.Invoke(material);
             shaderFunc?.Invoke(material);
+
+            // Backface Visible
+            if (material.HasProperty("_Cull"))
+            {
+                CoreUtils.SetKeyword(material, "_BACKFACE_VISIBLE", material.GetFloat("_Cull") < 2);
+            }
+
         }
 
         public static void SetupMaterialBlendMode(Material material)

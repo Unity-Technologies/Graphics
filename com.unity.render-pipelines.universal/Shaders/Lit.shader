@@ -53,6 +53,7 @@ Shader "Universal Render Pipeline/Lit"
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
         [HideInInspector] _Cull("__cull", Float) = 2.0
+        [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (-1,-1,-1,0)
 
         _ReceiveShadows("Receive Shadows", Float) = 1.0
         // Editmode props
@@ -94,6 +95,7 @@ Shader "Universal Render Pipeline/Lit"
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local _BACKFACE_VISIBLE
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
             #pragma shader_feature_local_fragment _EMISSION
