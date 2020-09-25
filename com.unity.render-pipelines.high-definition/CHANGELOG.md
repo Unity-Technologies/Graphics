@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an optional check in the HDRP DXR Wizard to verify 64 bits target architecture
 - Added option to display timing stats in the debug menu as an average over 1 second. 
 - Added a light unit slider to provide users more context when authoring physically based values.
+- Added a way to check the normals through the material views.
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
