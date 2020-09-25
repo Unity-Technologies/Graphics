@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Light skin not properly applied on the LookDev when switching from Dark Skin (case 1278802)
 - Fixed Custom Post Processes affecting preview cameras.
 - Fixed issue with box light not visible if range is below one and range attenuation is off.
+- Fixed serialization issue with matcap scale intensity.
 
 ### Changed
 - Remove MSAA debug mode when renderpipeline asset has no MSAA
