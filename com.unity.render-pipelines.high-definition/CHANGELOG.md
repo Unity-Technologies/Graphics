@@ -83,6 +83,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed SSGI compilation issues on PS4.
 - Fixed "Screen position out of view frustum" error when camera is on exactly the planar reflection probe plane.
 - Workaround issue that caused objects using eye shader to not be rendered on xbox.
+- Fixed text in cascades shadow split being truncated.
+- Fixed rendering of custom passes in the Custom Pass Volume inspector
+- Force probe to render again if first time was during async shader compilation to avoid having cyan objects.
+- Fixed for lookdev library field not being refreshed upon opening a library from the environment library inspector.
 - Fixed serialization issue with matcap scale intensity.
 
 ### Changed
@@ -109,6 +113,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved diffusion profile list to the HDRP default settings panel.
 - Skip biquadratic resampling of vbuffer when volumetric fog filtering is enabled.
 - Optimized Grain and sRGB Dithering.
+- On platforms that allow it skip the first mip of the depth pyramid and compute it alongside the depth buffer used for low res transparents.
 
 ## [10.0.0] - 2019-06-10
 
