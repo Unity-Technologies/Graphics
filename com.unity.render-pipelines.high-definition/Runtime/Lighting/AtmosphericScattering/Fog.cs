@@ -186,8 +186,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._HeightFogExponents = new Vector2(1.0f / H, H);
             cb._HeightFogBaseHeight = crBaseHeight;
             cb._GlobalFogAnisotropy = anisotropy.value;
-
-            cb._VolumetricFilteringEnabled = filter.value ? 1 : 0;
+            cb._VolumetricFilteringEnabled = ((int)denoisingMode.value & (int)FogDenoisingMode.Gaussian) != 0 ? 1 : 0;
         }
     }
 
