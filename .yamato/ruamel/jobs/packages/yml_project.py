@@ -2,6 +2,7 @@ from ..shared.namer import projectcontext_filepath
 from .project_pack import Project_PackJob
 from .project_publish import Project_PublishJob
 from .project_test import Project_TestJob
+from .project_test_min_editor import Project_TestMinEditorJob
 from .project_publish_all import Project_PublishAllJob
 from .project_publish_all_tag import Project_PublishAllTagJob
 from .project_test_all import Project_AllPackageCiJob
@@ -25,6 +26,10 @@ def create_projectcontext_ymls(metafile):
         for platform in metafile["platforms"]:
             job = Project_TestJob(platform, editor)
             yml[job.job_id] = job.yml
+
+    for platform in metafile["platforms"]:
+        job = Project_TestMinEditorJob(platform)
+        yml[job.job_id] = job.yml
     
     for editor in metafile['editors']:
         job = Project_AllPackageCiJob(metafile["packages"], metafile["agent_publish"], metafile["platforms"], metafile["target_editor"], metafile["target_branch"], editor)
