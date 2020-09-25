@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.Universal
         public DebugMaterialIndex debugMaterialIndex { get; set; }
         public LightingDebugMode lightingDebugMode { get; set; }
         public VertexAttributeDebugMode attributeDebugIndex { get; set; }
-        public int pbrLightingDebugModeMask { get; set; }
+        public DebugLightingFeature debugLightingFeatureMask { get; set; }
         public DebugMipInfo mipInfoMode { get; set; }
 
         public RenderTargetIdentifier[] colorAttachments

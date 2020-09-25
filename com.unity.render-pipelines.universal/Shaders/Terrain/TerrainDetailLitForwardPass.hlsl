@@ -143,13 +143,13 @@ Varyings TerrainLitVertex(Attributes input)
     half3 attenuatedLightColor = mainLight.color * mainLight.distanceAttenuation;
     half3 diffuseColor = half3(0, 0, 0);
 
-    if(IsLightingFeatureEnabled(DEBUG_PBR_LIGHTING_ENABLE_MAIN_LIGHT))
+    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_MAIN_LIGHT))
     {
         diffuseColor += LightingLambert(attenuatedLightColor, mainLight.direction, NormalWS);
     }
 
     #if defined(_ADDITIONAL_LIGHTS) || defined(_ADDITIONAL_LIGHTS_VERTEX)
-    if(IsLightingFeatureEnabled(DEBUG_PBR_LIGHTING_ENABLE_ADDITIONAL_LIGHTS))
+    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_ADDITIONAL_LIGHTS))
     {
         int pixelLightCount = GetAdditionalLightsCount();
         for (int i = 0; i < pixelLightCount; ++i)

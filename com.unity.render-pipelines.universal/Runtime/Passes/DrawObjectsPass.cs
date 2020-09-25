@@ -97,7 +97,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 var attributeDebugIndex = DebugDisplaySettings.Instance.materialSettings.VertexAttributeDebugIndexData;
                 bool isMaterialDebugActive = lightingDebugMode != LightingDebugMode.None ||
                                              debugMaterialIndex != DebugMaterialIndex.None ||
-                                             pbrLightingDebugModeMask != (int)PBRLightingDebugMode.None ||
+                                             debugLightingFeatureMask != (int)DebugLightingFeature.None ||
                                              validationMode == DebugValidationMode.ValidateAlbedo ||
 											 attributeDebugIndex != VertexAttributeDebugMode.None ||
                                              mipInfoMode != DebugMipInfo.None;

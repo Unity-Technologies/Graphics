@@ -125,7 +125,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 var sceneOverrideMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
                 bool isMaterialDebugActive = lightingDebugMode != LightingDebugMode.None ||
                                              debugMaterialIndex != DebugMaterialIndex.None ||
-                                             pbrLightingDebugModeMask != (int)PBRLightingDebugMode.None;
+                                             debugLightingFeatureMask != (int)DebugLightingFeature.None;
                 bool isSceneOverrideActive = sceneOverrideMode != SceneOverrides.None;
                 if (isMaterialDebugActive || isSceneOverrideActive)
                 {

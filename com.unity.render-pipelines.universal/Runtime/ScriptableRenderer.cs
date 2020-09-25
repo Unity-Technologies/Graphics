@@ -214,8 +214,7 @@ namespace UnityEngine.Rendering.Universal
         public DebugMaterialIndex debugMaterialIndex { get; set; }
         public LightingDebugMode lightingDebugMode { get; set; }
         public VertexAttributeDebugMode attributeDebugIndex { get; set; }
-
-        public int pbrLightingDebugModeMask { get; set; }
+        public DebugLightingFeature debugLightingFeatureMask { get; set; }
         public DebugMipInfo debugMipInfo { get; set; }
 
         protected List<ScriptableRendererFeature> rendererFeatures
@@ -601,7 +600,7 @@ namespace UnityEngine.Rendering.Universal
                 renderPass.debugMaterialIndex = debugMaterialIndex;
                 renderPass.lightingDebugMode = lightingDebugMode;
                 renderPass.attributeDebugIndex = attributeDebugIndex;
-                renderPass.pbrLightingDebugModeMask = pbrLightingDebugModeMask;
+                renderPass.debugLightingFeatureMask = debugLightingFeatureMask;
                 renderPass.mipInfoMode = debugMipInfo;
                 ExecuteRenderPass(context, renderPass, ref renderingData);
             }

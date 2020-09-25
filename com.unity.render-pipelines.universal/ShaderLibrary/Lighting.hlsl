@@ -889,7 +889,7 @@ bool CanDebugOverrideOutputColor(InputData inputData, SurfaceData surfaceData, D
 bool IsLightingFeatureEnabled(uint bitIndex)
 {
     #if defined(_DEBUG_SHADER)
-    return (_DebugPBRLightingMask == 0) || IsBitSet(_DebugPBRLightingMask, bitIndex);
+    return (_DebugLightingFeatureMask == 0) || IsBitSet(_DebugLightingFeatureMask, bitIndex);
     #else
     return true;
     #endif
@@ -942,14 +942,14 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
 
     half3 color = half3(0, 0, 0);
 
-    if(IsLightingFeatureEnabled(DEBUG_PBR_LIGHTING_ENABLE_GI))
+    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_GI))
     {
         color += GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
                                     inputData.bakedGI, surfaceData.occlusion,
                                     inputData.normalWS, inputData.viewDirectionWS);
     }
 
-    if(IsLightingFeatureEnabled(DEBUG_PBR_LIGHTING_ENABLE_MAIN_LIGHT))
+    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_MAIN_LIGHT))
     {
         color += LightingPhysicallyBased(brdfData, brdfDataClearCoat,
                                          mainLight,
@@ -958,7 +958,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     }
 
     #if defined(_ADDITIONAL_LIGHTS)
-    if(IsLightingFeatureEnabled(DEBUG_PBR_LIGHTING_ENABLE_ADDITIONAL_LIGHTS))
+    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_ADDITIONAL_LIGHTS))
     {
         uint pixelLightCount = GetAdditionalLightsCount();
         for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
@@ -976,13 +976,13 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     #endif
 
     #if defined(_ADDITIONAL_LIGHTS_VERTEX)
-    if(IsLightingFeatureEnabled(DEBUG_PBR_LIGHTING_ENABLE_VERTEX_LIGHTING))
+    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_VERTEX_LIGHTING))
     {
         color += inputData.vertexLighting * brdfData.diffuse;
     }
     #endif
 
-    if(IsLightingFeatureEnabled(DEBUG_PBR_LIGHTING_ENABLE_EMISSION))
+    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_EMISSION))
     {
         color += surfaceData.emission;
     }
@@ -1059,7 +1059,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     half3 specularColor = LightingSpecular(attenuatedLightColor, mainLight.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, smoothness);
 
     #if defined(_ADDITIONAL_LIGHTS)
-    if(IsLightingFeatureEnabled(DEBUG_PBR_LIGHTING_ENABLE_ADDITIONAL_LIGHTS))
+    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_ADDITIONAL_LIGHTS))
     {
         uint pixelLightCount = GetAdditionalLightsCount();
         for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
@@ -1077,7 +1077,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     #endif
 
     #if defined(_ADDITIONAL_LIGHTS_VERTEX)
-    if(IsLightingFeatureEnabled(DEBUG_PBR_LIGHTING_ENABLE_VERTEX_LIGHTING))
+    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_VERTEX_LIGHTING))
     {
         diffuseColor += inputData.vertexLighting;
     }
@@ -1085,7 +1085,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
 
     half3 finalColor = diffuseColor * diffuse;
 
-    if(IsLightingFeatureEnabled(DEBUG_PBR_LIGHTING_ENABLE_EMISSION))
+    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_EMISSION))
     {
         finalColor += surfaceData.emission;
     }
@@ -1124,7 +1124,7 @@ half4 UniversalFragmentBakedLit(InputData inputData, SurfaceData surfaceData)
 
     half4 finalColor = half4(surfaceData.albedo, surfaceData.alpha);
 
-    if(IsLightingFeatureEnabled(DEBUG_PBR_LIGHTING_ENABLE_GI))
+    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_GI))
     {
         finalColor.rgb *= inputData.bakedGI;
     }

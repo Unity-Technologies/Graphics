@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering
     public class DebugDisplaySettingsLighting : IDebugDisplaySettingsData
     {
         public LightingDebugMode m_LightingDebugMode;
-        internal PBRLightingDebugMode m_PBRLightingDebugMode;
+        internal DebugLightingFeature m_DebugLightingFeatureMask;
 
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
@@ -14,16 +14,16 @@ namespace UnityEditor.Rendering
 
             public SettingsPanel(DebugDisplaySettingsLighting data)
             {
-                AddWidget(new DebugUI.EnumField { displayName = "LightingDebugMode", autoEnum = typeof(LightingDebugMode),
+                AddWidget(new DebugUI.EnumField { displayName = "Lighting Mode", autoEnum = typeof(LightingDebugMode),
                     getter = () => (int)data.m_LightingDebugMode,
                     setter = (value) => {},
                     getIndex = () => (int)data.m_LightingDebugMode,
                     setIndex = (value) => data.m_LightingDebugMode = (LightingDebugMode)value});
 
-                AddWidget(new DebugUI.BitField { displayName = "PBR Lighting Debug Mode",
-                    getter = () => data.m_PBRLightingDebugMode,
-                    setter = (value) => data.m_PBRLightingDebugMode = (PBRLightingDebugMode)value,
-                    enumType = typeof(PBRLightingDebugMode),
+                AddWidget(new DebugUI.BitField { displayName = "Lighting Features",
+                    getter = () => data.m_DebugLightingFeatureMask,
+                    setter = (value) => data.m_DebugLightingFeatureMask = (DebugLightingFeature)value,
+                    enumType = typeof(DebugLightingFeature),
                 });
             }
         }
