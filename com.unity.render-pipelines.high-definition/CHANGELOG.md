@@ -108,6 +108,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved diffusion profile list to the HDRP default settings panel.
 - Skip biquadratic resampling of vbuffer when volumetric fog filtering is enabled.
 - Optimized Grain and sRGB Dithering.
+- On platforms that allow it skip the first mip of the depth pyramid and compute it alongside the depth buffer used for low res transparents.
 
 ## [10.0.0] - 2019-06-10
 
