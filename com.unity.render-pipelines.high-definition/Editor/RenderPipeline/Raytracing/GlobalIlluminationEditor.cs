@@ -16,8 +16,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_FullResolutionSS;
         SerializedDataParameter m_DepthBufferThickness;
         SerializedDataParameter m_RaySteps;
-        SerializedDataParameter m_MaximalRadius;
-        SerializedDataParameter m_ClampValueSS;
         SerializedDataParameter m_FilterRadius;
 
         // Ray tracing generic attributes
@@ -53,8 +51,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_FullResolutionSS = Unpack(o.Find(x => x.fullResolutionSS));
             m_DepthBufferThickness = Unpack(o.Find(x => x.depthBufferThickness));
             m_RaySteps = Unpack(o.Find(x => x.raySteps));
-            m_MaximalRadius = Unpack(o.Find(x => x.maximalRadius));
-            m_ClampValueSS = Unpack(o.Find(x => x.clampValueSS));
             m_FilterRadius = Unpack(o.Find(x => x.filterRadius));
 
             // Ray Tracing shared parameters
@@ -188,8 +184,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 GUI.enabled = useCustomValue;
                 PropertyField(m_FullResolutionSS, EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode."));
                 PropertyField(m_RaySteps);
-                PropertyField(m_MaximalRadius);
-                PropertyField(m_ClampValueSS, EditorGUIUtility.TrTextContent("Clamp Value", "Clamps the exposed intensity."));
                 PropertyField(m_FilterRadius);
                 GUI.enabled = true;
                 EditorGUI.indentLevel--;
