@@ -43,17 +43,7 @@ namespace UnityEditor.VFX.Utility
 
             using(new EditorGUI.IndentLevelScope(1))
             {
-                using(new GUILayout.HorizontalScope())
-                {
-
-                    EditorGUILayout.PropertyField(m_PrefabToSpawn);
-
-                    using(new EditorGUI.DisabledGroupScope(m_PrefabToSpawn.objectReferenceValue == null))
-                    {
-                        if (GUILayout.Button("Reload", EditorStyles.miniButton, GUILayout.Width(64)))
-                            m_PrefabSpawnHandler.ReloadPrefab();
-                    }
-                }
+                EditorGUILayout.PropertyField(m_PrefabToSpawn);
                 EditorGUILayout.PropertyField(m_InstanceCount);
                 EditorGUILayout.PropertyField(m_ParentInstances);
             }
@@ -79,25 +69,18 @@ Attribute Usage:
 
             if (EditorGUI.EndChangeCheck())
             {
-                if(m_PrefabToSpawn.objectReferenceValue != null)
+                //m_PrefabToSpawn can't be a children of m_PrefabSpawnHandler.
+                //Avoid infinite hierarchy recursion.
+                if (m_PrefabToSpawn.objectReferenceValue != null)
                 {
                     var prefab = m_PrefabToSpawn.objectReferenceValue as GameObject;
                     var self = m_PrefabSpawnHandler.gameObject;
 
-                    while(self != null)
-                    {
-                        if(self.transform == prefab.transform)
-                            m_PrefabToSpawn.objectReferenceValue = null;
-
-                        if (self.transform.parent != null)
-                            self = self.transform.parent.gameObject;
-                        else
-                            self = null;
-                    }
+                    if (prefab.transform.IsChildOf(self.transform))
+                        m_PrefabToSpawn.objectReferenceValue = null;
                 }
 
                 serializedObject.ApplyModifiedProperties();
-                m_PrefabSpawnHandler.ReloadPrefab();
             }
         }
     }

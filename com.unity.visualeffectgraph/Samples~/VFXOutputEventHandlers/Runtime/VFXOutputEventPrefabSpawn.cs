@@ -7,31 +7,22 @@ namespace UnityEngine.VFX.Utility
     class VFXOutputEventPrefabSpawn : VFXOutputEventAbstractHandler
     {
         public override bool canExecuteInEditor => true;
+        public uint instanceCount => m_InstanceCount;
+        public GameObject prefabToSpawn => m_PrefabToSpawn;
+        public bool parentInstances => m_ParentInstances;
 
-        public uint instanceCount
-        {
-            get { return m_InstanceCount; }
-            set { m_InstanceCount = value; ResetInstances(); }
-        }
-
-        public GameObject prefabToSpawn
-        {
-            get { return m_PrefabToSpawn; }
-            set { m_PrefabToSpawn = value; DisposeInstances(); ResetInstances(); }
-        }
-        public bool parentInstances
-        {
-            get { return m_ParentInstances; }
-            set { m_ParentInstances = value; ResetInstances(); }
-        }
-
-
+#pragma warning disable 414, 649
         [SerializeField, Tooltip("The maximum number of prefabs that can be active at a time")]
         uint m_InstanceCount = 5;
         [SerializeField, Tooltip("The prefab to enable upon event received. Prefabs are created as hidden and stored in a pool, upon enabling this behavior. Upon receiving an event a prefab from the pool is enabled and will be disabled when reaching its lifetime.")]
         GameObject m_PrefabToSpawn;
         [SerializeField, Tooltip("Whether to attach prefab instances to current game object. Use this setting to treat position and angle attributes as local space.")]
         bool m_ParentInstances;
+#pragma warning restore 414, 649
+
+#if UNITY_EDITOR
+        bool m_Dirty = true;
+#endif
 
         [Tooltip("Whether to use the position attribute to set prefab position on spawn")]
         public bool usePosition = true;
@@ -42,21 +33,16 @@ namespace UnityEngine.VFX.Utility
         [Tooltip("Whether to use the lifetime attribute to determine how long the prefab will be enabled")]
         public bool useLifetime = true;
 
-        GameObject[] m_Instances;
-        float[] m_TimesToLive;
-
-        bool isEditorPreview => Application.isEditor && !Application.isPlaying;
-
-        protected override void OnEnable()
-        {
-            base.OnEnable();
-            ResetInstances();
-        }
+        static readonly GameObject[] k_EmptyGameObjects = new GameObject[0];
+        static readonly float[] k_EmptyTimeToLive = new float[0];
+        GameObject[] m_Instances = k_EmptyGameObjects;
+        float[] m_TimesToLive = k_EmptyTimeToLive;
 
         protected override void OnDisable()
         {
             base.OnDisable();
-            DisposeInstances();
+            foreach (var instance in m_Instances)
+                instance.SetActive(false);
         }
 
         void OnDestroy()
@@ -64,110 +50,27 @@ namespace UnityEngine.VFX.Utility
             DisposeInstances();
         }
 
+#if UNITY_EDITOR
         void OnValidate()
         {
-#if UNITY_EDITOR
-            // Workaround call as you can't use neither Destroy() nor DestroyImmediate()
-            // in order to destroy GameObjects in OnValidate()
-            //
-            // https://forum.unity.com/threads/onvalidate-and-destroying-objects.258782/
-            
-            if(enabled)
-                UnityEditor.EditorApplication.delayCall += () =>
-                {
-                    // In some cases (enter playmode), this delay call is performed *after* object has been destroyed.
-                    if (this == null)
-                        return;
-
-                    DisposeInstances();
-
-                    if (enabled)
-                        ResetInstances();
-                };
+            m_Dirty = true;
+        }
 #endif
-        }
-
-        public void ReloadPrefab()
-        {
-            DisposeInstances();
-            ResetInstances();
-        }
-
-        void ResetInstances()
-        {
-            if (m_PrefabToSpawn == null || m_InstanceCount == 0)
-            {
-                DisposeInstances();
-                return;
-            }
-
-            // Clean up Instances
-            if (m_Instances == null)
-            {
-                m_Instances = new GameObject[instanceCount];
-                for (int i = 0; i < m_Instances.Length; i++)
-                {
-                    m_Instances[i] = InitializeInstance(i);
-                }
-            }
-            else
-            {
-                int maxCount = Math.Max((int)instanceCount, (int)instanceCount);
-                GameObject[] newArray = new GameObject[instanceCount];
-                for (int i = 0; i < maxCount; i++)
-                {
-                    if (i < instanceCount) // Create new Instances
-                    {
-                        newArray[i] = InitializeInstance(i);
-                    }
-                    else if (i > instanceCount) // Reap old Instances
-                    {
-                        DisposeInstance(m_Instances[i]);
-                    }
-                    else // Otherwise transfer data, and reset.
-                    {
-                        newArray[i] = m_Instances[i];
-                        newArray[i].SetActive(false);
-                    }
-                }
-                m_Instances = newArray;
-            }
-
-            // Initialize TTLs
-            m_TimesToLive = new float[instanceCount];
-        }
-
-        GameObject InitializeInstance(int index)
-        {
-            var go = Instantiate(m_PrefabToSpawn);
-            go.name = $"#{index} - {m_PrefabToSpawn.name}";
-            go.SetActive(false);
-            //go.hideFlags = HideFlags.DontSaveInEditor;
-            go.hideFlags = HideFlags.HideAndDontSave;
-            return go;
-        }
 
         void DisposeInstances()
         {
-            if (m_Instances == null)
-                return;
-
-            for (int i = 0; i < m_Instances.Length; i++)
+            foreach (var instance in m_Instances)
             {
-                DisposeInstance(m_Instances[i]);
+                if (instance)
+                {
+                    if (Application.isPlaying)
+                        Destroy(instance);
+                    else
+                        DestroyImmediate(instance);
+                }
             }
-            m_Instances = null;
-        }
-
-        void DisposeInstance(GameObject instance)
-        {
-            if (instance == null)
-                return;
-
-            if (isEditorPreview)
-                DestroyImmediate(instance);
-            else
-                Destroy(instance);
+            m_Instances = k_EmptyGameObjects;
+            m_TimesToLive = k_EmptyTimeToLive;
         }
 
         static readonly int k_PositionID = Shader.PropertyToID("position");
@@ -175,36 +78,78 @@ namespace UnityEngine.VFX.Utility
         static readonly int k_ScaleID = Shader.PropertyToID("scale");
         static readonly int k_LifetimeID = Shader.PropertyToID("lifetime");
 
-        public override void OnVFXOutputEvent(VFXEventAttribute eventAttribute)
+        void CheckAndRebuildInstances()
         {
-            if (m_Instances == null)
+            bool rebuild = m_Instances.Length != m_InstanceCount;
+#if UNITY_EDITOR
+            if (m_Dirty)
+            {
+                rebuild = true;
+                m_Dirty = false;
+            }
+#endif
+            if (!rebuild)
                 return;
 
-            // Find Slot
-            int freeIdx = -1;
-            for(int i = 0; i < m_Instances.Length; i++)
-            {
-                if (m_Instances[i] == null)
-                    m_Instances[i] = InitializeInstance(i);
+            DisposeInstances();
 
-                if(!m_Instances[i].activeInHierarchy)
+            if (m_PrefabToSpawn != null)
+            {
+                m_Instances = new GameObject[m_InstanceCount];
+                m_TimesToLive = new float[m_InstanceCount];
+            }
+
+#if UNITY_EDITOR
+            var prefabAssetType = UnityEditor.PrefabUtility.GetPrefabAssetType(m_PrefabToSpawn);
+#endif
+
+            for (int i = 0; i < m_Instances.Length; i++)
+            {
+                GameObject go = null;
+#if UNITY_EDITOR
+                if (prefabAssetType == UnityEditor.PrefabAssetType.NotAPrefab)
+                    go = Instantiate(m_PrefabToSpawn);
+                else
+                    go = UnityEditor.PrefabUtility.InstantiatePrefab(m_PrefabToSpawn) as GameObject;
+#else
+                go = Instantiate(m_PrefabToSpawn);
+#endif
+                go.name = $"{name} - #{i} - {m_PrefabToSpawn.name}";
+                go.SetActive(false);
+                go.transform.parent = m_ParentInstances ? transform : null;
+
+                go.hideFlags = HideFlags.HideAndDontSave;
+                //We are using HideInHierarchy to prevent unexpected deletion in edit mode.
+                //go.hideFlags = HideFlags.DontSave | HideFlags.NotEditable;
+                m_Instances[i] = go;
+                m_TimesToLive[i] = float.NegativeInfinity;
+            }
+        }
+
+        public override void OnVFXOutputEvent(VFXEventAttribute eventAttribute)
+        {
+            CheckAndRebuildInstances();
+
+            // Search for an available
+            int freeIdx = -1;
+            for (int i = 0; i < m_Instances.Length; i++)
+            {
+                if (!m_Instances[i].activeSelf)
                 {
                     freeIdx = i;
                     break;
                 }
             }
 
-            if (freeIdx == -1)   // can't find an slot available, discarding...
+            if (freeIdx == -1) // can't find an slot available, discarding...
                 return;
 
             // Activate Item if available
             var obj = m_Instances[freeIdx];
             obj.SetActive(true);
-            obj.transform.parent = m_ParentInstances ? transform : null;
-
             if (usePosition && eventAttribute.HasVector3(k_PositionID))
             {
-                if(parentInstances)
+                if (m_ParentInstances)
                     obj.transform.localPosition = eventAttribute.GetVector3(k_PositionID);
                 else
                     obj.transform.position = eventAttribute.GetVector3(k_PositionID);
@@ -226,39 +171,30 @@ namespace UnityEngine.VFX.Utility
             else
                 m_TimesToLive[freeIdx] = float.NegativeInfinity;
 
-            
             var handlers = obj.GetComponentsInChildren<VFXOutputEventPrefabAttributeAbstractHandler>();
             foreach(var handler in handlers)
-            {
                 handler.OnVFXEventAttribute(eventAttribute, m_VisualEffect);
-            }
-
         }
 
         void Update()
         {
-            // Manage Life/Death before gathering events
-            UpdateInstanceTTL();
-        }
-
-        void UpdateInstanceTTL()
-        {
-            if (m_Instances == null)
-                return;
-
-            float dt = Time.deltaTime;
-
-            for(int i = 0; i< m_Instances.Length; i++)
+            if (Application.isPlaying || (executeInEditor && canExecuteInEditor))
             {
-                // Negative infinity for non-time managed
-                if (m_TimesToLive[i] == float.NegativeInfinity)
-                    continue;   
+                CheckAndRebuildInstances();
 
-                // Else, manage time
-                if (m_TimesToLive[i] <= 0.0f && m_Instances[i].activeInHierarchy)
-                    m_Instances[i].SetActive(false);
-                else
-                    m_TimesToLive[i] -= dt;
+                var dt = Time.deltaTime;
+                for (int i = 0; i < m_Instances.Length; i++)
+                {
+                    // Negative infinity for non-time managed
+                    if (m_TimesToLive[i] == float.NegativeInfinity)
+                        continue;
+
+                    // Else, manage time
+                    if (m_TimesToLive[i] <= 0.0f && m_Instances[i].activeSelf)
+                        m_Instances[i].SetActive(false);
+                    else
+                        m_TimesToLive[i] -= dt;
+                }
             }
         }
     }
