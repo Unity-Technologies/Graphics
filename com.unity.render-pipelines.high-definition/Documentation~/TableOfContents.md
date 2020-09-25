@@ -149,9 +149,12 @@
     * [Ray-Traced Global Illumination](Ray-Traced-Global-Illumination)
     * [Ray-Traced Reflections](Ray-Traced-Reflections)
     * [Ray-Traced Shadows](Ray-Traced-Shadows)
+    * [Ray-Traced-Subsurface-Scattering](Ray-Traced-Subsurface-Scattering)
     * [Light Cluster](Ray-Tracing-Light-Cluster)
     * [Path Tracing](Ray-Tracing-Path-Tracing)
     * [Recursive Rendering](Ray-Tracing-Recursive-Rendering)
+  * Shader Graph Keywords
+    * [Raytracing Quality](SGNode-Raytracing-Quality)
   * Debugging
     * [Debugging Ray-Traced Effects](Ray-Tracing-Debug)
 * Components
@@ -173,6 +176,6 @@
   * [Creating a Custom Sky](Creating-a-Custom-Sky)
   * [Creating a Custom Post-Process Effect](Custom-Post-Process)
   * [Creating a Custom Render Pass](Custom-Pass)
-  * [Editing Frame Settings at Runtime](Frame-Settings-API.md)
+  * [Editing Frame Settings at Runtime](Frame-Settings-API)
 * [HDRP Glossary](Glossary)
 * [Known Issues and How To Fix Them](Known-Issues)
