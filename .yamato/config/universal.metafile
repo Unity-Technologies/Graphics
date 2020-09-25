@@ -2,10 +2,17 @@ project:
   name: Universal
   folder: UniversalGraphicsTest
 test_platforms:
-  - Standalone
-  - playmode
-  - editmode
-  - playmode_XR
+  - type: Standalone
+    timeout:
+      OSX_Metal: 2400
+    timeout_build:
+      Android: 1800
+  - type: playmode
+  - type: editmode
+  - type: playmode
+    name: playmode_XR
+    extra_utr_flags:
+      - --extra-editor-arg="-xr-tests" 
 platforms:
   - name: Win
     apis:

@@ -2,10 +2,15 @@ project:
   name: HDRP_Hybrid
   folder: HDRP_HybridTests
 test_platforms:
-  - playmode
-  - playmode_XR
-  # - editmode
-  - Standalone
+  - type: playmode
+  - type: playmode
+    name: playmode_XR
+    extra_utr_flags:
+      - --extra-editor-arg="-xr-tests" 
+  # - type: editmode
+  - type: Standalone
+    timeout:
+      OSX_Metal: 2400
 platforms:
   - name: Win
     apis:
