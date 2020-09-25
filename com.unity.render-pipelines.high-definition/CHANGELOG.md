@@ -89,6 +89,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Force probe to render again if first time was during async shader compilation to avoid having cyan objects.
 - Fixed for lookdev library field not being refreshed upon opening a library from the environment library inspector.
 - Fixed serialization issue with matcap scale intensity.
+- Close Add Override popup of Volume Inspector when the popup looses focus (case 1258571)
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
