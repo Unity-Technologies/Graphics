@@ -111,10 +111,11 @@ namespace UnityEngine.VFX.Utility
                 {
                     GameObject newInstance = null;
 #if UNITY_EDITOR
-                    if (prefabAssetType == UnityEditor.PrefabAssetType.NotAPrefab)
-                        newInstance = Instantiate(m_PrefabToSpawn);
-                    else
+                    if (prefabAssetType == UnityEditor.PrefabAssetType.Regular)
                         newInstance = UnityEditor.PrefabUtility.InstantiatePrefab(m_PrefabToSpawn) as GameObject;
+
+                    if (newInstance == null)
+                        newInstance = Instantiate(m_PrefabToSpawn);
 #else
                     newInstance = Instantiate(m_PrefabToSpawn);
 #endif
