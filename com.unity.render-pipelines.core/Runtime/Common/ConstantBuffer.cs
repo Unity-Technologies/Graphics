@@ -160,7 +160,7 @@ namespace UnityEngine.Rendering
             public void UpdateData(CommandBuffer cmd, in CBType data)
             {
                 m_Data[0] = data;
-                cmd.SetComputeBufferData(m_GPUConstantBuffer, m_Data);
+                cmd.SetBufferData(m_GPUConstantBuffer, m_Data);
             }
 
             public void SetGlobal(CommandBuffer cmd, int shaderId)
