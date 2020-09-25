@@ -78,5 +78,29 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual(GraphUtil.DeduplicateName(existingNames, "{0} ({1})", "b_1"), "b_1 (2)");
             Assert.AreEqual(GraphUtil.DeduplicateName(existingNames, "{0} ({1})", "c"), "c (1)");
         }
+
+        [Test]
+        public void IsHLSLKeyword()
+        {
+            Assert.IsTrue(NodeUtils.IsHLSLKeyword("min16uint"));
+            Assert.IsTrue(NodeUtils.IsHLSLKeyword("float2"));
+            Assert.IsTrue(NodeUtils.IsHLSLKeyword("uint4x4"));
+            Assert.IsTrue(NodeUtils.IsHLSLKeyword("bool2x2"));
+            Assert.IsTrue(NodeUtils.IsHLSLKeyword("half1x1"));
+            Assert.IsTrue(NodeUtils.IsHLSLKeyword("StructuredBuffer"));
+            Assert.IsTrue(NodeUtils.IsHLSLKeyword("texture"));
+            Assert.IsTrue(NodeUtils.IsHLSLKeyword("while"));
+            Assert.IsTrue(NodeUtils.IsHLSLKeyword("true"));
+            Assert.IsTrue(NodeUtils.IsHLSLKeyword("NULL"));
+
+            Assert.IsFalse(NodeUtils.IsHLSLKeyword("x"));
+            Assert.IsFalse(NodeUtils.IsHLSLKeyword("var"));
+            Assert.IsFalse(NodeUtils.IsHLSLKeyword("float5"));
+            Assert.IsFalse(NodeUtils.IsHLSLKeyword("tex"));
+            Assert.IsFalse(NodeUtils.IsHLSLKeyword("Texture"));
+            Assert.IsFalse(NodeUtils.IsHLSLKeyword("_0"));
+            Assert.IsFalse(NodeUtils.IsHLSLKeyword(""));
+            Assert.IsFalse(NodeUtils.IsHLSLKeyword("103"));
+        }
     }
 }

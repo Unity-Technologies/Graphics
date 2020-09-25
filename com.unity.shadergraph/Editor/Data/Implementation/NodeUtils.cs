@@ -558,6 +558,169 @@ namespace UnityEditor.Graphing
             return safeName;
         }
 
+        static readonly string[] k_HLSLNumericKeywords =
+        {
+            "float",
+            "half",     // not technically in HLSL spec, but prob should be
+            "real",     // Unity thing, but included here
+            "int",
+            "uint",
+            "bool",
+            "min10float",
+            "min16float",
+            "min12int",
+            "min16int",
+            "min16uint"
+        };
+
+        static readonly string[] k_HLSLNumericKeywordSuffixes =
+        {
+            "",
+            "1", "2", "3", "4",
+            "1x1", "1x2", "1x3", "1x4",
+            "2x1", "2x2", "2x3", "2x4",
+            "3x1", "3x2", "3x3", "3x4",
+            "4x1", "4x2", "4x3", "4x4"
+        };
+
+        static HashSet<string> m_HLSLKeywords = new HashSet<string>()
+        {
+            "AppendStructuredBuffer",
+            "asm",
+            "asm_fragment",
+            "BlendState",
+            "break",
+            "Buffer",
+            "ByteAddressBuffer",
+            "case",
+            "cbuffer",
+            "centroid",
+            "class",
+            "column_major",
+            "compile",
+            "compile_fragment",
+            "CompileShader",
+            "const",
+            "continue",
+            "ComputeShader",
+            "ConsumeStructuredBuffer",
+            "default",
+            "DepthStencilState",
+            "DepthStencilView",
+            "discard",
+            "do",
+            "double",
+            "DomainShader",
+            "dword",
+            "else",
+            "export",
+            "extern",
+            "false",
+            "for",
+            "fxgroup",
+            "GeometryShader",
+            "groupshared",
+            "half",
+            "Hullshader",
+            "if",
+            "in",
+            "inline",
+            "inout",
+            "InputPatch",
+            "interface",
+            "line",
+            "lineadj",
+            "linear",
+            "LineStream",
+            "matrix",
+            "namespace",
+            "nointerpolation",
+            "noperspective",
+            "NULL",
+            "out",
+            "OutputPatch",
+            "packoffset",
+            "pass",
+            "pixelfragment",
+            "PixelShader",
+            "point",
+            "PointStream",
+            "precise",
+            "RasterizerState",
+            "RenderTargetView",
+            "return",
+            "register",
+            "row_major",
+            "RWBuffer",
+            "RWByteAddressBuffer",
+            "RWStructuredBuffer",
+            "RWTexture1D",
+            "RWTexture1DArray",
+            "RWTexture2D",
+            "RWTexture2DArray",
+            "RWTexture3D",
+            "sample",
+            "sampler",
+            "SamplerState",
+            "SamplerComparisonState",
+            "shared",
+            "snorm",
+            "stateblock",
+            "stateblock_state",
+            "static",
+            "string",
+            "struct",
+            "switch",
+            "StructuredBuffer",
+            "tbuffer",
+            "technique",
+            "technique10",
+            "technique11",
+            "texture",
+            "Texture1D",
+            "Texture1DArray",
+            "Texture2D",
+            "Texture2DArray",
+            "Texture2DMS",
+            "Texture2DMSArray",
+            "Texture3D",
+            "TextureCube",
+            "TextureCubeArray",
+            "true",
+            "typedef",
+            "triangle",
+            "triangleadj",
+            "TriangleStream",
+            "uniform",
+            "unorm",
+            "unsigned",
+            "vector",
+            "vertexfragment",
+            "VertexShader",
+            "void",
+            "volatile",
+            "while"
+        };
+
+        static bool m_HLSLKeywordDictionaryBuilt = false;
+
+        public static bool IsHLSLKeyword(string id)
+        {
+            if (!m_HLSLKeywordDictionaryBuilt)
+            {
+                foreach (var numericKeyword in k_HLSLNumericKeywords)
+                    foreach (var suffix in k_HLSLNumericKeywordSuffixes)
+                        m_HLSLKeywords.Add(numericKeyword + suffix);
+
+                m_HLSLKeywordDictionaryBuilt = true;
+            }
+
+            bool isHLSLKeyword = m_HLSLKeywords.Contains(id);
+
+            return isHLSLKeyword;
+        }
+
+
         public static string ConvertToValidHLSLIdentifier(string originalId)
         {
             // Converts "  1   var  * q-30 ( 0 ) (1)   " to "_1_var_q_30_0_1"
@@ -601,7 +764,12 @@ namespace UnityEditor.Graphing
             if (hlslId.Length <= 0)
                 hlslId.Append("_");
 
-            return hlslId.ToString();
+            var result = hlslId.ToString();
+
+            while (IsHLSLKeyword(result))
+                result = "_" + result;
+
+            return result;
         }
 
         private static string GetDisplaySafeName(string input)
