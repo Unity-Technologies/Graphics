@@ -481,7 +481,7 @@ namespace UnityEditor.ShaderGraph
                 owner.AddValidationError(objectId, $"Subgraph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid} contains nodes that are unsuported by the current active targets");
             }
 
-            // detect VT layer count mismatches
+            // detect disconnected VT properties, and VT layer count mismatches
             foreach (var paramProp in asset.inputs)
             {
                 if (paramProp is VirtualTextureShaderProperty vtProp)
@@ -489,14 +489,26 @@ namespace UnityEditor.ShaderGraph
                     int paramLayerCount = vtProp.value.layers.Count;
 
                     var argSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(paramProp.guid.ToString())];      // yikes
-                    var argProp = GetSlotProperty(argSlotId) as VirtualTextureShaderProperty;
-                    if (argProp != null)
+                    if (!IsSlotConnected(argSlotId))
                     {
-                        int argLayerCount = argProp.value.layers.Count;
-
-                        if (argLayerCount != paramLayerCount)
-                            owner.AddValidationError(objectId, $"Input \"{paramProp.displayName}\" has different number of layers from the connected property \"{argProp.displayName}\"");
+                        owner.AddValidationError(objectId, $"A VirtualTexture property must be connected to the input slot \"{paramProp.displayName}\"");
                     }
+                    else
+                    {
+                        var argProp = GetSlotProperty(argSlotId) as VirtualTextureShaderProperty;
+                        if (argProp != null)
+                        {
+                            int argLayerCount = argProp.value.layers.Count;
+
+                            if (argLayerCount != paramLayerCount)
+                                owner.AddValidationError(objectId, $"Input \"{paramProp.displayName}\" has different number of layers from the connected property \"{argProp.displayName}\"");
+                        }
+                        else
+                        {
+                            owner.AddValidationError(objectId, $"Input \"{paramProp.displayName}\" is not connected to a valid VirtualTexture property");
+                        }
+                    }
+
                     break;
                 }
             }

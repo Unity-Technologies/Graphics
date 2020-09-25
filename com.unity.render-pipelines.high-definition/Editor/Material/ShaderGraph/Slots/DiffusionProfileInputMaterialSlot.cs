@@ -146,9 +146,9 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 // We need to warn the user that we can't upgrade the diffusion profile but this upgrade code
                 // does not work currently :(
-                // Debug.LogError("Failed to upgrade the diffusion profile slot value, reseting to default value: " + hdAsset.diffusionProfileSettingsList[m_DiffusionProfile.selectedEntry] +
+                // Debug.LogError("Failed to upgrade the diffusion profile slot value, reseting to default value: " + HDRenderPipeline.defaultAsset.diffusionProfileSettingsList[m_DiffusionProfile.selectedEntry] +
                 //     "\nTo remove this message save the shader graph with the new diffusion profile reference");
-                // m_DiffusionProfileAsset = hdAsset.diffusionProfileSettingsList[m_DiffusionProfile.selectedEntry];
+                // m_DiffusionProfileAsset = HDRenderPipeline.defaultAsset.diffusionProfileSettingsList[m_DiffusionProfile.selectedEntry];
                 m_Version = 1;
                 // Sometimes the view is created after we upgrade the slot so we need to update it's value
                 view?.UpdateSlotValue();
