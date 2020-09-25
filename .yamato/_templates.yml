@@ -50,7 +50,7 @@ test_hdrp_template_windows_trunk:
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor --wait --published-only
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci template test -u .\.Editor --project-path com.unity.template-hd
+      -  upm-ci template test -u .\.Editor --project-path com.unity.template-hd --type vetting-tests
     artifacts:
         logs:
             paths:
@@ -96,7 +96,7 @@ test_universal_template_windows_trunk:
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor --wait --published-only
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci template test -u .\.Editor --project-path com.unity.template-universal
+      -  upm-ci template test -u .\.Editor --project-path com.unity.template-universal --type vetting-tests
     artifacts:
         logs:
             paths:
@@ -142,7 +142,7 @@ test_hdrp_template_macos_trunk:
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor --wait --published-only
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci template test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path com.unity.template-hd
+      -  upm-ci template test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path com.unity.template-hd --type vetting-tests
     artifacts:
         logs:
             paths:
@@ -188,7 +188,7 @@ test_universal_template_macos_trunk:
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor --wait --published-only
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci template test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path com.unity.template-universal
+      -  upm-ci template test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path com.unity.template-universal --type vetting-tests
     artifacts:
         logs:
             paths:
@@ -235,7 +235,7 @@ test_hdrp_template_windows_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci template test -u .\.Editor --project-path com.unity.template-hd
+      -  upm-ci template test -u .\.Editor --project-path com.unity.template-hd --type vetting-tests
     artifacts:
         logs:
             paths:
@@ -283,7 +283,7 @@ test_universal_template_windows_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci template test -u .\.Editor --project-path com.unity.template-universal
+      -  upm-ci template test -u .\.Editor --project-path com.unity.template-universal --type vetting-tests
     artifacts:
         logs:
             paths:
@@ -331,7 +331,7 @@ test_hdrp_template_macos_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci template test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path com.unity.template-hd
+      -  upm-ci template test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path com.unity.template-hd --type vetting-tests
     artifacts:
         logs:
             paths:
@@ -379,7 +379,7 @@ test_universal_template_macos_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci template test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path com.unity.template-universal
+      -  upm-ci template test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path com.unity.template-universal --type vetting-tests
     artifacts:
         logs:
             paths:

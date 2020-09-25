@@ -31,7 +31,7 @@ class Template_TestJob():
 
         if template.get('hascodependencies', None) is not None:
             commands.append(platform["copycmd"])
-        commands.append(f'upm-ci template test -u {platform["editorpath"]} --project-path {template["packagename"]}')
+        commands.append(f'upm-ci template test -u {platform["editorpath"]} --project-path {template["packagename"]} --type vetting-tests')
 
 
         # construct job
