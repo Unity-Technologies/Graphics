@@ -545,6 +545,7 @@ namespace UnityEditor.Graphing
             }
         }
 
+        // TODO: this is suspect -- several bugs here.. who uses it and for what??
         public static string GetHLSLSafeName(string input)
         {
             char[] arr = input.ToCharArray();
@@ -557,16 +558,50 @@ namespace UnityEditor.Graphing
             return safeName;
         }
 
-        public static string RemoveNonHlslIdentifierCharacters(string originalId)
+        public static string ConvertToValidHLSLIdentifier(string originalId)
         {
+            // "  1   var  * q-30 ( 0 ) (1)   " => "_1_var_q_30_0_1"
+
             StringBuilder hlslId = new StringBuilder(originalId.Length);
+            bool lastInvalid = false;
             for (int i = 0; i < originalId.Length; i++)
             {
                 char c = originalId[i];
-                bool valid = (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c == '_') || (i > 0 && c >= '0' && c <= '9');
-                if (valid)
+
+                bool isLetter = (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+                bool isUnderscore = (c == '_');
+                bool isDigit = (c >= '0' && c <= '9');
+
+                bool validChar = isLetter || isUnderscore || isDigit;
+
+                if (!validChar)
+                {
+                    // when we see invalid characters, we just record that we saw it and go to the next character
+                    // this way we combine multiple of them together, and trailing invalid characters just gets dropped
+                    lastInvalid = true;
+                }
+                else
+                {
+                    // whenever we hit a valid character
+                    // if the last character was invalid, append an underscore
+                    // unless we're at the beginning of the string (then ignore)
+                    if (lastInvalid && (hlslId.Length > 0))
+                        hlslId.Append("_");
+
+                    // HLSL ids can't start with a digit, prepend an underscore to prevent this
+                    if (isDigit && (hlslId.Length == 0))
+                        hlslId.Append("_");
+
                     hlslId.Append(c);
+
+                    lastInvalid = false;
+                }
             }
+
+            // empty strings not allowed -- append an underscore if it's empty
+            if (hlslId.Length <= 0)
+                hlslId.Append("_");
+
             return hlslId.ToString();
         }
 

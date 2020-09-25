@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph
                 if (value == k_DefaultFunctionName)
                     m_FunctionName = value;
                 else
-                    m_FunctionName = NodeUtils.RemoveNonHlslIdentifierCharacters(value);
+                    m_FunctionName = NodeUtils.ConvertToValidHLSLIdentifier(value);
             }
         }
 
