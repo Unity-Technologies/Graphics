@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace UnityEngine.VFX.Utility
 {
@@ -27,11 +27,11 @@ namespace UnityEngine.VFX.Utility
 
 
         [SerializeField, Tooltip("The maximum number of prefabs that can be active at a time")]
-        protected uint m_InstanceCount = 5;
+        uint m_InstanceCount = 5;
         [SerializeField, Tooltip("The prefab to enable upon event received. Prefabs are created as hidden and stored in a pool, upon enabling this behavior. Upon receiving an event a prefab from the pool is enabled and will be disabled when reaching its lifetime.")]
-        protected GameObject m_PrefabToSpawn;
+        GameObject m_PrefabToSpawn;
         [SerializeField, Tooltip("Whether to attach prefab instances to current game object. Use this setting to treat position and angle attributes as local space.")]
-        protected bool m_ParentInstances;
+        bool m_ParentInstances;
 
         [Tooltip("Whether to use the position attribute to set prefab position on spawn")]
         public bool usePosition = true;
@@ -42,8 +42,8 @@ namespace UnityEngine.VFX.Utility
         [Tooltip("Whether to use the lifetime attribute to determine how long the prefab will be enabled")]
         public bool useLifetime = true;
 
-        private GameObject[] m_Instances;
-        private float[] m_TTLs;
+        GameObject[] m_Instances;
+        float[] m_TimesToLive;
 
         bool isEditorPreview => Application.isEditor && !Application.isPlaying;
 
@@ -59,12 +59,12 @@ namespace UnityEngine.VFX.Utility
             DisposeInstances();
         }
 
-        private void OnDestroy()
+        void OnDestroy()
         {
             DisposeInstances();
         }
 
-        private void OnValidate()
+        void OnValidate()
         {
 #if UNITY_EDITOR
             // Workaround call as you can't use neither Destroy() nor DestroyImmediate()
@@ -134,10 +134,10 @@ namespace UnityEngine.VFX.Utility
             }
 
             // Initialize TTLs
-            m_TTLs = new float[instanceCount];
+            m_TimesToLive = new float[instanceCount];
         }
 
-        private GameObject InitializeInstance(int index)
+        GameObject InitializeInstance(int index)
         {
             var go = Instantiate(m_PrefabToSpawn);
             go.name = $"#{index} - {m_PrefabToSpawn.name}";
@@ -147,7 +147,7 @@ namespace UnityEngine.VFX.Utility
             return go;
         }
 
-        private void DisposeInstances()
+        void DisposeInstances()
         {
             if (m_Instances == null)
                 return;
@@ -159,7 +159,7 @@ namespace UnityEngine.VFX.Utility
             m_Instances = null;
         }
 
-        private void DisposeInstance(GameObject instance)
+        void DisposeInstance(GameObject instance)
         {
             if (instance == null)
                 return;
@@ -222,12 +222,12 @@ namespace UnityEngine.VFX.Utility
                 obj.transform.localScale = eventAttribute.GetVector3(k_ScaleID);
 
             if (useLifetime && eventAttribute.HasFloat(k_LifetimeID))
-                m_TTLs[freeIdx] = eventAttribute.GetFloat(k_LifetimeID);
+                m_TimesToLive[freeIdx] = eventAttribute.GetFloat(k_LifetimeID);
             else
-                m_TTLs[freeIdx] = float.NegativeInfinity;
+                m_TimesToLive[freeIdx] = float.NegativeInfinity;
 
             
-            var handlers = obj.GetComponentsInChildren<VFXOutputEventPrefabAttributeHandler>();
+            var handlers = obj.GetComponentsInChildren<VFXOutputEventPrefabAttributeAbstractHandler>();
             foreach(var handler in handlers)
             {
                 handler.OnVFXEventAttribute(eventAttribute, m_VisualEffect);
@@ -251,14 +251,14 @@ namespace UnityEngine.VFX.Utility
             for(int i = 0; i< m_Instances.Length; i++)
             {
                 // Negative infinity for non-time managed
-                if (m_TTLs[i] == float.NegativeInfinity)
+                if (m_TimesToLive[i] == float.NegativeInfinity)
                     continue;   
 
                 // Else, manage time
-                if (m_TTLs[i] <= 0.0f && m_Instances[i].activeInHierarchy)
+                if (m_TimesToLive[i] <= 0.0f && m_Instances[i].activeInHierarchy)
                     m_Instances[i].SetActive(false);
                 else
-                    m_TTLs[i] -= dt;
+                    m_TimesToLive[i] -= dt;
             }
         }
     }

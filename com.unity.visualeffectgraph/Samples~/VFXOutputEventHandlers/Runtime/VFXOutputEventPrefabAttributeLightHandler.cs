@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 #if VFX_OUTPUTEVENT_HDRP_10_0_0_OR_NEWER
@@ -11,26 +11,26 @@ namespace UnityEngine.VFX.Utility
 #if VFX_OUTPUTEVENT_HDRP_10_0_0_OR_NEWER
     [RequireComponent(typeof(HDAdditionalLightData))]
 #endif
-    class VFXOutputEventPrefabAttributeHandler_Light : VFXOutputEventPrefabAttributeHandler
+    class VFXOutputEventPrefabAttributeLightHandler : VFXOutputEventPrefabAttributeAbstractHandler
     {
         public float brightnessScale = 1.0f;
         static readonly int k_Color = Shader.PropertyToID("color");
 
         public override void OnVFXEventAttribute(VFXEventAttribute eventAttribute, VisualEffect visualEffect)
         {
-            Vector3 color = eventAttribute.GetVector3(k_Color);
-
-            float intensity = color.magnitude;
-            Color c = new Color(color.x, color.y, color.z) / intensity;
+            var color = eventAttribute.GetVector3(k_Color);
+            var intensity = color.magnitude;
+            var c = new Color(color.x, color.y, color.z) / intensity;
+            intensity *= brightnessScale;
 
 #if VFX_OUTPUTEVENT_HDRP_10_0_0_OR_NEWER
             var hdlight = GetComponent<HDAdditionalLightData>();
             hdlight.SetColor(c);
-            hdlight.SetIntensity(intensity * brightnessScale);
+            hdlight.SetIntensity(intensity);
 #else
             var light = GetComponent<Light>();
             light.color = c;
-            light.intensity = intensity * brightnessScale;
+            light.intensity = intensity;
 #endif
         }
     }

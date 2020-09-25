@@ -11,10 +11,10 @@ namespace UnityEditor.VFX.Utility
         SerializedProperty m_InstanceCount;
         SerializedProperty m_PrefabToSpawn;
         SerializedProperty m_ParentInstances;
-        SerializedProperty usePosition;
-        SerializedProperty useAngle;
-        SerializedProperty useScale;
-        SerializedProperty useLifetime;
+        SerializedProperty m_UsePosition;
+        SerializedProperty m_UseAngle;
+        SerializedProperty m_UseScale;
+        SerializedProperty m_UseLifetime;
 
         protected override void OnEnable()
         {
@@ -24,21 +24,19 @@ namespace UnityEditor.VFX.Utility
             m_InstanceCount = serializedObject.FindProperty("m_InstanceCount");
             m_PrefabToSpawn = serializedObject.FindProperty("m_PrefabToSpawn");
             m_ParentInstances = serializedObject.FindProperty("m_ParentInstances");
-            usePosition = serializedObject.FindProperty("usePosition");
-            useAngle = serializedObject.FindProperty("useAngle");
-            useScale = serializedObject.FindProperty("useScale");
-            useLifetime = serializedObject.FindProperty("useLifetime");
+            m_UsePosition = serializedObject.FindProperty(nameof(VFXOutputEventPrefabSpawn.usePosition));
+            m_UseAngle = serializedObject.FindProperty(nameof(VFXOutputEventPrefabSpawn.useAngle));
+            m_UseScale = serializedObject.FindProperty(nameof(VFXOutputEventPrefabSpawn.useScale));
+            m_UseLifetime = serializedObject.FindProperty(nameof(VFXOutputEventPrefabSpawn.useLifetime));
         }
 
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
-            if (m_ExecuteInEditor.boolValue)
-            {
-                EditorGUILayout.HelpBox($"While previewing Prefab Spawn in editor, some Attribute Handlers attached to prefabs cannot not be executed unless you are running in Play Mode.", MessageType.Info);
-            }
-
             serializedObject.Update();
+
+            if (m_ExecuteInEditor.boolValue)
+                EditorGUILayout.HelpBox($"While previewing Prefab Spawn in editor, some Attribute Handlers attached to prefabs cannot not be executed unless you are running in Play Mode.", MessageType.Info);
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.LabelField("Prefab Instances", EditorStyles.boldLabel);
@@ -53,9 +51,7 @@ namespace UnityEditor.VFX.Utility
                     using(new EditorGUI.DisabledGroupScope(m_PrefabToSpawn.objectReferenceValue == null))
                     {
                         if (GUILayout.Button("Reload", EditorStyles.miniButton, GUILayout.Width(64)))
-                        {
                             m_PrefabSpawnHandler.ReloadPrefab();
-                        }
                     }
                 }
                 EditorGUILayout.PropertyField(m_InstanceCount);
@@ -66,13 +62,12 @@ namespace UnityEditor.VFX.Utility
 
             using (new EditorGUI.IndentLevelScope(1))
             {
-                EditorGUILayout.PropertyField(usePosition);
-                EditorGUILayout.PropertyField(useAngle);
-                EditorGUILayout.PropertyField(useScale);
-                EditorGUILayout.PropertyField(useLifetime);
+                EditorGUILayout.PropertyField(m_UsePosition);
+                EditorGUILayout.PropertyField(m_UseAngle);
+                EditorGUILayout.PropertyField(m_UseScale);
+                EditorGUILayout.PropertyField(m_UseLifetime);
             }
 
-            // Help box
             HelpBox("Help", @"Spawns prefab from a managed pool of prefabs of given instance count. Event attributes can be caught in prefabs by using VFXOutputEventPrefabAttributeHandler scripts in the prefab.
 
 Attribute Usage:
@@ -86,15 +81,13 @@ Attribute Usage:
             {
                 if(m_PrefabToSpawn.objectReferenceValue != null)
                 {
-                    GameObject prefab = m_PrefabToSpawn.objectReferenceValue as GameObject;
-                    GameObject self = m_PrefabSpawnHandler.gameObject;
+                    var prefab = m_PrefabToSpawn.objectReferenceValue as GameObject;
+                    var self = m_PrefabSpawnHandler.gameObject;
 
                     while(self != null)
                     {
                         if(self.transform == prefab.transform)
-                        {
                             m_PrefabToSpawn.objectReferenceValue = null;
-                        }
 
                         if (self.transform.parent != null)
                             self = self.transform.parent.gameObject;
@@ -106,7 +99,6 @@ Attribute Usage:
                 serializedObject.ApplyModifiedProperties();
                 m_PrefabSpawnHandler.ReloadPrefab();
             }
-
         }
     }
 }

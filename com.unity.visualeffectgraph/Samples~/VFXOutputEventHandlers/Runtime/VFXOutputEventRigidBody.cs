@@ -14,14 +14,14 @@ namespace UnityEngine.VFX.Utility
             World
         }
 
-        static readonly int kPosition = Shader.PropertyToID("position");
-        static readonly int kSize = Shader.PropertyToID("size");
-        static readonly int kVelocity = Shader.PropertyToID("velocity");
+        static readonly int k_Position = Shader.PropertyToID("position");
+        static readonly int k_Size = Shader.PropertyToID("size");
+        static readonly int k_Velocity = Shader.PropertyToID("velocity");
 
         [Tooltip("The Rigid body to apply a force On")]
         public Rigidbody rigidBody;
         [Tooltip("The Space VFX Attributes values are expressed")]
-        public Space attributeSpace = Space.Local;
+        public Space attributeSpace;
 
         public enum RigidBodyEventType
         {
@@ -29,20 +29,20 @@ namespace UnityEngine.VFX.Utility
             Explosion,
             VelocityChange
         }
+
         [Tooltip("Type of Instantaneous Force to apply on the RigidBody upon event:\n - Impulse using the Velocity attribute \n - Explosion at given Position attribute, using the Size for radius and the magnitude of Velocity Attribute for intensity\n - Velocity Change using Velocity Attribute")]
-        public RigidBodyEventType eventType = RigidBodyEventType.Impulse;
+        public RigidBodyEventType eventType;
 
         public override void OnVFXOutputEvent(VFXEventAttribute eventAttribute)
         {
             if (rigidBody == null)
                 return;
 
-            var position = eventAttribute.GetVector3(kPosition);
-            var size = eventAttribute.GetFloat(kSize);
-            var velocity = eventAttribute.GetVector3(kVelocity);
-            if(attributeSpace == Space.Local)
+            var position = eventAttribute.GetVector3(k_Position);
+            var size = eventAttribute.GetFloat(k_Size);
+            var velocity = eventAttribute.GetVector3(k_Velocity);
+            if (attributeSpace == Space.Local)
             {
-
                 position = transform.localToWorldMatrix.MultiplyPoint(position);
                 velocity = transform.localToWorldMatrix.MultiplyVector(velocity);
                 // We assume that the size is bound to the X component of the transform scale

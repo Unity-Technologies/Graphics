@@ -6,13 +6,13 @@ namespace UnityEditor.VFX.Utility
     public abstract class VFXOutputEventHandlerEditor : Editor
     {
         protected SerializedProperty m_ExecuteInEditor;
-        protected SerializedProperty outputEvent;
+        protected SerializedProperty m_OutputEvent;
         protected VFXOutputEventHandler m_TargetHandler;
         protected virtual void OnEnable()
         {
             m_TargetHandler = serializedObject.targetObject as VFXOutputEventHandler;
-            outputEvent = serializedObject.FindProperty("outputEvent");
-            m_ExecuteInEditor = serializedObject.FindProperty("executeInEditor");
+            m_OutputEvent = serializedObject.FindProperty(nameof(VFXOutputEventHandler.outputEvent));
+            m_ExecuteInEditor = serializedObject.FindProperty(nameof(VFXOutputEventHandler.executeInEditor));
         }
 
         public override void OnInspectorGUI()
@@ -24,12 +24,10 @@ namespace UnityEditor.VFX.Utility
             else
                 EditorGUILayout.HelpBox($"This VFX Output Event Handler cannot be previewed in edit mode. If you want to preview its behavior, please enter play mode.", MessageType.Info);
             
-            EditorGUILayout.PropertyField(outputEvent);
+            EditorGUILayout.PropertyField(m_OutputEvent);
 
             if (EditorGUI.EndChangeCheck())
-            {
                 serializedObject.ApplyModifiedProperties();
-            }
         }
 
         public void HelpBox(string title, string body)

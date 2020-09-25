@@ -6,20 +6,17 @@ namespace UnityEditor.VFX.Utility
     [CustomEditor(typeof(VFXOutputEventRigidBody))]
     class VFXOutputEventRigidBodyEditor : VFXOutputEventHandlerEditor
     {
-        VFXOutputEventRigidBody m_RigidbodyEventHandler;
-
-        SerializedProperty rigidBody;
-        SerializedProperty attributeSpace;
-        SerializedProperty eventType;
+        SerializedProperty m_RigidBody;
+        SerializedProperty m_AttributeSpace;
+        SerializedProperty m_EventType;
 
         protected override void OnEnable()
         {
             base.OnEnable();
-            m_RigidbodyEventHandler = serializedObject.targetObject as VFXOutputEventRigidBody;
 
-            rigidBody = serializedObject.FindProperty("rigidBody");
-            attributeSpace = serializedObject.FindProperty("attributeSpace");
-            eventType = serializedObject.FindProperty("eventType");
+            m_RigidBody = serializedObject.FindProperty(nameof(VFXOutputEventRigidBody.rigidBody));
+            m_AttributeSpace = serializedObject.FindProperty(nameof(VFXOutputEventRigidBody.attributeSpace));
+            m_EventType = serializedObject.FindProperty(nameof(VFXOutputEventRigidBody.eventType));
         }
 
         public override void OnInspectorGUI()
@@ -29,13 +26,12 @@ namespace UnityEditor.VFX.Utility
             serializedObject.Update();
             EditorGUI.BeginChangeCheck();
 
-            EditorGUILayout.PropertyField(rigidBody);
-            EditorGUILayout.PropertyField(attributeSpace);
-            EditorGUILayout.PropertyField(eventType);
+            EditorGUILayout.PropertyField(m_RigidBody);
+            EditorGUILayout.PropertyField(m_AttributeSpace);
+            EditorGUILayout.PropertyField(m_EventType);
 
-            // Help box
-            string helpText = string.Empty;
-            switch((VFXOutputEventRigidBody.RigidBodyEventType)(eventType.intValue))
+            var helpText = string.Empty;
+            switch((VFXOutputEventRigidBody.RigidBodyEventType)(m_EventType.intValue))
             {
                 default:
                 case VFXOutputEventRigidBody.RigidBodyEventType.Impulse:
@@ -54,7 +50,6 @@ namespace UnityEditor.VFX.Utility
             {
                 serializedObject.ApplyModifiedProperties();
             }
-
         }
     }
 }

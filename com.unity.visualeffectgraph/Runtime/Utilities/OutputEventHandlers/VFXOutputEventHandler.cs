@@ -15,9 +15,7 @@ namespace UnityEngine.VFX.Utility
         {
             m_VisualEffect = GetComponent<VisualEffect>();
             if (m_VisualEffect != null)
-            {
                 m_VisualEffect.outputEventReceived += OnOutputEventRecieved;
-            }
         }
 
         protected virtual void OnDisable()
@@ -29,14 +27,10 @@ namespace UnityEngine.VFX.Utility
 
         void OnOutputEventRecieved(VFXOutputEventArgs args)
         {
-            if (Application.isEditor
-                && !Application.isPlaying
-                && (!executeInEditor || !canExecuteInEditor))
-                return;
-
-            if (args.nameId == outputEvent)
+            if (Application.isPlaying || (executeInEditor && canExecuteInEditor))
             {
-                OnVFXOutputEvent(args.eventAttribute);
+                if (args.nameId == outputEvent)
+                    OnVFXOutputEvent(args.eventAttribute);
             }
         }
 
