@@ -9,6 +9,7 @@
   * [The Universal Render Pipeline Asset](universalrp-asset.md)
   * [Forward Renderer](urp-forward-renderer.md)
   * [Renderer Feature](urp-renderer-feature.md)
+    * [How to add a Renderer Feature](urp-renderer-feature-how-to-add.md)
 * [Upgrade guides](upgrade-guides.md)
   * [Upgrading to URP 10.0.x](upgrade-guide-10-0-x.md)
   * [Upgrading to URP 9.0.x](upgrade-guide-9-0-x.md)
@@ -76,7 +77,6 @@
 
 * [Customizing URP](customizing-urp.md)
   * [beginCameraRendering event](using-begincamerarendering.md)
-  * [How to add a Renderer Feature](urp-renderer-feature-how-to-add.md)
 
 * [2D](2d-index.md)
   * [Introduction to Lights 2D](Lights-2D-intro.md)
