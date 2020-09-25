@@ -18,9 +18,9 @@ namespace UnityEngine.VFX.Utility
         static readonly int k_Position = Shader.PropertyToID("position");
         static readonly int k_Velocity = Shader.PropertyToID("velocity");
 
-        [Tooltip("The Cinemachine Impulse Source to use in order to send impulses")]
+        [Tooltip("The Cinemachine Impulse Source to use in order to send impulses.")]
         public CinemachineImpulseSource cinemachineImpulseSource;
-        [Tooltip("The space in which the position and velocity attributes values are defined (local to the VFX, or world)")]
+        [Tooltip("The space in which the position and velocity attributes values are defined (local to the VFX, or world).")]
         public Space attributeSpace;
 
         public override void OnVFXOutputEvent(VFXEventAttribute eventAttribute)

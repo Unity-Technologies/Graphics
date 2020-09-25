@@ -18,9 +18,9 @@ namespace UnityEngine.VFX.Utility
         static readonly int k_Size = Shader.PropertyToID("size");
         static readonly int k_Velocity = Shader.PropertyToID("velocity");
 
-        [Tooltip("The Rigid body to apply a force On")]
+        [Tooltip("The Rigid body to apply a force on.")]
         public Rigidbody rigidBody;
-        [Tooltip("The Space VFX Attributes values are expressed")]
+        [Tooltip("The Space VFX Attributes values are expressed.")]
         public Space attributeSpace;
 
         public enum RigidBodyEventType

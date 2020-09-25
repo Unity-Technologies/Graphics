@@ -25,7 +25,7 @@ namespace UnityEditor.VFX.Utility
 
             EditorGUILayout.PropertyField(m_CinemachineImpulseSource);
             EditorGUILayout.PropertyField(m_AttributeSpace);
-            HelpBox("Attribute Usage", "- position : position of the camera impulse\n - velocity : impulse velocity");
+            HelpBox("Attribute Usage", "- position : position of the camera impulse\n- velocity : impulse velocity");
 
             if (EditorGUI.EndChangeCheck())
                 serializedObject.ApplyModifiedProperties();
