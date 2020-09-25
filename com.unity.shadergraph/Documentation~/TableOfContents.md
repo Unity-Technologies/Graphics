@@ -199,10 +199,7 @@
             * [Noise Sine Wave](Noise-Sine-Wave-Node)  
             * [Sawtooth Wave](Sawtooth-Wave-Node)
             * [Square Wave](Square-Wave-Node)  
-            * [Triangle Wave](Triangle-Wave-Node)    
-    * Mesh Deformation
-        * [Compute Deformation](Compute-Deformation-Node)    
-        * [Linear Blend Skinning](Linear-Blend-Skinning-Node)    
+            * [Triangle Wave](Triangle-Wave-Node)        
     * [Procedural](Procedural-Nodes)
         * Noise   
             * [Gradient Noise](Gradient-Noise-Node)  
@@ -230,6 +227,9 @@
             * [Or](Or-Node)
         * High Definition Render Pipeline
             * [Emission](Emission-Node.md)
+        * Mesh Deformation
+          * [Compute Deformation](Compute-Deformation-Node)    
+          * [Linear Blend Skinning](Linear-Blend-Skinning-Node)
         * [Custom Function](Custom-Function-Node)
         * [Keyword](Keyword-Node)
         * [Preview](Preview-Node)
