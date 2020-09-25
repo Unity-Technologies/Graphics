@@ -10,11 +10,6 @@ editors: # applied for all yml files. Override this by specifying override_edito
   - version: CUSTOM-REVISION
     rerun_strategy: always
     cmd: -u $CUSTOM_REVISION
-test_platforms:
-  Standalone: --suite=playmode --platform=Standalone
-  playmode: --suite=playmode
-  playmode_XR: --suite=playmode --extra-editor-arg="-xr-tests"
-  editmode: --suite=editor --platform=editmode
 platforms:
   Win:
     name: Win
