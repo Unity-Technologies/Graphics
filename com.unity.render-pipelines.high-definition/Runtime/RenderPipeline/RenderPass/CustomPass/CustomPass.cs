@@ -264,7 +264,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
                         ctx.cmd.SetGlobalTexture(HDShaderIDs._AfterPostProcessColorBuffer, customPass.currentRenderTarget.colorBufferRG);
 
-                    if ((int)customPass.injectionPoint >= (int)CustomPassInjectionPoint.BeforePostProcess)
+                    if (customPass.injectionPoint == CustomPassInjectionPoint.BeforePostProcess || customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
                         ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, customPass.currentRenderTarget.motionVectorBufferRG);
 
                     if (!customPass.isSetup)
