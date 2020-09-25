@@ -85,6 +85,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Workaround issue that caused objects using eye shader to not be rendered on xbox.
 - Fixed text in cascades shadow split being truncated.
 - Fixed rendering of custom passes in the Custom Pass Volume inspector
+- Force probe to render again if first time was during async shader compilation to avoid having cyan objects.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
