@@ -115,7 +115,7 @@ Displays an HDR color field in the material inspector.
 |:-------------|:------|:------------|
 | Default | Vector 4 | The default value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html). |
 
-NOTE: Previous versions of HDR colors were not corrected for the project colorspace. The behavior is corrected now, and previously created color properties will continue to use old behavior unless explicilty upgraded through the [Graph Inspector](Internal-Inspector.md). You may convert a new **Color** property back to gamma space with the [Colorspace Conversion Node](Colorspace-Conversion-Node.md) to mimic old behavior in a linear space project.
+NOTE: In versions prior to 10.0, Shader Graph didn't correct HDR colors for the project colorspace. Version 10.0 corrected this behavior. HDR color properties that you created with older versions maintain the old behavior, but you can use the [Graph Inspector](Internal-Inspector.md) to upgrade them. To mimic the old behavior in a gamma space project, you can use the [Colorspace Conversion Node](Colorspace-Conversion-Node.md) to convert a new HDR **Color** property from gamma to linear space.
 
 ## Texture 2D
 
