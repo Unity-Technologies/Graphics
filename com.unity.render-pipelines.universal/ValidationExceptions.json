@@ -1,0 +1,10 @@
+{
+	"Exceptions":
+	[
+		{
+			"ValidationTest": "API Validation",
+			"ExceptionError": "Breaking changes require a new major version.",
+			"PackageVersion": "7.5.2"
+		}
+	]
+}
