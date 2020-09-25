@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
         })]
         [SerializeField]
         internal DiffusionProfileSettings[] defaultDiffusionProfileSettingsList;
-        
+
         [Reload("Editor/RenderPipelineResources/DefaultSettingsVolumeProfile.asset")]
         public VolumeProfile defaultSettingsVolumeProfile;
 
@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ShaderGraphResources shaderGraphs;
         public LookDevResources lookDev;
     }
-    
+
     [UnityEditor.CustomEditor(typeof(HDRenderPipelineEditorResources))]
     class HDRenderPipelineEditorResourcesEditor : UnityEditor.Editor
     {
