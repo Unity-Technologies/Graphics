@@ -69,6 +69,10 @@ namespace UnityEngine.Rendering.HighDefinition
                                             new TextureDesc(Vector2.one, true, true)
                                             { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, clearBuffer = true, clearColor = Color.clear, name = "SSSCameraFiltering" });
                 }
+                else
+                {
+                    passData.cameraFilteringBuffer = TextureHandle.nullHandle;
+                }
 
                 builder.SetRenderFunc(
                 (SubsurfaceScaterringPassData data, RenderGraphContext context) =>
