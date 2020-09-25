@@ -153,10 +153,7 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
 
-                if(m_Mode != GenerationMode.Preview)
-                {
-                    m_Builder.AppendLine(@"FallBack ""Hidden/Shader Graph/FallbackError""");
-                }
+                m_Builder.AppendLine(@"FallBack ""Hidden/Shader Graph/FallbackError""");
             }
 
             m_ConfiguredTextures = shaderProperties.GetConfiguredTexutres();

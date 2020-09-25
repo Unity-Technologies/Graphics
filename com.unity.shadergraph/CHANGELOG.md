@@ -31,6 +31,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue where ShaderGraph was logging error when edited in play mode [1274148].
 - Fixed an issue where renaming a property in the blackboard at creation would trigger an error.
 - Fixed an issue where ShaderGraph shaders did not reimport automatically when missing dependencies were reintroduced [1182895]
+- Fixed an issue where ShaderGraph previews would not show error shaders when the active render pipeline is incompatible with the shader [1257015]
 
 ## [10.0.0] - 2019-06-10
 ### Added
