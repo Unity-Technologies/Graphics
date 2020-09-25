@@ -44,6 +44,7 @@ The version number for this package has increased due to a version update of a r
 - GPU Evaluation of Construct Matrix
 - Random Per-Component on Set Attribute in Spawn Context [Case 1279294](https://issuetracker.unity3d.com/product/unity/issues/guid/1279294/)
 - Fix corrupted UI in nodes due to corrupted point cache files [Case 1232867](https://fogbugz.unity3d.com/f/cases/1232867/)
+- Fix InvalidCastException when using byte properties in point cache files [Case 1276623](https://fogbugz.unity3d.com/f/cases/1276623/)
 
 ## [7.4.1] - 2020-06-03
 
