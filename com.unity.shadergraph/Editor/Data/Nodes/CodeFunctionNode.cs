@@ -153,7 +153,7 @@ namespace UnityEditor.ShaderGraph
             }
             if (t == typeof(Vector1))
             {
-                return SlotValueType.Vector1;
+                return SlotValueType.Float;
             }
             if (t == typeof(Vector2))
             {

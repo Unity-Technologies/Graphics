@@ -34,8 +34,8 @@ namespace UnityEditor.ShaderGraph
                     return SlotValueType.Vector3;
                 case ConcreteSlotValueType.Vector2:
                     return SlotValueType.Vector2;
-                case ConcreteSlotValueType.Vector1:
-                    return SlotValueType.Vector1;
+                case ConcreteSlotValueType.Float:
+                    return SlotValueType.Float;
                 case ConcreteSlotValueType.Boolean:
                     return SlotValueType.Boolean;
                 case ConcreteSlotValueType.VirtualTexture:
@@ -73,8 +73,8 @@ namespace UnityEditor.ShaderGraph
                     return ConcreteSlotValueType.Vector3;
                 case SlotValueType.Vector2:
                     return ConcreteSlotValueType.Vector2;
-                case SlotValueType.Vector1:
-                    return ConcreteSlotValueType.Vector1;
+                case SlotValueType.Float:
+                    return ConcreteSlotValueType.Float;
                 case SlotValueType.Boolean:
                     return ConcreteSlotValueType.Boolean;
                 case SlotValueType.VirtualTexture:
@@ -112,8 +112,8 @@ namespace UnityEditor.ShaderGraph
                     return PropertyType.Vector3;
                 case ConcreteSlotValueType.Vector2:
                     return PropertyType.Vector2;
-                case ConcreteSlotValueType.Vector1:
-                    return PropertyType.Vector1;
+                case ConcreteSlotValueType.Float:
+                    return PropertyType.Float;
                 case ConcreteSlotValueType.Boolean:
                     return PropertyType.Boolean;
                 case ConcreteSlotValueType.VirtualTexture:
@@ -157,7 +157,7 @@ namespace UnityEditor.ShaderGraph
                     return precisionToken + "3";
                 case ConcreteSlotValueType.Vector2:
                     return precisionToken + "2";
-                case ConcreteSlotValueType.Vector1:
+                case ConcreteSlotValueType.Float:
                     return precisionToken;
                 case ConcreteSlotValueType.Boolean:
                     return precisionToken;

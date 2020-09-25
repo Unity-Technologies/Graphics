@@ -176,7 +176,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             string name = NodeUtils.GetDuplicateSafeNameForSlot(m_Node, newSlotID, "New");
 
             // Create a new slot and add it
-            var newSlot = MaterialSlot.CreateMaterialSlot(SlotValueType.Vector1, newSlotID, name, NodeUtils.GetHLSLSafeName(name), m_SlotType, Vector4.zero);
+            var newSlot = MaterialSlot.CreateMaterialSlot(SlotValueType.Float, newSlotID, name, NodeUtils.GetHLSLSafeName(name), m_SlotType, Vector4.zero);
             m_Node.AddSlot(newSlot);
 
             // Select the new slot, then validate the node

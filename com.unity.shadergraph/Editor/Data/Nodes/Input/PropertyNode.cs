@@ -70,7 +70,7 @@ namespace UnityEditor.ShaderGraph
                     AddSlot(new BooleanMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, false));
                     RemoveSlotsNameNotMatching(new[] { OutputSlotId });
                     break;
-                case ConcreteSlotValueType.Vector1:
+                case ConcreteSlotValueType.Float:
                     AddSlot(new Vector1MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, 0));
                     RemoveSlotsNameNotMatching(new[] {OutputSlotId});
                     break;
@@ -138,7 +138,7 @@ namespace UnityEditor.ShaderGraph
                 case PropertyType.Boolean:
                     sb.AppendLine($"$precision {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
                     break;
-                case PropertyType.Vector1:
+                case PropertyType.Float:
                     sb.AppendLine($"$precision {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
                     break;
                 case PropertyType.Vector2:

@@ -131,7 +131,7 @@ namespace UnityEditor.ShaderGraph
             var outputName = GetVariableNameForSlot(OutputSlotId);
             var inputValue = GetSlotValue(InputSlotId, generationMode);
             var inputValueType = FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType;
-            if (inputValueType == ConcreteSlotValueType.Vector1)
+            if (inputValueType == ConcreteSlotValueType.Float)
                 sb.AppendLine(string.Format("{0} {1} = {2};", outputSlotType, outputName, inputValue));
             else if (generationMode == GenerationMode.ForReals)
                 sb.AppendLine("{0} {1} = {2}.{3}{4}{5}{6};",
@@ -163,7 +163,7 @@ namespace UnityEditor.ShaderGraph
             base.CollectPreviewMaterialProperties(properties);
             // Encode swizzle values into an integer
             var value = ((int)redChannel) | ((int)greenChannel << 2) | ((int)blueChannel << 4) | ((int)alphaChannel << 6);
-            properties.Add(new PreviewProperty(PropertyType.Vector1)
+            properties.Add(new PreviewProperty(PropertyType.Float)
             {
                 name = GetVariableNameForNode(),
                 floatValue = value

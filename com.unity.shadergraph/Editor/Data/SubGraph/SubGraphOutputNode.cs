@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph
         static string s_MissingOutputSlot = "A Sub Graph must have at least one output slot";
         static List<ConcreteSlotValueType> s_ValidSlotTypes = new List<ConcreteSlotValueType>()
         {
-            ConcreteSlotValueType.Vector1,
+            ConcreteSlotValueType.Float,
             ConcreteSlotValueType.Vector2,
             ConcreteSlotValueType.Vector3,
             ConcreteSlotValueType.Vector4,

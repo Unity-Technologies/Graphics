@@ -122,7 +122,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         /* [Test]
          public void MaterialSlotThrowsWhenNoOwner()
          {
-             var slot = new MaterialSlot(0, string.Empty, string.Empty, SlotType.Input, SlotValueType.Vector1, Vector4.zero);
+             var slot = new MaterialSlot(0, string.Empty, string.Empty, SlotType.Input, SlotValueType.Float, Vector4.zero);
              Assert.Throws<Exception>(() => slot.GeneratePropertyUsages(new ShaderGenerator(), GenerationMode.Preview));
              Assert.Throws<Exception>(() => slot.GetDefaultValue(GenerationMode.Preview));
          }*/

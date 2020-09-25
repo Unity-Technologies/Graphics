@@ -70,7 +70,7 @@ namespace UnityEditor.ShaderGraph
         {
             switch (type)
             {
-                case ConcreteSlotValueType.Vector1:
+                case ConcreteSlotValueType.Float:
                     return "(1)";
                 case ConcreteSlotValueType.Vector2:
                     return "(2)";
@@ -162,7 +162,7 @@ namespace UnityEditor.ShaderGraph
                     return new Vector3MaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStageCapability, hidden: hidden);
                 case SlotValueType.Vector2:
                     return new Vector2MaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStageCapability, hidden: hidden);
-                case SlotValueType.Vector1:
+                case SlotValueType.Float:
                     return new Vector1MaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue.x, shaderStageCapability, hidden: hidden);
                 case SlotValueType.Dynamic:
                     return new DynamicValueMaterialSlot(slotId, displayName, shaderOutputName, slotType, new Matrix4x4(defaultValue, Vector4.zero, Vector4.zero, Vector4.zero), shaderStageCapability, hidden);

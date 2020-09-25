@@ -264,7 +264,7 @@ namespace UnityEditor.ShaderGraph
                 if (concreteSlotValueTypes[i] == ConcreteSlotValueType.Vector4
                     || concreteSlotValueTypes[i] == ConcreteSlotValueType.Vector3
                     || concreteSlotValueTypes[i] == ConcreteSlotValueType.Vector2
-                    || concreteSlotValueTypes[i] == ConcreteSlotValueType.Vector1)
+                    || concreteSlotValueTypes[i] == ConcreteSlotValueType.Float)
                 {
                     vectorCount++;
                 }

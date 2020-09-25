@@ -526,7 +526,7 @@ namespace UnityEditor.Graphing
         {
             switch (slotValue)
             {
-                case ConcreteSlotValueType.Vector1:
+                case ConcreteSlotValueType.Float:
                     return String.Empty;
                 case ConcreteSlotValueType.Vector2:
                     return "2";

@@ -72,7 +72,7 @@ namespace UnityEditor.ShaderGraph
         {
             var propType = concreteValueType.ToPropertyType();
             var pp = new PreviewProperty(propType) { name = name };
-            if (propType == PropertyType.Vector1)
+            if (propType == PropertyType.Float)
                 pp.floatValue = value.x;
             else
                 pp.vector4Value = new Vector4(value.x, value.y, value.z, value.w);
@@ -111,7 +111,7 @@ namespace UnityEditor.ShaderGraph
                 case ConcreteSlotValueType.Vector2:
                     property = new Vector2ShaderProperty();
                     break;
-                case ConcreteSlotValueType.Vector1:
+                case ConcreteSlotValueType.Float:
                     property = new Vector1ShaderProperty();
                     break;
                 default:
