@@ -193,7 +193,7 @@ namespace UnityEngine.Rendering
                 lastFrameMaxSize = new Vector2(GetMaxWidth(), GetMaxHeight());
             }
 
-            if (DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
+            if (DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled() && m_HardwareDynamicResRequested)
             {
                 float xScale = (float)DynamicResolutionHandler.instance.finalViewport.x / GetMaxWidth();
                 float yScale = (float)DynamicResolutionHandler.instance.finalViewport.y / GetMaxHeight();
