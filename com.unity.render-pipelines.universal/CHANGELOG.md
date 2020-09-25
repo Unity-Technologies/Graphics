@@ -39,7 +39,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed resolution of intermediate textures when rendering to part of a render texture. [case 1261287](https://issuetracker.unity3d.com/product/unity/issues/guid/1261287/)
 - Fixed XR mirroView sRGB issue when color space is gamma.
 - Fixed an issue where XR eye textures are recreated multiple times per frame due to per camera MSAA change.
-- Fixed an issue wehre XR mirror view selector stuck. 
+- Fixed an issue where XR mirror view selector stuck. 
+- Fixed bug where the "no cameras rendering" message should show up in game view but didn't when overlay cameras were active.
 
 ## [10.0.0] - 2019-06-10
 ### Added
