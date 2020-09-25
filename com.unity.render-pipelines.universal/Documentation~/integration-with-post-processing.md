@@ -14,7 +14,7 @@ With post-processing:
 
 ## Enabling Post-processing
 
-In order to use post-processing you have enable it by toggling the `Post Processing` in the camera and add a [Volume](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@10.0/manual/Volumes.html) component. You can add post-processing effects to your Camera in the same way you add any other [Volume Override](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@6.9/manual/Volume-Components.html).
+In order to use post-processing you have enable it by toggling the `Post Processing` in the camera and add a [Volume](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@10.0/manual/Volumes.html) component. You can add post-processing effects to your Camera by adding [Volume Overrides](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@10.0/manual/VolumeOverrides.html).
 
 ![](Images/post-proc/camera-post-processing.jpg)
 
