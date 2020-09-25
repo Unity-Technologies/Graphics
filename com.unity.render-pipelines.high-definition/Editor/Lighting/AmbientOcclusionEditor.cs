@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_Denoise;
         SerializedDataParameter m_DenoiserRadius;
 
-        public override bool hasAdvancedMode => true;
+        public override bool hasAdvancedMode => (m_RayTracing == null || !(HDRenderPipeline.pipelineSupportsRayTracing && m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue));
 
         public override void OnEnable()
         {

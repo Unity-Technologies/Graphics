@@ -1066,6 +1066,16 @@ PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize)
     return GetPositionInput(positionSS, invScreenSize, uint2(0, 0));
 }
 
+// For Raytracing only
+// This function does not initialize deviceDepth and linearDepth
+PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float3 positionWS)
+{
+    PositionInputs posInput = GetPositionInput(positionSS, invScreenSize, uint2(0, 0));
+    posInput.positionWS = positionWS;
+
+    return posInput;
+}
+
 // From forward
 // deviceDepth and linearDepth come directly from .zw of SV_Position
 PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth, float linearDepth, float3 positionWS, uint2 tileCoord)
