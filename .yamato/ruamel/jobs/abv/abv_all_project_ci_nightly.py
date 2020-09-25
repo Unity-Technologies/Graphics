@@ -14,9 +14,14 @@ class ABV_AllProjectCiNightlyJob():
     def get_job_definition(self, editor, projects, test_platforms, extra_dependencies, target_branch): 
 
         # define dependencies
-        dependencies = [{
+        dependencies = [
+            {
                 'path': f'{abv_filepath()}#{abv_job_id_all_project_ci(editor["version"])}',
-                'rerun': editor["rerun_strategy"]}]
+                'rerun': editor["rerun_strategy"]},
+            {
+                'path': f'{templates_filepath()}#{template_job_id_test_all(editor["version"])}',
+                'rerun': editor["rerun_strategy"]
+            }]
 
         for test_platform in test_platforms: # TODO replace with all_smoke_tests if rerun strategy can override lower level ones
             dependencies.append({
