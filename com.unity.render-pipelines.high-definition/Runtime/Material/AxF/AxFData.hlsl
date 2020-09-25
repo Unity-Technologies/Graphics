@@ -428,33 +428,35 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, inout SurfaceDat
 {
 #if defined(_AXF_BRDF_TYPE_SVBRDF) || defined(_AXF_BRDF_TYPE_CAR_PAINT) // Not implemented for BTF
     // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-    if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_DIFFUSE)
-    {
-        surfaceData.diffuseColor.xyz = surfaceData.diffuseColor.xyz * decalSurfaceData.baseColor.w + decalSurfaceData.baseColor.xyz;
+    surfaceData.diffuseColor.xyz = surfaceData.diffuseColor.xyz * decalSurfaceData.baseColor.w + decalSurfaceData.baseColor.xyz;
 #ifdef _AXF_BRDF_TYPE_SVBRDF
-        surfaceData.clearcoatColor.xyz = surfaceData.clearcoatColor.xyz * decalSurfaceData.baseColor.w + decalSurfaceData.baseColor.xyz;
+    surfaceData.clearcoatColor.xyz = surfaceData.clearcoatColor.xyz * decalSurfaceData.baseColor.w + decalSurfaceData.baseColor.xyz;
 #endif
-    }
 
-    if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_NORMAL)
+    // Always test the normal as we can have decompression artifact
+    if (decalSurfaceData.normalWS.w < 1.0)
     {
         // Affect both normal and clearcoat normal
         surfaceData.normalWS.xyz = normalize(surfaceData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
         surfaceData.clearcoatNormalWS = normalize(surfaceData.clearcoatNormalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
     }
 
-    if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_MASK)
-    {
 #ifdef DECALS_4RT // only smoothness in 3RT mode
 #ifdef _AXF_BRDF_TYPE_SVBRDF
-        float3 decalSpecularColor = ComputeFresnel0((decalSurfaceData.HTileMask & DBUFFERHTILEBIT_DIFFUSE) ? decalSurfaceData.baseColor.xyz : float3(1.0, 1.0, 1.0), decalSurfaceData.mask.x, DEFAULT_SPECULAR_VALUE);
-        surfaceData.specularColor = surfaceData.specularColor * decalSurfaceData.MAOSBlend.x + decalSpecularColor;
+    if (decalSurfaceData.MAOSBlend.x < 1.0)
+    {
+        float3 decalSpecularColor = ComputeFresnel0((decalSurfaceData.baseColor.w < 1.0) ? decalSurfaceData.baseColor.xyz : float3(1.0, 1.0, 1.0), decalSurfaceData.mask.x, DEFAULT_SPECULAR_VALUE);
+        surfaceData.specularColor = surfaceData.specularColor * decalSurfaceData.MAOSBlend.x + decalSpecularColor * (1.0f - decalSurfaceData.MAOSBlend.x);
+    }
 #endif
 
-        surfaceData.clearcoatIOR = 1.0; // Neutral
-        // Note:There is no ambient occlusion with AxF material
+    surfaceData.clearcoatIOR = lerp(1.0, surfaceData.clearcoatIOR, decalSurfaceData.MAOSBlend.x); // Transition to IOR 1.0 with increase decal coverage (i.e decrease of decalSurfaceData.MAOSBlend.x value)
+
+    // Note:There is no ambient occlusion with AxF material
 #endif
 
+    if (decalSurfaceData.mask.w < 1.0)
+    {
         surfaceData.specularLobe.x = PerceptualSmoothnessToRoughness(RoughnessToPerceptualSmoothness(surfaceData.specularLobe.x) * decalSurfaceData.mask.w + decalSurfaceData.mask.z);
         surfaceData.specularLobe.y = PerceptualSmoothnessToRoughness(RoughnessToPerceptualSmoothness(surfaceData.specularLobe.y) * decalSurfaceData.mask.w + decalSurfaceData.mask.z);
 #ifdef _AXF_BRDF_TYPE_CAR_PAINT
