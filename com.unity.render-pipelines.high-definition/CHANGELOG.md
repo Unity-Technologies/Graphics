@@ -92,6 +92,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Close Add Override popup of Volume Inspector when the popup looses focus (case 1258571)
 - Light quality setting for contact shadow set to on for High quality by default.
 - Fixed an exception thrown when closing the look dev because there is no active SRP anymore.
+- Fixed alignment of framesettings in HDRP Default Settings
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
