@@ -13,9 +13,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     #pragma multi_compile_local _ SKY_MOTION
     #pragma multi_compile_local _ USE_FLOWMAP
 
-    #pragma multi_compile_local _ USE_CLOUD_MAP
-    #pragma multi_compile_local _ USE_CLOUD_MOTION
-
     #pragma multi_compile _ DEBUG_DISPLAY
     #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 
@@ -37,7 +34,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/CloudLayer/CloudLayer.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SDF2D.hlsl"
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -186,44 +182,9 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         return IsHit(sdf, dir.y);
     }
 
-    float3 GetDistordedSkyColor(float3 dir)
-    {
-#if SKY_MOTION
-        if (dir.y >= 0 || !_UpperHemisphere)
-        {
-            float2 alpha = frac(float2(_ScrollFactor, _ScrollFactor + 0.5)) - 0.5;
-
-#ifdef USE_FLOWMAP
-            float3 tangent = normalize(cross(dir, float3(0.0, 1.0, 0.0)));
-            float3 bitangent = cross(tangent, dir);
-
-            float3 windDir = RotationUp(dir, _ScrollDirection);
-            float2 flow = SAMPLE_TEXTURE2D_LOD(_Flowmap, sampler_Flowmap, GetLatLongCoords(windDir, _UpperHemisphere), 0).rg * 2.0 - 1.0;
-
-            float3 dd = flow.x * tangent + flow.y * bitangent;
-#else
-            float3 windDir = RotationUp(float3(0, 0, 1), _ScrollDirection);
-            windDir.x *= -1.0;
-            float3 dd = windDir*sin(dir.y*PI*0.5);
-#endif
-
-            // Sample twice
-            float3 color1 = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir - alpha.x*dd, 0).rgb;
-            float3 color2 = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir - alpha.y*dd, 0).rgb;
-
-            // Blend color samples
-            return lerp(color1, color2, abs(2.0 * alpha.x));
-        }
-        else
-#endif
-
-        return SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb;
-    }
-
     float3 GetSkyColor(float3 dir)
     {
-        float3 sky = GetDistordedSkyColor(dir);
-        return ApplyCloudLayer(dir, sky);
+        return SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb;
     }
 
     float4 GetColorWithRotation(float3 dir, float exposure, float2 cos_sin)
