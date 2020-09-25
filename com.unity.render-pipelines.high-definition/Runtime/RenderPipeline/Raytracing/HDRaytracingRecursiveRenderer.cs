@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_FlagMaskTextureRT = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8_SNorm, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "FlagMaskTexture");
         }
 
-        public TextureHandle CreateFlagMaskTexture(RenderGraph renderGraph)
+        internal TextureHandle CreateFlagMaskTexture(RenderGraph renderGraph)
         {
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
             {

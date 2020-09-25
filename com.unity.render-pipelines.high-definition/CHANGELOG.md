@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [10.1.0] - 2019-08-04 
+## [10.1.0] - 2019-08-04
 
 ### Added
 - Added an option to have only the metering mask displayed in the debug mode.
@@ -106,6 +106,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Replaced the Density Volume Texture Tool with the new 3D Texture Importer.
 - Rename Raytracing Node to Raytracing Quality Keyword and rename high and low inputs as default and raytraced. All raytracing effects now use the raytraced mode but path tracing.
 - Moved diffusion profile list to the HDRP default settings panel.
+- Skip biquadratic resampling of vbuffer when volumetric fog filtering is enabled.
 - Optimized Grain and sRGB Dithering.
 
 ## [10.0.0] - 2019-06-10
