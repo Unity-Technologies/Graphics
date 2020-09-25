@@ -107,6 +107,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Rename Raytracing Node to Raytracing Quality Keyword and rename high and low inputs as default and raytraced. All raytracing effects now use the raytraced mode but path tracing.
 - Moved diffusion profile list to the HDRP default settings panel.
 - Skip biquadratic resampling of vbuffer when volumetric fog filtering is enabled.
+- Optimized Grain and sRGB Dithering.
 
 ## [10.0.0] - 2019-06-10
 
