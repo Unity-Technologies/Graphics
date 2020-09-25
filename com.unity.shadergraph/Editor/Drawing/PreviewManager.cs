@@ -799,7 +799,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     ShaderUtil.UpdateShaderAsset(shaderData.shader, shaderStr, false);
                 }
 
-                CoreUtils.Destroy(shaderData.mat);
+                // Due to case 1259744, we have to re-create the material to update the preview material keywords
+                Object.DestroyImmediate(shaderData.mat);
 
                 if (shaderData.mat == null)
                 {

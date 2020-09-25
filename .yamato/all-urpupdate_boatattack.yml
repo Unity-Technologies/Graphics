@@ -10,13 +10,6 @@ All_URPUpdate_BoatAttack_trunk:
          rerun: on-new-revision
       -  path: .yamato/urpupdate_boatattack-win-dx11.yml#URPUpdate_BoatAttack_Win_DX11_playmode_trunk
          rerun: on-new-revision
-All_URPUpdate_BoatAttack_fast-trunk:
-    name: All URPUpdate_BoatAttack CI - fast-trunk
-    dependencies:
-      -  path: .yamato/urpupdate_boatattack-win-dx11.yml#URPUpdate_BoatAttack_Win_DX11_editmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/urpupdate_boatattack-win-dx11.yml#URPUpdate_BoatAttack_Win_DX11_playmode_fast-trunk
-         rerun: on-new-revision
 All_URPUpdate_BoatAttack_CUSTOM-REVISION:
     name: All URPUpdate_BoatAttack CI - CUSTOM-REVISION
     dependencies:
