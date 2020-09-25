@@ -93,6 +93,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Light quality setting for contact shadow set to on for High quality by default.
 - Fixed an exception thrown when closing the look dev because there is no active SRP anymore.
 - Fixed alignment of framesettings in HDRP Default Settings
+- Fixed an exception thrown when closing the look dev because there is no active SRP anymore.
+- Fixed an issue where entering playmode would close the LookDev window.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
