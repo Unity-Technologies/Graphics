@@ -226,7 +226,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly ProfilingSampler endCameraRendering   = new ProfilingSampler("EndCameraRendering");
         };
 
-        public struct Renderer
+        public static class Renderer
         {
             // From pipeline
             public static readonly ProfilingSampler SetupCullingParameters = new ProfilingSampler(nameof(ScriptableRenderer) + "." + nameof(ScriptableRenderer.SetupCullingParameters));
