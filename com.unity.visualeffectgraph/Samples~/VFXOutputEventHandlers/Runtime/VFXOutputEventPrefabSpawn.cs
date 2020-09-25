@@ -97,7 +97,6 @@ namespace UnityEngine.VFX.Utility
 #endif
             if (rebuild)
             {
-
                 DisposeInstances();
                 if (m_PrefabToSpawn != null && m_InstanceCount != 0)
                 {
