@@ -90,6 +90,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed for lookdev library field not being refreshed upon opening a library from the environment library inspector.
 - Fixed serialization issue with matcap scale intensity.
 - Close Add Override popup of Volume Inspector when the popup looses focus (case 1258571)
+- Light quality setting for contact shadow set to on for High quality by default.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
