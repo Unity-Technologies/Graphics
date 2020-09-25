@@ -4,7 +4,7 @@ namespace UnityEngine.VFX.Utility
 {
     [ExecuteAlways]
     [RequireComponent(typeof(VisualEffect))]
-    class VFXOutputEventPrefabSpawn : VFXOutputEventHandler
+    class VFXOutputEventPrefabSpawn : VFXOutputEventAbstractHandler
     {
         public override bool canExecuteInEditor => true;
 

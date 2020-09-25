@@ -5,7 +5,7 @@ namespace UnityEngine.VFX.Utility
 {
     [ExecuteAlways]
     [RequireComponent(typeof(VisualEffect))]
-    class VFXOutputEventCMCameraShake : VFXOutputEventHandler
+    class VFXOutputEventCinemachineCameraShake : VFXOutputEventHandler
     {
         public override bool canExecuteInEditor => true;
 
@@ -36,7 +36,7 @@ namespace UnityEngine.VFX.Utility
                     vel = transform.localToWorldMatrix.MultiplyVector(vel);
                 }
 
-                cinemachineImpulseSource.GenerateImpulseAt(pos , vel);
+                cinemachineImpulseSource.GenerateImpulseAt(pos, vel);
             }
         }
     }

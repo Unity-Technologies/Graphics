@@ -7,12 +7,12 @@ namespace UnityEditor.VFX.Utility
     {
         protected SerializedProperty m_ExecuteInEditor;
         protected SerializedProperty m_OutputEvent;
-        protected VFXOutputEventHandler m_TargetHandler;
+        protected VFXOutputEventAbstractHandler m_TargetHandler;
         protected virtual void OnEnable()
         {
-            m_TargetHandler = serializedObject.targetObject as VFXOutputEventHandler;
-            m_OutputEvent = serializedObject.FindProperty(nameof(VFXOutputEventHandler.outputEvent));
-            m_ExecuteInEditor = serializedObject.FindProperty(nameof(VFXOutputEventHandler.executeInEditor));
+            m_TargetHandler = serializedObject.targetObject as VFXOutputEventAbstractHandler;
+            m_OutputEvent = serializedObject.FindProperty(nameof(VFXOutputEventAbstractHandler.outputEvent));
+            m_ExecuteInEditor = serializedObject.FindProperty(nameof(VFXOutputEventAbstractHandler.executeInEditor));
         }
 
         public override void OnInspectorGUI()

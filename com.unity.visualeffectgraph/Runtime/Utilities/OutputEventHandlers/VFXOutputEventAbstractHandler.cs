@@ -2,11 +2,10 @@ namespace UnityEngine.VFX.Utility
 {
     [ExecuteAlways]
     [RequireComponent(typeof(VisualEffect))]
-    public abstract class VFXOutputEventHandler : MonoBehaviour
+    public abstract class VFXOutputEventAbstractHandler : MonoBehaviour
     {
         public abstract bool canExecuteInEditor { get; }
         public bool executeInEditor = true;
-
         public ExposedProperty outputEvent = "On Received Event";
 
         protected VisualEffect m_VisualEffect { private set; get; }
@@ -23,7 +22,6 @@ namespace UnityEngine.VFX.Utility
             if(m_VisualEffect != null)
                 m_VisualEffect.outputEventReceived -= OnOutputEventRecieved;
         }
-
 
         void OnOutputEventRecieved(VFXOutputEventArgs args)
         {

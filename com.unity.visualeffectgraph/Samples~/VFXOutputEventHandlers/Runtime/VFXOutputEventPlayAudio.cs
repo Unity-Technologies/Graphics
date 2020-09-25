@@ -5,7 +5,7 @@ namespace UnityEngine.VFX.Utility
 {
     [ExecuteAlways]
     [RequireComponent(typeof(VisualEffect))]
-    class VFXOutputEventPlayAudio : VFXOutputEventHandler
+    class VFXOutputEventPlayAudio : VFXOutputEventAbstractHandler
     {
         public override bool canExecuteInEditor => true;
 
