@@ -78,6 +78,13 @@ namespace UnityEngine.VFX.Utility
         static readonly int k_ScaleID = Shader.PropertyToID("scale");
         static readonly int k_LifetimeID = Shader.PropertyToID("lifetime");
 
+        void UpdateHideFlag(GameObject instance)
+        {
+            instance.hideFlags = HideFlags.HideAndDontSave;
+            //We are using HideInHierarchy to prevent unexpected deletion in edit mode.
+            //instance.hideFlags = HideFlags.DontSave | HideFlags.NotEditable;
+        }
+
         void CheckAndRebuildInstances()
         {
             bool rebuild = m_Instances.Length != m_InstanceCount;
@@ -117,10 +124,8 @@ namespace UnityEngine.VFX.Utility
                 go.name = $"{name} - #{i} - {m_PrefabToSpawn.name}";
                 go.SetActive(false);
                 go.transform.parent = m_ParentInstances ? transform : null;
+                UpdateHideFlag(go);
 
-                go.hideFlags = HideFlags.HideAndDontSave;
-                //We are using HideInHierarchy to prevent unexpected deletion in edit mode.
-                //go.hideFlags = HideFlags.DontSave | HideFlags.NotEditable;
                 m_Instances[i] = go;
                 m_TimesToLive[i] = float.NegativeInfinity;
             }
@@ -185,6 +190,10 @@ namespace UnityEngine.VFX.Utility
                 var dt = Time.deltaTime;
                 for (int i = 0; i < m_Instances.Length; i++)
                 {
+#if UNITY_EDITOR
+                    //Reassign hide flag, "open prefab" could have resetted this hide flag.
+                    UpdateHideFlag(m_Instances[i]);
+#endif
                     // Negative infinity for non-time managed
                     if (m_TimesToLive[i] == float.NegativeInfinity)
                         continue;
