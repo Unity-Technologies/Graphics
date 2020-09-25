@@ -174,7 +174,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Definition
                 displayName = "Universal Forward",
                 referenceName = "SHADERPASS_UNLIT",
-                lightMode = "UniversalForward",
                 useInPreview = true,
 
                 // Template
