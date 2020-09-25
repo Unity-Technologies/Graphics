@@ -95,39 +95,37 @@ namespace UnityEngine.VFX.Utility
                 m_Dirty = false;
             }
 #endif
-            if (!rebuild)
-                return;
-
-            DisposeInstances();
-
-            if (m_PrefabToSpawn != null)
+            if (rebuild)
             {
-                m_Instances = new GameObject[m_InstanceCount];
-                m_TimesToLive = new float[m_InstanceCount];
-            }
 
+                DisposeInstances();
+                if (m_PrefabToSpawn != null && m_InstanceCount != 0)
+                {
+                    m_Instances = new GameObject[m_InstanceCount];
+                    m_TimesToLive = new float[m_InstanceCount];
+                }
 #if UNITY_EDITOR
-            var prefabAssetType = UnityEditor.PrefabUtility.GetPrefabAssetType(m_PrefabToSpawn);
+                var prefabAssetType = UnityEditor.PrefabUtility.GetPrefabAssetType(m_PrefabToSpawn);
 #endif
-
-            for (int i = 0; i < m_Instances.Length; i++)
-            {
-                GameObject go = null;
+                for (int i = 0; i < m_Instances.Length; i++)
+                {
+                    GameObject newInstance = null;
 #if UNITY_EDITOR
-                if (prefabAssetType == UnityEditor.PrefabAssetType.NotAPrefab)
-                    go = Instantiate(m_PrefabToSpawn);
-                else
-                    go = UnityEditor.PrefabUtility.InstantiatePrefab(m_PrefabToSpawn) as GameObject;
+                    if (prefabAssetType == UnityEditor.PrefabAssetType.NotAPrefab)
+                        newInstance = Instantiate(m_PrefabToSpawn);
+                    else
+                        newInstance = UnityEditor.PrefabUtility.InstantiatePrefab(m_PrefabToSpawn) as GameObject;
 #else
-                go = Instantiate(m_PrefabToSpawn);
+                    newInstance = Instantiate(m_PrefabToSpawn);
 #endif
-                go.name = $"{name} - #{i} - {m_PrefabToSpawn.name}";
-                go.SetActive(false);
-                go.transform.parent = m_ParentInstances ? transform : null;
-                UpdateHideFlag(go);
+                    newInstance.name = $"{name} - #{i} - {m_PrefabToSpawn.name}";
+                    newInstance.SetActive(false);
+                    newInstance.transform.parent = m_ParentInstances ? transform : null;
+                    UpdateHideFlag(newInstance);
 
-                m_Instances[i] = go;
-                m_TimesToLive[i] = float.NegativeInfinity;
+                    m_Instances[i] = newInstance;
+                    m_TimesToLive[i] = float.NegativeInfinity;
+                }
             }
         }
 
@@ -135,7 +133,6 @@ namespace UnityEngine.VFX.Utility
         {
             CheckAndRebuildInstances();
 
-            // Search for an available
             int freeIdx = -1;
             for (int i = 0; i < m_Instances.Length; i++)
             {
@@ -146,39 +143,38 @@ namespace UnityEngine.VFX.Utility
                 }
             }
 
-            if (freeIdx == -1) // can't find an slot available, discarding...
-                return;
-
-            // Activate Item if available
-            var obj = m_Instances[freeIdx];
-            obj.SetActive(true);
-            if (usePosition && eventAttribute.HasVector3(k_PositionID))
+            if (freeIdx != -1)
             {
-                if (m_ParentInstances)
-                    obj.transform.localPosition = eventAttribute.GetVector3(k_PositionID);
+                var availableInstance = m_Instances[freeIdx];
+                availableInstance.SetActive(true);
+                if (usePosition && eventAttribute.HasVector3(k_PositionID))
+                {
+                    if (m_ParentInstances)
+                        availableInstance.transform.localPosition = eventAttribute.GetVector3(k_PositionID);
+                    else
+                        availableInstance.transform.position = eventAttribute.GetVector3(k_PositionID);
+                }
+
+                if (useAngle && eventAttribute.HasVector3(k_AngleID))
+                {
+                    if (parentInstances)
+                        availableInstance.transform.localEulerAngles = eventAttribute.GetVector3(k_AngleID);
+                    else
+                        availableInstance.transform.eulerAngles = eventAttribute.GetVector3(k_AngleID);
+                }
+
+                if (useScale && eventAttribute.HasVector3(k_ScaleID))
+                    availableInstance.transform.localScale = eventAttribute.GetVector3(k_ScaleID);
+
+                if (useLifetime && eventAttribute.HasFloat(k_LifetimeID))
+                    m_TimesToLive[freeIdx] = eventAttribute.GetFloat(k_LifetimeID);
                 else
-                    obj.transform.position = eventAttribute.GetVector3(k_PositionID);
-            }
+                    m_TimesToLive[freeIdx] = float.NegativeInfinity;
 
-            if (useAngle && eventAttribute.HasVector3(k_AngleID))
-            {
-                if (parentInstances)
-                    obj.transform.localEulerAngles = eventAttribute.GetVector3(k_AngleID);
-                else
-                    obj.transform.eulerAngles = eventAttribute.GetVector3(k_AngleID);
-            }
-
-            if (useScale && eventAttribute.HasVector3(k_ScaleID))
-                obj.transform.localScale = eventAttribute.GetVector3(k_ScaleID);
-
-            if (useLifetime && eventAttribute.HasFloat(k_LifetimeID))
-                m_TimesToLive[freeIdx] = eventAttribute.GetFloat(k_LifetimeID);
-            else
-                m_TimesToLive[freeIdx] = float.NegativeInfinity;
-
-            var handlers = obj.GetComponentsInChildren<VFXOutputEventPrefabAttributeAbstractHandler>();
-            foreach(var handler in handlers)
-                handler.OnVFXEventAttribute(eventAttribute, m_VisualEffect);
+                var handlers = availableInstance.GetComponentsInChildren<VFXOutputEventPrefabAttributeAbstractHandler>();
+                foreach (var handler in handlers)
+                    handler.OnVFXEventAttribute(eventAttribute, m_VisualEffect);
+            } //Else, can't find an instance available, ignoring.
         }
 
         void Update()
