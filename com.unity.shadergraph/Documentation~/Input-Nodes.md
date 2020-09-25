@@ -12,7 +12,7 @@
 |[**Slider**](Slider-Node.md)|[**Time**](Time-Node.md)|
 |![Image](images/SliderNodeThumb.png)|![Image](images/TimeNodeThumb.png)|
 |Defines a constant Float value in the shader using a Slider field.|Provides access to various Time parameters in the shader.|
-|[**Float**](Vector-1-Node.md)|[**Vector 2**](Vector-2-Node.md)|
+|[**Float**](Float.md)|[**Vector 2**](Vector-2-Node.md)|
 |![Image](images/Vector1NodeThumb.png)|![Image](images/Vector2NodeThumb.png)|
 |Defines a Float value in the shader.|Defines a Vector 2 value in the shader.|
 |[**Vector 3**](Vector-3-Node.md)|[**Vector 4**](Vector-4-Node.md)|
