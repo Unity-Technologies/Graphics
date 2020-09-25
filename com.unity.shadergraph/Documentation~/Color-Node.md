@@ -2,9 +2,9 @@
 
 ## Description
 
-Defines a constant **Vector 4** value in the shader using a **Color** field. Can be converted to a **Color** type [Property](Property-Types.md) via the [Node's](Node.md) context menu. The value of the **Mode** parameter will also respected when generating the [Property](Property-Types.md).
+Defines a constant **Vector 4** value in the shader using a **Color** field. Can be converted to a **Color** [Property Type](Property-Types.md) via the [Node's](Node.md) context menu. The value of the **Mode** parameter will also respected when generating the [Property](Property-Types.md).
 
-NOTE: Previous versions of the Color Node would convert HDR colors into the incorrect colorspace. The behavior is corrected now, and previously created Color Nodes will continue to use old behavior unless explicilty upgraded through the [Graph Inspector](Internal-Inspector.md). You may use a new Color Node in HDR space passed through one [Colorspace Conversion Node](Colorspace-Conversion-Node.md) **RGB** to **Linear** to mimic old behavior in a linear space project, and two in a Gamma space project.
+NOTE: In versions prior to 10.0, Shader Graph assumed that HDR colors from the Color Node were in gamma space. Version 10.0 corrected this behavior, and Shader Graph now interprets HDR colors in linear space. HDR Color nodes that you created with older versions maintain the old behavior, but you can use the [Graph Inspector](Internal-Inspector.md) to upgrade them. To mimic the old behavior on a new HDR Color node, you can use a [Colorspace Conversion Node](Colorspace-Conversion-Node.md) to convert the HDR color from **RGB** to **Linear**.
 
 ## Ports
 
