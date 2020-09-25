@@ -11,6 +11,7 @@ CBUFFER_START(UnityPerMaterial)
     half4 _EmissionColor;
     half _Cutoff;
     half _Surface;
+    half4 _DoubleSidedConstants;
 CBUFFER_END
 
 #ifdef UNITY_DOTS_INSTANCING_ENABLED
@@ -20,6 +21,7 @@ CBUFFER_END
         UNITY_DOTS_INSTANCED_PROP(float4, _EmissionColor)
         UNITY_DOTS_INSTANCED_PROP(float , _Cutoff)
         UNITY_DOTS_INSTANCED_PROP(float , _Surface)
+        UNITY_DOTS_INSTANCED_PROP(float4 , _DoubleSidedConstants)
     UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
     #define _BaseColor          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4 , Metadata__BaseColor)
@@ -27,6 +29,7 @@ CBUFFER_END
     #define _EmissionColor      UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4 , Metadata__EmissionColor)
     #define _Cutoff             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__Cutoff)
     #define _Surface            UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__Surface)
+    #define _DoubleSidedConstants   UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4  , Metadata__DoubleSidedConstants)
 #endif
 
 TEXTURE2D(_SpecGlossMap);       SAMPLER(sampler_SpecGlossMap);

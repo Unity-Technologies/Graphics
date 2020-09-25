@@ -34,20 +34,31 @@ struct Varyings
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     float4 shadowCoord              : TEXCOORD7;
 #endif
+    bool isFrontFace                : TEXCOORD8;
 
     float4 positionCS               : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData)
+void InitializeInputData(Varyings input, half3 normalTS, half3 doubleSidedConstants, out InputData inputData)
 {
     inputData.positionWS = input.posWS;
 
 #ifdef _NORMALMAP
     half3 viewDirWS = half3(input.normal.w, input.tangent.w, input.bitangent.w);
-    inputData.normalWS = TransformTangentToWorld(normalTS,
-        half3x3(input.tangent.xyz, input.bitangent.xyz, input.normal.xyz));
+    half3x3 tangentToWorld = half3x3(input.tangent.xyz, input.bitangent.xyz, input.normal.xyz);
+
+#if defined(_BACKFACE_VISIBLE)
+    float flipSign = input.isFrontFace ? 1.0 : doubleSidedConstants.z;
+    tangentToWorld[2] = flipSign * tangentToWorld[2];
+
+    flipSign = input.isFrontFace ? 1.0 : doubleSidedConstants.x;
+    normalTS.xy *= flipSign;
+#endif
+
+    inputData.normalWS = TransformTangentToWorld(normalTS,tangentToWorld);
+
 #else
     half3 viewDirWS = input.viewDir;
     inputData.normalWS = input.normal;
@@ -95,6 +106,11 @@ Varyings LitPassVertexSimple(Attributes input)
     output.posWS.xyz = vertexInput.positionWS;
     output.positionCS = vertexInput.positionCS;
 
+    output.isFrontFace = true;
+    #if defined(_BACKFACE_VISIBLE)
+    output.isFrontFace = dot(viewDirWS, normalInput.normalWS) > 0;
+    #endif
+
 #ifdef _NORMALMAP
     output.normal = half4(normalInput.normalWS, viewDirWS.x);
     output.tangent = half4(normalInput.tangentWS, viewDirWS.y);
@@ -104,8 +120,8 @@ Varyings LitPassVertexSimple(Attributes input)
     output.viewDir = viewDirWS;
 #endif
 
-    OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
-    OUTPUT_SH(output.normal.xyz, output.vertexSH);
+    //OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
+    //OUTPUT_SH(output.isFrontFace ? output.normal.xyz : -output.normal.xyz, output.vertexSH);
 
     output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
@@ -139,7 +155,7 @@ half4 LitPassFragmentSimple(Varyings input) : SV_Target
     half smoothness = specular.a;
 
     InputData inputData;
-    InitializeInputData(input, normalTS, inputData);
+    InitializeInputData(input, normalTS, _DoubleSidedConstants, inputData);
 
     half4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specular, smoothness, emission, alpha);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
