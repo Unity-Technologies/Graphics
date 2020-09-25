@@ -52,12 +52,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if(m_FunctionName.value == "")
                     m_FunctionName.value = CustomFunctionNode.defaultFunctionName;
-                    
-                if(m_FunctionName.value != node.functionName)
+                else
+                    m_FunctionName.value = NodeUtils.ConvertToValidHLSLIdentifier(m_FunctionName.value);
+
+                if (m_FunctionName.value != node.functionName)
                 {
                     node.owner.owner.RegisterCompleteObjectUndo("Change Function Name");
                     node.functionName = m_FunctionName.value;
-                    m_FunctionName.SetValueWithoutNotify(node.functionName);
                     node.ValidateNode();
                     node.Dirty(ModificationScope.Graph);
                 }
