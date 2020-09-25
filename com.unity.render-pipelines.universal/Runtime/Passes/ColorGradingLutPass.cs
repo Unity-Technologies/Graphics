@@ -179,10 +179,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void FrameCleanup(CommandBuffer cmd)
         {
-			
+
 		}
 
-        public void Cleanup()
+        internal void Cleanup()
         {
             CoreUtils.Destroy(m_LutBuilderLdr);
             CoreUtils.Destroy(m_LutBuilderHdr);

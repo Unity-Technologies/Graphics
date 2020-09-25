@@ -87,12 +87,6 @@ public class CameraCallbackTests : ScriptableRendererFeature
         renderer.EnqueuePass(copyBeforeOpaquePass);
     }
 
-    protected override void Dispose(bool disposing)
-    {
-        CoreUtils.Destroy(m_SamplingMaterial);
-        m_BlitRenderPassesToScreen?.Cleanup();
-    }
-
     internal class ClearColorPass : ScriptableRenderPass
     {
         RenderTargetIdentifier m_ColorHandle;
