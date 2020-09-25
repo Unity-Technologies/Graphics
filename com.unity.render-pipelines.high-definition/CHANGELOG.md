@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where even when set to OnDemand, the sky lighting would still be updated when changing sky parameters.
 - Fixed SSS materials appearing black in matcap mode.
 - Fixed rendering of custom passes in the Custom Pass Volume inspector
+- Fixed issue with volume manager trying to access a null volume.
 
 ### Changed
 - Remove MSAA debug mode when renderpipeline asset has no MSAA
