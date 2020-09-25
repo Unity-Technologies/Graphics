@@ -63,7 +63,7 @@ InputData CreateInputData(Varyings input)
     inputData.positionWS = input.positionWS;
     inputData.uv = input.UV01;
     #else
-    inputData.positionWS = input.PositionCS;
+    inputData.positionWS = float3(0, 0, 0);
     #endif
 
     return inputData;

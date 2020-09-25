@@ -8,7 +8,7 @@ void InitializeInputData(Varyings input, out InputData inputData)
     inputData.normalWS = input.normalWS;
     inputData.viewDirectionWS = input.viewDirectionWS;
     #else
-    inputData.positionWS = input.positionCS;
+    inputData.positionWS = half3(0, 0, 0);
     inputData.normalWS = half3(0, 0, 1);
     inputData.viewDirectionWS = half3(0, 0, 1);
     #endif

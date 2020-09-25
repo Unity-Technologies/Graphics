@@ -154,34 +154,25 @@ Shader "Hidden/Universal Render Pipeline/Debug/Replacement"
 
             half4 frag(Varyings input) : SV_TARGET
             {
-                half4 color;
                 switch (_DebugAttributesIndex)
                 {
                     case DEBUG_ATTRIBUTE_TEXCOORD0:
-                        color = input.texcoord0;//half4(,0,1);
-                        break;
+                        return input.texcoord0;//half4(,0,1);
                     case DEBUG_ATTRIBUTE_TEXCOORD1:
-                        color = input.texcoord1;//half4(input.texcoord1,0,1);
-                        break;
+                        return input.texcoord1;//half4(input.texcoord1,0,1);
                     case DEBUG_ATTRIBUTE_TEXCOORD2:
-                        color = input.texcoord2;
-                        break;
+                        return input.texcoord2;
                     case DEBUG_ATTRIBUTE_TEXCOORD3:
-                        color = input.texcoord3;
-                        break;
+                        return input.texcoord3;
                     case DEBUG_ATTRIBUTE_COLOR:
-                        color = input.color;
-                        break;
+                        return input.color;
                     case DEBUG_ATTRIBUTE_TANGENT:
-                        color = input.tangent;
-                        break;
+                        return input.tangent;
                     case DEBUG_ATTRIBUTE_NORMAL:
-                        color = input.normal;
-                        break;
+                        return input.normal;
                     default:
-                        break;
+                        return half4(0, 0, 0, 1);
                 }
-                return color;
             }
 
             ENDHLSL

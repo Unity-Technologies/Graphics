@@ -807,7 +807,7 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
 
 #if defined(_DEBUG_SHADER)
 
-half4 CalculateDebugShadowCascadeColor(InputData inputData)
+half3 CalculateDebugShadowCascadeColor(InputData inputData)
 {
     float4 shadowCoord = inputData.shadowCoord;
     float3 positionWS = inputData.positionWS;
@@ -822,7 +822,7 @@ half4 CalculateDebugShadowCascadeColor(InputData inputData)
         kRedColor,
     };
 
-    return (half4)(cascadeColors[cascadeIndex]);
+    return cascadeColors[cascadeIndex].rgb;
 }
 
 half4 CalculateDebugLightingComplexityColor(InputData inputData)
@@ -865,23 +865,28 @@ bool CanDebugOverrideOutputColor(InputData inputData, SurfaceData surfaceData, D
         debugColor = CalculateDebugLightingComplexityColor(inputData);
         return true;
     }
-    else if(_DebugLightingIndex == DEBUG_LIGHTING_SHADOW_CASCADES)
-    {
-        surfaceData.albedo = CalculateDebugShadowCascadeColor(inputData);
-    }
-    else if (CalculateColorForDebug(inputData, surfaceData, debugData, debugColor) && (_DebugMaterialIndex == DEBUG_LOD))
-    {
-        surfaceData.albedo = debugColor;
-    }
     else
     {
-        if(UpdateSurfaceAndInputDataForDebug(surfaceData, inputData))
-        {
-            //inputData.bakedGI = SAMPLE_GI(inputData.lightmapUV, inputData.vertexSH, inputData.normalWS);
-        }
-    }
+        debugColor = half4(0, 0, 0, 1);
 
-    return CalculateColorForDebug(inputData, surfaceData, debugData, debugColor) && (_DebugMaterialIndex != DEBUG_LOD);
+        if(_DebugLightingIndex == DEBUG_LIGHTING_SHADOW_CASCADES)
+        {
+            surfaceData.albedo = CalculateDebugShadowCascadeColor(inputData);
+        }
+        else if (CalculateColorForDebug(inputData, surfaceData, debugData, debugColor) && (_DebugMaterialIndex == DEBUG_LOD))
+        {
+            surfaceData.albedo = debugColor.rgb;
+        }
+        else
+        {
+            if(UpdateSurfaceAndInputDataForDebug(surfaceData, inputData))
+            {
+                //inputData.bakedGI = SAMPLE_GI(inputData.lightmapUV, inputData.vertexSH, inputData.normalWS);
+            }
+        }
+
+        return CalculateColorForDebug(inputData, surfaceData, debugData, debugColor) && (_DebugMaterialIndex != DEBUG_LOD);
+    }
 }
 
 #endif
@@ -1106,7 +1111,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     surfaceData.metallic = 0;
     surfaceData.occlusion = 0;
     surfaceData.smoothness = smoothness;
-    surfaceData.specular = specularGloss;
+    surfaceData.specular = specularGloss.rgb;
     surfaceData.clearCoatMask = 0;
     surfaceData.clearCoatSmoothness = 1;
     surfaceData.normalTS = half3(0, 0, 1);

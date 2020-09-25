@@ -41,7 +41,7 @@ InputData CreateInputData(Varyings input, half3 normalTS)
     inputData.normalWS = input.normalWS;
     inputData.viewDirectionWS = input.viewDirWS;
     #else
-    inputData.positionWS = input.positionCS;
+    inputData.positionWS = float3(0, 0, 0);
     inputData.normalWS = half3(0, 0, 1);
     inputData.viewDirectionWS = half3(0, 0, 1);
     #endif

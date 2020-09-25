@@ -353,8 +353,11 @@ bool CalculateValidationColorForDebug(InputData inputData, SurfaceData surfaceDa
         }
         return true;
     }
-
-    return false;
+    else
+    {
+        color = half4(0, 0, 0, 1);
+        return false;
+    }
 }
 
 bool CalculateValidationColorForMipMaps(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 color)
@@ -385,7 +388,7 @@ bool CalculateValidationColorForMipMaps(InputData inputData, SurfaceData surface
 
 bool CalculateColorForDebugMaterial(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 color)
 {
-    color = half4(0.0, 0.0, 0.0, 1.0);
+    color = half4(0, 0, 0, 1);
 
     // Debug materials...
     switch(_DebugMaterialIndex)
@@ -453,6 +456,7 @@ bool CalculateColorForDebug(InputData inputData, SurfaceData surfaceData, DebugD
     }
     else
     {
+        color = half4(0, 0, 0, 1);
         return false;
     }
 }

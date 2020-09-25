@@ -37,7 +37,7 @@ void InitializeInputData(Varyings input, out InputData inputData)
     inputData.normalWS = input.normalWS;
     inputData.viewDirectionWS = input.viewDirWS;
     #else
-    inputData.positionWS = input.positionCS;
+    inputData.positionWS = float3(0, 0, 0);
     inputData.normalWS = half3(0, 0, 1);
     inputData.viewDirectionWS = half3(0, 0, 1);
     #endif
@@ -107,7 +107,7 @@ half4 UniversalFragmentUnlit(Varyings input) : SV_Target
 
     half4 finalColor = UniversalFragmentUnlit(inputData, color, alpha);
 
-    finalColor.rgb = MixFog(finalColor, input.fogCoord);
+    finalColor.rgb = MixFog(finalColor.rgb, input.fogCoord);
 
     return finalColor;
 }
