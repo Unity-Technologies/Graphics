@@ -176,12 +176,14 @@ void SHADE_OPAQUE_ENTRY(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     diffuseLighting *= GetCurrentExposureMultiplier();
     specularLighting *= GetCurrentExposureMultiplier();
 
+#ifdef OUTPUT_SPLIT_LIGHTING
     if (_EnableSubsurfaceScattering != 0 && ShouldOutputSplitLighting(bsdfData))
     {
         specularLightingUAV[COORD_TEXTURE2D_X(pixelCoord)] = float4(specularLighting, 1.0);
         diffuseLightingUAV[COORD_TEXTURE2D_X(pixelCoord)]  = TagLightingForSSS(diffuseLighting);
     }
     else
+#endif
     {
         specularLightingUAV[COORD_TEXTURE2D_X(pixelCoord)] = float4(diffuseLighting + specularLighting, 1.0);
     }
