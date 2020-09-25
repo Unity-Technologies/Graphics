@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.Universal
         StandardRenderer,
         _2DRenderer,
         [Obsolete("ForwardRenderer has been renamed StandardRenderer. (UnityUpgradable) -> StandardRenderer", true)]
-        ForwardRenderer,
+        ForwardRenderer = StandardRenderer,
     }
 
     public enum ColorGradingMode

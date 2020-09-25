@@ -16,28 +16,41 @@ namespace UnityEngine.Rendering.Universal
     [MovedFrom("UnityEngine.Rendering.LWRP")]
     public class ForwardRendererData : ScriptableRendererData
     {
+        private static readonly string k_ErrorMessage = "ForwardRendererData has been deprecated. Use StandardRendererData instead";
+
+        [Serializable, ReloadGroup]
         public sealed class ShaderResources
         {
+            [Reload("Shaders/Utils/Blit.shader")]
             public Shader blitPS;
 
+            [Reload("Shaders/Utils/CopyDepth.shader")]
             public Shader copyDepthPS;
 
+            [Reload("Shaders/Utils/ScreenSpaceShadows.shader")]
             public Shader screenSpaceShadowPS;
 
+            [Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
 
+            [Reload("Shaders/Utils/TileDepthInfo.shader")]
             public Shader tileDepthInfoPS;
 
+            [Reload("Shaders/Utils/TileDeferred.shader")]
             public Shader tileDeferredPS;
 
+            [Reload("Shaders/Utils/StencilDeferred.shader")]
             public Shader stencilDeferredPS;
 
+            [Reload("Shaders/Utils/FallbackError.shader")]
             public Shader fallbackErrorPS;
         }
 
+        [Reload("Runtime/Data/PostProcessData.asset")]
         public PostProcessData postProcessData = null;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
+        [Reload("Runtime/Data/XRSystemData.asset")]
         public XRSystemData xrSystemData = null;
 #endif
 
@@ -45,43 +58,43 @@ namespace UnityEngine.Rendering.Universal
 
         protected override ScriptableRenderer Create()
         {
-            throw new NotSupportedException("ForwardRendererData has been deprecated. Use StandardRendererData instead");
+            throw new NotSupportedException(k_ErrorMessage);
         }
 
         public LayerMask opaqueLayerMask
         {
-        	get { throw new NotSupportedException("ForwardRendererData has been deprecated. Use StandardRendererData instead"); }
-        	set { throw new NotSupportedException("ForwardRendererData has been deprecated. Use StandardRendererData instead"); }
+        	get { throw new NotSupportedException(k_ErrorMessage); }
+        	set { throw new NotSupportedException(k_ErrorMessage); }
         }
 
         public LayerMask transparentLayerMask
         {
-        	get { throw new NotSupportedException("ForwardRendererData has been deprecated. Use StandardRendererData instead"); }
-        	set { throw new NotSupportedException("ForwardRendererData has been deprecated. Use StandardRendererData instead"); }
+        	get { throw new NotSupportedException(k_ErrorMessage); }
+        	set { throw new NotSupportedException(k_ErrorMessage); }
         }
 
         public StencilStateData defaultStencilState
         {
-        	get { throw new NotSupportedException("ForwardRendererData has been deprecated. Use StandardRendererData instead"); }
-        	set { throw new NotSupportedException("ForwardRendererData has been deprecated. Use StandardRendererData instead"); }
+        	get { throw new NotSupportedException(k_ErrorMessage); }
+        	set { throw new NotSupportedException(k_ErrorMessage); }
         }
 
         public bool shadowTransparentReceive
         {
-        	get { throw new NotSupportedException("ForwardRendererData has been deprecated. Use StandardRendererData instead"); }
-        	set { throw new NotSupportedException("ForwardRendererData has been deprecated. Use StandardRendererData instead"); }
+        	get { throw new NotSupportedException(k_ErrorMessage); }
+        	set { throw new NotSupportedException(k_ErrorMessage); }
         }
 
         public RenderingMode renderingMode
         {
-        	get { throw new NotSupportedException("ForwardRendererData has been deprecated. Use StandardRendererData instead"); }
-        	set { throw new NotSupportedException("ForwardRendererData has been deprecated. Use StandardRendererData instead"); }
+        	get { throw new NotSupportedException(k_ErrorMessage); }
+        	set { throw new NotSupportedException(k_ErrorMessage); }
         }
 
 		public bool accurateGbufferNormals
 		{
-        	get { throw new NotSupportedException("ForwardRendererData has been deprecated. Use StandardRendererData instead"); }
-        	set { throw new NotSupportedException("ForwardRendererData has been deprecated. Use StandardRendererData instead"); }
+        	get { throw new NotSupportedException(k_ErrorMessage); }
+        	set { throw new NotSupportedException(k_ErrorMessage); }
 		}
     }
 }
