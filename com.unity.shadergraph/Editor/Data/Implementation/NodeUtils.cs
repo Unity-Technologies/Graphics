@@ -545,7 +545,7 @@ namespace UnityEditor.Graphing
             }
         }
 
-        // TODO: this is suspect -- several bugs here.. who uses it and for what??
+        // NOTE: there are several bugs here.. we should use ConvertToValidHLSLIdentifier() instead
         public static string GetHLSLSafeName(string input)
         {
             char[] arr = input.ToCharArray();
@@ -560,8 +560,7 @@ namespace UnityEditor.Graphing
 
         public static string ConvertToValidHLSLIdentifier(string originalId)
         {
-            // "  1   var  * q-30 ( 0 ) (1)   " => "_1_var_q_30_0_1"
-
+            // Converts "  1   var  * q-30 ( 0 ) (1)   " to "_1_var_q_30_0_1"
             StringBuilder hlslId = new StringBuilder(originalId.Length);
             bool lastInvalid = false;
             for (int i = 0; i < originalId.Length; i++)
@@ -576,15 +575,15 @@ namespace UnityEditor.Graphing
 
                 if (!validChar)
                 {
-                    // when we see invalid characters, we just record that we saw it and go to the next character
-                    // this way we combine multiple of them together, and trailing invalid characters just gets dropped
+                    // when we see an invalid character, we just record that we saw it and go to the next character
+                    // this way we combine multiple invalid characters, and trailing ones just get dropped
                     lastInvalid = true;
                 }
                 else
                 {
                     // whenever we hit a valid character
                     // if the last character was invalid, append an underscore
-                    // unless we're at the beginning of the string (then ignore)
+                    // unless we're at the beginning of the string
                     if (lastInvalid && (hlslId.Length > 0))
                         hlslId.Append("_");
 
