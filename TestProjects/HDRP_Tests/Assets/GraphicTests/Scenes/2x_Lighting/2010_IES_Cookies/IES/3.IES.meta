@@ -1,0 +1,27 @@
+fileFormatVersion: 2
+guid: 48cf670af9b8de044929f88371a1f142
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 9801397f829a1ed42984340315cbf362, type: 3}
+  iesMetaData:
+    FileFormatVersion: LM-63-1995
+    IESPhotometricType: Type C
+    IESMaximumIntensity: 1750
+    IESMaximumIntensityUnit: Lumens
+    Manufacturer: BEGA
+    LuminaireCatalogNumber: 6690
+    LuminaireDescription: SURFACE MOUNTED WALL LUMINAIRE
+    LampCatalogNumber: 
+    LampDescription: (1) 100W A-19 INC
+    PrefabLightType: 0
+    SpotAngle: 120
+    iesSize: 128
+    ApplyLightAttenuation: 1
+    UseIESMaximumIntensity: 1
+    CookieCompression: 2
+    LightAimAxisRotation: -90
