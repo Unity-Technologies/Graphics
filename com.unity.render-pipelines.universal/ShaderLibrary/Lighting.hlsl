@@ -1019,21 +1019,8 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
 ////////////////////////////////////////////////////////////////////////////////
 /// Phong lighting...
 ////////////////////////////////////////////////////////////////////////////////
-half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)
+half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
 {
-    SurfaceData surfaceData;
-
-    surfaceData.albedo = diffuse;
-    surfaceData.alpha = alpha;
-    surfaceData.emission = emission;
-    surfaceData.metallic = 0;
-    surfaceData.occlusion = 0;
-    surfaceData.smoothness = smoothness;
-    surfaceData.specular = specularGloss;
-    surfaceData.clearCoatMask = 0;
-    surfaceData.clearCoatSmoothness = 1;
-    surfaceData.normalTS = half3(0, 0, 1);
-
     #if defined(_DEBUG_SHADER)
     DebugData debugData = CreateDebugData(inputData.uv);
     half4 debugColor;
@@ -1054,9 +1041,21 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
 
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI);
 
-    half3 attenuatedLightColor = mainLight.color * (mainLight.distanceAttenuation * mainLight.shadowAttenuation);
-    half3 diffuseColor = inputData.bakedGI + LightingLambert(attenuatedLightColor, mainLight.direction, inputData.normalWS);
-    half3 specularColor = LightingSpecular(attenuatedLightColor, mainLight.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, smoothness);
+    half3 diffuseColor = half3(0, 0, 0);
+    half3 specularColor = half3(0, 0, 0);
+
+    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_GI))
+    {
+        diffuseColor += inputData.bakedGI;
+    }
+
+    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_MAIN_LIGHT))
+    {
+        half3 attenuatedLightColor = mainLight.color * (mainLight.distanceAttenuation * mainLight.shadowAttenuation);
+
+        diffuseColor += LightingLambert(attenuatedLightColor, mainLight.direction, inputData.normalWS);
+        specularColor += LightingSpecular(attenuatedLightColor, mainLight.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), surfaceData.smoothness);
+    }
 
     #if defined(_ADDITIONAL_LIGHTS)
     if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_ADDITIONAL_LIGHTS))
@@ -1071,7 +1070,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
             #endif
             half3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
             diffuseColor += LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
-            specularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, smoothness);
+            specularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), surfaceData.smoothness);
         }
     }
     #endif
@@ -1083,7 +1082,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     }
     #endif
 
-    half3 finalColor = diffuseColor * diffuse;
+    half3 finalColor = diffuseColor * surfaceData.albedo;
 
     if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_EMISSION))
     {
@@ -1094,7 +1093,25 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     finalColor += specularColor;
     #endif
 
-    return half4(finalColor, alpha);
+    return half4(finalColor, surfaceData.alpha);
+}
+
+half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)
+{
+    SurfaceData surfaceData;
+
+    surfaceData.albedo = diffuse;
+    surfaceData.alpha = alpha;
+    surfaceData.emission = emission;
+    surfaceData.metallic = 0;
+    surfaceData.occlusion = 0;
+    surfaceData.smoothness = smoothness;
+    surfaceData.specular = specularGloss;
+    surfaceData.clearCoatMask = 0;
+    surfaceData.clearCoatSmoothness = 1;
+    surfaceData.normalTS = half3(0, 0, 1);
+
+    return UniversalFragmentBlinnPhong(inputData, surfaceData);
 }
 
 //LWRP -> Universal Backwards Compatibility

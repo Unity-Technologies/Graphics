@@ -100,11 +100,16 @@ half4 UniversalTerrainLit(InputData inputData, SurfaceData surfaceData)
     #endif
 
     #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-    half3 lighting = inputData.vertexLighting * MainLightRealtimeShadow(inputData.shadowCoord) + inputData.bakedGI;
+    half3 lighting = inputData.vertexLighting * MainLightRealtimeShadow(inputData.shadowCoord);
     #else
-    half3 lighting = inputData.vertexLighting + inputData.bakedGI;
+    half3 lighting = inputData.vertexLighting;
     #endif
     half4 color = half4(surfaceData.albedo, surfaceData.alpha);
+
+    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_GI))
+    {
+        lighting += inputData.bakedGI;
+    }
 
     color.rgb *= lighting;
 
