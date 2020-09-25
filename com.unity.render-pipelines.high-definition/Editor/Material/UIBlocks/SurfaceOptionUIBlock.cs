@@ -67,7 +67,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent zWriteEnableText = new GUIContent("Depth Write", "When enabled, transparent objects write to the depth buffer.");
             public static GUIContent transparentZTestText = new GUIContent("Depth Test", "Set the comparison function to use during the Z Testing.");
-            public static GUIContent rayTracingText = new GUIContent("Ray Tracing (Preview)", "If this option is enabled and recursive rendering is active, the object will be rendered using ray tracing.");
+            public static GUIContent rayTracingText = new GUIContent("Recursive Rendering (Preview)");
+            public static GUIContent rayTracingTextInfo = new GUIContent("When enabled, if you enabled ray tracing in your project and a recursive rendering volume override is active, Unity uses recursive rendering to render the GameObject.");
 
             public static GUIContent transparentSortPriorityText = new GUIContent("Sorting Priority", "Sets the sort priority (from -100 to 100) of transparent meshes using this Material. HDRP uses this value to calculate the sorting order of all transparent meshes on screen.");
             public static GUIContent enableTransparentFogText = new GUIContent("Receive fog", "When enabled, this Material can receive fog.");
@@ -591,10 +592,6 @@ namespace UnityEditor.Rendering.HighDefinition
             // TODO: does not work with multi-selection
             Material material = materialEditor.target as Material;
 
-            // We only display the ray tracing option if the asset supports it (and the attributes exists in this shader)
-            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported && rayTracing != null)
-                materialEditor.ShaderProperty(rayTracing, Styles.rayTracingText);
-
             var mode = (SurfaceType)surfaceType.floatValue;
             var renderQueueType = HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue);
             bool alphaTest = material.HasProperty(kAlphaCutoffEnabled) && material.GetFloat(kAlphaCutoffEnabled) > 0.0f;
@@ -750,6 +747,16 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUI.indentLevel++;
                     materialEditor.ShaderProperty(transmissionEnable, Styles.transmissionEnableText);
                     EditorGUI.indentLevel--;
+                }
+            }
+
+            // We only display the ray tracing option if the asset supports it (and the attributes exists in this shader)
+            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported && rayTracing != null)
+            {
+                materialEditor.ShaderProperty(rayTracing, Styles.rayTracingText);
+                if (rayTracing.floatValue == 1.0f)
+                {
+                    EditorGUILayout.HelpBox(Styles.rayTracingTextInfo.text, MessageType.Info, true);
                 }
             }
 

@@ -87,6 +87,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     [DebuggerDisplay("ComputeBuffer ({handle})")]
     public struct ComputeBufferHandle
     {
+        private static ComputeBufferHandle s_NullHandle = new ComputeBufferHandle();
+
+        /// <summary>
+        /// Returns a null compute buffer handle
+        /// </summary>
+        /// <returns>A null compute buffer handle.</returns>
+        public static ComputeBufferHandle nullHandle { get { return s_NullHandle; } }
+
         internal ResourceHandle handle;
 
         internal ComputeBufferHandle(int handle) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.ComputeBuffer); }
