@@ -84,6 +84,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed SSGI compilation issues on PS4.
 - Fixed "Screen position out of view frustum" error when camera is on exactly the planar reflection probe plane.
 - Workaround issue that caused objects using eye shader to not be rendered on xbox.
+- Fixed GC allocation when using XR single-pass test mode.
 - Fixed text in cascades shadow split being truncated.
 - Fixed rendering of custom passes in the Custom Pass Volume inspector
 - Force probe to render again if first time was during async shader compilation to avoid having cyan objects.
