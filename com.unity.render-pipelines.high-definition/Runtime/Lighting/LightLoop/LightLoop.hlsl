@@ -162,6 +162,12 @@ void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdf
         }
 
         lightLoopOutput.diffuseLighting = SAMPLE_TEXTURE2D_LOD(_DebugMatCapTexture, s_linear_repeat_sampler, UV, 0).rgb * (_MatcapMixAlbedo > 0  ? defaultColor.rgb * _MatcapViewScale : 1.0f);
+
+        if (ShouldOutputSplitLighting(bsdfData) && _EnableSubsurfaceScattering != 0)
+        {
+            lightLoopOutput.specularLighting = lightLoopOutput.diffuseLighting;
+        }
+
     }
 #endif
 }
@@ -360,7 +366,11 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             while (v_envLightListOffset < envLightCount)
             {
                 v_envLightIdx = FetchIndex(envLightStart, v_envLightListOffset);
+#if SCALARIZE_LIGHT_LOOP
                 uint s_envLightIdx = ScalarizeElementIndex(v_envLightIdx, fastPath);
+#else
+                uint s_envLightIdx = v_envLightIdx;
+#endif
                 if (s_envLightIdx == -1)
                     break;
 
@@ -560,7 +570,10 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, builtinDataSSGI);
 
 #endif
-        builtinData.bakeDiffuseLighting += builtinDataSSGI.bakeDiffuseLighting;
+        // In the alpha channel, we have the interpolation value that we use to blend the result of SSGI/RTGI with the other GI thechnique
+        builtinData.bakeDiffuseLighting = lerp(builtinData.bakeDiffuseLighting,
+                                            builtinDataSSGI.bakeDiffuseLighting,
+                                            LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, posInput.positionSS).w);
     }
 #endif
 
