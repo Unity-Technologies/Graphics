@@ -23,7 +23,7 @@ namespace UnityEditor.VFX.Utility
                 EditorGUILayout.PropertyField(m_ExecuteInEditor);
             else
                 EditorGUILayout.HelpBox($"This VFX Output Event Handler cannot be previewed in edit mode. If you want to preview its behavior, please enter play mode.", MessageType.Info);
-            
+
             EditorGUILayout.PropertyField(m_OutputEvent);
 
             if (EditorGUI.EndChangeCheck())
@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.Utility
 
         public void HelpBox(string title, string body)
         {
-            using(new GUILayout.VerticalScope(Styles.helpBox))
+            using (new GUILayout.VerticalScope(Styles.helpBox))
             {
                 GUILayout.Label(title, Styles.helpBoxTitle);
                 GUILayout.Label(body, Styles.helpBoxBody);

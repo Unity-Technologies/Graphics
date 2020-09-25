@@ -30,7 +30,7 @@ namespace UnityEngine.VFX.Utility
                 Vector3 pos = eventAttribute.GetVector3(k_Position);
                 Vector3 vel = eventAttribute.GetVector3(k_Velocity);
 
-                if(attributeSpace == Space.Local)
+                if (attributeSpace == Space.Local)
                 {
                     pos = transform.localToWorldMatrix.MultiplyPoint(pos);
                     vel = transform.localToWorldMatrix.MultiplyVector(vel);

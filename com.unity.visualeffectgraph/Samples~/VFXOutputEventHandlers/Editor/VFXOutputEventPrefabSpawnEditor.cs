@@ -41,7 +41,7 @@ namespace UnityEditor.VFX.Utility
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.LabelField("Prefab Instances", EditorStyles.boldLabel);
 
-            using(new EditorGUI.IndentLevelScope(1))
+            using (new EditorGUI.IndentLevelScope(1))
             {
                 EditorGUILayout.PropertyField(m_PrefabToSpawn);
                 EditorGUILayout.PropertyField(m_InstanceCount);

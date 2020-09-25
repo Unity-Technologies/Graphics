@@ -31,7 +31,7 @@ namespace UnityEditor.VFX.Utility
             EditorGUILayout.PropertyField(m_EventType);
 
             var helpText = string.Empty;
-            switch((VFXOutputEventRigidBody.RigidBodyEventType)(m_EventType.intValue))
+            switch ((VFXOutputEventRigidBody.RigidBodyEventType)(m_EventType.intValue))
             {
                 default:
                 case VFXOutputEventRigidBody.RigidBodyEventType.Impulse:
@@ -44,7 +44,7 @@ namespace UnityEditor.VFX.Utility
                     helpText = " - velocity : new velocity for the RigidBody";
                     break;
             }
-            HelpBox("Attribute Usage",helpText);
+            HelpBox("Attribute Usage", helpText);
 
             if (EditorGUI.EndChangeCheck())
             {

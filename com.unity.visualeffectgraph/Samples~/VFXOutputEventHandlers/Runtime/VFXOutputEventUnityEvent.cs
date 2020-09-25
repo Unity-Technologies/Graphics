@@ -14,5 +14,4 @@ namespace UnityEngine.VFX.Utility
             onEvent?.Invoke();
         }
     }
-
 }

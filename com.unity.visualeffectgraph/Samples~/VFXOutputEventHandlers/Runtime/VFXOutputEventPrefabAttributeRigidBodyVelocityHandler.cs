@@ -19,7 +19,7 @@ namespace UnityEngine.VFX.Utility
             var velocity = eventAttribute.GetVector3(k_Velocity);
             if (attributeSpace == Space.Local)
                 velocity = visualEffect.transform.localToWorldMatrix.MultiplyVector(velocity);
-            
+
             if (TryGetComponent<Rigidbody>(out m_RigidBody))
             {
                 m_RigidBody.WakeUp();
