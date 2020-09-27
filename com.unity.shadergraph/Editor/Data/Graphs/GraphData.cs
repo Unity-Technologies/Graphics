@@ -302,7 +302,7 @@ namespace UnityEditor.ShaderGraph
         // Serialized list of user-selected active targets, sorted in displayName order (to maintain deterministic serialization order)
         // some of these may be MultiJsonInternal.UnknownTargetType if we can't recognize the type of the target
         [SerializeField]
-        List<JsonData<Target>> m_ActiveTargets = new List<JsonData<Target>>();      // After adding to this list, you MUST call SortActiveTargets()
+        internal List<JsonData<Target>> m_ActiveTargets = new List<JsonData<Target>>();      // After adding to this list, you MUST call SortActiveTargets()
         public DataValueEnumerable<Target> activeTargets => m_ActiveTargets.SelectValue();
 
         // this stores all of the current possible Target types (including any unknown target types we serialized in)
@@ -376,12 +376,12 @@ namespace UnityEditor.ShaderGraph
             return result;
         }
 
-        public string[] GetValidTargetDisplayNames()
+        public List<string> GetPotentialTargetDisplayNames()
         {
-            string[] displayNames = new string[m_AllPotentialTargets.Count];
+            List<string> displayNames = new List<string>(m_AllPotentialTargets.Count);
             for (int validIndex = 0; validIndex < m_AllPotentialTargets.Count; validIndex++)
             {
-                displayNames[validIndex] = m_AllPotentialTargets[validIndex].GetDisplayName();
+                displayNames.Add(m_AllPotentialTargets[validIndex].GetDisplayName());
             }
             return displayNames;
         }
@@ -405,6 +405,12 @@ namespace UnityEditor.ShaderGraph
                 SortActiveTargets();
         }
 
+        public void SetTargetActive(int targetIndex, bool skipSort = false)
+        {
+            Target target = m_AllPotentialTargets[targetIndex].GetTarget();
+            SetTargetActive(target, skipSort);
+        }
+
         public void SetTargetInactive(Target target)
         {
             int activeIndex = m_ActiveTargets.IndexOf(target);
@@ -422,55 +428,6 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         List<Target> m_UnsupportedTargets = new List<Target>();
         public List<Target> unsupportedTargets { get => m_UnsupportedTargets; }
-
-        public int activeTargetBitmask
-        {
-            get
-            {
-                // return a bitmask flagging the current active targets
-                // NOTE: since we're just using an int as the bitmask, we can't support more than 31 Targets
-                int targetBitmask = 0;
-                foreach (var target in activeTargets)
-                {
-                    int validIndex = GetTargetIndex(target);
-                    Assert.IsTrue(validIndex >= 0);
-                    int targetFlag = (1 << validIndex);
-                    targetBitmask = targetBitmask | targetFlag;
-                }
-                return targetBitmask;
-            }
-
-            set
-            {
-                // make the set of active targets match the bitmask
-                bool needsSort = false;
-                for (int targetIndex = 0; targetIndex < m_AllPotentialTargets.Count; targetIndex++)
-                {
-                    var target = m_AllPotentialTargets[targetIndex];
-                    int activeIndex = m_ActiveTargets.FindIndex(at => target.Is(at));
-
-                    int targetFlag = (1 << targetIndex);
-                    if ((value & targetFlag) != 0)
-                    {
-                        if (activeIndex < 0)
-                        {
-                            SetTargetActive(target.GetTarget(), true);
-                            needsSort = true;
-                        }
-                    }
-                    else
-                    {
-                        if (activeIndex >= 0)
-                        {
-                            SetTargetInactive(target.GetTarget());
-                        }
-                    }
-                }
-
-                if (needsSort)
-                    SortActiveTargets();
-            }
-        }
 
         private Comparison<Target> targetComparison = new Comparison<Target>((a, b) => string.Compare(a.displayName, b.displayName));
         public void SortActiveTargets()

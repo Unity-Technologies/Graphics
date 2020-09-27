@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditorInternal;
@@ -9,61 +9,96 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     internal class ReorderableListView<T> : VisualElement
     {
-        //this was made to be a generic adapter but is currently only used for target settings
-        //up to us if we want to adapt this for our needs or create a new ReorderableList manager for targets 
+        // generic control to display and allow the user to directly reorder/add/remove from a list of T
+
+        // the List we are editing
+        List<T> m_DataList;
+
+        // this is how we get the string to display for each item
+        Func<T, string> m_GetDisplayTextFunc;
+
+        readonly bool m_AllowReorder;
         ReorderableList m_ReorderableList;
         List<string> m_TextList = new List<string>();
-        List<string> m_MenuOptions = new List<string>();
-        List<T> m_DataList;
+        List<string> m_AddMenuOptions = new List<string>();
+
         IMGUIContainer m_Container;
         GUIStyle m_LabelStyle;
         int m_SelectedIndex = -1;
-        string headerLabel;
+        string m_HeaderLabel;
 
-        public List<string> TextList => m_TextList;
-        //populates the options for the drop down menu on add item
-        public List<string> MenuOptions 
+        // list of options for the drop down menu when the user clicks the add button
+        public List<string> AddMenuOptions 
         {
-            get { return m_MenuOptions; }
-            set { m_MenuOptions = value; }
+            get { return m_AddMenuOptions; }
+            set { m_AddMenuOptions = value; }
         }
 
-        //temporarily added add and remove callbacks just in case we need them 
-        internal delegate void ListRemoveItemDelegate(IList<T> removeList);
-        public ListRemoveItemDelegate OnListItemRemovedCallback;
+        // callback when the user clicks on an item from the AddMenu
+        public delegate void OnAddMenuItemDelegate(List<T> targetList, int addMenuOptionIndex, string addMenuOption);
+        public OnAddMenuItemDelegate OnAddMenuItemCallback;
 
-        internal delegate void ListAddItemDelegate(IList<T> addList);
-        public ListAddItemDelegate OnListItemAddedCallback;
+        // callback to override how an item is removed from the list
+        internal delegate void RemoveItemDelegate(List<T> list, int itemIndex);
+        public RemoveItemDelegate RemoveItemCallback;
 
-        internal delegate void ListReorderedDelegate(IList<T> reorderedList);
+        // callback when the list is reordered
+        internal delegate void ListReorderedDelegate(List<T> reorderedList);
         public ListReorderedDelegate OnListReorderedCallback;
 
-        internal ReorderableListView(List<T> dataList, string header = "Reorder data:") //added override for header text
+        internal ReorderableListView(
+            List<T> dataList,
+            string header = "Reorder data:",
+            bool allowReorder = true,
+            Func<T, string> getDisplayText = null)
         {
             m_DataList = dataList;
+            m_HeaderLabel = header;
+            m_AllowReorder = allowReorder;
+
+            // setup GetDisplayTextFunc
+            if (getDisplayText == null)
+                m_GetDisplayTextFunc = data => data.ToString();
+            else
+                m_GetDisplayTextFunc = getDisplayText;
+
+            RebuildTextList();
+
+            // should we set up a new style sheet?  allow user overrides?
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/ReorderableSlotListView"));
+
+            m_Container = new IMGUIContainer(() => OnGUIHandler()) {name = "ListContainer"};
+            Add(m_Container);
+        }
+
+        void RebuildTextList()
+        {
+            m_TextList.Clear();
             try
             {
-                foreach (var data in dataList)
+                foreach (var data in m_DataList)
                 {
-                    m_TextList.Add(data.ToString());
+                    m_TextList.Add(m_GetDisplayTextFunc(data));
                 }
             }
             catch (Exception e)
             {
                 Debug.Log("Exception: " + e.ToString() + " while handling ReorderableListView of type: " + typeof(T).ToString());
             }
-            headerLabel = header;
-
-            styleSheets.Add(Resources.Load<StyleSheet>("Styles/ReorderableSlotListView"));
-            m_Container = new IMGUIContainer(() => OnGUIHandler()) {name = "ListContainer"};
-            Add(m_Container);
         }
 
         internal void RecreateList(List<T> dataList)
         {
             m_DataList = dataList;
+
             // Create reorderable list from data list
-            m_ReorderableList = new ReorderableList(dataList, typeof(int), false, true, true, true); //temporarily not actually reorderable
+            m_ReorderableList = new ReorderableList(
+                dataList,
+                typeof(int),        // not entirely sure what this is supposed to be or do...
+                m_AllowReorder,     // draggable (to reorder)
+                true,               // displayHeader
+                true,               // displayAddButton
+                true);              // displayRemoveButton
         }
 
         private void OnGUIHandler()
@@ -98,29 +133,25 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_ReorderableList.drawHeaderCallback = (Rect rect) =>
             {
                 var labelRect = new Rect(rect.x, rect.y, rect.width - 10, rect.height);
-                EditorGUI.LabelField(labelRect, headerLabel);
+                EditorGUI.LabelField(labelRect, m_HeaderLabel);
             };
 
             // Draw Element
             m_ReorderableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
             {
-                EditorGUI.BeginChangeCheck();
                 EditorGUI.LabelField(
                     new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight),
                     m_TextList[index], EditorStyles.label);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    RecreateList(m_DataList);
-                }
             };
 
             // Element height
             m_ReorderableList.elementHeightCallback = (int indexer) => { return m_ReorderableList.elementHeight; };
 
             // Add callback delegates
-            m_ReorderableList.onSelectCallback += SelectEntry;
+            m_ReorderableList.onSelectCallback += SelectEntry;              // should we propagate this up if user wants to do something with selection?
             m_ReorderableList.onReorderCallback += ReorderEntries;
-            m_ReorderableList.onAddDropdownCallback += AddEntry; //adds items from a limited list of options
+            m_ReorderableList.onAddDropdownCallback += OnAddDropdownMenu;
+            m_ReorderableList.onRemoveCallback += OnRemove;
         }
 
         private void SelectEntry(ReorderableList list)
@@ -130,27 +161,62 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         private void ReorderEntries(ReorderableList list)
         {
-            var concreteList = (List<T>) list.list;
-            RecreateList(concreteList);
-            OnListReorderedCallback(concreteList);
+            RebuildTextList();
+            OnListReorderedCallback(m_DataList);
         }
 
-        private void AddEntry(Rect buttonRect, ReorderableList list)
+        private void OnAddDropdownMenu(Rect buttonRect, ReorderableList list)
         {
             //created the drop down menu on add item from the listview
             var menu = new GenericMenu();
-            foreach (var entry in m_MenuOptions)
+            for (int optionIndex = 0; optionIndex < m_AddMenuOptions.Count; optionIndex++)
             {
-                menu.AddItem(new GUIContent(entry), false, AddDataItem);
+                string optionText = m_AddMenuOptions[optionIndex];
+
+                // disable any option that is already in the text list
+                bool optionEnabled = !m_TextList.Contains(optionText);
+
+                // need to make a copy so the lambda will capture the value, not the variable
+                int localOptionIndex = optionIndex;
+
+                if (optionEnabled)
+                    menu.AddItem(new GUIContent(optionText), false, () => OnAddMenuClicked(localOptionIndex, optionText));
+                else
+                    menu.AddDisabledItem(new GUIContent(optionText));
             }
             menu.ShowAsContext();
         }
 
-        private void AddDataItem()
+        void OnAddMenuClicked(int optionIndex, string optionText)
         {
-            //needs to actually add items to the data list
+            OnAddMenuItemCallback(m_DataList, optionIndex, optionText);
+
+            // if anything was changed about the list in the callback, we need to rebuild our text list
+            RebuildTextList();
         }
 
+        void OnRemove(ReorderableList list)
+        {
+            int indexToRemove = list.index;
+            if (indexToRemove < 0)
+                indexToRemove = m_DataList.Count - 1;
+
+            if (indexToRemove >= 0)
+            {
+                if (RemoveItemCallback != null)
+                {
+                    RemoveItemCallback(m_DataList, indexToRemove);
+                }
+                else
+                {
+                    // no callback provided, do it ourselves
+                    m_DataList.RemoveAt(indexToRemove);
+                }
+
+                // if anything was changed about the list in the callback, we need to rebuild our text list
+                RebuildTextList();
+            }
+        }
     }
 }
 

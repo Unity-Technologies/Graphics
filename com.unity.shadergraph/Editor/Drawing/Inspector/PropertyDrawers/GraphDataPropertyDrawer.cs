@@ -9,6 +9,7 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditorInternal;
+using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
@@ -48,29 +49,32 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             targetSettingsLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             element.Add(new PropertyRow(targetSettingsLabel));
 
-            var targetNameList = graphData.GetValidTargetDisplayNames();
+            var targetList = new ReorderableListView<JsonData<Target>>(
+                graphData.m_ActiveTargets,
+                "Targets",
+                false,      // disallow reordering (active list is sorted)
+                (target => target.value.displayName));
 
-            //once the listview is hooked up, this should be removed
-            element.Add(new PropertyRow(new Label("Targets")), (row) =>
+            targetList.AddMenuOptions = graphData.GetPotentialTargetDisplayNames();
+
+            targetList.OnAddMenuItemCallback +=
+                (list, addMenuOptionIndex, addMenuOption) =>
                 {
-                    row.Add(new IMGUIContainer(() => {
-                        EditorGUI.BeginChangeCheck();
-                        var activeTargetBitmask = EditorGUILayout.MaskField(graphData.activeTargetBitmask, targetNameList, GUILayout.Width(100f));
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            RegisterActionToUndo("Change active Targets");
-                            graphData.activeTargetBitmask = activeTargetBitmask;
-                            graphData.UpdateActiveTargets();
-                            m_postChangeTargetSettingsCallback();
-                        }
-                    }));
-                });
+                    RegisterActionToUndo("Add Target");
+                    graphData.SetTargetActive(addMenuOptionIndex);
+                    graphData.UpdateActiveTargets();
+                    m_postChangeTargetSettingsCallback();
+                };
 
-            //initial pass for the UI removing maskfield, currently has no actual functionality
-            // target name list in constrctor should actually be a list of the currently active targets
-            var targetList = new ReorderableListView<string>(targetNameList.ToList<string>(), "Active Targets");
-            //menuoptions should be assigned to a list of valid targets that are not currently active
-            targetList.MenuOptions = targetNameList.ToList<string>();
+            targetList.RemoveItemCallback +=
+                (list, itemIndex) =>
+                {
+                    RegisterActionToUndo("Remove Target");
+                    graphData.SetTargetInactive(list[itemIndex].value);
+                    graphData.UpdateActiveTargets();
+                    m_postChangeTargetSettingsCallback();
+                };
+
             element.Add(targetList);
             //the proper callbacks to translate the list view into target data need to be added here
 
