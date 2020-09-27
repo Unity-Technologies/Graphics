@@ -74,6 +74,9 @@ RW_TEXTURE3D(float4, _VBufferFeedback);
 TEXTURE3D(_VBufferHistory);
 TEXTURE3D(_VBufferDensity);                     // RGB = scattering, A = extinction
 
+
+TEXTURE2D_X(_InputTexture); //TMP TEST MAKE PROPER WHEN IT WORKS.              
+
 //--------------------------------------------------------------------------------------------------
 // Implementation
 //--------------------------------------------------------------------------------------------------
@@ -87,6 +90,9 @@ struct JitteredRay
     float3 xDirDerivWS;
     float3 yDirDerivWS;
     float  geomDist;
+
+    float maxDist;
+    float gradient;
 };
 
 struct VoxelLighting
@@ -492,8 +498,8 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 
     float3 totalRadiance = 0;
     float  opticalDepth  = 0;
-
-    for (uint slice = 0; slice < _VBufferSliceCount; slice++)
+    uint slice = 0;
+    for (; slice < _VBufferSliceCount; slice++)
     {
         uint3 voxelCoord = uint3(posInput.positionSS, slice + _VBufferSliceCount * unity_StereoEyeIndex);
 
@@ -671,7 +677,28 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // Compute the optical depth up to the end of the interval.
         opticalDepth += 0.5 * blendValue.a;
 
+        float r = tNext - t0;
         t0 = tNext;
+
+        if (true)
+        {
+              _VBufferLighting[voxelCoord] = float4(0, (t0 - r) > ray.maxDist && ray.gradient <= 0.5f,0,1);
+
+        }
+      //  _VBufferLighting[voxelCoord] = float4(r0, r1, t0*0.85f > ray.maxDist, ray.gradient);
+
+   /*     if (t0*0.9f > ray.maxDist && ray.gradient <= 0.5f)
+            break;*/
+    }
+
+    for (; slice < _VBufferSliceCount; slice++)
+    {
+        uint3 voxelCoord = uint3(posInput.positionSS, slice + _VBufferSliceCount * unity_StereoEyeIndex);
+        _VBufferLighting[voxelCoord] = 0;
+#ifdef ENABLE_REPROJECTION
+        _VBufferFeedback[voxelCoord] = 0;
+#endif
+
     }
 }
 
@@ -743,7 +770,8 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
     PositionInputs posInput = GetPositionInput(voxelCoord, _VBufferViewportSize.zw, tileCoord);
 
     ray.geomDist = FLT_INF;
-
+    ray.maxDist = FLT_INF;
+    ray.gradient = -1;
 #if USE_DEPTH_BUFFER
     float deviceDepth = LoadCameraDepth(pixelCoord);
 
@@ -752,6 +780,16 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
         // Convert it to distance along the ray. Doesn't work with tilt shift, etc.
         float linearDepth = LinearEyeDepth(deviceDepth, _ZBufferParams);
         ray.geomDist = linearDepth * rcp(dot(ray.jitterDirWS, F));
+
+        float2 UV = posInput.positionNDC * _RTHandleScale.xy * 0.5f;
+
+        float4 g = GATHER_TEXTURE2D_X(_InputTexture, s_linear_clamp_sampler, UV) *  rcp(dot(ray.jitterDirWS, F));
+
+        float4 gradient = abs(g - ray.geomDist);
+        float maxD = max(Max3(g.x, g.y, g.z), g.w);
+
+        ray.maxDist = maxD;
+        ray.gradient = max(Max3(gradient.x, gradient.y, gradient.z), gradient.w) / maxD;
     }
 #endif
 
