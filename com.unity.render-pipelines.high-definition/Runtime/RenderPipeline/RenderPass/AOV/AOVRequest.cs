@@ -194,6 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 switch (m_RequestMode)
                 {
                     case Camera.RenderRequestMode.ObjectId:
+                        debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.Alpha);
                         //@TODO:
                         break;
                     case Camera.RenderRequestMode.Depth:
