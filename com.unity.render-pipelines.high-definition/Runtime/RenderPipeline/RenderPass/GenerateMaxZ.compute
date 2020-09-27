@@ -1,0 +1,103 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
+
+#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+#pragma kernel ComputeMaxZ16CS KERNELNAME=ComputeMaxZ16CS DOWNSAMPLE16 TILE_SIZE=16
+#pragma kernel ComputeMaxZ8CS KERNELNAME=ComputeMaxZ8CS TILE_SIZE=8
+
+
+#ifdef PLATFORM_LANE_COUNT
+#define WAVE_SIZE   PLATFORM_LANE_COUNT  
+#else
+#define WAVE_SIZE   64
+#endif
+
+
+RW_TEXTURE2D_X(float, _OutputTexture);
+
+CBUFFER_START(cb)
+uint4 _SrcOffsetAndLimit; // {x, y, w - 1, h - 1}
+CBUFFER_END
+
+#define USE_WAVE_INTRINSICS         defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS)
+
+
+#if USE_WAVE_INTRINSICS
+#define LDS_SIZE  (TILE_SIZE * TILE_SIZE) / WAVE_SIZE
+#else
+#define LDS_SIZE TILE_SIZE * TILE_SIZE
+#endif
+
+groupshared float gs_maxDepth[LDS_SIZE];
+
+
+// Returns min motionVec length in x, max motionVec in zw
+float ParallelReduction(uint gid, uint threadIdx, float depth)
+{
+
+#if USE_WAVE_INTRINSICS 
+
+#ifdef DOWNSAMPLE16
+    uint waveCount = ((TILE_SIZE * TILE_SIZE) / WAVE_SIZE);
+    float waveMax = WaveActiveMax(depth);
+
+    uint waveIDInGroup = gid / WAVE_SIZE;
+    if (WaveIsFirstLane())
+    {
+        gs_maxDepth[waveIDInGroup] = waveMax;
+    }
+
+    // We have values for all the waves, let's sync. 
+    GroupMemoryBarrierWithGroupSync();
+
+    if (threadIdx == 0)
+    {
+        // Find min and max across waves.
+        waveMax = gs_maxDepth[0];
+        for (uint i = 1u; i < waveCount; ++i)
+        {
+            waveMax = max(waveMax, gs_maxDepth[i]);
+        }
+    }
+
+    return waveMax;
+#else
+    return WaveActiveMin(depth);
+#endif
+
+#else
+    gs_maxDepth[threadIdx] = depth;
+
+    GroupMemoryBarrierWithGroupSync();
+
+    UNITY_UNROLL
+        for (uint s = (TILE_SIZE * TILE_SIZE) / 2u; s > 0u; s >>= 1u)
+        {
+            if (threadIdx < s)
+            {
+                float currVal = gs_maxDepth[threadIdx];
+                float otherVal = gs_maxDepth[threadIdx + s];
+
+                gs_maxDepth[threadIdx] = max(currVal, otherVal);
+            }
+
+            GroupMemoryBarrierWithGroupSync();
+        }
+    return gs_maxDepth[0];
+
+#endif
+}
+
+[numthreads(TILE_SIZE, TILE_SIZE, 1)]
+void KERNELNAME(uint3 dispatchThreadId : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    uint threadIdx = groupThreadId.y * TILE_SIZE + groupThreadId.x;
+
+    float currValDepth =  LoadCameraDepth(dispatchThreadId.xy);
+    currValDepth = LinearEyeDepth(currValDepth, _ZBufferParams);
+    _OutputTexture[COORD_TEXTURE2D_X(groupID.xy)] = ParallelReduction(gid, threadIdx, currValDepth);
+}
