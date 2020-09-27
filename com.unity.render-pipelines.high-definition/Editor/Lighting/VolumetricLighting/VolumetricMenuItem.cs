@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
             densityVolume.AddComponent<DensityVolume>();
         }
 
-        [MenuItem("GameObject/Light/Experimental/Probe Volume", priority = CoreUtils.gameObjectMenuPriority)]
+        //[MenuItem("GameObject/Light/Experimental/Probe Volume", priority = CoreUtils.gameObjectMenuPriority)]
         static void CreateProbeVolumeGameObject(MenuCommand menuCommand)
         {
             var parent = menuCommand.context as GameObject;
