@@ -99,6 +99,13 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
         static public void LoadOrCreateCompositionProfileAsset(CompositionManager compositor)
         {
             var shader = compositor.shader;
+
+            if(shader == null)
+            {
+                compositor.profile = null;
+                return;
+            }
+
             var fullpath = AssetDatabase.GetAssetPath(shader);
             var path = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(fullpath), System.IO.Path.GetFileNameWithoutExtension(shader.name)) + ".asset";
 
