@@ -109,17 +109,6 @@ DebugData CreateDebugData(half3 brdfDiffuse, half3 brdfSpecular, float2 uv)
     return debugData;
 }
 
-DebugData CreateDebugData(float2 uv)
-{
-    DebugData debugData;
-
-    debugData.brdfDiffuse = half3(0, 0, 0);
-    debugData.brdfSpecular = half3(0, 0, 0);
-    debugData.uv = uv;
-
-    return debugData;
-}
-
 half4 GetLODDebugColor()
 {
     if (IsBitSet(unity_LODFade.z, 0))

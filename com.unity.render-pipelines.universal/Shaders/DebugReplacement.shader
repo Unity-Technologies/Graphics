@@ -4,9 +4,9 @@ Shader "Hidden/Universal Render Pipeline/Debug/Replacement"
     {
         Tags{"RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True"}
 
-        // Overdraw
         Pass
         {
+            Name "Overdraw"
             Tags {"LightMode" = "UniversalForward"}
 
             Blend One One
@@ -47,13 +47,12 @@ Shader "Hidden/Universal Render Pipeline/Debug/Replacement"
             {
                 return kRedColor * half4(0.1, 0.1, 0.1, 1.0);
             }
-
             ENDHLSL
         }
 
-        // Wireframe
         Pass
         {
+            Name "Wireframe"
             Tags {"LightMode" = "UniversalForward"}
 
             HLSLPROGRAM
@@ -91,13 +90,12 @@ Shader "Hidden/Universal Render Pipeline/Debug/Replacement"
             {
                 return half4(_DebugColor, 1.0);
             }
-
             ENDHLSL
         }
 
-        //Attribute debugger
         Pass
         {
+            Name "Vertex Attributes"
             Tags {"LightMode" = "UniversalForward"}
 
             HLSLPROGRAM
@@ -174,9 +172,7 @@ Shader "Hidden/Universal Render Pipeline/Debug/Replacement"
                         return half4(0, 0, 0, 1);
                 }
             }
-
             ENDHLSL
-
         }
     }
 }

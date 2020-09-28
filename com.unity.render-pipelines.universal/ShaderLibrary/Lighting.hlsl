@@ -1027,7 +1027,7 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
 half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
 {
     #if defined(_DEBUG_SHADER)
-    DebugData debugData = CreateDebugData(inputData.uv);
+    DebugData debugData = CreateDebugData(surfaceData.albedo, surfaceData.specular, inputData.uv);
     half4 debugColor;
 
     if(CanDebugOverrideOutputColor(inputData, surfaceData, debugData, debugColor))
@@ -1135,7 +1135,7 @@ half4 UniversalFragmentBakedLit(InputData inputData, SurfaceData surfaceData)
     #endif
 
     #if defined(_DEBUG_SHADER)
-    DebugData debugData = CreateDebugData(inputData.uv);
+    DebugData debugData = CreateDebugData(surfaceData.albedo, surfaceData.specular, inputData.uv);
     half4 debugColor;
 
     if(CanDebugOverrideOutputColor(inputData, surfaceData, debugData, debugColor))
@@ -1188,7 +1188,7 @@ half4 UniversalFragmentUnlit(InputData inputData, SurfaceData surfaceData)
     #endif
 
     #if defined(_DEBUG_SHADER)
-    DebugData debugData = CreateDebugData(inputData.uv);
+    DebugData debugData = CreateDebugData(surfaceData.albedo, surfaceData.specular, inputData.uv);
     half4 debugColor;
 
     if(CanDebugOverrideOutputColor(inputData, surfaceData, debugData, debugColor))

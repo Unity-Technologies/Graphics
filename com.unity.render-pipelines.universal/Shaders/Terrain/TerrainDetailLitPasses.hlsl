@@ -90,7 +90,7 @@ SurfaceData CreateSurfaceData(half3 albedo, half alpha)
 half4 UniversalTerrainLit(InputData inputData, SurfaceData surfaceData)
 {
     #if defined(_DEBUG_SHADER)
-    DebugData debugData = CreateDebugData(inputData.uv);
+    DebugData debugData = CreateDebugData(surfaceData.albedo, surfaceData.specular, inputData.uv);
     half4 debugColor;
 
     if(CanDebugOverrideOutputColor(inputData, surfaceData, debugData, debugColor))
