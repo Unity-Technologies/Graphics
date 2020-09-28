@@ -37,7 +37,6 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_trunk:
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project set enable-lock-file true
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.15.2-preview.200901 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
@@ -54,6 +53,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project set enable-lock-file true --project-path .
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
@@ -80,7 +80,6 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_trunk:
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project set enable-lock-file true
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.15.2-preview.200901 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
@@ -97,6 +96,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project set enable-lock-file true --project-path .
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
@@ -143,7 +143,6 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_CUSTOM-REVISION:
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project set enable-lock-file true
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.15.2-preview.200901 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
@@ -160,6 +159,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_CUSTOM-REVISION:
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project set enable-lock-file true --project-path .
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
@@ -190,7 +190,6 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_CUSTOM-REVISION:
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project set enable-lock-file true
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.15.2-preview.200901 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
@@ -207,6 +206,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_CUSTOM-REVISION:
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project set enable-lock-file true --project-path .
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
