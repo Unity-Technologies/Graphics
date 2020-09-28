@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.Universal
                 new GUIContent("Both"),
             };
             public static int[] xrTargetEyeValues = { 0, 1 };
-            public static readonly GUIContent xrTargetEye = EditorGUIUtility.TrTextContent("Target Eye", "Allows XR rendering if target eye sets to both eye. Disable XR for this camera otherwise. When XR is disabled, MSAA UI will be hide. All XR cameras share the same MSAA level sepcified in URP PipelineAsset Settings. All effects that are not compatible with XR will be disabled as well, such as lens distortion.");
+            public static readonly GUIContent xrTargetEye = EditorGUIUtility.TrTextContent("Target Eye", "Select which eye of an XR device the Camera renders to. Selecting the option Both enables XR rendering on this Camera, selecting other options disables the XR rendering. Enabling XR rendering on a Camera:\n* Disables the MSAA property in the Camera Inspector. The URP asset defines the MSAA level for all XR Cameras.\n* Disables all effects that are not compatible with XR rendering, for example, lens distortion.");
 #endif
             public static readonly GUIContent targetTextureLabel = EditorGUIUtility.TrTextContent("Output Texture", "The texture to render this camera into, if none then this camera renders to screen.");
 
