@@ -2,8 +2,8 @@ project:
   name: URPUpdate
   folder: URP-Update-Testing
 test_platforms:
-  - playmode
-  - editmode
+  - type: playmode
+  - type: editmode
 platforms:
   - name: Win
     apis:
