@@ -122,11 +122,6 @@ namespace UnityEngine.Rendering.Universal
                 m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(forwardRendererData.shaders.skyboxCubemapPS);
                 m_ConvolveMaterial = CoreUtils.CreateEngineMaterial(forwardRendererData.shaders.GGXConvolvePS);
             }
-            else if (urpRendererData is DeferredRendererData deferredRendererData)
-            {
-                m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(deferredRendererData.shaders.skyboxCubemapPS);
-                m_ConvolveMaterial = CoreUtils.CreateEngineMaterial(deferredRendererData.shaders.GGXConvolvePS);
-            }
 
             InitializeGgxIblSampleData();
 

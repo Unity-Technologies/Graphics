@@ -77,7 +77,8 @@ Universal_OSX_OpenGLCore_playmode_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
+         rerun: always
 Universal_OSX_OpenGLCore_editmode_CUSTOM-REVISION:
     name: Universal on OSX_OpenGLCore_editmode on version CUSTOM-REVISION
     agent:
@@ -98,7 +99,8 @@ Universal_OSX_OpenGLCore_editmode_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
+         rerun: always
 Universal_OSX_OpenGLCore_playmode_XR_CUSTOM-REVISION:
     name: Universal on OSX_OpenGLCore_playmode_XR on version CUSTOM-REVISION
     agent:
@@ -119,4 +121,5 @@ Universal_OSX_OpenGLCore_playmode_XR_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
+         rerun: always

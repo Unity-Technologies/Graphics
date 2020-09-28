@@ -26,7 +26,7 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
             UNITY_VERTEX_OUTPUT_STEREO
         };
 
-        VaryingsCMB VertCMB(FullscreenAttributes input)
+        VaryingsCMB VertCMB(Attributes input)
         {
             VaryingsCMB output;
             UNITY_SETUP_INSTANCE_ID(input);

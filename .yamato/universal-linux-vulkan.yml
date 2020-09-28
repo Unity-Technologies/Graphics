@@ -81,7 +81,8 @@ Universal_Linux_Vulkan_Standalone_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
+         rerun: always
 Universal_Linux_Vulkan_playmode_CUSTOM-REVISION:
     name: Universal on Linux_Vulkan_playmode on version CUSTOM-REVISION
     agent:
@@ -103,7 +104,8 @@ Universal_Linux_Vulkan_playmode_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
+         rerun: always
 Universal_Linux_Vulkan_editmode_CUSTOM-REVISION:
     name: Universal on Linux_Vulkan_editmode on version CUSTOM-REVISION
     agent:
@@ -125,4 +127,5 @@ Universal_Linux_Vulkan_editmode_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
+         rerun: always

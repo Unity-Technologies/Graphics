@@ -315,9 +315,9 @@ The tables that follow provide an overview of the **Features** that the High Def
 
 | **Feature**       | **Built-in Render Pipeline**                           | **High Definition Render Pipeline (HDRP)** |
 | ------------- | -------------------------------------------------- | ------------------------------- |
-| Sprite        | Yes                                                | Yes                             |
-| Tilemap       | Yes                                                | Yes                             |
-| Sprite Shape  | Yes                                                | Yes                             |
+| Sprite        | Yes                                                | Not supported                |
+| Tilemap       | Yes                                                | Not supported                |
+| Sprite Shape  | Yes                                                | Not supported                |
 | Pixel-Perfect | Yes. Using the standalone 2D Pixel Perfect Package. | Not supported                   |
 | 2D Lights     | Not supported                                      | Not supported                   |
 | 2D Shadows    | Not supported                                      | Not supported                   |

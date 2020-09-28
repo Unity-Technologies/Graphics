@@ -17,10 +17,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_GradientSkyMaterial = CoreUtils.CreateEngineMaterial(forwardRendererData.shaders.skyGradientSkyPS);
             }
-            else if (urpRendererData is DeferredRendererData deferredRendererData)
-            {
-                m_GradientSkyMaterial = CoreUtils.CreateEngineMaterial(deferredRendererData.shaders.skyGradientSkyPS);
-            }
         }
 
         public override void Cleanup()
