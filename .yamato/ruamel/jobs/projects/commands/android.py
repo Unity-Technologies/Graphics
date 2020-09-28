@@ -25,6 +25,15 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor):
         utr {" ".join(utr_args)}'''),
         f'start %ANDROID_SDK_ROOT%\platform-tools\\adb.exe kill-server'
         ]
+    
+    extra_cmds = extra_perf_cmd(project_folder)
+    unity_config = install_unity_config(project_folder)
+    extra_cmds = extra_cmds + unity_config
+    if project_folder.lower() == "BoatAttack".lower():
+        x=0
+        for y in extra_cmds:
+            base.insert(x, y)
+            x += 1
     return base
 
 
@@ -46,6 +55,15 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor):
         utr {" ".join(utr_args)}'''),
         f'start %ANDROID_SDK_ROOT%\platform-tools\\adb.exe kill-server'
         ]
+    
+    extra_cmds = extra_perf_cmd(project_folder)
+    unity_config = install_unity_config(project_folder)
+    extra_cmds = extra_cmds + unity_config
+    if project_folder.lower() == "BoatAttack".lower():
+        x=0
+        for y in extra_cmds:
+            base.insert(x, y)
+            x += 1
     return base
 
 def cmd_standalone(project_folder, platform, api, test_platform, editor):   
@@ -88,3 +106,36 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor):
         f'utr {" ".join(utr_args)}'
         ]
 
+def extra_perf_cmd(project_folder):   
+    perf_list = [
+        f'git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/{project_folder}',
+        f'Xcopy /E /I \"com.unity.render-pipelines.core\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.render-pipelines.core\" /Y',
+        f'Xcopy /E /I \"com.unity.render-pipelines.universal\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.render-pipelines.universal\" /Y',
+        f'Xcopy /E /I \"com.unity.shadergraph\" \"{TEST_PROJECTS_DIR}/{project_folder}/Packages/com.unity.shadergraph\" /Y'
+        ]
+    return perf_list
+
+def install_unity_config(project_folder):
+    cmds = [
+        f'choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local',
+        f'choco install unity-config',
+		#f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project remove dependency com.unity.render-pipelines.universal',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.addressables@1.15.2-preview.200901 --project-path .',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .',
+		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .',
+		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test.performance.runtimesettings@0.2.0-preview --project-path .',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test.metadata-manager@0.1.1-preview --project-path .',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.cli-project-setup@0.3.2-preview --project-path .',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git\"  --project-path .',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.shaderanalysis@0.1.0-preview --project-path .',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git\" --project-path .',
+		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable com.unity.testing.graphics-performance --project-path .',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable com.unity.cli-project-setup  --project-path .',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable test.metadata-manager  --project-path .',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable unity.graphictests.performance.universal  --project-path .',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project set enable-lock-file true --project-path .'
+    ]
+    return cmds
