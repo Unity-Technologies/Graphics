@@ -115,6 +115,10 @@ namespace UnityEngine.VFX.Utility
             if (Touchscreen.current == null || touchIndex >= Touchscreen.current.touches.Count || touchIndex < 0)
                 return Vector2.zero;
 
+        // TODO:
+        // InputSystem.EnhancedTouch.Touch.activeTouches
+        // EnhancedTouchSupport.Disable();
+
             var touch = Touchscreen.current.touches[touchIndex];
             return touch.ReadValue().position;
 #else
