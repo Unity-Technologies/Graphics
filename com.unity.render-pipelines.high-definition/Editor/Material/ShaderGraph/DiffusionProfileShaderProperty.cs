@@ -13,6 +13,7 @@ using static UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers.ShaderInp
 namespace UnityEditor.Rendering.HighDefinition
 {
     [Serializable]
+    [BlackboardInputInfo(55)]
     class DiffusionProfileShaderProperty : AbstractShaderProperty<LazyLoadReference<DiffusionProfileSettings>>, IShaderPropertyDrawer
     {
         internal DiffusionProfileShaderProperty()
