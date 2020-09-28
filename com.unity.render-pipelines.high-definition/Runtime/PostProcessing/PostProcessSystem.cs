@@ -3918,17 +3918,24 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (parameters.filmGrainTexture != null) // Fail safe if the resources asset breaks :/
                     {
                         #if HDRP_DEBUG_STATIC_POSTFX
-                        int offsetX = 0;
-                        int offsetY = 0;
+                        float offsetX = 0;
+                        float offsetY = 0;
                         #else
-                        int offsetX = (int)(parameters.random.NextDouble() * parameters.filmGrainTexture.width);
-                        int offsetY = (int)(parameters.random.NextDouble() * parameters.filmGrainTexture.height);
+                        float offsetX = (float)(parameters.random.NextDouble());
+                        float offsetY = (float)(parameters.random.NextDouble());
                         #endif
 
                         finalPassMaterial.EnableKeyword("GRAIN");
                         finalPassMaterial.SetTexture(HDShaderIDs._GrainTexture, parameters.filmGrainTexture);
                         finalPassMaterial.SetVector(HDShaderIDs._GrainParams, new Vector2(parameters.filmGrainIntensity * 4f, parameters.filmGrainResponse));
-                        finalPassMaterial.SetVector(HDShaderIDs._GrainTextureParams, new Vector4(parameters.filmGrainTexture.width, parameters.filmGrainTexture.height, offsetX, offsetY));
+
+                        float uvScaleX = parameters.hdCamera.actualWidth / (float)parameters.filmGrainTexture.width;
+                        float uvScaleY = parameters.hdCamera.actualHeight / (float)parameters.filmGrainTexture.height;
+                        float scaledOffsetX = offsetX * uvScaleX;
+                        float scaledOffsetY = offsetY * uvScaleY;
+
+                        finalPassMaterial.SetVector(HDShaderIDs._GrainTextureParams, new Vector4(uvScaleX, uvScaleY, offsetX, offsetY));
+
                     }
                 }
 
@@ -3944,7 +3951,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     finalPassMaterial.EnableKeyword("DITHER");
                     finalPassMaterial.SetTexture(HDShaderIDs._BlueNoiseTexture, blueNoiseTexture);
-                    finalPassMaterial.SetVector(HDShaderIDs._DitherParams, new Vector3(blueNoiseTexture.width, blueNoiseTexture.height, textureId));
+                    finalPassMaterial.SetVector(HDShaderIDs._DitherParams, new Vector3(parameters.hdCamera.actualWidth / blueNoiseTexture.width,
+                                                                                        parameters.hdCamera.actualHeight / blueNoiseTexture.height, textureId));
                 }
             }
 
