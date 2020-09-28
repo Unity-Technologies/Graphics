@@ -242,8 +242,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     // Note: ShaderLab doesn't allow to have a variable on the second parameter of ColorMask
                     // - When MSAA: disable target 1 (normal buffer)
                     // - When no MSAA: disable target 0 (normal buffer) and 1 (unused)
-                    renderState.Add(RenderState.ColorMask("ColorMask [_ColorMaskNormal]"));
-                    renderState.Add(RenderState.ColorMask("ColorMask 0 1"));
+                    renderState.Add(RenderState.ColorMask("ColorMask [_ColorMaskNormal]"), new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, false));
+                    renderState.Add(RenderState.ColorMask("ColorMask 0 1"), new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, false));
                 }
 
                 return renderState;
