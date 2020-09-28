@@ -538,4 +538,4 @@ MonoBehaviour:
     GraphicsDevice: 16
     XrSdk: None
     StereoModes: 0
-    Reason: iOS crashes (scene 035)
+    Reason: 'iOS crashes (scene 035; Bug ID: 1280307)'
