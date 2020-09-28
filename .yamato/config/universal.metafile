@@ -18,16 +18,16 @@ platforms:
     apis:
       - DX11
       - Vulkan
-  - name: OSX 
+  - name: OSX
     apis:
       - Metal
       - OpenGLCore
   - name: Linux
-    apis: 
+    apis:
       - Vulkan
       - OpenGLCore
   - name: Android
-    apis: 
+    apis:
       - Vulkan
       - OpenGLES3
 all:
@@ -44,10 +44,9 @@ all:
       test_platforms:
         - Standalone
         - playmode 
-        - playmode_XR
     - platform: OSX
       api: OpenGLCore
       test_platforms:
-        - editmode  
+        - editmode
     - project: Universal_Stereo
       all: true
