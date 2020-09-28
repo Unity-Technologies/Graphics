@@ -71,7 +71,6 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor):
 def cmd_standalone_build(project_folder, platform, api, test_platform, editor):
     utr_args = utr_standalone_build_flags("Windows64")
     utr_args.extend(test_platform["extra_utr_flags_build"])
-    utr_args.extend(['--extra-editor-arg="-executemethod"'])
     utr_args.append(f'--timeout={get_timeout(test_platform, "Win", build=True)}')
 
     if not test_platform['is_performance']:
