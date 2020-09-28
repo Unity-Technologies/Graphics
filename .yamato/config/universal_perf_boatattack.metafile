@@ -9,7 +9,8 @@ test_platforms:
       - --report-performance-data
       - --performance-project-id=URP_Performance
     extra_utr_flags_build:
-      - --extra-editor-arg="-executemethod Editor.Setup" 
+      - --extra-editor-arg="-executemethod Editor.Setup"
+      - --extra-editor-arg="-testCategory Performance"
       - --extra-editor-arg="-playergraphicsapi=Direct3D11" ###############
       - --extra-editor-arg="-colorspace=Linear" 
       - --extra-editor-arg="-scriptingbackend=mono" 
