@@ -214,7 +214,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int currentTexWidth = sourceColor.width;
             int currentTexHeight = sourceColor.height;
 
-            // The first color level can be copied straight away in the mip chain. Unfortunately due to a format incompatibility, we have to go through a compute shader copy.
+            // The first color level can be copied straight away in the mip chain.
             cmd.CopyTexture(sourceColor, 0, 0, 0, 0, sourceColor.width, sourceColor.height, target, 0, 0, 0, 0);
         }
 
@@ -223,7 +223,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int currentTexWidth = sourceColor.width;
             int currentTexHeight = sourceColor.height;
 
-            // The first color level can be copied straight away in the mip chain. Unfortunately due to a format incompatibility, we have to go through a compute shader copy.
+            // The first color level can be copied straight away in the mip chain.
             cmd.CopyTexture(sourceColor, 0, 0, 0, 0, sourceColor.width, sourceColor.height, m_PlanarReflectionFilterTex0, 0, 0, 0, 0);
 
             // For depth it is a bit trickier, we want to convert the depth from oblique space to non-oblique space due to the poor interpolation properties of the oblique matrix

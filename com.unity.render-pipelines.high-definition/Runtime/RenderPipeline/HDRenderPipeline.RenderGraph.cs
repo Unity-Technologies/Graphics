@@ -1251,7 +1251,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (RenderDistortionPassData data, RenderGraphContext context) =>
                 {
                     if (data.smoothDistortion)
-                        HDUtils.BlitCameraTexture(context.cmd, m_CameraColorBuffer, data.sourceColorBuffer);
+                        HDUtils.BlitCameraTexture(context.cmd, passData.colorBuffer, data.sourceColorBuffer);
 
                     // TODO: Set stencil stuff via parameters rather than hard-coding it in shader.
                     data.applyDistortionMaterial.SetTexture(HDShaderIDs._DistortionTexture, data.distortionBuffer);
