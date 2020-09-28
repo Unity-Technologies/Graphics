@@ -510,7 +510,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // TODOTODO: Move alpha test earlier and test.
     float alphaCutoff = _AlphaCutoff;
 
-    #if SHADERPASS == SHADERPASS_SHADOWS 
+    #if (SHADERPASS == SHADERPASS_SHADOWS) || (SHADERPASS == SHADERPASS_RAYTRACING_VISIBILITY)
         alphaCutoff = _UseShadowThreshold ? _AlphaCutoffShadow : alphaCutoff;
     #endif
 

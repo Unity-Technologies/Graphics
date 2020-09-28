@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a light unit slider to provide users more context when authoring physically based values.
 - Added a way to check the normals through the material views.
 - Added Simple mode to Earth Preset for PBR Sky
+- Added the export of normals during the prepass for shadow matte for proper SSAO calculation.
+- Added the usage of SSAO for shadow matte unlit shader graph.
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
@@ -97,6 +99,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed alignment of framesettings in HDRP Default Settings
 - Fixed an exception thrown when closing the look dev because there is no active SRP anymore.
 - Fixed an issue where entering playmode would close the LookDev window.
+- Fixed Cutoff not working properly with ray tracing shaders default and SG (case 1261292).
 - Fixed shader compilation issue with Hair shader and debug display mode
 
 ### Changed
