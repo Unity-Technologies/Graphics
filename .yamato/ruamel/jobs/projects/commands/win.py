@@ -24,12 +24,13 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor):
 
     extra_cmds = extra_perf_cmd(project_folder)
     unity_config = install_unity_config(project_folder)
+    extra_cmds = extra_cmds + unity_config
     if project_folder.lower() == "BoatAttack".lower():
         x=0
         for y in extra_cmds:
             base.insert(x, y)
             x += 1
-        base.extend(unity_config)
+        #base.extend(unity_config)
 
     return  base
 
@@ -44,12 +45,13 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor):
 
     extra_cmds = extra_perf_cmd(project_folder)
     unity_config = install_unity_config(project_folder)
+    extra_cmds = extra_cmds + unity_config
     if project_folder.lower() == "BoatAttack".lower():
         x=0
         for y in extra_cmds:
             base.insert(x, y)
             x += 1
-        base.extend(unity_config)
+        #base.extend(unity_config)
 
     return  base
 
@@ -79,12 +81,13 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor):
     
     extra_cmds = extra_perf_cmd(project_folder)
     unity_config = install_unity_config(project_folder)
+    extra_cmds = extra_cmds + unity_config
     if project_folder.lower() == "BoatAttack".lower():
         x=0
         for y in extra_cmds:
             base.insert(x, y)
             x += 1
-        base.extend(unity_config)
+        #base.extend(unity_config)
     
     return base
 
@@ -103,6 +106,7 @@ def install_unity_config(project_folder):
         f'choco install unity-config',
 		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project set enable-lock-file true',
 		#f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project remove dependency com.unity.render-pipelines.universal',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.addressables@1.15.2-preview.200901 --project-path .',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .',
 		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .',
 		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .',
