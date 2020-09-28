@@ -24,7 +24,15 @@ namespace UnityEditor.VFX.Utility
             HelpBox("Attribute Usage", "VFX Attributes are not used for this Output Event Handler");
 
             if (EditorGUI.EndChangeCheck())
+            {
+                var newAudioSource = m_AudioSource.objectReferenceValue;
+                if (    newAudioSource != null
+                    &&  PrefabUtility.GetPrefabAssetType(newAudioSource) != PrefabAssetType.NotAPrefab
+                    &&  PrefabUtility.GetPrefabInstanceStatus(newAudioSource) != PrefabInstanceStatus.Connected)
+                    m_AudioSource.objectReferenceValue = null;
+
                 serializedObject.ApplyModifiedProperties();
+            }
         }
     }
 }
