@@ -4,6 +4,12 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeShaderVariables.hlsl"
 
+#ifndef SCALARIZE_LIGHT_LOOP
+// We perform scalarization only for forward rendering as for deferred loads will already be scalar since tiles will match waves and therefore all threads will read from the same tile.
+// More info on scalarization: https://flashypixels.wordpress.com/2018/11/10/intro-to-gpu-scalarization-part-2-scalarize-all-the-lights/
+#define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
+#endif
+
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
 // Cluster helper functions copied and lightly modified from ClusteredUtils.hlsl with ENABLE_DEPTH_TEXTURE_BACKPLANE undefined
 
@@ -111,8 +117,6 @@ void ProbeVolumeGetCountAndStart(PositionInputs posInput, out uint probeVolumeSt
 
 void ProbeVolumeGetCountAndStartAndFastPath(PositionInputs posInput, out uint probeVolumeStart, out uint probeVolumeCount, out bool fastPath)
 {
-    // Fetch first probe volume to provide the scene proxy for screen space computation
-    ProbeVolumeGetCountAndStart(posInput, probeVolumeStart, probeVolumeCount);
     fastPath = false;
 
 #if SCALARIZE_LIGHT_LOOP

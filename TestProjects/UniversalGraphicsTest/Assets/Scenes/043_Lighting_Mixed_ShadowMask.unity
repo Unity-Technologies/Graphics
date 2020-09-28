@@ -38,12 +38,12 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18268317, g: 0.22567646, b: 0.29132587, a: 1}
+  m_IndirectSpecularColor: {r: 0.18268315, g: 0.2256762, b: 0.29132575, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 11
+  serializedVersion: 12
   m_GIWorkflowMode: 1
   m_GISettings:
     serializedVersion: 2
@@ -97,9 +97,10 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000002, guid: 191f226d166a64b15a4f2d52ac226bcb,
+  m_LightingDataAsset: {fileID: 112000000, guid: 191f226d166a64b15a4f2d52ac226bcb,
     type: 2}
-  m_UseShadowmask: 0
+  m_LightingSettings: {fileID: 4890085278179872738, guid: a3523d3da4da8204c91489f8a20fdd7c,
+    type: 2}
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -119,6 +120,8 @@ NavMeshSettings:
     manualTileSize: 0
     tileSize: 256
     accuratePlacement: 0
+    maxJobWorkers: 0
+    preserveTilesOutsideBounds: 0
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
@@ -129,10 +132,37 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 3070620832146786295, guid: 5c0989def095c48009482fe0f881f6b7,
-        type: 3}
-      propertyPath: m_Name
-      value: MixedLightingSpheres
+    - target: {fileID: 815368547, guid: 5c0989def095c48009482fe0f881f6b7, type: 3}
+      propertyPath: m_BoundingSphereOverride.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 815368547, guid: 5c0989def095c48009482fe0f881f6b7, type: 3}
+      propertyPath: m_BoundingSphereOverride.y
+      value: -5408512
+      objectReference: {fileID: 0}
+    - target: {fileID: 815368547, guid: 5c0989def095c48009482fe0f881f6b7, type: 3}
+      propertyPath: m_BoundingSphereOverride.z
+      value: 4.5905e-41
+      objectReference: {fileID: 0}
+    - target: {fileID: 815368547, guid: 5c0989def095c48009482fe0f881f6b7, type: 3}
+      propertyPath: m_BoundingSphereOverride.w
+      value: -0.0000000013077868
+      objectReference: {fileID: 0}
+    - target: {fileID: 2033529793, guid: 5c0989def095c48009482fe0f881f6b7, type: 3}
+      propertyPath: m_BoundingSphereOverride.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2033529793, guid: 5c0989def095c48009482fe0f881f6b7, type: 3}
+      propertyPath: m_BoundingSphereOverride.y
+      value: -5408512
+      objectReference: {fileID: 0}
+    - target: {fileID: 2033529793, guid: 5c0989def095c48009482fe0f881f6b7, type: 3}
+      propertyPath: m_BoundingSphereOverride.z
+      value: 4.5905e-41
+      objectReference: {fileID: 0}
+    - target: {fileID: 2033529793, guid: 5c0989def095c48009482fe0f881f6b7, type: 3}
+      propertyPath: m_BoundingSphereOverride.w
+      value: -0.0000000013730626
       objectReference: {fileID: 0}
     - target: {fileID: 399354704156738600, guid: 5c0989def095c48009482fe0f881f6b7,
         type: 3}
@@ -189,8 +219,87 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1030338629007708002, guid: 5c0989def095c48009482fe0f881f6b7,
+        type: 3}
+      propertyPath: m_BoundingSphereOverride.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1030338629007708002, guid: 5c0989def095c48009482fe0f881f6b7,
+        type: 3}
+      propertyPath: m_BoundingSphereOverride.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1030338629007708002, guid: 5c0989def095c48009482fe0f881f6b7,
+        type: 3}
+      propertyPath: m_BoundingSphereOverride.w
+      value: 1e-45
+      objectReference: {fileID: 0}
+    - target: {fileID: 3070620832146786295, guid: 5c0989def095c48009482fe0f881f6b7,
+        type: 3}
+      propertyPath: m_Name
+      value: MixedLightingSpheres
+      objectReference: {fileID: 0}
+    - target: {fileID: 8450800786309025091, guid: 5c0989def095c48009482fe0f881f6b7,
+        type: 3}
+      propertyPath: m_BoundingSphereOverride.y
+      value: 1.4033e-41
+      objectReference: {fileID: 0}
+    - target: {fileID: 8450800786309025091, guid: 5c0989def095c48009482fe0f881f6b7,
+        type: 3}
+      propertyPath: m_BoundingSphereOverride.z
+      value: 8.04e-43
+      objectReference: {fileID: 0}
+    - target: {fileID: 8450800786309025091, guid: 5c0989def095c48009482fe0f881f6b7,
+        type: 3}
+      propertyPath: m_BoundingSphereOverride.w
+      value: 5.224643e-10
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5c0989def095c48009482fe0f881f6b7, type: 3}
+--- !u!1 &1311927493
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1311927495}
+  - component: {fileID: 1311927494}
+  m_Layer: 0
+  m_Name: SetShadowmaskMode
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1311927494
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1311927493}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 11e2362d52d1b9c47998b003463eb532, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shadowmaskMode: 0
+--- !u!4 &1311927495
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1311927493}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.00999999, y: 2.1323664, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1865670496
 GameObject:
   m_ObjectHideFlags: 0
@@ -244,7 +353,11 @@ MonoBehaviour:
     TargetHeight: 512
     PerPixelCorrectnessThreshold: 0.005
     AverageCorrectnessThreshold: 0.001
+    UseHDR: 0
+    UseBackBuffer: 0
+    ImageResolution: 0
   WaitFrames: 0
+  XRCompatible: 1
 --- !u!20 &1865670500
 Camera:
   m_ObjectHideFlags: 0
