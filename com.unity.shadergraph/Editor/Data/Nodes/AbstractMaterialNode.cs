@@ -768,29 +768,18 @@ namespace UnityEditor.ShaderGraph
                 return foundSlot;
             }
 
-            // this will remove any old slots and then add the new one
-            // we keep the existing ordering by trying to replace the first match
-            bool insertedSlot = false;
-            for (int x = 0; x < m_Slots.Count; x++)
+            // keep the same ordering by replacing the first match, if it exists
+            int firstIndex = m_Slots.FindIndex(s => s.value.id == slot.id);
+            if (firstIndex >= 0)
             {
-                var existingSlot = m_Slots[x];
-                if (existingSlot.value.id == slot.id)
-                {
-                    if (!insertedSlot)
-                    {
-                        m_Slots[x] = slot;
-                        insertedSlot = true;
-                    }
-                    else
-                    {
-                        // this is a duplicate slot id... remove it
-                        m_Slots.RemoveAt(x);
-                        x--;
-                    }
-                }
+                m_Slots[firstIndex] = slot;
+
+                // remove additional matches to get rid of unused duplicates
+                m_Slots.RemoveAllFromRange(s => s.value.id == slot.id, firstIndex + 1, m_Slots.Count - (firstIndex + 1));
             }
-            if (!insertedSlot)
+            else
                 m_Slots.Add(slot);
+
             slot.owner = this;
 
             OnSlotsChanged();
