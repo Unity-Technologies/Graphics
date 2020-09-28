@@ -16,6 +16,8 @@ namespace UnityEditor.ShaderGraph
 
         internal static PreferenceChangedDelegate onVariantLimitChanged;
         static int m_VariantLimit = 128;
+
+        internal static PreferenceChangedDelegate onAllowDeprecatedChanged;
         internal static int variantLimit
         {
             get { return m_VariantLimit; }
@@ -38,7 +40,14 @@ namespace UnityEditor.ShaderGraph
         internal static bool allowDeprecatedBehaviors
         {
             get => m_AllowDeprecatedBehaviors;
-            set => TrySave(ref m_AllowDeprecatedBehaviors, value, Keys.allowDeprecatedBehaviors);
+            set
+            {
+                TrySave(ref m_AllowDeprecatedBehaviors, value, Keys.allowDeprecatedBehaviors);
+                if(onAllowDeprecatedChanged != null)
+                {
+                    onAllowDeprecatedChanged();
+                }
+            }
         }
 
         static ShaderGraphPreferences()

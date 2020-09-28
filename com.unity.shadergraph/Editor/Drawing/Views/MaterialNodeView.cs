@@ -151,6 +151,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Register OnMouseHover callbacks for node highlighting
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
+
+            ShaderGraphPreferences.onAllowDeprecatedChanged += UpdateTitle;
         }
 
         public bool FindPort(SlotReference slotRef, out ShaderPort port)
@@ -443,7 +445,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if (node.sgVersion < node.latestVersion)
                 {
-                    title = node.name + $" (Deprecated V{node.sgVersion})";
+                    if (ShaderGraphPreferences.allowDeprecatedBehaviors)
+                    {
+                        title = node.name + $" (Deprecated V{node.sgVersion})";
+                    }
+                    else
+                    {
+                        title = node.name + $" (Deprecated)";
+                    }
                 }
                 else
                 {
@@ -713,6 +722,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_PreviewRenderData.onPreviewChanged -= UpdatePreviewTexture;
                 m_PreviewRenderData = null;
             }
+            ShaderGraphPreferences.onAllowDeprecatedChanged -= UpdateTitle;
         }
     }
 }
