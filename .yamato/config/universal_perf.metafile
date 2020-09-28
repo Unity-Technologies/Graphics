@@ -3,29 +3,11 @@ project:
   folder: URP_Performance
 test_platforms:
   - type: Standalone
-    name: performance_playmode_counters
+    name: performance_playmode
     is_performance: True
     extra_utr_flags:
       - --report-performance-data
       - --performance-project-id=URP_Performance
-      - --testfilter=Counters
-    extra_utr_flags_build:
-      - --extra-editor-arg="Editor.Setup" 
-      - --extra-editor-arg="-playergraphicsapi=Direct3D11" ###############
-      - --extra-editor-arg="-colorspace=Linear" 
-      - --extra-editor-arg="-scriptingbackend=mono" 
-      - --extra-editor-arg="-apicompatibilitylevel=NET_4_6" 
-      - --extra-editor-arg="-stripenginecode-" 
-      - --extra-editor-arg="-managedstrippinglevel=Low"
-      - --extra-editor-arg="-allowdebugging-" 
-      - --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
-  - type: Standalone
-    name: performance_playmode_memory
-    is_performance: True
-    extra_utr_flags:
-      - --report-performance-data
-      - --performance-project-id=URP_Performance
-      - --testfilter=Memory
     extra_utr_flags_build:
       - --extra-editor-arg="Editor.Setup" 
       - --extra-editor-arg="-playergraphicsapi=Direct3D11" ###############
@@ -64,24 +46,20 @@ all:
     - platform: Win
       api: DX11
       test_platforms:
-        - performance_playmode_counters
-        - performance_playmode_memory
+        - performance_playmode
         - performance_editmode_build
     - platform: OSX
       api: Metal
       test_platforms:
-        - performance_playmode_counters
-        - performance_playmode_memory
+        - performance_playmode
         - performance_editmode_build
     - platform: Android
       api: OpenGLES3
       test_platforms:
-        - performance_playmode_counters
-        - performance_playmode_memory
+        - performance_playmode
         - performance_editmode_build
     - platform: iPhone
       api: Metal
       test_platforms:
-        - performance_playmode_counters
-        - performance_playmode_memory
+        - performance_playmode
         - performance_editmode_build
