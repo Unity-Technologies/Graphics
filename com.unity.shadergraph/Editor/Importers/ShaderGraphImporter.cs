@@ -6,7 +6,11 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
+#if UNITY_2020_2_OR_NEWER
 using UnityEditor.AssetImporters;
+#else
+using UnityEditor.Experimental.AssetImporters;
+#endif
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Internal;
@@ -624,7 +628,7 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 result.outputCodeIndices[i] = portCodeIndices[i].ToArray();
         }
-            
+
             var outputMetadatas = new OutputMetadata[ports.Count];
             for(int portIndex = 0; portIndex < outputMetadatas.Length; portIndex++)
             {
