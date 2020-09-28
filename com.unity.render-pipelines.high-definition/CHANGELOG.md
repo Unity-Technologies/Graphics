@@ -83,7 +83,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed SSGI compilation issues on PS4.
 - Fixed "Screen position out of view frustum" error when camera is on exactly the planar reflection probe plane.
 - Workaround issue that caused objects using eye shader to not be rendered on xbox.
-- Fixed the usage of GUIEnable for volume components (case 1280018).
 - Fixed the diffusion profile becoming invalid when hitting the reset (case 1269462).
 
 ### Changed
