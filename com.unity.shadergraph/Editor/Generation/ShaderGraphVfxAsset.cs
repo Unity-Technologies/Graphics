@@ -152,7 +152,7 @@ namespace UnityEditor.ShaderGraph.Internal
             }
         }
 
-        void ISerializationCallbackReceiver.OnAfterDeserialize() { }
+        void ISerializationCallbackReceiver.OnAfterDeserialize() { m_Data = null; }
 
         void ISerializationCallbackReceiver.OnBeforeSerialize() { }
 
