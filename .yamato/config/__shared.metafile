@@ -130,6 +130,7 @@ platforms:
         - editmode
         - playmode
         - playmode_XR
+        - playmode_perf_build
     components:
       - editor
       - iOS

@@ -48,8 +48,7 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor):
         ]
     return base
 
-def cmd_standalone(project_folder, platform, api, test_platform, editor):
-    
+def cmd_standalone(project_folder, platform, api, test_platform, editor):   
     utr_args = utr_standalone_split_flags(platform_spec='', platform='Android', testproject=f'{TEST_PROJECTS_DIR}\{project_folder}', player_load_path=PATH_PLAYERS, player_conn_ip=None)
     utr_args.extend(test_platform["extra_utr_flags"])
     utr_args.extend(['--scripting-backend=il2cpp', f'--editor-location=WindowsEditor'])
