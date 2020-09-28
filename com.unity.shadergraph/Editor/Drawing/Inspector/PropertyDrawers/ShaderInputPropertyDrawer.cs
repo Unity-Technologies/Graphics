@@ -1190,7 +1190,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             name = name.Trim();
             var entryList = m_KeywordReorderableList.list as List<KeywordEntry>;
-            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.displayName), "{0} ({1})", name, "[^\\w_#() ,.]");
+            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.displayName), "{0} ({1})", name, "[^\\w_#() .]");
         }
 
         public string GetDuplicateSafeReferenceName(int id, string name)
