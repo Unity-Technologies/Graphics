@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Simple mode to Earth Preset for PBR Sky
 - Added the export of normals during the prepass for shadow matte for proper SSAO calculation.
 - Added the usage of SSAO for shadow matte unlit shader graph.
+- Added high quality prefiltering option for Bloom.
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
