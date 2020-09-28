@@ -172,7 +172,7 @@ namespace UnityEditor.Rendering.HighDefinition
             bool hdrpAssetSupportForward = hdrpSettings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly;
             bool hdrpAssetSupportDeferred = hdrpSettings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly;
             bool hdrpAssetIsForward = hdrpSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly;
-            bool hdrpAssetIsDeffered = hdrpSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly;
+            bool hdrpAssetIsDeferred = hdrpSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly;
 
             bool frameSettingsOverrideToForward = serialized.GetOverrides(FrameSettingsField.LitShaderMode) && serialized.litShaderMode == LitShaderMode.Forward;
             bool frameSettingsOverrideToDeferred = serialized.GetOverrides(FrameSettingsField.LitShaderMode) && serialized.litShaderMode == LitShaderMode.Deferred;
@@ -196,8 +196,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 });
 
-            bool defaultDefferedUsed = !serialized.GetOverrides(FrameSettingsField.LitShaderMode) && defaultShaderLitMode == LitShaderMode.Deferred;
-            bool depthPrepassEnablable = (hdrpAssetSupportDeferred && (defaultDefferedUsed || frameSettingsOverrideToDeferred)) || (hdrpAssetIsDeffered);
+            bool defaultDeferredUsed = !serialized.GetOverrides(FrameSettingsField.LitShaderMode) && defaultShaderLitMode == LitShaderMode.Deferred;
+            bool depthPrepassEnablable = (hdrpAssetSupportDeferred && (defaultDeferredUsed || frameSettingsOverrideToDeferred)) || (hdrpAssetIsDeferred);
             area.AmmendInfo(FrameSettingsField.DepthPrepassWithDeferredRendering,
                 overrideable: () => depthPrepassEnablable,
                 overridedDefaultValue: depthPrepassEnablable && defaultFrameSettings.IsEnabled(FrameSettingsField.DepthPrepassWithDeferredRendering),
@@ -210,13 +210,13 @@ namespace UnityEditor.Rendering.HighDefinition
                         case RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly:
                             return true;
                         case RenderPipelineSettings.SupportedLitShaderMode.Both:
-                            return frameSettingsOverrideToDeferred || defaultDefferedUsed;
+                            return frameSettingsOverrideToDeferred || defaultDeferredUsed;
                         default:
                             throw new System.ArgumentOutOfRangeException("Unknown ShaderLitMode");
                     }
                 });
 
-            bool clearGBufferEnablable = (hdrpAssetSupportDeferred && (defaultDefferedUsed || frameSettingsOverrideToDeferred)) ||(hdrpAssetIsDeffered);
+            bool clearGBufferEnablable = (hdrpAssetSupportDeferred && (defaultDeferredUsed || frameSettingsOverrideToDeferred)) ||(hdrpAssetIsDeferred);
             area.AmmendInfo(FrameSettingsField.ClearGBuffers,
                 overrideable: () => clearGBufferEnablable,
                 overridedDefaultValue: clearGBufferEnablable && defaultFrameSettings.IsEnabled(FrameSettingsField.ClearGBuffers),
@@ -229,7 +229,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         case RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly:
                             return true;
                         case RenderPipelineSettings.SupportedLitShaderMode.Both:
-                            return frameSettingsOverrideToDeferred || defaultDefferedUsed;
+                            return frameSettingsOverrideToDeferred || defaultDeferredUsed;
                         default:
                             throw new System.ArgumentOutOfRangeException("Unknown ShaderLitMode");
                     }
