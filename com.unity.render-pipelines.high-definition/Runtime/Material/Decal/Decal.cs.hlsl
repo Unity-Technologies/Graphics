@@ -9,13 +9,6 @@
 //
 #define DBUFFERMATERIAL_COUNT (4)
 
-//
-// UnityEngine.Rendering.HighDefinition.Decal+DBufferHTileBit:  static fields
-//
-#define DBUFFERHTILEBIT_DIFFUSE (1)
-#define DBUFFERHTILEBIT_NORMAL (2)
-#define DBUFFERHTILEBIT_MASK (4)
-
 // Generated from UnityEngine.Rendering.HighDefinition.Decal+DecalSurfaceData
 // PackingRules = Exact
 struct DecalSurfaceData
@@ -25,7 +18,6 @@ struct DecalSurfaceData
     float4 mask;
     float3 emissive;
     float2 MAOSBlend;
-    uint HTileMask;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.DecalData

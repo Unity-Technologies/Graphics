@@ -2510,6 +2510,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             lightData.normalBias           = 0.75f;
             lightData.slopeBias            = 0.5f;
+
+            // Enable filter/temperature mode by default for all light types
+            lightData.useColorTemperature = true;
         }
 
         void OnValidate()
@@ -2517,11 +2520,6 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateBounds();
 
             RefreshCachedShadow();
-
-            if (emissiveMeshRenderer != null && !emissiveMeshRenderer.Equals(null) && m_AreaLightEmissiveMeshLayer != -1)
-            {
-                emissiveMeshRenderer.gameObject.layer = m_AreaLightEmissiveMeshLayer;
-            }
 
 #if UNITY_EDITOR
             // If modification are due to change on prefab asset, we want to have prefab instances to self-update, but we cannot check in OnValidate if this is part of
@@ -2757,6 +2755,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 emissiveMeshRenderer.sharedMaterial.SetTexture("_EmissiveColorMap", Texture2D.whiteTexture);
             }
             CoreUtils.SetKeyword(emissiveMeshRenderer.sharedMaterial, "_EMISSIVE_COLOR_MAP", enableEmissiveColorMap);
+
+            if (m_AreaLightEmissiveMeshLayer != -1)
+                emissiveMeshRenderer.gameObject.layer = m_AreaLightEmissiveMeshLayer;
         }
 
         void UpdateRectangleLightBounds()
