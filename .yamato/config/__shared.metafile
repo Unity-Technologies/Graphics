@@ -45,8 +45,6 @@ platforms:
     os: macos
     apis:
       - name: Metal
-        exclude_test_platforms:
-          - editmode
       - name: OpenGLCore
         exclude_test_platforms:
           - Standalone
@@ -99,15 +97,7 @@ platforms:
     os: android
     apis:
       - name: OpenGLES3
-        exclude_test_platforms:
-          - editmode
-          - playmode
-          - playmode_XR
       - name: Vulkan
-        exclude_test_platforms:
-          - editmode
-          - playmode
-          - playmode_XR
     components:
       - editor
       - il2cpp
@@ -126,11 +116,6 @@ platforms:
     os: ios
     apis:
       - name: Metal
-        exclude_test_platforms:
-        - editmode
-        - playmode
-        - playmode_XR
-        - playmode_perf_build
     components:
       - editor
       - iOS
