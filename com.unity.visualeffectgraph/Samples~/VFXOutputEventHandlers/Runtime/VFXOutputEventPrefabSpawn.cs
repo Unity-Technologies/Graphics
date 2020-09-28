@@ -103,29 +103,29 @@ namespace UnityEngine.VFX.Utility
                 {
                     m_Instances = new GameObject[m_InstanceCount];
                     m_TimesToLive = new float[m_InstanceCount];
-                }
 #if UNITY_EDITOR
-                var prefabAssetType = m_PrefabToSpawn != null ? UnityEditor.PrefabUtility.GetPrefabAssetType(m_PrefabToSpawn) : UnityEditor.PrefabAssetType.NotAPrefab;
+                    var prefabAssetType = UnityEditor.PrefabUtility.GetPrefabAssetType(m_PrefabToSpawn);
 #endif
-                for (int i = 0; i < m_Instances.Length; i++)
-                {
-                    GameObject newInstance = null;
+                    for (int i = 0; i < m_Instances.Length; i++)
+                    {
+                        GameObject newInstance = null;
 #if UNITY_EDITOR
-                    if (prefabAssetType != UnityEditor.PrefabAssetType.NotAPrefab)
-                        newInstance = UnityEditor.PrefabUtility.InstantiatePrefab(m_PrefabToSpawn) as GameObject;
+                        if (prefabAssetType != UnityEditor.PrefabAssetType.NotAPrefab)
+                            newInstance = UnityEditor.PrefabUtility.InstantiatePrefab(m_PrefabToSpawn) as GameObject;
 
-                    if (newInstance == null)
-                        newInstance = Instantiate(m_PrefabToSpawn);
+                        if (newInstance == null)
+                            newInstance = Instantiate(m_PrefabToSpawn);
 #else
-                    newInstance = Instantiate(m_PrefabToSpawn);
+                        newInstance = Instantiate(m_PrefabToSpawn);
 #endif
-                    newInstance.name = $"{name} - #{i} - {m_PrefabToSpawn.name}";
-                    newInstance.SetActive(false);
-                    newInstance.transform.parent = m_ParentInstances ? transform : null;
-                    UpdateHideFlag(newInstance);
+                        newInstance.name = $"{name} - #{i} - {m_PrefabToSpawn.name}";
+                        newInstance.SetActive(false);
+                        newInstance.transform.parent = m_ParentInstances ? transform : null;
+                        UpdateHideFlag(newInstance);
 
-                    m_Instances[i] = newInstance;
-                    m_TimesToLive[i] = float.NegativeInfinity;
+                        m_Instances[i] = newInstance;
+                        m_TimesToLive[i] = float.NegativeInfinity;
+                    }
                 }
             }
         }
