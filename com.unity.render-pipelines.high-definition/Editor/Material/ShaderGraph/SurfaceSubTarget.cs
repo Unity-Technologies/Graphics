@@ -103,6 +103,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (supportDistortion)
                     passes.Add(HDShaderPasses.GenerateDistortionPass(supportLighting), new FieldCondition(HDFields.TransparentDistortion, true));
 
+                passes.Add(HDShaderPasses.GenerateFullScreenDebug());
+
                 return passes;
             }
         }
@@ -194,7 +196,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // All the DoAlphaXXX field drive the generation of which code to use for alpha test in the template
             // Regular alpha test is only done if artist haven't ask to use the specific alpha test shadow one
-            bool isShadowPass               = context.pass.lightMode == "ShadowCaster";
+            bool isShadowPass               = (context.pass.lightMode == "ShadowCaster") || (context.pass.lightMode == "VisibilityDXR");
             bool isTransparentDepthPrepass  = context.pass.lightMode == "TransparentDepthPrepass";
 
             // Shadow use the specific alpha test only if user have ask to override it

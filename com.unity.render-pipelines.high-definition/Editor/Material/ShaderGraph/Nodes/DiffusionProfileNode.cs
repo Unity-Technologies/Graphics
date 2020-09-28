@@ -112,21 +112,6 @@ namespace UnityEditor.Rendering.HighDefinition
             sb.AppendLine(string.Format("float {0} = asfloat(uint({1}));", GetVariableNameForSlot(0), hash));
         }
 
-        public override void Setup()
-        {
-            base.Setup();
-
-            var hdPipelineAsset = HDRenderPipeline.currentAsset;
-
-            if (hdPipelineAsset == null)
-                return;
-
-            if (diffusionProfile != null && !hdPipelineAsset.diffusionProfileSettingsList.Any(d => d == diffusionProfile))
-            {
-                //owner.AddSetupError(tempId, $"Diffusion profile '{diffusionProfile.name}' is not referenced in the current HDRP asset", ShaderCompilerMessageSeverity.Warning);
-            }
-        }
-
         public AbstractShaderProperty AsShaderProperty()
         {
             var prop = new DiffusionProfileShaderProperty { value = diffusionProfile };
