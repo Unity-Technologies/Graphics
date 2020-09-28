@@ -28,12 +28,18 @@ nightly:
         - Standalone
     - project: Universal
       platform: Win
+      api: Vulkan
+      test_platforms:
+        - playmode
+        - playmode_XR
+    - project: Universal
+      platform: Win
       api: DX12
       test_platforms:
         - Standalone
         - editmode
         - playmode
-        # - playmode_XR # uncomment once bug fixed on XR side 
+        # - playmode_XR # uncomment once bug fixed on XR side
     - project: URPUpdate
       platform: Win
       api: DX11
@@ -51,11 +57,11 @@ smoke_test: # specifications for smoke tests
   agent: sdet_win_large # used for editmode
   agent_gpu: sdet_win_large_gpu  # used for non-editmode
   test_platforms:
-    - Standalone
-    - playmode
-    - editmode
+    # - type: Standalone
+    - type: playmode
+    - type: editmode
 trunk_verification: # jobs to include in trunk verification job
-  dependencies:          
+  dependencies:
     - project: Universal
       platform: Win
       api: DX11

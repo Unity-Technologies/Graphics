@@ -49,9 +49,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return hash;
         }
 
+        static readonly GUID kSourceCodeGuid = new GUID("f4df7e8f9b8c23648ae50cbca0221e47"); // SurfaceSubTarget.cs
+
         public override void Setup(ref TargetSetupContext context)
         {
-            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("f4df7e8f9b8c23648ae50cbca0221e47")); // SurfaceSubTarget.cs
+            context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             base.Setup(ref context);
         }
 
@@ -102,6 +104,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 if (supportDistortion)
                     passes.Add(HDShaderPasses.GenerateDistortionPass(supportLighting), new FieldCondition(HDFields.TransparentDistortion, true));
+
+                passes.Add(HDShaderPasses.GenerateFullScreenDebug());
 
                 return passes;
             }

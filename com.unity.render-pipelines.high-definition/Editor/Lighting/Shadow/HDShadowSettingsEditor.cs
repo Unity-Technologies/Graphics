@@ -118,7 +118,7 @@ namespace UnityEditor.Rendering.HighDefinition
             visualizeCascade.x += EditorGUIUtility.labelWidth + 20;
             visualizeCascade.width -= EditorGUIUtility.labelWidth + 20;
             bool currentCascadeValue = hdrp.showCascade;
-            bool newCascadeValue = GUI.Toggle(visualizeCascade, currentCascadeValue, EditorGUIUtility.TrTextContent("Visualize Cascades"), EditorStyles.miniButton);
+            bool newCascadeValue = GUI.Toggle(visualizeCascade, currentCascadeValue, EditorGUIUtility.TrTextContent("Show Cascades"), EditorStyles.miniButton);
             if (currentCascadeValue ^ newCascadeValue)
                 hdrp.showCascade = newCascadeValue;
         }
