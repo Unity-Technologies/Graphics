@@ -8,7 +8,7 @@ def utr_playmode_flags(suite='playmode', testproject='.', editor_location='.Edit
         f'--testproject={testproject}',
         f'--editor-location={editor_location}',
         f'--artifacts_path={artifacts_path}',
-        f'--reruncount=1'
+        f'--reruncount=2'
         ]
     return [f for f in flags if f]
 
@@ -22,7 +22,7 @@ def utr_editmode_flags(suite='editor', platform='editmode', testproject='.', edi
         f'--testproject={testproject}',
         f'--editor-location={editor_location}',
         f'--artifacts_path={artifacts_path}',
-        f'--reruncount=1'
+        f'--reruncount=2'
         ]
     return [f for f in flags if f]
 
@@ -36,7 +36,7 @@ def utr_standalone_not_split_flags(platform_spec, suite='playmode', platform='St
         f'--artifacts_path={artifacts_path}',
         f'--testproject={testproject}',
         f'--editor-location={editor_location}',
-        f'--reruncount=1'
+        f'--reruncount=2'
         ]
     return [f for f in flags if f]
 
@@ -50,7 +50,7 @@ def utr_standalone_split_flags(platform_spec, suite='playmode', platform='Standa
         f'--artifacts_path={artifacts_path}',
         f'--player-load-path={player_load_path}' if player_load_path!=None else '',
         f'--player-connection-ip={player_conn_ip}' if player_conn_ip!=None else '',
-        f'--reruncount=1'
+        f'--reruncount=2'
         ]
     return [f for f in flags if f]
 
