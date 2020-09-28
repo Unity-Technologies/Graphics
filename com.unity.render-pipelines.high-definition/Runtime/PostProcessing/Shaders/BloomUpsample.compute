@@ -4,7 +4,7 @@
 
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-#pragma kernel KMain 
+#pragma kernel KMain
 
 #pragma multi_compile LOW_QUALITY HIGH_QUALITY
 

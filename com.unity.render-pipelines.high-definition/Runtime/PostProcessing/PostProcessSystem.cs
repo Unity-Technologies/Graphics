@@ -3030,6 +3030,12 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.bloomPrefilterCS = m_Resources.shaders.bloomPrefilterCS;
             parameters.bloomPrefilterKernel = parameters.bloomPrefilterCS.FindKernel("KMain");
 
+            parameters.bloomPrefilterCS.shaderKeywords = null;
+            if (m_Bloom.highQualityPrefiltering)
+                parameters.bloomPrefilterCS.EnableKeyword("HIGH_QUALITY");
+            else
+                parameters.bloomPrefilterCS.EnableKeyword("LOW_QUALITY");
+
             parameters.bloomBlurCS = m_Resources.shaders.bloomBlurCS;
             parameters.bloomBlurKernel = parameters.bloomBlurCS.FindKernel("KMain");
             parameters.bloomDownsampleKernel = parameters.bloomBlurCS.FindKernel("KDownsample");

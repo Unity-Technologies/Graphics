@@ -7,16 +7,33 @@
 
 #pragma kernel KMain
 
+#pragma multi_compile LOW_QUALITY HIGH_QUALITY
+
 TEXTURE2D_X(_InputTexture);
 
 RW_TEXTURE2D_X(float3, _OutputTexture);
 
 SAMPLER(sampler_LinearClamp);
+SAMPLER(sampler_BilinearClamp);
 
 CBUFFER_START(cb0)
     float4 _TexelSize;
     float4 _BloomThreshold;
 CBUFFER_END
+
+float3 BilinearSample(float2 uv, float2 offset, out float weight)
+{
+    float3 c = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_BilinearClamp, ClampAndScaleUVForBilinear(uv + _ScreenSize.zw * offset, _ScreenSize.zw), 0).xyz;
+    c = QuadraticThreshold(c, _BloomThreshold.x, _BloomThreshold.yzw);
+
+    weight = 1.0 / (Luminance(c) + 1.0);
+    return c;
+}
+
+float3 PartialAverage(float3 c0, float3 c1, float3 c2, float3 c3, float w0, float w1, float w2, float w3)
+{
+    return (c0*w0 + c1*w1 + c2*w2 + c3*w3) / (w0 + w1 + w2 + w3);
+}
 
 #define GROUP_SIZE 8
 
@@ -27,6 +44,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _TexelSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
     float2 uv = posInputs.positionNDC;
 
+#if LOW_QUALITY
     // Use a rotated grid to minimize artifacts coming from horizontal and vertical boundaries
     // "High Quality Antialiasing" [Lorach07]
     const float2 kTaps[] = {
@@ -65,6 +83,30 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float3 acc = color0 + color1 + color2 + color3 + color4;
     float3 output = acc / wSum;
+#else
+    // [Jimenez14]
+    float wA, wB, wC, wD, wE, wF, wG, wH, wI, wJ, wK, wL, wM;
+    float3 A = BilinearSample(uv, float2(-1.0, -1.0), wA);
+    float3 B = BilinearSample(uv, float2( 0.0, -1.0), wB);
+    float3 C = BilinearSample(uv, float2( 1.0, -1.0), wC);
+    float3 D = BilinearSample(uv, float2(-0.5, -0.5), wD);
+    float3 E = BilinearSample(uv, float2( 0.5, -0.5), wE);
+    float3 F = BilinearSample(uv, float2(-1.0,  0.0), wF);
+    float3 G = BilinearSample(uv, float2( 0.0,  0.0), wG);
+    float3 H = BilinearSample(uv, float2( 1.0,  0.0), wH);
+    float3 I = BilinearSample(uv, float2(-0.5,  0.5), wI);
+    float3 J = BilinearSample(uv, float2( 0.5,  0.5), wJ);
+    float3 K = BilinearSample(uv, float2(-1.0,  1.0), wK);
+    float3 L = BilinearSample(uv, float2( 0.0,  1.0), wL);
+    float3 M = BilinearSample(uv, float2( 1.0,  1.0), wM);
+
+    float3 output = 0;
+    output += PartialAverage(D, E, I, J, wD, wE, wI, wJ) * 0.5;
+    output += PartialAverage(A, B, F, G, wA, wB, wF, wG) * 0.125;
+    output += PartialAverage(B, C, G, H, wB, wC, wG, wH) * 0.125;
+    output += PartialAverage(F, G, K, L, wF, wG, wK, wL) * 0.125;
+    output += PartialAverage(G, H, L, M, wG, wH, wL, wM) * 0.125;
+#endif
 
     // Guard bands
     output *= all(dispatchThreadId.xy < uint2(_TexelSize.xy));

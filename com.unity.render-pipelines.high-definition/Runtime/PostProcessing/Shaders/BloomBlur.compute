@@ -5,7 +5,7 @@
 
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-#pragma kernel KMain          MAIN=KMain    
+#pragma kernel KMain          MAIN=KMain
 #pragma kernel KDownsample    MAIN=KDownsample  DOWNSAMPLE
 
 
