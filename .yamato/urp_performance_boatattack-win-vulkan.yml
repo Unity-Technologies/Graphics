@@ -41,9 +41,9 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_Player_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test.performance.runtimesettings@0.1.0-preview --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test.metadata-manager@0.1.0-preview --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.cli-project-setup@0.2.0-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test.performance.runtimesettings@0.2.0-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test.metadata-manager@0.1.1-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.cli-project-setup@0.3.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.shaderanalysis@0.1.0-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
@@ -84,9 +84,9 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test.performance.runtimesettings@0.1.0-preview --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test.metadata-manager@0.1.0-preview --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.cli-project-setup@0.2.0-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test.performance.runtimesettings@0.2.0-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test.metadata-manager@0.1.1-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.cli-project-setup@0.3.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.shaderanalysis@0.1.0-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
@@ -147,9 +147,9 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_Player_CUSTOM-REVISION:
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test.performance.runtimesettings@0.1.0-preview --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test.metadata-manager@0.1.0-preview --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.cli-project-setup@0.2.0-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test.performance.runtimesettings@0.2.0-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test.metadata-manager@0.1.1-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.cli-project-setup@0.3.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.shaderanalysis@0.1.0-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
@@ -194,9 +194,9 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_CUSTOM-REVISION
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test.performance.runtimesettings@0.1.0-preview --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test.metadata-manager@0.1.0-preview --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.cli-project-setup@0.2.0-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test.performance.runtimesettings@0.2.0-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test.metadata-manager@0.1.1-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.cli-project-setup@0.3.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.shaderanalysis@0.1.0-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
