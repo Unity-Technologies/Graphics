@@ -51,7 +51,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             var targetList = new ReorderableListView<JsonData<Target>>(
                 graphData.m_ActiveTargets,
-                "Targets",
+                "Active Targets",
                 false,      // disallow reordering (active list is sorted)
                 (target => target.value.displayName));
 
@@ -76,7 +76,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 };
 
             element.Add(targetList);
-            //the proper callbacks to translate the list view into target data need to be added here
 
             // Iterate active TargetImplementations
             foreach(var target in graphData.activeTargets)

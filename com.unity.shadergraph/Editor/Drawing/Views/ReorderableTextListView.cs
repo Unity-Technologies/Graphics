@@ -94,7 +94,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Create reorderable list from data list
             m_ReorderableList = new ReorderableList(
                 dataList,
-                typeof(int),        // not entirely sure what this is supposed to be or do...
+                typeof(int),        // type of data used in the incoming list
                 m_AllowReorder,     // draggable (to reorder)
                 true,               // displayHeader
                 true,               // displayAddButton
