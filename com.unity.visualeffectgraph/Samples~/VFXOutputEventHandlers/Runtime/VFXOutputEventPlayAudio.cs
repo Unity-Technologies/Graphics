@@ -13,7 +13,8 @@ namespace UnityEngine.VFX.Utility
 
         public override void OnVFXOutputEvent(VFXEventAttribute eventAttribute)
         {
-            audioSource?.Play();
+            if (audioSource != null)
+                audioSource.Play();
         }
     }
 }
