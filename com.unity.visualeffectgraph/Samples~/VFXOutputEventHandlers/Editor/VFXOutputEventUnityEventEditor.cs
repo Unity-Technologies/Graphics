@@ -15,10 +15,10 @@ namespace UnityEditor.VFX.Utility
 
         public override void OnInspectorGUI()
         {
-            base.OnInspectorGUI();
             serializedObject.Update();
-
             EditorGUI.BeginChangeCheck();
+
+            DrawOutputEventProperties();
             EditorGUILayout.PropertyField(m_OnEvent);
             HelpBox("Attribute Usage", "VFX Attributes are not used for this Output Event Handler");
             if (EditorGUI.EndChangeCheck())

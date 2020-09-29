@@ -32,13 +32,13 @@ namespace UnityEditor.VFX.Utility
 
         public override void OnInspectorGUI()
         {
-            base.OnInspectorGUI();
             serializedObject.Update();
+            EditorGUI.BeginChangeCheck();
+            DrawOutputEventProperties();
 
             if (m_ExecuteInEditor.boolValue)
                 EditorGUILayout.HelpBox($"While previewing Prefab Spawn in editor, some Attribute Handlers attached to prefabs cannot not be executed unless you are running in Play Mode.", MessageType.Info);
 
-            EditorGUI.BeginChangeCheck();
             EditorGUILayout.LabelField("Prefab Instances", EditorStyles.boldLabel);
 
             using (new EditorGUI.IndentLevelScope(1))

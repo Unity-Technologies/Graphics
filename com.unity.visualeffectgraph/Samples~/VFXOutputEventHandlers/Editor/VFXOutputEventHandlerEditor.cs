@@ -15,16 +15,22 @@ namespace UnityEditor.VFX.Utility
             m_ExecuteInEditor = serializedObject.FindProperty(nameof(VFXOutputEventAbstractHandler.executeInEditor));
         }
 
-        public override void OnInspectorGUI()
+        protected void DrawOutputEventProperties()
         {
-            serializedObject.Update();
-            EditorGUI.BeginChangeCheck();
             if (m_TargetHandler.canExecuteInEditor)
                 EditorGUILayout.PropertyField(m_ExecuteInEditor);
             else
                 EditorGUILayout.HelpBox($"This VFX Output Event Handler cannot be previewed in edit mode. If you want to preview its behavior, please enter play mode.", MessageType.Info);
 
             EditorGUILayout.PropertyField(m_OutputEvent);
+        }
+
+        public override void OnInspectorGUI()
+        {
+            serializedObject.Update();
+            EditorGUI.BeginChangeCheck();
+
+            DrawOutputEventProperties();
 
             if (EditorGUI.EndChangeCheck())
                 serializedObject.ApplyModifiedProperties();

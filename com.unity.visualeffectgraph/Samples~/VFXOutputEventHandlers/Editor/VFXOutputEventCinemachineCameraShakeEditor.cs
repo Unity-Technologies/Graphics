@@ -18,10 +18,9 @@ namespace UnityEditor.VFX.Utility
 
         public override void OnInspectorGUI()
         {
-            base.OnInspectorGUI();
-
             serializedObject.Update();
             EditorGUI.BeginChangeCheck();
+			DrawOutputEventProperties();
 
             EditorGUILayout.PropertyField(m_CinemachineImpulseSource);
             EditorGUILayout.PropertyField(m_AttributeSpace);
