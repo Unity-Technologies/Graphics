@@ -4151,9 +4151,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void RenderLightLoopDebugOverlay(in DebugParameters  debugParameters,
                                                 CommandBuffer       cmd,
-                                                ref float           x,
-                                                ref float           y,
-                                                float               overlaySize,
                                                 ComputeBuffer       tileBuffer,
                                                 ComputeBuffer       lightListBuffer,
                                                 ComputeBuffer       perVoxelLightListBuffer,
@@ -4230,9 +4227,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._ApplyExposure, 0.0f);
                     m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._Mipmap, lightingDebug.cookieAtlasMipLevel);
                     m_LightLoopDebugMaterialProperties.SetTexture(HDShaderIDs._InputTexture, parameters.cookieManager.atlasTexture);
-                    cmd.SetViewport(new Rect(x, y, overlaySize, overlaySize));
+                    debugParameters.debugOverlay.SetViewport(cmd);
                     cmd.DrawProcedural(Matrix4x4.identity, parameters.debugBlitMaterial, 0, MeshTopology.Triangles, 3, 1, m_LightLoopDebugMaterialProperties);
-                    HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
+                    debugParameters.debugOverlay.Next();
                 }
             }
 
@@ -4248,14 +4245,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._ApplyExposure, 1.0f);
                     m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._Mipmap, lightingDebug.planarReflectionProbeMipLevel);
                     m_LightLoopDebugMaterialProperties.SetTexture(HDShaderIDs._InputTexture, parameters.planarProbeCache.GetTexCache());
-                    cmd.SetViewport(new Rect(x, y, overlaySize, overlaySize));
+                    debugParameters.debugOverlay.SetViewport(cmd);
                     cmd.DrawProcedural(Matrix4x4.identity, parameters.debugBlitMaterial, 0, MeshTopology.Triangles, 3, 1, m_LightLoopDebugMaterialProperties);
-                    HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
+                    debugParameters.debugOverlay.Next();
                 }
             }
         }
 
-        static void RenderShadowsDebugOverlay(in DebugParameters debugParameters, in HDShadowManager.ShadowDebugAtlasTextures atlasTextures, CommandBuffer cmd, ref float x, ref float y, float overlaySize, MaterialPropertyBlock mpb)
+        static void RenderShadowsDebugOverlay(in DebugParameters debugParameters, in HDShadowManager.ShadowDebugAtlasTextures atlasTextures, CommandBuffer cmd, MaterialPropertyBlock mpb)
         {
             LightingDebugSettings lightingDebug = debugParameters.debugDisplaySettings.data.lightingDebugSettings;
             if (lightingDebug.shadowDebugMode != ShadowMapDebugMode.None)
@@ -4289,52 +4286,33 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             for (int shadowIndex = startShadowIndex; shadowIndex < startShadowIndex + shadowRequestCount; shadowIndex++)
                             {
-                                parameters.shadowManager.DisplayShadowMap(atlasTextures, shadowIndex, cmd, parameters.debugShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
-                                HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
+                                parameters.shadowManager.DisplayShadowMap(atlasTextures, shadowIndex, cmd, parameters.debugShadowMapMaterial, debugParameters.debugOverlay.x, debugParameters.debugOverlay.y, debugParameters.debugOverlay.overlaySize, debugParameters.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
+                                debugParameters.debugOverlay.Next();
                             }
                             break;
                         case ShadowMapDebugMode.VisualizePunctualLightAtlas:
-                            parameters.shadowManager.DisplayShadowAtlas(atlasTextures.punctualShadowAtlas, cmd, parameters.debugShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
-                            HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
+                            parameters.shadowManager.DisplayShadowAtlas(atlasTextures.punctualShadowAtlas, cmd, parameters.debugShadowMapMaterial, debugParameters.debugOverlay.x, debugParameters.debugOverlay.y, debugParameters.debugOverlay.overlaySize, debugParameters.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
+                            debugParameters.debugOverlay.Next();
                             break;
                         case ShadowMapDebugMode.VisualizeCachedPunctualLightAtlas:
-                            parameters.shadowManager.DisplayCachedPunctualShadowAtlas(atlasTextures.cachedPunctualShadowAtlas, cmd, parameters.debugShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
-                            HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
+                            parameters.shadowManager.DisplayCachedPunctualShadowAtlas(atlasTextures.cachedPunctualShadowAtlas, cmd, parameters.debugShadowMapMaterial, debugParameters.debugOverlay.x, debugParameters.debugOverlay.y, debugParameters.debugOverlay.overlaySize, debugParameters.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
+                            debugParameters.debugOverlay.Next();
                             break;
                         case ShadowMapDebugMode.VisualizeDirectionalLightAtlas:
-                            parameters.shadowManager.DisplayShadowCascadeAtlas(atlasTextures.cascadeShadowAtlas, cmd, parameters.debugShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
-                            HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
+                            parameters.shadowManager.DisplayShadowCascadeAtlas(atlasTextures.cascadeShadowAtlas, cmd, parameters.debugShadowMapMaterial, debugParameters.debugOverlay.x, debugParameters.debugOverlay.y, debugParameters.debugOverlay.overlaySize, debugParameters.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
+                            debugParameters.debugOverlay.Next();
                             break;
                         case ShadowMapDebugMode.VisualizeAreaLightAtlas:
-                            parameters.shadowManager.DisplayAreaLightShadowAtlas(atlasTextures.areaShadowAtlas, cmd, parameters.debugShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
-                            HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
+                            parameters.shadowManager.DisplayAreaLightShadowAtlas(atlasTextures.areaShadowAtlas, cmd, parameters.debugShadowMapMaterial, debugParameters.debugOverlay.x, debugParameters.debugOverlay.y, debugParameters.debugOverlay.overlaySize, debugParameters.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
+                            debugParameters.debugOverlay.Next();
                             break;
                         case ShadowMapDebugMode.VisualizeCachedAreaLightAtlas:
-                            parameters.shadowManager.DisplayCachedAreaShadowAtlas(atlasTextures.cachedAreaShadowAtlas, cmd, parameters.debugShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
-                            HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
+                            parameters.shadowManager.DisplayCachedAreaShadowAtlas(atlasTextures.cachedAreaShadowAtlas, cmd, parameters.debugShadowMapMaterial, debugParameters.debugOverlay.x, debugParameters.debugOverlay.y, debugParameters.debugOverlay.overlaySize, debugParameters.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
+                            debugParameters.debugOverlay.Next();
                             break;
                         default:
                             break;
                     }
-                }
-            }
-        }
-
-        static void RenderProbeVolumeDebugOverlay(in DebugParameters debugParameters, CommandBuffer cmd, ref float x, ref float y, float overlaySize, Material debugDisplayProbeVolumeMaterial)
-        {
-            LightingDebugSettings lightingDebug = debugParameters.debugDisplaySettings.data.lightingDebugSettings;
-            if (lightingDebug.probeVolumeDebugMode != ProbeVolumeDebugMode.None)
-            {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDebug)))
-                {
-                    if (lightingDebug.probeVolumeDebugMode == ProbeVolumeDebugMode.VisualizeAtlas)
-                    {
-                        HDRenderPipeline hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-                        HDCamera hdCamera = debugParameters.hdCamera;
-                        hdrp.DisplayProbeVolumeAtlas(cmd, debugDisplayProbeVolumeMaterial, x, y, overlaySize, overlaySize, lightingDebug.probeVolumeMinValue, lightingDebug.probeVolumeMaxValue, (int)lightingDebug.probeVolumeAtlasSliceMode);
-                        HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
-                    }
-
                 }
             }
         }
