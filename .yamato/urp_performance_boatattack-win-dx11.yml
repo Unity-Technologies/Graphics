@@ -21,7 +21,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_trunk:
     dependencies:
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_trunk
          rerun: on-new-revision
-    skip_checkout: true
+    #skip_checkout: true
 Build_URP_Performance_BoatAttack_Win_DX11_Player_trunk:
     name: Build URP_Performance_BoatAttack on Win_DX11_Player on version trunk
     agent:
