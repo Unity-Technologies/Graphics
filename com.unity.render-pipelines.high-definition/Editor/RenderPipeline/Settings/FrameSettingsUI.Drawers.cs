@@ -177,7 +177,7 @@ namespace UnityEditor.Rendering.HighDefinition
             bool frameSettingsOverrideToForward = serialized.GetOverrides(FrameSettingsField.LitShaderMode) && serialized.litShaderMode == LitShaderMode.Forward;
             bool frameSettingsOverrideToDeferred = serialized.GetOverrides(FrameSettingsField.LitShaderMode) && serialized.litShaderMode == LitShaderMode.Deferred;
             bool defaultForwardUsed = !serialized.GetOverrides(FrameSettingsField.LitShaderMode) && defaultShaderLitMode == LitShaderMode.Forward;
-            bool msaaEnablable = (hdrpAssetSupportForward && hdrpSettings.supportMSAA && (frameSettingsOverrideToForward || defaultForwardUsed)) || (hdrpAssetIsForward && hdrpSettings.supportMSAA);
+            bool msaaEnablable = hdrpSettings.supportMSAA && ((hdrpAssetSupportForward && (frameSettingsOverrideToForward || defaultForwardUsed)) || hdrpAssetIsForward);
             area.AmmendInfo(FrameSettingsField.MSAA,
                 overrideable: () => msaaEnablable,
                 overridedDefaultValue: msaaEnablable && defaultFrameSettings.IsEnabled(FrameSettingsField.MSAA),
