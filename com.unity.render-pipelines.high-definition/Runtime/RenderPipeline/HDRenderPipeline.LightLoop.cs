@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Transient buffers that are not used outside of BuildGPULight list so they don't need to go outside the pass.
             public ComputeBufferHandle          globalLightListAtomic;
-            public ComputeBufferHandle          lightVolumeDataBuffer;
+            //public ComputeBufferHandle          lightVolumeDataBuffer;
 
             public BuildGPULightListOutput      output = new BuildGPULightListOutput();
         }
@@ -93,7 +93,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     buildLightListResources.gBuffer[i] = data.gBuffer[i];
             }
 
-            buildLightListResources.lightVolumeDataBuffer = data.lightVolumeDataBuffer;
+            //buildLightListResources.lightVolumeDataBuffer = data.lightVolumeDataBuffer;
             buildLightListResources.convexBoundsBuffer = data.convexBoundsBuffer;
             buildLightListResources.AABBBoundsBuffer = data.AABBBoundsBuffer;
             buildLightListResources.globalLightListAtomic = data.globalLightListAtomic;
@@ -113,7 +113,6 @@ namespace UnityEngine.Rendering.HighDefinition
         BuildGPULightListOutput BuildGPULightList(  RenderGraph                     renderGraph,
                                                     HDCamera                        hdCamera,
                                                     TileAndClusterData              tileAndClusterData,
-                                                    int                             totalLightCount,
                                                     ref ShaderVariablesLightList    constantBuffer,
                                                     TextureHandle                   depthStencilBuffer,
                                                     TextureHandle                   stencilBufferCopy,
@@ -123,7 +122,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 builder.EnableAsyncCompute(hdCamera.frameSettings.BuildLightListRunsAsync());
 
-                passData.buildGPULightListParameters = PrepareBuildGPULightListParameters(hdCamera, tileAndClusterData, ref constantBuffer, totalLightCount);
+                passData.buildGPULightListParameters = PrepareBuildGPULightListParameters(hdCamera, tileAndClusterData, ref constantBuffer);
                 passData.depthBuffer = builder.ReadTexture(depthStencilBuffer);
                 passData.stencilTexture = builder.ReadTexture(stencilBufferCopy);
                 if (passData.buildGPULightListParameters.computeMaterialVariants && passData.buildGPULightListParameters.enableFeatureVariants)
@@ -138,7 +137,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Those buffer are filled with the CPU outside of the render graph.
                 passData.convexBoundsBuffer = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(tileAndClusterData.convexBoundsBuffer));
-                passData.lightVolumeDataBuffer = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(tileAndClusterData.lightVolumeDataBuffer));
+                // passData.lightVolumeDataBuffer = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(tileAndClusterData.lightVolumeDataBuffer));
 
                 passData.globalLightListAtomic = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(1, sizeof(uint)) { name = "LightListAtomic"});
                 passData.AABBBoundsBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(m_MaxViewCount * 2 * tileAndClusterData.maxLightCount, 4 * sizeof(float)) { name = "AABBBoundBuffer" });
@@ -154,7 +153,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // note that nrTiles include the viewCount in allocation below
                     // Tile buffers
                     passData.output.lightList = builder.WriteComputeBuffer(
-                        renderGraph.CreateComputeBuffer(new ComputeBufferDesc((int)LightCategory.Count * dwordsPerTile * nrTiles, sizeof(uint)) { name = "LightList" }));
+                        renderGraph.CreateComputeBuffer(new ComputeBufferDesc(/*(int)LightCategory.Count*/ 0 * dwordsPerTile * nrTiles, sizeof(uint)) { name = "LightList" }));
                     passData.output.tileList = builder.WriteComputeBuffer(
                         renderGraph.CreateComputeBuffer(new ComputeBufferDesc(TiledLightingConstants.s_NumFeatureVariants * nrTiles, sizeof(uint)) { name = "TileList" }));
                     passData.output.tileFeatureFlags = builder.WriteComputeBuffer(
@@ -183,7 +182,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var nrClusterTiles = nrClustersX * nrClustersY * m_MaxViewCount;
 
                 passData.output.perVoxelOffset = builder.WriteComputeBuffer(
-                    renderGraph.CreateComputeBuffer(new ComputeBufferDesc((int)LightCategory.Count * (1 << k_Log2NumClusters) * nrClusterTiles, sizeof(uint)) { name = "PerVoxelOffset" }));
+                    renderGraph.CreateComputeBuffer(new ComputeBufferDesc(/*(int)LightCategory.Count*/ 0 * (1 << k_Log2NumClusters) * nrClusterTiles, sizeof(uint)) { name = "PerVoxelOffset" }));
                 passData.output.perVoxelLightLists = builder.WriteComputeBuffer(
                     renderGraph.CreateComputeBuffer(new ComputeBufferDesc(NumLightIndicesPerClusteredTile() * nrClusterTiles, sizeof(uint)) { name = "PerVoxelLightList" }));
                 if (tileAndClusterData.clusterNeedsDepth)
@@ -195,13 +194,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (BuildGPULightListPassData data, RenderGraphContext context) =>
                 {
-                    bool tileFlagsWritten = false;
-
                     var buildLightListResources = PrepareBuildGPULightListResources(context, data);
+
+                    //bool tileFlagsWritten = false;
 
                     ClearLightLists(data.buildGPULightListParameters, buildLightListResources, context.cmd);
                     // GenerateLightsScreenSpaceAABBs(data.buildGPULightListParameters, buildLightListResources, context.cmd);
-                    BigTilePrepass(data.buildGPULightListParameters, buildLightListResources, context.cmd);
+                    //BigTilePrepass(data.buildGPULightListParameters, buildLightListResources, context.cmd);
                     // BuildPerTileLightList(data.buildGPULightListParameters, buildLightListResources, ref tileFlagsWritten, context.cmd);
                     // VoxelLightListGeneration(data.buildGPULightListParameters, buildLightListResources, context.cmd);
 

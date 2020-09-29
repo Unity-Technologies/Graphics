@@ -511,7 +511,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 processedData.lightType = additionalLightData.type;
                 processedData.lightCategory = lightCategory;
                 processedData.gpuLightType = gpuLightType;
-                processedData.lightVolumeType = lightVolumeType;
                 // Both of these positions are non-camera-relative.
                 processedData.distanceToCamera = (additionalLightData.gameObject.transform.position - hdCamera.camera.transform.position).magnitude;
                 processedData.lightDistanceFade = HDUtils.ComputeLinearDistanceFade(processedData.distanceToCamera, additionalLightData.fadeDistance);
@@ -537,13 +536,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector3 lightDimensions =  new Vector3(0.0f, 0.0f, 0.0f);
 
                 // Use the shared code to build the light data
-                m_RenderPipeline.GetLightData(cmd, hdCamera, hdShadowSettings, visibleLight, lightComponent, in processedData,
-                    shadowIndex, contactShadowScalableSetting, isRasterization: false, ref lightDimensions, ref screenSpaceShadowIndex, ref screenSpaceChannelSlot, ref lightData);
+                lightData = m_RenderPipeline.GetLightData(cmd, hdCamera, hdShadowSettings, visibleLight, lightComponent, in processedData,
+                    shadowIndex, contactShadowScalableSetting, isRasterization: false, ref lightDimensions, ref screenSpaceShadowIndex, ref screenSpaceChannelSlot);
 
                 // We make the light position camera-relative as late as possible in order
                 // to allow the preceding code to work with the absolute world space coordinates.
-                Vector3 camPosWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
-                HDRenderPipeline.UpdateLightCameraRelativetData(ref lightData, camPosWS);
+                if (ShaderConfig.s_CameraRelativeRendering != 0)
+                {
+                    Vector3 camPosWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
+                    // Caution: 'LightData.positionWS' is camera-relative after this point.
+                    lightData.positionRWS -= camPosWS;
+                }
 
                 // Set the data for this light
                 m_LightDataCPUArray.Add(lightData);

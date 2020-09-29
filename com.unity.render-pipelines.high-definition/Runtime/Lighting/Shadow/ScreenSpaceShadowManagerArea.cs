@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
             rtsartParams.worldToLocalMatrix = m_WorldToLocalArea.inverse;
             rtsartParams.historyValidity = EvaluateHistoryValidity(hdCamera);
             rtsartParams.filterTracedShadow = additionalLightData.filterTracedShadow;
-            rtsartParams.areaShadowSlot = m_lightList.lights[lightIndex].screenSpaceShadowIndex;
+            rtsartParams.areaShadowSlot = -1; // m_lightList.lights[lightIndex].screenSpaceShadowIndex; // TODO FIX ME
             rtsartParams.filterSize = additionalLightData.filterSizeTraced;
 
             // Kernels
@@ -364,7 +364,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                                                                         shadowHistoryArray, analyticHistoryArray);
             ExecuteSSSAreaRayTrace(cmd, sssartParams, sssartResources);
 
-            int areaShadowSlot = m_lightList.lights[lightIndex].screenSpaceShadowIndex;
+            int areaShadowSlot = -1; // m_lightList.lights[lightIndex].screenSpaceShadowIndex; // TODO FIX ME
             // Write the result texture to the screen space shadow buffer
             WriteScreenSpaceShadowParameters wsssParams = PrepareWriteScreenSpaceShadowParameters(hdCamera, areaShadowSlot, ScreenSpaceShadowType.Area);
             WriteScreenSpaceShadowResources wsssResources = PrepareWriteScreenSpaceShadowResources(intermediateBufferRGBA0);
@@ -374,7 +374,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (additionalLightData.filterTracedShadow)
             {
                 // Do not forget to update the identification of shadow history usage
-                hdCamera.PropagateShadowHistory(additionalLightData, areaShadowSlot, GPULightType.Rectangle);
+                // hdCamera.PropagateShadowHistory(additionalLightData, areaShadowSlot, GPULightType.Rectangle); // TODO FIX ME
             }
         }
 
@@ -481,7 +481,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 areaShadow = passData.outputShadowTexture;
             }
 
-            int areaShadowSlot = m_lightList.lights[lightIndex].screenSpaceShadowIndex;
+            int areaShadowSlot = -1; // m_lightList.lights[lightIndex].screenSpaceShadowIndex; // TOOD FIX ME
             WriteScreenSpaceShadow(renderGraph, hdCamera, areaShadow, screenSpaceShadowArray, areaShadowSlot, ScreenSpaceShadowType.Area);
 
             if (additionalLightData.filterTracedShadow)

@@ -2527,27 +2527,27 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // When evaluating probe volumes in material pass, we build a custom probe volume light list.
             // When evaluating probe volumes in light loop, probe volumes are folded into the standard light loop data.
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
-            {
-                if (hdCamera.frameSettings.BuildLightListRunsAsync())
-                {
-                    buildProbeVolumeLightListTask.EndWithPostWork(cmd, hdCamera, Callback);
+            //if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
+            //{
+            //    if (hdCamera.frameSettings.BuildLightListRunsAsync())
+            //    {
+            //        buildProbeVolumeLightListTask.EndWithPostWork(cmd, hdCamera, Callback);
 
-                    void Callback(CommandBuffer c, HDCamera cam)
-                    {
-                        var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
-                        var globalParams = hdrp.PrepareLightLoopGlobalParameters(cam, m_ProbeVolumeClusterData);
-                        PushProbeVolumeLightListGlobalParams(globalParams, c);
-                    }
-                }
-                else
-                {
-                    BuildGPULightListProbeVolumesCommon(hdCamera, cmd);
-                    var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
-                    var globalParams = hdrp.PrepareLightLoopGlobalParameters(hdCamera, m_ProbeVolumeClusterData);
-                    PushProbeVolumeLightListGlobalParams(globalParams, cmd);
-                }
-            }
+            //        void Callback(CommandBuffer c, HDCamera cam)
+            //        {
+            //            var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+            //            var globalParams = hdrp.PrepareLightLoopGlobalParameters(cam, m_ProbeVolumeClusterData);
+            //            PushProbeVolumeLightListGlobalParams(globalParams, c);
+            //        }
+            //    }
+            //    else
+            //    {
+            //        BuildGPULightListProbeVolumesCommon(hdCamera, cmd);
+            //        var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+            //        var globalParams = hdrp.PrepareLightLoopGlobalParameters(hdCamera, m_ProbeVolumeClusterData);
+            //        PushProbeVolumeLightListGlobalParams(globalParams, cmd);
+            //    }
+            //}
 
             RenderGBuffer(cullingResults, hdCamera, renderContext, cmd);
 
