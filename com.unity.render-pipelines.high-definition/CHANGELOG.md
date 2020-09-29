@@ -106,6 +106,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Custom Post Processes affecting preview cameras.
 - Fixed issue with lens distortion breaking rendering.
 - Fixed save popup appearing twice due to HDRP wizard.
+- Fixed error when changing planar probe resolution.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
