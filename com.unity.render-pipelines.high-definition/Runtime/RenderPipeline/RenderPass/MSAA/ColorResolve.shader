@@ -60,12 +60,13 @@ Shader "Hidden/HDRP/ColorResolve"
             for (int i = 0; i < sampleCount; ++i)
             {
                 float4 currSample = (LoadColorTextureMS(pixelCoords, i));
-                finalVal += currSample * ResolveWeight(currSample, sampleCount);
+                finalVal.rgb += currSample.rgb * ResolveWeight(currSample, sampleCount);
+                finalVal.a += currSample.a * rcp(sampleCount);
             }
 
             finalVal.xyz *= InverseToneMapWeight(finalVal);
 
-            return float4(finalVal.rgb, 1.0f);
+            return finalVal;
         }
 
         float4 Frag1X(Varyings input) : SV_Target
