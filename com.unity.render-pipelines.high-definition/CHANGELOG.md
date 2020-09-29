@@ -102,6 +102,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Cutoff not working properly with ray tracing shaders default and SG (case 1261292).
 - Fixed shader compilation issue with Hair shader and debug display mode
 - Fixed cubemap static preview not updated when the asset is imported.
+- Fixed wizard DXR setup on non-DXR compatible devices.
+- Fixed Custom Post Processes affecting preview cameras.
+- Fixed issue with lens distortion breaking rendering.
+- Fixed save popup appearing twice due to HDRP wizard.
+- Fixed error when changing planar probe resolution.
+- Fixed the dependecy of FrameSettings (MSAA, ClearGBuffer, DepthPrepassWithDeferred) (case 1277620).
+- Fixed the usage of GUIEnable for volume components (case 1280018).
+- Fixed the diffusion profile becoming invalid when hitting the reset (case 1269462).
 - Fixed issue with MSAA resolve killing the alpha channel.
 
 ### Changed
