@@ -858,6 +858,42 @@ half4 CalculateDebugLightingComplexityColor(InputData inputData)
     return fc;
 }
 
+bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData surfaceData, inout BRDFData brdfData, out half4 debugColor)
+{
+    if(_DebugMaterialIndex == DEBUG_LIGHTING_COMPLEXITY)
+    {
+        debugColor = CalculateDebugLightingComplexityColor(inputData);
+        return true;
+    }
+    else
+    {
+        DebugData debugData = CreateDebugData(brdfData.diffuse, brdfData.specular, inputData.uv);
+
+        debugColor = half4(0, 0, 0, 1);
+
+        if(_DebugLightingIndex == DEBUG_LIGHTING_SHADOW_CASCADES)
+        {
+            surfaceData.albedo = CalculateDebugShadowCascadeColor(inputData);
+        }
+        else if (CalculateColorForDebug(inputData, surfaceData, debugData, debugColor) && (_DebugMaterialIndex == DEBUG_LOD))
+        {
+            surfaceData.albedo = debugColor.rgb;
+        }
+        else
+        {
+            if(UpdateSurfaceAndInputDataForDebug(surfaceData, inputData))
+            {
+                //inputData.bakedGI = SAMPLE_GI(inputData.lightmapUV, inputData.vertexSH, inputData.normalWS);
+            }
+        }
+
+        // Update the BRDF data following any changes to the input/surface above...
+        brdfData = CreateBRDFData(surfaceData);
+
+        return CalculateColorForDebug(inputData, surfaceData, debugData, debugColor) && (_DebugMaterialIndex != DEBUG_LOD);
+    }
+}
+
 bool CanDebugOverrideOutputColor(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 debugColor)
 {
     if(_DebugMaterialIndex == DEBUG_LIGHTING_COMPLEXITY)
@@ -919,10 +955,9 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     BRDFData brdfData = CreateBRDFData(surfaceData);
 
     #if defined(_DEBUG_SHADER)
-    DebugData debugData = CreateDebugData(brdfData.diffuse, brdfData.specular, inputData.uv);
     half4 debugColor;
 
-    if(CanDebugOverrideOutputColor(inputData, surfaceData, debugData, debugColor))
+    if(CanDebugOverrideOutputColor(inputData, surfaceData, brdfData, debugColor))
     {
         return debugColor;
     }
