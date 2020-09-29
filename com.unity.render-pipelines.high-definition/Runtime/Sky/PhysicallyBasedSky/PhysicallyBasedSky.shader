@@ -143,10 +143,10 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                         else // Flare region.
                         {
                             float r = max(0, rad - radInner);
-                            float w = max(FLT_MIN, 1 - r * rcp(light.flareSize));
+                            float w = saturate(1 - r * rcp(light.flareSize));
 
                             color *= light.flareTint;
-                            scale *= pow(w, light.flareFalloff);
+                            scale *= SafePositivePow(w, light.flareFalloff);
                         }
 
                         radiance += color * scale;
