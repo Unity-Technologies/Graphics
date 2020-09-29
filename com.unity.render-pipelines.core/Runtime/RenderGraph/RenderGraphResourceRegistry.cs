@@ -242,7 +242,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (m_CurrentBackbuffer != null)
                 m_CurrentBackbuffer.SetTexture(rt);
             else
-                m_CurrentBackbuffer = RTHandles.Alloc(rt);
+                m_CurrentBackbuffer = RTHandles.Alloc(rt, "Backbuffer");
 
             int newHandle = AddNewResource(m_Resources[(int)RenderGraphResourceType.Texture], out TextureResource texResource);
             texResource.resource = m_CurrentBackbuffer;
