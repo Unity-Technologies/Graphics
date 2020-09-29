@@ -6,8 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.5.2] - 2020-09-14
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed a null ref exception when baking reflection probes.
 
 ## [7.5.1] - 2020-09-02
 

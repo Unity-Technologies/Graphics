@@ -92,8 +92,6 @@ all_project_ci_nightly_2019.4:
     dependencies:
       -  path: .yamato/_abv.yml#all_project_ci_2019.4
          rerun: on-new-revision
-      -  path: .yamato/_templates.yml#all_template_ci_2019.4
-         rerun: on-new-revision
       -  path: .yamato/_abv.yml#smoke_test_Standalone_2019.4
          rerun: on-new-revision
       -  path: .yamato/_abv.yml#smoke_test_playmode_2019.4

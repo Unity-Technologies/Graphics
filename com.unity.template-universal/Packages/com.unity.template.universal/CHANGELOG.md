@@ -223,7 +223,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - cinemachine and text mesh pro packages
 
-## [0.0.3] - 2018-01-26 
+## [0.0.3] - 2018-01-26
 
 ### Changed 
 - Updating Shadergraph and lightweight to new version
