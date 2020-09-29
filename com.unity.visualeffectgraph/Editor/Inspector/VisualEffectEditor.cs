@@ -1151,6 +1151,7 @@ namespace UnityEditor.VFX
             private SerializedProperty m_RenderingLayerMask;
             private SerializedProperty m_LightProbeUsage;
             private SerializedProperty m_LightProbeVolumeOverride;
+            private SerializedProperty m_ReflectionProbeUsage;
             private SerializedProperty m_ProbeAnchor;
 
             public RendererEditor(params VFXRenderer[] renderers)
@@ -1162,6 +1163,7 @@ namespace UnityEditor.VFX
                 m_RenderingLayerMask = m_SerializedRenderers.FindProperty("m_RenderingLayerMask");
                 m_LightProbeUsage = m_SerializedRenderers.FindProperty("m_LightProbeUsage");
                 m_LightProbeVolumeOverride = m_SerializedRenderers.FindProperty("m_LightProbeVolumeOverride");
+                m_ReflectionProbeUsage = m_SerializedRenderers.FindProperty("m_ReflectionProbeUsage");
                 m_ProbeAnchor = m_SerializedRenderers.FindProperty("m_ProbeAnchor");
             }
 
@@ -1196,6 +1198,17 @@ namespace UnityEditor.VFX
                     }
                 }
 
+                if (m_ReflectionProbeUsage != null && SupportedRenderingFeatures.active.reflectionProbes)
+                {
+                    Rect r = EditorGUILayout.GetControlRect(true, EditorGUI.kSingleLineHeight, EditorStyles.popup);
+                    EditorGUI.BeginProperty(r, Contents.reflectionProbeUsageStyle, m_ReflectionProbeUsage);
+                    EditorGUI.BeginChangeCheck();
+                    var newValue = EditorGUI.EnumPopup(r, Contents.reflectionProbeUsageStyle, (ReflectionProbeUsage)m_ReflectionProbeUsage.intValue);
+                    if (EditorGUI.EndChangeCheck())
+                        m_ReflectionProbeUsage.intValue = (int)(ReflectionProbeUsage)newValue;
+                    EditorGUI.EndProperty();
+                }
+
                 if (m_LightProbeUsage != null)
                 {
                     Rect r = EditorGUILayout.GetControlRect(true, EditorGUI.kSingleLineHeight, EditorStyles.popup);
@@ -1205,15 +1218,17 @@ namespace UnityEditor.VFX
                     if (EditorGUI.EndChangeCheck())
                         m_LightProbeUsage.intValue = (int)(LightProbeUsage)newValue;
                     EditorGUI.EndProperty();
+
+                    if (!m_LightProbeUsage.hasMultipleDifferentValues && m_LightProbeUsage.intValue == (int)LightProbeUsage.UseProxyVolume)
+                        EditorGUILayout.PropertyField(m_LightProbeVolumeOverride, Contents.lightProbeVolumeOverrideStyle);
                 }
 
-                if (!m_LightProbeUsage.hasMultipleDifferentValues)
-                {
-                    if (m_LightProbeUsage.intValue == (int)LightProbeUsage.UseProxyVolume)
-                        EditorGUILayout.PropertyField(m_LightProbeVolumeOverride, Contents.lightProbeVolumeOverrideStyle);
-                    else if (m_LightProbeUsage.intValue == (int)LightProbeUsage.BlendProbes)
-                        EditorGUILayout.PropertyField(m_ProbeAnchor, Contents.lightProbeAnchorStyle);
-                }
+                bool useReflectionProbes = m_ReflectionProbeUsage != null && !m_ReflectionProbeUsage.hasMultipleDifferentValues && (ReflectionProbeUsage)m_ReflectionProbeUsage.intValue != ReflectionProbeUsage.Off;
+                bool lightProbesEnabled = m_LightProbeUsage != null && !m_LightProbeUsage.hasMultipleDifferentValues && (LightProbeUsage)m_LightProbeUsage.intValue != LightProbeUsage.Off;
+                bool needsProbeAnchor = useReflectionProbes || lightProbesEnabled;
+
+                if (needsProbeAnchor)
+                    EditorGUILayout.PropertyField(m_ProbeAnchor, Contents.lightProbeAnchorStyle);
 
                 m_SerializedRenderers.ApplyModifiedProperties();
             }
@@ -1223,6 +1238,7 @@ namespace UnityEditor.VFX
                 public static readonly GUIContent renderingLayerMaskStyle =         EditorGUIUtility.TrTextContent("Rendering Layer Mask", "Mask that can be used with SRP DrawRenderers command to filter renderers outside of the normal layering system.");
                 public static readonly GUIContent rendererPriorityStyle =           EditorGUIUtility.TrTextContent("Transparency Priority", "Priority used for sorting objects on top of material render queue.");
                 public static readonly GUIContent lightProbeUsageStyle =            EditorGUIUtility.TrTextContent("Light Probes", "Specifies how Light Probes will handle the interpolation of lighting and occlusion.");
+                public static readonly GUIContent reflectionProbeUsageStyle =       EditorGUIUtility.TrTextContent("Reflection Probes", "Specifies if or how the object is affected by reflections in the Scene.  This property cannot be disabled in deferred rendering modes.");
                 public static readonly GUIContent lightProbeVolumeOverrideStyle =   EditorGUIUtility.TrTextContent("Proxy Volume Override", "If set, the Renderer will use the Light Probe Proxy Volume component from another GameObject.");
                 public static readonly GUIContent lightProbeAnchorStyle =           EditorGUIUtility.TrTextContent("Anchor Override", "Specifies the Transform position that will be used for sampling the light probes and reflection probes.");
             }
