@@ -247,6 +247,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             int newHandle = AddNewResource(m_Resources[(int)RenderGraphResourceType.Texture], out TextureResource texResource);
             texResource.resource = m_CurrentBackbuffer;
             texResource.imported = true;
+            texResource.desc.name = "Backbuffer";
 
             return new TextureHandle(newHandle);
         }
@@ -617,6 +618,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 m_Logger.LogLine("==== Allocated Resources ====\n");
 
                 m_TexturePool.LogResources(m_Logger);
+                m_Logger.LogLine("");
                 m_ComputeBufferPool.LogResources(m_Logger);
             }
         }
