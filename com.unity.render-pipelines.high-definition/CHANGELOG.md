@@ -101,6 +101,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where entering playmode would close the LookDev window.
 - Fixed Cutoff not working properly with ray tracing shaders default and SG (case 1261292).
 - Fixed shader compilation issue with Hair shader and debug display mode
+- Fixed cubemap static preview not updated when the asset is imported.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
