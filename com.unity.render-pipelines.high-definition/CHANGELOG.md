@@ -101,6 +101,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved SSGI out of preview.
 - Skip an unneeded depth buffer copy on consoles. 
 - Replaced the Density Volume Texture Tool with the new 3D Texture Importer.
+- Improve performance of GPU light AABB generation
 
 ## [10.0.0] - 2019-06-10
 
