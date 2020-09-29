@@ -5,8 +5,8 @@
 
 struct AttributesParticle
 {
-    float4 vertex : POSITION;
-    float3 normal : NORMAL;
+    float4 positionOS : POSITION;
+    float3 normalOS : NORMAL;
     half4 color : COLOR;
 #if defined(_FLIPBOOKBLENDING_ON) && !defined(UNITY_PARTICLE_INSTANCING_ENABLED)
     float4 texcoords : TEXCOORD0;
@@ -14,7 +14,7 @@ struct AttributesParticle
 #else
     float2 texcoords : TEXCOORD0;
 #endif
-    float4 tangent : TANGENT;
+    float4 tangentOS : TANGENT;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
@@ -136,8 +136,8 @@ VaryingsParticle vertParticleUnlit(AttributesParticle input)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
-    VertexNormalInputs normalInput = GetVertexNormalInputs(input.normal, input.tangent);
+    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
+    VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
 
     // position ws is used to compute eye depth in vertFading
     output.positionWS.xyz = vertexInput.positionWS;
