@@ -30,7 +30,7 @@ def create_project_ymls(metafile):
 
                     if test_platform['name'].lower() not in map(str.lower, api.get('exclude_test_platforms', [])):
 
-                        if test_platform['name'].lower() == 'standalone':
+                        if test_platform['type'].lower() == 'standalone':
                             job = Project_StandaloneJob(project, editor, platform, api, test_platform)
                             yml[job.job_id] = job.yml
                                 
