@@ -1167,6 +1167,25 @@ namespace UnityEditor.VFX
                 m_ProbeAnchor = m_SerializedRenderers.FindProperty("m_ProbeAnchor");
             }
 
+            private static string[] s_DefaultRenderingLayerNames = GetDefaultRenderingLayerNames();
+            private static string[] GetDefaultRenderingLayerNames()
+            {
+                //Find UnityEditor.RendererEditorBase.defaultRenderingLayerNames by reflection to avoid any breakage due to an API change
+                var type = Type.GetType("UnityEditor.RendererEditorBase, UnityEditor");
+                if (type != null)
+                {
+                    var properties = type.GetProperties(BindingFlags.Static | BindingFlags.GetField | BindingFlags.NonPublic);
+                    var property = properties.FirstOrDefault(o => o.Name == "defaultRenderingLayerNames");
+                    if (property != null)
+                    {
+                        var invokeResult = property.GetMethod.Invoke(null, null);
+                        if (invokeResult != null && invokeResult is string[])
+                            return invokeResult as string[];
+                    }
+                }
+                return null;
+            }
+
             public void OnInspectorGUI()
             {
                 m_SerializedRenderers.Update();
@@ -1176,25 +1195,41 @@ namespace UnityEditor.VFX
 
                 if (m_RenderingLayerMask != null)
                 {
-                    RenderPipelineAsset srpAsset = GraphicsSettings.currentRenderPipeline;
+                    string[] layerNames = null;
+                    var srpAsset = GraphicsSettings.currentRenderPipeline;
                     if (srpAsset != null)
+                        layerNames = srpAsset.renderingLayerMaskNames;
+
+                    if (layerNames == null)
+                        layerNames = s_DefaultRenderingLayerNames;
+
+                    if (layerNames != null)
                     {
-                        var layerNames = srpAsset.renderingLayerMaskNames;
-                        if (layerNames != null)
+                        var mask = (int)m_Renderers[0].renderingLayerMask;
+
+                        var rect = EditorGUILayout.GetControlRect();
+                        EditorGUI.showMixedValue = m_RenderingLayerMask.hasMultipleDifferentValues;
+                        EditorGUI.BeginProperty(rect, Contents.renderingLayerMaskStyle, m_RenderingLayerMask);
+                        EditorGUI.BeginChangeCheck();
+
+                        mask = EditorGUI.MaskField(rect, Contents.renderingLayerMaskStyle, mask, layerNames);
+
+                        if (EditorGUI.EndChangeCheck())
                         {
-                            var mask = (int)m_Renderers[0].renderingLayerMask;
-                            var rect = EditorGUILayout.GetControlRect();
-
-                            EditorGUI.BeginProperty(rect, Contents.renderingLayerMaskStyle, m_RenderingLayerMask);
-                            EditorGUI.BeginChangeCheck();
-
-                            mask = EditorGUI.MaskField(rect, Contents.renderingLayerMaskStyle, mask, layerNames);
-
-                            if (EditorGUI.EndChangeCheck())
-                                m_RenderingLayerMask.intValue = mask;
-
-                            EditorGUI.EndProperty();
+                            Undo.RecordObjects(m_SerializedRenderers.targetObjects, "Set rendering layer mask");
+                            foreach (var t in m_SerializedRenderers.targetObjects)
+                            {
+                                var r = t as VFXRenderer;
+                                if (r != null)
+                                {
+                                    r.renderingLayerMask = (uint)mask;
+                                    EditorUtility.SetDirty(t);
+                                }
+                            }
                         }
+
+                        EditorGUI.EndProperty();
+                        EditorGUI.showMixedValue = false;
                     }
                 }
 
