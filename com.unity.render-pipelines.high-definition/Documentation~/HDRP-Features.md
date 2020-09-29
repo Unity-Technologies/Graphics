@@ -167,6 +167,14 @@ For more information, including the full list of light properties, see the [Ligh
 
 HDRP supports cubemap and planar GPU Reflection Probes to help you produce realistic reflections in your Scene in real time. For more information, see the [introduction to Reflection Probes](Reflection-Probes-Intro.md)
 
+### Screen-space global illumination
+
+![](Images/HDRPFeatures-SSGI.png)
+
+HDRP supports screen-space global illumination (SSGI) as a fallback for ray-traced global illumination (RTGI). It is an algorithm that accesses the indirect diffuse lighting that the environment generates. It works in the same way as the [Screen Space Reflection](Override-Screen-Space-Reflection.md) in that it uses ray marching to calculate the result.
+
+Since this feature is a fallback for RTGI, for more information, see [Ray-traced Global Illumination](Ray-Traced-Global-Illumination.md).
+
 ### Screen-space reflection and refraction
 
 HDRP provides a screen-space solution for reflection and refraction. It uses the depth and color buffer of the screen to help simulate the path that light travels to the Camera and thus calculate accurate reflection and refraction. For more information, see the [screen-space reflection](Reflection-in-HDRP.md#ScreenSpaceReflection) and [screen-space refraction](Refraction-in-HDRP#ScreenSpaceRefraction) documentation.
@@ -174,6 +182,12 @@ HDRP provides a screen-space solution for reflection and refraction. It uses the
 ### Screen-space distortion
 
 HDRP provides a screen-space solution for distortion. Distortion is similar to refraction except that it is purely artistic driven. For more information, see the [distortion](Surface-Type.md#TransparencyInputs) documentation.
+
+### IES Profiles and light cookies
+
+![](Images/HDRPFeatures-IESProfiles.png)
+
+HDRP supports the Illuminating Engineering Society's (IES) file format for describing the distribution of light from a light source. HDRP supports the IES profile for Point, Spot (Cone, Pyramid, and Box), and rectangular Area [Lights](Light-Component.md). You can also mix the IES profile with [cookies](https://docs.unity3d.com/Manual/Cookies.html) and even use the profile and cookie mix for [light map baking](https://docs.unity3d.com/Manual/LightMode-Baked.html).
 
 ### Emission
 
@@ -246,7 +260,7 @@ HDRP uses real-world physical light units, so you can easily light your Scene in
 When using physical light unit, the intensity of lights can be really high and cause precision issue and clamping of highlight.
 To counteract this effect **HDRP use pre-exposure**. Pre-exposure apply the camera exposition from the previous frame before storing the lighting information.
 
-### Raytracing (Preview)
+### Ray tracing (Preview)
 
 HDRP uses ray tracing to replace some of its screen space effects, shadowing techniques, and Mesh rendering techniques.
 Real time raytracing effect are currently in Preview and behavior could change in the future.
@@ -272,7 +286,7 @@ HDRP includes its own purpose-built implementation for post-processing to produc
 
 ![Posterize](Images/HDRPFeatures-CustomPostProcess.png)
 
-HDRP allows you to add your own custom post processes integrated with the volume framework. They can be injected after opaque and sky object, before builtin post processes or after builtin post processes. For more information, see the [Custom Post-processing documentation](Custom-Post-Process.md).
+HDRP allows you to add your own custom post processes integrated with the volume framework. They can be injected after opaque and sky object, before the [temporal anti-aliasing](Anti-Aliasing.md#TAA) pass, before builtin post processes or after builtin post processes. For more information, see the [Custom Post-processing documentation](Custom-Post-Process.md).
 
 ### Anti-Aliasing
 
@@ -294,6 +308,18 @@ HDRP uses a physically-based Camera system that works seamlessly with the other 
 ![HDRPFeatures-CustomPass](Images/HDRPFeatures-CustomPass.gif)
 
 Custom Passes allow you to inject shader and C# at certain points inside the render loop, giving you the ability to draw objects, do fullscreen passes and read some camera buffers like depth, color or normal, see the [Custom Pass documentation](Custom-Pass.md).
+
+### Custom Pass AOV Export
+
+![img](Images/aov_example.png)
+
+This feature allows you to export arbitrary data from custom pass injection points using an extension of the Arbitrary Output Variables (AOV) API in HDRP. An example use-case is for exporting “Object IDs” that are rendered with a custom pass. For information about the feature and example scripts, see the [AOV documentation](AOVs.md).
+
+### Custom Pass API
+
+The Custom Pass API allows you to render GameObjects from another point of view, like a disabled camera, within the rendering of your main Camera. This API also comes with built-in support for rendering Depth, Normal and Tangent into an RTHandle.
+
+You can also use this Camera override to render some GameObjects with a different field of view, like arms in a first-person application.
 
 <a name="Tools"></a>
 
@@ -327,6 +353,21 @@ To match the scale of the GameObjects in your Scene, you can vary the pixel foot
 The Light Explorer allows you to select and edit light sources: Directional lights, Point lights, Spot lights, Area lights, Reflection Probes, Planar Probes and Sky and Fog volumes
 
 ![](Images/LightExplorer.png)
+
+### Graphics Compositor
+![](Images/Compositor-HDRPTemplateWithLogo_Feature.png)
+
+The Graphics Compositor allows real-time compositing operations between layers of 3D content, static images, and videos.
+
+This tool support three types of compositing techniques:
+
+- Graph-based compositions guided by Shader Graph.
+- Camera stacking compositions: Multiple cameras render to the same render target and the result can then be used in graph-based composition.
+- 3D composition: Insert composition layers into a 3D Scene to create effects like reflections/refractions between composited layers on a 3D GameObject.
+
+Overall, this tool allows you to compose a final frame by mixing images and videos with 3D content in real-time inside Unity, without the need of an external compositing tool.
+
+For information about the feature, see the [HDRP Compositor documentation](Compositor-Main.md).
 
 <a name="Programming"></a>
 
