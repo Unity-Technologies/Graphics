@@ -111,6 +111,8 @@ namespace UnityEngine.Rendering.Universal
             cmd.DisableScissorRect();
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
+
+            cmd.SetGlobalDepthBias(0.0f, 0.0f); // Restore previous depth bias values
         }
 
         public static void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context,
