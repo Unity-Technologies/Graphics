@@ -806,6 +806,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreKeywordDescriptors.WriteNormalBuffer, 1 },
         };
 
+        public static DefineCollection DepthForwardOnlyUnlit = new DefineCollection
+        {
+            { CoreKeywordDescriptors.WriteNormalBuffer, 1, new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, true)},
+        };
+
         public static DefineCollection ShaderGraphRaytracingDefault = new DefineCollection
         {
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
