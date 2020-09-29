@@ -107,6 +107,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with lens distortion breaking rendering.
 - Fixed save popup appearing twice due to HDRP wizard.
 - Fixed error when changing planar probe resolution.
+- Fixed the dependecy of FrameSettings (MSAA, ClearGBuffer, DepthPrepassWithDeferred) (case 1277620).
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
