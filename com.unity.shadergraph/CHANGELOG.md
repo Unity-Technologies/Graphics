@@ -17,6 +17,7 @@ The version number for this package has increased due to a version update of a r
 ### Changed
 - Added method chaining support to shadergraph collection API.
 - Optimized ShaderSubGraph import dependencies to minimize unnecessary reimports when using CustomFunctionNode
+- Cleaned up the UI to add/remove Targets
 
 ### Fixed
 - Fixed a bug where ShaderGraph subgraph nodes would not update their slot names or order
@@ -33,6 +34,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue where ShaderGraph shaders did not reimport automatically when missing dependencies were reintroduced [1182895]
 - Fixed an issue where ShaderGraph previews would not show error shaders when the active render pipeline is incompatible with the shader [1257015]
 - ShaderGraph DDX, DDY, DDXY, and NormalFromHeight nodes do not allow themselves to be connected to vertex shader, as the derivative instructions can't be used [1209087]
+- When ShaderGraph detects no active SRP, it will still continue to render the master preview, but it will use the error shader [1264642]
 - Fixed Undo handling when adding or removing Targets from a ShaderGraph [1257028]
 
 ## [10.0.0] - 2019-06-10
