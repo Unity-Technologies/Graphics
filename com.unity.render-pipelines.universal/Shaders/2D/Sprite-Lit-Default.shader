@@ -61,10 +61,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             SAMPLER(sampler_MainTex);
             TEXTURE2D(_MaskTex);
             SAMPLER(sampler_MaskTex);
-            TEXTURE2D(_NormalMap);
-            SAMPLER(sampler_NormalMap);
             half4 _MainTex_ST;
-            half4 _NormalMap_ST;
 
             #if USE_SHAPE_LIGHT_TYPE_0
             SHAPE_LIGHT(0)
