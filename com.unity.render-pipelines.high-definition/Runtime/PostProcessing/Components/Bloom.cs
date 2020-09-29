@@ -136,7 +136,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [Tooltip("When enabled, bloom uses multiple bilinear samples for the prefiltering pass.")]
         [SerializeField]
-        private BoolParameter m_HighQualityPrefiltering = new BoolParameter(true);
+        private BoolParameter m_HighQualityPrefiltering = new BoolParameter(false);
 
         [Tooltip("When enabled, bloom uses bicubic sampling instead of bilinear sampling for the upsampling passes.")]
         [SerializeField, FormerlySerializedAs("highQualityFiltering")]
