@@ -278,8 +278,6 @@ Shader "Universal Render Pipeline/Particles/Lit"
                 "LightMode" = "DebugMaterial"
             }
 
-            BlendOp[_BlendOp]
-            Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
             Cull[_Cull]
 
