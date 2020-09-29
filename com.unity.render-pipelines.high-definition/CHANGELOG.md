@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added option for 11-11-10 format for cube reflection probes.
 - Added an optional check in the HDRP DXR Wizard to verify 64 bits target architecture
 - Added option to display timing stats in the debug menu as an average over 1 second. 
+- Added the support of input system V2
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
