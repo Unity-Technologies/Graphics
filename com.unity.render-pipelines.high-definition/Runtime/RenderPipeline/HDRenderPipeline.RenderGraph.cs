@@ -665,41 +665,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        class DownsampleDepthForLowResPassData
-        {
-            public Material                    downsampleDepthMaterial;
-            public TextureHandle    depthTexture;
-            public TextureHandle    downsampledDepthBuffer;
-        }
-
-        TextureHandle DownsampleDepthForLowResTransparency(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture)
-        {
-            using (var builder = renderGraph.AddRenderPass<DownsampleDepthForLowResPassData>("Downsample Depth Buffer for Low Res Transparency", out var passData, ProfilingSampler.Get(HDProfileId.DownsampleDepth)))
-            {
-                // TODO: Add option to switch modes at runtime
-                if (m_Asset.currentPlatformRenderPipelineSettings.lowresTransparentSettings.checkerboardDepthBuffer)
-                {
-                    m_DownsampleDepthMaterial.EnableKeyword("CHECKERBOARD_DOWNSAMPLE");
-                }
-
-                passData.downsampleDepthMaterial = m_DownsampleDepthMaterial;
-                passData.depthTexture = builder.ReadTexture(depthTexture);
-                passData.downsampledDepthBuffer = builder.UseDepthBuffer(renderGraph.CreateTexture(
-                    new TextureDesc(Vector2.one * 0.5f, true, true) { depthBufferBits = DepthBits.Depth32, name = "LowResDepthBuffer" }), DepthAccess.Write);
-
-                builder.SetRenderFunc(
-                (DownsampleDepthForLowResPassData data, RenderGraphContext context) =>
-                {
-                    //CoreUtils.SetRenderTarget(cmd, m_SharedRTManager.GetLowResDepthBuffer());
-                    //cmd.SetViewport(new Rect(0, 0, hdCamera.actualWidth * 0.5f, hdCamera.actualHeight * 0.5f));
-
-                    context.cmd.DrawProcedural(Matrix4x4.identity, data.downsampleDepthMaterial, 0, MeshTopology.Triangles, 3, 1, null);
-                });
-
-                return passData.downsampledDepthBuffer;
-            }
-        }
-
         class RenderLowResTransparentPassData
         {
             public ShaderVariablesGlobal    globalCB;
@@ -905,9 +870,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent))
             {
-                var downsampledDepth = DownsampleDepthForLowResTransparency(renderGraph, hdCamera, prepassOutput.depthPyramidTexture);
-                var lowResTransparentBuffer = RenderLowResTransparent(renderGraph, hdCamera, downsampledDepth, cullingResults);
-                UpsampleTransparent(renderGraph, hdCamera, colorBuffer, lowResTransparentBuffer, downsampledDepth);
+                var lowResTransparentBuffer = RenderLowResTransparent(renderGraph, hdCamera, prepassOutput.downsampledDepthBuffer, cullingResults);
+                UpsampleTransparent(renderGraph, hdCamera, colorBuffer, lowResTransparentBuffer, prepassOutput.downsampledDepthBuffer);
             }
 
             // Fill depth buffer to reduce artifact for transparent object during postprocess
