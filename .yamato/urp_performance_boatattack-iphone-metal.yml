@@ -14,7 +14,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --report-performance-data --performance-project-id=BoatAttack --performance-project-version=..\..\.
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --report-performance-data --performance-project-id=BoatAttack --performance-project-version=C:\build\output\Unity-Technologies\Graphics\TestProjects\BoatAttack
     artifacts:
         logs:
             paths:
@@ -57,7 +57,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_trunk:
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --performance-project-version=..\..\.
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --performance-project-version=C:\build\output\Unity-Technologies\Graphics\TestProjects\BoatAttack
     artifacts:
         logs:
             paths:
@@ -74,7 +74,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --report-performance-data --performance-project-id=BoatAttack --performance-project-version=..\..\.
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --report-performance-data --performance-project-id=BoatAttack --performance-project-version=C:\build\output\Unity-Technologies\Graphics\TestProjects\BoatAttack
     artifacts:
         logs:
             paths:
@@ -124,7 +124,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_CUSTOM-REVISI
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --performance-project-version=..\..\.
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --performance-project-version=C:\build\output\Unity-Technologies\Graphics\TestProjects\BoatAttack
     artifacts:
         logs:
             paths:
