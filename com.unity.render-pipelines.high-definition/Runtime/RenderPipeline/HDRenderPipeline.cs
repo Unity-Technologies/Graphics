@@ -4683,7 +4683,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._ColorPyramidUvScaleAndLimitPrevFrame = HDUtils.ComputeViewportScaleAndLimit(hdCamera.historyRTHandleProperties.previousViewportSize, hdCamera.historyRTHandleProperties.previousRenderTargetSize);
             cb._SsrColorPyramidMaxMip = hdCamera.colorPyramidHistoryMipCount - 1;
             cb._SsrDepthPyramidMaxMip = depthPyramid.mipLevelCount - 1;
-            cb._SsrAccumulationAmount = Mathf.Pow(2, Mathf.Lerp(-0.0f, -12.0f, volumeSettings.accumulationFactor.value));
+            if (hdCamera.isFirstFrame || hdCamera.cameraFrameCount <= 2)
+                cb._SsrAccumulationAmount = 1.0f;
+            else
+                cb._SsrAccumulationAmount = Mathf.Pow(2, Mathf.Lerp(-0.0f, -12.0f, volumeSettings.accumulationFactor.value));
 
             parameters.offsetBufferData = depthPyramid.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
 

@@ -254,7 +254,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                 { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = !msaa,
                     bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = true, clearColor = Color.clear, name = msaa ? "CameraSSSDiffuseLightingMSAA" : "CameraSSSDiffuseLighting" });
-            }
+        }
 
         class DeferredLightingPassData
         {
@@ -469,7 +469,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.hitPointsTexture = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
                         { colorFormat = GraphicsFormat.R16G16_UNorm, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Hit_Point_Texture" });
                     passData.lightingTexture = builder.WriteTexture(ssrAccum);
-                    passData.ssrAccum = builder.WriteTexture(ssrAccum);
+                    passData.ssrAccum = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Lighting_Texture" }); 
                     passData.ssrAccumPrev = builder.WriteTexture(ssrAccumPrev);
 
                     builder.SetRenderFunc(
