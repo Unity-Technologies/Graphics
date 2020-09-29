@@ -57,6 +57,7 @@ The version number for this package has increased due to a version update of a r
 - Fix hierarchicalbox gizmo outside facing check in symetry or homothety mode no longer move the center
 - Fix artifacts on Adreno 630 GPUs when using ACES Tonemapping
 - Fixed a null ref in the volume component list when there is no volume components in the project.
+- Fixed issue with volume manager trying to access a null volume.
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.
