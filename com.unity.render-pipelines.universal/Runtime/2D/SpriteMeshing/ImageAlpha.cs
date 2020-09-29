@@ -55,17 +55,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return GetImageAlphaType(alpha, alphaCutoff);
         }
 
-
         public void Copy(Texture2D texture, int4 tileRect)
         {
             Color32[] colors = texture.GetPixels32();
 
-            int textureWidth = texture.width;
-            for (int y = 0; y < height; y++)
+            for (int y = 0; y < tileRect.w; y++)
             {
-                for (int x = 0; x < width; x++)
+                for (int x = 0; x < tileRect.z; x++)
                 {
-                    int colorsIndex = (x + tileRect.x) + (y + tileRect.y) * textureWidth;
+                    int colorsIndex = (x + tileRect.x) + (y + tileRect.y) * texture.width;
                     int imageAlphaIndex = x + y * width;
                     imageAlpha[imageAlphaIndex] = colors[colorsIndex].a;
                 }
