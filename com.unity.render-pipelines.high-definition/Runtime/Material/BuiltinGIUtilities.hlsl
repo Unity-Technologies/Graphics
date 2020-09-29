@@ -45,8 +45,8 @@ void EvaluateLightmap(float3 positionRWS, float3 normalWS, float3 backNormalWS, 
 #ifdef LIGHTMAP_ON
     #ifdef DIRLIGHTMAP_COMBINED
         #ifdef UNITY_DOTS_INSTANCING_ENABLED
-            SampleDirectionalLightmap(TEXTURE2D_ARRAY_ARGS(unity_Lightmaps, samplerunity_Lightmaps_linear_clamp),
-                TEXTURE2D_ARRAY_ARGS(unity_LightmapsInd, samplerunity_Lightmaps_linear_clamp),
+            SampleDirectionalLightmap(TEXTURE2D_ARRAY_ARGS(unity_Lightmaps, samplerunity_Lightmaps),
+                TEXTURE2D_ARRAY_ARGS(unity_LightmapsInd, samplerunity_Lightmaps),
                 uvStaticLightmap, unity_LightmapIndex.x, unity_LightmapST, normalWS, backNormalWS, useRGBMLightmap, decodeInstructions, bakeDiffuseLighting, backBakeDiffuseLighting);
         #else
             SampleDirectionalLightmap(TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap),
@@ -55,7 +55,7 @@ void EvaluateLightmap(float3 positionRWS, float3 normalWS, float3 backNormalWS, 
         #endif
     #else
         #ifdef UNITY_DOTS_INSTANCING_ENABLED
-            float3 illuminance = SampleSingleLightmap(TEXTURE2D_ARRAY_ARGS(unity_Lightmaps, samplerunity_Lightmaps_linear_clamp), uvStaticLightmap, unity_LightmapIndex, unity_LightmapST, useRGBMLightmap, decodeInstructions);
+            float3 illuminance = SampleSingleLightmap(TEXTURE2D_ARRAY_ARGS(unity_Lightmaps, samplerunity_Lightmaps), uvStaticLightmap, unity_LightmapIndex, unity_LightmapST, useRGBMLightmap, decodeInstructions);
                 bakeDiffuseLighting += illuminance;
                 backBakeDiffuseLighting += illuminance;
         #else
