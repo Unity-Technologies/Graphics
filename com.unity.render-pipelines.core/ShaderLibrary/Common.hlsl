@@ -77,7 +77,13 @@
 #define PREFER_HALF 1
 #endif
 
-#if HAS_HALF && PREFER_HALF
+// Unity historically has a mixed stance on default sampler precision between mobiles and other platforms,
+// and changes without altering existing behavior/performance is difficult.
+//
+// When UNITY_UNIFIED_SHADER_PRECISION_MODEL is defined, the expectation is to have full precision
+// on all platforms and explicitly optimize against lower precision when useful.
+
+#if !defined(UNITY_UNIFIED_SHADER_PRECISION_MODEL) && HAS_HALF && PREFER_HALF
 #define REAL_IS_HALF 1
 #else
 #define REAL_IS_HALF 0
@@ -219,6 +225,12 @@
 // Helper macro to compute lane swizzle offset starting from andMask, orMask and xorMask.
 // IMPORTANT, to guarantee compatibility with all platforms, the masks need to be constant literals (constants at compile time)
 #define LANE_SWIZZLE_OFFSET(andMask, orMask, xorMask)  (andMask | (orMask << 5) | (xorMask << 10))
+#endif
+
+// For multi_compile
+#ifdef PLATFORM_LANE_COUNT_32
+#undef PLATFORM_LANE_COUNT
+#define PLATFORM_LANE_COUNT 32
 #endif
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonDeprecated.hlsl"
