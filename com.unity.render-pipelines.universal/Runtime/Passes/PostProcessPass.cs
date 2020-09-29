@@ -130,6 +130,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle source, in RenderTargetHandle destination, in RenderTargetHandle depth, in RenderTargetHandle internalLut, bool hasFinalPass, bool enableSRGBConversion)
         {
             m_Descriptor = baseDescriptor;
+            m_Descriptor.useMipMap = false;
+            m_Descriptor.autoGenerateMips = false;
             m_Source = source;
             m_Destination = destination;
             m_Depth = depth;
@@ -213,7 +215,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     RenderFinalPass(cmd, ref renderingData);
                 }
-                
+
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
             }
