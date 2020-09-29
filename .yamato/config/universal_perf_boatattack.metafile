@@ -8,6 +8,7 @@ test_platforms:
     extra_utr_flags:
       - --report-performance-data
       - --performance-project-id=BoatAttack
+      - --performance-project-version=..\..\.
     extra_utr_flags_build:
       - --extra-editor-arg="-executemethod Editor.Setup"
       - --extra-editor-arg="-testCategory Performance"
@@ -26,6 +27,7 @@ test_platforms:
       - --report-performance-data
       - --performance-project-id=URP_Performance
       - --testfilter=Build
+      - --performance-project-version=..\..\.
 platforms:
   - name: Win
     apis:

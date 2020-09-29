@@ -74,6 +74,7 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor):
     utr_args.append(f'--timeout={get_timeout(test_platform, "Win", build=True)}')
 
     if not test_platform['is_performance']:
+        utr_args.extend(['--extra-editor-arg="-executemethod"'])
         utr_args.extend([f'--extra-editor-arg="CustomBuild.BuildWindows{api["name"]}Linear"'])
     
     base = _cmd_base(project_folder, platform, utr_args, editor)

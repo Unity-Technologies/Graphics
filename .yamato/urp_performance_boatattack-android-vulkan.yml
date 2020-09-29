@@ -19,7 +19,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --report-performance-data --performance-project-id=URP_Performance --scripting-backend=il2cpp --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --report-performance-data --performance-project-id=BoatAttack --performance-project-version=..\..\. --scripting-backend=il2cpp --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -44,7 +44,7 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_Player_trunk:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --scripting-backend=il2cpp --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --scripting-backend=il2cpp --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
     artifacts:
         logs:
             paths:
@@ -93,7 +93,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+                 utr --suite=editor --platform=editmode --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --performance-project-version=..\..\.
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -116,7 +116,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --report-performance-data --performance-project-id=URP_Performance --scripting-backend=il2cpp --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --report-performance-data --performance-project-id=BoatAttack --performance-project-version=..\..\. --scripting-backend=il2cpp --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -144,7 +144,7 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_Player_CUSTOM-REVISION:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --scripting-backend=il2cpp --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --scripting-backend=il2cpp --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
     artifacts:
         logs:
             paths:
@@ -197,7 +197,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_CUSTOM-REVI
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+                 utr --suite=editor --platform=editmode --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --performance-project-version=..\..\.
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
