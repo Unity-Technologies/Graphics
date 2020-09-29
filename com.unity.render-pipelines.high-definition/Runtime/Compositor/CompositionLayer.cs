@@ -600,6 +600,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     if (m_Type != LayerType.Image)
                     {
                         compositorData.clearColorTexture = targetLayer.GetRenderTarget();
+                        compositorData.clearDepthTexture = targetLayer.m_RTHandle;
                     }
                     cameraData.volumeLayerMask |= 1 << 31;
                 }
@@ -612,7 +613,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             // The target layer expects AOVs, so this stacked layer should also generate AOVs
             int aovMask = (1 << (int)targetLayer.m_AOVBitmask);
-            if (aovMask > 1)
+            if (m_Show && aovMask > 1)
             {
                 var aovRequestBuilder = new AOVRequestBuilder();
 

@@ -327,6 +327,32 @@ namespace UnityEngine.Rendering.HighDefinition
             s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevel);
             BlitTexture(cmd, source, scaleBias, GetBlitMaterial(TextureXR.dimension), bilinear ? 1 : 0);
         }
+
+        /// <summary>
+        /// Blit a 2D texture and depth buffer.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="sourceColor">Source Texture for color.</param>
+        /// <param name="sourceDepth">Source RenderTexture for depth.</param>
+        /// <param name="scaleBias">Scale and bias for sampling the input texture.</param>
+        /// <param name="mipLevel">Mip level to blit.</param>
+        /// <param name="bilinear">Enable bilinear filtering.</param>
+        internal static void BlitColorAndDepth(CommandBuffer cmd, Texture sourceColor, RenderTexture sourceDepth, Vector4 scaleBias, float mipLevel, bool blitDepth)
+        {
+            HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            if (hdPipeline != null)
+            {
+                Material mat = hdPipeline.GetBlitColorAndDepthMaterial();
+
+                s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevel);
+                s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
+                s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, sourceColor);
+                if (blitDepth)
+                    s_PropertyBlock.SetTexture(HDShaderIDs._InputDepth, sourceDepth, RenderTextureSubElement.Depth);
+                cmd.DrawProcedural(Matrix4x4.identity, mat, blitDepth ? 1 : 0, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
+            }
+        }
+
         /// <summary>
         /// Blit a RTHandle texture
         /// </summary>

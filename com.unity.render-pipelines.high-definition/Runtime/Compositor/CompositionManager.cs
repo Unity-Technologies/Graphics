@@ -817,18 +817,38 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         static public CompositionManager GetInstance() =>
             s_CompositorInstance ?? (s_CompositorInstance = GameObject.FindObjectOfType(typeof(CompositionManager), true) as CompositionManager);
 
-        // Returns true if the input camera is stacked on top of another one
-        static public bool IsThisCameraStacked(HDCamera hdCamera)
+        /// <summary>
+        /// For stacked cameras, returns the color buffer that will be used to draw on top
+        /// </summary>
+        /// <param name="hdCamera">The input camera</param>
+        /// <returns> The color buffer that will be used to draw on top, or null if not a stacked camera </returns>
+        static internal Texture GetClearTextureForStackedCamera(HDCamera hdCamera)
         {
             AdditionalCompositorData compositorData = null;
             hdCamera.camera.TryGetComponent<AdditionalCompositorData>(out compositorData);
 
             if (compositorData)
             {
-                // if the camera is part of a camera stack, the clear color texture will not be null
-                return (compositorData.clearColorTexture != null);
+                return compositorData.clearColorTexture;
             }
-            return false;
+            return null;
+        }
+
+        /// <summary>
+        /// For stacked cameras, returns the depth buffer that will be used to draw on top
+        /// </summary>
+        /// <param name="hdCamera">The input camera</param>
+        /// <returns> The depth buffer that will be used to draw on top, or null if not a stacked camera </returns>
+        static internal RenderTexture GetClearDepthForStackedCamera(HDCamera hdCamera)
+        {
+            AdditionalCompositorData compositorData = null;
+            hdCamera.camera.TryGetComponent<AdditionalCompositorData>(out compositorData);
+
+            if (compositorData)
+            {
+                return compositorData.clearDepthTexture;
+            }
+            return null;
         }
 
     }
