@@ -20,7 +20,7 @@ CBUFFER_END
 
 float3 BilinearSample(float2 uv, float2 offset, out float weight)
 {
-    float3 c = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_linear_clamp_sampler, ClampAndScaleUVForBilinear(uv + _ScreenSize.zw * offset, _ScreenSize.zw), 0.0).xyz;
+    float3 c = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_linear_clamp_sampler, ClampAndScaleUVForBilinear(uv + offset * _ScreenSize.zw), 0.0).xyz;
     c = QuadraticThreshold(c, _BloomThreshold.x, _BloomThreshold.yzw);
 
     weight = 1.0 / (Luminance(c) + 1.0);
