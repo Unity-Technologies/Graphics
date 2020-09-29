@@ -1147,7 +1147,7 @@ namespace UnityEditor.VFX
             private VFXRenderer[] m_Renderers;
             private SerializedObject m_SerializedRenderers;
 
-            private SerializedProperty m_TransparentPriority;
+            private SerializedProperty m_RendererPriority;
             private SerializedProperty m_RenderingLayerMask;
             private SerializedProperty m_LightProbeUsage;
             private SerializedProperty m_LightProbeVolumeOverride;
@@ -1159,7 +1159,7 @@ namespace UnityEditor.VFX
                 m_Renderers = renderers;
                 m_SerializedRenderers = new SerializedObject(m_Renderers);
 
-                m_TransparentPriority = m_SerializedRenderers.FindProperty("m_RendererPriority");
+                m_RendererPriority = m_SerializedRenderers.FindProperty("m_RendererPriority");
                 m_RenderingLayerMask = m_SerializedRenderers.FindProperty("m_RenderingLayerMask");
                 m_LightProbeUsage = m_SerializedRenderers.FindProperty("m_LightProbeUsage");
                 m_LightProbeVolumeOverride = m_SerializedRenderers.FindProperty("m_LightProbeVolumeOverride");
@@ -1171,8 +1171,8 @@ namespace UnityEditor.VFX
             {
                 m_SerializedRenderers.Update();
 
-                if (m_TransparentPriority != null)
-                    EditorGUILayout.PropertyField(m_TransparentPriority, Contents.rendererPriorityStyle);
+                if (m_RendererPriority != null && SupportedRenderingFeatures.active.rendererPriority)
+                    EditorGUILayout.PropertyField(m_RendererPriority, Contents.rendererPriorityStyle);
 
                 if (m_RenderingLayerMask != null)
                 {
@@ -1236,7 +1236,7 @@ namespace UnityEditor.VFX
             private static class Contents
             {
                 public static readonly GUIContent renderingLayerMaskStyle =         EditorGUIUtility.TrTextContent("Rendering Layer Mask", "Mask that can be used with SRP DrawRenderers command to filter renderers outside of the normal layering system.");
-                public static readonly GUIContent rendererPriorityStyle =           EditorGUIUtility.TrTextContent("Transparency Priority", "Priority used for sorting objects on top of material render queue.");
+                public static readonly GUIContent rendererPriorityStyle =           EditorGUIUtility.TrTextContent("Priority", "Priority used for sorting objects on top of material render queue.");
                 public static readonly GUIContent lightProbeUsageStyle =            EditorGUIUtility.TrTextContent("Light Probes", "Specifies how Light Probes will handle the interpolation of lighting and occlusion.");
                 public static readonly GUIContent reflectionProbeUsageStyle =       EditorGUIUtility.TrTextContent("Reflection Probes", "Specifies if or how the object is affected by reflections in the Scene.  This property cannot be disabled in deferred rendering modes.");
                 public static readonly GUIContent lightProbeVolumeOverrideStyle =   EditorGUIUtility.TrTextContent("Proxy Volume Override", "If set, the Renderer will use the Light Probe Proxy Volume component from another GameObject.");
