@@ -199,7 +199,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     //bool tileFlagsWritten = false;
 
                     ClearLightLists(data.buildGPULightListParameters, buildLightListResources, context.cmd);
-                    // GenerateLightsScreenSpaceAABBs(data.buildGPULightListParameters, buildLightListResources, context.cmd);
+                    GenerateLightsScreenSpaceAABBs(data.buildGPULightListParameters, buildLightListResources, context.cmd);
                     //BigTilePrepass(data.buildGPULightListParameters, buildLightListResources, context.cmd);
                     // BuildPerTileLightList(data.buildGPULightListParameters, buildLightListResources, ref tileFlagsWritten, context.cmd);
                     // VoxelLightListGeneration(data.buildGPULightListParameters, buildLightListResources, context.cmd);

@@ -10,7 +10,7 @@
 
 /* ------------------------------ Inputs ------------------------------------ */
 
-StructuredBuffer<SFiniteLightBound> g_data : register(t0);
+StructuredBuffer<FiniteLightBound> g_data : register(t0);
 
 /* ------------------------------ Outputs ----------------------------------- */
 
@@ -111,16 +111,16 @@ float4x4 PerspectiveProjection4x4(float a, float g, float n, float f)
 
 // Clipping a plane by a cube may produce a hexagon (6-gon).
 // Clipping a hexagon by 4 planes may produce a decagon (10-gon).
-#define MAX_CLIP_VERTS    (10)
-#define NUM_VERTS         (8)
-#define NUM_FACES         (6)
-#define NUM_PLANES        (6)
-#define THREADS_PER_GROUP (64)
-#define THREADS_PER_LIGHT (4) // Set to 1 for debugging
-#define LIGHTS_PER_GROUP  (THREADS_PER_GROUP / THREADS_PER_LIGHT)
-#define VERTS_PER_GROUP   (NUM_VERTS * LIGHTS_PER_GROUP)
-#define VERTS_PER_THREAD  (NUM_VERTS / THREADS_PER_LIGHT)
-#define FACES_PER_THREAD  DIV_ROUND_UP(NUM_FACES, THREADS_PER_LIGHT)
+#define MAX_CLIP_VERTS     (10)
+#define NUM_VERTS          (8)
+#define NUM_FACES          (6)
+#define NUM_PLANES         (6)
+#define THREADS_PER_GROUP  (64)
+#define THREADS_PER_ENTITY (4) // Set to 1 for debugging
+#define ENTITIES_PER_GROUP (THREADS_PER_GROUP / THREADS_PER_ENTITY)
+#define VERTS_PER_GROUP    (NUM_VERTS * ENTITIES_PER_GROUP)
+#define VERTS_PER_THREAD   (NUM_VERTS / THREADS_PER_ENTITY)
+#define FACES_PER_THREAD   DIV_ROUND_UP(NUM_FACES, THREADS_PER_ENTITY)
 
 // All planes and faces are always in the standard order (see below).
 // Near and far planes are swapped in the case of Z-reversal, but it does not change the algorithm.
@@ -188,20 +188,20 @@ groupshared float gs_HapVertsW[VERTS_PER_GROUP];
 groupshared uint  gs_BehindMasksOfVerts[VERTS_PER_GROUP]; // 6 planes each (HLSL does not support small data types)
 
 #ifndef PLATFORM_SUPPORTS_WAVE_INTRINSICS
-// 1 array *  16 elements * 4 bytes each = 64 bytes.
-groupshared uint  gs_CullClipFaceMasks[LIGHTS_PER_GROUP]; // 6 faces  each (HLSL does not support small data types)
+// 1 array * 16 elements * 4 bytes each = 64 bytes.
+groupshared uint  gs_CullClipFaceMasks[ENTITIES_PER_GROUP]; // 6 faces each (HLSL does not support small data types)
 
 // 8 arrays * 16 elements * 4 bytes each = 512 bytes.
 // These are actually floats reinterpreted as uints.
 // The reason is because floating-point atomic operations are not supported.
-groupshared uint  gs_NdcAaBbMinPtX[LIGHTS_PER_GROUP];
-groupshared uint  gs_NdcAaBbMaxPtX[LIGHTS_PER_GROUP];
-groupshared uint  gs_NdcAaBbMinPtY[LIGHTS_PER_GROUP];
-groupshared uint  gs_NdcAaBbMaxPtY[LIGHTS_PER_GROUP];
-groupshared uint  gs_NdcAaBbMinPtZ[LIGHTS_PER_GROUP]; // Note that min-max Z cannot be trivially reconstructed
-groupshared uint  gs_NdcAaBbMaxPtZ[LIGHTS_PER_GROUP]; // from min-max W if the projection is oblique.
-groupshared uint  gs_NdcAaBbMinPtW[LIGHTS_PER_GROUP]; // View-space Z coordinate
-groupshared uint  gs_NdcAaBbMaxPtW[LIGHTS_PER_GROUP]; // View-space Z coordinate
+groupshared uint  gs_NdcAaBbMinPtX[ENTITIES_PER_GROUP];
+groupshared uint  gs_NdcAaBbMaxPtX[ENTITIES_PER_GROUP];
+groupshared uint  gs_NdcAaBbMinPtY[ENTITIES_PER_GROUP];
+groupshared uint  gs_NdcAaBbMaxPtY[ENTITIES_PER_GROUP];
+groupshared uint  gs_NdcAaBbMinPtZ[ENTITIES_PER_GROUP]; // Note that min-max Z cannot be trivially reconstructed
+groupshared uint  gs_NdcAaBbMaxPtZ[ENTITIES_PER_GROUP]; // from min-max W if the projection is oblique.
+groupshared uint  gs_NdcAaBbMinPtW[ENTITIES_PER_GROUP]; // View-space Z coordinate
+groupshared uint  gs_NdcAaBbMaxPtW[ENTITIES_PER_GROUP]; // View-space Z coordinate
 #endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
 
 // Returns 'true' if it manages to cull the face.
@@ -385,24 +385,24 @@ void UpdateAaBb(uint srcBegin, uint srcSize, float4 vertRingBuffer[MAX_CLIP_VERT
 }
 
 //**********************************************************************************************
-// The goal of this program is to compute the AABB of the light in the NDC space ([0, 1] range).
-// The light is represented by a convex volume (a cuboid) with 6 faces (planar quads) and 8 vertices.
+// The goal of this program is to compute the AABB of the entity in the NDC space ([0, 1] range).
+// The entity is represented by a convex volume (a frustum) with 6 faces (planar quads) and 8 vertices.
 //
-// Since a light volume may be partially off-screen, we must clip it before computing the AABB.
-// Clipping the resulting AABB (rather than the light volume itself) may result in a loose AABB.
+// Since an entity's bounding volume may be partially off-screen, we must clip it before computing the AABB.
+// Clipping the resulting AABB (rather than the bounding volume) may result in a loose AABB.
 //
 // To avoid having to deal with the "Moebius twist" property of the perspective transform,
 // we perform clipping using the homogeneous (projective) post-perspective coordinates.
 // This clipping method in described in Blinn's paper titled "Line Clipping".
 //
-// The algorithm processes a light on 4 threads. While all 6 faces may require clipping in the
+// The algorithm processes an entity on 4 threads. While all 6 faces may require clipping in the
 // worst case, clipping more than 4 faces is very uncommon (typically, we clip 0, 3 or 4).
 // Some faces may require culling rather than clipping (the former is simpler).
 //
 // It's important to realize that face culling may end up culling 5 (or even all 6) faces.
-// This means that the clipped light volume may be reduced to a single polygon, or nothing at all.
-// (Imagine a view volume completely or partially inside a light volume).
-// Therefore, we must perform view-volume-corner-inside-light-volume tests.
+// This means that the clipped volume may be reduced to a single polygon, or nothing at all.
+// (Imagine a view volume completely or partially inside a bounding volume).
+// Therefore, we must perform view-volume-corner-inside-bounding-volume tests.
 //
 //
 // Notation:
@@ -419,12 +419,13 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     const uint g        = groupID.x;
     const uint eyeIndex = groupID.y; // Currently, can only be 0 or 1
 
-    const uint intraGroupLightIndex = t / THREADS_PER_LIGHT;
-    const uint globalLightIndex     = g * LIGHTS_PER_GROUP + intraGroupLightIndex;
-    const uint baseVertexOffset     = intraGroupLightIndex * NUM_VERTS;
+    const uint intraGroupEntityIndex = t / THREADS_PER_ENTITY;
+    const uint globalEntityIndex     = g * ENTITIES_PER_GROUP + intraGroupEntityIndex;
+    const uint baseVertexOffset      = intraGroupEntityIndex * NUM_VERTS;
 
-    const uint eyeAdjustedInputOffset = GenerateLightCullDataIndex(globalLightIndex, g_iNrVisibLights, eyeIndex);
-    const SFiniteLightBound  cullData = g_data[eyeAdjustedInputOffset];
+    // The function call below will not generate an out-of-bounds index.
+    const uint eyeAdjustedInputOffset = GenerateLightCullDataIndex(globalEntityIndex, _BoundedEntityCount, eyeIndex);
+    const FiniteLightBound cullData   = g_data[eyeAdjustedInputOffset];
 
     const float4x4 projMat    = g_mProjectionArr[eyeIndex];
     const float4x4 invProjMat = g_mInvProjectionArr[eyeIndex];
@@ -437,17 +438,17 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 
 #ifndef PLATFORM_SUPPORTS_WAVE_INTRINSICS
     // (0) Initialize the TGSM.
-    if (t % THREADS_PER_LIGHT == 0) // Avoid bank conflicts
+    if (t % THREADS_PER_ENTITY == 0) // Avoid bank conflicts
     {
-        gs_CullClipFaceMasks[intraGroupLightIndex] = 0; // Initially inside
-        gs_NdcAaBbMinPtX[intraGroupLightIndex]     = asuint(1.0f);
-        gs_NdcAaBbMaxPtX[intraGroupLightIndex]     = asuint(0.0f);
-        gs_NdcAaBbMinPtY[intraGroupLightIndex]     = asuint(1.0f);
-        gs_NdcAaBbMaxPtY[intraGroupLightIndex]     = asuint(0.0f);
-        gs_NdcAaBbMinPtZ[intraGroupLightIndex]     = asuint(1.0f);
-        gs_NdcAaBbMaxPtZ[intraGroupLightIndex]     = asuint(0.0f);
-        gs_NdcAaBbMinPtW[intraGroupLightIndex]     = asuint(FLT_INF);
-        gs_NdcAaBbMaxPtW[intraGroupLightIndex]     = asuint(0.0f);
+        gs_CullClipFaceMasks[intraGroupEntityIndex] = 0; // Initially inside
+        gs_NdcAaBbMinPtX[intraGroupEntityIndex]     = asuint(1.0f);
+        gs_NdcAaBbMaxPtX[intraGroupEntityIndex]     = asuint(0.0f);
+        gs_NdcAaBbMinPtY[intraGroupEntityIndex]     = asuint(1.0f);
+        gs_NdcAaBbMaxPtY[intraGroupEntityIndex]     = asuint(0.0f);
+        gs_NdcAaBbMinPtZ[intraGroupEntityIndex]     = asuint(1.0f);
+        gs_NdcAaBbMaxPtZ[intraGroupEntityIndex]     = asuint(0.0f);
+        gs_NdcAaBbMinPtW[intraGroupEntityIndex]     = asuint(FLT_INF);
+        gs_NdcAaBbMaxPtW[intraGroupEntityIndex]     = asuint(0.0f);
     }
 #endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
 
@@ -462,10 +463,10 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 
     uint i; // Avoid multiply-declared variable warning
 
-    // (1) Compute the vertices of the light volume.
+    // (1) Compute the vertices of the bounding volume.
     for (i = 0; i < VERTS_PER_THREAD; i++)
     {
-        uint v = i * THREADS_PER_LIGHT + t % THREADS_PER_LIGHT;
+        uint v = i * THREADS_PER_ENTITY + t % THREADS_PER_ENTITY;
 
         // rbpVerts[0] = rbpC - rbpX * scale - rbpY * scale - rbpZ; (-s, -s, -1)
         // rbpVerts[1] = rbpC + rbpX * scale - rbpY * scale - rbpZ; (+s, -s, -1)
@@ -534,7 +535,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     }
 
 #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
-    for (i = 0; i < FastLog2(THREADS_PER_LIGHT); i++)
+    for (i = 0; i < FastLog2(THREADS_PER_ENTITY); i++)
     {
         uint andMask = PLATFORM_LANE_COUNT - 1; // All lanes
         uint orMask  = 0;                       // Plays no role
@@ -543,29 +544,29 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
         cullClipFaceMask |= LaneSwizzle(cullClipFaceMask, andMask, orMask, xorMask);
     }
 #else
-    InterlockedOr(gs_CullClipFaceMasks[intraGroupLightIndex], cullClipFaceMask);
+    InterlockedOr(gs_CullClipFaceMasks[intraGroupEntityIndex], cullClipFaceMask);
 
     GroupMemoryBarrierWithGroupSync();
 
-    cullClipFaceMask = gs_CullClipFaceMasks[intraGroupLightIndex];
+    cullClipFaceMask = gs_CullClipFaceMasks[intraGroupEntityIndex];
 #endif
 
     // (2) Test the corners of the view volume.
     if (cullClipFaceMask != 0)
     {
-        // The light is partially outside the view volume.
-        // Therefore, some of the corners of the view volume may be inside the light volume.
+        // The entity is partially outside the view volume.
+        // Therefore, some of the corners of the view volume may be inside the entity's bounding volume.
         // We perform aggressive culling, so we must make sure they are accounted for.
-        // The light volume is a special type of cuboid - a right frustum.
-        // We can exploit this fact by building a light-space projection matrix.
-        float4x4 invTranslateToLightSpace      = Translation4x4(-rbpC);
-        float4x4 invRotateAndScaleInLightSpace = Homogenize3x3(Invert3x3(ScaledRotation3x3(rbpX, rbpY, rbpZ)));
+        // The bounding volume is a special type of cuboid - a right frustum.
+        // We can exploit this fact by building a entity-space projection matrix.
+        float4x4 invTranslateToEntitySpace      = Translation4x4(-rbpC);
+        float4x4 invRotateAndScaleInEntitySpace = Homogenize3x3(Invert3x3(ScaledRotation3x3(rbpX, rbpY, rbpZ)));
         // TODO: avoid full inversion by using unit vectors and passing magnitudes explicitly.
 
-        // This (orthographic) projection matrix maps a view-space point to a light-space [-1, 1]^3 cube.
-        float4x4 lightSpaceMatrix = mul(invRotateAndScaleInLightSpace, invTranslateToLightSpace);
+        // This (orthographic) projection matrix maps a view-space point to a entity-space [-1, 1]^3 cube.
+        float4x4 entitySpaceMatrix = mul(invRotateAndScaleInEntitySpace, invTranslateToEntitySpace);
 
-        if (scale != 1) // Perspective light space?
+        if (scale != 1) // Perspective entity space?
         {
             // Compute the parameters of the perspective projection.
             float s = scale;
@@ -577,20 +578,20 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
             float4x4 invTranslateEye = Translation4x4(float3(0, 0, -e));
             float4x4 perspProjMatrix = PerspectiveProjection4x4(1, g, n, f);
 
-            lightSpaceMatrix = mul(mul(perspProjMatrix, invTranslateEye), lightSpaceMatrix);
+            entitySpaceMatrix = mul(mul(perspProjMatrix, invTranslateEye), entitySpaceMatrix);
         }
 
         for (i = 0; i < VERTS_PER_THREAD; i++)
         {
-            uint v = i * THREADS_PER_LIGHT + t % THREADS_PER_LIGHT;
+            uint v = i * THREADS_PER_ENTITY + t % THREADS_PER_ENTITY;
 
             float3 rapVertCS = GenerateVertexOfStandardCube(v);
             rapVertCS.z = rapVertCS.z * 0.5 + 0.5; // View's projection matrix MUST map Z to [0, 1]
 
             float4 hbpVertVS = mul(invProjMat, float4(rapVertCS, 1)); // Clip to view space
-            float4 hapVertLS = mul(lightSpaceMatrix, hbpVertVS);      // View to light space
+            float4 hapVertLS = mul(entitySpaceMatrix, hbpVertVS);     // View to entity space
 
-            // Consider the vertex to be inside the light volume if:
+            // Consider the vertex to be inside the entity's bounding volume if:
             // -w < x < w
             // -w < y < w   <-- exclude boundary points, as we will not clip using these vertices
             // -w < z < w   <-- assume that Z-precision is not very important here
@@ -628,7 +629,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 
         for (i = 0; i < FACES_PER_THREAD; i++)
         {
-            uint n = i * THREADS_PER_LIGHT + t % THREADS_PER_LIGHT;
+            uint n = i * THREADS_PER_ENTITY + t % THREADS_PER_ENTITY;
 
             if (n < numFacesToCull)
             {
@@ -643,7 +644,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     }
 
 #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
-    for (i = 0; i < FastLog2(THREADS_PER_LIGHT); i++)
+    for (i = 0; i < FastLog2(THREADS_PER_ENTITY); i++)
     {
         uint andMask = PLATFORM_LANE_COUNT - 1; // All lanes
         uint orMask  = 0;                       // Plays no role
@@ -652,11 +653,11 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
         cullClipFaceMask &= LaneSwizzle(cullClipFaceMask, andMask, orMask, xorMask);
     }
 #else
-    InterlockedAnd(gs_CullClipFaceMasks[intraGroupLightIndex], cullClipFaceMask);
+    InterlockedAnd(gs_CullClipFaceMasks[intraGroupEntityIndex], cullClipFaceMask);
 
     GroupMemoryBarrierWithGroupSync();
 
-    cullClipFaceMask = gs_CullClipFaceMasks[intraGroupLightIndex];
+    cullClipFaceMask = gs_CullClipFaceMasks[intraGroupEntityIndex];
 #endif
 
     // (4) Clip the faces.
@@ -666,7 +667,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 
         for (i = 0; i < FACES_PER_THREAD; i++)
         {
-            uint n = i * THREADS_PER_LIGHT + t % THREADS_PER_LIGHT;
+            uint n = i * THREADS_PER_ENTITY + t % THREADS_PER_ENTITY;
 
             if (n < numFacesToClip)
             {
@@ -683,7 +684,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     }
 
 #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
-    for (i = 0; i < FastLog2(THREADS_PER_LIGHT); i++)
+    for (i = 0; i < FastLog2(THREADS_PER_ENTITY); i++)
     {
         uint andMask = PLATFORM_LANE_COUNT - 1; // All lanes
         uint orMask  = 0;                       // Plays no role
@@ -701,32 +702,32 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 #else
     // Integer comparison works for floating-point numbers as long as the sign bit is 0.
     // We must take care of -0 ourselves. saturate() does not help.
-    InterlockedMin(gs_NdcAaBbMinPtX[intraGroupLightIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMinPt.x)));
-    InterlockedMax(gs_NdcAaBbMaxPtX[intraGroupLightIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMaxPt.x)));
-    InterlockedMin(gs_NdcAaBbMinPtY[intraGroupLightIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMinPt.y)));
-    InterlockedMax(gs_NdcAaBbMaxPtY[intraGroupLightIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMaxPt.y)));
-    InterlockedMin(gs_NdcAaBbMinPtZ[intraGroupLightIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMinPt.z)));
-    InterlockedMax(gs_NdcAaBbMaxPtZ[intraGroupLightIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMaxPt.z)));
-    InterlockedMin(gs_NdcAaBbMinPtW[intraGroupLightIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMinPt.w)));
-    InterlockedMax(gs_NdcAaBbMaxPtW[intraGroupLightIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMaxPt.w)));
+    InterlockedMin(gs_NdcAaBbMinPtX[intraGroupEntityIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMinPt.x)));
+    InterlockedMax(gs_NdcAaBbMaxPtX[intraGroupEntityIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMaxPt.x)));
+    InterlockedMin(gs_NdcAaBbMinPtY[intraGroupEntityIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMinPt.y)));
+    InterlockedMax(gs_NdcAaBbMaxPtY[intraGroupEntityIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMaxPt.y)));
+    InterlockedMin(gs_NdcAaBbMinPtZ[intraGroupEntityIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMinPt.z)));
+    InterlockedMax(gs_NdcAaBbMaxPtZ[intraGroupEntityIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMaxPt.z)));
+    InterlockedMin(gs_NdcAaBbMinPtW[intraGroupEntityIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMinPt.w)));
+    InterlockedMax(gs_NdcAaBbMaxPtW[intraGroupEntityIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMaxPt.w)));
 
     GroupMemoryBarrierWithGroupSync();
 
-    ndcAaBbMinPt.x = asfloat(gs_NdcAaBbMinPtX[intraGroupLightIndex]);
-    ndcAaBbMaxPt.x = asfloat(gs_NdcAaBbMaxPtX[intraGroupLightIndex]);
-    ndcAaBbMinPt.y = asfloat(gs_NdcAaBbMinPtY[intraGroupLightIndex]);
-    ndcAaBbMaxPt.y = asfloat(gs_NdcAaBbMaxPtY[intraGroupLightIndex]);
-    ndcAaBbMinPt.z = asfloat(gs_NdcAaBbMinPtZ[intraGroupLightIndex]);
-    ndcAaBbMaxPt.z = asfloat(gs_NdcAaBbMaxPtZ[intraGroupLightIndex]);
-    ndcAaBbMinPt.w = asfloat(gs_NdcAaBbMinPtW[intraGroupLightIndex]);
-    ndcAaBbMaxPt.w = asfloat(gs_NdcAaBbMaxPtW[intraGroupLightIndex]);
+    ndcAaBbMinPt.x = asfloat(gs_NdcAaBbMinPtX[intraGroupEntityIndex]);
+    ndcAaBbMaxPt.x = asfloat(gs_NdcAaBbMaxPtX[intraGroupEntityIndex]);
+    ndcAaBbMinPt.y = asfloat(gs_NdcAaBbMinPtY[intraGroupEntityIndex]);
+    ndcAaBbMaxPt.y = asfloat(gs_NdcAaBbMaxPtY[intraGroupEntityIndex]);
+    ndcAaBbMinPt.z = asfloat(gs_NdcAaBbMinPtZ[intraGroupEntityIndex]);
+    ndcAaBbMaxPt.z = asfloat(gs_NdcAaBbMaxPtZ[intraGroupEntityIndex]);
+    ndcAaBbMinPt.w = asfloat(gs_NdcAaBbMinPtW[intraGroupEntityIndex]);
+    ndcAaBbMaxPt.w = asfloat(gs_NdcAaBbMaxPtW[intraGroupEntityIndex]);
 #endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
 
-    if ((globalLightIndex < g_iNrVisibLights) && (t % THREADS_PER_LIGHT == 0)) // Avoid bank conflicts
+    if ((globalEntityIndex < _BoundedEntityCount) && (t % THREADS_PER_ENTITY == 0)) // Avoid bank conflicts
     {
-        // For stereo, we have two sets of lights. Therefore, each eye has a set of mins
-        // followed by a set of maxs, and each set is equal to g_iNrVisibLights.
-        const ScreenSpaceBoundsIndices eyeAdjustedOutputOffsets = GenerateScreenSpaceBoundsIndices(globalLightIndex, g_iNrVisibLights, eyeIndex);
+        // For stereo, we have two sets of entities. Therefore, each eye has a set of mins
+        // followed by a set of maxs, and each set is equal to _BoundedEntityCount.
+        const ScreenSpaceBoundsIndices eyeAdjustedOutputOffsets = GenerateScreenSpaceBoundsIndices(globalEntityIndex, _BoundedEntityCount, eyeIndex);
 
         g_vBoundsBuffer[eyeAdjustedOutputOffsets.min] = ndcAaBbMinPt;
         g_vBoundsBuffer[eyeAdjustedOutputOffsets.max] = ndcAaBbMaxPt;

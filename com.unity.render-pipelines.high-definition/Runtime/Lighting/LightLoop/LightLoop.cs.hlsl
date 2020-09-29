@@ -66,9 +66,9 @@
 #define CLUSTERDEBUGMODE_VISUALIZE_OPAQUE (0)
 #define CLUSTERDEBUGMODE_VISUALIZE_SLICE (1)
 
-// Generated from UnityEngine.Rendering.HighDefinition.SFiniteLightBound
+// Generated from UnityEngine.Rendering.HighDefinition.FiniteLightBound
 // PackingRules = Exact
-struct SFiniteLightBound
+struct FiniteLightBound
 {
     float3 boxAxisX;
     float3 boxAxisY;
@@ -105,7 +105,7 @@ CBUFFER_START(ShaderVariablesLightList)
     float4x4 g_mProjectionArr[2];
     float4 g_screenSize;
     int2 g_viDimensions;
-    int g_iNrVisibLights;
+    int _BoundedEntityCount;
     uint g_isOrthographic;
     uint g_BaseFeatureFlags;
     int g_iNumSamplesMSAA;
@@ -118,29 +118,29 @@ CBUFFER_START(ShaderVariablesLightList)
 CBUFFER_END
 
 //
-// Accessors for UnityEngine.Rendering.HighDefinition.SFiniteLightBound
+// Accessors for UnityEngine.Rendering.HighDefinition.FiniteLightBound
 //
-float3 GetBoxAxisX(SFiniteLightBound value)
+float3 GetBoxAxisX(FiniteLightBound value)
 {
     return value.boxAxisX;
 }
-float3 GetBoxAxisY(SFiniteLightBound value)
+float3 GetBoxAxisY(FiniteLightBound value)
 {
     return value.boxAxisY;
 }
-float3 GetBoxAxisZ(SFiniteLightBound value)
+float3 GetBoxAxisZ(FiniteLightBound value)
 {
     return value.boxAxisZ;
 }
-float3 GetCenter(SFiniteLightBound value)
+float3 GetCenter(FiniteLightBound value)
 {
     return value.center;
 }
-float GetScaleXY(SFiniteLightBound value)
+float GetScaleXY(FiniteLightBound value)
 {
     return value.scaleXY;
 }
-float GetRadius(SFiniteLightBound value)
+float GetRadius(FiniteLightBound value)
 {
     return value.radius;
 }

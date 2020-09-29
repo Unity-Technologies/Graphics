@@ -516,7 +516,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4      g_screenSize;
 
         public Vector2Int   g_viDimensions;
-        public int          g_iNrVisibLights;
+        public int          _BoundedEntityCount;
         public uint         g_isOrthographic;
 
         public uint         g_BaseFeatureFlags;
@@ -3383,7 +3383,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Common
             public bool hasDirectionalLights;
-            public int  totalBoundedEntityCount;
+            public int  boundedEntityCount;
             public int  viewCount;
             public bool runLightList;
             public bool clearLightLists;
@@ -3480,36 +3480,40 @@ namespace UnityEngine.Rendering.HighDefinition
             return resources;
         }
 
-        static void ClearLightList(in BuildGPULightListParameters parameters, CommandBuffer cmd, ComputeBuffer bufferToClear)
-        {
-            cmd.SetComputeBufferParam(parameters.clearLightListCS, parameters.clearLightListKernel, HDShaderIDs._LightListToClear, bufferToClear);
-            cmd.SetComputeIntParam(parameters.clearLightListCS, HDShaderIDs._LightListEntries, bufferToClear.count);
+        //static void ClearLightList(in BuildGPULightListParameters parameters, CommandBuffer cmd, ComputeBuffer bufferToClear)
+        //{
+        //    cmd.SetComputeBufferParam(parameters.clearLightListCS, parameters.clearLightListKernel, HDShaderIDs._LightListToClear, bufferToClear);
+        //    cmd.SetComputeIntParam(parameters.clearLightListCS, HDShaderIDs._LightListEntries, bufferToClear.count);
 
-            int groupSize = 64;
-            cmd.DispatchCompute(parameters.clearLightListCS, parameters.clearLightListKernel, (bufferToClear.count + groupSize - 1) / groupSize, 1, 1);
-        }
+        //    int groupSize = 64;
+        //    cmd.DispatchCompute(parameters.clearLightListCS, parameters.clearLightListKernel, (bufferToClear.count + groupSize - 1) / groupSize, 1, 1);
+        //}
 
         static void ClearLightLists(    in BuildGPULightListParameters parameters,
                                         in BuildGPULightListResources resources,
                                         CommandBuffer cmd)
         {
-            if (parameters.clearLightLists)
-            {
-                // Note we clear the whole content and not just the header since it is fast enough, happens only in one frame and is a bit more robust
-                // to changes to the inner workings of the lists.
-                // Also, we clear all the lists and to be resilient to changes in pipeline.
-                if (parameters.runBigTilePrepass)
-                    ClearLightList(parameters, cmd, resources.bigTileLightList);
-                if (resources.lightList != null) // This can happen for probe volume light list build where we only generate clusters.
-                    ClearLightList(parameters, cmd, resources.lightList);
-                ClearLightList(parameters, cmd, resources.perVoxelOffset);
-            }
+            // We should not have to clear anything. That consumes GPU time and creates GPU bubbles.
+            // We should, however, discard the contents of the resource. For more information, see
+            // https://microsoft.github.io/DirectX-Specs/d3d/archive/D3D11_3_FunctionalSpec.htm#5.7%20Resource%20Discard
+
+            //if (parameters.clearLightLists)
+            //{
+            //    // Note we clear the whole content and not just the header since it is fast enough, happens only in one frame and is a bit more robust
+            //    // to changes to the inner workings of the lists.
+            //    // Also, we clear all the lists and to be resilient to changes in pipeline.
+            //    if (parameters.runBigTilePrepass)
+            //        ClearLightList(parameters, cmd, resources.bigTileLightList);
+            //    if (resources.lightList != null) // This can happen for probe volume light list build where we only generate clusters.
+            //        ClearLightList(parameters, cmd, resources.lightList);
+            //    ClearLightList(parameters, cmd, resources.perVoxelOffset);
+            //}
         }
 
         // generate screen-space AABBs (used for both fptl and clustered).
         static void GenerateLightsScreenSpaceAABBs(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, CommandBuffer cmd)
         {
-            if (parameters.totalBoundedEntityCount != 0)
+            if (parameters.boundedEntityCount > 0) // Do not perform a dispatch with 0 groups
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.GenerateLightAABBs)))
                 {
@@ -3522,7 +3526,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     const int threadsPerLight = 4;  // Shader: THREADS_PER_LIGHT (4)
                     const int threadsPerGroup = 64; // Shader: THREADS_PER_GROUP (64)
 
-                    int groupCount = HDUtils.DivRoundUp(parameters.totalBoundedEntityCount * threadsPerLight, threadsPerGroup);
+                    int groupCount = HDUtils.DivRoundUp(parameters.boundedEntityCount * threadsPerLight, threadsPerGroup);
 
                     cmd.DispatchCompute(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, groupCount, parameters.viewCount, 1);
                 }
@@ -3779,7 +3783,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var decalDatasCount = Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen);
 
-            cb.g_iNrVisibLights = -1; //m_BoundedEntityCollection.GetTotalEntityCount(); // TODO REMOVE
+            int boundedEntityCount = m_BoundedEntityCollection.GetTotalEntityCount();
+
+            cb._BoundedEntityCount = boundedEntityCount;
             cb.g_screenSize = hdCamera.screenSize; // TODO remove and use global one.
             cb.g_viDimensions = new Vector2Int((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y);
             cb.g_isOrthographic = camera.orthographic ? 1u : 0u;
@@ -3798,10 +3804,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Copy the constant buffer into the parameter struct.
             parameters.lightListCB = cb;
 
-            parameters.hasDirectionalLights    = m_DirectionalLightData.Count != 0;
-            parameters.totalBoundedEntityCount = m_BoundedEntityCollection.GetTotalEntityCount();
+            parameters.hasDirectionalLights = m_DirectionalLightData.Count != 0;
+            parameters.boundedEntityCount   = boundedEntityCount;
 
-            parameters.runLightList = parameters.totalBoundedEntityCount != 0;
+            parameters.runLightList = boundedEntityCount != 0;
             parameters.clearLightLists = false;
 
             // TODO RENDERGRAPH: This logic is flawed with Render Graph.
@@ -3810,6 +3816,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // because for now buffers are pooled based on their parameters. When we do proper aliasing though, we might end up with any random chunk of memory.
 
             // Always build the light list in XR mode to avoid issues with multi-pass
+            // TODO: ?????????????????
             if (hdCamera.xr.enabled)
             {
                 parameters.runLightList = true;
@@ -3970,6 +3977,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 //bool tileFlagsWritten = false;
 
+                // The algorithm (below) works even if the bounded entity count is 0.
+                // That is fairly efficient, and allows us to avoid weird special cases.
                 ClearLightLists(parameters, resources, cmd);
                 GenerateLightsScreenSpaceAABBs(parameters, resources, cmd);
                 // BigTilePrepass(parameters, resources, cmd);
