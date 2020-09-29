@@ -104,6 +104,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed cubemap static preview not updated when the asset is imported.
 - Fixed wizard DXR setup on non-DXR compatible devices.
 - Fixed Custom Post Processes affecting preview cameras.
+- Fixed issue with lens distortion breaking rendering.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
