@@ -270,7 +270,8 @@ namespace UnityEditor.Rendering.HighDefinition
             // When a user creates a new mirror, the capture position is at the exact position of the mirror mesh.
             // We need to offset slightly the gizmo to avoid a Z-fight in that case, as it looks like a bug
             // for users discovering the planar reflection.
-            var mirrorPositionProxySpace = settings.proxySettings.mirrorPositionProxySpace + Vector3.up * 0.001f;
+            var mirrorPositionProxySpace = settings.proxySettings.mirrorPositionProxySpace;
+            mirrorPositionProxySpace += settings.proxySettings.mirrorRotationProxySpace * Vector3.forward * 0.001f;
 
             var mirrorPosition = proxyToWorld.MultiplyPoint(mirrorPositionProxySpace);
             var mirrorRotation = (proxyToWorld.rotation * settings.proxySettings.mirrorRotationProxySpace * Quaternion.Euler(0, 180, 0)).normalized;
