@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where XR eye textures are recreated multiple times per frame due to per camera MSAA change.
 - Fixed an issue wehre XR mirror view selector stuck. 
 - Fixed GLES2 shader compilation.
+- Fixed issue with lens distortion breaking rendering when enabled and its intensity is 0.
 
 ## [10.0.0] - 2019-06-10
 ### Added
@@ -283,6 +284,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that caused renderer feature to not render correctly if the pass was injected before rendering opaques and didn't implement `Configure` method. [case 1259750](https://issuetracker.unity3d.com/issues/urp-not-rendering-with-a-renderer-feature-before-rendering-shadows)
 - Fixed an issue where postFX's temp texture is not released properly.
 - Fixed an issue where ArgumentOutOfRangeException errors were thrown after removing Render feature [case 1268147](https://issuetracker.unity3d.com/issues/urp-argumentoutofrangeexception-errors-are-thrown-on-undoing-after-removing-render-feature)
+- Fixed an issue where depth and depth/normal of grass isn't rendered to depth texture
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide

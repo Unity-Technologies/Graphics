@@ -24,7 +24,7 @@ editor-pinning-target-to-ci:
       -  git checkout ci/editor-pinning
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  git merge master --ff
+      -  git merge master --no-ff -X theirs
       -  git push
 editor-pinning-update:
     name: Update pinned editor versions
