@@ -294,8 +294,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderDecalOverlay(RenderGraph renderGraph, in DebugParameters debugParameters, TextureHandle colorBuffer, TextureHandle depthBuffer)
         {
-            var lightingDebug = debugParameters.debugDisplaySettings.data.lightingDebugSettings;
-            if (!lightingDebug.displaySkyReflection)
+            if (!debugParameters.debugDisplaySettings.data.decalsDebugSettings.displayAtlas)
                 return;
 
             using (var builder = renderGraph.AddRenderPass<DebugOverlayPassData>("SkyReflectionOverlay", out var passData))
