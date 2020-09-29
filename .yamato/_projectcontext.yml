@@ -404,10 +404,6 @@ publish_all_project:
       -  .yamato/_projectcontext.yml#publish_universal_project
       -  .yamato/_projectcontext.yml#publish_vfx_project
       -  .yamato/_projectcontext.yml#publish_config_project
-    triggers:
-        recurring:
-          -  branch: master
-             frequency: daily
 publish_all_project_tag:
     name: Publish all packages [project context][manual][tag]
     agent:
