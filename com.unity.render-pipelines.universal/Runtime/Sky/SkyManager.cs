@@ -520,10 +520,7 @@ namespace UnityEngine.Rendering.Universal
             // TODO Why can't skyboxCubemap just be a RT so we don't need an intermediate?
             using (new ProfilingScope(cmd, m_ProfilingSamplerSkyCopy))
             {
-                for (int i = 0; i < 6; ++i)
-                {
-                    cmd.CopyTexture(m_SkyboxBSDFCubemapIntermediate, i, renderingContext.skyboxCubemap, i);
-                }
+                cmd.CopyTexture(m_SkyboxBSDFCubemapIntermediate, renderingContext.skyboxCubemap);
             }
         }
 
