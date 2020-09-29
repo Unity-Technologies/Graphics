@@ -3,11 +3,19 @@ project:
   folder: HDRP_Tests
   folder_standalone: HDRP_RuntimeTests
 test_platforms:
-  - playmode
-  - playmode_XR
-  - playmode_NonRenderGraph
-  - editmode
-  - Standalone
+  - type: playmode
+  - type: playmode
+    name: playmode_XR
+    extra_utr_flags:
+      - --extra-editor-arg="-xr-tests" 
+  - type: playmode
+    name: playmode_RenderGraph
+    extra_utr_flags:
+      - --extra-editor-arg="-rendergraph-tests"
+  - type: editmode
+  - type: Standalone
+    timeout:
+      OSX_Metal: 2400
 platforms:
   - name: Win
     apis:
@@ -50,7 +58,7 @@ all:
         - editmode
         - playmode
         - playmode_XR
-        - playmode_NonRenderGraph
+        - playmode_RenderGraph
         - Standalone
     - platform: Win
       api: DX12
@@ -81,6 +89,6 @@ all:
       test_platforms:
         - playmode
         - playmode_XR
-        - playmode_NonRenderGraph
+        - playmode_RenderGraph
     - project: HDRP_Hybrid
       all: true
