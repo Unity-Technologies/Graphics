@@ -31,7 +31,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
-  m_Name: Simple Particle System
+  m_Name: 101_SampleReflectionProbe
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 0}
   m_Children:
