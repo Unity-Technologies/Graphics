@@ -20,7 +20,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         readonly bool m_AllowReorder;
         ReorderableList m_ReorderableList;
         List<string> m_TextList = new List<string>();
-        List<string> m_AddMenuOptions = new List<string>();
 
         IMGUIContainer m_Container;
         GUIStyle m_LabelStyle;
@@ -28,11 +27,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         string m_HeaderLabel;
 
         // list of options for the drop down menu when the user clicks the add button
-        public List<string> AddMenuOptions 
-        {
-            get { return m_AddMenuOptions; }
-            set { m_AddMenuOptions = value; }
-        }
+        public delegate List<string> GetAddMenuOptionsDelegate();
+        public GetAddMenuOptionsDelegate GetAddMenuOptions;
 
         // callback when the user clicks on an item from the AddMenu
         public delegate void OnAddMenuItemDelegate(List<T> targetList, int addMenuOptionIndex, string addMenuOption);
@@ -94,7 +90,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Create reorderable list from data list
             m_ReorderableList = new ReorderableList(
                 dataList,
-                typeof(int),        // type of data used in the incoming list
+                typeof(T),          // the type of the elements in dataList
                 m_AllowReorder,     // draggable (to reorder)
                 true,               // displayHeader
                 true,               // displayAddButton
@@ -168,10 +164,16 @@ namespace UnityEditor.ShaderGraph.Drawing
         private void OnAddDropdownMenu(Rect buttonRect, ReorderableList list)
         {
             //created the drop down menu on add item from the listview
+            List<string> addMenuOptions;
+            if (GetAddMenuOptions != null)
+                addMenuOptions = GetAddMenuOptions();
+            else
+                addMenuOptions = new List<string>();
+
             var menu = new GenericMenu();
-            for (int optionIndex = 0; optionIndex < m_AddMenuOptions.Count; optionIndex++)
+            for (int optionIndex = 0; optionIndex < addMenuOptions.Count; optionIndex++)
             {
-                string optionText = m_AddMenuOptions[optionIndex];
+                string optionText = addMenuOptions[optionIndex];
 
                 // disable any option that is already in the text list
                 bool optionEnabled = !m_TextList.Contains(optionText);

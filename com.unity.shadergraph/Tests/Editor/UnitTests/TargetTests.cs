@@ -79,7 +79,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             var vfxTarget = graph.allPotentialTargets.FirstOrDefault(x => x is VFXTarget);
             graph.SetTargetActive(vfxTarget);
-            graph.UpdateActiveTargets();
 
             Assert.IsNotNull(graph.activeTargets);
             Assert.AreEqual(1, graph.activeTargets.Count());
@@ -135,7 +134,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
             graph.InitializeOutputs(new [] { vfxTarget }, null);
 
             graph.SetTargetInactive(vfxTarget);
-            graph.UpdateActiveTargets();
 
             Assert.IsNotNull(graph.activeTargets);
             Assert.AreEqual(0, graph.activeTargets.Count());
@@ -172,7 +170,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
             var vfxTarget = graph.allPotentialTargets.FirstOrDefault(x => x is VFXTarget);
             graph.SetTargetInactive(vfxTarget);
 
-            graph.UpdateActiveTargets();
             var activeBlocks = graph.GetActiveBlocksForAllActiveTargets();
             graph.UpdateActiveBlocks(activeBlocks);
 

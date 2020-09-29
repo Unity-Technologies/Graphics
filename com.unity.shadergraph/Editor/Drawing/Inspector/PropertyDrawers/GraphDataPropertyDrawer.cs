@@ -53,16 +53,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 graphData.m_ActiveTargets,
                 "Active Targets",
                 false,      // disallow reordering (active list is sorted)
-                (target => target.value.displayName));
+                target => target.value.displayName);
 
-            targetList.AddMenuOptions = graphData.GetPotentialTargetDisplayNames();
+            targetList.GetAddMenuOptions = () => graphData.GetPotentialTargetDisplayNames();
 
             targetList.OnAddMenuItemCallback +=
                 (list, addMenuOptionIndex, addMenuOption) =>
                 {
                     RegisterActionToUndo("Add Target");
                     graphData.SetTargetActive(addMenuOptionIndex);
-                    graphData.UpdateActiveTargets();
                     m_postChangeTargetSettingsCallback();
                 };
 
@@ -71,7 +70,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 {
                     RegisterActionToUndo("Remove Target");
                     graphData.SetTargetInactive(list[itemIndex].value);
-                    graphData.UpdateActiveTargets();
                     m_postChangeTargetSettingsCallback();
                 };
 
