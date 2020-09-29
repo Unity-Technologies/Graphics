@@ -132,37 +132,31 @@ namespace UnityEngine.VFX.Utility
 
         private void OnMouseDown()
         {
-            Debug.Log("OnMouseDown");
             if (activation == Activation.OnMouseDown) SendEventToVisualEffect();
         }
 
         private void OnMouseUp()
         {
-            Debug.Log("OnMouseUp");
             if (activation == Activation.OnMouseUp) SendEventToVisualEffect();
         }
 
         private void OnMouseDrag()
         {
-            Debug.Log("OnMouse Drag");
             if (activation == Activation.OnMouseDrag) SendEventToVisualEffect();
         }
 
         private void OnMouseOver()
         {
-            Debug.Log("OnMouse Over");
             if (activation == Activation.OnMouseOver) SendEventToVisualEffect();
         }
 
         private void OnMouseEnter()
         {
-            Debug.Log("OnMouse Enter");
             if (activation == Activation.OnMouseEnter) SendEventToVisualEffect();
         }
 
         private void OnMouseExit()
         {
-            Debug.Log("OnMouse Exit");
             if (activation == Activation.OnMouseExit) SendEventToVisualEffect();
         }
     }
