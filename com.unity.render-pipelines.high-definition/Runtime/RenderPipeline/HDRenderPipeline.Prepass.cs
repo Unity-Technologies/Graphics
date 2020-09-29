@@ -80,6 +80,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Copy of the resolved depth buffer with mip chain
             public TextureHandle        depthPyramidTexture;
+            // Depth buffer used for low res transparents.
+            public TextureHandle        downsampledDepthBuffer;
 
             public TextureHandle        stencilBuffer;
             public ComputeBufferHandle  coarseStencilBuffer;
@@ -253,8 +255,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (depthBufferModified)
                     m_IsDepthBufferCopyValid = false;
 
+                // Only on consoles is safe to read and write from/to the depth atlas
+                bool mip1FromDownsampleForLowResTrans = SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
+                                                        SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
+                                                        SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12;
+                mip1FromDownsampleForLowResTrans = mip1FromDownsampleForLowResTrans && hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent);
+
+                DownsampleDepthForLowResTransparency(renderGraph, hdCamera, mip1FromDownsampleForLowResTrans, ref result);
+
                 // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
-                GenerateDepthPyramid(renderGraph, hdCamera, ref result);
+                GenerateDepthPyramid(renderGraph, hdCamera, mip1FromDownsampleForLowResTrans, ref result);
 
                 if (shouldRenderMotionVectorAfterGBuffer)
                 {
@@ -852,16 +862,79 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        class DownsampleDepthForLowResPassData
+        {
+            public Material downsampleDepthMaterial;
+            public TextureHandle depthTexture;
+            public TextureHandle downsampledDepthBuffer;
+
+            // Data needed for potentially writing 
+            public Vector2Int mip0Offset;
+            public bool computesMip1OfAtlas;
+        }
+
+        void DownsampleDepthForLowResTransparency(RenderGraph renderGraph, HDCamera hdCamera, bool computeMip1OfPyramid, ref PrepassOutput output)
+        {
+            // If the depth buffer hasn't been already copied by the decal depth buffer pass, then we do the copy here.
+            CopyDepthBufferIfNeeded(renderGraph, hdCamera, ref output);
+
+            using (var builder = renderGraph.AddRenderPass<DownsampleDepthForLowResPassData>("Downsample Depth Buffer for Low Res Transparency", out var passData, ProfilingSampler.Get(HDProfileId.DownsampleDepth)))
+            {
+                // TODO: Add option to switch modes at runtime
+                if (m_Asset.currentPlatformRenderPipelineSettings.lowresTransparentSettings.checkerboardDepthBuffer)
+                {
+                    m_DownsampleDepthMaterial.EnableKeyword("CHECKERBOARD_DOWNSAMPLE");
+                }
+
+                passData.computesMip1OfAtlas = computeMip1OfPyramid;
+                if (computeMip1OfPyramid)
+                {
+                    passData.mip0Offset = GetDepthBufferMipChainInfo().mipLevelOffsets[1];
+                    m_DownsampleDepthMaterial.EnableKeyword("OUTPUT_FIRST_MIP_OF_MIPCHAIN");
+                }
+
+                passData.downsampleDepthMaterial = m_DownsampleDepthMaterial;
+                passData.depthTexture = builder.ReadTexture(output.depthPyramidTexture);
+                if(computeMip1OfPyramid)
+                {
+                    passData.depthTexture = builder.WriteTexture(passData.depthTexture);
+                }
+                passData.downsampledDepthBuffer = builder.UseDepthBuffer(renderGraph.CreateTexture(
+                    new TextureDesc(Vector2.one * 0.5f, true, true) { depthBufferBits = DepthBits.Depth32, name = "LowResDepthBuffer" }), DepthAccess.Write);
+
+                builder.SetRenderFunc(
+                (DownsampleDepthForLowResPassData data, RenderGraphContext context) =>
+                {
+                    if (data.computesMip1OfAtlas)
+                    {
+                        data.downsampleDepthMaterial.SetVector(HDShaderIDs._DstOffset, new Vector4(data.mip0Offset.x, data.mip0Offset.y, 0.0f, 0.0f));
+                        context.cmd.SetRandomWriteTarget(1, data.depthTexture);
+                    }
+
+                    context.cmd.DrawProcedural(Matrix4x4.identity, data.downsampleDepthMaterial, 0, MeshTopology.Triangles, 3, 1, null);
+
+                    if (data.computesMip1OfAtlas)
+                    {
+                        context.cmd.ClearRandomWriteTargets();
+                    }
+                });
+
+                output.downsampledDepthBuffer = passData.downsampledDepthBuffer;
+            }
+        }
+
         class GenerateDepthPyramidPassData
         {
             public TextureHandle                depthTexture;
             public HDUtils.PackedMipChainInfo   mipInfo;
             public MipGenerator                 mipGenerator;
+
+            public bool                         mip0AlreadyComputed;
         }
 
-        void GenerateDepthPyramid(RenderGraph renderGraph, HDCamera hdCamera, ref PrepassOutput output)
+        void GenerateDepthPyramid(RenderGraph renderGraph, HDCamera hdCamera, bool mip0AlreadyComputed, ref PrepassOutput output)
         {
-            // If the depth buffer hasn't been already copied by the decal pass, then we do the copy here.
+            // If the depth buffer hasn't been already copied by the decal or low res depth buffer pass, then we do the copy here.
             CopyDepthBufferIfNeeded(renderGraph, hdCamera, ref output);
 
             using (var builder = renderGraph.AddRenderPass<GenerateDepthPyramidPassData>("Generate Depth Buffer MIP Chain", out var passData, ProfilingSampler.Get(HDProfileId.DepthPyramid)))
@@ -869,11 +942,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthTexture = builder.WriteTexture(output.depthPyramidTexture);
                 passData.mipInfo = GetDepthBufferMipChainInfo();
                 passData.mipGenerator = m_MipGenerator;
+                passData.mip0AlreadyComputed = mip0AlreadyComputed;
 
                 builder.SetRenderFunc(
                 (GenerateDepthPyramidPassData data, RenderGraphContext context) =>
                 {
-                    data.mipGenerator.RenderMinDepthPyramid(context.cmd, data.depthTexture, data.mipInfo);
+                    data.mipGenerator.RenderMinDepthPyramid(context.cmd, data.depthTexture, data.mipInfo, data.mip0AlreadyComputed);
                 });
 
                 output.depthPyramidTexture = passData.depthTexture;

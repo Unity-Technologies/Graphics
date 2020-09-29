@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
-        public TextureHandle CreateScreenSpaceShadowTextureArray(RenderGraph renderGraph)
+        internal TextureHandle CreateScreenSpaceShadowTextureArray(RenderGraph renderGraph)
         {
             int numShadowTextures = Math.Max((int)Math.Ceiling(m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots / 4.0f), 1);
             GraphicsFormat graphicsFormat = (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.screenSpaceShadowBufferFormat;
