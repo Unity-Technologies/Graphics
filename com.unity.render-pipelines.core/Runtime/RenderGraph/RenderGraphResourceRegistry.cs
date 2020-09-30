@@ -180,9 +180,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return res.resource;
         }
 
-        internal void BeginRender(int currentFrameIndex)
+        internal void BeginRender(int currentFrameIndex, int executionCount)
         {
             m_CurrentFrameIndex = currentFrameIndex;
+            ResourceHandle.NewFrame(executionCount);
             current = this;
         }
 
@@ -247,7 +248,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             int newHandle = AddNewResource(m_Resources[(int)RenderGraphResourceType.Texture], out TextureResource texResource);
             texResource.resource = m_CurrentBackbuffer;
             texResource.imported = true;
-            texResource.desc.name = "Backbuffer";
 
             return new TextureHandle(newHandle);
         }
