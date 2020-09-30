@@ -201,6 +201,10 @@ namespace UnityEngine.Rendering.Universal
 
             if (this.renderingMode == RenderingMode.Deferred)
             {
+                // Deferred rendering does not support MSAA.
+                this.supportedRenderingFeatures.msaa = false;
+
+                // Avoid legacy platforms: use vulkan instead.
                 unsupportedGraphicsDeviceTypes = new GraphicsDeviceType[] {
                     GraphicsDeviceType.OpenGLCore,
                     GraphicsDeviceType.OpenGLES2,
