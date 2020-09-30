@@ -1,22 +1,28 @@
 project:
   name: URP_Performance_BoatAttack
   folder: BoatAttack
+scripting_backends:
+  - il2cpp
+  - mono
+colour_spaces:
+  - linear ### linear only
 test_platforms:
   - type: Standalone
-    name: performance_playmode
+    name: performance_playmode_runtime
+    components:
+        - Win:
+          - il2cpp
+          - mono
     is_performance: True
     extra_utr_flags:
       - --report-performance-data
       - --performance-project-id=BoatAttack
       - --performance-project-version=C:\build\output\Unity-Technologies\Graphics
     extra_utr_flags_build:
-      - --extra-editor-arg="-executemethod Editor.Setup"
-      - --extra-editor-arg="-testCategory URP"
-      - --extra-editor-arg="-playergraphicsapi=Direct3D11" ###############
-      - --extra-editor-arg="-colorspace=Linear" 
-      - --extra-editor-arg="-scriptingbackend=mono" 
-      - --extra-editor-arg="-apicompatibilitylevel=NET_4_6" 
-      - --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      - --extra-editor-arg="-executemethod Editor.Setup" ****
+      - --extra-editor-arg="-testCategory Performance" ****
+      - --extra-editor-arg="-colorspace=Linear" # do we want to run gamma?
+      - --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"****
   - type: editmode
     name: performance_editmode_build
     is_performance: True
@@ -28,8 +34,11 @@ test_platforms:
 platforms:
   - name: Win
     apis:
-      - DX11
+      - DX11:
+       extra_utr_flags:
+ ##       - --extra-editor-arg="-playergraphicsapi=Direct3D11" 
       - Vulkan
+        - -playergraphicsapi=Vulkan" 
   - name: OSX
     apis:
       - Metal
@@ -41,6 +50,7 @@ platforms:
   - name: iPhone
     apis: 
       - Metal
+
 all:
   dependencies:
     - platform: Win

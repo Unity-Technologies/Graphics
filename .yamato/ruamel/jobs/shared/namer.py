@@ -118,8 +118,8 @@ def project_filepath_all(project_name):
     # return f'{parent_dir}/{project_name}/all-{project_name}.yml'.lower()
     return f'{parent_dir}/all-{project_name}.yml'.lower()
 
-def project_job_id_test(project_name, platform_name, api_name, test_platform_name, editor_version):
-    return f'{project_name}_{platform_name}_{api_name}_{test_platform_name}_{editor_version}'.replace('__','_')
+def project_job_id_test(project_name, platform_name, api_name, test_platform_name, editor_version, scripting_backend, color_space):
+    return f'{project_name}_{platform_name}_{api_name}_{test_platform_name}_{scripting_backend}_{color_space}_{editor_version}'.replace('__','_')
 
 def project_job_id_build(project_name, platform_name, api_name, editor_version):
     return f'Build_{project_name}_{platform_name}_{api_name}_Player_{editor_version}'.replace('__','_')

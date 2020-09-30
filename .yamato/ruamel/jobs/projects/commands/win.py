@@ -10,9 +10,9 @@ def _cmd_base(project_folder, platform, utr_flags, editor):
     ]
 
 
-def cmd_editmode(project_folder, platform, api, test_platform, editor):
+def cmd_editmode(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
     if test_platform['is_performance']:
-        utr_args = utr_editmode_flags(platform='StandaloneWindows64')
+        utr_args = utr_editmode_flags(platform='StandaloneWindows64', scripting_backend=f'{scripting_backend}', color_space=f'{color_space}')
     else:
         utr_args = utr_editmode_flags()
 
@@ -35,8 +35,8 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor):
     return  base
 
 
-def cmd_playmode(project_folder, platform, api, test_platform, editor):
-    utr_args = utr_playmode_flags()
+def cmd_playmode(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
+    utr_args = utr_playmode_flags(scripting_backend=f'{scripting_backend}', color_space=f'{color_space}')
     utr_args.extend(test_platform["extra_utr_flags"])
     if api["name"] != "":
         utr_args.append(f'--extra-editor-arg="{api["cmd"]}"')
@@ -55,21 +55,26 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor):
 
     return  base
 
-def cmd_standalone(project_folder, platform, api, test_platform, editor):
-    utr_args = utr_standalone_split_flags("Windows64")
+def cmd_standalone(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
+    utr_args = utr_standalone_split_flags("Windows64", scripting_backend=f'{scripting_backend}', color_space=f'{color_space}')
     utr_args.extend(test_platform["extra_utr_flags"])
     utr_args.append(f'--timeout={get_timeout(test_platform, "Win")}')
 
     base = [f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}/{project_folder}/utr.bat']
     if project_folder.lower() == 'UniversalGraphicsTest'.lower():
         base.append('cd Tools && powershell -command ". .\\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"')
-    base.append(f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}')
+    
+    if not test_platform['is_performance']:
+        base.append(f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}')
+    else:
+        base.append(f'{TEST_PROJECTS_DIR}/{project_folder}/utr {" ".join(utr_args)}')
+
     
     return base
 
 
-def cmd_standalone_build(project_folder, platform, api, test_platform, editor):
-    utr_args = utr_standalone_build_flags("Windows64")
+def cmd_standalone_build(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
+    utr_args = utr_standalone_build_flags("Windows64", scripting_backend=f'{scripting_backend}', color_space=f'{color_space}')
     utr_args.extend(test_platform["extra_utr_flags_build"])
     utr_args.append(f'--timeout={get_timeout(test_platform, "Win", build=True)}')
 

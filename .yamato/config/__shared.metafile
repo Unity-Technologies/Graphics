@@ -7,6 +7,12 @@ editors: # applied for all yml files
   - track: CUSTOM-REVISION
     rerun_strategy: always
     cmd: -u $CUSTOM_REVISION
+scripting_backends:
+  - il2cpp
+  - mono
+colour_spaces:
+  - linear
+  - gamma
 platforms:
   Win:
     name: Win
