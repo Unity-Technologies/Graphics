@@ -93,6 +93,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     || cameraData.isHdrEnabled
                     || cameraData.isSceneViewCamera
                     || !cameraData.isDefaultViewport
+                    || cameraData.requireSrgbConversion
                     || !m_UseDepthStencilBuffer
                     || !cameraData.resolveFinalTarget
                     || !Mathf.Approximately(cameraData.renderScale, 1.0f);
