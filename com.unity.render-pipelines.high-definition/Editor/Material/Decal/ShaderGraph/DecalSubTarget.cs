@@ -56,7 +56,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override void CollectPassKeywords(ref PassDescriptor pass)
         {
             pass.keywords.Add(CoreKeywordDescriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true));
-            pass.keywords.Add(CoreKeywordDescriptors.LodFadeCrossfade, new FieldCondition(Fields.LodCrossFade, true));
 
             // Emissive pass only have the emission keyword
             if (!(pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalProjectorForwardEmissive] ||
@@ -68,6 +67,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     pass.keywords.Add(DecalDefines.Normal);
                 if (decalData.affectsMaskmap)
                     pass.keywords.Add(DecalDefines.Maskmap);
+            }
+
+            if (pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalMeshForwardEmissive] ||
+                pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh])
+            {
+                pass.keywords.Add(CoreKeywordDescriptors.LodFadeCrossfade, new FieldCondition(Fields.LodCrossFade, true));
             }
         }
 

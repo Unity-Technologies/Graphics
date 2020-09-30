@@ -78,8 +78,6 @@ Shader "HDRP/Decal"
     #pragma shader_feature_local _MATERIAL_AFFECTS_MASKMAP
 
     #pragma multi_compile_instancing
-    // enable dithering LOD crossfade
-    #pragma multi_compile _ LOD_FADE_CROSSFADE
 
     //-------------------------------------------------------------------------------------
     // Include
@@ -210,6 +208,9 @@ Shader "HDRP/Decal"
 			HLSLPROGRAM
 
             #pragma multi_compile DECALS_3RT DECALS_4RT
+            // enable dithering LOD crossfade
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
+
 			#define SHADERPASS SHADERPASS_DBUFFER_MESH
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl"
@@ -241,6 +242,8 @@ Shader "HDRP/Decal"
             Blend 0 SrcAlpha One
 
             HLSLPROGRAM
+            // enable dithering LOD crossfade
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #define _MATERIAL_AFFECTS_EMISSION
             #define SHADERPASS SHADERPASS_FORWARD_EMISSIVE_MESH
