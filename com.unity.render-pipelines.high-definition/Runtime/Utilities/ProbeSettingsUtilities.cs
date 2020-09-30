@@ -122,6 +122,10 @@ namespace UnityEngine.Rendering.HighDefinition
             var mirrorPosition = proxyMatrix.MultiplyPoint(settings.proxySettings.mirrorPositionProxySpace);
             var mirrorForward = proxyMatrix.MultiplyVector(settings.proxySettings.mirrorRotationProxySpace * Vector3.forward);
             var reflectionMatrix = GeometryUtils.CalculateReflectionMatrix(mirrorPosition, mirrorForward);
+            
+            // If the camera is on the reflection plane, we offset it by 0.1 mm to avoid a degenerate case.
+            if (Vector3.Dot(mirrorForward, probePosition.referencePosition - mirrorPosition) < 1e-4f)
+                probePosition.referencePosition += 1e-4f * mirrorForward;
 
             var worldToCameraRHS = GeometryUtils.CalculateWorldToCameraMatrixRHS(
                 probePosition.referencePosition,

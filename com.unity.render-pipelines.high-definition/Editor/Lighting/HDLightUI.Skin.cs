@@ -35,7 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent lightBounceIntensity = new GUIContent("Indirect Multiplier", "Controls the intensity of the indirect light this Light contributes to the Scene. A value of 0 with a Realtime Light causes HDRP to remove it from realtime global illumination. A value of 0 for Baked and Mixed Lights cause them to no longer emit indirect lighting. This has no effect if you disable both Realtime and Baked global illumination.");
             public readonly GUIContent indirectBounceShadowWarning = new GUIContent("HDRP does not support real-time indirect bounce shadowing for Spot and Point lights.");
             public readonly GUIContent color = new GUIContent("Color", "Specifies the color this Light emits.");
-            public readonly GUIContent useColorTemperature = new GUIContent("Color Temperature", "When enabled, HDRP uses Temperature mode for this Light's color.");
+            public readonly GUIContent lightAppearance = new GUIContent("Light Appearance", "Specifies the mode for how HDRP calculates this Light's color.");
             public readonly GUIContent colorFilter = new GUIContent("Filter", "Specifies a color which tints the Light source.");
             public readonly GUIContent colorTemperature = new GUIContent("Temperature", "Specifies a temperature (in Kelvin) HDRP uses to correlate a color for the Light. For reference, White is 6500K.");
             public readonly GUIContent areaLightCookie = new GUIContent("Cookie", "Cookie mask currently assigned to the area light.");
