@@ -826,34 +826,20 @@ half3 CalculateDebugShadowCascadeColor(InputData inputData)
 
 half4 CalculateDebugLightingComplexityColor(InputData inputData)
 {
-    float4 lut[5] =
+    half4 lut[5] =
     {
-            float4(0, 1, 0, 0),
-            float4(0.25, 0.75, 0, 0),
-            float4(0.498, 0.5019, 0.0039, 0),
-            float4(0.749, 0.247, 0, 0),
-            float4(1, 0, 0, 0)
+        half4(0, 1, 0, 1),
+        half4(0.25, 0.75, 0, 1),
+        half4(0.498, 0.5019, 0.0039, 1),
+        half4(0.749, 0.247, 0, 1),
+        half4(1, 0, 0, 1)
     };
 
     // Assume a main light and add 1 to the additional lights.
-    unsigned int numLights = clamp(GetAdditionalLightsCount()+1, 0, 4);
-    half4 fc = (half4)(lut[numLights]);
+    int numLights = clamp(GetAdditionalLightsCount()+1, 0, 4);
+    half4 fc = lut[numLights];
 
-    float4 clipPos = TransformWorldToHClip(inputData.positionWS);
-    float2 ndc = saturate((clipPos.xy / clipPos.w) * 0.5 + 0.5);
-
-#if UNITY_UV_STARTS_AT_TOP
-    if(_ProjectionParams.x < 0)
-        ndc.y = 1.0 - ndc.y;
-#endif
-
-    const float invNumChar = 1.0 / 10.0f;
-    ndc.x *= 5.0;
-    ndc.y *= 15.0;
-    ndc.x = fmod(ndc.x, invNumChar) + (numLights * invNumChar);
-
-    fc *= tex2D(_DebugNumberTexture, ndc.xy);
-
+    fc *= GetTextNumber(numLights, inputData.positionWS);
     return fc;
 }
 
