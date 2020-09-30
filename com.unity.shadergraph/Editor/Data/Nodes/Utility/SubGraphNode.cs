@@ -34,15 +34,19 @@ namespace UnityEditor.ShaderGraph
             [SerializeField]
             string m_SerializedSubGraph = string.Empty;
 
-            public void GetSourceAssetDependencies(List<string> paths)
+            public void GetSourceAssetDependencies(AssetCollection assetCollection)
             {
                 var assetReference = JsonUtility.FromJson<SubGraphAssetReference>(m_SerializedSubGraph);
-                var guid = assetReference?.subGraph?.guid;
-                if (guid != null)
+                string guidString = assetReference?.subGraph?.guid;
+                if (!string.IsNullOrEmpty(guidString) && GUID.TryParse(guidString, out GUID guid))
                 {
-                    var assetPath = AssetDatabase.GUIDToAssetPath(guid);
-                    if (!string.IsNullOrEmpty(assetPath))   // Ideally, we would record the GUID as a missing dependency here
-                        paths.Add(assetPath);
+                    // subgraphs are read as artifacts
+                    // they also should be pulled into .unitypackages
+                    assetCollection.AddAssetDependency(
+                        guid,
+                        AssetCollection.Flags.ArtifactDependency |
+                        AssetCollection.Flags.IsSubGraph |
+                        AssetCollection.Flags.IncludeInExportPackage);
                 }
             }
         }

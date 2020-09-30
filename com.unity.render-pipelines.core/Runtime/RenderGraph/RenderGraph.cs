@@ -263,12 +263,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         /// <summary>
-        /// Purge resources that have been used since last frame.
-        /// This need to be called once per frame to avoid over usage of GPU memory.
+        /// End frame processing. Purge resources that have been used since last frame and resets internal states.
+        /// This need to be called once per frame.
         /// </summary>
-        public void PurgeUnusedResources()
+        public void EndFrame()
         {
-            m_Resources.PurgeUnusedResources();
+            //m_Resources.PurgeUnusedResources();
+            m_DebugParameters.logFrameInformation = false;
+            m_DebugParameters.logResources = false;
         }
 
         /// <summary>
@@ -477,9 +479,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                 if (m_DebugParameters.logFrameInformation || m_DebugParameters.logResources)
                     Debug.Log(m_Logger.GetLog());
-
-                m_DebugParameters.logFrameInformation = false;
-                m_DebugParameters.logResources = false;
 
                 m_Resources.EndRender();
 
@@ -1228,6 +1227,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <summary>
         /// Profiling Scope constructor
         /// </summary>
+        /// <param name="renderGraph">Render Graph used for this scope.</param>
         /// <param name="sampler">Profiling Sampler to be used for this scope.</param>
         public RenderGraphProfilingScope(RenderGraph renderGraph, ProfilingSampler sampler)
         {

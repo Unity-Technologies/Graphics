@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a light unit slider to provide users more context when authoring physically based values.
 - Added a way to check the normals through the material views.
 - Added Simple mode to Earth Preset for PBR Sky
+- Added the export of normals during the prepass for shadow matte for proper SSAO calculation.
+- Added the usage of SSAO for shadow matte unlit shader graph.
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
@@ -97,7 +99,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed alignment of framesettings in HDRP Default Settings
 - Fixed an exception thrown when closing the look dev because there is no active SRP anymore.
 - Fixed an issue where entering playmode would close the LookDev window.
+- Fixed issue with rendergraph on console failing on SSS pass.
+- Fixed Cutoff not working properly with ray tracing shaders default and SG (case 1261292).
 - Fixed shader compilation issue with Hair shader and debug display mode
+- Fixed cubemap static preview not updated when the asset is imported.
+- Fixed wizard DXR setup on non-DXR compatible devices.
+- Fixed Custom Post Processes affecting preview cameras.
+- Fixed issue with lens distortion breaking rendering.
+- Fixed save popup appearing twice due to HDRP wizard.
+- Fixed error when changing planar probe resolution.
+- Fixed the dependecy of FrameSettings (MSAA, ClearGBuffer, DepthPrepassWithDeferred) (case 1277620).
+- Fixed the usage of GUIEnable for volume components (case 1280018).
+- Fixed the diffusion profile becoming invalid when hitting the reset (case 1269462).
+- Fixed issue with MSAA resolve killing the alpha channel.
+- Fixed a warning in materialevalulation
+- Fixed an error when building the player.
+- Fixed issue with box light not visible if range is below one and range attenuation is off.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.

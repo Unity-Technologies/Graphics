@@ -117,6 +117,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         DynamicArray<IRenderGraphResource>[] m_Resources = new DynamicArray<IRenderGraphResource>[(int)RenderGraphResourceType.Count];
 
         TexturePool                         m_TexturePool = new TexturePool();
+        int                                 m_TextureCreationIndex;
         ComputeBufferPool                   m_ComputeBufferPool = new ComputeBufferPool();
         DynamicArray<RendererListResource>  m_RendererListResources = new DynamicArray<RendererListResource>();
         RenderGraphDebugParams              m_RenderGraphDebug;
@@ -349,7 +350,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 {
                     // Textures are going to be reused under different aliases along the frame so we can't provide a specific name upon creation.
                     // The name in the desc is going to be used for debugging purpose and render graph visualization.
-                    string name = "RenderGraphTexture";
+                    string name = $"RenderGraphTexture_{m_TextureCreationIndex++}";
 
                     switch (desc.sizeMode)
                     {
