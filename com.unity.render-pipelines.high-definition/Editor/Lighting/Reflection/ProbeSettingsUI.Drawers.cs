@@ -88,7 +88,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (((int)ProbeSettingsFields.resolution & (int)displayedFields.probe) != 0 )
             {
                 var scalableSetting = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.planarReflectionResolution;
-                serialized.resolution.LevelAndEnumGUILayout<PlanarReflectionAtlasResolution>(
+                serialized.resolutionScalable.LevelAndEnumGUILayout<PlanarReflectionAtlasResolution>(
                     EditorGUIUtility.TrTextContent("Resolution", "Sets the resolution for the planar probe camera."), scalableSetting, null
                 );
             }

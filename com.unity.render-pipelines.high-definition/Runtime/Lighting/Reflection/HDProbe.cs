@@ -374,7 +374,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public PlanarReflectionAtlasResolution resolution(HDRenderPipelineAsset asset)
         {
-            return m_ProbeSettings.resolution.Value(asset.currentPlatformRenderPipelineSettings.planarReflectionResolution);
+            return m_ProbeSettings.resolutionScalable.Value(asset.currentPlatformRenderPipelineSettings.planarReflectionResolution);
         }
 
         // Lighting

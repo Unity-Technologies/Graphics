@@ -238,9 +238,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 proxy = null,
                 proxySettings = ProxySettings.NewDefault(),
                 frustum = Frustum.NewDefault(),
-                resolution = new PlanarReflectionAtlasResolutionScalableSettingValue(),
+                resolutionScalable = new PlanarReflectionAtlasResolutionScalableSettingValue(),
             };
-            probeSettings.resolution.@override = PlanarReflectionAtlasResolution.PlanarReflectionResolution512;
+            probeSettings.resolutionScalable.@override = PlanarReflectionAtlasResolution.PlanarReflectionResolution512;
 
             return probeSettings;
         }
@@ -265,7 +265,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [Serializable] public class PlanarReflectionAtlasResolutionScalableSettingValue : ScalableSettingValue<PlanarReflectionAtlasResolution> { }
         /// <summary>Camera settings to use when capturing data.</summary>
         /// <summary>The resolution of the probe.</summary>
-        public PlanarReflectionAtlasResolutionScalableSettingValue resolution;
+        public PlanarReflectionAtlasResolutionScalableSettingValue resolutionScalable;
+        [SerializeField]
+        internal PlanarReflectionAtlasResolution resolution;
         /// <summary>Probe camera settings.</summary>
         [Serialization.FormerlySerializedAs("camera")]
         public CameraSettings cameraSettings;
