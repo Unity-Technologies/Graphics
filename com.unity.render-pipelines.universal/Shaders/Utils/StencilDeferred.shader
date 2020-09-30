@@ -519,7 +519,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             HLSLPROGRAM
 
             #pragma multi_compile _SSAO_ONLY
-            #pragma multi_compile_vertex _ _SCREEN_SPACE_OCCLUSION
 
             #pragma vertex Vertex
             #pragma fragment FragSSAOOnly

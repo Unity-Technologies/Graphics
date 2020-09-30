@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.Universal
             if (shouldAdd)
             {
                 if (m_Settings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.GBuffer)
-                    m_SSAOPass.renderPassEvent = RenderPassEvent.BeforeRenderingOpaques + 1; // hard-coded magic value to insert after gbuffer pass but before lighting pass
+                    m_SSAOPass.renderPassEvent = RenderPassEvent.BeforeRenderingOpaques + 2; // hard-coded magic value to insert after gbuffer-copy-depth pass but before lighting pass
                 renderer.EnqueuePass(m_SSAOPass);
             }
         }
@@ -125,10 +125,6 @@ namespace UnityEngine.Rendering.Universal
             private RenderTargetIdentifier m_SSAOTexture1Target = new RenderTargetIdentifier(s_SSAOTexture1ID, 0, CubemapFace.Unknown, -1);
             private RenderTargetIdentifier m_SSAOTexture2Target = new RenderTargetIdentifier(s_SSAOTexture2ID, 0, CubemapFace.Unknown, -1);
             private RenderTargetIdentifier m_SSAOTexture3Target = new RenderTargetIdentifier(s_SSAOTexture3ID, 0, CubemapFace.Unknown, -1);
-            private RenderTargetIdentifier m_Gbuffer2Target = new RenderTargetIdentifier(s_Gbuffer2ID, 0, CubemapFace.Unknown, -1);
-            private RenderTargetIdentifier m_CameraDepthAttachmentTarget = new RenderTargetIdentifier(s_CameraDepthAttachmentID, 0, CubemapFace.Unknown, -1);
-            private RenderTargetIdentifier s_CameraNormalsTextureTarget = new RenderTargetIdentifier(s_CameraNormalsTextureID, 0, CubemapFace.Unknown, -1);
-            private RenderTargetIdentifier s_CameraDepthTextureTarget = new RenderTargetIdentifier(s_CameraDepthTextureID, 0, CubemapFace.Unknown, -1);
             private RenderTextureDescriptor m_Descriptor;
 
             // Constants
@@ -142,10 +138,6 @@ namespace UnityEngine.Rendering.Universal
             private static readonly int s_SSAOTexture1ID = Shader.PropertyToID("_SSAO_OcclusionTexture1");
             private static readonly int s_SSAOTexture2ID = Shader.PropertyToID("_SSAO_OcclusionTexture2");
             private static readonly int s_SSAOTexture3ID = Shader.PropertyToID("_SSAO_OcclusionTexture3");
-            private static readonly int s_Gbuffer2ID = Shader.PropertyToID("_GBuffer2");
-            private static readonly int s_CameraDepthAttachmentID = Shader.PropertyToID("_CameraDepthAttachment");
-            private static readonly int s_CameraNormalsTextureID = Shader.PropertyToID("_CameraNormalsTexture");
-            private static readonly int s_CameraDepthTextureID = Shader.PropertyToID("_CameraDepthTexture");
 
             private enum ShaderPasses
             {
@@ -169,10 +161,8 @@ namespace UnityEngine.Rendering.Universal
                         ConfigureInput(ScriptableRenderPassInput.Depth);
                         break;
                     case ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals:
-                        ConfigureInput(ScriptableRenderPassInput.Normal);
-                        break;
                     case ScreenSpaceAmbientOcclusionSettings.DepthSource.GBuffer:
-                        ConfigureInput(ScriptableRenderPassInput.Normal); // need depthNormal prepass for forward-only geometry
+                        ConfigureInput(ScriptableRenderPassInput.Normal);// need depthNormal prepass for forward-only geometry
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -286,13 +276,6 @@ namespace UnityEngine.Rendering.Universal
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, true);
                     PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
 
-                    // When gbuffer is enabled, normal texture and depth texture becomes the one written into by the gbuffer.
-                    if (m_CurrentSettings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.GBuffer)
-                    {
-                        cmd.SetGlobalTexture(s_CameraNormalsTextureID, m_Gbuffer2Target);
-                        cmd.SetGlobalTexture(s_CameraDepthTextureID, m_CameraDepthAttachmentTarget);
-                    }
-
                     // Execute the SSAO
                     Render(cmd, m_SSAOTexture1Target, ShaderPasses.AO);
 
@@ -304,13 +287,6 @@ namespace UnityEngine.Rendering.Universal
                     // Set the global SSAO texture and AO Params
                     cmd.SetGlobalTexture(k_SSAOTextureName, m_SSAOTexture2Target);
                     cmd.SetGlobalVector(k_SSAOAmbientOcclusionParamName, new Vector4(0f, 0f, 0f, m_CurrentSettings.DirectLightingStrength));
-
-                    // Restore original textures.
-                    if (m_CurrentSettings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.GBuffer)
-                    {
-                        cmd.SetGlobalTexture(s_CameraNormalsTextureID, s_CameraNormalsTextureTarget);
-                        cmd.SetGlobalTexture(s_CameraDepthTextureID, s_CameraDepthTextureTarget);
-                    }
                 }
 
                 context.ExecuteCommandBuffer(cmd);

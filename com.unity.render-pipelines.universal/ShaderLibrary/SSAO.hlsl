@@ -249,7 +249,7 @@ float4 SSAO(Varyings input) : SV_Target
 
     // Parameters used in coordinate conversion
     float2 p11_22, p13_31;
-    float3x3 camTransform = GetCoordinateConversionParameters(p11_22, p13_31); // either camera projection or viewProjection matrix
+    float3x3 camTransform = GetCoordinateConversionParameters(p11_22, p13_31); // camera viewProjection matrix
 
     // Get the depth, normal and view position for this fragment
     float depth_o;

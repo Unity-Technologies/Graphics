@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     // Render all tiled-based deferred lights.
     internal class GBufferPass : ScriptableRenderPass
     {
+        static readonly int s_CameraNormalsTextureID = Shader.PropertyToID("_CameraNormalsTexture");
         static ShaderTagId s_ShaderTagLit = new ShaderTagId("Lit");
         static ShaderTagId s_ShaderTagSimpleLit = new ShaderTagId("SimpleLit");
         static ShaderTagId s_ShaderTagUnlit = new ShaderTagId("Unlit");
@@ -81,14 +82,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer gbufferCommands = CommandBufferPool.Get();
             using (new ProfilingScope(gbufferCommands, m_ProfilingSampler))
             {
+                context.ExecuteCommandBuffer(gbufferCommands);
+                gbufferCommands.Clear();
+
                 // User can stack several scriptable renderers during rendering but deferred renderer should only lit pixels added by this gbuffer pass.
                 // If we detect we are in such case (camera isin  overlay mode), we clear the highest bits of stencil we have control of and use them to
                 // mark what pixel to shade during deferred pass. Gbuffer will always mark pixels using their material types.
                 if (m_DeferredLights.IsOverlay)
                     m_DeferredLights.ClearStencilPartial(gbufferCommands);
-
-                context.ExecuteCommandBuffer(gbufferCommands);
-                gbufferCommands.Clear();
 
                 ref CameraData cameraData = ref renderingData.cameraData;
                 Camera camera = cameraData.camera;
@@ -104,6 +105,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 // Render objects that did not match any shader pass with error shader
                 RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, m_FilteringSettings, SortingCriteria.None);
+
+                // If any sub-system needs camera normal texture, make it available.
+                gbufferCommands.SetGlobalTexture(s_CameraNormalsTextureID, m_DeferredLights.GbufferAttachmentIdentifiers[m_DeferredLights.GBufferNormalSmoothnessIndex]);
             }
             context.ExecuteCommandBuffer(gbufferCommands);
             CommandBufferPool.Release(gbufferCommands);
