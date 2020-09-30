@@ -370,13 +370,18 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (string.IsNullOrEmpty(path) || graphObject == null)
                     return;
 
+                if (GraphUtil.CheckForRecursiveDependencyOnPendingSave(path, graphObject.graph.GetNodes<SubGraphNode>(), "Save"))
+                    return;
+
                 ShaderGraphAnalytics.SendShaderGraphEvent(selectedGuid, graphObject.graph);
 
                 var oldShader = AssetDatabase.LoadAssetAtPath<Shader>(path);
                 if (oldShader != null)
                     ShaderUtil.ClearShaderMessages(oldShader);
 
-                UpdateShaderGraphOnDisk(path);
+                if (FileUtilities.WriteShaderGraphToDisk(path, graphObject.graph))
+                    AssetDatabase.ImportAsset(path);
+
                 OnSaveGraph(path);
             }
 
@@ -800,12 +805,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 new GroupData[] {},
                 graphView.selection.OfType<StickyNote>().Select(x => x.userData).ToArray());
             graphObject.graph.ValidateGraph();
-        }
-
-        void UpdateShaderGraphOnDisk(string path)
-        {
-            if(FileUtilities.WriteShaderGraphToDisk(path, graphObject.graph))
-                AssetDatabase.ImportAsset(path);
         }
 
         private static readonly ProfilerMarker GraphLoadMarker = new ProfilerMarker("GraphLoad");
