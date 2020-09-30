@@ -4,7 +4,7 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [VolumeComponentMenu("Lighting/Experimental/Probe Volume")]
+    //[VolumeComponentMenu("Lighting/Experimental/Probe Volume")]
     internal class ProbeVolumeController : VolumeComponent
     {
         [Serializable]

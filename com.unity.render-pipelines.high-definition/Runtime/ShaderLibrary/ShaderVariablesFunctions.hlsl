@@ -163,4 +163,48 @@ float3 TransformPreviousObjectToWorld(float3 positionOS)
     return mul(previousModelMatrix, float4(positionOS, 1.0)).xyz;
 }
 
+
+// ----------------------------------------------------------------------------
+// Scalarization helper functions.
+// These assume a scalarization of a list of elements as described in https://flashypixels.wordpress.com/2018/11/10/intro-to-gpu-scalarization-part-2-scalarize-all-the-lights/
+
+bool IsFastPath(uint lightStart, out uint lightStartLane0)
+{
+#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+    // Fast path is when we all pixels in a wave are accessing same tile or cluster.
+    lightStartLane0 = WaveReadLaneFirst(lightStart);
+    return WaveActiveAllTrue(lightStart == lightStartLane0);
+#else
+    lightStartLane0 = lightStart;
+    return false;
+#endif
+}
+
+// This function scalarize an index accross all lanes. To be effecient it must be used in the context
+// of the scalarization of a loop. It is to use with IsFastPath so it can optimize the number of
+// element to load, which is optimal when all the lanes are contained into a tile.
+// Please note that if PLATFORM_SUPPORTS_WAVE_INTRINSICS is not defined, this will *not* scalarize the index.
+uint ScalarizeElementIndex(uint v_elementIdx, bool fastPath)
+{
+    uint s_elementIdx = v_elementIdx;
+#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+    if (!fastPath)
+    {
+        // If we are not in fast path, v_elementIdx is not scalar, so we need to query the Min value across the wave.
+        s_elementIdx = WaveActiveMin(v_elementIdx);
+        // If WaveActiveMin returns 0xffffffff it means that all lanes are actually dead, so we can safely ignore the loop and move forward.
+        // This could happen as an helper lane could reach this point, hence having a valid v_elementIdx, but their values will be ignored by the WaveActiveMin
+        if (s_elementIdx == -1)
+        {
+            return -1;
+        }
+    }
+    // Note that the WaveReadLaneFirst should not be needed, but the compiler might insist in putting the result in VGPR.
+    // However, we are certain at this point that the index is scalar.
+    s_elementIdx = WaveReadLaneFirst(s_elementIdx);
+#endif
+    return s_elementIdx;
+}
+
+
 #endif // UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
