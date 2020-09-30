@@ -19,7 +19,7 @@ Universal_iPhone_Metal_Standalone_2020.1:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --player-load-path=players --artifacts_path=test-results
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players
     artifacts:
         logs:
             paths:
@@ -38,10 +38,10 @@ Build_Universal_iPhone_Metal_Player_2020.1:
          rerun: on-new-revision
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli --source-file $YAMATO_SOURCE_DIR/unity_revision.txt -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --editor-location=.Editor --testproject=TestProjects/UniversalGraphicsTest --player-save-path=players --artifacts_path=test-results --build-only
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only
     artifacts:
         logs:
             paths:
@@ -65,7 +65,7 @@ Universal_iPhone_Metal_Standalone_fast-2020.1:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --player-load-path=players --artifacts_path=test-results
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players
     artifacts:
         logs:
             paths:
@@ -84,10 +84,10 @@ Build_Universal_iPhone_Metal_Player_fast-2020.1:
          rerun: on-new-revision
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli --source-file $YAMATO_SOURCE_DIR/unity_revision.txt -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --editor-location=.Editor --testproject=TestProjects/UniversalGraphicsTest --player-save-path=players --artifacts_path=test-results --build-only
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only
     artifacts:
         logs:
             paths:
@@ -112,7 +112,7 @@ Universal_iPhone_Metal_Standalone_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --player-load-path=players --artifacts_path=test-results
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players
     artifacts:
         logs:
             paths:
@@ -132,10 +132,10 @@ Build_Universal_iPhone_Metal_Player_CUSTOM-REVISION:
          rerun: always
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli --source-file $YAMATO_SOURCE_DIR/unity_revision.txt -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --editor-location=.Editor --testproject=TestProjects/UniversalGraphicsTest --player-save-path=players --artifacts_path=test-results --build-only
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only
     artifacts:
         logs:
             paths:

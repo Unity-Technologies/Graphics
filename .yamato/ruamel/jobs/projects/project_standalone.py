@@ -17,15 +17,15 @@ class Project_StandaloneJob():
     def get_StandaloneBuildJob(self, project, editor, platform, api, test_platform):
         try:
             return Project_StandaloneBuildJob(project, editor, platform, api, test_platform)
-        except:
+        except NotImplementedError:
             return None
     
     
     def get_job_definition(self, project, editor, platform, api, test_platform, build_job):
 
         project_folder = project.get("folder_standalone", project["folder"])
-        cmd = get_cmd(platform["name"], api, 'standalone') 
-        job = _job(project["name"], test_platform["name"], editor, platform, api, cmd(project_folder, platform, api, test_platform["args"]))
+        cmd = get_cmd(platform["name"], api, 'standalone', "") 
+        job = _job(project["name"], test_platform["name"], editor, platform, api, cmd(project_folder, platform, api, test_platform, editor))
 
         if build_job is not None:
 

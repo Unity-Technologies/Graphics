@@ -2,9 +2,13 @@ project:
   name: Universal_Hybrid
   folder: UniversalHybridTest
 test_platforms:
-  - Standalone
-  - playmode
-#  - editmode
+  - type: Standalone
+    timeout:
+      OSX_Metal: 2400
+    timeout_build:
+      Android: 1800
+  - type: playmode
+#  - type: editmode
 platforms:
   - name: Win
     apis:
