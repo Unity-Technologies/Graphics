@@ -9,49 +9,49 @@ editor_version_names:
 editor_versions:
   2020.2_latest_internal:
     android:
-      revision: ef376aff2859
-      version: 2020.2.0b3
+      revision: e2067236bd5c
+      version: 2020.2.0b5
     ios:
-      revision: ef376aff2859
-      version: 2020.2.0b3
+      revision: e2067236bd5c
+      version: 2020.2.0b5
     linux:
-      revision: ef376aff2859
-      version: 2020.2.0b3
+      revision: e2067236bd5c
+      version: 2020.2.0b5
     macos:
-      revision: ef376aff2859
-      version: 2020.2.0b3
+      revision: e2067236bd5c
+      version: 2020.2.0b5
     windows:
-      revision: ef376aff2859
-      version: 2020.2.0b3
+      revision: e2067236bd5c
+      version: 2020.2.0b5
   2020.2_latest_public:
     android:
-      revision: 90b2443a8df1
-      version: 2020.2.0b2
+      revision: 7b778e331e0b
+      version: 2020.2.0b4
     ios:
-      revision: 90b2443a8df1
-      version: 2020.2.0b2
+      revision: 7b778e331e0b
+      version: 2020.2.0b4
     linux:
-      revision: 90b2443a8df1
-      version: 2020.2.0b2
+      revision: 7b778e331e0b
+      version: 2020.2.0b4
     macos:
-      revision: 90b2443a8df1
-      version: 2020.2.0b2
+      revision: 7b778e331e0b
+      version: 2020.2.0b4
     windows:
-      revision: 90b2443a8df1
-      version: 2020.2.0b2
+      revision: 7b778e331e0b
+      version: 2020.2.0b4
   2020.2_staging:
     android:
-      revision: 4ddb31178f9c097b15abff1c38668658c22429b2
+      revision: 93d432f0d085a8671a6c8a331ec8bdccb5c076ef
       version: ''
     ios:
-      revision: 4ddb31178f9c097b15abff1c38668658c22429b2
+      revision: e2067236bd5c1b9c43925d2e39e6338adcc40a5a
       version: ''
     linux:
-      revision: 4ddb31178f9c097b15abff1c38668658c22429b2
+      revision: e2067236bd5c1b9c43925d2e39e6338adcc40a5a
       version: ''
     macos:
-      revision: 4ddb31178f9c097b15abff1c38668658c22429b2
+      revision: 93d432f0d085a8671a6c8a331ec8bdccb5c076ef
       version: ''
     windows:
-      revision: 4ddb31178f9c097b15abff1c38668658c22429b2
+      revision: 93d432f0d085a8671a6c8a331ec8bdccb5c076ef
       version: ''
