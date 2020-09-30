@@ -879,6 +879,10 @@ namespace UnityEditor.ShaderGraph
             
             if (!m_NodeDictionary.ContainsKey(node.objectId))
             {
+                // Block nodes may be removed from the dictionary as a result of changing stack node settings.
+                // If removed block nodes have linkages, they will remain in an inactive state and can be deleted
+                // while not being in the dictionary. This is a benign and safe operation we can suppress.
+                // Nodes that are still in an Active state should also be in the dictionary.
                 if (node.isActive)
                 {
                     throw new InvalidOperationException("Cannot remove a node that doesn't exist.");
