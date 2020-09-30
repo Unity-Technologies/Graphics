@@ -963,7 +963,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     surfaceData.occlusion = min(surfaceData.occlusion, aoFactor.indirectAmbientOcclusion);
     #endif
 
-    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI);
 
     half3 color = half3(0, 0, 0);
 
