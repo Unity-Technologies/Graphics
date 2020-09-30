@@ -57,14 +57,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             for (int i = 0; i < gbufferAttachments.Length; ++i)
             {
                 // Lighting buffer has already been declared with line ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), ...) in DeferredRenderer.Setup
-                if (i != m_DeferredLights.GBufferLightingIndex)
-                {
-                    RenderTextureDescriptor gbufferSlice = cameraTextureDescriptor;
-                    gbufferSlice.depthBufferBits = 0; // make sure no depth surface is actually created
-                    gbufferSlice.stencilFormat = GraphicsFormat.None;
-                    gbufferSlice.graphicsFormat = m_DeferredLights.GetGBufferFormat(i);
-                    cmd.GetTemporaryRT(m_DeferredLights.GbufferAttachments[i].id, gbufferSlice);
-                }
+                if (i == m_DeferredLights.GBufferLightingIndex)
+                    continue;
+
+                if (i == m_DeferredLights.GBufferNormalSmoothnessIndex && m_DeferredLights.HasNormalPrepass)
+                    continue;
+
+                RenderTextureDescriptor gbufferSlice = cameraTextureDescriptor;
+                gbufferSlice.depthBufferBits = 0; // make sure no depth surface is actually created
+                gbufferSlice.stencilFormat = GraphicsFormat.None;
+                gbufferSlice.graphicsFormat = m_DeferredLights.GetGBufferFormat(i);
+                cmd.GetTemporaryRT(m_DeferredLights.GbufferAttachments[i].id, gbufferSlice);
             }
 
             ConfigureTarget(m_DeferredLights.GbufferAttachmentIdentifiers, m_DeferredLights.DepthAttachmentIdentifier);
@@ -111,8 +114,15 @@ namespace UnityEngine.Rendering.Universal.Internal
             RenderTargetHandle[] gbufferAttachments = m_DeferredLights.GbufferAttachments;
 
             for (int i = 0; i < gbufferAttachments.Length; ++i)
-                if (i != m_DeferredLights.GBufferLightingIndex)
-                    cmd.ReleaseTemporaryRT(gbufferAttachments[i].id);
+            {
+                if (i == m_DeferredLights.GBufferLightingIndex)
+                    continue;
+
+                if (i == m_DeferredLights.GBufferNormalSmoothnessIndex && m_DeferredLights.HasNormalPrepass)
+                    continue;
+
+                cmd.ReleaseTemporaryRT(gbufferAttachments[i].id);
+            }
         }
     }
 }

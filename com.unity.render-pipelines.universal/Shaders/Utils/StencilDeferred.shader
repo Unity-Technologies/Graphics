@@ -88,7 +88,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         }
         #endif
 
-        #if defined(_DIRECTIONAL) || defined(_FOG) || defined(_CLEAR_STENCIL_PARTIAL)
+        #if defined(_DIRECTIONAL) || defined(_FOG) || defined(_CLEAR_STENCIL_PARTIAL) || defined(_SSAO_ONLY)
         output.positionCS = float4(positionOS.xy, UNITY_RAW_FAR_CLIP_VALUE, 1.0); // Force triangle to be on zfar
         #else
         VertexPositionInputs vertexInput = GetVertexPositionInputs(positionOS.xyz);
@@ -209,6 +209,15 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         #endif
 
         half3 color = 0.0.xxx;
+        half alpha = 1.0;
+
+        #if defined(_SCREEN_SPACE_OCCLUSION)
+        AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(screen_uv);
+        unityLight.color *= aoFactor.directAmbientOcclusion;
+            #if defined(_DIRECTIONAL) && defined(_DEFERRED_FIRST_LIGHT)
+            alpha = aoFactor.indirectAmbientOcclusion;
+            #endif
+        #endif
 
         #if defined(_LIT)
             BRDFData brdfData = BRDFDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
@@ -222,7 +231,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             color = diffuseColor * surfaceData.albedo + specularColor;
         #endif
 
-        return half4(color, 0.0);
+        return half4(color, alpha);
     }
 
     half4 FragFog(Varyings input) : SV_Target
@@ -233,6 +242,13 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         half fogFactor = ComputeFogFactor(clip_z);
         half fogIntensity = ComputeFogIntensity(fogFactor);
         return half4(unity_FogColor.rgb, fogIntensity);
+    }
+
+    half4 FragSSAOOnly(Varyings input) : SV_Target
+    {
+        float2 screen_uv = (input.screenUV.xy / input.screenUV.z);
+        AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(screen_uv);
+        return half4(0.0, 0.0, 0.0, aoFactor.indirectAmbientOcclusion);
     }
 
     ENDHLSL
@@ -361,7 +377,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             ZTest NotEqual
             ZWrite Off
             Cull Off
-            Blend One One, Zero One
+            Blend One SrcAlpha, Zero One
             BlendOp Add, Add
 
             Stencil {
@@ -381,10 +397,12 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
+            #pragma multi_compile_fragment _DEFERRED_FIRST_LIGHT
             #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             #pragma multi_compile_fragment _ _DEFERRED_SUBTRACTIVE_LIGHTING
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -401,7 +419,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             ZTest NotEqual
             ZWrite Off
             Cull Off
-            Blend One One, Zero One
+            Blend One SrcAlpha, Zero One
             BlendOp Add, Add
 
             Stencil {
@@ -421,10 +439,12 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
+            #pragma multi_compile_fragment _DEFERRED_FIRST_LIGHT
             #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             #pragma multi_compile_fragment _ _DEFERRED_SUBTRACTIVE_LIGHTING
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -481,6 +501,29 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile _CLEAR_STENCIL_PARTIAL
             #pragma vertex Vertex
             #pragma fragment FragWhite
+
+            ENDHLSL
+        }
+
+        // 7 - SSAO Only
+        Pass
+        {
+            Name "SSAO Only"
+
+            ZTest NotEqual
+            ZWrite Off
+            Cull Off
+            Blend One SrcAlpha, Zero One
+            BlendOp Add, Add
+
+            HLSLPROGRAM
+
+            #pragma multi_compile _SSAO_ONLY
+            #pragma multi_compile_vertex _ _SCREEN_SPACE_OCCLUSION
+
+            #pragma vertex Vertex
+            #pragma fragment FragSSAOOnly
+            //#pragma enable_d3d11_debug_symbols
 
             ENDHLSL
         }

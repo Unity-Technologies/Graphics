@@ -233,6 +233,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public int instanceCount;
         }
 
+        static readonly ushort k_InvalidLightOffset = 0xFFFF;
         static readonly string k_SetupLights = "SetupLights";
         static readonly string k_DeferredPass = "Deferred Pass";
         static readonly string k_TileDepthInfo = "Tile Depth Info";
@@ -271,7 +272,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             if (index == GBufferAlbedoIndex) // sRGB albedo, materialFlags
                 return QualitySettings.activeColorSpace == ColorSpace.Linear ? GraphicsFormat.R8G8B8A8_SRGB : GraphicsFormat.R8G8B8A8_UNorm;
-            else if (index == GBufferSpecularMetallicIndex) // sRGB specular, [unused]
+            else if (index == GBufferSpecularMetallicIndex) // sRGB specular, reflectivity
                 return QualitySettings.activeColorSpace == ColorSpace.Linear ? GraphicsFormat.R8G8B8A8_SRGB : GraphicsFormat.R8G8B8A8_UNorm;    
             else if (index == GBufferNormalSmoothnessIndex)
                 return this.AccurateGbufferNormals ? GraphicsFormat.R8G8B8A8_UNorm : GraphicsFormat.R8G8B8A8_SNorm; // normal normal normal packedSmoothness
@@ -291,6 +292,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal bool UseRenderPass { get; set; }
         //
         internal bool HasDepthPrepass { get; set; }
+        //
+        internal bool HasNormalPrepass { get; set; }
         // This is an overlay camera being rendered.
         internal bool IsOverlay { get; set; }
         //
@@ -679,6 +682,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public void Setup(ref RenderingData renderingData,
             AdditionalLightsShadowCasterPass additionalLightsShadowCasterPass,
             bool hasDepthPrepass,
+            bool hasNormalPrepass,
             bool isOverlay,
             RenderTargetHandle depthCopyTexture,
             RenderTargetHandle depthInfoTexture,
@@ -688,6 +692,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             m_AdditionalLightsShadowCasterPass = additionalLightsShadowCasterPass;
             this.HasDepthPrepass = hasDepthPrepass;
+            this.HasNormalPrepass = hasNormalPrepass;
             this.IsOverlay = isOverlay;
 
             this.DepthCopyTexture = depthCopyTexture;
@@ -1026,9 +1031,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // This must be set for each eye in XR mode multipass.
                 SetupMatrixConstants(cmd, ref renderingData);
 
-                RenderTileLights(context, cmd, ref renderingData);
+                // Firt directional light will apply SSAO if possible, unless there is none.
+                if (!HasStencilLightsOfType(LightType.Directional))
+                    RenderSSAOForLightingBuffer(cmd, ref renderingData);
 
+                // Stencil lights must be applied before tile light because main directional light may require to overwrite lighting buffer for SSAO.
                 RenderStencilLights(context, cmd, ref renderingData);
+
+                RenderTileLights(context, cmd, ref renderingData);
 
                 if (renderingData.lightData.supportsMixedLighting && this.MixedLightingSetup == MixedLightingSetup.Subtractive)
                     cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_SUBTRACTIVE_LIGHTING);
@@ -1170,9 +1180,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
             for (int i = 0, soffset = 0; i < stencilVisLightOffsets.Length; ++i)
             {
-                int c = stencilVisLightOffsets[i];
-                stencilVisLightOffsets[i] = (ushort)soffset;
-                soffset += c;
+                if (stencilVisLightOffsets[i] == 0)
+                    stencilVisLightOffsets[i] = k_InvalidLightOffset;
+                else
+                {
+                    int c = stencilVisLightOffsets[i];
+                    stencilVisLightOffsets[i] = (ushort)soffset;
+                    soffset += c;
+                }
             }
 
             // Precompute punctual light data.
@@ -1422,6 +1437,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             Profiler.EndSample();
         }
 
+        bool HasStencilLightsOfType(LightType type)
+        {
+            return m_stencilVisLightOffsets[(int)type] != k_InvalidLightOffset;
+        }
+
         void RenderStencilLights(ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData)
         {
             if (m_StencilDeferredMaterial == null)
@@ -1435,20 +1455,16 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             Profiler.BeginSample(k_DeferredStencilPass);
 
-            if (m_SphereMesh == null)
-                m_SphereMesh = CreateSphereMesh();
-            if (m_HemisphereMesh == null)
-                m_HemisphereMesh = CreateHemisphereMesh();
-            if (m_FullscreenMesh == null)
-                m_FullscreenMesh = CreateFullscreenMesh();
-
             using (new ProfilingScope(cmd, m_ProfilingSamplerDeferredStencilPass))
             {
                 NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
 
-                RenderStencilDirectionalLights(cmd, ref renderingData, visibleLights, renderingData.lightData.mainLightIndex);
-                RenderStencilPointLights(cmd, ref renderingData, visibleLights);
-                RenderStencilSpotLights(cmd, ref renderingData, visibleLights);
+                if (HasStencilLightsOfType(LightType.Directional))
+                    RenderStencilDirectionalLights(cmd, ref renderingData, visibleLights, renderingData.lightData.mainLightIndex);
+                if (HasStencilLightsOfType(LightType.Point))
+                    RenderStencilPointLights(cmd, ref renderingData, visibleLights);
+                if (HasStencilLightsOfType(LightType.Spot))
+                    RenderStencilSpotLights(cmd, ref renderingData, visibleLights);
             }
 
             Profiler.EndSample();
@@ -1456,9 +1472,13 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void RenderStencilDirectionalLights(CommandBuffer cmd, ref RenderingData renderingData, NativeArray<VisibleLight> visibleLights, int mainLightIndex)
         {
+            if (m_FullscreenMesh == null)
+                m_FullscreenMesh = CreateFullscreenMesh();
+
             cmd.EnableShaderKeyword(ShaderKeywordStrings._DIRECTIONAL);
 
             // Directional lights.
+            bool isFirstLight = true;
 
             // TODO bundle extra directional lights rendering by batches of 8.
             // Also separate shadow caster lights from non-shadow caster.
@@ -1496,6 +1516,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 bool hasSoftShadow = hasDeferredShadows && renderingData.shadowData.supportsSoftShadows && vl.light.shadows == LightShadows.Soft;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, hasSoftShadow);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_FIRST_LIGHT, isFirstLight); // First directional light applies SSAO
 
                 cmd.SetGlobalVector(ShaderConstants._LightColor, lightColor); // VisibleLight.finalColor already returns color in active color space
                 cmd.SetGlobalVector(ShaderConstants._LightDirection, lightDir);
@@ -1504,6 +1525,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Lighting pass.
                 cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 3); // Lit
                 cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 4); // SimpleLit
+
+                isFirstLight = false;
             }
 
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
@@ -1513,6 +1536,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void RenderStencilPointLights(CommandBuffer cmd, ref RenderingData renderingData, NativeArray<VisibleLight> visibleLights)
         {
+            if (m_SphereMesh == null)
+                m_SphereMesh = CreateSphereMesh();
+
             cmd.EnableShaderKeyword(ShaderKeywordStrings._POINT);
 
             for (int soffset = m_stencilVisLightOffsets[(int)LightType.Point]; soffset < m_stencilVisLights.Length; ++soffset)
@@ -1567,6 +1593,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void RenderStencilSpotLights(CommandBuffer cmd, ref RenderingData renderingData, NativeArray<VisibleLight> visibleLights)
         {
+            if (m_HemisphereMesh == null)
+                m_HemisphereMesh = CreateHemisphereMesh();
+
             cmd.EnableShaderKeyword(ShaderKeywordStrings._SPOT);
 
             for (int soffset = m_stencilVisLightOffsets[(int)LightType.Spot]; soffset < m_stencilVisLights.Length; ++soffset)
@@ -1619,6 +1648,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.SoftShadows);
             cmd.DisableShaderKeyword(ShaderKeywordStrings._SPOT);
+        }
+
+        void RenderSSAOForLightingBuffer(CommandBuffer cmd, ref RenderingData renderingData)
+        {
+            if (m_FullscreenMesh == null)
+                m_FullscreenMesh = CreateFullscreenMesh();
+
+            cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 7);
         }
 
         void RenderFog(ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData)

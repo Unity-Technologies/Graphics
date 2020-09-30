@@ -15,9 +15,9 @@ SAMPLER(sampler_BaseMap);
 SAMPLER(sampler_ScreenSpaceOcclusionTexture);
 
 // Params
-float4 _BlurOffset;
 float4 _SSAOParams;
 float4 _SourceSize;
+float4x4 _CameraViewProjections[2]; // This is different from UNITY_MATRIX_VP (platform-agnostic projection matrix is used)
 
 // SSAO Settings
 #define INTENSITY _SSAOParams.x
@@ -51,6 +51,12 @@ static const float kGeometryCoeff = 0.8;
 // paper (Morgan 2011 http://goo.gl/2iz3P) for further details of these constants.
 static const float kBeta = 0.002;
 #define EPSILON         1.0e-4
+
+#if defined(USING_STEREO_MATRICES)
+#define unity_eyeIndex unity_StereoEyeIndex
+#else
+#define unity_eyeIndex 0
+#endif
 
 float4 PackAONormal(float ao, float3 n)
 {
@@ -133,10 +139,12 @@ float SampleAndGetLinearDepth(float2 uv)
 float3 ReconstructViewPos(float2 uv, float depth, float2 p11_22, float2 p13_31)
 {
     #if defined(_ORTHOGRAPHIC)
-        float3 viewPos = float3(((uv.xy * 2.0 - 1.0 - p13_31) * p11_22), depth);
+        float3 viewPos = float3(((uv.xy * 2.0 - 1.0 - p13_31) * p11_22), -depth);
     #else
-        float3 viewPos = float3(depth * ((uv.xy * 2.0 - 1.0 - p13_31) * p11_22), depth);
+        float3 viewPos = float3(depth * ((uv.xy * 2.0 - 1.0 - p13_31) * p11_22), -depth);
     #endif
+
+    viewPos = mul((float3x3)UNITY_MATRIX_I_V, viewPos); // (kchang) Still working on a more optimized implementation ...
     return viewPos;
 }
 
@@ -228,7 +236,7 @@ float3x3 GetCoordinateConversionParameters(out float2 p11_22, out float2 p13_31)
     p11_22 = rcp(float2(camProj._11, camProj._22));
     p13_31 = float2(camProj._13, camProj._23);
 
-    return camProj;
+    return (float3x3)_CameraViewProjections[unity_eyeIndex];
 }
 
 // Distance-based AO estimator based on Morgan 2011
@@ -241,7 +249,7 @@ float4 SSAO(Varyings input) : SV_Target
 
     // Parameters used in coordinate conversion
     float2 p11_22, p13_31;
-    float3x3 camProj = GetCoordinateConversionParameters(p11_22, p13_31);
+    float3x3 camTransform = GetCoordinateConversionParameters(p11_22, p13_31); // either camera projection or viewProjection matrix
 
     // Get the depth, normal and view position for this fragment
     float depth_o;
@@ -262,7 +270,7 @@ float4 SSAO(Varyings input) : SV_Target
         #endif
 
         // Sample point
-        float3 v_s1 = PickSamplePoint(uv, randAddon, s);
+        float3 v_s1 = PickSamplePoint(uv, randAddon, s); // (kchang) should we rotate this "random" vector to world space?
 
         // Make it distributed between [0, _Radius]
         v_s1 *= sqrt((s + 1.0) * rcpSampleCount ) * RADIUS;
@@ -271,11 +279,13 @@ float4 SSAO(Varyings input) : SV_Target
         float3 vpos_s1 = vpos_o + v_s1;
 
         // Reproject the sample point
-        float3 spos_s1 = mul(camProj, vpos_s1);
+        float3 spos_s1 = mul(camTransform, vpos_s1);
+
         #if defined(_ORTHOGRAPHIC)
             float2 uv_s1_01 = clamp((spos_s1.xy + 1.0) * 0.5, 0.0, 1.0);
         #else
-            float2 uv_s1_01 = clamp((spos_s1.xy * rcp(vpos_s1.z) + 1.0) * 0.5, 0.0, 1.0);
+            float zdist = -dot(UNITY_MATRIX_V[2].xyz, vpos_s1);
+            float2 uv_s1_01 = clamp((spos_s1.xy * rcp(zdist) + 1.0) * 0.5, 0.0, 1.0);
         #endif
 
         // Depth at the sample point
@@ -314,7 +324,7 @@ half4 Blur(float2 uv, float2 delta) : SV_Target
             float3 n0 = SampleSceneNormals(uv);
         #else
             float2 p11_22, p13_31;
-            float3x3 camProj = GetCoordinateConversionParameters(p11_22, p13_31);
+            GetCoordinateConversionParameters(p11_22, p13_31);
 
             // Get the depth, normal and view position for this fragment
             float depth_o;
