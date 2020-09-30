@@ -34,7 +34,7 @@ void GetPunctualLightVectors(float3 positionWS, LightData light, out float3 L, o
         {
             float distRcp = rcp(dist);
             distances.x = dist;
-            distances.y = distRcp;
+            distances.z = distRcp;
             ModifyDistancesForFillLighting(distances, light.size.x);
         }
         else // Light is directionnal
