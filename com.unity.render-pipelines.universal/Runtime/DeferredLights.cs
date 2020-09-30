@@ -454,18 +454,20 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             DeferredShaderData.instance.ResetBuffers();
 
-            this.RenderWidth = renderingData.cameraData.cameraTargetDescriptor.width;
-            this.RenderHeight = renderingData.cameraData.cameraTargetDescriptor.height;
+            Camera camera = renderingData.cameraData.camera;
+            // Support for dynamic resolution.
+            this.RenderWidth = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.widthScaleFactor * camera.pixelWidth) : camera.pixelWidth;
+            this.RenderHeight = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.heightScaleFactor * camera.pixelHeight) : camera.pixelHeight;
 
             if (this.TiledDeferredShading)
             {
                 // Precompute tile data again if the camera projection or the screen resolution has changed.
-                if (m_CachedRenderWidth != renderingData.cameraData.cameraTargetDescriptor.width
-                    || m_CachedRenderHeight != renderingData.cameraData.cameraTargetDescriptor.height
+                if (m_CachedRenderWidth != this.RenderWidth
+                    || m_CachedRenderHeight != this.RenderHeight
                     || m_CachedProjectionMatrix != renderingData.cameraData.camera.projectionMatrix)
                 {
-                    m_CachedRenderWidth = renderingData.cameraData.cameraTargetDescriptor.width;
-                    m_CachedRenderHeight = renderingData.cameraData.cameraTargetDescriptor.height;
+                    m_CachedRenderWidth = this.RenderWidth;
+                    m_CachedRenderHeight = this.RenderHeight;
                     m_CachedProjectionMatrix = renderingData.cameraData.camera.projectionMatrix;
 
                     for (int tilerIndex = 0; tilerIndex < m_Tilers.Length; ++tilerIndex)
