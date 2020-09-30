@@ -59,6 +59,62 @@ ShaderGraph_Stereo_Win_editmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+ShaderGraph_Stereo_Win_Standalone_2020.2:
+    name: ShaderGraph_Stereo on Win__Standalone on version 2020.2
+    agent:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraphUniversalStereo/utr.bat
+      -  cd TestProjects/ShaderGraphUniversalStereo && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+    dependencies:
+      -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Player_2020.2
+         rerun: on-new-revision
+    skip_checkout: true
+Build_ShaderGraph_Stereo_Win_Player_2020.2:
+    name: Build ShaderGraph_Stereo on Win__Player on version 2020.2
+    agent:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraphUniversalStereo/utr.bat
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  cd TestProjects/ShaderGraphUniversalStereo && unity-downloader-cli -u 4ddb31178f9c097b15abff1c38668658c22429b2 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/ShaderGraphUniversalStereo && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+        players:
+            paths:
+              -  "players/**"
+ShaderGraph_Stereo_Win_editmode_2020.2:
+    name: ShaderGraph_Stereo on Win__editmode on version 2020.2
+    agent:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraphUniversalStereo/utr.bat
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  cd TestProjects/ShaderGraphUniversalStereo && unity-downloader-cli -u 4ddb31178f9c097b15abff1c38668658c22429b2 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/ShaderGraphUniversalStereo && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
 ShaderGraph_Stereo_Win_Standalone_CUSTOM-REVISION:
     name: ShaderGraph_Stereo on Win__Standalone on version CUSTOM-REVISION
     agent:

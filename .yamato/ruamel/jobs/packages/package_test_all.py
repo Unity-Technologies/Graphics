@@ -6,12 +6,12 @@ from ..shared.constants import NPM_UPMCI_INSTALL_URL
 
 class Package_AllPackageCiJob():
     
-    def __init__(self, packages, agent, platforms, target_editor, target_branch, editor):
+    def __init__(self, packages, agent, platforms, target_branch, editor):
         self.job_id = package_job_id_test_all(editor["track"])
-        self.yml = self.get_job_definition(packages, agent, platforms, target_editor, target_branch, editor).get_yml()
+        self.yml = self.get_job_definition(packages, agent, platforms, target_branch, editor).get_yml()
 
 
-    def get_job_definition(self, packages, agent, platforms, target_editor, target_branch, editor):
+    def get_job_definition(self, packages, agent, platforms, target_branch, editor):
 
         # define dependencies
         dependencies = []
