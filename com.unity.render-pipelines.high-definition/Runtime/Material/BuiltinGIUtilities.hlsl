@@ -42,28 +42,34 @@ void EvaluateLightmap(float3 positionRWS, float3 normalWS, float3 backNormalWS, 
 #endif
 #endif
 
+#if defined(UNITY_DOTS_INSTANCING_ENABLED)
+#define LIGHTMAP_NAME unity_Lightmaps
+#define LIGHTMAP_INDIRECTION_NAME unity_LightmapsInd
+#define SHADOWMASK_NAME unity_ShadowMasks
+#define LIGHTMAP_SAMPLER_NAME samplerunity_Lightmaps
+#define SHADOWMASK_SAMPLER_NAME samplerunity_ShadowMasks
+#define LIGHTMAP_SAMPLE_EXTRA_ARGS uvStaticLightmap, unity_LightmapIndex.x
+#define SHADOWMASK_SAMPLE_EXTRA_ARGS uv, unity_LightmapIndex.x
+#else
+#define LIGHTMAP_NAME unity_Lightmap
+#define LIGHTMAP_INDIRECTION_NAME unity_LightmapInd
+#define SHADOWMASK_NAME unity_ShadowMask
+#define LIGHTMAP_SAMPLER_NAME samplerunity_Lightmap
+#define SHADOWMASK_SAMPLER_NAME samplerunity_ShadowMask
+#define LIGHTMAP_SAMPLE_EXTRA_ARGS uvStaticLightmap
+#define SHADOWMASK_SAMPLE_EXTRA_ARGS uv
+#endif
+
 #ifdef LIGHTMAP_ON
-    #ifdef DIRLIGHTMAP_COMBINED
-        #ifdef UNITY_DOTS_INSTANCING_ENABLED
-            SampleDirectionalLightmap(TEXTURE2D_ARRAY_ARGS(unity_Lightmaps, samplerunity_Lightmaps),
-                TEXTURE2D_ARRAY_ARGS(unity_LightmapsInd, samplerunity_Lightmaps),
-                uvStaticLightmap, unity_LightmapIndex.x, unity_LightmapST, normalWS, backNormalWS, useRGBMLightmap, decodeInstructions, bakeDiffuseLighting, backBakeDiffuseLighting);
-        #else
-            SampleDirectionalLightmap(TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap),
-                TEXTURE2D_ARGS(unity_LightmapInd, samplerunity_Lightmap),
-                uvStaticLightmap, unity_LightmapST, normalWS, backNormalWS, useRGBMLightmap, decodeInstructions, bakeDiffuseLighting, backBakeDiffuseLighting);
-        #endif
-    #else
-        #ifdef UNITY_DOTS_INSTANCING_ENABLED
-            float3 illuminance = SampleSingleLightmap(TEXTURE2D_ARRAY_ARGS(unity_Lightmaps, samplerunity_Lightmaps), uvStaticLightmap, unity_LightmapIndex, unity_LightmapST, useRGBMLightmap, decodeInstructions);
-                bakeDiffuseLighting += illuminance;
-                backBakeDiffuseLighting += illuminance;
-        #else
-            float3 illuminance = SampleSingleLightmap(TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap), uvStaticLightmap, unity_LightmapST, useRGBMLightmap, decodeInstructions);
-            bakeDiffuseLighting += illuminance;
-            backBakeDiffuseLighting += illuminance;
-        #endif
-    #endif
+#ifdef DIRLIGHTMAP_COMBINED
+    SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME),
+            TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_INDIRECTION_NAME, LIGHTMAP_SAMPLER_NAME),
+            LIGHTMAP_SAMPLE_EXTRA_ARGS, unity_LightmapST, normalWS, backNormalWS, useRGBMLightmap, decodeInstructions, bakeDiffuseLighting, backBakeDiffuseLighting);
+#else
+    float3 illuminance = SampleSingleLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME), LIGHTMAP_SAMPLE_EXTRA_ARGS, unity_LightmapST, useRGBMLightmap, decodeInstructions);
+    bakeDiffuseLighting += illuminance;
+    backBakeDiffuseLighting += illuminance;
+#endif
 #endif
 
 #ifdef DYNAMICLIGHTMAP_ON
@@ -230,16 +236,13 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
     return bakeDiffuseLighting;
 }
 
+
 float4 SampleShadowMask(float3 positionRWS, float2 uvStaticLightmap) // normalWS not use for now
 {
 #if defined(LIGHTMAP_ON)
     float2 uv = uvStaticLightmap * unity_LightmapST.xy + unity_LightmapST.zw;
-    #ifdef UNITY_DOTS_INSTANCING_ENABLED
-        float4 rawOcclusionMask = SAMPLE_TEXTURE2D_ARRAY(unity_ShadowMasks, samplerunity_ShadowMasks_linear_clamp, uv, unity_LightmapIndex.x); // Can't reuse sampler from Lightmap because with shader graph, the compile could optimize out the lightmaps if metal is 1
-    #else
-        float4 rawOcclusionMask = SAMPLE_TEXTURE2D(unity_ShadowMask, samplerunity_ShadowMask, uv); // Can't reuse sampler from Lightmap because with shader graph, the compile could optimize out the lightmaps if metal is 1
-    #endif
- #else
+    float4 rawOcclusionMask = SAMPLE_TEXTURE2D_LIGHTMAP(SHADOWMASK_NAME, SHADOWMASK_SAMPLER_NAME, SHADOWMASK_SAMPLE_EXTRA_ARGS); // Can't reuse sampler from Lightmap because with shader graph, the compile could optimize out the lightmaps if metal is 1
+#else
     float4 rawOcclusionMask;
     if (unity_ProbeVolumeParams.x == 1.0)
     {
