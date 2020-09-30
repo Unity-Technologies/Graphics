@@ -70,8 +70,8 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_Player_trunk:
         set /p GIT_REVISIONDATE=<revdate.tmp
         echo %GIT_REVISIONDATE%
         del revdate.tmp 
-        cd TestProjects/BoatAttack
-        utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-scriptingbackend=IL2CPP" --extra-editor-arg="-androidtargetarchitecture=ARM64" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --timeout=1200 --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+        # cd TestProjects/BoatAttack
+        utr --suite=playmode --platform=Android --testproject=./TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-scriptingbackend=IL2CPP" --extra-editor-arg="-androidtargetarchitecture=ARM64" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --timeout=1200 --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
     artifacts:
         logs:
             paths:
