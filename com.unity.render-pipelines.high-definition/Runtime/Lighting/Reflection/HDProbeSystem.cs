@@ -96,7 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             case ProbeSettings.ProbeType.PlanarProbe:
                                 target = HDRenderUtilities.CreatePlanarProbeRenderTarget(
-                                    (int)probe.resolution, format
+                                    (int)probe.resolution(hd.asset), format
                                 );
                                 break;
                             case ProbeSettings.ProbeType.ReflectionProbe:
@@ -115,7 +115,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             case ProbeSettings.ProbeType.PlanarProbe:
                                 target = HDRenderUtilities.CreatePlanarProbeRenderTarget(
-                                    (int)probe.resolution, format
+                                    (int)probe.resolution(hd.asset), format
                                 );
                                 break;
                             case ProbeSettings.ProbeType.ReflectionProbe:
