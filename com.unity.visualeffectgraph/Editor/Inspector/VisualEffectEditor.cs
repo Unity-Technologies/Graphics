@@ -1255,7 +1255,11 @@ namespace UnityEditor.VFX
                     EditorGUI.EndProperty();
 
                     if (!m_LightProbeUsage.hasMultipleDifferentValues && m_LightProbeUsage.intValue == (int)LightProbeUsage.UseProxyVolume)
+                    {
+                        if (!LightProbeProxyVolume.isFeatureSupported || !SupportedRenderingFeatures.active.lightProbeProxyVolumes)
+                            EditorGUILayout.HelpBox(Contents.lightProbeVolumeUnsupportedNote.text, MessageType.Warning);
                         EditorGUILayout.PropertyField(m_LightProbeVolumeOverride, Contents.lightProbeVolumeOverrideStyle);
+                    }
                 }
 
                 bool useReflectionProbes = m_ReflectionProbeUsage != null && !m_ReflectionProbeUsage.hasMultipleDifferentValues && (ReflectionProbeUsage)m_ReflectionProbeUsage.intValue != ReflectionProbeUsage.Off;
@@ -1276,6 +1280,7 @@ namespace UnityEditor.VFX
                 public static readonly GUIContent reflectionProbeUsageStyle =       EditorGUIUtility.TrTextContent("Reflection Probes", "Specifies if or how the object is affected by reflections in the Scene.  This property cannot be disabled in deferred rendering modes.");
                 public static readonly GUIContent lightProbeVolumeOverrideStyle =   EditorGUIUtility.TrTextContent("Proxy Volume Override", "If set, the Renderer will use the Light Probe Proxy Volume component from another GameObject.");
                 public static readonly GUIContent lightProbeAnchorStyle =           EditorGUIUtility.TrTextContent("Anchor Override", "Specifies the Transform position that will be used for sampling the light probes and reflection probes.");
+                public static readonly GUIContent lightProbeVolumeUnsupportedNote = EditorGUIUtility.TrTextContent("The Light Probe Proxy Volume feature is unsupported by the current graphics hardware or API configuration. Simple 'Blend Probes' mode will be used instead.");
             }
         }
 
