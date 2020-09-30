@@ -1,4 +1,4 @@
-#if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
+#if ENABLE_INPUT_SYSTEM && VFX_HAS_INPUT_SYSTEM_PACKAGE
     #define USE_INPUT_SYSTEM
     using UnityEngine.InputSystem;
     using System.Linq;
