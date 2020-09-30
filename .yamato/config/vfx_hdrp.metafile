@@ -2,9 +2,11 @@ project:
   name: VFX_HDRP
   folder: VisualEffectGraph_HDRP
 test_platforms:
-  - Standalone
-  - playmode
-  - editmode
+  - type: Standalone
+    timeout:
+      OSX_Metal: 2400
+  - type: playmode
+  - type: editmode
 platforms:
   - name: Win
     apis:

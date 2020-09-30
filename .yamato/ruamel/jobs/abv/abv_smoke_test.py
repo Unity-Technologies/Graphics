@@ -26,10 +26,14 @@ class ABV_SmokeTestJob():
                 f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
                 f'cd {TEST_PROJECTS_DIR}/{smoke_test["folder"]} && unity-downloader-cli --source-file ../../{PATH_UNITY_REVISION} -c editor --wait --published-only' ]
         if test_platform['name'].lower() == 'standalone':
-            commands.append(f'cd {TEST_PROJECTS_DIR}/{smoke_test["folder"]} && utr {test_platform["args"]}Windows64 --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS} --timeout=1200')
+            commands.append(f'cd {TEST_PROJECTS_DIR}/{smoke_test["folder"]} && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS} --timeout=1200')
+        elif test_platform['name'].lower() == 'playmode':
+            commands.append(f'cd {TEST_PROJECTS_DIR}/{smoke_test["folder"]} && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}')
+        elif test_platform['name'].lower() == 'editmode':
+            commands.append(f'cd {TEST_PROJECTS_DIR}/{smoke_test["folder"]} && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}')
         else:
-            commands.append(f'cd {TEST_PROJECTS_DIR}/{smoke_test["folder"]} && utr {test_platform["args"]} --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}')
-        
+            raise Exception('Unknown testplatform specified')
+
         # construct job
         job = YMLJob()
         job.set_name(f'SRP Smoke Test - {test_platform["name"]}_{editor["version"]}')
