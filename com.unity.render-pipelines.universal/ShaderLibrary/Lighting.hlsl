@@ -817,6 +817,7 @@ half3 CalculateDebugShadowCascadeColor(InputData inputData)
         kBlueColor,
         kGreenColor,
         kYellowGreenColor,
+        kOrangeBrownColor,
         kRedColor,
     };
 
