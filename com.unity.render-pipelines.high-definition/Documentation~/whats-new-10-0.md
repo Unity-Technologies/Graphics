@@ -79,7 +79,8 @@ The Render Pipeline Debug window now has a new Volume panel which you can use to
 
 #### Quad Overdraw and Vertex Density
 
-Quad Overdraw highlights GPU quads running multiple fragment shaders, which is mainly caused by small or thin triangles while Vertex Density displays pixels running multiple vertex shaders.
+![quad_density](Images/quad_density_example.png)
+Two full screen rendering debugs modes have been added. Quad Overdraw highlights GPU quads running multiple fragment shaders, which is mainly caused by small or thin triangles while Vertex Density displays pixels running multiple vertex shaders.
 This is mainly due to Meshes far away or with too many details so it can help finding GameObjects in you scene that need LODs.  (This modes are currently not supported on Metal)
 
 ### Alpha to Mask

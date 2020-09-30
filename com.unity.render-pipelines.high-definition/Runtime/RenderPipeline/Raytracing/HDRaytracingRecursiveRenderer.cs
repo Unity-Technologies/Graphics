@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
             };
         }
 
-        public TextureHandle CreateFlagMaskTexture(RenderGraph renderGraph)
+        internal TextureHandle CreateFlagMaskTexture(RenderGraph renderGraph)
         {
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
             {
