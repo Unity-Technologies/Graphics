@@ -5,13 +5,13 @@ from .commands._cmd_mapper import get_cmd
 from ..shared.namer import *
 from ..shared.yml_job import YMLJob
 
-def _job(project_name, test_platform_name, editor, platform, api, cmd):
+def _job(project, test_platform_name, editor, platform, api, cmd):
 
     # define name
     if test_platform_name.lower() == 'standalone_build':
-        job_name = f'Build {project_name} on {platform["name"]}_{api["name"]}_Player on version {editor["track"]}'
+        job_name = f'Build {project["name"]} on {platform["name"]}_{api["name"]}_Player on version {editor["track"]}'
     else:
-        job_name = f'{project_name} on {platform["name"]}_{api["name"]}_{test_platform_name} on version {editor["track"]}'
+        job_name = f'{project["name"]} on {platform["name"]}_{api["name"]}_{test_platform_name} on version {editor["track"]}'
 
     # define agent
     platform_agents_project = platform.get(f'agents_project_{api["name"]}', platform.get('agents_project'))
@@ -25,6 +25,7 @@ def _job(project_name, test_platform_name, editor, platform, api, cmd):
     job.add_var_custom_revision(editor["track"])
     job.add_commands(cmd)
     job.add_artifacts_test_results()
+    job.add_artifacts_project_logs(project["folder"])
 
 
     dependencies = [{

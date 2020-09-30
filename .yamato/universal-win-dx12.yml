@@ -19,6 +19,7 @@ Universal_Win_DX12_Standalone_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/universal-win-dx12.yml#Build_Universal_Win_DX12_Player_trunk
          rerun: on-new-revision
@@ -39,6 +40,7 @@ Build_Universal_Win_DX12_Player_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -59,6 +61,7 @@ Universal_Win_DX12_playmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
 Universal_Win_DX12_editmode_trunk:
     name: Universal on Win_DX12_editmode on version trunk
     agent:
@@ -76,6 +79,7 @@ Universal_Win_DX12_editmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
 Universal_Win_DX12_playmode_XR_trunk:
     name: Universal on Win_DX12_playmode_XR on version trunk
     agent:
@@ -93,6 +97,7 @@ Universal_Win_DX12_playmode_XR_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
 Universal_Win_DX12_Standalone_CUSTOM-REVISION:
     name: Universal on Win_DX12_Standalone on version CUSTOM-REVISION
     agent:
@@ -110,6 +115,7 @@ Universal_Win_DX12_Standalone_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
@@ -133,6 +139,7 @@ Build_Universal_Win_DX12_Player_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -157,6 +164,7 @@ Universal_Win_DX12_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
@@ -178,6 +186,7 @@ Universal_Win_DX12_editmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
@@ -199,6 +208,7 @@ Universal_Win_DX12_playmode_XR_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always

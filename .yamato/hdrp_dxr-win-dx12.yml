@@ -19,6 +19,7 @@ HDRP_DXR_Win_DX12_Standalone_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/hdrp_dxr-win-dx12.yml#Build_HDRP_DXR_Win_DX12_Player_trunk
          rerun: on-new-revision
@@ -41,6 +42,7 @@ Build_HDRP_DXR_Win_DX12_Player_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -62,6 +64,7 @@ HDRP_DXR_Win_DX12_playmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
 HDRP_DXR_Win_DX12_playmode_XR_trunk:
     name: HDRP_DXR on Win_DX12_playmode_XR on version trunk
     agent:
@@ -80,6 +83,7 @@ HDRP_DXR_Win_DX12_playmode_XR_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
 HDRP_DXR_Win_DX12_playmode_RenderGraph_trunk:
     name: HDRP_DXR on Win_DX12_playmode_RenderGraph on version trunk
     agent:
@@ -98,6 +102,7 @@ HDRP_DXR_Win_DX12_playmode_RenderGraph_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
 HDRP_DXR_Win_DX12_Standalone_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_Standalone on version CUSTOM-REVISION
     agent:
@@ -115,6 +120,7 @@ HDRP_DXR_Win_DX12_Standalone_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
@@ -140,6 +146,7 @@ Build_HDRP_DXR_Win_DX12_Player_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -165,6 +172,7 @@ HDRP_DXR_Win_DX12_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
@@ -187,6 +195,7 @@ HDRP_DXR_Win_DX12_playmode_XR_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
@@ -209,6 +218,7 @@ HDRP_DXR_Win_DX12_playmode_RenderGraph_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always

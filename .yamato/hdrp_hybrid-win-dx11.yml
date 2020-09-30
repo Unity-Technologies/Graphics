@@ -20,6 +20,7 @@ HDRP_Hybrid_Win_DX11_playmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
 HDRP_Hybrid_Win_DX11_playmode_XR_trunk:
     name: HDRP_Hybrid on Win_DX11_playmode_XR on version trunk
     agent:
@@ -37,6 +38,7 @@ HDRP_Hybrid_Win_DX11_playmode_XR_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
 HDRP_Hybrid_Win_DX11_Standalone_trunk:
     name: HDRP_Hybrid on Win_DX11_Standalone on version trunk
     agent:
@@ -52,6 +54,7 @@ HDRP_Hybrid_Win_DX11_Standalone_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
       -  path: .yamato/hdrp_hybrid-win-dx11.yml#Build_HDRP_Hybrid_Win_DX11_Player_trunk
          rerun: on-new-revision
@@ -73,6 +76,7 @@ Build_HDRP_Hybrid_Win_DX11_Player_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -94,6 +98,7 @@ HDRP_Hybrid_Win_DX11_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
@@ -115,6 +120,7 @@ HDRP_Hybrid_Win_DX11_playmode_XR_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
@@ -134,6 +140,7 @@ HDRP_Hybrid_Win_DX11_Standalone_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
@@ -158,6 +165,7 @@ Build_HDRP_Hybrid_Win_DX11_Player_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
         players:
             paths:
               -  "players/**"

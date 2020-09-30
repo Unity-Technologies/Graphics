@@ -21,6 +21,7 @@ VFX_URP_OSX_OpenGLCore_playmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
 VFX_URP_OSX_OpenGLCore_playmode_CUSTOM-REVISION:
     name: VFX_URP on OSX_OpenGLCore_playmode on version CUSTOM-REVISION
     agent:
@@ -40,6 +41,7 @@ VFX_URP_OSX_OpenGLCore_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always

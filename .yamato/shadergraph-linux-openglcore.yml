@@ -22,6 +22,7 @@ ShaderGraph_Linux_OpenGLCore_playmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
 ShaderGraph_Linux_OpenGLCore_editmode_trunk:
     name: ShaderGraph on Linux_OpenGLCore_editmode on version trunk
     agent:
@@ -41,6 +42,7 @@ ShaderGraph_Linux_OpenGLCore_editmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
 ShaderGraph_Linux_OpenGLCore_playmode_CUSTOM-REVISION:
     name: ShaderGraph on Linux_OpenGLCore_playmode on version CUSTOM-REVISION
     agent:
@@ -61,6 +63,7 @@ ShaderGraph_Linux_OpenGLCore_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
@@ -84,6 +87,7 @@ ShaderGraph_Linux_OpenGLCore_editmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always

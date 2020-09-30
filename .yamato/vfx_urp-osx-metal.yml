@@ -29,6 +29,7 @@ VFX_URP_OSX_Metal_Standalone_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
 VFX_URP_OSX_Metal_playmode_trunk:
     name: VFX_URP on OSX_Metal_playmode on version trunk
     agent:
@@ -55,6 +56,7 @@ VFX_URP_OSX_Metal_playmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
 VFX_URP_OSX_Metal_Standalone_CUSTOM-REVISION:
     name: VFX_URP on OSX_Metal_Standalone on version CUSTOM-REVISION
     agent:
@@ -82,6 +84,7 @@ VFX_URP_OSX_Metal_Standalone_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
@@ -112,6 +115,7 @@ VFX_URP_OSX_Metal_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always

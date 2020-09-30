@@ -24,6 +24,7 @@ URPUpdate_BoatAttack_Win_Vulkan_playmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/BoatAttack-19-4/Logs/*.log"
 URPUpdate_BoatAttack_Win_Vulkan_editmode_trunk:
     name: URPUpdate_BoatAttack on Win_Vulkan_editmode on version trunk
     agent:
@@ -45,6 +46,7 @@ URPUpdate_BoatAttack_Win_Vulkan_editmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/BoatAttack-19-4/Logs/*.log"
 URPUpdate_BoatAttack_Win_Vulkan_playmode_CUSTOM-REVISION:
     name: URPUpdate_BoatAttack on Win_Vulkan_playmode on version CUSTOM-REVISION
     agent:
@@ -67,6 +69,7 @@ URPUpdate_BoatAttack_Win_Vulkan_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/BoatAttack-19-4/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
@@ -92,6 +95,7 @@ URPUpdate_BoatAttack_Win_Vulkan_editmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/BoatAttack-19-4/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always

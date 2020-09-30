@@ -18,6 +18,7 @@ Universal_Stereo_Win_Standalone_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGfxTestStereo/Logs/*.log"
     dependencies:
       -  path: .yamato/universal_stereo-win.yml#Build_Universal_Stereo_Win_Player_trunk
          rerun: on-new-revision
@@ -39,6 +40,7 @@ Build_Universal_Stereo_Win_Player_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGfxTestStereo/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -59,6 +61,7 @@ Universal_Stereo_Win_editmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGfxTestStereo/Logs/*.log"
 Universal_Stereo_Win_Standalone_CUSTOM-REVISION:
     name: Universal_Stereo on Win__Standalone on version CUSTOM-REVISION
     agent:
@@ -75,6 +78,7 @@ Universal_Stereo_Win_Standalone_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGfxTestStereo/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
@@ -99,6 +103,7 @@ Build_Universal_Stereo_Win_Player_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGfxTestStereo/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -123,6 +128,7 @@ Universal_Stereo_Win_editmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGfxTestStereo/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
