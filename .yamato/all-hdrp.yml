@@ -53,7 +53,7 @@ All_HDRP_2020.2:
          rerun: on-new-revision
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_XR_2020.2
          rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_RenderGraph_2020.2
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_NonRenderGraph_2020.2
          rerun: on-new-revision
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_2020.2
          rerun: on-new-revision
@@ -81,7 +81,7 @@ All_HDRP_2020.2:
          rerun: on-new-revision
       -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_2020.2
          rerun: on-new-revision
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_RenderGraph_2020.2
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_NonRenderGraph_2020.2
          rerun: on-new-revision
       -  path: .yamato/all-hdrp_hybrid.yml#All_HDRP_Hybrid_2020.2
          rerun: on-new-revision
