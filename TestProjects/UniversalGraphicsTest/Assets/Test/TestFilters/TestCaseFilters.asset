@@ -413,7 +413,9 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: iOS tracked regression (scene 111 - 1256906)
-  - FilteredScene: {fileID: 102900000, guid: 5fca56b2f8a46664e858cbb290338fc8, type: 3}
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 5fca56b2f8a46664e858cbb290338fc8, type: 3}
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 4
