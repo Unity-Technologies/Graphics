@@ -38,7 +38,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     /// <summary>
     /// Texture resource handle.
     /// </summary>
-    [DebuggerDisplay("Texture ({handle})")]
+    [DebuggerDisplay("Texture ({handle.index})")]
     public struct TextureHandle
     {
         private static TextureHandle s_NullHandle = new TextureHandle();
@@ -84,7 +84,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     /// <summary>
     /// Compute Buffer resource handle.
     /// </summary>
-    [DebuggerDisplay("ComputeBuffer ({handle})")]
+    [DebuggerDisplay("ComputeBuffer ({handle.index})")]
     public struct ComputeBufferHandle
     {
         private static ComputeBufferHandle s_NullHandle = new ComputeBufferHandle();
