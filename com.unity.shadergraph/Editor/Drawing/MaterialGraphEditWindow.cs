@@ -71,7 +71,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 if (m_GraphEditorView != null)
                 {
-                    m_GraphEditorView.saveRequested += UpdateAsset;
+                    m_GraphEditorView.saveRequested += () => SaveAsset();
                     m_GraphEditorView.saveAsRequested += SaveAs;
                     m_GraphEditorView.convertToSubgraphRequested += ToSubGraph;
                     m_GraphEditorView.showInProjectRequested += PingAsset;
@@ -322,8 +322,32 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnDestroy()
         {
-            PromptSaveIfDirtyOnQuit();
+            // we are closing the shadergraph window
+            MaterialGraphEditWindow newWindow = null;
+            if (!PromptSaveIfDirtyOnQuit())
+            {
+                // user does not want to close the window.
+                // we can't stop the close from this code path though..
+                // all we can do is open a new window and transfer our data to the new one to avoid losing it
+                // newWin = Instantiate<MaterialGraphEditWindow>(this);
+                newWindow = EditorWindow.CreateWindow<MaterialGraphEditWindow>(typeof(MaterialGraphEditWindow), typeof(SceneView));
+                newWindow.Initialize(this);
+            }
+            else
+            {
+                // the window is closing for good.. cleanup undo history for the graph object
+                Undo.ClearUndo(graphObject);
+            }
+
+            graphObject = null;
             graphEditorView = null;
+
+            // show new window if we have one
+            if (newWindow != null)
+            {
+                newWindow.Show();
+                newWindow.Focus();
+            }
         }
 
         public void PingAsset()
@@ -362,16 +386,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public void UpdateAsset()
+        public bool SaveAsset()
         {
+            bool saved = false;
+
             if (selectedGuid != null && graphObject != null)
             {
                 var path = AssetDatabase.GUIDToAssetPath(selectedGuid);
                 if (string.IsNullOrEmpty(path) || graphObject == null)
-                    return;
+                    return false;
 
                 if (GraphUtil.CheckForRecursiveDependencyOnPendingSave(path, graphObject.graph.GetNodes<SubGraphNode>(), "Save"))
-                    return;
+                    return false;
 
                 ShaderGraphAnalytics.SendShaderGraphEvent(selectedGuid, graphObject.graph);
 
@@ -380,12 +406,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                     ShaderUtil.ClearShaderMessages(oldShader);
 
                 if (FileUtilities.WriteShaderGraphToDisk(path, graphObject.graph))
+                {
+                    saved = true;
                     AssetDatabase.ImportAsset(path);
+                }
 
                 OnSaveGraph(path);
             }
 
             UpdateTitle();
+
+            return saved;
         }
 
         void OnSaveGraph(string path)
@@ -411,7 +442,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             SaveAsImplementation();
         }
 
-        // Returns true if the same file as replaced, false if a new file was created or an error occured
+        // Returns true if the same file as replaced, false if a new file was created or an error occurred
         bool SaveAsImplementation()
         {
             if (selectedGuid != null && graphObject != null)
@@ -449,9 +480,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 else
                 {
-                    UpdateAsset();
-                    graphObject.isDirty = false;
-                    return true;
+                    if (SaveAsset())
+                    {
+                        graphObject.isDirty = false;
+                        return true;
+                    }
+                    return false;
                 }
             }
 
@@ -807,6 +841,42 @@ namespace UnityEditor.ShaderGraph.Drawing
             graphObject.graph.ValidateGraph();
         }
 
+        public void Initialize(MaterialGraphEditWindow other)
+        {
+            // create a new window that copies the entire editor state of an existing window
+            // this function is used to "reopen" an editor window that is closing, but where the user has canceled the close
+            // for example, if the graph of a closing window was dirty, but could not be saved
+            try
+            {
+                EditorApplication.wantsToQuit -= PromptSaveIfDirtyOnQuit;
+
+                selectedGuid = other.selectedGuid;
+
+                graphObject = CreateInstance<GraphObject>();
+                graphObject.hideFlags = HideFlags.HideAndDontSave;
+                graphObject.graph = other.graphObject.graph;
+
+                graphObject.graph.messageManager = this.messageManager;
+
+                Texture2D icon = GetThemeIcon(graphObject.graph);
+
+                // This is adding the icon at the front of the tab
+                titleContent = EditorGUIUtility.TrTextContentWithIcon(selectedGuid, icon);
+                UpdateTitle();
+
+                Repaint();
+                EditorApplication.wantsToQuit += PromptSaveIfDirtyOnQuit;
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                m_HasError = true;
+                m_GraphEditorView = null;
+                graphObject = null;
+                throw;
+            }
+        }
+
         private static readonly ProfilerMarker GraphLoadMarker = new ProfilerMarker("GraphLoad");
         private static readonly ProfilerMarker CreateGraphEditorViewMarker = new ProfilerMarker("CreateGraphEditorView");
         public void Initialize(string assetGuid)
@@ -890,15 +960,33 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        // returns true when the user is OK with closing the window or application (either they've saved dirty content, or are ok with losing it)
+        // returns false when the user wants to cancel closing the window or application
         private bool PromptSaveIfDirtyOnQuit()
         {
             if (graphObject != null)
             {
                 string nameOfFile = AssetDatabase.GUIDToAssetPath(selectedGuid);
-                if (IsDirty() && EditorUtility.DisplayDialog("Shader Graph Has Been Modified", "Do you want to save the changes you made in the Shader Graph?\n" + nameOfFile + "\n\nYour changes will be lost if you don't save them.", "Save", "Don't Save"))
-                    UpdateAsset();
-                Undo.ClearUndo(graphObject);
-                graphObject = null;
+                if (IsDirty())
+                {
+                    int option = EditorUtility.DisplayDialogComplex(
+                        "Shader Graph Has Been Modified",
+                        "Do you want to save the changes you made in the Shader Graph?\n" + nameOfFile + "\n\nYour changes will be lost if you don't save them.",
+                        "Save", "Cancel", "Discard Changes");
+
+                    if (option == 0) // save
+                    {
+                        return SaveAsset();
+                    }
+                    else if (option == 1) // cancel (or escape/close dialog)
+                    {
+                        return false;
+                    }
+                    else if (option == 2) // discard
+                    {
+                        return true;
+                    }
+                }
             }
             return true;
         }
