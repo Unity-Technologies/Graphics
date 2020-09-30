@@ -214,7 +214,7 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
         #if defined(_NORMALMAP)
         inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentMatrixWS);
         #else
-        inputData.normalWS = TransformObjectToWorldDir(normalTS);
+        inputData.normalWS = inputData.normalWS;
         #endif
         inputData.normalTS = normalTS;
         surfaceData.normalTS = normalTS;
