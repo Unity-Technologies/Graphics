@@ -99,6 +99,7 @@ Shader "Universal Render Pipeline/Particles/Unlit"
 
             ENDHLSL
         }
+
         // ------------------------------------------------------------------
         //  Scene view outline pass.
         Pass
@@ -132,6 +133,7 @@ Shader "Universal Render Pipeline/Particles/Unlit"
 
             ENDHLSL
         }
+
         // ------------------------------------------------------------------
         //  Scene picking buffer pass.
         Pass
@@ -168,7 +170,7 @@ Shader "Universal Render Pipeline/Particles/Unlit"
 
         Pass
         {
-            Name "DebugMaterial"
+            Name "Debug Material"
             Tags{ "LightMode" = "DebugMaterial" }
 
             ZWrite[_ZWrite]

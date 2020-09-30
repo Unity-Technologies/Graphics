@@ -133,7 +133,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
 
         Pass
         {
-            Name "DebugMaterial"
+            Name "Debug Material"
             Tags { "LightMode" = "DebugMaterial" }
 
             HLSLPROGRAM

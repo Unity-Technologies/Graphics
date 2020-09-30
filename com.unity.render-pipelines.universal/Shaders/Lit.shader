@@ -320,6 +320,7 @@ Shader "Universal Render Pipeline/Lit"
 
             ENDHLSL
         }
+
         Pass
         {
             Name "Universal2D"
@@ -343,23 +344,21 @@ Shader "Universal Render Pipeline/Lit"
             ENDHLSL
         }
 
-
         Pass
         {
-            Name "DebugMaterial"
-            Tags { "LightMode" = "DebugMaterial" }
+            Name "Debug Material"
+            Tags{"LightMode" = "DebugMaterial"}
 
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
             Cull[_Cull]
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard SRP library
-            // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
-            #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
+            // -------------------------------------
+            // Material Keywords
             #pragma shader_feature_local _NORMALMAP
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
@@ -367,27 +366,42 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma shader_feature_local_fragment _OCCLUSIONMAP
+            #pragma shader_feature_local _PARALLAXMAP
+            #pragma shader_feature_local _ _DETAIL_MULX2 _DETAIL_SCALED
+            #pragma shader_feature_local_fragment _SPECULARHIGHLIGHTS_OFF
+            #pragma shader_feature_local_fragment _ENVIRONMENTREFLECTIONS_OFF
+            #pragma shader_feature_local_fragment _SPECULAR_SETUP
+            #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
+
+            // -------------------------------------
+            // Universal Pipeline keywords
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
 
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile_fog
 
-            // defines for shadow cascades mode
-            #define _DEBUG_SHADER
-            #define _ADDITIONAL_LIGHTS
-            #define _MAIN_LIGHT_SHADOWS
-            #define _MAIN_LIGHT_SHADOWS_CASCADE
-            #pragma multi_compile _ _DEBUG_ENVIRONMENTREFLECTIONS_OFF
-            #ifdef _DEBUG_ENVIRONMENTREFLECTIONS_OFF
-                #define _ENVIRONMENTREFLECTIONS_OFF
-            #endif
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
 
-            #include "LitInput.hlsl"
-            #include "LitForwardPass.hlsl"
+            #define _DEBUG_SHADER
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitForwardPass.hlsl"
             ENDHLSL
         }
     }
@@ -608,20 +622,23 @@ Shader "Universal Render Pipeline/Lit"
 
         Pass
         {
-            Name "DebugMaterial"
-            Tags { "LightMode" = "DebugMaterial" }
+            Name "Debug Material"
+            Tags{"LightMode" = "DebugMaterial"}
 
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
             Cull[_Cull]
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard SRP library
-            // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
-            #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
+            #pragma only_renderers gles gles3 glcore
             #pragma target 2.0
 
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+
+            // -------------------------------------
+            // Material Keywords
             #pragma shader_feature_local _NORMALMAP
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
@@ -629,27 +646,38 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma shader_feature_local_fragment _OCCLUSIONMAP
+            #pragma shader_feature_local _PARALLAXMAP
+            #pragma shader_feature_local _ _DETAIL_MULX2 _DETAIL_SCALED
+
+            #pragma shader_feature_local_fragment _SPECULARHIGHLIGHTS_OFF
+            #pragma shader_feature_local_fragment _ENVIRONMENTREFLECTIONS_OFF
+            #pragma shader_feature_local_fragment _SPECULAR_SETUP
+            #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
+
+            // -------------------------------------
+            // Universal Pipeline keywords
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
-
-            // defines for shadow cascades mode
-            #define _DEBUG_SHADER
-            #define _ADDITIONAL_LIGHTS
-            #define _MAIN_LIGHT_SHADOWS
-            #define _MAIN_LIGHT_SHADOWS_CASCADE
-            #pragma multi_compile _ _DEBUG_ENVIRONMENTREFLECTIONS_OFF
-            #ifdef _DEBUG_ENVIRONMENTREFLECTIONS_OFF
-                #define _ENVIRONMENTREFLECTIONS_OFF
-            #endif
+            #pragma multi_compile_fog
 
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
 
-            #include "LitInput.hlsl"
-            #include "LitForwardPass.hlsl"
+            #define _DEBUG_SHADER
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitForwardPass.hlsl"
             ENDHLSL
         }
     }

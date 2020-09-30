@@ -127,6 +127,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesSimpleLitForwardPass.hlsl"
             ENDHLSL
         }
+
         // ------------------------------------------------------------------
         //  GBuffer pass.
         Pass
@@ -183,6 +184,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesSimpleLitGBufferPass.hlsl"
             ENDHLSL
         }
+
         // ------------------------------------------------------------------
         //  Scene view outline pass.
         Pass
@@ -216,6 +218,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
 
             ENDHLSL
         }
+
         // ------------------------------------------------------------------
         //  Scene picking buffer pass.
         Pass
@@ -249,6 +252,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
 
             ENDHLSL
         }
+
         Pass
         {
             Name "Universal2D"
@@ -273,7 +277,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
 
         Pass
         {
-            Name "DebugMaterial"
+            Name "Debug Material"
             Tags {"LightMode" = "DebugMaterial"}
 
             ZWrite[_ZWrite]

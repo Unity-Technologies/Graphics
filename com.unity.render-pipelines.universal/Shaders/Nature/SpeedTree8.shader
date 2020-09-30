@@ -237,7 +237,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
 
         Pass
         {
-            Name "DebugMaterial"
+            Name "Debug Material"
             Tags { "LightMode" = "DebugMaterial" }
 
             HLSLPROGRAM
@@ -250,6 +250,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
             #pragma multi_compile __ LOD_FADE_CROSSFADE
             #pragma multi_compile_fog
@@ -270,7 +271,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
 
             #include "SpeedTree8Input.hlsl"
             #include "SpeedTree8Passes.hlsl"
-            
+
             ENDHLSL
         }
     }

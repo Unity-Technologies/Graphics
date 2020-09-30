@@ -227,7 +227,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
 
         Pass
         {
-            Name "DebugMaterial"
+            Name "Debug Material"
             Tags{ "LightMode" = "DebugMaterial" }
 
             HLSLPROGRAM

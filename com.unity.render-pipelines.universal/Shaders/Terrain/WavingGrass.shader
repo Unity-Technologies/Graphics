@@ -112,7 +112,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/WavingDoublePass"
 
         Pass
         {
-            Name "DebugMaterial"
+            Name "Debug Material"
             Tags{"LightMode" = "DebugMaterial"}
 
             HLSLPROGRAM

@@ -295,7 +295,7 @@ Shader "Universal Render Pipeline/Simple Lit"
 
         Pass
         {
-            Name "DebugMaterial"
+            Name "Debug Material"
             Tags { "LightMode" = "DebugMaterial" }
 
             // Use same blending / depth states as Standard shader
@@ -324,7 +324,8 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
-            #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+            #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             // -------------------------------------
@@ -534,7 +535,7 @@ Shader "Universal Render Pipeline/Simple Lit"
 
         Pass
         {
-            Name "DebugMaterial"
+            Name "Debug Material"
             Tags { "LightMode" = "DebugMaterial" }
 
             // Use same blending / depth states as Standard shader
@@ -563,7 +564,8 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
-            #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+            #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
 
@@ -575,6 +577,7 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             #pragma vertex LitPassVertexSimple
             #pragma fragment LitPassFragmentSimple
+
             #define BUMP_SCALE_NOT_SUPPORTED 1
             #define _DEBUG_SHADER
 

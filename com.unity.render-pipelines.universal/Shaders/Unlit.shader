@@ -109,7 +109,7 @@ Shader "Universal Render Pipeline/Unlit"
 
         Pass
         {
-            Name "DebugMaterial"
+            Name "Debug Material"
             Tags{"LightMode" = "DebugMaterial"}
 
             HLSLPROGRAM
@@ -220,7 +220,7 @@ Shader "Universal Render Pipeline/Unlit"
 
         Pass
         {
-            Name "DebugMaterial"
+            Name "Debug Material"
             Tags{"LightMode" = "DebugMaterial"}
 
             HLSLPROGRAM

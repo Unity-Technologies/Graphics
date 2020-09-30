@@ -130,6 +130,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitForwardPass.hlsl"
             ENDHLSL
         }
+
 	    // ------------------------------------------------------------------
         //  GBuffer pass.
         Pass
@@ -184,6 +185,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitGBufferPass.hlsl"
             ENDHLSL
         }
+
         // ------------------------------------------------------------------
         //  Scene view outline pass.
         Pass
@@ -217,6 +219,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
 
             ENDHLSL
         }
+
         // ------------------------------------------------------------------
         //  Scene picking buffer pass.
         Pass
@@ -250,6 +253,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
 
             ENDHLSL
         }
+
         Pass
         {
             Name "Universal2D"
@@ -272,7 +276,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
 
         Pass
         {
-            Name "DebugMaterial"
+            Name "Debug Material"
             Tags
             {
                 "LightMode" = "DebugMaterial"

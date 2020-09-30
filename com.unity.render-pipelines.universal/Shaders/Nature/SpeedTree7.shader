@@ -205,7 +205,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
 
         Pass
         {
-            Name "DebugMaterial"
+            Name "Debug Material"
             Tags { "LightMode" = "DebugMaterial" }
 
             HLSLPROGRAM
