@@ -143,6 +143,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - On platforms that allow it skip the first mip of the depth pyramid and compute it alongside the depth buffer used for low res transparents.
 - When trying to install the local configuration package, if another one is already present the user is now asked whether they want to keep it or not.
 - Improved MSAA color resolve to fix issues when very bright and very dark samples are resolved together.
+- Improve performance of GPU light AABB generation
 
 ## [10.0.0] - 2019-06-10
 

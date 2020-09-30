@@ -130,8 +130,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 boxAxisY; // Scaled by the extents (half-size)
         public Vector3 boxAxisZ; // Scaled by the extents (half-size)
         public Vector3 center;   // Center of the bounds (box) in camera space
-        public Vector2 scaleXY;  // Scale applied to the top of the box to turn it into a truncated pyramid
-        public float radius;     // Circumscribed sphere for the bounds (box)
+        public float   scaleXY;  // Scale applied to the top of the box to turn it into a truncated pyramid (X = Y)
+        public float   radius;     // Circumscribed sphere for the bounds (box)
     };
 
     [GenerateHLSL]
@@ -696,7 +696,6 @@ namespace UnityEngine.Rendering.HighDefinition
             { "TileLightListGen_NoDepthRT_SrcBigTile", "TileLightListGen_DepthRT_SrcBigTile_Oblique", "TileLightListGen_DepthRT_MSAA_SrcBigTile_Oblique" }
         };
 
-        static int s_GenAABBKernel;
         static int s_GenListPerTileKernel;
         static int[,] s_ClusterKernels = new int[(int)ClusterPrepassSource.Count, (int)ClusterDepthSource.Count];
         static int[,] s_ClusterObliqueKernels = new int[(int)ClusterPrepassSource.Count, (int)ClusterDepthSource.Count];
@@ -878,8 +877,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MaxEnvLightsOnScreen = lightLoopSettings.maxEnvLightsOnScreen;
             m_MaxLightsOnScreen = m_MaxDirectionalLightsOnScreen + m_MaxPunctualLightsOnScreen + m_MaxAreaLightsOnScreen + m_MaxEnvLightsOnScreen;
             m_MaxPlanarReflectionOnScreen = lightLoopSettings.maxPlanarReflectionOnScreen;
-
-            s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
 
             // Cluster
             {
@@ -1766,9 +1763,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 fAltDx *= range; fAltDy *= range;
 
                 // Handle case of pyramid with this select (currently unused)
-                var altDist = Mathf.Sqrt(fAltDy * fAltDy + (true ? 1.0f : 2.0f) * fAltDx * fAltDx);
-                bound.radius = altDist > (0.5f * range) ? altDist : (0.5f * range);       // will always pick fAltDist
-                bound.scaleXY = squeeze ? new Vector2(0.01f, 0.01f) : new Vector2(1.0f, 1.0f);
+                var altDist   = Mathf.Sqrt(fAltDy * fAltDy + (true ? 1.0f : 2.0f) * fAltDx * fAltDx);
+                bound.radius  = altDist > (0.5f * range) ? altDist : (0.5f * range);       // will always pick fAltDist
+                bound.scaleXY = squeeze ? 0.01f : 1.0f;
 
                 lightVolumeData.lightAxisX = vx;
                 lightVolumeData.lightAxisY = vy;
@@ -1780,16 +1777,19 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else if (gpuLightType == GPULightType.Point)
             {
-                Vector3 vx = xAxisVS;
-                Vector3 vy = yAxisVS;
-                Vector3 vz = zAxisVS;
+                // Construct a view-space axis-aligned bounding cube around the bounding sphere.
+                // This allows us to utilize the same polygon clipping technique for all lights.
+                // Non-axis-aligned vectors may result in a larger screen-space AABB.
+                Vector3 vx = new Vector3(1, 0, 0);
+                Vector3 vy = new Vector3(0, 1, 0);
+                Vector3 vz = new Vector3(0, 0, 1);
 
                 bound.center = positionVS;
                 bound.boxAxisX = vx * range;
                 bound.boxAxisY = vy * range;
                 bound.boxAxisZ = vz * range;
-                bound.scaleXY.Set(1.0f, 1.0f);
-                bound.radius = range;
+                bound.scaleXY  = 1.0f;
+                bound.radius   = range;
 
                 // fill up ldata
                 lightVolumeData.lightAxisX = vx;
@@ -1810,7 +1810,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bound.boxAxisY = extents.y * yAxisVS;
                 bound.boxAxisZ = extents.z * zAxisVS;
                 bound.radius   = extents.magnitude;
-                bound.scaleXY.Set(1.0f, 1.0f);
+                bound.scaleXY  = 1.0f;
 
                 lightVolumeData.lightPos   = centerVS;
                 lightVolumeData.lightAxisX = xAxisVS;
@@ -1830,7 +1830,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bound.boxAxisY = extents.y * yAxisVS;
                 bound.boxAxisZ = extents.z * zAxisVS;
                 bound.radius   = extents.magnitude;
-                bound.scaleXY.Set(1.0f, 1.0f);
+                bound.scaleXY  = 1.0f;
 
                 lightVolumeData.lightPos   = centerVS;
                 lightVolumeData.lightAxisX = xAxisVS;
@@ -1850,7 +1850,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bound.boxAxisY = extents.y * yAxisVS;
                 bound.boxAxisZ = extents.z * zAxisVS;
                 bound.radius   = extents.magnitude;
-                bound.scaleXY.Set(1.0f, 1.0f);
+                bound.scaleXY  = 1.0f;
 
                 lightVolumeData.lightPos   = centerVS;
                 lightVolumeData.lightAxisX = xAxisVS;
@@ -2065,8 +2065,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     bound.boxAxisX = influenceRightVS * influenceExtents.x;
                     bound.boxAxisY = influenceUpVS * influenceExtents.x;
                     bound.boxAxisZ = influenceForwardVS * influenceExtents.x;
-                    bound.scaleXY.Set(1.0f, 1.0f);
-                    bound.radius = influenceExtents.x;
+                    bound.scaleXY  = 1.0f;
+                    bound.radius   = influenceExtents.x;
                     break;
                 }
                 case LightVolumeType.Box:
@@ -2075,8 +2075,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     bound.boxAxisX = influenceExtents.x * influenceRightVS;
                     bound.boxAxisY = influenceExtents.y * influenceUpVS;
                     bound.boxAxisZ = influenceExtents.z * influenceForwardVS;
-                    bound.scaleXY.Set(1.0f, 1.0f);
-                    bound.radius = influenceExtents.magnitude;
+                    bound.scaleXY  = 1.0f;
+                    bound.radius   = influenceExtents.magnitude;
 
                     // The culling system culls pixels that are further
                     //   than a threshold to the box influence extents.
@@ -2124,7 +2124,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bound.boxAxisY = extentConservativeY * upVS;
             bound.boxAxisZ = extentConservativeZ * forwardVS;
             bound.radius   = extentConservativeMagnitude;
-            bound.scaleXY.Set(1.0f, 1.0f);
+            bound.scaleXY  = 1.0f;
 
             // The culling system culls pixels that are further
             //   than a threshold to the box influence extents.
@@ -3087,13 +3087,21 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (parameters.totalLightCount != 0)
             {
-                // With XR single-pass, we have one set of light bounds per view to iterate over (bounds are in view space for each view)
-                cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_data, resources.convexBoundsBuffer);
-                cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_vBoundsBuffer, resources.AABBBoundsBuffer);
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.GenerateLightAABBs)))
+                {
+                    // With XR single-pass, we have one set of light bounds per view to iterate over (bounds are in view space for each view)
+                    cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_data, resources.convexBoundsBuffer);
+                    cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_vBoundsBuffer, resources.AABBBoundsBuffer);
 
-                ConstantBuffer.Push(cmd, parameters.lightListCB, parameters.screenSpaceAABBShader, HDShaderIDs._ShaderVariablesLightList);
+                    ConstantBuffer.Push(cmd, parameters.lightListCB, parameters.screenSpaceAABBShader, HDShaderIDs._ShaderVariablesLightList);
 
-                cmd.DispatchCompute(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, (parameters.totalLightCount + 7) / 8, parameters.viewCount, 1);
+                    const int threadsPerLight = 4;  // Shader: THREADS_PER_LIGHT (4)
+                    const int threadsPerGroup = 64; // Shader: THREADS_PER_GROUP (64)
+
+                    int groupCount = HDUtils.DivRoundUp(parameters.totalLightCount * threadsPerLight, threadsPerGroup);
+
+                    cmd.DispatchCompute(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, groupCount, parameters.viewCount, 1);
+                }
             }
         }
 
@@ -3409,12 +3417,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Screen space AABB
             parameters.screenSpaceAABBShader = buildScreenAABBShader;
-            parameters.screenSpaceAABBShader.shaderKeywords = null;
-            if (isProjectionOblique)
-            {
-                parameters.screenSpaceAABBShader.EnableKeyword("USE_OBLIQUE_MODE");
-            }
-            parameters.screenSpaceAABBKernel = s_GenAABBKernel;
+            parameters.screenSpaceAABBKernel = 0;
 
             // Big tile prepass
             parameters.runBigTilePrepass = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
