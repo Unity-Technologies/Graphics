@@ -51,7 +51,7 @@ Shader "Hidden/HDRP/ColorResolve"
             return LOAD_TEXTURE2D_X_MSAA(_ColorTextureMS, pixelCoords, sampleIndex);
         }
 
-        float4 Resolve(Varyings input, uint sampleCount)
+        float4 Resolve(Varyings input, int sampleCount)
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             int2 pixelCoords = int2(input.texcoord);
