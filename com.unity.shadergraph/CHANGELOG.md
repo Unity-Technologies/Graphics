@@ -33,6 +33,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue where ShaderGraph shaders did not reimport automatically when missing dependencies were reintroduced [1182895]
 - Fixed an issue where ShaderGraph previews would not show error shaders when the active render pipeline is incompatible with the shader [1257015]
 - ShaderGraph DDX, DDY, DDXY, and NormalFromHeight nodes do not allow themselves to be connected to vertex shader, as the derivative instructions can't be used [1209087]
+- When ShaderGraph detects no active SRP, it will still continue to render the master preview, but it will use the error shader [1264642]
 
 ## [10.0.0] - 2019-06-10
 ### Added
