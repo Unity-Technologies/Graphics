@@ -112,6 +112,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the usage of GUIEnable for volume components (case 1280018).
 - Fixed the diffusion profile becoming invalid when hitting the reset (case 1269462).
 - Fixed issue with MSAA resolve killing the alpha channel.
+- Fixed a warning in materialevalulation
+- Fixed an error when building the player.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.

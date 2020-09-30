@@ -229,6 +229,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
+#if UNITY_EDITOR
         internal void Reset()
         {
             if (profile.hash == 0)
@@ -237,7 +238,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 profile.hash = DiffusionProfileHashTable.GenerateUniqueHash(this);
             }
         }
-
+#endif
         internal void UpdateCache()
         {
             worldScaleAndFilterRadiusAndThicknessRemap = new Vector4(profile.worldScale,
