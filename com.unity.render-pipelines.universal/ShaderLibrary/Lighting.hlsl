@@ -809,9 +809,7 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
 
 half3 CalculateDebugShadowCascadeColor(InputData inputData)
 {
-    float4 shadowCoord = inputData.shadowCoord;
     float3 positionWS = inputData.positionWS;
-    Light mainLight = GetMainLight(shadowCoord);
     half cascadeIndex = ComputeCascadeIndex(positionWS);
 
     float4 cascadeColors[] =
@@ -875,7 +873,7 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
         {
             surfaceData.albedo = CalculateDebugShadowCascadeColor(inputData);
         }
-        else if (CalculateColorForDebug(inputData, surfaceData, debugData, debugColor) && (_DebugMaterialIndex == DEBUG_LOD))
+        else if ((_DebugMaterialIndex == DEBUG_LOD) && CalculateColorForDebug(inputData, surfaceData, debugData, debugColor))
         {
             surfaceData.albedo = debugColor.rgb;
         }
@@ -890,11 +888,11 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
         // Update the BRDF data following any changes to the input/surface above...
         brdfData = CreateBRDFData(surfaceData);
 
-        return CalculateColorForDebug(inputData, surfaceData, debugData, debugColor) && (_DebugMaterialIndex != DEBUG_LOD);
+        return (_DebugMaterialIndex != DEBUG_LOD) && CalculateColorForDebug(inputData, surfaceData, debugData, debugColor);
     }
 }
 
-bool CanDebugOverrideOutputColor(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 debugColor)
+bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData surfaceData, DebugData debugData, out half4 debugColor)
 {
     if(_DebugMaterialIndex == DEBUG_LIGHTING_COMPLEXITY)
     {
@@ -909,7 +907,7 @@ bool CanDebugOverrideOutputColor(InputData inputData, SurfaceData surfaceData, D
         {
             surfaceData.albedo = CalculateDebugShadowCascadeColor(inputData);
         }
-        else if (CalculateColorForDebug(inputData, surfaceData, debugData, debugColor) && (_DebugMaterialIndex == DEBUG_LOD))
+        else if ((_DebugMaterialIndex == DEBUG_LOD) && CalculateColorForDebug(inputData, surfaceData, debugData, debugColor))
         {
             surfaceData.albedo = debugColor.rgb;
         }
@@ -921,7 +919,7 @@ bool CanDebugOverrideOutputColor(InputData inputData, SurfaceData surfaceData, D
             }
         }
 
-        return CalculateColorForDebug(inputData, surfaceData, debugData, debugColor) && (_DebugMaterialIndex != DEBUG_LOD);
+        return (_DebugMaterialIndex != DEBUG_LOD) && CalculateColorForDebug(inputData, surfaceData, debugData, debugColor);
     }
 }
 
