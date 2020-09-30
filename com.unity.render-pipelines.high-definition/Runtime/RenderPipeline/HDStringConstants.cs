@@ -94,7 +94,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int g_vBigTileLightList = Shader.PropertyToID("g_vBigTileLightList");
         public static readonly int g_vLightListGlobal = Shader.PropertyToID("g_vLightListGlobal");
         public static readonly int g_logBaseBuffer = Shader.PropertyToID("g_logBaseBuffer");
-        public static readonly int g_vBoundsBuffer = Shader.PropertyToID("g_vBoundsBuffer");
+        public static readonly int _xyBoundsBuffer = Shader.PropertyToID("_xyBoundsBuffer");
+        public static readonly int _wBoundsBuffer = Shader.PropertyToID("_wBoundsBuffer");
         public static readonly int _LightVolumeData = Shader.PropertyToID("_LightVolumeData");
         public static readonly int g_data = Shader.PropertyToID("g_data");
         public static readonly int g_vLightList = Shader.PropertyToID("g_vLightList");

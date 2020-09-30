@@ -1,4 +1,4 @@
-// #pragma enable_d3d11_debug_symbols
+#pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
 #pragma kernel main
@@ -14,7 +14,8 @@ StructuredBuffer<FiniteLightBound> g_data : register(t0);
 
 /* ------------------------------ Outputs ----------------------------------- */
 
-RWStructuredBuffer<float4> g_vBoundsBuffer : register(u0);
+RWStructuredBuffer<float4> _xyBoundsBuffer : register(u0); // {x_min, y_min, x_max, y_max}
+RWStructuredBuffer<float2> _wBoundsBuffer  : register(u1); // {w_min, w_max}
 
 /* ------------------------------ Utilities --------------------------------- */
 
@@ -198,8 +199,7 @@ groupshared uint  gs_NdcAaBbMinPtX[ENTITIES_PER_GROUP];
 groupshared uint  gs_NdcAaBbMaxPtX[ENTITIES_PER_GROUP];
 groupshared uint  gs_NdcAaBbMinPtY[ENTITIES_PER_GROUP];
 groupshared uint  gs_NdcAaBbMaxPtY[ENTITIES_PER_GROUP];
-groupshared uint  gs_NdcAaBbMinPtZ[ENTITIES_PER_GROUP]; // Note that min-max Z cannot be trivially reconstructed
-groupshared uint  gs_NdcAaBbMaxPtZ[ENTITIES_PER_GROUP]; // from min-max W if the projection is oblique.
+// Skip Z, we do not need it.
 groupshared uint  gs_NdcAaBbMinPtW[ENTITIES_PER_GROUP]; // View-space Z coordinate
 groupshared uint  gs_NdcAaBbMaxPtW[ENTITIES_PER_GROUP]; // View-space Z coordinate
 #endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
@@ -385,8 +385,8 @@ void UpdateAaBb(uint srcBegin, uint srcSize, float4 vertRingBuffer[MAX_CLIP_VERT
 }
 
 //**********************************************************************************************
-// The goal of this program is to compute the AABB of the entity in the NDC space ([0, 1] range).
-// The entity is represented by a convex volume (a frustum) with 6 faces (planar quads) and 8 vertices.
+// The goal of this program is to compute the AABB of the bounded entity in the NDC space ([0, 1] range).
+// The entity is represented by a convex volume (a right frustum) with 6 faces (planar quads) and 8 vertices.
 //
 // Since an entity's bounding volume may be partially off-screen, we must clip it before computing the AABB.
 // Clipping the resulting AABB (rather than the bounding volume) may result in a loose AABB.
@@ -424,8 +424,8 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     const uint baseVertexOffset      = intraGroupEntityIndex * NUM_VERTS;
 
     // The function call below will not generate an out-of-bounds index.
-    const uint eyeAdjustedInputOffset = GenerateLightCullDataIndex(globalEntityIndex, _BoundedEntityCount, eyeIndex);
-    const FiniteLightBound cullData   = g_data[eyeAdjustedInputOffset];
+    const uint eyeAdjustedDataOffset = GenerateLightCullDataIndex(globalEntityIndex, _BoundedEntityCount, eyeIndex);
+    const FiniteLightBound cullData  = g_data[eyeAdjustedDataOffset];
 
     const float4x4 projMat    = g_mProjectionArr[eyeIndex];
     const float4x4 invProjMat = g_mInvProjectionArr[eyeIndex];
@@ -445,8 +445,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
         gs_NdcAaBbMaxPtX[intraGroupEntityIndex]     = asuint(0.0f);
         gs_NdcAaBbMinPtY[intraGroupEntityIndex]     = asuint(1.0f);
         gs_NdcAaBbMaxPtY[intraGroupEntityIndex]     = asuint(0.0f);
-        gs_NdcAaBbMinPtZ[intraGroupEntityIndex]     = asuint(1.0f);
-        gs_NdcAaBbMaxPtZ[intraGroupEntityIndex]     = asuint(0.0f);
+        // Skip Z, we do not need it.
         gs_NdcAaBbMinPtW[intraGroupEntityIndex]     = asuint(FLT_INF);
         gs_NdcAaBbMaxPtW[intraGroupEntityIndex]     = asuint(0.0f);
     }
@@ -557,7 +556,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
         // The entity is partially outside the view volume.
         // Therefore, some of the corners of the view volume may be inside the entity's bounding volume.
         // We perform aggressive culling, so we must make sure they are accounted for.
-        // The bounding volume is a special type of cuboid - a right frustum.
+        // The bounding volume is a special type of a rectangular prism - a right frustum.
         // We can exploit this fact by building a entity-space projection matrix.
         float4x4 invTranslateToEntitySpace      = Translation4x4(-rbpC);
         float4x4 invRotateAndScaleInEntitySpace = Homogenize3x3(Invert3x3(ScaledRotation3x3(rbpX, rbpY, rbpZ)));
@@ -694,8 +693,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
         ndcAaBbMaxPt.x = max(ndcAaBbMaxPt.x, LaneSwizzle(ndcAaBbMaxPt.x, andMask, orMask, xorMask));
         ndcAaBbMinPt.y = min(ndcAaBbMinPt.y, LaneSwizzle(ndcAaBbMinPt.y, andMask, orMask, xorMask));
         ndcAaBbMaxPt.y = max(ndcAaBbMaxPt.y, LaneSwizzle(ndcAaBbMaxPt.y, andMask, orMask, xorMask));
-        ndcAaBbMinPt.z = min(ndcAaBbMinPt.z, LaneSwizzle(ndcAaBbMinPt.z, andMask, orMask, xorMask));
-        ndcAaBbMaxPt.z = max(ndcAaBbMaxPt.z, LaneSwizzle(ndcAaBbMaxPt.z, andMask, orMask, xorMask));
+        // Skip Z, we do not need it.
         ndcAaBbMinPt.w = min(ndcAaBbMinPt.w, LaneSwizzle(ndcAaBbMinPt.w, andMask, orMask, xorMask));
         ndcAaBbMaxPt.w = max(ndcAaBbMaxPt.w, LaneSwizzle(ndcAaBbMaxPt.w, andMask, orMask, xorMask));
     }
@@ -706,8 +704,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     InterlockedMax(gs_NdcAaBbMaxPtX[intraGroupEntityIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMaxPt.x)));
     InterlockedMin(gs_NdcAaBbMinPtY[intraGroupEntityIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMinPt.y)));
     InterlockedMax(gs_NdcAaBbMaxPtY[intraGroupEntityIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMaxPt.y)));
-    InterlockedMin(gs_NdcAaBbMinPtZ[intraGroupEntityIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMinPt.z)));
-    InterlockedMax(gs_NdcAaBbMaxPtZ[intraGroupEntityIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMaxPt.z)));
+    // Skip Z, we do not need it.
     InterlockedMin(gs_NdcAaBbMinPtW[intraGroupEntityIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMinPt.w)));
     InterlockedMax(gs_NdcAaBbMaxPtW[intraGroupEntityIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMaxPt.w)));
 
@@ -717,19 +714,15 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     ndcAaBbMaxPt.x = asfloat(gs_NdcAaBbMaxPtX[intraGroupEntityIndex]);
     ndcAaBbMinPt.y = asfloat(gs_NdcAaBbMinPtY[intraGroupEntityIndex]);
     ndcAaBbMaxPt.y = asfloat(gs_NdcAaBbMaxPtY[intraGroupEntityIndex]);
-    ndcAaBbMinPt.z = asfloat(gs_NdcAaBbMinPtZ[intraGroupEntityIndex]);
-    ndcAaBbMaxPt.z = asfloat(gs_NdcAaBbMaxPtZ[intraGroupEntityIndex]);
+    // Skip Z, we do not need it.
     ndcAaBbMinPt.w = asfloat(gs_NdcAaBbMinPtW[intraGroupEntityIndex]);
     ndcAaBbMaxPt.w = asfloat(gs_NdcAaBbMaxPtW[intraGroupEntityIndex]);
 #endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
 
-    if ((globalEntityIndex < _BoundedEntityCount) && (t % THREADS_PER_ENTITY == 0)) // Avoid bank conflicts
+    if ((globalEntityIndex < (uint)_BoundedEntityCount) && (t % THREADS_PER_ENTITY == 0)) // Avoid bank conflicts
     {
-        // For stereo, we have two sets of entities. Therefore, each eye has a set of mins
-        // followed by a set of maxs, and each set is equal to _BoundedEntityCount.
-        const ScreenSpaceBoundsIndices eyeAdjustedOutputOffsets = GenerateScreenSpaceBoundsIndices(globalEntityIndex, _BoundedEntityCount, eyeIndex);
 
-        g_vBoundsBuffer[eyeAdjustedOutputOffsets.min] = ndcAaBbMinPt;
-        g_vBoundsBuffer[eyeAdjustedOutputOffsets.max] = ndcAaBbMaxPt;
+        _xyBoundsBuffer[eyeAdjustedDataOffset] = float4(ndcAaBbMinPt.xy, ndcAaBbMaxPt.xy);
+        _wBoundsBuffer[eyeAdjustedDataOffset]  = float2(ndcAaBbMinPt.w,  ndcAaBbMaxPt.w);
     }
 }

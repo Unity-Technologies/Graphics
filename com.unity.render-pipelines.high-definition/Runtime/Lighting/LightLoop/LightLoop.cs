@@ -687,7 +687,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Internal to light list building
             // public ComputeBuffer lightVolumeDataBuffer { get; private set; }
             public ComputeBuffer convexBoundsBuffer { get; /*private*/ set; }
-            public ComputeBuffer AABBBoundsBuffer { get; private set; }
+            public ComputeBuffer xyBoundsBuffer { get; private set; }
+            public ComputeBuffer wBoundsBuffer { get; private set; }
             public ComputeBuffer globalLightListAtomic { get; private set; }
 
             // Tile Output
@@ -763,7 +764,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // The bounds and light volumes are view-dependent, and AABB is additionally projection dependent.
-                AABBBoundsBuffer = new ComputeBuffer((viewCount * maxBoundedEntityCount) * 2, 4 * sizeof(float)); // 2x float4 per AABB
+                xyBoundsBuffer = new ComputeBuffer(viewCount * maxBoundedEntityCount, 4 * sizeof(float)); // {x_min, y_min, x_max, y_max}
+                wBoundsBuffer  = new ComputeBuffer(viewCount * maxBoundedEntityCount, 2 * sizeof(float)); // {w_min, w_max}
 
                 // Make sure to invalidate the content of the buffers
                 listsAreClear = false;
@@ -804,9 +806,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 bigTileLightList = null;
 
                 // LightList building
-                CoreUtils.SafeRelease(AABBBoundsBuffer);
+                CoreUtils.SafeRelease(xyBoundsBuffer);
+                xyBoundsBuffer = null;
+                CoreUtils.SafeRelease(wBoundsBuffer);
+                wBoundsBuffer  = null;
                 CoreUtils.SafeRelease(dispatchIndirectBuffer);
-                AABBBoundsBuffer = null;
                 dispatchIndirectBuffer = null;
             }
 
@@ -3441,7 +3445,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Internal to light list building
             //public ComputeBuffer lightVolumeDataBuffer;
             public ComputeBuffer convexBoundsBuffer;
-            public ComputeBuffer AABBBoundsBuffer;
+            public ComputeBuffer xyBoundsBuffer;
+            public ComputeBuffer wBoundsBuffer;
             public ComputeBuffer globalLightListAtomic;
 
             // Output
@@ -3468,7 +3473,8 @@ namespace UnityEngine.Rendering.HighDefinition
             resources.lightList = tileAndClusterData.lightList;
             resources.perVoxelOffset = tileAndClusterData.perVoxelOffset;
             resources.convexBoundsBuffer = tileAndClusterData.convexBoundsBuffer;
-            resources.AABBBoundsBuffer = tileAndClusterData.AABBBoundsBuffer;
+            resources.xyBoundsBuffer = tileAndClusterData.xyBoundsBuffer;
+            resources.wBoundsBuffer = tileAndClusterData.wBoundsBuffer;
             //resources.lightVolumeDataBuffer = tileAndClusterData.lightVolumeDataBuffer;
             resources.tileFeatureFlags = tileAndClusterData.tileFeatureFlags;
             resources.globalLightListAtomic = tileAndClusterData.globalLightListAtomic;
@@ -3513,20 +3519,21 @@ namespace UnityEngine.Rendering.HighDefinition
         // generate screen-space AABBs (used for both fptl and clustered).
         static void GenerateLightsScreenSpaceAABBs(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, CommandBuffer cmd)
         {
-            if (parameters.boundedEntityCount > 0) // Do not perform a dispatch with 0 groups
+            if (parameters.boundedEntityCount > 0) // Do not perform a dispatch with 0 groups; this will leave the output buffer in an uninitialized state
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.GenerateLightAABBs)))
                 {
                     // With XR single-pass, we have one set of light bounds per view to iterate over (bounds are in view space for each view)
                     cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_data, resources.convexBoundsBuffer);
-                    cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_vBoundsBuffer, resources.AABBBoundsBuffer);
+                    cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs._xyBoundsBuffer, resources.xyBoundsBuffer);
+                    cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs._wBoundsBuffer,  resources.wBoundsBuffer);
 
                     ConstantBuffer.Push(cmd, parameters.lightListCB, parameters.screenSpaceAABBShader, HDShaderIDs._ShaderVariablesLightList);
 
-                    const int threadsPerLight = 4;  // Shader: THREADS_PER_LIGHT (4)
-                    const int threadsPerGroup = 64; // Shader: THREADS_PER_GROUP (64)
+                    const int threadsPerGroup  = 64; // Shader: THREADS_PER_GROUP  (64)
+                    const int threadsPerEntity = 4;  // Shader: THREADS_PER_ENTITY (4)
 
-                    int groupCount = HDUtils.DivRoundUp(parameters.boundedEntityCount * threadsPerLight, threadsPerGroup);
+                    int groupCount = HDUtils.DivRoundUp(parameters.boundedEntityCount * threadsPerEntity, threadsPerGroup);
 
                     cmd.DispatchCompute(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, groupCount, parameters.viewCount, 1);
                 }

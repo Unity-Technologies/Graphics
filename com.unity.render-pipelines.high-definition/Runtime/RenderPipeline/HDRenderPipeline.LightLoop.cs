@@ -54,7 +54,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Buffers filled with the CPU outside of render graph.
             public ComputeBufferHandle          convexBoundsBuffer;
-            public ComputeBufferHandle          AABBBoundsBuffer;
+            public ComputeBufferHandle          xyBoundsBuffer;
+            public ComputeBufferHandle          wBoundsBuffer;
 
             // Transient buffers that are not used outside of BuildGPULight list so they don't need to go outside the pass.
             public ComputeBufferHandle          globalLightListAtomic;
@@ -95,7 +96,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             //buildLightListResources.lightVolumeDataBuffer = data.lightVolumeDataBuffer;
             buildLightListResources.convexBoundsBuffer = data.convexBoundsBuffer;
-            buildLightListResources.AABBBoundsBuffer = data.AABBBoundsBuffer;
+            buildLightListResources.xyBoundsBuffer = data.xyBoundsBuffer;
+            buildLightListResources.wBoundsBuffer  = data.wBoundsBuffer;
             buildLightListResources.globalLightListAtomic = data.globalLightListAtomic;
 
             buildLightListResources.tileFeatureFlags = data.output.tileFeatureFlags;
@@ -140,7 +142,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // passData.lightVolumeDataBuffer = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(tileAndClusterData.lightVolumeDataBuffer));
 
                 passData.globalLightListAtomic = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(1, sizeof(uint)) { name = "LightListAtomic"});
-                passData.AABBBoundsBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(m_MaxViewCount * 2 * tileAndClusterData.maxLightCount, 4 * sizeof(float)) { name = "AABBBoundBuffer" });
+                passData.xyBoundsBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(m_MaxViewCount * tileAndClusterData.maxLightCount, 4 * sizeof(float)) { name = "xyBoundsBuffer" });
+                passData.wBoundsBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(m_MaxViewCount * tileAndClusterData.maxLightCount, 2 * sizeof(float)) { name = "wBoundsBuffer" });
 
                 var nrTilesX = (m_MaxCameraWidth + TiledLightingConstants.s_TileSizeFptl - 1) / TiledLightingConstants.s_TileSizeFptl;
                 var nrTilesY = (m_MaxCameraHeight + TiledLightingConstants.s_TileSizeFptl - 1) / TiledLightingConstants.s_TileSizeFptl;
