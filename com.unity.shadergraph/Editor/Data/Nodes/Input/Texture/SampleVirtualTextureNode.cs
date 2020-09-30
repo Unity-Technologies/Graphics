@@ -143,7 +143,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        bool m_NoFeedback;
+        bool m_NoFeedback;          // aka !AutomaticStreaming
         public bool noFeedback
         {
             get
@@ -156,7 +156,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_NoFeedback = value;
-                UpdateNodeAfterDeserialization();       // rebuilds all slots
+                RebuildAllSlots(true);
                 Dirty(ModificationScope.Topological);   // slots ShaderStageCapability could have changed, so trigger Topo change
             }
         }
@@ -190,7 +190,12 @@ namespace UnityEditor.ShaderGraph
                     layerCount = vtProperty?.value?.layers?.Count ?? kMaxLayers;
                 }
                 if (outputLayerSlotCount == layerCount)
+                {
+                    if (usedSlots != null)
+                        for (int i = 0; i < layerCount; i++)
+                            usedSlots.Add(OutputSlotIds[i]);
                     return;
+                }
             }
 
             for (int i = 0; i < kMaxLayers; i++)

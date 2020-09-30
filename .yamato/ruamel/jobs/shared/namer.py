@@ -8,6 +8,9 @@ def editor_filepath():
 def editor_job_id(editor_version, platform_os):
     return f'editor:priming:{editor_version}:{platform_os}'
 
+def editor_job_id_test_min_editor(platform_os):
+    return f'editor:priming:test_min_editor:{platform_os}'
+
 # package specific
 def packages_filepath():
     return f'{parent_dir}/_packages.yml'.lower()
@@ -44,6 +47,9 @@ def projectcontext_job_id_pack():
 
 def projectcontext_job_id_test(platform_os, editor_version):
     return f'test_all_project_{ platform_os }_{editor_version}'
+
+def projectcontext_job_id_test_min_editor(platform_os):
+    return f'test_all_project_{ platform_os }_min_editor'
 
 def projectcontext_job_id_publish(package_id):
     return f'publish_{package_id}_project'

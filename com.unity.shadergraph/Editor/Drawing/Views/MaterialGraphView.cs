@@ -159,9 +159,36 @@ namespace UnityEditor.ShaderGraph.Drawing
             return compatibleAnchors;
         }
 
+        internal bool ResetSelectedBlockNodes()
+        {
+            var selectedBlocknodes = selection.FindAll(e => e is MaterialNodeView && ((MaterialNodeView)e).node is BlockNode).Cast<MaterialNodeView>().ToArray();
+            foreach (var mNode in selectedBlocknodes)
+            {
+                var bNode = mNode.node as BlockNode;
+                var context = GetContext(bNode.contextData);
+
+                RemoveElement(mNode);
+                context.InsertBlock(mNode);
+
+                // TODO: StackNode in GraphView (Trunk) has no interface to reset drop previews. The least intrusive
+                // solution is to call its DragLeave until its interface can be improved.
+                context.DragLeave(null, null, null, null);
+            }
+            return selectedBlocknodes.Length > 0;
+        }
+
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             Vector2 mousePosition = evt.mousePosition;
+
+            // If the target wasn't a block node, but there is one selected (and reset) by the time we reach this point,
+            // it means a block node was in an invalid configuration and that it may be unsafe to build the context menu.
+            bool targetIsBlockNode = evt.target is MaterialNodeView && ((MaterialNodeView)evt.target).node is BlockNode;
+            if (ResetSelectedBlockNodes() && !targetIsBlockNode)
+            {
+                return;
+            }
+
             base.BuildContextualMenu(evt);
             if(evt.target is GraphView)
             {

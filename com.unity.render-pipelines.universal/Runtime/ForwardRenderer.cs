@@ -443,6 +443,12 @@ namespace UnityEngine.Rendering.Universal
             CommandBufferPool.Release(cmd);
         }
 
+        bool PlatformRequiresExplicitMsaaResolve()
+        {
+            return !SystemInfo.supportsMultisampleAutoResolve &&
+                   SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal;
+        }
+
         /// <summary>
         /// Checks if the pipeline needs to create a intermediate render texture.
         /// </summary>
@@ -462,7 +468,7 @@ namespace UnityEngine.Rendering.Universal
             bool isStereoEnabled = cameraData.isStereoEnabled;
             bool isScaledRender = !Mathf.Approximately(cameraData.renderScale, 1.0f) && !cameraData.isStereoEnabled;
             bool isCompatibleBackbufferTextureDimension = cameraTargetDescriptor.dimension == TextureDimension.Tex2D;
-            bool requiresExplicitMsaaResolve = msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve;
+            bool requiresExplicitMsaaResolve = msaaSamples > 1 && PlatformRequiresExplicitMsaaResolve();
             bool isOffscreenRender = cameraData.targetTexture != null && !isSceneViewCamera;
             bool isCapturing = cameraData.captureActions != null;
 

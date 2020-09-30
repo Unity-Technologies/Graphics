@@ -209,6 +209,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.AddManipulator(new RectangleSelector());
                 m_GraphView.AddManipulator(new ClickSelector());
                 m_GraphView.RegisterCallback<KeyDownEvent>(OnKeyDown);
+                m_GraphView.RegisterCallback<MouseUpEvent>(evt => { m_GraphView.ResetSelectedBlockNodes(); } );
+
                 RegisterGraphViewCallbacks();
                 content.Add(m_GraphView);
 
@@ -674,7 +676,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if(node is BlockNode blockNode)
                     {
                         var context = m_GraphView.GetContext(blockNode.contextData);
-                        context.RemoveElement(nodeView as Node);
+                        // blocknode may be floating and not actually in the stacknode's visual hierarchy.
+                        if (context.Contains(nodeView as Node))
+                        {
+                            context.RemoveElement(nodeView as Node);
+                        }
+                        else
+                        {
+                            m_GraphView.RemoveElement((Node)nodeView);
+                        }
                     }
                     else
                     {
