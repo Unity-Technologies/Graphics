@@ -14,7 +14,7 @@ smoke_test_playmode_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor --wait --published-only
+      -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor --wait --published-only
       -  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
         logs:
@@ -31,7 +31,7 @@ smoke_test_editmode_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor --wait --published-only
+      -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor --wait --published-only
       -  cd TestProjects/SRP_SmokeTest && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
         logs:
@@ -128,7 +128,7 @@ smoke_test_playmode_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli -u 4ddb31178f9c097b15abff1c38668658c22429b2 -c editor --wait --published-only
+      -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli -u 93d432f0d085a8671a6c8a331ec8bdccb5c076ef -c editor --wait --published-only
       -  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
         logs:
@@ -145,7 +145,7 @@ smoke_test_editmode_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli -u 4ddb31178f9c097b15abff1c38668658c22429b2 -c editor --wait --published-only
+      -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli -u 93d432f0d085a8671a6c8a331ec8bdccb5c076ef -c editor --wait --published-only
       -  cd TestProjects/SRP_SmokeTest && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
         logs:
@@ -180,8 +180,6 @@ all_project_ci_nightly_2020.2:
     dependencies:
       -  path: .yamato/_abv.yml#all_project_ci_2020.2
          rerun: on-new-revision
-      -  path: .yamato/_templates.yml#all_template_ci_2020.2
-         rerun: on-new-revision
       -  path: .yamato/_abv.yml#smoke_test_playmode_2020.2
          rerun: on-new-revision
       -  path: .yamato/_abv.yml#smoke_test_editmode_2020.2
@@ -191,6 +189,10 @@ all_project_ci_nightly_2020.2:
       -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_2020.2
          rerun: on-new-revision
       -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_2020.2
+         rerun: on-new-revision
+      -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_playmode_2020.2
+         rerun: on-new-revision
+      -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_playmode_XR_2020.2
          rerun: on-new-revision
       -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_Standalone_2020.2
          rerun: on-new-revision
