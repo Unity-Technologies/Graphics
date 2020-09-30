@@ -60,7 +60,7 @@ namespace UnityEditor.VFX.UI
         {
             var tpl = VFXView.LoadUXML("VFXBlackboardSection");
 
-            m_MainContainer = tpl.CloneTree();
+            m_MainContainer = tpl.Instantiate();
             m_MainContainer.AddToClassList("mainContainer");
 
             m_Header = m_MainContainer.Q<VisualElement>("sectionHeader");
