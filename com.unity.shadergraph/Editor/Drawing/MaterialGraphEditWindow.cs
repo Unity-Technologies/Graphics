@@ -234,12 +234,22 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 var wasUndoRedoPerformed = graphObject.wasUndoRedoPerformed;
 
+                bool restoreNodeSelectionState = false;
+                List<string> selectionUids = new List<String>();
                 if (wasUndoRedoPerformed)
                 {
+                    restoreNodeSelectionState = true;
+                    foreach (var selected in graphEditorView.graphView.selection.OfType<MaterialNodeView>())
+                    {
+                        if (selected != null)
+                        {
+                            selectionUids.Add(selected.node.objectId);
+                        }
+                    }
+
                     graphEditorView.HandleGraphChanges(true);
                     graphObject.graph.ClearChanges();
                     graphObject.HandleUndoRedo();
-
                 }
 
                 if (graphObject.isDirty || wasUndoRedoPerformed)
@@ -251,6 +261,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // Called again to handle changes from deserialization in case an undo/redo was performed
                 graphEditorView.HandleGraphChanges(wasUndoRedoPerformed);
                 graphObject.graph.ClearChanges();
+
+                if (restoreNodeSelectionState)
+                {
+                    foreach (var nodeView in graphEditorView.graphView.graphElements.ToList().OfType<MaterialNodeView>())
+                    {
+                        if (nodeView != null && selectionUids.Contains(nodeView.node.objectId))
+                        {
+                            graphEditorView.graphView.AddToSelection(nodeView);
+                        }
+                    }
+                }
             }
             catch (Exception e)
             {
