@@ -66,30 +66,11 @@ Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData pun
 
     light.distanceAttenuation = attenuation;
 
-    // Baked lighting has been set to subtractive, which means:
-    // -static geometry do not receive any realtime lighting
-    // -dynamic geometry receive realtime lighting and any baked shadows are approximated using occlusion probes.
-    #if defined(_DEFERRED_SUBTRACTIVE_LIGHTING)
-        // First find the probe channel from the light.
-        // Then sample `unity_ProbesOcclusion` for the baked occlusion.
-        // If the light is not baked, the channel is -1, and we need to apply no occlusion.
-
-        // probeChannel is the index in 'unity_ProbesOcclusion' that holds the proper occlusion value.
-        int probeChannel = punctualLightData.occlusionProbeInfo.x;
-
-        // lightProbeContribution is set to 0 if we are indeed using a probe, otherwise set to 1.
-        half lightProbeContribution = punctualLightData.occlusionProbeInfo.y;
-
-        half probeOcclusionValue = probesOcclusion[probeChannel];
-        light.distanceAttenuation *= max(probeOcclusionValue, lightProbeContribution);
-    #endif
-
     [branch] if (materialFlagReceiveShadowsOff)
         light.shadowAttenuation = 1.0;
     else
     {
-        light.shadowAttenuation = AdditionalLightRealtimeShadow(punctualLightData.shadowLightIndex, positionWS);
-        light.shadowAttenuation = ApplyShadowFade(light.shadowAttenuation, positionWS);
+        light.shadowAttenuation = AdditionalLightShadow(punctualLightData.shadowLightIndex, positionWS, shadowMask, punctualLightData.occlusionProbeInfo);
     }
     return light;
 }

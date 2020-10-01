@@ -7,10 +7,12 @@
 // inspired from [builtin_shaders]/CGIncludes/UnityGBuffer.cginc
 
 // Non-static meshes with real-time lighting need to write shadow mask, which in that case stores per-object occlusion probe values.
-#if !defined(LIGHTMAP_ON) && defined(_MIXED_LIGHTING_SUBTRACTIVE)
-#define USE_SHADOWMASK 1
+#if !defined(LIGHTMAP_ON) && defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK)
+#define OUTPUT_SHADOWMASK 1 // subtractive
+#elif defined(SHADOWS_SHADOWMASK)
+#define OUTPUT_SHADOWMASK 2 // shadow mask
 #else
-#define USE_SHADOWMASK 0
+#define OUTPUT_SHADOWMASK 0
 #endif
 
 #define kLightingInvalid  -1  // No dynamic lighting: can aliase any other material type as they are skipped using stencil
@@ -31,7 +33,7 @@ struct FragmentOutput
     half4 GBuffer1 : SV_Target1;
     half4 GBuffer2 : SV_Target2;
     half4 GBuffer3 : SV_Target3; // Camera color attachment
-    #if USE_SHADOWMASK
+    #if OUTPUT_SHADOWMASK
     half4 GBuffer4 : SV_Target4;
     #endif
 };
@@ -88,8 +90,10 @@ FragmentOutput SurfaceDataToGbuffer(SurfaceData surfaceData, InputData inputData
     output.GBuffer1 = half4(surfaceData.specular.rgb, 0);                                // specular        specular        specular        [unused]        (sRGB rendertarget)
     output.GBuffer2 = half4(packedNormalWS, packedSmoothness);                           // encoded-normal  encoded-normal  encoded-normal  packed-smoothness
     output.GBuffer3 = half4(globalIllumination, 1);                                      // GI              GI              GI              [optional: see OutputAlpha()] (lighting buffer)
-    #if USE_SHADOWMASK
+    #if OUTPUT_SHADOWMASK == 1
     output.GBuffer4 = unity_ProbesOcclusion;
+    #elif OUTPUT_SHADOWMASK == 2
+    output.GBuffer4 = inputData.shadowMask;
     #endif
 
     return output;
@@ -165,8 +169,10 @@ FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half sm
     output.GBuffer1 = half4(specular, brdfData.reflectivity);                        // specular        specular        specular        reflectivity    (sRGB rendertarget)
     output.GBuffer2 = half4(packedNormalWS, packedSmoothness);                       // encoded-normal  encoded-normal  encoded-normal  smoothness
     output.GBuffer3 = half4(globalIllumination, 1);                                  // GI              GI              GI              [optional: see OutputAlpha()] (lighting buffer)
-    #if USE_SHADOWMASK
+    #if OUTPUT_SHADOWMASK == 1
     output.GBuffer4 = unity_ProbesOcclusion;
+    #elif OUTPUT_SHADOWMASK == 2
+    output.GBuffer4 = inputData.shadowMask;
     #endif
 
     return output;

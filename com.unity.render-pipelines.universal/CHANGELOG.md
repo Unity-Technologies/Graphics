@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue wehre XR mirror view selector stuck. 
 - Fixed GLES2 shader compilation.
 - Fixed issue with lens distortion breaking rendering when enabled and its intensity is 0.
+- Fixed mixed lighting subtractive and shadowmask modes for deferred renderer.
 
 ## [10.0.0] - 2019-06-10
 ### Added
