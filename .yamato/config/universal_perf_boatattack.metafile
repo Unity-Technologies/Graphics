@@ -12,7 +12,7 @@ test_platforms:
     extra_utr_flags_build:
       - --extra-editor-arg="-executemethod Editor.Setup"
       - --extra-editor-arg="-testCategory Performance"
-      - --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"****
+      - --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
   - type: editmode
     name: performance_editmode_build
     is_performance: True
