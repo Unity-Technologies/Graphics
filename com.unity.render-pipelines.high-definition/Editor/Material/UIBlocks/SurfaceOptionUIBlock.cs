@@ -439,6 +439,9 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>Returns false if there are multiple materials selected and they have different default values for propName</summary>
         float GetShaderDefaultFloatValue(string propName)
         {
+            if (!materials[0].HasProperty(propName))
+                return 0;
+
             // It's okay to ignore all other materials here because if the material editor is displayed, the shader is the same for all materials
             var shader = materials[0].shader;
             return shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex(propName));

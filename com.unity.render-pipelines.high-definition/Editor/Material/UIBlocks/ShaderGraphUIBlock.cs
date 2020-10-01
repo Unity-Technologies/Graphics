@@ -19,14 +19,16 @@ namespace UnityEditor.Rendering.HighDefinition
         [Flags]
         public enum Features
         {
-            /// <summary>Only displays the shader properties.</summary>
+            /// <summary>Nothing is displayed.</summary>
             None = 0,
+            /// <summary>Display the exposed properties.</summary>
+            ExposedProperties = 1 << 1,
             /// <summary>Display the default exposed diffusion profile from the graph.</summary>
             DiffusionProfileAsset = 1 << 2,
             /// <summary>Display the shadow matte options.</summary>
             ShadowMatte = 1 << 5,
             /// <summary>Display all the Unlit fields.</summary>
-            Unlit = ShadowMatte,
+            Unlit = ExposedProperties | ShadowMatte,
             /// <summary>Display all the fields.</summary>
             All = ~0,
         }
@@ -112,7 +114,8 @@ namespace UnityEditor.Rendering.HighDefinition
         void DrawShaderGraphGUI()
         {
             // Filter out properties we don't want to draw:
-            PropertiesDefaultGUI(properties);
+            if ((m_Features & Features.ExposedProperties) != 0)
+                PropertiesDefaultGUI(properties);
 
             // If we change a property in a shadergraph, we trigger a material keyword reset
             if (CheckPropertyChanged(properties))
@@ -128,7 +131,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 DrawShadowMatteToggle();
         }
 
-        void PropertiesDefaultGUI(MaterialProperty[] properties)
+        /// <summary>
+        /// Draw the material properties
+        /// </summary>
+        /// <param name="properties">List of Material Properties to draw</param>
+        protected void PropertiesDefaultGUI(MaterialProperty[] properties)
         {
             for (var i = 0; i < properties.Length; i++)
             {
@@ -142,7 +149,10 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        void DrawShadowMatteToggle()
+        /// <summary>
+        /// Draw the Shadow Matte settings (Only available on Unlit materials)
+        /// </summary>
+        protected void DrawShadowMatteToggle()
         {
             uint exponent = 0b10000000; // 0 as exponent
             uint mantissa = 0x007FFFFF;
@@ -164,7 +174,10 @@ namespace UnityEditor.Rendering.HighDefinition
             materials[0].SetFloat(HDMaterialProperties.kShadowMatteFilter, HDShadowUtils.Asfloat(finalFlag));
         }
 
-        void DrawDiffusionProfileUI()
+        /// <summary>
+        /// Draw the built-in exposed diffusion profile when a material have sub-surface scattering or transmission.
+        /// </summary>
+        protected void DrawDiffusionProfileUI()
         {
             if (DiffusionProfileMaterialUI.IsSupported(materialEditor))
                 DiffusionProfileMaterialUI.OnGUI(materialEditor, FindProperty("_DiffusionProfileAsset"), FindProperty("_DiffusionProfileHash"), 0);

@@ -22,10 +22,10 @@ namespace UnityEditor.Rendering.HighDefinition
         };
 
         /// <summary>List of UI Blocks used to render the material inspector.</summary>
-        MaterialUIBlockList uiBlocks => m_UIBlocks;
+        protected MaterialUIBlockList uiBlocks => m_UIBlocks;
 
         /// <summary>
-        /// Implement your custom GUI in this function. To display a UI similar to HDRP shaders, use a MaterialUIBlock.
+        /// Implement your custom GUI in this function. To display a UI similar to HDRP shaders, use a MaterialUIBlockList.
         /// </summary>
         /// <param name="materialEditor">The current material editor.</param>
         /// <param name="props">The list of properties the material has.</param>
@@ -49,9 +49,9 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Sets up the keywords and passes for the current inspected material.
+        /// Sets up the keywords and passes for the current selected material.
         /// </summary>
-        /// <param name="material">The inspected material.</param>
+        /// <param name="material">The selected material.</param>
         protected override void SetupMaterialKeywordsAndPass(Material material) => SetupUnlitKeywordsAndPass(material);
     }
 }
