@@ -1,7 +1,10 @@
 #pragma kernel ClearList
 
 RWStructuredBuffer<uint>  _LightListToClear;
-int _LightListEntries;
+int2 _LightListEntriesAndOffset;
+
+#define _LightListEntries (uint)_LightListEntriesAndOffset.x
+#define _LightListOffset  (uint)_LightListEntriesAndOffset.y
 
 [numthreads(64, 1, 1)]
 void ClearList(uint3 id : SV_DispatchThreadID)
