@@ -3,6 +3,7 @@ Pass
 {		
 	Tags { "LightMode"=${VFXPassShadow} }
 
+	ZClip [_ZClip]
 	ZWrite On
 	Blend Off
 	
