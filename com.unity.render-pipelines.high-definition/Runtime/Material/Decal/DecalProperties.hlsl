@@ -23,7 +23,6 @@ float _AORemapMin;
 float _AORemapMax;
 float _MetallicScale;
 float _DecalMaskMapBlueScale;
-float _BlendMode;
 
 float _Smoothness;
 float _AO;
