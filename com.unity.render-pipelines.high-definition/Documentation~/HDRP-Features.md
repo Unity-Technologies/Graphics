@@ -167,6 +167,12 @@ For more information, including the full list of light properties, see the [Ligh
 
 HDRP supports cubemap and planar GPU Reflection Probes to help you produce realistic reflections in your Scene in real time. For more information, see the [introduction to Reflection Probes](Reflection-Probes-Intro.md)
 
+### Planar reflection probe filtering
+
+![](Images/PlanarReflectionFiltering-Feature.png)
+
+Planar reflection probe filtering combines the result of planar reflection and surfaces smoothness. HDRP includes accurate filtering for planar reflection that is close to being physically-based.
+
 ### Screen-space global illumination
 
 ![](Images/HDRPFeatures-SSGI.png)
