@@ -215,9 +215,6 @@ namespace UnityEngine.Rendering.HighDefinition
             );
 
             FillEmptyExposureTexture();
-
-            // Call after initializing m_LutSize and m_KeepAlpha as it's needed for render target allocation.
-            InitializeNonRenderGraphResources(hdAsset);
         }
 
         public void Cleanup()
@@ -2466,23 +2463,43 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        static RTHandle CoCAllocatorMipsTrue(string id, int frameIndex, RTHandleSystem rtHandleSystem)
+        {
+            return rtHandleSystem.Alloc(
+                Vector2.one, TextureXR.slices, DepthBits.None, GraphicsFormat.R16_SFloat,
+                dimension: TextureXR.dimension, enableRandomWrite: true, useMipMap: true, useDynamicScale: true, name: $"{id} CoC History"
+            );
+        }
+
+        static RTHandle CoCAllocatorMipsFalse(string id, int frameIndex, RTHandleSystem rtHandleSystem)
+        {
+            return rtHandleSystem.Alloc(
+                Vector2.one, TextureXR.slices, DepthBits.None, GraphicsFormat.R16_SFloat,
+                dimension: TextureXR.dimension, enableRandomWrite: true, useMipMap: false, useDynamicScale: true, name: $"{id} CoC History"
+            );
+        }
+
         static void GrabCoCHistory(HDCamera camera, out RTHandle previous, out RTHandle next, bool useMips = false)
         {
-            RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
+            // WARNING WORKAROUND
+            // For some reason, the Allocator as it was declared before would capture the useMips parameter but only when both render graph and XR are enabled.
+            // To work around this we have two hard coded allocators and use one or the other depending on the parameters.
+            // Also don't try to put the right allocator in a temporary variable as it will also generate allocations hence the horrendous copy paste bellow.
+            if (useMips)
             {
-                return rtHandleSystem.Alloc(
-                    Vector2.one, TextureXR.slices, DepthBits.None, GraphicsFormat.R16_SFloat,
-                    dimension: TextureXR.dimension, enableRandomWrite: true, useMipMap:useMips, useDynamicScale: true, name: $"{id} CoC History"
-                );
+                next = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC)
+                    ?? camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC, CoCAllocatorMipsTrue, 2);
             }
-
-            next = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC)
-                ?? camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC, Allocator, 2);
+            else
+            {
+                next = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC)
+                    ?? camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC, CoCAllocatorMipsFalse, 2);
+            }
 
             if (useMips == true && next.rt.mipmapCount == 1)
             {
                 camera.ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC);
-                next = camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC, Allocator, 2);
+                next = camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC, CoCAllocatorMipsTrue, 2);
             }
 
             previous = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC);
@@ -3918,17 +3935,24 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (parameters.filmGrainTexture != null) // Fail safe if the resources asset breaks :/
                     {
                         #if HDRP_DEBUG_STATIC_POSTFX
-                        int offsetX = 0;
-                        int offsetY = 0;
+                        float offsetX = 0;
+                        float offsetY = 0;
                         #else
-                        int offsetX = (int)(parameters.random.NextDouble() * parameters.filmGrainTexture.width);
-                        int offsetY = (int)(parameters.random.NextDouble() * parameters.filmGrainTexture.height);
+                        float offsetX = (float)(parameters.random.NextDouble());
+                        float offsetY = (float)(parameters.random.NextDouble());
                         #endif
 
                         finalPassMaterial.EnableKeyword("GRAIN");
                         finalPassMaterial.SetTexture(HDShaderIDs._GrainTexture, parameters.filmGrainTexture);
                         finalPassMaterial.SetVector(HDShaderIDs._GrainParams, new Vector2(parameters.filmGrainIntensity * 4f, parameters.filmGrainResponse));
-                        finalPassMaterial.SetVector(HDShaderIDs._GrainTextureParams, new Vector4(parameters.filmGrainTexture.width, parameters.filmGrainTexture.height, offsetX, offsetY));
+
+                        float uvScaleX = parameters.hdCamera.actualWidth / (float)parameters.filmGrainTexture.width;
+                        float uvScaleY = parameters.hdCamera.actualHeight / (float)parameters.filmGrainTexture.height;
+                        float scaledOffsetX = offsetX * uvScaleX;
+                        float scaledOffsetY = offsetY * uvScaleY;
+
+                        finalPassMaterial.SetVector(HDShaderIDs._GrainTextureParams, new Vector4(uvScaleX, uvScaleY, offsetX, offsetY));
+
                     }
                 }
 
@@ -3944,7 +3968,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     finalPassMaterial.EnableKeyword("DITHER");
                     finalPassMaterial.SetTexture(HDShaderIDs._BlueNoiseTexture, blueNoiseTexture);
-                    finalPassMaterial.SetVector(HDShaderIDs._DitherParams, new Vector3(blueNoiseTexture.width, blueNoiseTexture.height, textureId));
+                    finalPassMaterial.SetVector(HDShaderIDs._DitherParams, new Vector3(parameters.hdCamera.actualWidth / blueNoiseTexture.width,
+                                                                                        parameters.hdCamera.actualHeight / blueNoiseTexture.height, textureId));
                 }
             }
 

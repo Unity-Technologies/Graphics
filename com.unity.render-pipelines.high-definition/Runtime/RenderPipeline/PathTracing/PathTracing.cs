@@ -80,8 +80,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif // UNITY_EDITOR
 
             m_RadianceTexture = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, dimension: TextureXR.dimension,
-                                        enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
-                                        name: "PathTracingFrameBuffer");
+            enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
+            name: "PathTracingFrameBuffer");
         }
 
         void ReleasePathTracing()

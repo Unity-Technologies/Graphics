@@ -111,7 +111,7 @@ namespace UnityEditor.Rendering.HighDefinition
         void RayTracingPerformanceModeGUI()
         {
             base.OnInspectorGUI();
-            GUI.enabled = useCustomValue;
+            using (new EditorGUI.DisabledScope(!useCustomValue))
             {
                 EditorGUI.indentLevel++;
                 PropertyField(m_MinSmoothness, k_MinimumSmoothnessText);
@@ -129,7 +129,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 EditorGUI.indentLevel--;
             }
-            GUI.enabled = true;
         }
 
         void RayTracedReflectionGUI()
@@ -203,10 +202,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_DepthBufferThickness.value.floatValue = Mathf.Clamp(m_DepthBufferThickness.value.floatValue, 0.001f, 1.0f);
 
                 base.OnInspectorGUI();
-                GUI.enabled = useCustomValue;
-                PropertyField(m_RayMaxIterations, k_RayMaxIterationsText);
-                m_RayMaxIterations.value.intValue = Mathf.Max(0, m_RayMaxIterations.value.intValue);
-                GUI.enabled = true;
+                using (new EditorGUI.DisabledScope(!useCustomValue))
+                {
+                    EditorGUI.indentLevel++;
+                    PropertyField(m_RayMaxIterations, k_RayMaxIterationsText);
+                    m_RayMaxIterations.value.intValue = Mathf.Max(0, m_RayMaxIterations.value.intValue);
+                    EditorGUI.indentLevel--;
+                }
             }
         }
     }
