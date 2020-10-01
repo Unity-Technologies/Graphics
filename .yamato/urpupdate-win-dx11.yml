@@ -4,7 +4,7 @@
 # Read more under .yamato/docs/readme.md 
 
 URPUpdate_Win_DX11_playmode_il2cpp_linear_trunk:
-    name: URPUpdate on Win_DX11_playmode on version trunk
+    name: URPUpdate on Win_DX11_playmode_il2cpp_linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -25,7 +25,7 @@ URPUpdate_Win_DX11_playmode_il2cpp_linear_trunk:
             paths:
               -  "**/test-results/**"
 URPUpdate_Win_DX11_playmode_il2cpp_gamma_trunk:
-    name: URPUpdate on Win_DX11_playmode on version trunk
+    name: URPUpdate on Win_DX11_playmode_il2cpp_gamma on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -46,7 +46,7 @@ URPUpdate_Win_DX11_playmode_il2cpp_gamma_trunk:
             paths:
               -  "**/test-results/**"
 URPUpdate_Win_DX11_playmode_mono_linear_trunk:
-    name: URPUpdate on Win_DX11_playmode on version trunk
+    name: URPUpdate on Win_DX11_playmode_mono_linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -67,7 +67,7 @@ URPUpdate_Win_DX11_playmode_mono_linear_trunk:
             paths:
               -  "**/test-results/**"
 URPUpdate_Win_DX11_playmode_mono_gamma_trunk:
-    name: URPUpdate on Win_DX11_playmode on version trunk
+    name: URPUpdate on Win_DX11_playmode_mono_gamma on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -88,7 +88,7 @@ URPUpdate_Win_DX11_playmode_mono_gamma_trunk:
             paths:
               -  "**/test-results/**"
 URPUpdate_Win_DX11_editmode_il2cpp_linear_trunk:
-    name: URPUpdate on Win_DX11_editmode on version trunk
+    name: URPUpdate on Win_DX11_editmode_il2cpp_linear on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -109,7 +109,7 @@ URPUpdate_Win_DX11_editmode_il2cpp_linear_trunk:
             paths:
               -  "**/test-results/**"
 URPUpdate_Win_DX11_editmode_il2cpp_gamma_trunk:
-    name: URPUpdate on Win_DX11_editmode on version trunk
+    name: URPUpdate on Win_DX11_editmode_il2cpp_gamma on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -130,7 +130,7 @@ URPUpdate_Win_DX11_editmode_il2cpp_gamma_trunk:
             paths:
               -  "**/test-results/**"
 URPUpdate_Win_DX11_editmode_mono_linear_trunk:
-    name: URPUpdate on Win_DX11_editmode on version trunk
+    name: URPUpdate on Win_DX11_editmode_mono_linear on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -151,7 +151,7 @@ URPUpdate_Win_DX11_editmode_mono_linear_trunk:
             paths:
               -  "**/test-results/**"
 URPUpdate_Win_DX11_editmode_mono_gamma_trunk:
-    name: URPUpdate on Win_DX11_editmode on version trunk
+    name: URPUpdate on Win_DX11_editmode_mono_gamma on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -172,7 +172,7 @@ URPUpdate_Win_DX11_editmode_mono_gamma_trunk:
             paths:
               -  "**/test-results/**"
 URPUpdate_Win_DX11_playmode_il2cpp_linear_CUSTOM-REVISION:
-    name: URPUpdate on Win_DX11_playmode on version CUSTOM-REVISION
+    name: URPUpdate on Win_DX11_playmode_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -197,7 +197,7 @@ URPUpdate_Win_DX11_playmode_il2cpp_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 URPUpdate_Win_DX11_playmode_il2cpp_gamma_CUSTOM-REVISION:
-    name: URPUpdate on Win_DX11_playmode on version CUSTOM-REVISION
+    name: URPUpdate on Win_DX11_playmode_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -222,7 +222,7 @@ URPUpdate_Win_DX11_playmode_il2cpp_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 URPUpdate_Win_DX11_playmode_mono_linear_CUSTOM-REVISION:
-    name: URPUpdate on Win_DX11_playmode on version CUSTOM-REVISION
+    name: URPUpdate on Win_DX11_playmode_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -247,7 +247,7 @@ URPUpdate_Win_DX11_playmode_mono_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 URPUpdate_Win_DX11_playmode_mono_gamma_CUSTOM-REVISION:
-    name: URPUpdate on Win_DX11_playmode on version CUSTOM-REVISION
+    name: URPUpdate on Win_DX11_playmode_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -272,7 +272,7 @@ URPUpdate_Win_DX11_playmode_mono_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 URPUpdate_Win_DX11_editmode_il2cpp_linear_CUSTOM-REVISION:
-    name: URPUpdate on Win_DX11_editmode on version CUSTOM-REVISION
+    name: URPUpdate on Win_DX11_editmode_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -297,7 +297,7 @@ URPUpdate_Win_DX11_editmode_il2cpp_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 URPUpdate_Win_DX11_editmode_il2cpp_gamma_CUSTOM-REVISION:
-    name: URPUpdate on Win_DX11_editmode on version CUSTOM-REVISION
+    name: URPUpdate on Win_DX11_editmode_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -322,7 +322,7 @@ URPUpdate_Win_DX11_editmode_il2cpp_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 URPUpdate_Win_DX11_editmode_mono_linear_CUSTOM-REVISION:
-    name: URPUpdate on Win_DX11_editmode on version CUSTOM-REVISION
+    name: URPUpdate on Win_DX11_editmode_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -347,7 +347,7 @@ URPUpdate_Win_DX11_editmode_mono_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 URPUpdate_Win_DX11_editmode_mono_gamma_CUSTOM-REVISION:
-    name: URPUpdate on Win_DX11_editmode on version CUSTOM-REVISION
+    name: URPUpdate on Win_DX11_editmode_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable

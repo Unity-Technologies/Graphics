@@ -4,7 +4,7 @@
 # Read more under .yamato/docs/readme.md 
 
 URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_linear_trunk:
-    name: URP_Performance_BoatAttack on iPhone_Metal_performance_playmode_runtime on version trunk
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_playmode_runtime_il2cpp_linear on version trunk
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -24,7 +24,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_line
          rerun: on-new-revision
     skip_checkout: true
 Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_linear_trunk:
-    name: Build URP_Performance_BoatAttack on iPhone_Metal_Player on version trunk
+    name: Build URP_Performance_BoatAttack on iPhone_Metal_il2cpp_linear_Player on version trunk
     agent:
         type: Unity::VM::osx
         image: mobile/macos-10.13-testing:stable
@@ -45,7 +45,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_linear_trunk:
             paths:
               -  "players/**"
 URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_gamma_trunk:
-    name: URP_Performance_BoatAttack on iPhone_Metal_performance_playmode_runtime on version trunk
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_playmode_runtime_il2cpp_gamma on version trunk
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -65,7 +65,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_gamm
          rerun: on-new-revision
     skip_checkout: true
 Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_gamma_trunk:
-    name: Build URP_Performance_BoatAttack on iPhone_Metal_Player on version trunk
+    name: Build URP_Performance_BoatAttack on iPhone_Metal_il2cpp_gamma_Player on version trunk
     agent:
         type: Unity::VM::osx
         image: mobile/macos-10.13-testing:stable
@@ -86,7 +86,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_gamma_trunk:
             paths:
               -  "players/**"
 URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_mono_linear_trunk:
-    name: URP_Performance_BoatAttack on iPhone_Metal_performance_playmode_runtime on version trunk
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_playmode_runtime_mono_linear on version trunk
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -106,7 +106,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_mono_linear
          rerun: on-new-revision
     skip_checkout: true
 Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_linear_trunk:
-    name: Build URP_Performance_BoatAttack on iPhone_Metal_Player on version trunk
+    name: Build URP_Performance_BoatAttack on iPhone_Metal_mono_linear_Player on version trunk
     agent:
         type: Unity::VM::osx
         image: mobile/macos-10.13-testing:stable
@@ -127,7 +127,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_linear_trunk:
             paths:
               -  "players/**"
 URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_mono_gamma_trunk:
-    name: URP_Performance_BoatAttack on iPhone_Metal_performance_playmode_runtime on version trunk
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_playmode_runtime_mono_gamma on version trunk
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -147,7 +147,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_mono_gamma_
          rerun: on-new-revision
     skip_checkout: true
 Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_gamma_trunk:
-    name: Build URP_Performance_BoatAttack on iPhone_Metal_Player on version trunk
+    name: Build URP_Performance_BoatAttack on iPhone_Metal_mono_gamma_Player on version trunk
     agent:
         type: Unity::VM::osx
         image: mobile/macos-10.13-testing:stable
@@ -168,7 +168,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_gamma_trunk:
             paths:
               -  "players/**"
 URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_linear_trunk:
-    name: URP_Performance_BoatAttack on iPhone_Metal_performance_editmode_build on version trunk
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_editmode_build_il2cpp_linear on version trunk
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -186,7 +186,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_linear
             paths:
               -  "**/test-results/**"
 URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_gamma_trunk:
-    name: URP_Performance_BoatAttack on iPhone_Metal_performance_editmode_build on version trunk
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_editmode_build_il2cpp_gamma on version trunk
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -204,7 +204,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_gamma_
             paths:
               -  "**/test-results/**"
 URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_linear_trunk:
-    name: URP_Performance_BoatAttack on iPhone_Metal_performance_editmode_build on version trunk
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_editmode_build_mono_linear on version trunk
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -222,7 +222,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_linear_t
             paths:
               -  "**/test-results/**"
 URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_gamma_trunk:
-    name: URP_Performance_BoatAttack on iPhone_Metal_performance_editmode_build on version trunk
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_editmode_build_mono_gamma on version trunk
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -240,7 +240,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_gamma_tr
             paths:
               -  "**/test-results/**"
 URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on iPhone_Metal_performance_playmode_runtime on version CUSTOM-REVISION
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_playmode_runtime_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -263,7 +263,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_line
          rerun: always
     skip_checkout: true
 Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_linear_CUSTOM-REVISION:
-    name: Build URP_Performance_BoatAttack on iPhone_Metal_Player on version CUSTOM-REVISION
+    name: Build URP_Performance_BoatAttack on iPhone_Metal_il2cpp_linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: mobile/macos-10.13-testing:stable
@@ -288,7 +288,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_linear_CUSTOM-REVISI
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
 URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_gamma_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on iPhone_Metal_performance_playmode_runtime on version CUSTOM-REVISION
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_playmode_runtime_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -311,7 +311,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_gamm
          rerun: always
     skip_checkout: true
 Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_gamma_CUSTOM-REVISION:
-    name: Build URP_Performance_BoatAttack on iPhone_Metal_Player on version CUSTOM-REVISION
+    name: Build URP_Performance_BoatAttack on iPhone_Metal_il2cpp_gamma_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: mobile/macos-10.13-testing:stable
@@ -336,7 +336,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_gamma_CUSTOM-REVISIO
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
 URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_mono_linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on iPhone_Metal_performance_playmode_runtime on version CUSTOM-REVISION
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_playmode_runtime_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -359,7 +359,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_mono_linear
          rerun: always
     skip_checkout: true
 Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_linear_CUSTOM-REVISION:
-    name: Build URP_Performance_BoatAttack on iPhone_Metal_Player on version CUSTOM-REVISION
+    name: Build URP_Performance_BoatAttack on iPhone_Metal_mono_linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: mobile/macos-10.13-testing:stable
@@ -384,7 +384,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_linear_CUSTOM-REVISION
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
 URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_mono_gamma_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on iPhone_Metal_performance_playmode_runtime on version CUSTOM-REVISION
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_playmode_runtime_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -407,7 +407,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_mono_gamma_
          rerun: always
     skip_checkout: true
 Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_gamma_CUSTOM-REVISION:
-    name: Build URP_Performance_BoatAttack on iPhone_Metal_Player on version CUSTOM-REVISION
+    name: Build URP_Performance_BoatAttack on iPhone_Metal_mono_gamma_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: mobile/macos-10.13-testing:stable
@@ -432,7 +432,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
 URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on iPhone_Metal_performance_editmode_build on version CUSTOM-REVISION
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_editmode_build_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -454,7 +454,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_linear
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
 URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_gamma_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on iPhone_Metal_performance_editmode_build on version CUSTOM-REVISION
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_editmode_build_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -476,7 +476,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_gamma_
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
 URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on iPhone_Metal_performance_editmode_build on version CUSTOM-REVISION
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_editmode_build_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -498,7 +498,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_linear_C
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
 URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_gamma_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on iPhone_Metal_performance_editmode_build on version CUSTOM-REVISION
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_editmode_build_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable

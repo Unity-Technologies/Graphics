@@ -4,7 +4,7 @@
 # Read more under .yamato/docs/readme.md 
 
 Universal_Android_Vulkan_Standalone_il2cpp_linear_trunk:
-    name: Universal on Android_Vulkan_Standalone on version trunk
+    name: Universal on Android_Vulkan_Standalone_il2cpp_linear on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -30,7 +30,7 @@ Universal_Android_Vulkan_Standalone_il2cpp_linear_trunk:
          rerun: on-new-revision
     skip_checkout: true
 Build_Universal_Android_Vulkan_Player_il2cpp_linear_trunk:
-    name: Build Universal on Android_Vulkan_Player on version trunk
+    name: Build Universal on Android_Vulkan_il2cpp_linear_Player on version trunk
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -53,7 +53,7 @@ Build_Universal_Android_Vulkan_Player_il2cpp_linear_trunk:
             paths:
               -  "players/**"
 Universal_Android_Vulkan_Standalone_il2cpp_gamma_trunk:
-    name: Universal on Android_Vulkan_Standalone on version trunk
+    name: Universal on Android_Vulkan_Standalone_il2cpp_gamma on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -79,7 +79,7 @@ Universal_Android_Vulkan_Standalone_il2cpp_gamma_trunk:
          rerun: on-new-revision
     skip_checkout: true
 Build_Universal_Android_Vulkan_Player_il2cpp_gamma_trunk:
-    name: Build Universal on Android_Vulkan_Player on version trunk
+    name: Build Universal on Android_Vulkan_il2cpp_gamma_Player on version trunk
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -102,7 +102,7 @@ Build_Universal_Android_Vulkan_Player_il2cpp_gamma_trunk:
             paths:
               -  "players/**"
 Universal_Android_Vulkan_Standalone_mono_linear_trunk:
-    name: Universal on Android_Vulkan_Standalone on version trunk
+    name: Universal on Android_Vulkan_Standalone_mono_linear on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -128,7 +128,7 @@ Universal_Android_Vulkan_Standalone_mono_linear_trunk:
          rerun: on-new-revision
     skip_checkout: true
 Build_Universal_Android_Vulkan_Player_mono_linear_trunk:
-    name: Build Universal on Android_Vulkan_Player on version trunk
+    name: Build Universal on Android_Vulkan_mono_linear_Player on version trunk
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -151,7 +151,7 @@ Build_Universal_Android_Vulkan_Player_mono_linear_trunk:
             paths:
               -  "players/**"
 Universal_Android_Vulkan_Standalone_mono_gamma_trunk:
-    name: Universal on Android_Vulkan_Standalone on version trunk
+    name: Universal on Android_Vulkan_Standalone_mono_gamma on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -177,7 +177,7 @@ Universal_Android_Vulkan_Standalone_mono_gamma_trunk:
          rerun: on-new-revision
     skip_checkout: true
 Build_Universal_Android_Vulkan_Player_mono_gamma_trunk:
-    name: Build Universal on Android_Vulkan_Player on version trunk
+    name: Build Universal on Android_Vulkan_mono_gamma_Player on version trunk
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -200,7 +200,7 @@ Build_Universal_Android_Vulkan_Player_mono_gamma_trunk:
             paths:
               -  "players/**"
 Universal_Android_Vulkan_playmode_il2cpp_linear_trunk:
-    name: Universal on Android_Vulkan_playmode on version trunk
+    name: Universal on Android_Vulkan_playmode_il2cpp_linear on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -224,7 +224,7 @@ Universal_Android_Vulkan_playmode_il2cpp_linear_trunk:
             paths:
               -  "**/test-results/**"
 Universal_Android_Vulkan_playmode_il2cpp_gamma_trunk:
-    name: Universal on Android_Vulkan_playmode on version trunk
+    name: Universal on Android_Vulkan_playmode_il2cpp_gamma on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -248,7 +248,7 @@ Universal_Android_Vulkan_playmode_il2cpp_gamma_trunk:
             paths:
               -  "**/test-results/**"
 Universal_Android_Vulkan_playmode_mono_linear_trunk:
-    name: Universal on Android_Vulkan_playmode on version trunk
+    name: Universal on Android_Vulkan_playmode_mono_linear on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -272,7 +272,7 @@ Universal_Android_Vulkan_playmode_mono_linear_trunk:
             paths:
               -  "**/test-results/**"
 Universal_Android_Vulkan_playmode_mono_gamma_trunk:
-    name: Universal on Android_Vulkan_playmode on version trunk
+    name: Universal on Android_Vulkan_playmode_mono_gamma on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -296,7 +296,7 @@ Universal_Android_Vulkan_playmode_mono_gamma_trunk:
             paths:
               -  "**/test-results/**"
 Universal_Android_Vulkan_editmode_il2cpp_linear_trunk:
-    name: Universal on Android_Vulkan_editmode on version trunk
+    name: Universal on Android_Vulkan_editmode_il2cpp_linear on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -320,7 +320,7 @@ Universal_Android_Vulkan_editmode_il2cpp_linear_trunk:
             paths:
               -  "**/test-results/**"
 Universal_Android_Vulkan_editmode_il2cpp_gamma_trunk:
-    name: Universal on Android_Vulkan_editmode on version trunk
+    name: Universal on Android_Vulkan_editmode_il2cpp_gamma on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -344,7 +344,7 @@ Universal_Android_Vulkan_editmode_il2cpp_gamma_trunk:
             paths:
               -  "**/test-results/**"
 Universal_Android_Vulkan_editmode_mono_linear_trunk:
-    name: Universal on Android_Vulkan_editmode on version trunk
+    name: Universal on Android_Vulkan_editmode_mono_linear on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -368,7 +368,7 @@ Universal_Android_Vulkan_editmode_mono_linear_trunk:
             paths:
               -  "**/test-results/**"
 Universal_Android_Vulkan_editmode_mono_gamma_trunk:
-    name: Universal on Android_Vulkan_editmode on version trunk
+    name: Universal on Android_Vulkan_editmode_mono_gamma on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -392,7 +392,7 @@ Universal_Android_Vulkan_editmode_mono_gamma_trunk:
             paths:
               -  "**/test-results/**"
 Universal_Android_Vulkan_playmode_perf_build_il2cpp_linear_trunk:
-    name: Universal on Android_Vulkan_playmode_perf_build on version trunk
+    name: Universal on Android_Vulkan_playmode_perf_build_il2cpp_linear on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -416,7 +416,7 @@ Universal_Android_Vulkan_playmode_perf_build_il2cpp_linear_trunk:
             paths:
               -  "**/test-results/**"
 Universal_Android_Vulkan_playmode_perf_build_il2cpp_gamma_trunk:
-    name: Universal on Android_Vulkan_playmode_perf_build on version trunk
+    name: Universal on Android_Vulkan_playmode_perf_build_il2cpp_gamma on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -440,7 +440,7 @@ Universal_Android_Vulkan_playmode_perf_build_il2cpp_gamma_trunk:
             paths:
               -  "**/test-results/**"
 Universal_Android_Vulkan_playmode_perf_build_mono_linear_trunk:
-    name: Universal on Android_Vulkan_playmode_perf_build on version trunk
+    name: Universal on Android_Vulkan_playmode_perf_build_mono_linear on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -464,7 +464,7 @@ Universal_Android_Vulkan_playmode_perf_build_mono_linear_trunk:
             paths:
               -  "**/test-results/**"
 Universal_Android_Vulkan_playmode_perf_build_mono_gamma_trunk:
-    name: Universal on Android_Vulkan_playmode_perf_build on version trunk
+    name: Universal on Android_Vulkan_playmode_perf_build_mono_gamma on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -488,7 +488,7 @@ Universal_Android_Vulkan_playmode_perf_build_mono_gamma_trunk:
             paths:
               -  "**/test-results/**"
 Universal_Android_Vulkan_playmode_XR_il2cpp_linear_trunk:
-    name: Universal on Android_Vulkan_playmode_XR on version trunk
+    name: Universal on Android_Vulkan_playmode_XR_il2cpp_linear on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -512,7 +512,7 @@ Universal_Android_Vulkan_playmode_XR_il2cpp_linear_trunk:
             paths:
               -  "**/test-results/**"
 Universal_Android_Vulkan_playmode_XR_il2cpp_gamma_trunk:
-    name: Universal on Android_Vulkan_playmode_XR on version trunk
+    name: Universal on Android_Vulkan_playmode_XR_il2cpp_gamma on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -536,7 +536,7 @@ Universal_Android_Vulkan_playmode_XR_il2cpp_gamma_trunk:
             paths:
               -  "**/test-results/**"
 Universal_Android_Vulkan_playmode_XR_mono_linear_trunk:
-    name: Universal on Android_Vulkan_playmode_XR on version trunk
+    name: Universal on Android_Vulkan_playmode_XR_mono_linear on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -560,7 +560,7 @@ Universal_Android_Vulkan_playmode_XR_mono_linear_trunk:
             paths:
               -  "**/test-results/**"
 Universal_Android_Vulkan_playmode_XR_mono_gamma_trunk:
-    name: Universal on Android_Vulkan_playmode_XR on version trunk
+    name: Universal on Android_Vulkan_playmode_XR_mono_gamma on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -584,7 +584,7 @@ Universal_Android_Vulkan_playmode_XR_mono_gamma_trunk:
             paths:
               -  "**/test-results/**"
 Universal_Android_Vulkan_Standalone_il2cpp_linear_CUSTOM-REVISION:
-    name: Universal on Android_Vulkan_Standalone on version CUSTOM-REVISION
+    name: Universal on Android_Vulkan_Standalone_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -613,7 +613,7 @@ Universal_Android_Vulkan_Standalone_il2cpp_linear_CUSTOM-REVISION:
          rerun: always
     skip_checkout: true
 Build_Universal_Android_Vulkan_Player_il2cpp_linear_CUSTOM-REVISION:
-    name: Build Universal on Android_Vulkan_Player on version CUSTOM-REVISION
+    name: Build Universal on Android_Vulkan_il2cpp_linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -640,7 +640,7 @@ Build_Universal_Android_Vulkan_Player_il2cpp_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
 Universal_Android_Vulkan_Standalone_il2cpp_gamma_CUSTOM-REVISION:
-    name: Universal on Android_Vulkan_Standalone on version CUSTOM-REVISION
+    name: Universal on Android_Vulkan_Standalone_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -669,7 +669,7 @@ Universal_Android_Vulkan_Standalone_il2cpp_gamma_CUSTOM-REVISION:
          rerun: always
     skip_checkout: true
 Build_Universal_Android_Vulkan_Player_il2cpp_gamma_CUSTOM-REVISION:
-    name: Build Universal on Android_Vulkan_Player on version CUSTOM-REVISION
+    name: Build Universal on Android_Vulkan_il2cpp_gamma_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -696,7 +696,7 @@ Build_Universal_Android_Vulkan_Player_il2cpp_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
 Universal_Android_Vulkan_Standalone_mono_linear_CUSTOM-REVISION:
-    name: Universal on Android_Vulkan_Standalone on version CUSTOM-REVISION
+    name: Universal on Android_Vulkan_Standalone_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -725,7 +725,7 @@ Universal_Android_Vulkan_Standalone_mono_linear_CUSTOM-REVISION:
          rerun: always
     skip_checkout: true
 Build_Universal_Android_Vulkan_Player_mono_linear_CUSTOM-REVISION:
-    name: Build Universal on Android_Vulkan_Player on version CUSTOM-REVISION
+    name: Build Universal on Android_Vulkan_mono_linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -752,7 +752,7 @@ Build_Universal_Android_Vulkan_Player_mono_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
 Universal_Android_Vulkan_Standalone_mono_gamma_CUSTOM-REVISION:
-    name: Universal on Android_Vulkan_Standalone on version CUSTOM-REVISION
+    name: Universal on Android_Vulkan_Standalone_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -781,7 +781,7 @@ Universal_Android_Vulkan_Standalone_mono_gamma_CUSTOM-REVISION:
          rerun: always
     skip_checkout: true
 Build_Universal_Android_Vulkan_Player_mono_gamma_CUSTOM-REVISION:
-    name: Build Universal on Android_Vulkan_Player on version CUSTOM-REVISION
+    name: Build Universal on Android_Vulkan_mono_gamma_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -808,7 +808,7 @@ Build_Universal_Android_Vulkan_Player_mono_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
 Universal_Android_Vulkan_playmode_il2cpp_linear_CUSTOM-REVISION:
-    name: Universal on Android_Vulkan_playmode on version CUSTOM-REVISION
+    name: Universal on Android_Vulkan_playmode_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -836,7 +836,7 @@ Universal_Android_Vulkan_playmode_il2cpp_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
 Universal_Android_Vulkan_playmode_il2cpp_gamma_CUSTOM-REVISION:
-    name: Universal on Android_Vulkan_playmode on version CUSTOM-REVISION
+    name: Universal on Android_Vulkan_playmode_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -864,7 +864,7 @@ Universal_Android_Vulkan_playmode_il2cpp_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
 Universal_Android_Vulkan_playmode_mono_linear_CUSTOM-REVISION:
-    name: Universal on Android_Vulkan_playmode on version CUSTOM-REVISION
+    name: Universal on Android_Vulkan_playmode_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -892,7 +892,7 @@ Universal_Android_Vulkan_playmode_mono_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
 Universal_Android_Vulkan_playmode_mono_gamma_CUSTOM-REVISION:
-    name: Universal on Android_Vulkan_playmode on version CUSTOM-REVISION
+    name: Universal on Android_Vulkan_playmode_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -920,7 +920,7 @@ Universal_Android_Vulkan_playmode_mono_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
 Universal_Android_Vulkan_editmode_il2cpp_linear_CUSTOM-REVISION:
-    name: Universal on Android_Vulkan_editmode on version CUSTOM-REVISION
+    name: Universal on Android_Vulkan_editmode_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -948,7 +948,7 @@ Universal_Android_Vulkan_editmode_il2cpp_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
 Universal_Android_Vulkan_editmode_il2cpp_gamma_CUSTOM-REVISION:
-    name: Universal on Android_Vulkan_editmode on version CUSTOM-REVISION
+    name: Universal on Android_Vulkan_editmode_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -976,7 +976,7 @@ Universal_Android_Vulkan_editmode_il2cpp_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
 Universal_Android_Vulkan_editmode_mono_linear_CUSTOM-REVISION:
-    name: Universal on Android_Vulkan_editmode on version CUSTOM-REVISION
+    name: Universal on Android_Vulkan_editmode_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -1004,7 +1004,7 @@ Universal_Android_Vulkan_editmode_mono_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
 Universal_Android_Vulkan_editmode_mono_gamma_CUSTOM-REVISION:
-    name: Universal on Android_Vulkan_editmode on version CUSTOM-REVISION
+    name: Universal on Android_Vulkan_editmode_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -1032,7 +1032,7 @@ Universal_Android_Vulkan_editmode_mono_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
 Universal_Android_Vulkan_playmode_perf_build_il2cpp_linear_CUSTOM-REVISION:
-    name: Universal on Android_Vulkan_playmode_perf_build on version CUSTOM-REVISION
+    name: Universal on Android_Vulkan_playmode_perf_build_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -1060,7 +1060,7 @@ Universal_Android_Vulkan_playmode_perf_build_il2cpp_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
 Universal_Android_Vulkan_playmode_perf_build_il2cpp_gamma_CUSTOM-REVISION:
-    name: Universal on Android_Vulkan_playmode_perf_build on version CUSTOM-REVISION
+    name: Universal on Android_Vulkan_playmode_perf_build_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -1088,7 +1088,7 @@ Universal_Android_Vulkan_playmode_perf_build_il2cpp_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
 Universal_Android_Vulkan_playmode_perf_build_mono_linear_CUSTOM-REVISION:
-    name: Universal on Android_Vulkan_playmode_perf_build on version CUSTOM-REVISION
+    name: Universal on Android_Vulkan_playmode_perf_build_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -1116,7 +1116,7 @@ Universal_Android_Vulkan_playmode_perf_build_mono_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
 Universal_Android_Vulkan_playmode_perf_build_mono_gamma_CUSTOM-REVISION:
-    name: Universal on Android_Vulkan_playmode_perf_build on version CUSTOM-REVISION
+    name: Universal on Android_Vulkan_playmode_perf_build_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -1144,7 +1144,7 @@ Universal_Android_Vulkan_playmode_perf_build_mono_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
 Universal_Android_Vulkan_playmode_XR_il2cpp_linear_CUSTOM-REVISION:
-    name: Universal on Android_Vulkan_playmode_XR on version CUSTOM-REVISION
+    name: Universal on Android_Vulkan_playmode_XR_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -1172,7 +1172,7 @@ Universal_Android_Vulkan_playmode_XR_il2cpp_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
 Universal_Android_Vulkan_playmode_XR_il2cpp_gamma_CUSTOM-REVISION:
-    name: Universal on Android_Vulkan_playmode_XR on version CUSTOM-REVISION
+    name: Universal on Android_Vulkan_playmode_XR_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -1200,7 +1200,7 @@ Universal_Android_Vulkan_playmode_XR_il2cpp_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
 Universal_Android_Vulkan_playmode_XR_mono_linear_CUSTOM-REVISION:
-    name: Universal on Android_Vulkan_playmode_XR on version CUSTOM-REVISION
+    name: Universal on Android_Vulkan_playmode_XR_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -1228,7 +1228,7 @@ Universal_Android_Vulkan_playmode_XR_mono_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
 Universal_Android_Vulkan_playmode_XR_mono_gamma_CUSTOM-REVISION:
-    name: Universal on Android_Vulkan_playmode_XR on version CUSTOM-REVISION
+    name: Universal on Android_Vulkan_playmode_XR_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable

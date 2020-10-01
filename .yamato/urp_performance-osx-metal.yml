@@ -4,7 +4,7 @@
 # Read more under .yamato/docs/readme.md 
 
 URP_Performance_OSX_Metal_performance_playmode_il2cpp_linear_trunk:
-    name: URP_Performance on OSX_Metal_performance_playmode on version trunk
+    name: URP_Performance on OSX_Metal_performance_playmode_il2cpp_linear on version trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -30,7 +30,7 @@ URP_Performance_OSX_Metal_performance_playmode_il2cpp_linear_trunk:
             paths:
               -  "**/test-results/**"
 URP_Performance_OSX_Metal_performance_playmode_il2cpp_gamma_trunk:
-    name: URP_Performance on OSX_Metal_performance_playmode on version trunk
+    name: URP_Performance on OSX_Metal_performance_playmode_il2cpp_gamma on version trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -56,7 +56,7 @@ URP_Performance_OSX_Metal_performance_playmode_il2cpp_gamma_trunk:
             paths:
               -  "**/test-results/**"
 URP_Performance_OSX_Metal_performance_playmode_mono_linear_trunk:
-    name: URP_Performance on OSX_Metal_performance_playmode on version trunk
+    name: URP_Performance on OSX_Metal_performance_playmode_mono_linear on version trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -82,7 +82,7 @@ URP_Performance_OSX_Metal_performance_playmode_mono_linear_trunk:
             paths:
               -  "**/test-results/**"
 URP_Performance_OSX_Metal_performance_playmode_mono_gamma_trunk:
-    name: URP_Performance on OSX_Metal_performance_playmode on version trunk
+    name: URP_Performance on OSX_Metal_performance_playmode_mono_gamma on version trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -108,7 +108,7 @@ URP_Performance_OSX_Metal_performance_playmode_mono_gamma_trunk:
             paths:
               -  "**/test-results/**"
 URP_Performance_OSX_Metal_performance_editmode_build_il2cpp_linear_trunk:
-    name: URP_Performance on OSX_Metal_performance_editmode_build on version trunk
+    name: URP_Performance on OSX_Metal_performance_editmode_build_il2cpp_linear on version trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -134,7 +134,7 @@ URP_Performance_OSX_Metal_performance_editmode_build_il2cpp_linear_trunk:
             paths:
               -  "**/test-results/**"
 URP_Performance_OSX_Metal_performance_editmode_build_il2cpp_gamma_trunk:
-    name: URP_Performance on OSX_Metal_performance_editmode_build on version trunk
+    name: URP_Performance on OSX_Metal_performance_editmode_build_il2cpp_gamma on version trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -160,7 +160,7 @@ URP_Performance_OSX_Metal_performance_editmode_build_il2cpp_gamma_trunk:
             paths:
               -  "**/test-results/**"
 URP_Performance_OSX_Metal_performance_editmode_build_mono_linear_trunk:
-    name: URP_Performance on OSX_Metal_performance_editmode_build on version trunk
+    name: URP_Performance on OSX_Metal_performance_editmode_build_mono_linear on version trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -186,7 +186,7 @@ URP_Performance_OSX_Metal_performance_editmode_build_mono_linear_trunk:
             paths:
               -  "**/test-results/**"
 URP_Performance_OSX_Metal_performance_editmode_build_mono_gamma_trunk:
-    name: URP_Performance on OSX_Metal_performance_editmode_build on version trunk
+    name: URP_Performance on OSX_Metal_performance_editmode_build_mono_gamma on version trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -212,7 +212,7 @@ URP_Performance_OSX_Metal_performance_editmode_build_mono_gamma_trunk:
             paths:
               -  "**/test-results/**"
 URP_Performance_OSX_Metal_performance_playmode_il2cpp_linear_CUSTOM-REVISION:
-    name: URP_Performance on OSX_Metal_performance_playmode on version CUSTOM-REVISION
+    name: URP_Performance on OSX_Metal_performance_playmode_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -242,7 +242,7 @@ URP_Performance_OSX_Metal_performance_playmode_il2cpp_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
 URP_Performance_OSX_Metal_performance_playmode_il2cpp_gamma_CUSTOM-REVISION:
-    name: URP_Performance on OSX_Metal_performance_playmode on version CUSTOM-REVISION
+    name: URP_Performance on OSX_Metal_performance_playmode_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -272,7 +272,7 @@ URP_Performance_OSX_Metal_performance_playmode_il2cpp_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
 URP_Performance_OSX_Metal_performance_playmode_mono_linear_CUSTOM-REVISION:
-    name: URP_Performance on OSX_Metal_performance_playmode on version CUSTOM-REVISION
+    name: URP_Performance on OSX_Metal_performance_playmode_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -302,7 +302,7 @@ URP_Performance_OSX_Metal_performance_playmode_mono_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
 URP_Performance_OSX_Metal_performance_playmode_mono_gamma_CUSTOM-REVISION:
-    name: URP_Performance on OSX_Metal_performance_playmode on version CUSTOM-REVISION
+    name: URP_Performance on OSX_Metal_performance_playmode_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -332,7 +332,7 @@ URP_Performance_OSX_Metal_performance_playmode_mono_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
 URP_Performance_OSX_Metal_performance_editmode_build_il2cpp_linear_CUSTOM-REVISION:
-    name: URP_Performance on OSX_Metal_performance_editmode_build on version CUSTOM-REVISION
+    name: URP_Performance on OSX_Metal_performance_editmode_build_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -362,7 +362,7 @@ URP_Performance_OSX_Metal_performance_editmode_build_il2cpp_linear_CUSTOM-REVISI
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
 URP_Performance_OSX_Metal_performance_editmode_build_il2cpp_gamma_CUSTOM-REVISION:
-    name: URP_Performance on OSX_Metal_performance_editmode_build on version CUSTOM-REVISION
+    name: URP_Performance on OSX_Metal_performance_editmode_build_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -392,7 +392,7 @@ URP_Performance_OSX_Metal_performance_editmode_build_il2cpp_gamma_CUSTOM-REVISIO
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
 URP_Performance_OSX_Metal_performance_editmode_build_mono_linear_CUSTOM-REVISION:
-    name: URP_Performance on OSX_Metal_performance_editmode_build on version CUSTOM-REVISION
+    name: URP_Performance on OSX_Metal_performance_editmode_build_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -422,7 +422,7 @@ URP_Performance_OSX_Metal_performance_editmode_build_mono_linear_CUSTOM-REVISION
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
 URP_Performance_OSX_Metal_performance_editmode_build_mono_gamma_CUSTOM-REVISION:
-    name: URP_Performance on OSX_Metal_performance_editmode_build on version CUSTOM-REVISION
+    name: URP_Performance on OSX_Metal_performance_editmode_build_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable

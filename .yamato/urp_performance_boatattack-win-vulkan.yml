@@ -4,7 +4,7 @@
 # Read more under .yamato/docs/readme.md 
 
 URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_il2cpp_linear_trunk:
-    name: URP_Performance_BoatAttack on Win_Vulkan_performance_playmode_runtime on version trunk
+    name: URP_Performance_BoatAttack on Win_Vulkan_performance_playmode_runtime_il2cpp_linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -23,7 +23,7 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_il2cpp_linear
          rerun: on-new-revision
     skip_checkout: true
 Build_URP_Performance_BoatAttack_Win_Vulkan_Player_il2cpp_linear_trunk:
-    name: Build URP_Performance_BoatAttack on Win_Vulkan_Player on version trunk
+    name: Build URP_Performance_BoatAttack on Win_Vulkan_il2cpp_linear_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -64,7 +64,7 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_Player_il2cpp_linear_trunk:
             paths:
               -  "players/**"
 URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_il2cpp_gamma_trunk:
-    name: URP_Performance_BoatAttack on Win_Vulkan_performance_playmode_runtime on version trunk
+    name: URP_Performance_BoatAttack on Win_Vulkan_performance_playmode_runtime_il2cpp_gamma on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -83,7 +83,7 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_il2cpp_gamma_
          rerun: on-new-revision
     skip_checkout: true
 Build_URP_Performance_BoatAttack_Win_Vulkan_Player_il2cpp_gamma_trunk:
-    name: Build URP_Performance_BoatAttack on Win_Vulkan_Player on version trunk
+    name: Build URP_Performance_BoatAttack on Win_Vulkan_il2cpp_gamma_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -124,7 +124,7 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_Player_il2cpp_gamma_trunk:
             paths:
               -  "players/**"
 URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_linear_trunk:
-    name: URP_Performance_BoatAttack on Win_Vulkan_performance_playmode_runtime on version trunk
+    name: URP_Performance_BoatAttack on Win_Vulkan_performance_playmode_runtime_mono_linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -143,7 +143,7 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_linear_t
          rerun: on-new-revision
     skip_checkout: true
 Build_URP_Performance_BoatAttack_Win_Vulkan_Player_mono_linear_trunk:
-    name: Build URP_Performance_BoatAttack on Win_Vulkan_Player on version trunk
+    name: Build URP_Performance_BoatAttack on Win_Vulkan_mono_linear_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -184,7 +184,7 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_Player_mono_linear_trunk:
             paths:
               -  "players/**"
 URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_gamma_trunk:
-    name: URP_Performance_BoatAttack on Win_Vulkan_performance_playmode_runtime on version trunk
+    name: URP_Performance_BoatAttack on Win_Vulkan_performance_playmode_runtime_mono_gamma on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -203,7 +203,7 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_gamma_tr
          rerun: on-new-revision
     skip_checkout: true
 Build_URP_Performance_BoatAttack_Win_Vulkan_Player_mono_gamma_trunk:
-    name: Build URP_Performance_BoatAttack on Win_Vulkan_Player on version trunk
+    name: Build URP_Performance_BoatAttack on Win_Vulkan_mono_gamma_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -244,7 +244,7 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_Player_mono_gamma_trunk:
             paths:
               -  "players/**"
 URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_il2cpp_linear_trunk:
-    name: URP_Performance_BoatAttack on Win_Vulkan_performance_editmode_build on version trunk
+    name: URP_Performance_BoatAttack on Win_Vulkan_performance_editmode_build_il2cpp_linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -282,7 +282,7 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_il2cpp_linear_t
             paths:
               -  "**/test-results/**"
 URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_il2cpp_gamma_trunk:
-    name: URP_Performance_BoatAttack on Win_Vulkan_performance_editmode_build on version trunk
+    name: URP_Performance_BoatAttack on Win_Vulkan_performance_editmode_build_il2cpp_gamma on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -320,7 +320,7 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_il2cpp_gamma_tr
             paths:
               -  "**/test-results/**"
 URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_mono_linear_trunk:
-    name: URP_Performance_BoatAttack on Win_Vulkan_performance_editmode_build on version trunk
+    name: URP_Performance_BoatAttack on Win_Vulkan_performance_editmode_build_mono_linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -358,7 +358,7 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_mono_linear_tru
             paths:
               -  "**/test-results/**"
 URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_mono_gamma_trunk:
-    name: URP_Performance_BoatAttack on Win_Vulkan_performance_editmode_build on version trunk
+    name: URP_Performance_BoatAttack on Win_Vulkan_performance_editmode_build_mono_gamma on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -396,7 +396,7 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_mono_gamma_trun
             paths:
               -  "**/test-results/**"
 URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_il2cpp_linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Win_Vulkan_performance_playmode_runtime on version CUSTOM-REVISION
+    name: URP_Performance_BoatAttack on Win_Vulkan_performance_playmode_runtime_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -418,7 +418,7 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_il2cpp_linear
          rerun: always
     skip_checkout: true
 Build_URP_Performance_BoatAttack_Win_Vulkan_Player_il2cpp_linear_CUSTOM-REVISION:
-    name: Build URP_Performance_BoatAttack on Win_Vulkan_Player on version CUSTOM-REVISION
+    name: Build URP_Performance_BoatAttack on Win_Vulkan_il2cpp_linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -463,7 +463,7 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_Player_il2cpp_linear_CUSTOM-REVISION
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_il2cpp_gamma_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Win_Vulkan_performance_playmode_runtime on version CUSTOM-REVISION
+    name: URP_Performance_BoatAttack on Win_Vulkan_performance_playmode_runtime_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -485,7 +485,7 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_il2cpp_gamma_
          rerun: always
     skip_checkout: true
 Build_URP_Performance_BoatAttack_Win_Vulkan_Player_il2cpp_gamma_CUSTOM-REVISION:
-    name: Build URP_Performance_BoatAttack on Win_Vulkan_Player on version CUSTOM-REVISION
+    name: Build URP_Performance_BoatAttack on Win_Vulkan_il2cpp_gamma_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -530,7 +530,7 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_Player_il2cpp_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Win_Vulkan_performance_playmode_runtime on version CUSTOM-REVISION
+    name: URP_Performance_BoatAttack on Win_Vulkan_performance_playmode_runtime_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -552,7 +552,7 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_linear_C
          rerun: always
     skip_checkout: true
 Build_URP_Performance_BoatAttack_Win_Vulkan_Player_mono_linear_CUSTOM-REVISION:
-    name: Build URP_Performance_BoatAttack on Win_Vulkan_Player on version CUSTOM-REVISION
+    name: Build URP_Performance_BoatAttack on Win_Vulkan_mono_linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -597,7 +597,7 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_Player_mono_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_gamma_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Win_Vulkan_performance_playmode_runtime on version CUSTOM-REVISION
+    name: URP_Performance_BoatAttack on Win_Vulkan_performance_playmode_runtime_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -619,7 +619,7 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_gamma_CU
          rerun: always
     skip_checkout: true
 Build_URP_Performance_BoatAttack_Win_Vulkan_Player_mono_gamma_CUSTOM-REVISION:
-    name: Build URP_Performance_BoatAttack on Win_Vulkan_Player on version CUSTOM-REVISION
+    name: Build URP_Performance_BoatAttack on Win_Vulkan_mono_gamma_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -664,7 +664,7 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_Player_mono_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_il2cpp_linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Win_Vulkan_performance_editmode_build on version CUSTOM-REVISION
+    name: URP_Performance_BoatAttack on Win_Vulkan_performance_editmode_build_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -706,7 +706,7 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_il2cpp_linear_C
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_il2cpp_gamma_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Win_Vulkan_performance_editmode_build on version CUSTOM-REVISION
+    name: URP_Performance_BoatAttack on Win_Vulkan_performance_editmode_build_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -748,7 +748,7 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_il2cpp_gamma_CU
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_mono_linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Win_Vulkan_performance_editmode_build on version CUSTOM-REVISION
+    name: URP_Performance_BoatAttack on Win_Vulkan_performance_editmode_build_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -790,7 +790,7 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_mono_linear_CUS
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_mono_gamma_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Win_Vulkan_performance_editmode_build on version CUSTOM-REVISION
+    name: URP_Performance_BoatAttack on Win_Vulkan_performance_editmode_build_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable

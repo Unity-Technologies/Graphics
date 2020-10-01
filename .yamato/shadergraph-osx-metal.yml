@@ -4,7 +4,7 @@
 # Read more under .yamato/docs/readme.md 
 
 ShaderGraph_OSX_Metal_Standalone_il2cpp_linear_trunk:
-    name: ShaderGraph on OSX_Metal_Standalone on version trunk
+    name: ShaderGraph on OSX_Metal_Standalone_il2cpp_linear on version trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -30,7 +30,7 @@ ShaderGraph_OSX_Metal_Standalone_il2cpp_linear_trunk:
             paths:
               -  "**/test-results/**"
 ShaderGraph_OSX_Metal_Standalone_il2cpp_gamma_trunk:
-    name: ShaderGraph on OSX_Metal_Standalone on version trunk
+    name: ShaderGraph on OSX_Metal_Standalone_il2cpp_gamma on version trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -56,7 +56,7 @@ ShaderGraph_OSX_Metal_Standalone_il2cpp_gamma_trunk:
             paths:
               -  "**/test-results/**"
 ShaderGraph_OSX_Metal_Standalone_mono_linear_trunk:
-    name: ShaderGraph on OSX_Metal_Standalone on version trunk
+    name: ShaderGraph on OSX_Metal_Standalone_mono_linear on version trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -82,7 +82,7 @@ ShaderGraph_OSX_Metal_Standalone_mono_linear_trunk:
             paths:
               -  "**/test-results/**"
 ShaderGraph_OSX_Metal_Standalone_mono_gamma_trunk:
-    name: ShaderGraph on OSX_Metal_Standalone on version trunk
+    name: ShaderGraph on OSX_Metal_Standalone_mono_gamma on version trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -108,7 +108,7 @@ ShaderGraph_OSX_Metal_Standalone_mono_gamma_trunk:
             paths:
               -  "**/test-results/**"
 ShaderGraph_OSX_Metal_playmode_il2cpp_linear_trunk:
-    name: ShaderGraph on OSX_Metal_playmode on version trunk
+    name: ShaderGraph on OSX_Metal_playmode_il2cpp_linear on version trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -134,7 +134,7 @@ ShaderGraph_OSX_Metal_playmode_il2cpp_linear_trunk:
             paths:
               -  "**/test-results/**"
 ShaderGraph_OSX_Metal_playmode_il2cpp_gamma_trunk:
-    name: ShaderGraph on OSX_Metal_playmode on version trunk
+    name: ShaderGraph on OSX_Metal_playmode_il2cpp_gamma on version trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -160,7 +160,7 @@ ShaderGraph_OSX_Metal_playmode_il2cpp_gamma_trunk:
             paths:
               -  "**/test-results/**"
 ShaderGraph_OSX_Metal_playmode_mono_linear_trunk:
-    name: ShaderGraph on OSX_Metal_playmode on version trunk
+    name: ShaderGraph on OSX_Metal_playmode_mono_linear on version trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -186,7 +186,7 @@ ShaderGraph_OSX_Metal_playmode_mono_linear_trunk:
             paths:
               -  "**/test-results/**"
 ShaderGraph_OSX_Metal_playmode_mono_gamma_trunk:
-    name: ShaderGraph on OSX_Metal_playmode on version trunk
+    name: ShaderGraph on OSX_Metal_playmode_mono_gamma on version trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -212,7 +212,7 @@ ShaderGraph_OSX_Metal_playmode_mono_gamma_trunk:
             paths:
               -  "**/test-results/**"
 ShaderGraph_OSX_Metal_editmode_il2cpp_linear_trunk:
-    name: ShaderGraph on OSX_Metal_editmode on version trunk
+    name: ShaderGraph on OSX_Metal_editmode_il2cpp_linear on version trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -238,7 +238,7 @@ ShaderGraph_OSX_Metal_editmode_il2cpp_linear_trunk:
             paths:
               -  "**/test-results/**"
 ShaderGraph_OSX_Metal_editmode_il2cpp_gamma_trunk:
-    name: ShaderGraph on OSX_Metal_editmode on version trunk
+    name: ShaderGraph on OSX_Metal_editmode_il2cpp_gamma on version trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -264,7 +264,7 @@ ShaderGraph_OSX_Metal_editmode_il2cpp_gamma_trunk:
             paths:
               -  "**/test-results/**"
 ShaderGraph_OSX_Metal_editmode_mono_linear_trunk:
-    name: ShaderGraph on OSX_Metal_editmode on version trunk
+    name: ShaderGraph on OSX_Metal_editmode_mono_linear on version trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -290,7 +290,7 @@ ShaderGraph_OSX_Metal_editmode_mono_linear_trunk:
             paths:
               -  "**/test-results/**"
 ShaderGraph_OSX_Metal_editmode_mono_gamma_trunk:
-    name: ShaderGraph on OSX_Metal_editmode on version trunk
+    name: ShaderGraph on OSX_Metal_editmode_mono_gamma on version trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -316,7 +316,7 @@ ShaderGraph_OSX_Metal_editmode_mono_gamma_trunk:
             paths:
               -  "**/test-results/**"
 ShaderGraph_OSX_Metal_Standalone_il2cpp_linear_CUSTOM-REVISION:
-    name: ShaderGraph on OSX_Metal_Standalone on version CUSTOM-REVISION
+    name: ShaderGraph on OSX_Metal_Standalone_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -346,7 +346,7 @@ ShaderGraph_OSX_Metal_Standalone_il2cpp_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
 ShaderGraph_OSX_Metal_Standalone_il2cpp_gamma_CUSTOM-REVISION:
-    name: ShaderGraph on OSX_Metal_Standalone on version CUSTOM-REVISION
+    name: ShaderGraph on OSX_Metal_Standalone_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -376,7 +376,7 @@ ShaderGraph_OSX_Metal_Standalone_il2cpp_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
 ShaderGraph_OSX_Metal_Standalone_mono_linear_CUSTOM-REVISION:
-    name: ShaderGraph on OSX_Metal_Standalone on version CUSTOM-REVISION
+    name: ShaderGraph on OSX_Metal_Standalone_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -406,7 +406,7 @@ ShaderGraph_OSX_Metal_Standalone_mono_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
 ShaderGraph_OSX_Metal_Standalone_mono_gamma_CUSTOM-REVISION:
-    name: ShaderGraph on OSX_Metal_Standalone on version CUSTOM-REVISION
+    name: ShaderGraph on OSX_Metal_Standalone_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -436,7 +436,7 @@ ShaderGraph_OSX_Metal_Standalone_mono_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
 ShaderGraph_OSX_Metal_playmode_il2cpp_linear_CUSTOM-REVISION:
-    name: ShaderGraph on OSX_Metal_playmode on version CUSTOM-REVISION
+    name: ShaderGraph on OSX_Metal_playmode_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -466,7 +466,7 @@ ShaderGraph_OSX_Metal_playmode_il2cpp_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
 ShaderGraph_OSX_Metal_playmode_il2cpp_gamma_CUSTOM-REVISION:
-    name: ShaderGraph on OSX_Metal_playmode on version CUSTOM-REVISION
+    name: ShaderGraph on OSX_Metal_playmode_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -496,7 +496,7 @@ ShaderGraph_OSX_Metal_playmode_il2cpp_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
 ShaderGraph_OSX_Metal_playmode_mono_linear_CUSTOM-REVISION:
-    name: ShaderGraph on OSX_Metal_playmode on version CUSTOM-REVISION
+    name: ShaderGraph on OSX_Metal_playmode_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -526,7 +526,7 @@ ShaderGraph_OSX_Metal_playmode_mono_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
 ShaderGraph_OSX_Metal_playmode_mono_gamma_CUSTOM-REVISION:
-    name: ShaderGraph on OSX_Metal_playmode on version CUSTOM-REVISION
+    name: ShaderGraph on OSX_Metal_playmode_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -556,7 +556,7 @@ ShaderGraph_OSX_Metal_playmode_mono_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
 ShaderGraph_OSX_Metal_editmode_il2cpp_linear_CUSTOM-REVISION:
-    name: ShaderGraph on OSX_Metal_editmode on version CUSTOM-REVISION
+    name: ShaderGraph on OSX_Metal_editmode_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -586,7 +586,7 @@ ShaderGraph_OSX_Metal_editmode_il2cpp_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
 ShaderGraph_OSX_Metal_editmode_il2cpp_gamma_CUSTOM-REVISION:
-    name: ShaderGraph on OSX_Metal_editmode on version CUSTOM-REVISION
+    name: ShaderGraph on OSX_Metal_editmode_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -616,7 +616,7 @@ ShaderGraph_OSX_Metal_editmode_il2cpp_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
 ShaderGraph_OSX_Metal_editmode_mono_linear_CUSTOM-REVISION:
-    name: ShaderGraph on OSX_Metal_editmode on version CUSTOM-REVISION
+    name: ShaderGraph on OSX_Metal_editmode_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -646,7 +646,7 @@ ShaderGraph_OSX_Metal_editmode_mono_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
 ShaderGraph_OSX_Metal_editmode_mono_gamma_CUSTOM-REVISION:
-    name: ShaderGraph on OSX_Metal_editmode on version CUSTOM-REVISION
+    name: ShaderGraph on OSX_Metal_editmode_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable

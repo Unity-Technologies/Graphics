@@ -4,7 +4,7 @@
 # Read more under .yamato/docs/readme.md 
 
 HDRP_Win_DX12_playmode_il2cpp_linear_trunk:
-    name: HDRP on Win_DX12_playmode on version trunk
+    name: HDRP on Win_DX12_playmode_il2cpp_linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -22,7 +22,7 @@ HDRP_Win_DX12_playmode_il2cpp_linear_trunk:
             paths:
               -  "**/test-results/**"
 HDRP_Win_DX12_playmode_il2cpp_gamma_trunk:
-    name: HDRP on Win_DX12_playmode on version trunk
+    name: HDRP on Win_DX12_playmode_il2cpp_gamma on version trunk
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -40,7 +40,7 @@ HDRP_Win_DX12_playmode_il2cpp_gamma_trunk:
             paths:
               -  "**/test-results/**"
 HDRP_Win_DX12_playmode_mono_linear_trunk:
-    name: HDRP on Win_DX12_playmode on version trunk
+    name: HDRP on Win_DX12_playmode_mono_linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -58,7 +58,7 @@ HDRP_Win_DX12_playmode_mono_linear_trunk:
             paths:
               -  "**/test-results/**"
 HDRP_Win_DX12_playmode_mono_gamma_trunk:
-    name: HDRP on Win_DX12_playmode on version trunk
+    name: HDRP on Win_DX12_playmode_mono_gamma on version trunk
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -76,7 +76,7 @@ HDRP_Win_DX12_playmode_mono_gamma_trunk:
             paths:
               -  "**/test-results/**"
 HDRP_Win_DX12_playmode_XR_il2cpp_linear_trunk:
-    name: HDRP on Win_DX12_playmode_XR on version trunk
+    name: HDRP on Win_DX12_playmode_XR_il2cpp_linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -94,7 +94,7 @@ HDRP_Win_DX12_playmode_XR_il2cpp_linear_trunk:
             paths:
               -  "**/test-results/**"
 HDRP_Win_DX12_playmode_XR_il2cpp_gamma_trunk:
-    name: HDRP on Win_DX12_playmode_XR on version trunk
+    name: HDRP on Win_DX12_playmode_XR_il2cpp_gamma on version trunk
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -112,7 +112,7 @@ HDRP_Win_DX12_playmode_XR_il2cpp_gamma_trunk:
             paths:
               -  "**/test-results/**"
 HDRP_Win_DX12_playmode_XR_mono_linear_trunk:
-    name: HDRP on Win_DX12_playmode_XR on version trunk
+    name: HDRP on Win_DX12_playmode_XR_mono_linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -130,7 +130,7 @@ HDRP_Win_DX12_playmode_XR_mono_linear_trunk:
             paths:
               -  "**/test-results/**"
 HDRP_Win_DX12_playmode_XR_mono_gamma_trunk:
-    name: HDRP on Win_DX12_playmode_XR on version trunk
+    name: HDRP on Win_DX12_playmode_XR_mono_gamma on version trunk
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -148,7 +148,7 @@ HDRP_Win_DX12_playmode_XR_mono_gamma_trunk:
             paths:
               -  "**/test-results/**"
 HDRP_Win_DX12_playmode_RenderGraph_il2cpp_linear_trunk:
-    name: HDRP on Win_DX12_playmode_RenderGraph on version trunk
+    name: HDRP on Win_DX12_playmode_RenderGraph_il2cpp_linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -166,7 +166,7 @@ HDRP_Win_DX12_playmode_RenderGraph_il2cpp_linear_trunk:
             paths:
               -  "**/test-results/**"
 HDRP_Win_DX12_playmode_RenderGraph_il2cpp_gamma_trunk:
-    name: HDRP on Win_DX12_playmode_RenderGraph on version trunk
+    name: HDRP on Win_DX12_playmode_RenderGraph_il2cpp_gamma on version trunk
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -184,7 +184,7 @@ HDRP_Win_DX12_playmode_RenderGraph_il2cpp_gamma_trunk:
             paths:
               -  "**/test-results/**"
 HDRP_Win_DX12_playmode_RenderGraph_mono_linear_trunk:
-    name: HDRP on Win_DX12_playmode_RenderGraph on version trunk
+    name: HDRP on Win_DX12_playmode_RenderGraph_mono_linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -202,7 +202,7 @@ HDRP_Win_DX12_playmode_RenderGraph_mono_linear_trunk:
             paths:
               -  "**/test-results/**"
 HDRP_Win_DX12_playmode_RenderGraph_mono_gamma_trunk:
-    name: HDRP on Win_DX12_playmode_RenderGraph on version trunk
+    name: HDRP on Win_DX12_playmode_RenderGraph_mono_gamma on version trunk
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -220,7 +220,7 @@ HDRP_Win_DX12_playmode_RenderGraph_mono_gamma_trunk:
             paths:
               -  "**/test-results/**"
 HDRP_Win_DX12_editmode_il2cpp_linear_trunk:
-    name: HDRP on Win_DX12_editmode on version trunk
+    name: HDRP on Win_DX12_editmode_il2cpp_linear on version trunk
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
@@ -237,7 +237,7 @@ HDRP_Win_DX12_editmode_il2cpp_linear_trunk:
             paths:
               -  "**/test-results/**"
 HDRP_Win_DX12_editmode_il2cpp_gamma_trunk:
-    name: HDRP on Win_DX12_editmode on version trunk
+    name: HDRP on Win_DX12_editmode_il2cpp_gamma on version trunk
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
@@ -254,7 +254,7 @@ HDRP_Win_DX12_editmode_il2cpp_gamma_trunk:
             paths:
               -  "**/test-results/**"
 HDRP_Win_DX12_editmode_mono_linear_trunk:
-    name: HDRP on Win_DX12_editmode on version trunk
+    name: HDRP on Win_DX12_editmode_mono_linear on version trunk
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
@@ -271,7 +271,7 @@ HDRP_Win_DX12_editmode_mono_linear_trunk:
             paths:
               -  "**/test-results/**"
 HDRP_Win_DX12_editmode_mono_gamma_trunk:
-    name: HDRP on Win_DX12_editmode on version trunk
+    name: HDRP on Win_DX12_editmode_mono_gamma on version trunk
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
@@ -288,7 +288,7 @@ HDRP_Win_DX12_editmode_mono_gamma_trunk:
             paths:
               -  "**/test-results/**"
 HDRP_Win_DX12_Standalone_il2cpp_linear_trunk:
-    name: HDRP on Win_DX12_Standalone on version trunk
+    name: HDRP on Win_DX12_Standalone_il2cpp_linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -308,7 +308,7 @@ HDRP_Win_DX12_Standalone_il2cpp_linear_trunk:
          rerun: on-new-revision
     skip_checkout: true
 Build_HDRP_Win_DX12_Player_il2cpp_linear_trunk:
-    name: Build HDRP on Win_DX12_Player on version trunk
+    name: Build HDRP on Win_DX12_il2cpp_linear_Player on version trunk
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
@@ -329,7 +329,7 @@ Build_HDRP_Win_DX12_Player_il2cpp_linear_trunk:
             paths:
               -  "players/**"
 HDRP_Win_DX12_Standalone_il2cpp_gamma_trunk:
-    name: HDRP on Win_DX12_Standalone on version trunk
+    name: HDRP on Win_DX12_Standalone_il2cpp_gamma on version trunk
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -349,7 +349,7 @@ HDRP_Win_DX12_Standalone_il2cpp_gamma_trunk:
          rerun: on-new-revision
     skip_checkout: true
 Build_HDRP_Win_DX12_Player_il2cpp_gamma_trunk:
-    name: Build HDRP on Win_DX12_Player on version trunk
+    name: Build HDRP on Win_DX12_il2cpp_gamma_Player on version trunk
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
@@ -370,7 +370,7 @@ Build_HDRP_Win_DX12_Player_il2cpp_gamma_trunk:
             paths:
               -  "players/**"
 HDRP_Win_DX12_Standalone_mono_linear_trunk:
-    name: HDRP on Win_DX12_Standalone on version trunk
+    name: HDRP on Win_DX12_Standalone_mono_linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -390,7 +390,7 @@ HDRP_Win_DX12_Standalone_mono_linear_trunk:
          rerun: on-new-revision
     skip_checkout: true
 Build_HDRP_Win_DX12_Player_mono_linear_trunk:
-    name: Build HDRP on Win_DX12_Player on version trunk
+    name: Build HDRP on Win_DX12_mono_linear_Player on version trunk
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
@@ -411,7 +411,7 @@ Build_HDRP_Win_DX12_Player_mono_linear_trunk:
             paths:
               -  "players/**"
 HDRP_Win_DX12_Standalone_mono_gamma_trunk:
-    name: HDRP on Win_DX12_Standalone on version trunk
+    name: HDRP on Win_DX12_Standalone_mono_gamma on version trunk
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -431,7 +431,7 @@ HDRP_Win_DX12_Standalone_mono_gamma_trunk:
          rerun: on-new-revision
     skip_checkout: true
 Build_HDRP_Win_DX12_Player_mono_gamma_trunk:
-    name: Build HDRP on Win_DX12_Player on version trunk
+    name: Build HDRP on Win_DX12_mono_gamma_Player on version trunk
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
@@ -452,7 +452,7 @@ Build_HDRP_Win_DX12_Player_mono_gamma_trunk:
             paths:
               -  "players/**"
 HDRP_Win_DX12_playmode_il2cpp_linear_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_playmode on version CUSTOM-REVISION
+    name: HDRP on Win_DX12_playmode_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -474,7 +474,7 @@ HDRP_Win_DX12_playmode_il2cpp_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 HDRP_Win_DX12_playmode_il2cpp_gamma_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_playmode on version CUSTOM-REVISION
+    name: HDRP on Win_DX12_playmode_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -496,7 +496,7 @@ HDRP_Win_DX12_playmode_il2cpp_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 HDRP_Win_DX12_playmode_mono_linear_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_playmode on version CUSTOM-REVISION
+    name: HDRP on Win_DX12_playmode_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -518,7 +518,7 @@ HDRP_Win_DX12_playmode_mono_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 HDRP_Win_DX12_playmode_mono_gamma_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_playmode on version CUSTOM-REVISION
+    name: HDRP on Win_DX12_playmode_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -540,7 +540,7 @@ HDRP_Win_DX12_playmode_mono_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 HDRP_Win_DX12_playmode_XR_il2cpp_linear_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_playmode_XR on version CUSTOM-REVISION
+    name: HDRP on Win_DX12_playmode_XR_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -562,7 +562,7 @@ HDRP_Win_DX12_playmode_XR_il2cpp_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 HDRP_Win_DX12_playmode_XR_il2cpp_gamma_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_playmode_XR on version CUSTOM-REVISION
+    name: HDRP on Win_DX12_playmode_XR_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -584,7 +584,7 @@ HDRP_Win_DX12_playmode_XR_il2cpp_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 HDRP_Win_DX12_playmode_XR_mono_linear_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_playmode_XR on version CUSTOM-REVISION
+    name: HDRP on Win_DX12_playmode_XR_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -606,7 +606,7 @@ HDRP_Win_DX12_playmode_XR_mono_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 HDRP_Win_DX12_playmode_XR_mono_gamma_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_playmode_XR on version CUSTOM-REVISION
+    name: HDRP on Win_DX12_playmode_XR_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -628,7 +628,7 @@ HDRP_Win_DX12_playmode_XR_mono_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 HDRP_Win_DX12_playmode_RenderGraph_il2cpp_linear_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_playmode_RenderGraph on version CUSTOM-REVISION
+    name: HDRP on Win_DX12_playmode_RenderGraph_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -650,7 +650,7 @@ HDRP_Win_DX12_playmode_RenderGraph_il2cpp_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 HDRP_Win_DX12_playmode_RenderGraph_il2cpp_gamma_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_playmode_RenderGraph on version CUSTOM-REVISION
+    name: HDRP on Win_DX12_playmode_RenderGraph_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -672,7 +672,7 @@ HDRP_Win_DX12_playmode_RenderGraph_il2cpp_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 HDRP_Win_DX12_playmode_RenderGraph_mono_linear_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_playmode_RenderGraph on version CUSTOM-REVISION
+    name: HDRP on Win_DX12_playmode_RenderGraph_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -694,7 +694,7 @@ HDRP_Win_DX12_playmode_RenderGraph_mono_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 HDRP_Win_DX12_playmode_RenderGraph_mono_gamma_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_playmode_RenderGraph on version CUSTOM-REVISION
+    name: HDRP on Win_DX12_playmode_RenderGraph_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -716,7 +716,7 @@ HDRP_Win_DX12_playmode_RenderGraph_mono_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 HDRP_Win_DX12_editmode_il2cpp_linear_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_editmode on version CUSTOM-REVISION
+    name: HDRP on Win_DX12_editmode_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
@@ -737,7 +737,7 @@ HDRP_Win_DX12_editmode_il2cpp_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 HDRP_Win_DX12_editmode_il2cpp_gamma_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_editmode on version CUSTOM-REVISION
+    name: HDRP on Win_DX12_editmode_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
@@ -758,7 +758,7 @@ HDRP_Win_DX12_editmode_il2cpp_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 HDRP_Win_DX12_editmode_mono_linear_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_editmode on version CUSTOM-REVISION
+    name: HDRP on Win_DX12_editmode_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
@@ -779,7 +779,7 @@ HDRP_Win_DX12_editmode_mono_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 HDRP_Win_DX12_editmode_mono_gamma_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_editmode on version CUSTOM-REVISION
+    name: HDRP on Win_DX12_editmode_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
@@ -800,7 +800,7 @@ HDRP_Win_DX12_editmode_mono_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 HDRP_Win_DX12_Standalone_il2cpp_linear_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_Standalone on version CUSTOM-REVISION
+    name: HDRP on Win_DX12_Standalone_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -823,7 +823,7 @@ HDRP_Win_DX12_Standalone_il2cpp_linear_CUSTOM-REVISION:
          rerun: always
     skip_checkout: true
 Build_HDRP_Win_DX12_Player_il2cpp_linear_CUSTOM-REVISION:
-    name: Build HDRP on Win_DX12_Player on version CUSTOM-REVISION
+    name: Build HDRP on Win_DX12_il2cpp_linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
@@ -848,7 +848,7 @@ Build_HDRP_Win_DX12_Player_il2cpp_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 HDRP_Win_DX12_Standalone_il2cpp_gamma_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_Standalone on version CUSTOM-REVISION
+    name: HDRP on Win_DX12_Standalone_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -871,7 +871,7 @@ HDRP_Win_DX12_Standalone_il2cpp_gamma_CUSTOM-REVISION:
          rerun: always
     skip_checkout: true
 Build_HDRP_Win_DX12_Player_il2cpp_gamma_CUSTOM-REVISION:
-    name: Build HDRP on Win_DX12_Player on version CUSTOM-REVISION
+    name: Build HDRP on Win_DX12_il2cpp_gamma_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
@@ -896,7 +896,7 @@ Build_HDRP_Win_DX12_Player_il2cpp_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 HDRP_Win_DX12_Standalone_mono_linear_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_Standalone on version CUSTOM-REVISION
+    name: HDRP on Win_DX12_Standalone_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -919,7 +919,7 @@ HDRP_Win_DX12_Standalone_mono_linear_CUSTOM-REVISION:
          rerun: always
     skip_checkout: true
 Build_HDRP_Win_DX12_Player_mono_linear_CUSTOM-REVISION:
-    name: Build HDRP on Win_DX12_Player on version CUSTOM-REVISION
+    name: Build HDRP on Win_DX12_mono_linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
@@ -944,7 +944,7 @@ Build_HDRP_Win_DX12_Player_mono_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 HDRP_Win_DX12_Standalone_mono_gamma_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_Standalone on version CUSTOM-REVISION
+    name: HDRP on Win_DX12_Standalone_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -967,7 +967,7 @@ HDRP_Win_DX12_Standalone_mono_gamma_CUSTOM-REVISION:
          rerun: always
     skip_checkout: true
 Build_HDRP_Win_DX12_Player_mono_gamma_CUSTOM-REVISION:
-    name: Build HDRP on Win_DX12_Player on version CUSTOM-REVISION
+    name: Build HDRP on Win_DX12_mono_gamma_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable

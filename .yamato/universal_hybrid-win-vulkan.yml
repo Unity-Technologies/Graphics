@@ -4,7 +4,7 @@
 # Read more under .yamato/docs/readme.md 
 
 Universal_Hybrid_Win_Vulkan_Standalone_il2cpp_linear_trunk:
-    name: Universal_Hybrid on Win_Vulkan_Standalone on version trunk
+    name: Universal_Hybrid on Win_Vulkan_Standalone_il2cpp_linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -23,7 +23,7 @@ Universal_Hybrid_Win_Vulkan_Standalone_il2cpp_linear_trunk:
          rerun: on-new-revision
     skip_checkout: true
 Build_Universal_Hybrid_Win_Vulkan_Player_il2cpp_linear_trunk:
-    name: Build Universal_Hybrid on Win_Vulkan_Player on version trunk
+    name: Build Universal_Hybrid on Win_Vulkan_il2cpp_linear_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -43,7 +43,7 @@ Build_Universal_Hybrid_Win_Vulkan_Player_il2cpp_linear_trunk:
             paths:
               -  "players/**"
 Universal_Hybrid_Win_Vulkan_Standalone_il2cpp_gamma_trunk:
-    name: Universal_Hybrid on Win_Vulkan_Standalone on version trunk
+    name: Universal_Hybrid on Win_Vulkan_Standalone_il2cpp_gamma on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -62,7 +62,7 @@ Universal_Hybrid_Win_Vulkan_Standalone_il2cpp_gamma_trunk:
          rerun: on-new-revision
     skip_checkout: true
 Build_Universal_Hybrid_Win_Vulkan_Player_il2cpp_gamma_trunk:
-    name: Build Universal_Hybrid on Win_Vulkan_Player on version trunk
+    name: Build Universal_Hybrid on Win_Vulkan_il2cpp_gamma_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -82,7 +82,7 @@ Build_Universal_Hybrid_Win_Vulkan_Player_il2cpp_gamma_trunk:
             paths:
               -  "players/**"
 Universal_Hybrid_Win_Vulkan_Standalone_mono_linear_trunk:
-    name: Universal_Hybrid on Win_Vulkan_Standalone on version trunk
+    name: Universal_Hybrid on Win_Vulkan_Standalone_mono_linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -101,7 +101,7 @@ Universal_Hybrid_Win_Vulkan_Standalone_mono_linear_trunk:
          rerun: on-new-revision
     skip_checkout: true
 Build_Universal_Hybrid_Win_Vulkan_Player_mono_linear_trunk:
-    name: Build Universal_Hybrid on Win_Vulkan_Player on version trunk
+    name: Build Universal_Hybrid on Win_Vulkan_mono_linear_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -121,7 +121,7 @@ Build_Universal_Hybrid_Win_Vulkan_Player_mono_linear_trunk:
             paths:
               -  "players/**"
 Universal_Hybrid_Win_Vulkan_Standalone_mono_gamma_trunk:
-    name: Universal_Hybrid on Win_Vulkan_Standalone on version trunk
+    name: Universal_Hybrid on Win_Vulkan_Standalone_mono_gamma on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -140,7 +140,7 @@ Universal_Hybrid_Win_Vulkan_Standalone_mono_gamma_trunk:
          rerun: on-new-revision
     skip_checkout: true
 Build_Universal_Hybrid_Win_Vulkan_Player_mono_gamma_trunk:
-    name: Build Universal_Hybrid on Win_Vulkan_Player on version trunk
+    name: Build Universal_Hybrid on Win_Vulkan_mono_gamma_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -160,7 +160,7 @@ Build_Universal_Hybrid_Win_Vulkan_Player_mono_gamma_trunk:
             paths:
               -  "players/**"
 Universal_Hybrid_Win_Vulkan_playmode_il2cpp_linear_trunk:
-    name: Universal_Hybrid on Win_Vulkan_playmode on version trunk
+    name: Universal_Hybrid on Win_Vulkan_playmode_il2cpp_linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -177,7 +177,7 @@ Universal_Hybrid_Win_Vulkan_playmode_il2cpp_linear_trunk:
             paths:
               -  "**/test-results/**"
 Universal_Hybrid_Win_Vulkan_playmode_il2cpp_gamma_trunk:
-    name: Universal_Hybrid on Win_Vulkan_playmode on version trunk
+    name: Universal_Hybrid on Win_Vulkan_playmode_il2cpp_gamma on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -194,7 +194,7 @@ Universal_Hybrid_Win_Vulkan_playmode_il2cpp_gamma_trunk:
             paths:
               -  "**/test-results/**"
 Universal_Hybrid_Win_Vulkan_playmode_mono_linear_trunk:
-    name: Universal_Hybrid on Win_Vulkan_playmode on version trunk
+    name: Universal_Hybrid on Win_Vulkan_playmode_mono_linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -211,7 +211,7 @@ Universal_Hybrid_Win_Vulkan_playmode_mono_linear_trunk:
             paths:
               -  "**/test-results/**"
 Universal_Hybrid_Win_Vulkan_playmode_mono_gamma_trunk:
-    name: Universal_Hybrid on Win_Vulkan_playmode on version trunk
+    name: Universal_Hybrid on Win_Vulkan_playmode_mono_gamma on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -228,7 +228,7 @@ Universal_Hybrid_Win_Vulkan_playmode_mono_gamma_trunk:
             paths:
               -  "**/test-results/**"
 Universal_Hybrid_Win_Vulkan_Standalone_il2cpp_linear_CUSTOM-REVISION:
-    name: Universal_Hybrid on Win_Vulkan_Standalone on version CUSTOM-REVISION
+    name: Universal_Hybrid on Win_Vulkan_Standalone_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -250,7 +250,7 @@ Universal_Hybrid_Win_Vulkan_Standalone_il2cpp_linear_CUSTOM-REVISION:
          rerun: always
     skip_checkout: true
 Build_Universal_Hybrid_Win_Vulkan_Player_il2cpp_linear_CUSTOM-REVISION:
-    name: Build Universal_Hybrid on Win_Vulkan_Player on version CUSTOM-REVISION
+    name: Build Universal_Hybrid on Win_Vulkan_il2cpp_linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -274,7 +274,7 @@ Build_Universal_Hybrid_Win_Vulkan_Player_il2cpp_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 Universal_Hybrid_Win_Vulkan_Standalone_il2cpp_gamma_CUSTOM-REVISION:
-    name: Universal_Hybrid on Win_Vulkan_Standalone on version CUSTOM-REVISION
+    name: Universal_Hybrid on Win_Vulkan_Standalone_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -296,7 +296,7 @@ Universal_Hybrid_Win_Vulkan_Standalone_il2cpp_gamma_CUSTOM-REVISION:
          rerun: always
     skip_checkout: true
 Build_Universal_Hybrid_Win_Vulkan_Player_il2cpp_gamma_CUSTOM-REVISION:
-    name: Build Universal_Hybrid on Win_Vulkan_Player on version CUSTOM-REVISION
+    name: Build Universal_Hybrid on Win_Vulkan_il2cpp_gamma_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -320,7 +320,7 @@ Build_Universal_Hybrid_Win_Vulkan_Player_il2cpp_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 Universal_Hybrid_Win_Vulkan_Standalone_mono_linear_CUSTOM-REVISION:
-    name: Universal_Hybrid on Win_Vulkan_Standalone on version CUSTOM-REVISION
+    name: Universal_Hybrid on Win_Vulkan_Standalone_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -342,7 +342,7 @@ Universal_Hybrid_Win_Vulkan_Standalone_mono_linear_CUSTOM-REVISION:
          rerun: always
     skip_checkout: true
 Build_Universal_Hybrid_Win_Vulkan_Player_mono_linear_CUSTOM-REVISION:
-    name: Build Universal_Hybrid on Win_Vulkan_Player on version CUSTOM-REVISION
+    name: Build Universal_Hybrid on Win_Vulkan_mono_linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -366,7 +366,7 @@ Build_Universal_Hybrid_Win_Vulkan_Player_mono_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 Universal_Hybrid_Win_Vulkan_Standalone_mono_gamma_CUSTOM-REVISION:
-    name: Universal_Hybrid on Win_Vulkan_Standalone on version CUSTOM-REVISION
+    name: Universal_Hybrid on Win_Vulkan_Standalone_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -388,7 +388,7 @@ Universal_Hybrid_Win_Vulkan_Standalone_mono_gamma_CUSTOM-REVISION:
          rerun: always
     skip_checkout: true
 Build_Universal_Hybrid_Win_Vulkan_Player_mono_gamma_CUSTOM-REVISION:
-    name: Build Universal_Hybrid on Win_Vulkan_Player on version CUSTOM-REVISION
+    name: Build Universal_Hybrid on Win_Vulkan_mono_gamma_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -412,7 +412,7 @@ Build_Universal_Hybrid_Win_Vulkan_Player_mono_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 Universal_Hybrid_Win_Vulkan_playmode_il2cpp_linear_CUSTOM-REVISION:
-    name: Universal_Hybrid on Win_Vulkan_playmode on version CUSTOM-REVISION
+    name: Universal_Hybrid on Win_Vulkan_playmode_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -433,7 +433,7 @@ Universal_Hybrid_Win_Vulkan_playmode_il2cpp_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 Universal_Hybrid_Win_Vulkan_playmode_il2cpp_gamma_CUSTOM-REVISION:
-    name: Universal_Hybrid on Win_Vulkan_playmode on version CUSTOM-REVISION
+    name: Universal_Hybrid on Win_Vulkan_playmode_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -454,7 +454,7 @@ Universal_Hybrid_Win_Vulkan_playmode_il2cpp_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 Universal_Hybrid_Win_Vulkan_playmode_mono_linear_CUSTOM-REVISION:
-    name: Universal_Hybrid on Win_Vulkan_playmode on version CUSTOM-REVISION
+    name: Universal_Hybrid on Win_Vulkan_playmode_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -475,7 +475,7 @@ Universal_Hybrid_Win_Vulkan_playmode_mono_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
 Universal_Hybrid_Win_Vulkan_playmode_mono_gamma_CUSTOM-REVISION:
-    name: Universal_Hybrid on Win_Vulkan_playmode on version CUSTOM-REVISION
+    name: Universal_Hybrid on Win_Vulkan_playmode_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable

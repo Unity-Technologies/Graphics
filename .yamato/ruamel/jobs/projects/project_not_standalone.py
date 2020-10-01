@@ -15,11 +15,11 @@ class Project_NotStandaloneJob():
     def get_job_definition(self, project, editor, platform, api, test_platform, scripting_backend, color_space):
         if 'URPUpdate' in project["name"]:
             cmd = get_cmd(platform["name"], api, test_platform['type'], 'internal')
-            job = _job(project["name"], test_platform["name"], editor, platform, api, cmd(project["folder"], platform, api, test_platform, editor, scripting_backend, color_space))
+            job = _job(project["name"], test_platform["name"], editor, platform, api, cmd(project["folder"], platform, api, test_platform, editor, scripting_backend, color_space), scripting_backend, color_space)
             return job
         else:
             cmd = get_cmd(platform["name"], api, test_platform['type'], "")
-            job = _job(project["name"], test_platform["name"], editor, platform, api, cmd(project["folder"], platform, api, test_platform, editor, scripting_backend, color_space))
+            job = _job(project["name"], test_platform["name"], editor, platform, api, cmd(project["folder"], platform, api, test_platform, editor, scripting_backend, color_space), scripting_backend, color_space)
             return job
     
     

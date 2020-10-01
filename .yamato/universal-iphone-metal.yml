@@ -4,7 +4,7 @@
 # Read more under .yamato/docs/readme.md 
 
 Universal_iPhone_Metal_Standalone_il2cpp_linear_trunk:
-    name: Universal on iPhone_Metal_Standalone on version trunk
+    name: Universal on iPhone_Metal_Standalone_il2cpp_linear on version trunk
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -24,7 +24,7 @@ Universal_iPhone_Metal_Standalone_il2cpp_linear_trunk:
          rerun: on-new-revision
     skip_checkout: true
 Build_Universal_iPhone_Metal_Player_il2cpp_linear_trunk:
-    name: Build Universal on iPhone_Metal_Player on version trunk
+    name: Build Universal on iPhone_Metal_il2cpp_linear_Player on version trunk
     agent:
         type: Unity::VM::osx
         image: mobile/macos-10.13-testing:stable
@@ -45,7 +45,7 @@ Build_Universal_iPhone_Metal_Player_il2cpp_linear_trunk:
             paths:
               -  "players/**"
 Universal_iPhone_Metal_Standalone_il2cpp_gamma_trunk:
-    name: Universal on iPhone_Metal_Standalone on version trunk
+    name: Universal on iPhone_Metal_Standalone_il2cpp_gamma on version trunk
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -65,7 +65,7 @@ Universal_iPhone_Metal_Standalone_il2cpp_gamma_trunk:
          rerun: on-new-revision
     skip_checkout: true
 Build_Universal_iPhone_Metal_Player_il2cpp_gamma_trunk:
-    name: Build Universal on iPhone_Metal_Player on version trunk
+    name: Build Universal on iPhone_Metal_il2cpp_gamma_Player on version trunk
     agent:
         type: Unity::VM::osx
         image: mobile/macos-10.13-testing:stable
@@ -86,7 +86,7 @@ Build_Universal_iPhone_Metal_Player_il2cpp_gamma_trunk:
             paths:
               -  "players/**"
 Universal_iPhone_Metal_Standalone_mono_linear_trunk:
-    name: Universal on iPhone_Metal_Standalone on version trunk
+    name: Universal on iPhone_Metal_Standalone_mono_linear on version trunk
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -106,7 +106,7 @@ Universal_iPhone_Metal_Standalone_mono_linear_trunk:
          rerun: on-new-revision
     skip_checkout: true
 Build_Universal_iPhone_Metal_Player_mono_linear_trunk:
-    name: Build Universal on iPhone_Metal_Player on version trunk
+    name: Build Universal on iPhone_Metal_mono_linear_Player on version trunk
     agent:
         type: Unity::VM::osx
         image: mobile/macos-10.13-testing:stable
@@ -127,7 +127,7 @@ Build_Universal_iPhone_Metal_Player_mono_linear_trunk:
             paths:
               -  "players/**"
 Universal_iPhone_Metal_Standalone_mono_gamma_trunk:
-    name: Universal on iPhone_Metal_Standalone on version trunk
+    name: Universal on iPhone_Metal_Standalone_mono_gamma on version trunk
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -147,7 +147,7 @@ Universal_iPhone_Metal_Standalone_mono_gamma_trunk:
          rerun: on-new-revision
     skip_checkout: true
 Build_Universal_iPhone_Metal_Player_mono_gamma_trunk:
-    name: Build Universal on iPhone_Metal_Player on version trunk
+    name: Build Universal on iPhone_Metal_mono_gamma_Player on version trunk
     agent:
         type: Unity::VM::osx
         image: mobile/macos-10.13-testing:stable
@@ -168,7 +168,7 @@ Build_Universal_iPhone_Metal_Player_mono_gamma_trunk:
             paths:
               -  "players/**"
 Universal_iPhone_Metal_playmode_il2cpp_linear_trunk:
-    name: Universal on iPhone_Metal_playmode on version trunk
+    name: Universal on iPhone_Metal_playmode_il2cpp_linear on version trunk
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -181,7 +181,7 @@ Universal_iPhone_Metal_playmode_il2cpp_linear_trunk:
             paths:
               -  "**/test-results/**"
 Universal_iPhone_Metal_playmode_il2cpp_gamma_trunk:
-    name: Universal on iPhone_Metal_playmode on version trunk
+    name: Universal on iPhone_Metal_playmode_il2cpp_gamma on version trunk
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -194,7 +194,7 @@ Universal_iPhone_Metal_playmode_il2cpp_gamma_trunk:
             paths:
               -  "**/test-results/**"
 Universal_iPhone_Metal_playmode_mono_linear_trunk:
-    name: Universal on iPhone_Metal_playmode on version trunk
+    name: Universal on iPhone_Metal_playmode_mono_linear on version trunk
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -207,7 +207,7 @@ Universal_iPhone_Metal_playmode_mono_linear_trunk:
             paths:
               -  "**/test-results/**"
 Universal_iPhone_Metal_playmode_mono_gamma_trunk:
-    name: Universal on iPhone_Metal_playmode on version trunk
+    name: Universal on iPhone_Metal_playmode_mono_gamma on version trunk
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -220,7 +220,7 @@ Universal_iPhone_Metal_playmode_mono_gamma_trunk:
             paths:
               -  "**/test-results/**"
 Universal_iPhone_Metal_editmode_il2cpp_linear_trunk:
-    name: Universal on iPhone_Metal_editmode on version trunk
+    name: Universal on iPhone_Metal_editmode_il2cpp_linear on version trunk
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -238,7 +238,7 @@ Universal_iPhone_Metal_editmode_il2cpp_linear_trunk:
             paths:
               -  "**/test-results/**"
 Universal_iPhone_Metal_editmode_il2cpp_gamma_trunk:
-    name: Universal on iPhone_Metal_editmode on version trunk
+    name: Universal on iPhone_Metal_editmode_il2cpp_gamma on version trunk
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -256,7 +256,7 @@ Universal_iPhone_Metal_editmode_il2cpp_gamma_trunk:
             paths:
               -  "**/test-results/**"
 Universal_iPhone_Metal_editmode_mono_linear_trunk:
-    name: Universal on iPhone_Metal_editmode on version trunk
+    name: Universal on iPhone_Metal_editmode_mono_linear on version trunk
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -274,7 +274,7 @@ Universal_iPhone_Metal_editmode_mono_linear_trunk:
             paths:
               -  "**/test-results/**"
 Universal_iPhone_Metal_editmode_mono_gamma_trunk:
-    name: Universal on iPhone_Metal_editmode on version trunk
+    name: Universal on iPhone_Metal_editmode_mono_gamma on version trunk
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -292,7 +292,7 @@ Universal_iPhone_Metal_editmode_mono_gamma_trunk:
             paths:
               -  "**/test-results/**"
 Universal_iPhone_Metal_playmode_perf_build_il2cpp_linear_trunk:
-    name: Universal on iPhone_Metal_playmode_perf_build on version trunk
+    name: Universal on iPhone_Metal_playmode_perf_build_il2cpp_linear on version trunk
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -305,7 +305,7 @@ Universal_iPhone_Metal_playmode_perf_build_il2cpp_linear_trunk:
             paths:
               -  "**/test-results/**"
 Universal_iPhone_Metal_playmode_perf_build_il2cpp_gamma_trunk:
-    name: Universal on iPhone_Metal_playmode_perf_build on version trunk
+    name: Universal on iPhone_Metal_playmode_perf_build_il2cpp_gamma on version trunk
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -318,7 +318,7 @@ Universal_iPhone_Metal_playmode_perf_build_il2cpp_gamma_trunk:
             paths:
               -  "**/test-results/**"
 Universal_iPhone_Metal_playmode_perf_build_mono_linear_trunk:
-    name: Universal on iPhone_Metal_playmode_perf_build on version trunk
+    name: Universal on iPhone_Metal_playmode_perf_build_mono_linear on version trunk
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -331,7 +331,7 @@ Universal_iPhone_Metal_playmode_perf_build_mono_linear_trunk:
             paths:
               -  "**/test-results/**"
 Universal_iPhone_Metal_playmode_perf_build_mono_gamma_trunk:
-    name: Universal on iPhone_Metal_playmode_perf_build on version trunk
+    name: Universal on iPhone_Metal_playmode_perf_build_mono_gamma on version trunk
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -344,7 +344,7 @@ Universal_iPhone_Metal_playmode_perf_build_mono_gamma_trunk:
             paths:
               -  "**/test-results/**"
 Universal_iPhone_Metal_Standalone_il2cpp_linear_CUSTOM-REVISION:
-    name: Universal on iPhone_Metal_Standalone on version CUSTOM-REVISION
+    name: Universal on iPhone_Metal_Standalone_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -367,7 +367,7 @@ Universal_iPhone_Metal_Standalone_il2cpp_linear_CUSTOM-REVISION:
          rerun: always
     skip_checkout: true
 Build_Universal_iPhone_Metal_Player_il2cpp_linear_CUSTOM-REVISION:
-    name: Build Universal on iPhone_Metal_Player on version CUSTOM-REVISION
+    name: Build Universal on iPhone_Metal_il2cpp_linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: mobile/macos-10.13-testing:stable
@@ -392,7 +392,7 @@ Build_Universal_iPhone_Metal_Player_il2cpp_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
 Universal_iPhone_Metal_Standalone_il2cpp_gamma_CUSTOM-REVISION:
-    name: Universal on iPhone_Metal_Standalone on version CUSTOM-REVISION
+    name: Universal on iPhone_Metal_Standalone_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -415,7 +415,7 @@ Universal_iPhone_Metal_Standalone_il2cpp_gamma_CUSTOM-REVISION:
          rerun: always
     skip_checkout: true
 Build_Universal_iPhone_Metal_Player_il2cpp_gamma_CUSTOM-REVISION:
-    name: Build Universal on iPhone_Metal_Player on version CUSTOM-REVISION
+    name: Build Universal on iPhone_Metal_il2cpp_gamma_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: mobile/macos-10.13-testing:stable
@@ -440,7 +440,7 @@ Build_Universal_iPhone_Metal_Player_il2cpp_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
 Universal_iPhone_Metal_Standalone_mono_linear_CUSTOM-REVISION:
-    name: Universal on iPhone_Metal_Standalone on version CUSTOM-REVISION
+    name: Universal on iPhone_Metal_Standalone_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -463,7 +463,7 @@ Universal_iPhone_Metal_Standalone_mono_linear_CUSTOM-REVISION:
          rerun: always
     skip_checkout: true
 Build_Universal_iPhone_Metal_Player_mono_linear_CUSTOM-REVISION:
-    name: Build Universal on iPhone_Metal_Player on version CUSTOM-REVISION
+    name: Build Universal on iPhone_Metal_mono_linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: mobile/macos-10.13-testing:stable
@@ -488,7 +488,7 @@ Build_Universal_iPhone_Metal_Player_mono_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
 Universal_iPhone_Metal_Standalone_mono_gamma_CUSTOM-REVISION:
-    name: Universal on iPhone_Metal_Standalone on version CUSTOM-REVISION
+    name: Universal on iPhone_Metal_Standalone_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -511,7 +511,7 @@ Universal_iPhone_Metal_Standalone_mono_gamma_CUSTOM-REVISION:
          rerun: always
     skip_checkout: true
 Build_Universal_iPhone_Metal_Player_mono_gamma_CUSTOM-REVISION:
-    name: Build Universal on iPhone_Metal_Player on version CUSTOM-REVISION
+    name: Build Universal on iPhone_Metal_mono_gamma_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: mobile/macos-10.13-testing:stable
@@ -536,7 +536,7 @@ Build_Universal_iPhone_Metal_Player_mono_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
 Universal_iPhone_Metal_playmode_il2cpp_linear_CUSTOM-REVISION:
-    name: Universal on iPhone_Metal_playmode on version CUSTOM-REVISION
+    name: Universal on iPhone_Metal_playmode_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -553,7 +553,7 @@ Universal_iPhone_Metal_playmode_il2cpp_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
 Universal_iPhone_Metal_playmode_il2cpp_gamma_CUSTOM-REVISION:
-    name: Universal on iPhone_Metal_playmode on version CUSTOM-REVISION
+    name: Universal on iPhone_Metal_playmode_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -570,7 +570,7 @@ Universal_iPhone_Metal_playmode_il2cpp_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
 Universal_iPhone_Metal_playmode_mono_linear_CUSTOM-REVISION:
-    name: Universal on iPhone_Metal_playmode on version CUSTOM-REVISION
+    name: Universal on iPhone_Metal_playmode_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -587,7 +587,7 @@ Universal_iPhone_Metal_playmode_mono_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
 Universal_iPhone_Metal_playmode_mono_gamma_CUSTOM-REVISION:
-    name: Universal on iPhone_Metal_playmode on version CUSTOM-REVISION
+    name: Universal on iPhone_Metal_playmode_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -604,7 +604,7 @@ Universal_iPhone_Metal_playmode_mono_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
 Universal_iPhone_Metal_editmode_il2cpp_linear_CUSTOM-REVISION:
-    name: Universal on iPhone_Metal_editmode on version CUSTOM-REVISION
+    name: Universal on iPhone_Metal_editmode_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -626,7 +626,7 @@ Universal_iPhone_Metal_editmode_il2cpp_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
 Universal_iPhone_Metal_editmode_il2cpp_gamma_CUSTOM-REVISION:
-    name: Universal on iPhone_Metal_editmode on version CUSTOM-REVISION
+    name: Universal on iPhone_Metal_editmode_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -648,7 +648,7 @@ Universal_iPhone_Metal_editmode_il2cpp_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
 Universal_iPhone_Metal_editmode_mono_linear_CUSTOM-REVISION:
-    name: Universal on iPhone_Metal_editmode on version CUSTOM-REVISION
+    name: Universal on iPhone_Metal_editmode_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -670,7 +670,7 @@ Universal_iPhone_Metal_editmode_mono_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
 Universal_iPhone_Metal_editmode_mono_gamma_CUSTOM-REVISION:
-    name: Universal on iPhone_Metal_editmode on version CUSTOM-REVISION
+    name: Universal on iPhone_Metal_editmode_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -692,7 +692,7 @@ Universal_iPhone_Metal_editmode_mono_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
 Universal_iPhone_Metal_playmode_perf_build_il2cpp_linear_CUSTOM-REVISION:
-    name: Universal on iPhone_Metal_playmode_perf_build on version CUSTOM-REVISION
+    name: Universal on iPhone_Metal_playmode_perf_build_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -709,7 +709,7 @@ Universal_iPhone_Metal_playmode_perf_build_il2cpp_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
 Universal_iPhone_Metal_playmode_perf_build_il2cpp_gamma_CUSTOM-REVISION:
-    name: Universal on iPhone_Metal_playmode_perf_build on version CUSTOM-REVISION
+    name: Universal on iPhone_Metal_playmode_perf_build_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -726,7 +726,7 @@ Universal_iPhone_Metal_playmode_perf_build_il2cpp_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
 Universal_iPhone_Metal_playmode_perf_build_mono_linear_CUSTOM-REVISION:
-    name: Universal on iPhone_Metal_playmode_perf_build on version CUSTOM-REVISION
+    name: Universal on iPhone_Metal_playmode_perf_build_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -743,7 +743,7 @@ Universal_iPhone_Metal_playmode_perf_build_mono_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
 Universal_iPhone_Metal_playmode_perf_build_mono_gamma_CUSTOM-REVISION:
-    name: Universal on iPhone_Metal_playmode_perf_build on version CUSTOM-REVISION
+    name: Universal on iPhone_Metal_playmode_perf_build_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable

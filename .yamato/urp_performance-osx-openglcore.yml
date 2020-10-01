@@ -4,7 +4,7 @@
 # Read more under .yamato/docs/readme.md 
 
 URP_Performance_OSX_OpenGLCore_performance_playmode_il2cpp_linear_trunk:
-    name: URP_Performance on OSX_OpenGLCore_performance_playmode on version trunk
+    name: URP_Performance on OSX_OpenGLCore_performance_playmode_il2cpp_linear on version trunk
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -21,7 +21,7 @@ URP_Performance_OSX_OpenGLCore_performance_playmode_il2cpp_linear_trunk:
          rerun: on-new-revision
     skip_checkout: true
 Build_URP_Performance_OSX_OpenGLCore_Player_il2cpp_linear_trunk:
-    name: Build URP_Performance on OSX_OpenGLCore_Player on version trunk
+    name: Build URP_Performance on OSX_OpenGLCore_il2cpp_linear_Player on version trunk
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -37,7 +37,7 @@ Build_URP_Performance_OSX_OpenGLCore_Player_il2cpp_linear_trunk:
             paths:
               -  "players/**"
 URP_Performance_OSX_OpenGLCore_performance_playmode_il2cpp_gamma_trunk:
-    name: URP_Performance on OSX_OpenGLCore_performance_playmode on version trunk
+    name: URP_Performance on OSX_OpenGLCore_performance_playmode_il2cpp_gamma on version trunk
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -54,7 +54,7 @@ URP_Performance_OSX_OpenGLCore_performance_playmode_il2cpp_gamma_trunk:
          rerun: on-new-revision
     skip_checkout: true
 Build_URP_Performance_OSX_OpenGLCore_Player_il2cpp_gamma_trunk:
-    name: Build URP_Performance on OSX_OpenGLCore_Player on version trunk
+    name: Build URP_Performance on OSX_OpenGLCore_il2cpp_gamma_Player on version trunk
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -70,7 +70,7 @@ Build_URP_Performance_OSX_OpenGLCore_Player_il2cpp_gamma_trunk:
             paths:
               -  "players/**"
 URP_Performance_OSX_OpenGLCore_performance_playmode_mono_linear_trunk:
-    name: URP_Performance on OSX_OpenGLCore_performance_playmode on version trunk
+    name: URP_Performance on OSX_OpenGLCore_performance_playmode_mono_linear on version trunk
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -87,7 +87,7 @@ URP_Performance_OSX_OpenGLCore_performance_playmode_mono_linear_trunk:
          rerun: on-new-revision
     skip_checkout: true
 Build_URP_Performance_OSX_OpenGLCore_Player_mono_linear_trunk:
-    name: Build URP_Performance on OSX_OpenGLCore_Player on version trunk
+    name: Build URP_Performance on OSX_OpenGLCore_mono_linear_Player on version trunk
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -103,7 +103,7 @@ Build_URP_Performance_OSX_OpenGLCore_Player_mono_linear_trunk:
             paths:
               -  "players/**"
 URP_Performance_OSX_OpenGLCore_performance_playmode_mono_gamma_trunk:
-    name: URP_Performance on OSX_OpenGLCore_performance_playmode on version trunk
+    name: URP_Performance on OSX_OpenGLCore_performance_playmode_mono_gamma on version trunk
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -120,7 +120,7 @@ URP_Performance_OSX_OpenGLCore_performance_playmode_mono_gamma_trunk:
          rerun: on-new-revision
     skip_checkout: true
 Build_URP_Performance_OSX_OpenGLCore_Player_mono_gamma_trunk:
-    name: Build URP_Performance on OSX_OpenGLCore_Player on version trunk
+    name: Build URP_Performance on OSX_OpenGLCore_mono_gamma_Player on version trunk
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -136,7 +136,7 @@ Build_URP_Performance_OSX_OpenGLCore_Player_mono_gamma_trunk:
             paths:
               -  "players/**"
 URP_Performance_OSX_OpenGLCore_performance_editmode_build_il2cpp_linear_trunk:
-    name: URP_Performance on OSX_OpenGLCore_performance_editmode_build on version trunk
+    name: URP_Performance on OSX_OpenGLCore_performance_editmode_build_il2cpp_linear on version trunk
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -154,7 +154,7 @@ URP_Performance_OSX_OpenGLCore_performance_editmode_build_il2cpp_linear_trunk:
             paths:
               -  "**/test-results/**"
 URP_Performance_OSX_OpenGLCore_performance_editmode_build_il2cpp_gamma_trunk:
-    name: URP_Performance on OSX_OpenGLCore_performance_editmode_build on version trunk
+    name: URP_Performance on OSX_OpenGLCore_performance_editmode_build_il2cpp_gamma on version trunk
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -172,7 +172,7 @@ URP_Performance_OSX_OpenGLCore_performance_editmode_build_il2cpp_gamma_trunk:
             paths:
               -  "**/test-results/**"
 URP_Performance_OSX_OpenGLCore_performance_editmode_build_mono_linear_trunk:
-    name: URP_Performance on OSX_OpenGLCore_performance_editmode_build on version trunk
+    name: URP_Performance on OSX_OpenGLCore_performance_editmode_build_mono_linear on version trunk
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -190,7 +190,7 @@ URP_Performance_OSX_OpenGLCore_performance_editmode_build_mono_linear_trunk:
             paths:
               -  "**/test-results/**"
 URP_Performance_OSX_OpenGLCore_performance_editmode_build_mono_gamma_trunk:
-    name: URP_Performance on OSX_OpenGLCore_performance_editmode_build on version trunk
+    name: URP_Performance on OSX_OpenGLCore_performance_editmode_build_mono_gamma on version trunk
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -208,7 +208,7 @@ URP_Performance_OSX_OpenGLCore_performance_editmode_build_mono_gamma_trunk:
             paths:
               -  "**/test-results/**"
 URP_Performance_OSX_OpenGLCore_performance_playmode_il2cpp_linear_CUSTOM-REVISION:
-    name: URP_Performance on OSX_OpenGLCore_performance_playmode on version CUSTOM-REVISION
+    name: URP_Performance on OSX_OpenGLCore_performance_playmode_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -228,7 +228,7 @@ URP_Performance_OSX_OpenGLCore_performance_playmode_il2cpp_linear_CUSTOM-REVISIO
          rerun: always
     skip_checkout: true
 Build_URP_Performance_OSX_OpenGLCore_Player_il2cpp_linear_CUSTOM-REVISION:
-    name: Build URP_Performance on OSX_OpenGLCore_Player on version CUSTOM-REVISION
+    name: Build URP_Performance on OSX_OpenGLCore_il2cpp_linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -248,7 +248,7 @@ Build_URP_Performance_OSX_OpenGLCore_Player_il2cpp_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
 URP_Performance_OSX_OpenGLCore_performance_playmode_il2cpp_gamma_CUSTOM-REVISION:
-    name: URP_Performance on OSX_OpenGLCore_performance_playmode on version CUSTOM-REVISION
+    name: URP_Performance on OSX_OpenGLCore_performance_playmode_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -268,7 +268,7 @@ URP_Performance_OSX_OpenGLCore_performance_playmode_il2cpp_gamma_CUSTOM-REVISION
          rerun: always
     skip_checkout: true
 Build_URP_Performance_OSX_OpenGLCore_Player_il2cpp_gamma_CUSTOM-REVISION:
-    name: Build URP_Performance on OSX_OpenGLCore_Player on version CUSTOM-REVISION
+    name: Build URP_Performance on OSX_OpenGLCore_il2cpp_gamma_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -288,7 +288,7 @@ Build_URP_Performance_OSX_OpenGLCore_Player_il2cpp_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
 URP_Performance_OSX_OpenGLCore_performance_playmode_mono_linear_CUSTOM-REVISION:
-    name: URP_Performance on OSX_OpenGLCore_performance_playmode on version CUSTOM-REVISION
+    name: URP_Performance on OSX_OpenGLCore_performance_playmode_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -308,7 +308,7 @@ URP_Performance_OSX_OpenGLCore_performance_playmode_mono_linear_CUSTOM-REVISION:
          rerun: always
     skip_checkout: true
 Build_URP_Performance_OSX_OpenGLCore_Player_mono_linear_CUSTOM-REVISION:
-    name: Build URP_Performance on OSX_OpenGLCore_Player on version CUSTOM-REVISION
+    name: Build URP_Performance on OSX_OpenGLCore_mono_linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -328,7 +328,7 @@ Build_URP_Performance_OSX_OpenGLCore_Player_mono_linear_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
 URP_Performance_OSX_OpenGLCore_performance_playmode_mono_gamma_CUSTOM-REVISION:
-    name: URP_Performance on OSX_OpenGLCore_performance_playmode on version CUSTOM-REVISION
+    name: URP_Performance on OSX_OpenGLCore_performance_playmode_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -348,7 +348,7 @@ URP_Performance_OSX_OpenGLCore_performance_playmode_mono_gamma_CUSTOM-REVISION:
          rerun: always
     skip_checkout: true
 Build_URP_Performance_OSX_OpenGLCore_Player_mono_gamma_CUSTOM-REVISION:
-    name: Build URP_Performance on OSX_OpenGLCore_Player on version CUSTOM-REVISION
+    name: Build URP_Performance on OSX_OpenGLCore_mono_gamma_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -368,7 +368,7 @@ Build_URP_Performance_OSX_OpenGLCore_Player_mono_gamma_CUSTOM-REVISION:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
 URP_Performance_OSX_OpenGLCore_performance_editmode_build_il2cpp_linear_CUSTOM-REVISION:
-    name: URP_Performance on OSX_OpenGLCore_performance_editmode_build on version CUSTOM-REVISION
+    name: URP_Performance on OSX_OpenGLCore_performance_editmode_build_il2cpp_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -390,7 +390,7 @@ URP_Performance_OSX_OpenGLCore_performance_editmode_build_il2cpp_linear_CUSTOM-R
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
 URP_Performance_OSX_OpenGLCore_performance_editmode_build_il2cpp_gamma_CUSTOM-REVISION:
-    name: URP_Performance on OSX_OpenGLCore_performance_editmode_build on version CUSTOM-REVISION
+    name: URP_Performance on OSX_OpenGLCore_performance_editmode_build_il2cpp_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -412,7 +412,7 @@ URP_Performance_OSX_OpenGLCore_performance_editmode_build_il2cpp_gamma_CUSTOM-RE
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
 URP_Performance_OSX_OpenGLCore_performance_editmode_build_mono_linear_CUSTOM-REVISION:
-    name: URP_Performance on OSX_OpenGLCore_performance_editmode_build on version CUSTOM-REVISION
+    name: URP_Performance on OSX_OpenGLCore_performance_editmode_build_mono_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -434,7 +434,7 @@ URP_Performance_OSX_OpenGLCore_performance_editmode_build_mono_linear_CUSTOM-REV
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
 URP_Performance_OSX_OpenGLCore_performance_editmode_build_mono_gamma_CUSTOM-REVISION:
-    name: URP_Performance on OSX_OpenGLCore_performance_editmode_build on version CUSTOM-REVISION
+    name: URP_Performance on OSX_OpenGLCore_performance_editmode_build_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
