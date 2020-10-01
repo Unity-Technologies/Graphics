@@ -25,7 +25,7 @@ class Project_AllJob():
                 for test_platform in dep["test_platforms"]:
                         
                     file = project_filepath_specific(project_dep, dep["platform"], dep["api"])
-                    job_id = project_job_id_test(project_dep,dep["platform"],dep["api"],test_platform,editor["track"])
+                    job_id = project_job_id_test(project_dep,dep["platform"],dep["api"],test_platform,editor["track"],dep["scripting_backend"],dep["color_space"])
 
                     dependencies.append({
                             'path' : f'{file}#{job_id}',

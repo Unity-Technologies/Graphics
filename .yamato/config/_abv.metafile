@@ -7,6 +7,12 @@ abv: # specify the editor versions for which to create the expression trigger fo
     - name: HDRP
     - name: VFX_HDRP
     - name: VFX_URP
+  scripting_backends:
+    - il2cpp
+    #- mono
+  color_spaces:
+    - linear
+    #- gamma
 nightly:
   allowed_editors: # specify the editor versions for which to create nightly jobs
     - trunk
@@ -14,27 +20,37 @@ nightly:
     - project: Universal
       platform: Android
       api: OpenGLES3
+      scripting_backend: il2cpp
+      color_space: linear
       test_platforms:
         - Standalone
     - project: Universal
       platform: Android
       api: Vulkan
+      scripting_backend: il2cpp
+      color_space: linear
       test_platforms:
         - Standalone
     - project: Universal
       platform: iPhone
       api: Metal
+      scripting_backend: il2cpp
+      color_space: linear
       test_platforms:
         - Standalone
     - project: Universal
       platform: Win
       api: Vulkan
+      scripting_backend: il2cpp
+      color_space: linear
       test_platforms:
         - playmode
         - playmode_XR
     - project: Universal
       platform: Win
       api: DX12
+      scripting_backend: il2cpp
+      color_space: linear
       test_platforms:
         - Standalone
         - editmode
@@ -43,12 +59,16 @@ nightly:
     - project: URPUpdate
       platform: Win
       api: DX11
+      scripting_backend: il2cpp
+      color_space: linear
       test_platforms:
         - editmode
         - playmode
     - project: URPUpdate_Top_Asset_Store
       platform: Win
       api: DX11
+      scripting_backend: il2cpp
+      color_space: linear
       test_platforms:
         - editmode
         - playmode
@@ -65,29 +85,39 @@ trunk_verification: # jobs to include in trunk verification job
     - project: Universal
       platform: Win
       api: DX11
+      scripting_backend: il2cpp
+      color_space: linear
       test_platforms:
         - playmode
         - editmode
     - project: ShaderGraph
       platform: Win
       api: DX11
+      scripting_backend: il2cpp
+      color_space: linear
       test_platforms:
         - playmode
         - editmode
     - project: HDRP
       platform: Win
       api: DX11
+      scripting_backend: il2cpp
+      color_space: linear
       test_platforms:
         - playmode
         - editmode
     - project: VFX_HDRP
       platform: Win
       api: DX11
+      scripting_backend: il2cpp
+      color_space: linear
       test_platforms:
         - playmode
         - editmode
     - project: VFX_URP
       platform: Win
       api: DX11
+      scripting_backend: il2cpp
+      color_space: linear
       test_platforms:
         - playmode

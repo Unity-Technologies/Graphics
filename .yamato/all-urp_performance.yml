@@ -6,40 +6,40 @@
 All_URP_Performance_trunk:
     name: All URP_Performance CI - trunk
     dependencies:
-      -  path: .yamato/urp_performance-win-dx11.yml#URP_Performance_Win_DX11_performance_playmode_trunk
+      -  path: .yamato/urp_performance-win-dx11.yml#URP_Performance_Win_DX11_performance_playmode_il2cpp_linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/urp_performance-win-dx11.yml#URP_Performance_Win_DX11_performance_editmode_build_trunk
+      -  path: .yamato/urp_performance-win-dx11.yml#URP_Performance_Win_DX11_performance_editmode_build_il2cpp_linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/urp_performance-osx-metal.yml#URP_Performance_OSX_Metal_performance_playmode_trunk
+      -  path: .yamato/urp_performance-osx-metal.yml#URP_Performance_OSX_Metal_performance_playmode_il2cpp_linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/urp_performance-osx-metal.yml#URP_Performance_OSX_Metal_performance_editmode_build_trunk
+      -  path: .yamato/urp_performance-osx-metal.yml#URP_Performance_OSX_Metal_performance_editmode_build_il2cpp_linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/urp_performance-android-opengles3.yml#URP_Performance_Android_OpenGLES3_performance_playmode_trunk
+      -  path: .yamato/urp_performance-android-opengles3.yml#URP_Performance_Android_OpenGLES3_performance_playmode_il2cpp_linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/urp_performance-android-opengles3.yml#URP_Performance_Android_OpenGLES3_performance_editmode_build_trunk
+      -  path: .yamato/urp_performance-android-opengles3.yml#URP_Performance_Android_OpenGLES3_performance_editmode_build_il2cpp_linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/urp_performance-iphone-metal.yml#URP_Performance_iPhone_Metal_performance_playmode_trunk
+      -  path: .yamato/urp_performance-iphone-metal.yml#URP_Performance_iPhone_Metal_performance_playmode_il2cpp_linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/urp_performance-iphone-metal.yml#URP_Performance_iPhone_Metal_performance_editmode_build_trunk
+      -  path: .yamato/urp_performance-iphone-metal.yml#URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_linear_trunk
          rerun: on-new-revision
 All_URP_Performance_CUSTOM-REVISION:
     name: All URP_Performance CI - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/urp_performance-win-dx11.yml#URP_Performance_Win_DX11_performance_playmode_CUSTOM-REVISION
+      -  path: .yamato/urp_performance-win-dx11.yml#URP_Performance_Win_DX11_performance_playmode_il2cpp_linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/urp_performance-win-dx11.yml#URP_Performance_Win_DX11_performance_editmode_build_CUSTOM-REVISION
+      -  path: .yamato/urp_performance-win-dx11.yml#URP_Performance_Win_DX11_performance_editmode_build_il2cpp_linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/urp_performance-osx-metal.yml#URP_Performance_OSX_Metal_performance_playmode_CUSTOM-REVISION
+      -  path: .yamato/urp_performance-osx-metal.yml#URP_Performance_OSX_Metal_performance_playmode_il2cpp_linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/urp_performance-osx-metal.yml#URP_Performance_OSX_Metal_performance_editmode_build_CUSTOM-REVISION
+      -  path: .yamato/urp_performance-osx-metal.yml#URP_Performance_OSX_Metal_performance_editmode_build_il2cpp_linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/urp_performance-android-opengles3.yml#URP_Performance_Android_OpenGLES3_performance_playmode_CUSTOM-REVISION
+      -  path: .yamato/urp_performance-android-opengles3.yml#URP_Performance_Android_OpenGLES3_performance_playmode_il2cpp_linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/urp_performance-android-opengles3.yml#URP_Performance_Android_OpenGLES3_performance_editmode_build_CUSTOM-REVISION
+      -  path: .yamato/urp_performance-android-opengles3.yml#URP_Performance_Android_OpenGLES3_performance_editmode_build_il2cpp_linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/urp_performance-iphone-metal.yml#URP_Performance_iPhone_Metal_performance_playmode_CUSTOM-REVISION
+      -  path: .yamato/urp_performance-iphone-metal.yml#URP_Performance_iPhone_Metal_performance_playmode_il2cpp_linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/urp_performance-iphone-metal.yml#URP_Performance_iPhone_Metal_performance_editmode_build_CUSTOM-REVISION
+      -  path: .yamato/urp_performance-iphone-metal.yml#URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_linear_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set

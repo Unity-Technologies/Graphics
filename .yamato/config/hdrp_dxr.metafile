@@ -23,10 +23,18 @@ platforms:
           image: graphics-foundation/win10-dxr:stable
           flavor: b1.large
           model: rtx2080
+scripting_backends:
+  - il2cpp
+  - mono
+color_spaces:
+  - linear
+  - gamma
 all:
   dependencies:
     - platform: Win
       api: DX12
+      scripting_backend: il2cpp
+      color_space: linear
       test_platforms:
         - Standalone
         - playmode

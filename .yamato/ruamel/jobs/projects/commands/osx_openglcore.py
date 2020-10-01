@@ -11,19 +11,19 @@ def _cmd_base(project_folder, platform, utr_flags, editor):
     ]
 
 
-def cmd_editmode(project_folder, platform, api, test_platform, editor):
+def cmd_editmode(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
     utr_args = utr_editmode_flags()
     utr_args.extend(test_platform["extra_utr_flags"])
     return  _cmd_base(project_folder, platform, utr_args, editor)
 
 
-def cmd_playmode(project_folder, platform, api, test_platform, editor):
+def cmd_playmode(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
     utr_args = utr_playmode_flags()
     utr_args.extend(test_platform["extra_utr_flags"])
     return  _cmd_base(project_folder, platform, utr_args, editor)
 
-def cmd_standalone(project_folder, platform, api, test_platform, editor):
+def cmd_standalone(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
     return []
 
-def cmd_standalone_build(project_folder, platform, api, test_platform, editor):
+def cmd_standalone_build(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
     return []

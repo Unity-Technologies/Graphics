@@ -17,6 +17,12 @@ test_platforms:
 #  - type: editmode
 #    extra_utr_flags:
 #      - --compilation-errors-as-warnings
+scripting_backends:
+  - il2cpp
+  - mono
+color_spaces:
+  - linear
+  - gamma
 platforms:
   - name: Win
     apis:
@@ -39,10 +45,14 @@ all:
   dependencies:
     - platform: Win
       api: DX11
+      scripting_backend: il2cpp
+      color_space: linear
       test_platforms:
         - playmode
     - platform: OSX
       api: Metal
+      scripting_backend: il2cpp
+      color_space: linear
       test_platforms:
       #  - Standalone
         - playmode 

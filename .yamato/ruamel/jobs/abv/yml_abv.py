@@ -21,7 +21,7 @@ def create_abv_ymls(metafile):
         yml[job.job_id] = job.yml
 
         if editor["track"] in metafile["nightly"]["allowed_editors"]:
-            job = ABV_AllProjectCiNightlyJob(editor, metafile["abv"]["projects"], metafile["smoke_test"]["test_platforms"], metafile["nightly"], metafile["target_branch"])
+            job = ABV_AllProjectCiNightlyJob(editor, metafile["abv"]["projects"], metafile["smoke_test"]["test_platforms"], metafile["nightly"], metafile["target_branch"], metafile["abv"]["scripting_backends"], metafile["abv"]["color_spaces"])
             yml[job.job_id] = job.yml
 
         job = ABV_TrunkVerificationJob(editor, metafile["trunk_verification"]["dependencies"])

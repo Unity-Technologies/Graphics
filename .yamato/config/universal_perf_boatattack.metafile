@@ -1,27 +1,17 @@
 project:
   name: URP_Performance_BoatAttack
   folder: BoatAttack
-scripting_backends:
-  - il2cpp
-  - mono
-colour_spaces:
-  - linear ### linear only
 test_platforms:
   - type: Standalone
     name: performance_playmode_runtime
-    components:
-        - Win:
-          - il2cpp
-          - mono
     is_performance: True
     extra_utr_flags:
       - --report-performance-data
       - --performance-project-id=BoatAttack
       - --performance-project-version=C:\build\output\Unity-Technologies\Graphics
     extra_utr_flags_build:
-      - --extra-editor-arg="-executemethod Editor.Setup" ****
-      - --extra-editor-arg="-testCategory Performance" ****
-      - --extra-editor-arg="-colorspace=Linear" # do we want to run gamma?
+      - --extra-editor-arg="-executemethod Editor.Setup"
+      - --extra-editor-arg="-testCategory Performance"
       - --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"****
   - type: editmode
     name: performance_editmode_build
@@ -34,11 +24,8 @@ test_platforms:
 platforms:
   - name: Win
     apis:
-      - DX11:
-       extra_utr_flags:
- ##       - --extra-editor-arg="-playergraphicsapi=Direct3D11" 
+      - DX11
       - Vulkan
-        - -playergraphicsapi=Vulkan" 
   - name: OSX
     apis:
       - Metal
@@ -50,26 +37,39 @@ platforms:
   - name: iPhone
     apis: 
       - Metal
-
+scripting_backends:
+  - il2cpp
+  - mono
+color_spaces:
+  - linear
+  - gamma
 all:
   dependencies:
     - platform: Win
       api: DX11
+      scripting_backend: il2cpp
+      color_space: linear
       test_platforms:
-        - performance_playmode
+        - performance_playmode_runtime
         - performance_editmode_build
     - platform: OSX
       api: Metal
+      scripting_backend: il2cpp
+      color_space: linear
       test_platforms:
-        - performance_playmode
+        - performance_playmode_runtime
         - performance_editmode_build
     - platform: Android
       api: OpenGLES3
+      scripting_backend: il2cpp
+      color_space: linear
       test_platforms:
-        - performance_playmode
+        - performance_playmode_runtime
         - performance_editmode_build
     - platform: iPhone
       api: Metal
+      scripting_backend: il2cpp
+      color_space: linear
       test_platforms:
-        - performance_playmode
+        - performance_playmode_runtime
         - performance_editmode_build

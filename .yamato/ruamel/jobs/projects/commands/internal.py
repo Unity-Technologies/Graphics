@@ -14,7 +14,7 @@ def _cmd_base(project_folder, platform, utr_flags, editor):
         f'cd {TEST_PROJECTS_DIR}/URP-Update-testing/{project_folder} && utr {" ".join(utr_flags)}'
     ]
 
-def cmd_editmode(project_folder, platform, api, test_platform, editor):
+def cmd_editmode(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
     utr_args = utr_editmode_flags()
     utr_args.extend(test_platform["extra_utr_flags"])
     if api["name"] != "":
@@ -23,7 +23,7 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor):
     return  _cmd_base(project_folder, platform, utr_args, editor)
 
 
-def cmd_playmode(project_folder, platform, api, test_platform, editor):
+def cmd_playmode(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
     utr_args = utr_playmode_flags()
     utr_args.extend(test_platform["extra_utr_flags"])
     if api["name"] != "":
@@ -31,7 +31,7 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor):
 
     return  _cmd_base(project_folder, platform, utr_args, editor)
 
-def cmd_standalone(project_folder, platform, api, test_platform, editor):
+def cmd_standalone(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
     utr_args = utr_standalone_split_flags("Windows64")
     utr_args.extend(test_platform["extra_utr_flags"])
     utr_args.append(f'--timeout={get_timeout(test_platform, "Win")}')
@@ -43,7 +43,7 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor):
     return base
 
 
-def cmd_standalone_build(project_folder, platform, api, test_platform, editor):
+def cmd_standalone_build(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
     utr_args = utr_standalone_build_flags("Windows64")
     utr_args.extend(test_platform["extra_utr_flags_build"])
     utr_args.extend(['--extra-editor-arg="-executemethod"', f'--extra-editor-arg="CustomBuild.BuildWindows{api["name"]}Linear"'])

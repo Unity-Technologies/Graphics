@@ -10,7 +10,7 @@ editors: # applied for all yml files
 scripting_backends:
   - il2cpp
   - mono
-colour_spaces:
+color_spaces:
   - linear
   - gamma
 platforms:

@@ -23,10 +23,18 @@ platforms:
   - name: Linux
     apis: 
       - Vulkan
+scripting_backends:
+  - il2cpp
+  - mono
+color_spaces:
+  - linear
+  - gamma
 all:
   dependencies:
     - platform: Win
       api: DX11
+      scripting_backend: il2cpp
+      color_space: linear
       test_platforms:
         - Standalone
         - editmode
