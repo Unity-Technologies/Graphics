@@ -281,7 +281,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             messageManager.ClearAll();
         }
 
-        bool IsDirty()
+        internal bool IsDirty()
         {
             if (m_Deleted || graphObject.graph == null)
                 return false; // Not dirty; it's gone.
