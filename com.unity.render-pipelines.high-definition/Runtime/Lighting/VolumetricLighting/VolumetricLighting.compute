@@ -677,18 +677,13 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // Compute the optical depth up to the end of the interval.
         opticalDepth += 0.5 * blendValue.a;
 
-        float r = tNext - t0;
-        t0 = tNext;
-
-        if (true)
+        if (t0*0.99f > ray.maxDist /*&& ray.gradient <= 0.1f*/)
         {
-              _VBufferLighting[voxelCoord] = float4(0, (t0 - r) > ray.maxDist && ray.gradient <= 0.5f,0,1);
-
+            break;
+           // _VBufferLighting[voxelCoord] = float4(1, 0, 0, 1);
         }
-      //  _VBufferLighting[voxelCoord] = float4(r0, r1, t0*0.85f > ray.maxDist, ray.gradient);
 
-   /*     if (t0*0.9f > ray.maxDist && ray.gradient <= 0.5f)
-            break;*/
+        t0 = tNext;
     }
 
     for (; slice < _VBufferSliceCount; slice++)
@@ -781,15 +776,15 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
         float linearDepth = LinearEyeDepth(deviceDepth, _ZBufferParams);
         ray.geomDist = linearDepth * rcp(dot(ray.jitterDirWS, F));
 
-        float2 UV = posInput.positionNDC * _RTHandleScale.xy * 0.5f;
+        float2 UV = posInput.positionNDC * _RTHandleScale.xy;
 
-        float4 g = GATHER_TEXTURE2D_X(_InputTexture, s_linear_clamp_sampler, UV) *  rcp(dot(ray.jitterDirWS, F));
+        // This should really be using a max sampler here. This is a bit overdilating given that it is already dilated.
+        // Better to be safer though.
+        float4 d = GATHER_RED_TEXTURE2D_X(_InputTexture, s_point_clamp_sampler, UV) * rcp(dot(ray.jitterDirWS, F));
+      //  float4 g = GATHER_GREEN_TEXTURE2D_X(_InputTexture, s_point_clamp_sampler, UV);
 
-        float4 gradient = abs(g - ray.geomDist);
-        float maxD = max(Max3(g.x, g.y, g.z), g.w);
-
-        ray.maxDist = maxD;
-        ray.gradient = max(Max3(gradient.x, gradient.y, gradient.z), gradient.w) / maxD;
+        ray.maxDist = max(Max3(d.x, d.y, d.z), d.w);
+     //   ray.gradient = max(Max3(g.x, g.y, g.z), g.w);
     }
 #endif
 

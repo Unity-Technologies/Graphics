@@ -4,9 +4,11 @@
 
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-#pragma kernel ComputeMaxZ16CS KERNELNAME=ComputeMaxZ16CS DOWNSAMPLE16 TILE_SIZE=16
-#pragma kernel ComputeMaxZ8CS KERNELNAME=ComputeMaxZ8CS TILE_SIZE=8
+#pragma kernel ComputeMaxZ MAX_Z_DOWNSAMPLE=1
+#pragma kernel ComputeFinalMask FINAL_MASK=1
+#pragma kernel DilateMask DILATE_MASK=1
 
+#pragma enable_d3d11_debug_symbols
 
 #ifdef PLATFORM_LANE_COUNT
 #define WAVE_SIZE   PLATFORM_LANE_COUNT  
@@ -14,90 +16,150 @@
 #define WAVE_SIZE   64
 #endif
 
+// ---------------------------------
+CBUFFER_START(cb)
+float4 _SrcOffsetAndLimit; 
+CBUFFER_END
+
+#define _SrcLimit _SrcOffsetAndLimit.xy
+#define _DepthMipOffset _SrcOffsetAndLimit.zw
+// ---------------------------------
+
+#ifdef MAX_Z_DOWNSAMPLE
+
+#define GROUP_SIZE 8
+
+#ifndef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+groupshared float gs_maxDepth[GROUP_SIZE * GROUP_SIZE];
+#endif
 
 RW_TEXTURE2D_X(float, _OutputTexture);
 
-CBUFFER_START(cb)
-uint4 _SrcOffsetAndLimit; // {x, y, w - 1, h - 1}
-CBUFFER_END
+float GetDepthToDownsample(uint2 pixCoord)
+{
+    return LinearEyeDepth(LoadCameraDepth(pixCoord), _ZBufferParams);
+}
 
-#define USE_WAVE_INTRINSICS         defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS)
+float PrepareDepthForOutput(float depth)
+{
+    return depth;
+}
 
-
-#if USE_WAVE_INTRINSICS
-#define LDS_SIZE  (TILE_SIZE * TILE_SIZE) / WAVE_SIZE
-#else
-#define LDS_SIZE TILE_SIZE * TILE_SIZE
-#endif
-
-groupshared float gs_maxDepth[LDS_SIZE];
-
-
-// Returns min motionVec length in x, max motionVec in zw
+// Important! This function assumes that a max operation is carried so if using reversed Z the depth must be passed as 1-depth or must be linear.
+// GetDepthToDownsample should be used to enforce the right depth is used.
 float ParallelReduction(uint gid, uint threadIdx, float depth)
 {
-
-#if USE_WAVE_INTRINSICS 
-
-#ifdef DOWNSAMPLE16
-    uint waveCount = ((TILE_SIZE * TILE_SIZE) / WAVE_SIZE);
-    float waveMax = WaveActiveMax(depth);
-
-    uint waveIDInGroup = gid / WAVE_SIZE;
-    if (WaveIsFirstLane())
-    {
-        gs_maxDepth[waveIDInGroup] = waveMax;
-    }
-
-    // We have values for all the waves, let's sync. 
-    GroupMemoryBarrierWithGroupSync();
-
-    if (threadIdx == 0)
-    {
-        // Find min and max across waves.
-        waveMax = gs_maxDepth[0];
-        for (uint i = 1u; i < waveCount; ++i)
-        {
-            waveMax = max(waveMax, gs_maxDepth[i]);
-        }
-    }
-
-    return waveMax;
-#else
-    return WaveActiveMin(depth);
-#endif
-
+#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS 
+    return WaveActiveMax(depth);
 #else
     gs_maxDepth[threadIdx] = depth;
 
     GroupMemoryBarrierWithGroupSync();
 
     UNITY_UNROLL
-        for (uint s = (TILE_SIZE * TILE_SIZE) / 2u; s > 0u; s >>= 1u)
+        for (uint s = (GROUP_SIZE * GROUP_SIZE) / 2u; s > 0u; s >>= 1u)
         {
             if (threadIdx < s)
             {
-                float currVal = gs_maxDepth[threadIdx];
-                float otherVal = gs_maxDepth[threadIdx + s];
-
-                gs_maxDepth[threadIdx] = max(currVal, otherVal);
+                gs_maxDepth[threadIdx] = max(gs_maxDepth[threadIdx], gs_maxDepth[threadIdx + s]);
             }
 
             GroupMemoryBarrierWithGroupSync();
         }
     return gs_maxDepth[0];
-
 #endif
 }
 
-[numthreads(TILE_SIZE, TILE_SIZE, 1)]
-void KERNELNAME(uint3 dispatchThreadId : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void ComputeMaxZ(uint3 dispatchThreadId : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-    uint threadIdx = groupThreadId.y * TILE_SIZE + groupThreadId.x;
+    uint threadIdx = groupThreadId.y * GROUP_SIZE + groupThreadId.x;
 
-    float currValDepth =  LoadCameraDepth(dispatchThreadId.xy);
-    currValDepth = LinearEyeDepth(currValDepth, _ZBufferParams);
-    _OutputTexture[COORD_TEXTURE2D_X(groupID.xy)] = ParallelReduction(gid, threadIdx, currValDepth);
+    float currDepth = -1;
+    if (all(dispatchThreadId.xy < _ScreenSize.xy))
+        currDepth = GetDepthToDownsample(dispatchThreadId.xy);
+
+    float maxDepth = ParallelReduction(gid, threadIdx, currDepth);
+    _OutputTexture[COORD_TEXTURE2D_X(groupID.xy)] = maxDepth;
 }
+
+#elif FINAL_MASK
+
+TEXTURE2D_X(_InputTexture);
+RW_TEXTURE2D_X(float2, _OutputTexture);
+
+void DownsampleDepth(float s0, float s1, float s2, float s3, out float maxDepth)
+{
+    maxDepth = max(Max3(s0, s1, s2), s3);
+}
+
+float GetMinDepth(uint2 pixCoord)
+{
+    uint2 minDepthLocation = _DepthMipOffset + pixCoord;
+
+    float minDepth = LoadCameraDepth(minDepthLocation);
+    return LinearEyeDepth(minDepth, _ZBufferParams);
+}
+
+float GetDepthGradient(float minDepth, float maxDepth)
+{
+    //return minDepth;
+    return abs(maxDepth - minDepth) / maxDepth;
+}
+
+[numthreads(8, 8, 1)]
+void ComputeFinalMask(uint3 dispatchThreadId : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+{
+    // Upper-left pixel coordinate of quad that this thread will read
+    uint2 srcPixelUL = (dispatchThreadId.xy << 1);
+
+    float s0 = _InputTexture[COORD_TEXTURE2D_X(min(srcPixelUL + uint2(0u, 0u), _SrcLimit))].x;
+    float s1 = _InputTexture[COORD_TEXTURE2D_X(min(srcPixelUL + uint2(1u, 0u), _SrcLimit))].x;
+    float s2 = _InputTexture[COORD_TEXTURE2D_X(min(srcPixelUL + uint2(0u, 1u), _SrcLimit))].x;
+    float s3 = _InputTexture[COORD_TEXTURE2D_X(min(srcPixelUL + uint2(1u, 1u), _SrcLimit))].x;
+
+    float maxDepth;
+    DownsampleDepth(s0, s1, s2, s3, maxDepth);
+
+    float minDepth = GetMinDepth(dispatchThreadId.xy);
+    float gradient = GetDepthGradient(minDepth, maxDepth);
+
+    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float2(maxDepth, gradient);
+}
+
+
+#elif DILATE_MASK
+
+TEXTURE2D_X(_InputTexture);
+RW_TEXTURE2D_X(float2, _OutputTexture);
+
+float2 DilateValue(float2 currMax, float2 currSample)
+{
+    return float2(max(currMax.x, currSample.x), max(currMax.y, currSample.y));
+}
+
+[numthreads(8, 8, 1)]
+void DilateMask(uint3 dispatchThreadId : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+{
+    int dilationWidth = 2;
+
+    float2 dilatedMaxVals = -1;
+    for (int i = -dilationWidth; i <= dilationWidth; ++i)
+    {
+        for (int j = -dilationWidth; j <= dilationWidth; ++j)
+        {
+            float2 uv = (0.5f + dispatchThreadId.xy + float2(i, j)) * rcp(_SrcLimit);
+            float2 s = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_linear_clamp_sampler, uv, 0);
+            s = _InputTexture[COORD_TEXTURE2D_X(min(dispatchThreadId.xy + int2(i, j), _SrcLimit))].xy;
+            dilatedMaxVals = DilateValue(dilatedMaxVals, s);
+        }
+    }
+
+    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = dilatedMaxVals;
+}
+
+
+#endif
