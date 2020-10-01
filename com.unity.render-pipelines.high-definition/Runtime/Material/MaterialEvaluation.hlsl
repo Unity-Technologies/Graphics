@@ -70,7 +70,7 @@ float GetScreenSpaceDiffuseOcclusion(float2 positionSS)
     return indirectAmbientOcclusion;
 }
 
-float GetScreenSpaceAmbientOcclusion(float2 positionSS)
+float3 GetScreenSpaceAmbientOcclusion(float2 positionSS)
 {
     float indirectAmbientOcclusion = GetScreenSpaceDiffuseOcclusion(positionSS);
     return lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), indirectAmbientOcclusion);

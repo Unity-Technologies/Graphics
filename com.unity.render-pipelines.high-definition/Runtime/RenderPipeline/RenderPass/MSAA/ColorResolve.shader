@@ -51,7 +51,7 @@ Shader "Hidden/HDRP/ColorResolve"
             return LOAD_TEXTURE2D_X_MSAA(_ColorTextureMS, pixelCoords, sampleIndex);
         }
 
-        float4 Resolve(Varyings input, uint sampleCount)
+        float4 Resolve(Varyings input, int sampleCount)
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             int2 pixelCoords = int2(input.texcoord);
@@ -60,12 +60,13 @@ Shader "Hidden/HDRP/ColorResolve"
             for (int i = 0; i < sampleCount; ++i)
             {
                 float4 currSample = (LoadColorTextureMS(pixelCoords, i));
-                finalVal += currSample * ResolveWeight(currSample, sampleCount);
+                finalVal.rgb += currSample.rgb * ResolveWeight(currSample, sampleCount);
+                finalVal.a += currSample.a * rcp(sampleCount);
             }
 
             finalVal.xyz *= InverseToneMapWeight(finalVal);
 
-            return float4(finalVal.rgb, 1.0f);
+            return finalVal;
         }
 
         float4 Frag1X(Varyings input) : SV_Target
