@@ -5,7 +5,7 @@ namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
     [FormerName("UnityEditor.ShaderGraph.Texture2DArrayShaderProperty")]
-    public sealed class Texture2DArrayShaderProperty : AbstractShaderProperty<SerializableTextureArray>
+    public class Texture2DArrayShaderProperty : AbstractShaderProperty<SerializableTextureArray>
     {
         internal Texture2DArrayShaderProperty()
         {

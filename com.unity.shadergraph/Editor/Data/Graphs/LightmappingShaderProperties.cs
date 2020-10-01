@@ -1,8 +1,23 @@
+using System;
+
 namespace UnityEditor.ShaderGraph.Internal
 {
     internal static class LightmappingShaderProperties
     {
-        public static readonly Texture2DArrayShaderProperty kLightmapsArray = new Texture2DArrayShaderProperty()
+        public class LightmapTextureArrayProperty : Texture2DArrayShaderProperty
+        {
+            internal override string GetPropertyDeclarationString(string delimiter = ";")
+            {
+                return String.Empty;
+            }
+
+            internal override string GetPropertyAsArgumentString()
+            {
+                return String.Empty;
+            }
+        }
+
+        public static readonly LightmapTextureArrayProperty kLightmapsArray = new LightmapTextureArrayProperty()
         {
             displayName = "unity_Lightmaps",
             generatePropertyBlock = true,
@@ -13,8 +28,7 @@ namespace UnityEditor.ShaderGraph.Internal
             precision = Precision.Float
         };
 
-        public static readonly Texture2DArrayShaderProperty kLightmapsIndirectionArray =
-            new Texture2DArrayShaderProperty()
+        public static readonly LightmapTextureArrayProperty kLightmapsIndirectionArray = new LightmapTextureArrayProperty()
             {
                 displayName = "unity_LightmapsInd",
                 generatePropertyBlock = true,
@@ -25,7 +39,7 @@ namespace UnityEditor.ShaderGraph.Internal
                 precision = Precision.Float
             };
 
-        public static readonly Texture2DArrayShaderProperty kShadowMasksArray = new Texture2DArrayShaderProperty()
+        public static readonly LightmapTextureArrayProperty kShadowMasksArray = new LightmapTextureArrayProperty()
         {
             displayName = "unity_ShadowMasks",
             generatePropertyBlock = true,
