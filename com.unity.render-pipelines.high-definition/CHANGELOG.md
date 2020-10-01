@@ -115,6 +115,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a warning in materialevalulation
 - Fixed an error when building the player.
 - Fixed issue with box light not visible if range is below one and range attenuation is off.
+- Fixed alpha not having TAA applied to it.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
