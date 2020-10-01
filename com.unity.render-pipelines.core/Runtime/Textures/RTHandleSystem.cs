@@ -195,7 +195,9 @@ namespace UnityEngine.Rendering
 
             if (DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled() && m_HardwareDynamicResRequested)
             {
-                m_RTHandleProperties.rtHandleScale = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+                float xScale = (float)DynamicResolutionHandler.instance.finalViewport.x / GetMaxWidth();
+                float yScale = (float)DynamicResolutionHandler.instance.finalViewport.y / GetMaxHeight();
+                m_RTHandleProperties.rtHandleScale = new Vector4(xScale, yScale, m_RTHandleProperties.rtHandleScale.x, m_RTHandleProperties.rtHandleScale.y);
             }
             else
             {
@@ -212,10 +214,12 @@ namespace UnityEngine.Rendering
         /// <param name="enableHWDynamicRes">State of hardware dynamic resolution.</param>
         public void SetHardwareDynamicResolutionState(bool enableHWDynamicRes)
         {
-            if(enableHWDynamicRes != m_HardwareDynamicResRequested && m_AutoSizedRTsArray != null)
+            if(enableHWDynamicRes != m_HardwareDynamicResRequested)
             {
                 m_HardwareDynamicResRequested = enableHWDynamicRes;
 
+                Array.Resize(ref m_AutoSizedRTsArray, m_AutoSizedRTs.Count);
+                m_AutoSizedRTs.CopyTo(m_AutoSizedRTsArray);
                 for (int i = 0, c = m_AutoSizedRTsArray.Length; i < c; ++i)
                 {
                     var rth = m_AutoSizedRTsArray[i];
@@ -232,7 +236,6 @@ namespace UnityEngine.Rendering
                         // Create the render texture
                         renderTexture.Create();
                     }
-
                 }
             }
         }
@@ -823,13 +826,24 @@ namespace UnityEngine.Rendering
         /// <returns>A new RTHandle referencing the input render target identifier.</returns>
         public RTHandle Alloc(RenderTargetIdentifier texture)
         {
+            return Alloc(texture, "");
+        }
+
+        /// <summary>
+        /// Allocate a RTHandle from a regular render target identifier.
+        /// </summary>
+        /// <param name="texture">Input render target identifier.</param>
+        /// <param name="name">Name of the texture.</param>
+        /// <returns>A new RTHandle referencing the input render target identifier.</returns>
+        public RTHandle Alloc(RenderTargetIdentifier texture, string name)
+        {
             var rth = new RTHandle(this);
             rth.SetTexture(texture);
             rth.m_EnableMSAA = false;
             rth.m_EnableRandomWrite = false;
             rth.useScaling = false;
             rth.m_EnableHWDynamicScale = false;
-            rth.m_Name = "";
+            rth.m_Name = name;
             return rth;
         }
 

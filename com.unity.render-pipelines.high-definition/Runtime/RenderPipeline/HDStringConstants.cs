@@ -21,6 +21,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string s_PathTracingDXRStr = "PathTracingDXR";
         public static readonly string s_MetaStr = "META";
         public static readonly string s_ShadowCasterStr = "ShadowCaster";
+        public static readonly string s_FullScreenDebugStr = "FullScreenDebug";
         public static readonly string s_DBufferProjectorStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferProjector];
         public static readonly string s_DecalProjectorForwardEmissiveStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalProjectorForwardEmissive];
         public static readonly string s_DBufferMeshStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh];
@@ -41,6 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly ShaderTagId s_TransparentBackfaceName = new ShaderTagId(s_TransparentBackfaceStr);
         public static readonly ShaderTagId s_TransparentDepthPostpassName = new ShaderTagId(s_TransparentDepthPostpassStr);
         public static readonly ShaderTagId s_RayTracingPrepassName = new ShaderTagId(s_RayTracingPrepassStr);
+        public static readonly ShaderTagId s_FullScreenDebugName = new ShaderTagId(s_FullScreenDebugStr);
 
         public static readonly ShaderTagId s_DBufferMeshName = new ShaderTagId(s_DBufferMeshStr);
         public static readonly ShaderTagId s_DecalMeshForwardEmissiveName = new ShaderTagId(s_DecalMeshForwardEmissiveStr);
@@ -370,6 +372,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _FullScreenDebugMode = Shader.PropertyToID("_FullScreenDebugMode");
         public static readonly int _FullScreenDebugDepthRemap = Shader.PropertyToID("_FullScreenDebugDepthRemap");
         public static readonly int _TransparencyOverdrawMaxPixelCost = Shader.PropertyToID("_TransparencyOverdrawMaxPixelCost");
+        public static readonly int _QuadOverdrawMaxQuadCost = Shader.PropertyToID("_QuadOverdrawMaxQuadCost");
+        public static readonly int _VertexDensityMaxPixelCost = Shader.PropertyToID("_VertexDensityMaxPixelCost");
         public static readonly int _CustomDepthTexture = Shader.PropertyToID("_CustomDepthTexture");
         public static readonly int _CustomColorTexture = Shader.PropertyToID("_CustomColorTexture");
         public static readonly int _CustomPassInjectionPoint = Shader.PropertyToID("_CustomPassInjectionPoint");
@@ -404,10 +408,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _Flowmap = Shader.PropertyToID("_Flowmap");
         public static readonly int _FlowmapParam = Shader.PropertyToID("_FlowmapParam");
-        public static readonly int _CloudMap = Shader.PropertyToID("_CloudMap");
-        public static readonly int _CloudFlowmap = Shader.PropertyToID("_CloudFlowmap");
-        public static readonly int _CloudParam = Shader.PropertyToID("_CloudParam");
-        public static readonly int _CloudParam2 = Shader.PropertyToID("_CloudParam2");
 
         public static readonly int _Size = Shader.PropertyToID("_Size");
         public static readonly int _Source = Shader.PropertyToID("_Source");
@@ -595,6 +595,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _IndirectDiffuseTextureRW            = Shader.PropertyToID("_IndirectDiffuseTextureRW");
         public static readonly int _IndirectDiffuseTexture0RW           = Shader.PropertyToID("_IndirectDiffuseTexture0RW");
         public static readonly int _IndirectDiffuseTexture1RW           = Shader.PropertyToID("_IndirectDiffuseTexture1RW");
+        public static readonly int _IndirectDiffuseTexture0             = Shader.PropertyToID("_IndirectDiffuseTexture0");
+        public static readonly int _IndirectDiffuseTexture1             = Shader.PropertyToID("_IndirectDiffuseTexture1");
         public static readonly int _UpscaledIndirectDiffuseTextureRW    = Shader.PropertyToID("_UpscaledIndirectDiffuseTextureRW");
         public static readonly int _IndirectDiffuseHitPointTexture      = Shader.PropertyToID("_IndirectDiffuseHitPointTexture");
         public static readonly int _IndirectDiffuseHitPointTextureRW    = Shader.PropertyToID("_IndirectDiffuseHitPointTextureRW");

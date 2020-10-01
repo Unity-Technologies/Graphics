@@ -283,18 +283,18 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 height += m_SerializedLayerProperties[m_layerList.index].GetPropertiesHeight();
             }
 
-            var rectagle = EditorGUILayout.BeginVertical(GUILayout.Height(height));
+            var rectangle = EditorGUILayout.BeginVertical(GUILayout.Height(height));
 
             EditorGUI.BeginChangeCheck();
             if (m_layerList.index >= 0)
             {
                 EditorGUILayout.LabelField(Styles.k_Properties, headerStyle);
 
-                rectagle.y += EditorGUIUtility.singleLineHeight * 1.5f;
-                rectagle.x += 5;
-                rectagle.width -= 10;
+                rectangle.y += EditorGUIUtility.singleLineHeight * 1.5f;
+                rectangle.x += 5;
+                rectangle.width -= 10;
                 var serializedProperties = m_SerializedLayerProperties[m_layerList.index];
-                DrawLayerProperties(rectagle, serializedProperties, m_layerList.index, null);
+                DrawLayerProperties(rectangle, serializedProperties, m_layerList.index, null);
             }
             EditorGUILayout.EndVertical();
             if (EditorGUI.EndChangeCheck())

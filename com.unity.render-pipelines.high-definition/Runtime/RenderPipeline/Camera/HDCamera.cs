@@ -545,6 +545,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 actualHeight = Math.Max((int)finalViewport.size.y, 1);
             }
 
+            DynamicResolutionHandler.instance.finalViewport = new Vector2Int((int)finalViewport.width, (int)finalViewport.height);
+
             Vector2Int nonScaledViewport = new Vector2Int(actualWidth, actualHeight);
             if (isMainGameView)
             {
@@ -850,7 +852,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 skyAmbientMode = volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
 
                 visualSky.skySettings = SkyManager.GetSkySetting(volumeStack);
-                visualSky.cloudLayer = volumeStack.GetComponent<CloudLayer>();
 
                 // Now, see if we have a lighting override
                 // Update needs to happen before testing if the component is active other internal data structure are not properly updated yet.
