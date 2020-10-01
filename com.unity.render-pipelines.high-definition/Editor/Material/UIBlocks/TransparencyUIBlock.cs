@@ -54,8 +54,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_TransparencyBlocks.Add(new DistortionUIBlock());
         }
 
+        /// <summary>
+        /// Use this function to load the material properties you need in your block.
+        /// </summary>
         public override void LoadMaterialProperties() {}
 
+        /// <summary>
+        /// Renders the properties in your block.
+        /// </summary>
         public override void OnGUI()
         {
             // Disable the block if one of the materials is not transparent:

@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     public class LayeringOptionsUIBlock : MaterialUIBlock
     {
-        public static class Styles
+        internal static class Styles
         {
             public const string header = "Layering Options";
             public static readonly GUIContent layerInfluenceMapMaskText = EditorGUIUtility.TrTextContent("Layer Influence Mask", "Specifies the Layer Influence Mask for this Material.");

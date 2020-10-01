@@ -241,8 +241,8 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kHeightParametrization = "_HeightMapParametrization";
 
         // Refraction (for show pre-refraction pass enum)
-        protected MaterialProperty refractionModel = null;
-        protected const string kRefractionModel = "_RefractionModel";
+        MaterialProperty refractionModel = null;
+        const string kRefractionModel = "_RefractionModel";
 
         MaterialProperty transparentZWrite = null;
         MaterialProperty stencilRef = null;
@@ -420,7 +420,10 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        void DrawSurfaceOptionGUI()
+        /// <summary>
+        /// Draw all the surface option GUI.
+        /// </summary>
+        protected void DrawSurfaceOptionGUI()
         {
             if ((m_Features & Features.Surface) != 0)
                 DrawSurfaceGUI();
@@ -447,7 +450,10 @@ namespace UnityEditor.Rendering.HighDefinition
             return shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex(propName));
         }
 
-        void DrawAlphaCutoffGUI()
+        /// <summary>
+        /// Draw the Alpha Cutoff GUI (enable, treshold, shadow treshold, prepass cutoff, postpass cutoff)
+        /// </summary>
+        protected void DrawAlphaCutoffGUI()
         {
             // For shadergraphs we show this slider only if the feature is enabled in the shader settings.
             bool showAlphaClipThreshold = true;
@@ -513,14 +519,28 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.showMixedValue = false;
         }
 
-        void DrawDoubleSidedGUI()
+        /// <summary>
+        /// Draw the Double Sided GUI (enable, normal mode)
+        /// </summary>
+        protected void DrawDoubleSidedGUI()
         {
             // This function must finish with double sided option (see LitUI.cs)
             if (doubleSidedEnable != null)
                 materialEditor.ShaderProperty(doubleSidedEnable, Styles.doubleSidedEnableText);
+
+            // This follow double sided option
+            if (doubleSidedNormalMode != null && doubleSidedEnable != null && doubleSidedEnable.floatValue > 0.0f)
+            {
+                EditorGUI.indentLevel++;
+                materialEditor.ShaderProperty(doubleSidedNormalMode, Styles.doubleSidedNormalModeText);
+                EditorGUI.indentLevel--;
+            }
         }
 
-        void DrawSurfaceGUI()
+        /// <summary>
+        /// Draw the Surface GUI (suraface type, opaque options + transparent options)
+        /// </summary>
+        protected void DrawSurfaceGUI()
         {
             // TODO: does not work with multi-selection
             bool showBlendModePopup = refractionModel == null
@@ -768,16 +788,11 @@ namespace UnityEditor.Rendering.HighDefinition
             return EditorGUILayout.IntPopup(text, inputValue, m_RenderingPassNames.ToArray(), m_RenderingPassValues.ToArray());
         }
 
-        void DrawLitSurfaceOptions()
+        /// <summary>
+        /// Draw Lit Surface Options (material type, enable raytracing, receive decals, receive SSR, geometric specular AA, displacement)
+        /// </summary>
+        protected void DrawLitSurfaceOptions()
         {
-            // This follow double sided option
-            if (doubleSidedNormalMode != null && doubleSidedEnable != null && doubleSidedEnable.floatValue > 0.0f)
-            {
-                EditorGUI.indentLevel++;
-                materialEditor.ShaderProperty(doubleSidedNormalMode, Styles.doubleSidedNormalModeText);
-                EditorGUI.indentLevel--;
-            }
-
             if (materialID != null)
             {
                 materialEditor.ShaderProperty(materialID, Styles.materialIDText);

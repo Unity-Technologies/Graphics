@@ -40,7 +40,6 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// Construct a ui block list
         /// </summary>
-        /// <returns></returns>
         public MaterialUIBlockList() : this(null) {}
 
         /// <summary>
@@ -65,6 +64,8 @@ namespace UnityEditor.Rendering.HighDefinition
         /// Initialize the ui blocks
         /// <remarks>This function is called automatically by MaterialUIBlockList.OnGUI so you only need this when you want to render the UI Blocks in a custom order</remarks>
         /// </summary>
+        /// <param name="materialEditor">Material editor instance.</param>
+        /// <param name="properties">The list of properties in the inspected material(s).</param>
         public void Initialize(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
             if (!m_Initialized)

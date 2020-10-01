@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     public class TessellationOptionsUIBlock : MaterialUIBlock
     {
-        public class Styles
+        internal class Styles
         {
             public const string header = "Tessellation Options";
 
@@ -93,7 +93,10 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        void DrawTesselationGUI()
+        /// <summary>
+        /// Draw the tesselation GUI
+        /// </summary>
+        protected void DrawTesselationGUI()
         {
             TessellationModePopup();
             materialEditor.ShaderProperty(tessellationFactor, Styles.tessellationFactorText);

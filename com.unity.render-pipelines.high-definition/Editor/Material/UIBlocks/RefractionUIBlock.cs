@@ -26,24 +26,24 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent atDistanceText = new GUIContent("Transmittance Absorption Distance", "Sets the absorption distance reference in meters.");
         }
 
-        protected MaterialProperty refractionModel = null;
-        protected const string kRefractionModel = "_RefractionModel";
-        protected MaterialProperty ssrefractionProjectionModel = null;
-        protected const string kSSRefractionProjectionModel = "_SSRefractionProjectionModel";
-        protected MaterialProperty atDistance = null;
-        protected const string kATDistance = "_ATDistance";
-        protected MaterialProperty[] thickness = null;
-        protected const string kThickness = "_Thickness";
-        protected MaterialProperty[] thicknessRemap = null;
-        protected const string kThicknessRemap = "_ThicknessRemap";
-        protected MaterialProperty[] thicknessMap = null;
-        protected const string kThicknessMap = "_ThicknessMap";
-        protected MaterialProperty ior = null;
-        protected const string kIor = "_Ior";
-        protected MaterialProperty transmittanceColorMap = null;
-        protected const string kTransmittanceColorMap = "_TransmittanceColorMap";
-        protected MaterialProperty transmittanceColor = null;
-        protected const string kTransmittanceColor = "_TransmittanceColor";
+        MaterialProperty refractionModel = null;
+        const string kRefractionModel = "_RefractionModel";
+        MaterialProperty ssrefractionProjectionModel = null;
+        const string kSSRefractionProjectionModel = "_SSRefractionProjectionModel";
+        MaterialProperty atDistance = null;
+        const string kATDistance = "_ATDistance";
+        MaterialProperty[] thickness = null;
+        const string kThickness = "_Thickness";
+        MaterialProperty[] thicknessRemap = null;
+        const string kThicknessRemap = "_ThicknessRemap";
+        MaterialProperty[] thicknessMap = null;
+        const string kThicknessMap = "_ThicknessMap";
+        MaterialProperty ior = null;
+        const string kIor = "_Ior";
+        MaterialProperty transmittanceColorMap = null;
+        const string kTransmittanceColorMap = "_TransmittanceColorMap";
+        MaterialProperty transmittanceColor = null;
+        const string kTransmittanceColor = "_TransmittanceColor";
 
         int m_LayerCount;
 

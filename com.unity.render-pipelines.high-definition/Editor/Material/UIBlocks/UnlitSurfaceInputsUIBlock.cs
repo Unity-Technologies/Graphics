@@ -19,10 +19,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         ExpandableBit  m_ExpandableBit;
 
-        protected MaterialProperty color = null;
-        protected const string kColor = "_UnlitColor";
-        protected MaterialProperty colorMap = null;
-        protected const string kColorMap = "_UnlitColorMap";
+        MaterialProperty color = null;
+        const string kColor = "_UnlitColor";
+        MaterialProperty colorMap = null;
+        const string kColorMap = "_UnlitColorMap";
 
         /// <summary>
         /// Construct an Unlit Surface Inputs material UI Block.

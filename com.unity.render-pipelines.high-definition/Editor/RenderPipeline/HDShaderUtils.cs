@@ -68,7 +68,7 @@ namespace UnityEditor.Rendering.HighDefinition
             { ShaderID.SG_Hair, LightingShaderGraphGUI.SetupLightingKeywordsAndPass },
             { ShaderID.SG_Fabric, LightingShaderGraphGUI.SetupLightingKeywordsAndPass },
             { ShaderID.SG_StackLit, LightingShaderGraphGUI.SetupLightingKeywordsAndPass },
-            { ShaderID.SG_Decal, DecalGUI.SetupDecalKeywordsAndPass },
+            { ShaderID.SG_Decal, DecalShaderGraphGUI.SetupDecalKeywordsAndPass },
             // no entry for ShaderID.SG_Decal
             // no entry for ShaderID.SG_Eye
         };

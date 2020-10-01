@@ -41,24 +41,24 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent perPixelDisplacementDetailsWarning = new GUIContent("For pixel displacement to work correctly, details and base map must use the same UV mapping.");
         }
 
-        protected MaterialProperty[] UVDetail = new MaterialProperty[kMaxLayerCount];
-        protected const string kUVDetail = "_UVDetail";
-        protected MaterialProperty[] UVDetailsMappingMask = new MaterialProperty[kMaxLayerCount];
-        protected const string kUVDetailsMappingMask = "_UVDetailsMappingMask";
-        protected MaterialProperty[] detailMap = new MaterialProperty[kMaxLayerCount];
-        protected const string kDetailMap = "_DetailMap";
-        protected MaterialProperty[] linkDetailsWithBase = new MaterialProperty[kMaxLayerCount];
-        protected const string kLinkDetailsWithBase = "_LinkDetailsWithBase";
-        protected MaterialProperty[] detailAlbedoScale = new MaterialProperty[kMaxLayerCount];
-        protected const string kDetailAlbedoScale = "_DetailAlbedoScale";
-        protected MaterialProperty[] detailNormalScale = new MaterialProperty[kMaxLayerCount];
-        protected const string kDetailNormalScale = "_DetailNormalScale";
-        protected MaterialProperty[] detailSmoothnessScale = new MaterialProperty[kMaxLayerCount];
-        protected const string kDetailSmoothnessScale = "_DetailSmoothnessScale";
-        protected MaterialProperty[] UVBase = new MaterialProperty[kMaxLayerCount];
-        protected const string kUVBase = "_UVBase";
-        protected MaterialProperty displacementMode = null;
-        protected const string kDisplacementMode = "_DisplacementMode";
+        MaterialProperty[] UVDetail = new MaterialProperty[kMaxLayerCount];
+        const string kUVDetail = "_UVDetail";
+        MaterialProperty[] UVDetailsMappingMask = new MaterialProperty[kMaxLayerCount];
+        const string kUVDetailsMappingMask = "_UVDetailsMappingMask";
+        MaterialProperty[] detailMap = new MaterialProperty[kMaxLayerCount];
+        const string kDetailMap = "_DetailMap";
+        MaterialProperty[] linkDetailsWithBase = new MaterialProperty[kMaxLayerCount];
+        const string kLinkDetailsWithBase = "_LinkDetailsWithBase";
+        MaterialProperty[] detailAlbedoScale = new MaterialProperty[kMaxLayerCount];
+        const string kDetailAlbedoScale = "_DetailAlbedoScale";
+        MaterialProperty[] detailNormalScale = new MaterialProperty[kMaxLayerCount];
+        const string kDetailNormalScale = "_DetailNormalScale";
+        MaterialProperty[] detailSmoothnessScale = new MaterialProperty[kMaxLayerCount];
+        const string kDetailSmoothnessScale = "_DetailSmoothnessScale";
+        MaterialProperty[] UVBase = new MaterialProperty[kMaxLayerCount];
+        const string kUVBase = "_UVBase";
+        MaterialProperty displacementMode = null;
+        const string kDisplacementMode = "_DisplacementMode";
 
         ExpandableBit  m_ExpandableBit;
         Features    m_Features;
@@ -115,7 +115,10 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        void DrawDetailsGUI()
+        /// <summary>
+        /// Draw the Details GUI.
+        /// </summary>
+        protected void DrawDetailsGUI()
         {
             UVBaseMapping uvBaseMapping = (UVBaseMapping)UVBase[m_LayerIndex].floatValue;
             float X, Y, Z, W;

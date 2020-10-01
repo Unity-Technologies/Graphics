@@ -21,9 +21,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             /// <summary>Minimal Lit Surface Inputs fields.</summary>
             None            = 0,
-            /// <summary>Coat Mask fields</summary>
+            /// <summary>Coat Mask fields.</summary>
             CoatMask        = 1 << 0,
-            /// <summary>Height Map fields<./summary>
+            /// <summary>Height Map fields.</summary>
             HeightMap       = 1 << 1,
             /// <summary>Layer Options fields.</summary>
             LayerOptions    = 1 << 2,
@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition
             SubHeader       = 1 << 3,
             /// <summary>Show the default surface inputs.</summary>
             Standard        = 1 << 4,
-            /// <summary>Show Everything with a header</summary>
+            /// <summary>Show Everything with a header.</summary>
             All             = ~0 ^ SubHeader // By default we don't want a sub-header
         }
 

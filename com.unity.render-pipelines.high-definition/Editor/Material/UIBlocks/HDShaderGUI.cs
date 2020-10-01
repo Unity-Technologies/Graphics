@@ -28,6 +28,10 @@ namespace UnityEditor.Rendering.HighDefinition
         // The following set of functions are call by the ShaderGraph
         // It will allow to display our common parameters + setup keyword correctly for them
 
+        /// <summary>
+        /// Setup the keywords and passes for a material.
+        /// </summary>
+        /// <param name="material">Target material.</param>
         protected abstract void SetupMaterialKeywordsAndPass(Material material);
 
         /// <summary>
@@ -68,6 +72,8 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// Unity calls this function when it displays the GUI. This method is sealed so you cannot override it. To implement your custom GUI, use OnMaterialGUI instead.
         /// </summary>
+        /// <param name="materialEditor">Material editor instance.</param>
+        /// <param name="props">The list of properties in the inspected material(s).</param>
         public sealed override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             if (!(RenderPipelineManager.currentPipeline is HDRenderPipeline))
@@ -84,7 +90,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// Implement your custom GUI in this function. To display a UI similar to HDRP shaders, use a MaterialUIBlockList.
         /// </summary>
         /// <param name="materialEditor">The current material editor.</param>
-        /// <param name="props">The list of properties the material has.</param>
+        /// <param name="props">The list of properties in the inspected material(s).</param>
         protected abstract void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props);
 
         readonly static string[] floatPropertiesToSynchronize = {
