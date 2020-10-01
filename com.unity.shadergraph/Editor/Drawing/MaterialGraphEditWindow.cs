@@ -522,13 +522,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             var metaKeywords = graphView.graph.keywords.Where(x => keywordNodes.Contains(x));
 
             var copyPasteGraph = new CopyPasteGraph(graphView.selection.OfType<ShaderGroup>().Select(x => x.userData),
-                graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is PropertyNode || x.node is SubGraphOutputNode)).Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray(),
+                graphView.selection.OfType<IShaderNodeView>().Select(x => x.node).Where(x => !(x is PropertyNode) && x.allowedInSubGraph).ToArray(),
                 graphView.selection.OfType<Edge>().Select(x => x.userData as Graphing.Edge),
                 graphInputs,
                 metaProperties,
                 metaKeywords,
                 graphView.selection.OfType<StickyNote>().Select(x => x.userData),
-                true);
+                true,
+                false);
 
             // why do we serialize and deserialize only to make copies of everything in the steps below?
             // is this just to clear out all non-serialized data?
@@ -581,6 +582,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                     node.group = null;
                 }
 
+                if (node is PropertyNode pn)
+                {
+                    subGraph.AddGraphInput(pn.property);
+                }
+                else if(node is SubGraphNode sgn)
+                {
+                    //anything need to be done?
+                }
                 subGraph.AddNode(node);
             }
 
@@ -597,6 +606,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // figure out what needs remapping
             var externalOutputSlots = new List<Graphing.Edge>();
             var externalInputSlots = new List<Graphing.Edge>();
+            var passthroughSlots = new List<Graphing.Edge>();
             foreach (var edge in deserialized.edges)
             {
                 var outputSlot = edge.outputSlot;
@@ -619,6 +629,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     externalOutputSlots.Add(edge);
                 }
+                else
+                {
+                    externalInputSlots.Add(edge);
+                    externalOutputSlots.Add(edge);
+                    passthroughSlots.Add(edge);
+                }
             }
 
             // Find the unique edges coming INTO the graph
@@ -633,6 +649,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             const int height = 40;
             const int subtractHeight = 20;
             var propPos = new Vector2(0, -((amountOfProps / 2) + height) - subtractHeight);
+
+            var passsthroughSlotRefLookup = new Dictionary<SlotReference, SlotReference>();
 
             foreach (var group in uniqueIncomingEdges)
             {
@@ -721,9 +739,16 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 foreach (var edge in group.edges)
                 {
-                    subGraph.Connect(
-                        new SlotReference(propNode, PropertyNode.OutputSlotId),
-                        edge.inputSlot);
+                    if (passthroughSlots.Contains(edge))
+                    {
+                        passsthroughSlotRefLookup.Add(sr, new SlotReference(propNode, PropertyNode.OutputSlotId));
+                    }
+                    else
+                    {
+                        subGraph.Connect(
+                            new SlotReference(propNode, PropertyNode.OutputSlotId),
+                            edge.inputSlot);
+                    }
                     externalInputNeedingConnection.Add(new KeyValuePair<IEdge, AbstractShaderProperty>(edge, prop));
                 }
             }
@@ -746,7 +771,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 foreach (var edge in group.edges)
                 {
-                    var newEdge = subGraph.Connect(edge.outputSlot, inputSlotRef);
+                    var newEdge = subGraph.Connect(passsthroughSlotRefLookup.TryGetValue(edge.outputSlot, out SlotReference remap) ? remap : edge.outputSlot, inputSlotRef);
                     externalOutputsNeedingConnection.Add(new KeyValuePair<IEdge, IEdge>(edge, newEdge));
                 }
             }
@@ -795,7 +820,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             graphObject.graph.RemoveElements(
-                graphView.selection.OfType<IShaderNodeView>().Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray(),
+                graphView.selection.OfType<IShaderNodeView>().Select(x => x.node).Where(x => !(x is PropertyNode) && x.allowedInSubGraph).ToArray(),
                 new IEdge[] {},
                 new GroupData[] {},
                 graphView.selection.OfType<StickyNote>().Select(x => x.userData).ToArray());
