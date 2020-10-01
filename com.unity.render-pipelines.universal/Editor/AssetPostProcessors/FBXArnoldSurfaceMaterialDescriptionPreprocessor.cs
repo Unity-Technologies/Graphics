@@ -1,7 +1,12 @@
 using System.IO;
-using UnityEditor.AssetImporters;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
+#if UNITY_2020_2_OR_NEWER
+using UnityEditor.AssetImporters;
+#else
 using UnityEditor.Experimental.AssetImporters;
+#endif
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -42,6 +47,10 @@ namespace UnityEditor.Rendering.Universal
         public void OnPreprocessMaterialDescription(MaterialDescription description, Material material,
             AnimationClip[] clips)
         {
+            var pipelineAsset = GraphicsSettings.currentRenderPipeline;
+            if (!pipelineAsset || pipelineAsset.GetType() != typeof(UniversalRenderPipelineAsset))
+                return;
+
             var lowerCasePath = Path.GetExtension(assetPath).ToLower();
             if (lowerCasePath == ".fbx")
             {

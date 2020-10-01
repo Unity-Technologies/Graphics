@@ -16,16 +16,19 @@
 #endif
 
 #if defined(USING_STEREO_MATRICES)
-#define glstate_matrix_projection     unity_StereoMatrixP[unity_StereoEyeIndex]
+// Current pass transforms.
+#define glstate_matrix_projection     unity_StereoMatrixP[unity_StereoEyeIndex] // goes through GL.GetGPUProjectionMatrix()
 #define unity_MatrixV                 unity_StereoMatrixV[unity_StereoEyeIndex]
 #define unity_MatrixInvV              unity_StereoMatrixInvV[unity_StereoEyeIndex]
+#define unity_MatrixInvP              unity_StereoMatrixInvP[unity_StereoEyeIndex]
 #define unity_MatrixVP                unity_StereoMatrixVP[unity_StereoEyeIndex]
-#define unity_MatrixInvVP             unity_StereoMatrixIVP[unity_StereoEyeIndex]
+#define unity_MatrixInvVP             unity_StereoMatrixInvVP[unity_StereoEyeIndex]
 
-#define unity_CameraProjection        unity_StereoMatrixP[unity_StereoEyeIndex]
-#define unity_CameraInvProjection     unity_StereoMatrixIP[unity_StereoEyeIndex]
-#define unity_WorldToCamera           unity_StereoMatrixV[unity_StereoEyeIndex]
-#define unity_CameraToWorld           unity_StereoMatrixInvV[unity_StereoEyeIndex]
+// Camera transform (but the same as pass transform for XR).
+#define unity_CameraProjection        unity_StereoCameraProjection[unity_StereoEyeIndex] // Does not go through GL.GetGPUProjectionMatrix()
+#define unity_CameraInvProjection     unity_StereoCameraInvProjection[unity_StereoEyeIndex]
+#define unity_WorldToCamera           unity_StereoMatrixV[unity_StereoEyeIndex] // Should be unity_StereoWorldToCamera but no use-case in XR pass
+#define unity_CameraToWorld           unity_StereoMatrixInvV[unity_StereoEyeIndex] // Should be unity_StereoCameraToWorld but no use-case in XR pass
 #define _WorldSpaceCameraPos          unity_StereoWorldSpaceCameraPos[unity_StereoEyeIndex]
 #endif
 
@@ -73,6 +76,13 @@ float4 _ZBufferParams;
 // z = unused
 // w = 1.0 if camera is ortho, 0.0 if perspective
 float4 unity_OrthoParams;
+
+// scaleBias.x = flipSign
+// scaleBias.y = scale
+// scaleBias.z = bias
+// scaleBias.w = unused
+uniform float4 _ScaleBias;
+uniform float4 _ScaleBiasRt;
 
 float4 unity_CameraWorldClipPlanes[6];
 
@@ -124,11 +134,15 @@ CBUFFER_END
 #if defined(USING_STEREO_MATRICES)
 CBUFFER_START(UnityStereoViewBuffer)
 float4x4 unity_StereoMatrixP[2];
-float4x4 unity_StereoMatrixIP[2];
+float4x4 unity_StereoMatrixInvP[2];
 float4x4 unity_StereoMatrixV[2];
 float4x4 unity_StereoMatrixInvV[2];
 float4x4 unity_StereoMatrixVP[2];
-float4x4 unity_StereoMatrixIVP[2];
+float4x4 unity_StereoMatrixInvVP[2];
+
+float4x4 unity_StereoCameraProjection[2];
+float4x4 unity_StereoCameraInvProjection[2];
+
 float3   unity_StereoWorldSpaceCameraPos[2];
 float4   unity_StereoScaleOffset[2];
 CBUFFER_END
@@ -176,6 +190,7 @@ real4  unity_FogColor;
 float4x4 glstate_matrix_projection;
 float4x4 unity_MatrixV;
 float4x4 unity_MatrixInvV;
+float4x4 unity_MatrixInvP;
 float4x4 unity_MatrixVP;
 float4x4 unity_MatrixInvVP;
 float4 unity_StereoScaleOffset;
@@ -196,8 +211,8 @@ SAMPLER(samplerunity_Lightmap);
 // Dual or directional lightmap (always used with unity_Lightmap, so can share sampler)
 TEXTURE2D(unity_LightmapInd);
 
-// We can have shadowMask only if we have lightmap, so no sampler
 TEXTURE2D(unity_ShadowMask);
+SAMPLER(samplerunity_ShadowMask);
 
 // ----------------------------------------------------------------------------
 

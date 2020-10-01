@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
     sealed class UniversalSpriteLitSubTarget : SubTarget<UniversalTarget>, ILegacyTarget
     {
-        const string kAssetGuid = "ea1514729d7120344b27dcd67fbf34de";
+        static readonly GUID kSourceCodeGuid = new GUID("ea1514729d7120344b27dcd67fbf34de"); // UniversalSpriteLitSubTarget.cs
 
         public UniversalSpriteLitSubTarget()
         {
@@ -18,10 +18,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         }
 
         public override bool IsActive() => true;
-        
+
         public override void Setup(ref TargetSetupContext context)
         {
-            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
+            context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             context.AddSubShader(SubShaders.SpriteLit);
         }
 
@@ -33,8 +33,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddField(CoreFields.UseLegacySpriteBlocks, useLegacyBlocks);
 
             // Surface Type & Blend Mode
-            context.AddField(Fields.SurfaceTransparent);
+            context.AddField(UniversalFields.SurfaceTransparent);
             context.AddField(Fields.BlendAlpha);
+            context.AddField(Fields.DoubleSided);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -71,13 +72,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             return true;
         }
-        
+
 #region SubShader
         static class SubShaders
         {
             public static SubShaderDescriptor SpriteLit = new SubShaderDescriptor()
             {
                 pipelineTag = UniversalTarget.kPipelineTag,
+                customTags = UniversalTarget.kLitMaterialTypeTag,
                 renderType = $"{RenderType.Transparent}",
                 renderQueue = $"{UnityEditor.ShaderGraph.RenderQueue.Transparent}",
                 generatesPreview = true,

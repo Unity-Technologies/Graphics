@@ -6,7 +6,7 @@ class Project_AllJob():
     
     def __init__(self, project, editor, dependencies_in_all):
         self.project = project
-        self.job_id = project_job_id_all(project, editor["version"])
+        self.job_id = project_job_id_all(project, editor["track"])
         self.yml = self.get_job_definition(project, editor, dependencies_in_all).get_yml()
 
     
@@ -19,13 +19,13 @@ class Project_AllJob():
             
             if dep.get("all"):
                 dependencies.append({
-                    'path': f'{project_filepath_all(project_dep)}#{project_job_id_all(project_dep, editor["version"])}',
+                    'path': f'{project_filepath_all(project_dep)}#{project_job_id_all(project_dep, editor["track"])}',
                     'rerun': editor["rerun_strategy"]})
             else:
                 for test_platform in dep["test_platforms"]:
                         
                     file = project_filepath_specific(project_dep, dep["platform"], dep["api"])
-                    job_id = project_job_id_test(project_dep,dep["platform"],dep["api"],test_platform,editor["version"])
+                    job_id = project_job_id_test(project_dep,dep["platform"],dep["api"],test_platform,editor["track"])
 
                     dependencies.append({
                             'path' : f'{file}#{job_id}',
@@ -33,9 +33,9 @@ class Project_AllJob():
 
         # construct job
         job = YMLJob()
-        job.set_name(f'All {project} CI - {editor["version"]}')
+        job.set_name(f'All {project} CI - {editor["track"]}')
         job.add_dependencies(dependencies)
-        job.add_var_custom_revision(editor["version"])
+        job.add_var_custom_revision(editor["track"])
         return job
     
     

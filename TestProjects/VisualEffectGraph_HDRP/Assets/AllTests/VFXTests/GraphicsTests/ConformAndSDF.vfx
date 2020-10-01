@@ -503,7 +503,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 114547519497885232}
   - {fileID: 114906223156963730}
-  m_UIPosition: {x: 1554.4094, y: 705.8497}
+  m_UIPosition: {x: 1416, y: 830}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -1498,7 +1498,7 @@ MonoBehaviour:
   - {fileID: 114862771603257272}
   - {fileID: 114060684791881034}
   - {fileID: 114010304090465630}
-  m_UIPosition: {x: 708.049, y: 614.72687}
+  m_UIPosition: {x: 705, y: 702}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -2352,7 +2352,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 0.1
+      m_SerializableObject: 1.5
     m_Space: 2147483647
   m_Property:
     name: stickDistance
@@ -2984,10 +2984,10 @@ MonoBehaviour:
   categories: []
   uiBounds:
     serializedVersion: 2
-    x: -386.00006
-    y: -181.99998
-    width: 2326
-    height: 2241
+    x: -386
+    y: -190
+    width: 2297
+    height: 2263
 --- !u!114 &114659686675276390
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3289,7 +3289,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114458754700810970}
   m_Children: []
-  m_UIPosition: {x: 401.2953, y: 857.6815}
+  m_UIPosition: {x: 340, y: 838}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -5968,7 +5968,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614579}
   - {fileID: 8926484042661614583}
   m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
+  m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 8926484042661614574}
   m_MasterData:
@@ -7628,7 +7628,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114458754700810970}
   m_Children: []
-  m_UIPosition: {x: 235.68596, y: 1000.48456}
+  m_UIPosition: {x: 145, y: 987}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []

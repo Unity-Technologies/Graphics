@@ -10,11 +10,11 @@ The smoothness of a Material does not affect the way a ray reflects or refracts,
 
 ## Using Recursive rendering
 
-Recursive Rendering uses the [Volume](Volumes.html) framework, so to enable this feature and modify its properties, you need to add a Recursive Rendering override to a [Volume](Volumes.html) in your Scene. To do this:
+Recursive Rendering uses the [Volume](Volumes.md) framework, so to enable this feature and modify its properties, you need to add a Recursive Rendering override to a [Volume](Volumes.md) in your Scene. To do this:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to Add Override > Ray Tracing and click on Recursive Rendering.
-3. In the Inspector for the Recursive Rendering Volume Override, enable Ray Tracing. If you do not see the Ray Tracing option, make sure your HDRP Project supports ray tracing. For information on setting up ray tracing in HDRP, see [getting started with ray tracing](Ray-Tracing-Getting-Started.html).
+3. In the Inspector for the Recursive Rendering Volume Override, enable Ray Tracing. If you do not see the Ray Tracing option, make sure your HDRP Project supports ray tracing. For information on setting up ray tracing in HDRP, see [getting started with ray tracing](Ray-Tracing-Getting-Started.md).
 
 Now that you have recursive rendering set up in your Scene, you must set GameObjects to use the Raytracing rendering pass to make HDRP use recursive rendering for them. To do this:
 
@@ -25,7 +25,7 @@ Now that you have recursive rendering set up in your Scene, you must set GameObj
 You can also do this for Shader Graph master nodes:
 
 1. In the Project window, double-click on the Shader to open it in Shader Graph.
-2. On the master node, click the cog, then select Raytracing from the Rendering Pass drop-down.
+2. On the master node, click the gear, then select Raytracing from the Rendering Pass drop-down.
 
 ## Properties
 
@@ -34,3 +34,4 @@ You can also do this for Shader Graph master nodes:
 | **LayerMask**  | Defines the layers that HDRP processes this ray-traced effect for. |
 | **Max Depth**  | Controls the maximum number of times a ray can reflect or refract before it stops and returns the final color. Increasing this value increases execution time exponentially. |
 | **Ray Length** | Controls the length of the rays that HDRP uses for ray tracing. If a ray doesn't find an intersection, then the ray returns the color of the sky. |
+| **Min Smoothness** | Defines the threshold at which reflection rays are not cast if the smoothness value of the target surface is inferior to the one defined by the parameter. |

@@ -30,7 +30,6 @@ TEXTURE2D_X(_DepthTexture);
 
 // Output structure of the reflection raytrace shader
 RW_TEXTURE2D_X(float4, _IndirectDiffuseTextureRW);
-RW_TEXTURE2D_X(float4, _IndirectDiffuseHitPointTextureRW);
 
 [shader("miss")]
 void MissShaderIndirectDiffuse(inout RayIntersection rayIntersection : SV_RayPayload)

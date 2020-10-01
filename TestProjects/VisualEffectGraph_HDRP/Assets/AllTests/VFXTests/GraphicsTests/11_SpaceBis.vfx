@@ -3947,6 +3947,9 @@ MonoBehaviour:
   - {fileID: 8926484042661615060}
   m_OutputSlots:
   - {fileID: 8926484042661616826}
+  m_Type:
+    m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+      PublicKeyToken=b77a5c561934e089
   condition: 0
 --- !u!114 &8926484042661615059
 MonoBehaviour:
@@ -16329,6 +16332,9 @@ MonoBehaviour:
   - {fileID: 8926484042661616256}
   m_OutputSlots:
   - {fileID: 8926484042661616827}
+  m_Type:
+    m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+      PublicKeyToken=b77a5c561934e089
   condition: 0
 --- !u!114 &8926484042661616255
 MonoBehaviour:

@@ -204,6 +204,9 @@ namespace UnityEngine.Rendering.HighDefinition
             set { m_HighQualityFiltering.value = value; }
         }
 
+        /// <summary>
+        /// When enabled, HDRP uses a more accurate but slower physically based method to compute the depth of field effect.
+        /// </summary>
         public bool physicallyBased
         {
             get

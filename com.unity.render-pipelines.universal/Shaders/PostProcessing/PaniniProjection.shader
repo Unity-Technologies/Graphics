@@ -2,6 +2,8 @@ Shader "Hidden/Universal Render Pipeline/PaniniProjection"
 {
     HLSLINCLUDE
 
+        #pragma exclude_renderers gles
+
         #pragma multi_compile_local _GENERIC _UNIT_DISTANCE
         #pragma multi_compile _ _USE_DRAW_PROCEDURAL
 
@@ -95,7 +97,7 @@ Shader "Hidden/Universal Render Pipeline/PaniniProjection"
             return cyl_pos / (cyl_dist - d);
         }
 
-        half4 Frag(FullscreenVaryings input) : SV_Target
+        half4 Frag(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 

@@ -237,13 +237,6 @@ namespace UnityEditor.VFX
                 outputExpressions.AddRange(param.inputSlots[0].GetExpressionSlots().Select(t => t.GetExpression()));
             }
 
-            foreach (var param in parameters)
-            {
-                param.ResetOutputValueExpression();
-            }
-
-            VFXSubgraphUtility.TransferExpressionToParameters(backedUpExpressions, parameters);
-
             return outputExpressions.ToArray();
         }
     }

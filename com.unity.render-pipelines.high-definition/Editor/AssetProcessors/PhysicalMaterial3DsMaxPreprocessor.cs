@@ -1,7 +1,11 @@
-using UnityEditor.AssetImporters;
 using UnityEngine;
-using UnityEditor.Experimental.AssetImporters;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
+#if UNITY_2020_2_OR_NEWER
+using UnityEditor.AssetImporters;
+#else
+using UnityEditor.Experimental.AssetImporters;
+#endif
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -44,6 +48,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public void OnPreprocessMaterialDescription(MaterialDescription description, Material material, AnimationClip[] clips)
         {
+            var pipelineAsset = GraphicsSettings.currentRenderPipeline;
+            if (!pipelineAsset || pipelineAsset.GetType() != typeof(HDRenderPipelineAsset))
+                return;
+
             if (Is3DsMaxPhysicalMaterial(description))
             {
                 CreateFrom3DsPhysicalMaterial(description, material, clips);

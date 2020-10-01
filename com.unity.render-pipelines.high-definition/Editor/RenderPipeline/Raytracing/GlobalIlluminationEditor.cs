@@ -16,8 +16,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_FullResolutionSS;
         SerializedDataParameter m_DepthBufferThickness;
         SerializedDataParameter m_RaySteps;
-        SerializedDataParameter m_MaximalRadius;
-        SerializedDataParameter m_ClampValueSS;
         SerializedDataParameter m_FilterRadius;
 
         // Ray tracing generic attributes
@@ -40,9 +38,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_HalfResolutionDenoiser;
         SerializedDataParameter m_DenoiserRadius;
         SerializedDataParameter m_SecondDenoiserPass;
-        SerializedDataParameter m_SecondDenoiserRadius;
-
-        public override bool hasAdvancedMode => true;
 
         public override void OnEnable()
         {
@@ -56,8 +51,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_FullResolutionSS = Unpack(o.Find(x => x.fullResolutionSS));
             m_DepthBufferThickness = Unpack(o.Find(x => x.depthBufferThickness));
             m_RaySteps = Unpack(o.Find(x => x.raySteps));
-            m_MaximalRadius = Unpack(o.Find(x => x.maximalRadius));
-            m_ClampValueSS = Unpack(o.Find(x => x.clampValueSS));
             m_FilterRadius = Unpack(o.Find(x => x.filterRadius));
 
             // Ray Tracing shared parameters
@@ -80,8 +73,9 @@ namespace UnityEditor.Rendering.HighDefinition
             m_HalfResolutionDenoiser = Unpack(o.Find(x => x.halfResolutionDenoiser));
             m_DenoiserRadius = Unpack(o.Find(x => x.denoiserRadius));
             m_SecondDenoiserPass = Unpack(o.Find(x => x.secondDenoiserPass));
-            m_SecondDenoiserRadius = Unpack(o.Find(x => x.secondDenoiserRadius));
         }
+
+        static public readonly GUIContent k_DepthBufferThicknessText = EditorGUIUtility.TrTextContent("Object Thickness", "Controls the typical thickness of objects the global illumination rays may pass behind.");
 
         public void DenoiserGUI()
         {
@@ -91,7 +85,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_HalfResolutionDenoiser);
                 PropertyField(m_DenoiserRadius);
                 PropertyField(m_SecondDenoiserPass);
-                PropertyField(m_SecondDenoiserRadius);
                 EditorGUI.indentLevel--;
             }
         }
@@ -135,13 +128,14 @@ namespace UnityEditor.Rendering.HighDefinition
                             {
                                 base.OnInspectorGUI(); // Quality Setting
                                 EditorGUI.indentLevel++;
-                                GUI.enabled = useCustomValue;
-                                PropertyField(m_RayLength);
-                                PropertyField(m_ClampValue);
-                                PropertyField(m_FullResolution);
-                                PropertyField(m_UpscaleRadius);
-                                DenoiserGUI();
-                                GUI.enabled = true;
+                                using (new EditorGUI.DisabledScope(!useCustomValue))
+                                {
+                                    PropertyField(m_RayLength);
+                                    PropertyField(m_ClampValue);
+                                    PropertyField(m_FullResolution);
+                                    PropertyField(m_UpscaleRadius);
+                                    DenoiserGUI();
+                                }
                                 EditorGUI.indentLevel--;
 
                             }
@@ -170,13 +164,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         base.OnInspectorGUI(); // Quality Setting
                         EditorGUI.indentLevel++;
-                        GUI.enabled = useCustomValue;
-                        PropertyField(m_RayLength);
-                        PropertyField(m_ClampValue);
-                        PropertyField(m_FullResolution);
-                        PropertyField(m_UpscaleRadius);
-                        DenoiserGUI();
-                        GUI.enabled = true;
+                        using (new EditorGUI.DisabledScope(!useCustomValue))
+                        {
+                            PropertyField(m_RayLength);
+                            PropertyField(m_ClampValue);
+                            PropertyField(m_FullResolution);
+                            PropertyField(m_UpscaleRadius);
+                            DenoiserGUI();
+                        }
                         EditorGUI.indentLevel--;
                     }
 
@@ -188,15 +183,14 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 base.OnInspectorGUI(); // Quality Setting
                 EditorGUI.indentLevel++;
-                GUI.enabled = useCustomValue;
-                PropertyField(m_FullResolutionSS, EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode."));
-                PropertyField(m_RaySteps);
-                PropertyField(m_MaximalRadius);
-                PropertyField(m_ClampValueSS, EditorGUIUtility.TrTextContent("Clamp Value", "Clamps the exposed intensity."));
-                PropertyField(m_FilterRadius);
-                GUI.enabled = true;
+                using (new EditorGUI.DisabledScope(!useCustomValue))
+                {
+                    PropertyField(m_FullResolutionSS, EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode."));
+                    PropertyField(m_RaySteps);
+                    PropertyField(m_FilterRadius);
+                }
                 EditorGUI.indentLevel--;
-                PropertyField(m_DepthBufferThickness);
+                PropertyField(m_DepthBufferThickness, k_DepthBufferThicknessText);
             }
 
             EditorGUI.indentLevel--;

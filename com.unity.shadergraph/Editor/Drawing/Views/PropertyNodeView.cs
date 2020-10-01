@@ -79,6 +79,7 @@ namespace UnityEditor.ShaderGraph
                     graph.isSubGraph,
                     graph,
                     this.ChangeExposedField,
+                    this.ChangeDisplayNameField,
                     this.ChangeReferenceNameField,
                     () => graph.ValidateGraph(),
                     () => graph.OnKeywordChanged(),
@@ -95,6 +96,17 @@ namespace UnityEditor.ShaderGraph
         {
             property.generatePropertyBlock = newValue;
             icon = property.generatePropertyBlock ? BlackboardProvider.exposedIcon : null;
+        }
+
+        void ChangeDisplayNameField(string newValue)
+        {
+            var graph = node.owner as GraphData;
+
+            if(newValue != property.displayName)
+            {
+                property.displayName = newValue;
+                graph.SanitizeGraphInputName(property);
+            }
         }
 
         void ChangeReferenceNameField(string newValue)
@@ -257,7 +269,7 @@ namespace UnityEditor.ShaderGraph
                 this.icon = icon;
             }
 
-            if (scope == ModificationScope.Topological)
+            if (scope == ModificationScope.Topological || scope == ModificationScope.Node)
             {
                 // Updating the text label of the output slot
                 var slot = node.GetSlots<MaterialSlot>().ToList().First();

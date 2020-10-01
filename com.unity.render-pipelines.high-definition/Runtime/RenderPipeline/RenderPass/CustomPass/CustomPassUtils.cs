@@ -68,7 +68,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="destination">Destination buffer of the downsample</param>
         /// <param name="sourceMip">Source mip level to sample from.</param>
         /// <param name="destMip">Destination mip level to write to.</param>
-        /// <param name="ctx">Custom Pass Context</param>
         public static void DownSample(in CustomPassContext ctx, RTHandle source, RTHandle destination, int sourceMip = 0, int destMip = 0)
             => DownSample(ctx, source, destination, fullScreenScaleBias, fullScreenScaleBias, sourceMip, destMip);
 
@@ -325,7 +324,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 stateBlock = overrideRenderState,
             };
 
-            HDUtils.DrawRendererList(ctx.renderContext, ctx.cmd, RendererList.Create(result));
+            CoreUtils.DrawRendererList(ctx.renderContext, ctx.cmd, RendererList.Create(result));
         }
 
         /// <summary>

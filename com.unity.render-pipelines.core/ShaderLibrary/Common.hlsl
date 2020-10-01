@@ -215,6 +215,12 @@
 #define WaveGetLaneCount ERROR_ON_UNSUPPORTED_FUNCTION(WaveGetLaneCount)
 #endif
 
+#if defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS)
+// Helper macro to compute lane swizzle offset starting from andMask, orMask and xorMask.
+// IMPORTANT, to guarantee compatibility with all platforms, the masks need to be constant literals (constants at compile time)
+#define LANE_SWIZZLE_OFFSET(andMask, orMask, xorMask)  (andMask | (orMask << 5) | (xorMask << 10))
+#endif
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonDeprecated.hlsl"
 
 #if !defined(SHADER_API_GLES)
@@ -1060,6 +1066,16 @@ PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize)
     return GetPositionInput(positionSS, invScreenSize, uint2(0, 0));
 }
 
+// For Raytracing only
+// This function does not initialize deviceDepth and linearDepth
+PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float3 positionWS)
+{
+    PositionInputs posInput = GetPositionInput(positionSS, invScreenSize, uint2(0, 0));
+    posInput.positionWS = positionWS;
+
+    return posInput;
+}
+
 // From forward
 // deviceDepth and linearDepth come directly from .zw of SV_Position
 PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth, float linearDepth, float3 positionWS, uint2 tileCoord)
@@ -1155,8 +1171,15 @@ bool HasFlag(uint bitfield, uint flag)
 // Normalize that account for vectors with zero length
 real3 SafeNormalize(float3 inVec)
 {
-    float dp3 = max(FLT_MIN, dot(inVec, inVec));
+    real dp3 = max(FLT_MIN, dot(inVec, inVec));
     return inVec * rsqrt(dp3);
+}
+
+// Checks if a vector is normalized
+bool IsNormalized(float3 inVec)
+{
+    real l = length(inVec);
+    return length(l) < 1.0001 && length(l) > 0.9999;
 }
 
 // Division which returns 1 for (inf/inf) and (0/0).

@@ -57,16 +57,21 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Cast to RTHandle
         /// </summary>
         /// <param name="texture">Input TextureHandle.</param>
+        /// <returns>Resource as a RTHandle.</returns>
         public static implicit operator RTHandle(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : null;
+
         /// <summary>
         /// Cast to RenderTargetIdentifier
         /// </summary>
         /// <param name="texture">Input TextureHandle.</param>
+        /// <returns>Resource as a RenderTargetIdentifier.</returns>
         public static implicit operator RenderTargetIdentifier(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : null;
+
         /// <summary>
         /// Cast to RenderTexture
         /// </summary>
         /// <param name="texture">Input TextureHandle.</param>
+        /// <returns>Resource as a RenderTexture.</returns>
         public static implicit operator RenderTexture(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : null;
 
         /// <summary>
@@ -82,6 +87,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     [DebuggerDisplay("ComputeBuffer ({handle})")]
     public struct ComputeBufferHandle
     {
+        private static ComputeBufferHandle s_NullHandle = new ComputeBufferHandle();
+
+        /// <summary>
+        /// Returns a null compute buffer handle
+        /// </summary>
+        /// <returns>A null compute buffer handle.</returns>
+        public static ComputeBufferHandle nullHandle { get { return s_NullHandle; } }
+
         internal ResourceHandle handle;
 
         internal ComputeBufferHandle(int handle) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.ComputeBuffer); }
@@ -90,6 +103,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Cast to ComputeBuffer
         /// </summary>
         /// <param name="buffer">Input ComputeBufferHandle</param>
+        /// <returns>Resource as a Compute Buffer.</returns>
         public static implicit operator ComputeBuffer(ComputeBufferHandle buffer) => buffer.IsValid() ? RenderGraphResourceRegistry.current.GetComputeBuffer(buffer) : null;
 
         /// <summary>
@@ -115,6 +129,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <returns>The integer representation of the handle.</returns>
         public static implicit operator int(RendererListHandle handle) { return handle.handle; }
 
+        /// <summary>
+        /// Cast to RendererList
+        /// </summary>
+        /// <param name="rendererList">Input RendererListHandle.</param>
+        /// <returns>Resource as a RendererList.</returns>
         public static implicit operator RendererList(RendererListHandle rendererList) => rendererList.IsValid() ? RenderGraphResourceRegistry.current.GetRendererList(rendererList) : RendererList.nullRendererList;
 
         /// <summary>

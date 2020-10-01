@@ -196,7 +196,7 @@ namespace UnityEditor.Rendering.LookDev
             var lineRenderer = go.GetComponent<LineRenderer>();
             if (lineRenderer != null)
                 lineRenderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
-            
+
             var volumes = go.GetComponents<UnityEngine.Rendering.Volume>();
             foreach (var volume in volumes)
                 volume.UpdateLayer(); //force update of layer now as the Update can be called after we unregister volume from manager
@@ -217,16 +217,28 @@ namespace UnityEditor.Rendering.LookDev
                 if (go == null || go.Equals(null))
                     continue;
                 foreach (UnityEngine.Renderer renderer in go.GetComponentsInChildren<UnityEngine.Renderer>())
-                    renderer.enabled = visible;
+                {
+                    if((renderer.hideFlags & HideFlags.HideInInspector) == 0 && ((renderer.hideFlags & HideFlags.HideAndDontSave) == 0))
+                        renderer.enabled = visible;
+                }
                 foreach (Light light in go.GetComponentsInChildren<Light>())
-                    light.enabled = visible;
+                {
+                    if ((light.hideFlags & HideFlags.HideInInspector) == 0 && ((light.hideFlags & HideFlags.HideAndDontSave) == 0))
+                        light.enabled = visible;
+                }
             }
 
             // in case we add camera frontal light and such
             foreach (UnityEngine.Renderer renderer in m_Camera.GetComponentsInChildren<UnityEngine.Renderer>())
-                renderer.enabled = visible;
+            {
+                if ((renderer.hideFlags & HideFlags.HideInInspector) == 0 && ((renderer.hideFlags & HideFlags.HideAndDontSave) == 0))
+                    renderer.enabled = visible;
+            }
             foreach (Light light in m_Camera.GetComponentsInChildren<Light>())
-                light.enabled = visible;
+            {
+                if ((light.hideFlags & HideFlags.HideInInspector) == 0 && ((light.hideFlags & HideFlags.HideAndDontSave) == 0))
+                    light.enabled = visible;
+            }
         }
 
         public void OnBeginRendering(IDataProvider dataProvider)
@@ -273,6 +285,7 @@ namespace UnityEditor.Rendering.LookDev
 
         Stage[] m_Stages;
         Context m_Contexts;
+        IDataProvider m_CurrentDataProvider;
 
         public Stage this[ViewIndex index]
             => m_Stages[(int)index];
@@ -310,6 +323,8 @@ namespace UnityEditor.Rendering.LookDev
             }
 
             dataProvider.FirstInitScene(stage.runtimeInterface);
+
+            m_CurrentDataProvider = dataProvider;
             return stage;
         }
 
@@ -345,7 +360,10 @@ namespace UnityEditor.Rendering.LookDev
             if (!disposedValue)
             {
                 foreach (Stage stage in m_Stages)
+                {
+                    m_CurrentDataProvider.Cleanup(stage.runtimeInterface);
                     stage.Dispose();
+                }
 
                 disposedValue = true;
             }

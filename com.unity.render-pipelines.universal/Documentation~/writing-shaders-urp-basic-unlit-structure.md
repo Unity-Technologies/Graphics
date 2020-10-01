@@ -18,7 +18,7 @@ Shader "Example/URPUnlitShaderBasic"
     {
         // SubShader Tags define when and under which conditions a SubShader block or
         // a pass is executed.
-        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalRenderPipeline" }
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" }
         
         Pass
         {
@@ -127,10 +127,10 @@ A Unity shader source file contains one or more [SubShader](https://docs.unity3d
 A SubShader block can optionally contain a SubShader Tags block. Use the `Tags` keyword to declare a SubShader Tags block.
 
 ```
-Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalRenderPipeline" }
+Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" }
 ```
 
-A SubShader Tag with a name of `RenderPipeline` tells Unity which render pipelines to use this SubShader with, and the value of `UniversalRenderPipeline` indicates that Unity should use this SubShader with URP.
+A SubShader Tag with a name of `RenderPipeline` tells Unity which render pipelines to use this SubShader with, and the value of `UniversalPipeline` indicates that Unity should use this SubShader with URP.
 
 For more information on SubShader Tags, see [ShaderLab: SubShader Tags](https://docs.unity3d.com/Manual/SL-SubShaderTags.html).
 
