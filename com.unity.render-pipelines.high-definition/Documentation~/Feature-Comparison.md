@@ -210,6 +210,13 @@ The tables that follow provide an overview of the **Features** that the High Def
 | Hair                        | Not supported                                 | Yes                                                          |
 | Fabric                      | Not supported                                 | Yes                                                          |
 
+## LOD Management
+In the builtin render pipeline, LOD is managed from the QualitySettings. Each quality setting can define a LOD Bias and a Maximum LOD value. As such, they are global to this quality setting and cannot be changed per camera. In HDRP, things are different. As described [here](HDRP-Asset.md) and [here](Frame-Settings.md), HDRP introduces the notion of scalability settings. This allows user to change the LOD settings per camera by using either predetermined values contained in the HDRP asset of the current quality level or overridden values.
+
+This has two consequences:
+- Default LOD settings for a quality level are now stored in the HDRP asset instead of the Quality Settings.
+- Builtin APIs such as QualitySettings.lodBias or QualitySettings.maximumLODLevel are not supported anymore. Instead, users need to change them through the camera frame settings. Using them will have no effect at all.
+
 ## Render Pipeline Hooks
 
 | **Feature**                                                  | **Built-in Render Pipeline** | **High Definition Render Pipeline (HDRP)** |
