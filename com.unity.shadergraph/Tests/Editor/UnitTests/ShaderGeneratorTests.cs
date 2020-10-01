@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         public void AdaptNodeOutput1To1Works()
         {
             var node = new TestNode();
-            var result = GenerationUtils.AdaptNodeOutput(node, TestNode.V1Out, ConcreteSlotValueType.Float);
+            var result = GenerationUtils.AdaptNodeOutput(node, TestNode.V1Out, ConcreteSlotValueType.Vector1);
             Assert.AreEqual(string.Format("{0}", node.GetVariableNameForSlot(TestNode.V1Out)), result);
         }
 
@@ -65,7 +65,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         public void AdaptNodeOutput2To1Works()
         {
             var node = new TestNode();
-            var result = GenerationUtils.AdaptNodeOutput(node, TestNode.V2Out, ConcreteSlotValueType.Float);
+            var result = GenerationUtils.AdaptNodeOutput(node, TestNode.V2Out, ConcreteSlotValueType.Vector1);
             Assert.AreEqual(string.Format("({0}).x", node.GetVariableNameForSlot(TestNode.V2Out)), result);
         }
 
@@ -97,7 +97,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         public void AdaptNodeOutput3To1Works()
         {
             var node = new TestNode();
-            var result = GenerationUtils.AdaptNodeOutput(node, TestNode.V3Out, ConcreteSlotValueType.Float);
+            var result = GenerationUtils.AdaptNodeOutput(node, TestNode.V3Out, ConcreteSlotValueType.Vector1);
             Assert.AreEqual(string.Format("({0}).x", node.GetVariableNameForSlot(TestNode.V3Out)), result);
         }
 
@@ -129,7 +129,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         public void AdaptNodeOutput4To1Works()
         {
             var node = new TestNode();
-            var result = GenerationUtils.AdaptNodeOutput(node, TestNode.V4Out, ConcreteSlotValueType.Float);
+            var result = GenerationUtils.AdaptNodeOutput(node, TestNode.V4Out, ConcreteSlotValueType.Vector1);
             Assert.AreEqual(string.Format("({0}).x", node.GetVariableNameForSlot(TestNode.V4Out)), result);
         }
 

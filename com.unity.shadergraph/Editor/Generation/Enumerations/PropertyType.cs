@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.Internal
         Cubemap,
         Gradient,
         Boolean,
-        Float,
+        Vector1,
         Vector2,
         Vector3,
         Vector4,

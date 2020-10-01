@@ -454,20 +454,20 @@ namespace UnityEditor.ShaderGraph
             switch (inputTypesDistinct.Count)
             {
                 case 0:
-                    return ConcreteSlotValueType.Float;
+                    return ConcreteSlotValueType.Vector1;
                 case 1:
                     if(SlotValueHelper.AreCompatible(SlotValueType.DynamicVector, inputTypesDistinct.First()))
                         return inputTypesDistinct.First();
                     break;
                 default:
                     // find the 'minumum' channel width excluding 1 as it can promote
-                    inputTypesDistinct.RemoveAll(x => x == ConcreteSlotValueType.Float);
+                    inputTypesDistinct.RemoveAll(x => x == ConcreteSlotValueType.Vector1);
                     var ordered = inputTypesDistinct.OrderByDescending(x => x);
                     if (ordered.Any())
                         return ordered.FirstOrDefault();
                     break;
             }
-            return ConcreteSlotValueType.Float;
+            return ConcreteSlotValueType.Vector1;
         }
 
         public static ConcreteSlotValueType ConvertDynamicMatrixInputTypeToConcrete(IEnumerable<ConcreteSlotValueType> inputTypes)

@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderGraph
                     AddSlot(new BooleanMaterialSlot(kInputSlotID, "", "", SlotType.Input, false));
                     AddSlot(new BooleanMaterialSlot(kOutputSlotID, "", "", SlotType.Output, false));
                     break;
-                case SlotValueType.Float:
+                case SlotValueType.Vector1:
                     AddSlot(new DynamicVectorMaterialSlot(kInputSlotID, "", "", SlotType.Input, Vector4.zero));
                     AddSlot(new DynamicVectorMaterialSlot(kOutputSlotID, "", "", SlotType.Output, Vector4.zero));
                     break;

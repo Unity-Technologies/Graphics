@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
         Vector4,
         Vector3,
         Vector2,
-        Float,
+        Vector1,
         Dynamic,
         Boolean,
         VirtualTexture
@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph
         Vector4,
         Vector3,
         Vector2,
-        Float,
+        Vector1,
         Boolean,
         VirtualTexture
     }
@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph
                     return 3;
                 case ConcreteSlotValueType.Vector2:
                     return 2;
-                case ConcreteSlotValueType.Float:
+                case ConcreteSlotValueType.Vector1:
                     return 1;
                 default:
                     return 0;
@@ -102,13 +102,13 @@ namespace UnityEditor.ShaderGraph
                 var validVectors = new List<SlotValueType>()
                 {
                     SlotValueType.Dynamic, SlotValueType.DynamicVector,
-                    SlotValueType.Float, SlotValueType.Vector2, SlotValueType.Vector3, SlotValueType.Vector4
+                    SlotValueType.Vector1, SlotValueType.Vector2, SlotValueType.Vector3, SlotValueType.Vector4
                 };
 
                 s_ValidConversions = new Dictionary<ConcreteSlotValueType, List<SlotValueType>>()
                 {
                     {ConcreteSlotValueType.Boolean, new List<SlotValueType>() {SlotValueType.Boolean}},
-                    {ConcreteSlotValueType.Float, validVectors},
+                    {ConcreteSlotValueType.Vector1, validVectors},
                     {ConcreteSlotValueType.Vector2, validVectors},
                     {ConcreteSlotValueType.Vector3, validVectors},
                     {ConcreteSlotValueType.Vector4, validVectors},

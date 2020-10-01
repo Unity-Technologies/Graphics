@@ -63,7 +63,7 @@ namespace UnityEditor.VFX
                     return null;
                 case PropertyType.Boolean:
                     return typeof(bool);
-                case PropertyType.Float:
+                case PropertyType.Vector1:
                     return typeof(float);
                 case PropertyType.Vector2:
                     return typeof(Vector2);
@@ -173,7 +173,7 @@ namespace UnityEditor.VFX
                              .Select(t => new { property = t, type = GetSGPropertyType(t) })
                              .Where(t => t.type != null))
                     {
-                        if (property.property.propertyType == PropertyType.Float)
+                        if (property.property.propertyType == PropertyType.Vector1)
                         {
                             var prop = property.property as Vector1ShaderProperty;
 

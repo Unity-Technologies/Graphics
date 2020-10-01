@@ -83,7 +83,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void CanConvertConcreteSlotValueTypeToOutputChunkProperly()
         {
-            Assert.AreEqual("float", ConcreteSlotValueType.Float.ToShaderString(ConcretePrecision.Single));
+            Assert.AreEqual("float", ConcreteSlotValueType.Vector1.ToShaderString(ConcretePrecision.Single));
             Assert.AreEqual("float", ConcreteSlotValueType.Boolean.ToShaderString(ConcretePrecision.Single));
             Assert.AreEqual("float2", ConcreteSlotValueType.Vector2.ToShaderString(ConcretePrecision.Single));
             Assert.AreEqual("float3", ConcreteSlotValueType.Vector3.ToShaderString(ConcretePrecision.Single));
@@ -107,7 +107,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             var pp = properties.FirstOrDefault();
 
             Assert.AreEqual(m_NodeA.GetVariableNameForSlot(slot.id), pp.name);
-            Assert.AreEqual(PropertyType.Float, pp.propType);
+            Assert.AreEqual(PropertyType.Vector1, pp.propType);
             Assert.AreEqual(slot.value, pp.floatValue);
         }
 

@@ -46,7 +46,7 @@ namespace UnityEditor.ShaderGraph
                 case KeywordType.Boolean:
                     return ConcreteSlotValueType.Boolean;
                 case KeywordType.Enum:
-                    return ConcreteSlotValueType.Float;
+                    return ConcreteSlotValueType.Vector1;
                 default:
                     throw new ArgumentOutOfRangeException();
             }

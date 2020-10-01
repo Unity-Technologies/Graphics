@@ -391,7 +391,7 @@ namespace UnityEditor.ShaderGraph
                                 tSlot.value = tProp.value;
                         }
                         break;
-                    case ConcreteSlotValueType.Float:
+                    case ConcreteSlotValueType.Vector1:
                         {
                             var tSlot = slot as Vector1MaterialSlot;
                             var tProp = prop as Vector1ShaderProperty;

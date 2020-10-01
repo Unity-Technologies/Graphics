@@ -62,7 +62,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         {
             m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V1Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn1));
             var dynOut1 = m_DynamicNode.FindOutputSlot<MaterialSlot>(DynamicNode.DynOut);
-            Assert.AreEqual(ConcreteSlotValueType.Float, dynOut1.concreteValueType);
+            Assert.AreEqual(ConcreteSlotValueType.Vector1, dynOut1.concreteValueType);
         }
 
         [Test]
@@ -71,7 +71,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V1Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn1));
             m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V1Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn2));
             var dynOut1 = m_DynamicNode.FindOutputSlot<MaterialSlot>(DynamicNode.DynOut);
-            Assert.AreEqual(ConcreteSlotValueType.Float, dynOut1.concreteValueType);
+            Assert.AreEqual(ConcreteSlotValueType.Vector1, dynOut1.concreteValueType);
         }
 
         [Test]
