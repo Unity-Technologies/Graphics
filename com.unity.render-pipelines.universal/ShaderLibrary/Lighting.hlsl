@@ -845,7 +845,7 @@ half4 CalculateDebugLightingComplexityColor(InputData inputData)
 
 bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData surfaceData, inout BRDFData brdfData, out half4 debugColor)
 {
-    if(_DebugMaterialIndex == DEBUG_LIGHTING_COMPLEXITY)
+    if(_DebugMaterialIndex == DEBUG_MATERIAL_LIGHTING_COMPLEXITY)
     {
         debugColor = CalculateDebugLightingComplexityColor(inputData);
         return true;
@@ -860,7 +860,7 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
         {
             surfaceData.albedo = CalculateDebugShadowCascadeColor(inputData);
         }
-        else if ((_DebugMaterialIndex == DEBUG_LOD) && CalculateColorForDebug(inputData, surfaceData, debugData, debugColor))
+        else if ((_DebugMaterialIndex == DEBUG_MATERIAL_LOD) && CalculateColorForDebug(inputData, surfaceData, debugData, debugColor))
         {
             surfaceData.albedo = debugColor.rgb;
         }
@@ -875,13 +875,13 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
         // Update the BRDF data following any changes to the input/surface above...
         brdfData = CreateBRDFData(surfaceData);
 
-        return (_DebugMaterialIndex != DEBUG_LOD) && CalculateColorForDebug(inputData, surfaceData, debugData, debugColor);
+        return (_DebugMaterialIndex != DEBUG_MATERIAL_LOD) && CalculateColorForDebug(inputData, surfaceData, debugData, debugColor);
     }
 }
 
 bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData surfaceData, DebugData debugData, out half4 debugColor)
 {
-    if(_DebugMaterialIndex == DEBUG_LIGHTING_COMPLEXITY)
+    if(_DebugMaterialIndex == DEBUG_MATERIAL_LIGHTING_COMPLEXITY)
     {
         debugColor = CalculateDebugLightingComplexityColor(inputData);
         return true;
@@ -894,7 +894,7 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
         {
             surfaceData.albedo = CalculateDebugShadowCascadeColor(inputData);
         }
-        else if ((_DebugMaterialIndex == DEBUG_LOD) && CalculateColorForDebug(inputData, surfaceData, debugData, debugColor))
+        else if ((_DebugMaterialIndex == DEBUG_MATERIAL_LOD) && CalculateColorForDebug(inputData, surfaceData, debugData, debugColor))
         {
             surfaceData.albedo = debugColor.rgb;
         }
@@ -906,7 +906,7 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
             }
         }
 
-        return (_DebugMaterialIndex != DEBUG_LOD) && CalculateColorForDebug(inputData, surfaceData, debugData, debugColor);
+        return (_DebugMaterialIndex != DEBUG_MATERIAL_LOD) && CalculateColorForDebug(inputData, surfaceData, debugData, debugColor);
     }
 }
 

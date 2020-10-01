@@ -2,26 +2,27 @@
 #ifndef UNIVERSAL_DEBUGGING_INCLUDED
 #define UNIVERSAL_DEBUGGING_INCLUDED
 
-#define DEBUG_UNLIT 1
-#define DEBUG_DIFFUSE 2
-#define DEBUG_SPECULAR 3
-#define DEBUG_ALPHA 4
-#define DEBUG_SMOOTHNESS 5
-#define DEBUG_OCCLUSION 6
-#define DEBUG_EMISSION 7
-#define DEBUG_NORMAL_WORLD_SPACE 8
-#define DEBUG_NORMAL_TANGENT_SPACE 9
-#define DEBUG_LIGHTING_COMPLEXITY 10
-#define DEBUG_LOD 11
-#define DEBUG_METALLIC 12
+#define DEBUG_MATERIAL_NONE 0
+#define DEBUG_MATERIAL_UNLIT 1
+#define DEBUG_MATERIAL_DIFFUSE 2
+#define DEBUG_MATERIAL_SPECULAR 3
+#define DEBUG_MATERIAL_ALPHA 4
+#define DEBUG_MATERIAL_SMOOTHNESS 5
+#define DEBUG_MATERIAL_OCCLUSION 6
+#define DEBUG_MATERIAL_EMISSION 7
+#define DEBUG_MATERIAL_NORMAL_WORLD_SPACE 8
+#define DEBUG_MATERIAL_NORMAL_TANGENT_SPACE 9
+#define DEBUG_MATERIAL_LIGHTING_COMPLEXITY 10
+#define DEBUG_MATERIAL_LOD 11
+#define DEBUG_MATERIAL_METALLIC 12
 int _DebugMaterialIndex;
 
+#define DEBUG_LIGHTING_NONE 0
 #define DEBUG_LIGHTING_SHADOW_CASCADES 1
 #define DEBUG_LIGHTING_LIGHT_ONLY 2
 #define DEBUG_LIGHTING_LIGHT_DETAIL 3
 #define DEBUG_LIGHTING_REFLECTIONS 4
 #define DEBUG_LIGHTING_REFLECTIONS_WITH_SMOOTHNESS 5
-
 int _DebugLightingIndex;
 
 #define DEBUG_ATTRIBUTE_TEXCOORD0 1
@@ -382,45 +383,45 @@ bool CalculateColorForDebugMaterial(InputData inputData, SurfaceData surfaceData
     // Debug materials...
     switch(_DebugMaterialIndex)
     {
-        case DEBUG_UNLIT:
+        case DEBUG_MATERIAL_UNLIT:
             color.rgb = surfaceData.albedo;
             return true;
 
-        case DEBUG_DIFFUSE:
+        case DEBUG_MATERIAL_DIFFUSE:
             color.rgb = debugData.brdfDiffuse;
             return true;
 
-        case DEBUG_SPECULAR:
+        case DEBUG_MATERIAL_SPECULAR:
             color.rgb = debugData.brdfSpecular;
             return true;
 
-        case DEBUG_ALPHA:
+        case DEBUG_MATERIAL_ALPHA:
             color.rgb = (1.0 - surfaceData.alpha).xxx;
             return true;
 
-        case DEBUG_SMOOTHNESS:
+        case DEBUG_MATERIAL_SMOOTHNESS:
             color.rgb = surfaceData.smoothness.xxx;
             return true;
 
-        case DEBUG_OCCLUSION:
+        case DEBUG_MATERIAL_OCCLUSION:
             color.rgb = surfaceData.occlusion.xxx;
             return true;
 
-        case DEBUG_EMISSION:
+        case DEBUG_MATERIAL_EMISSION:
             color.rgb = surfaceData.emission;
             return true;
 
-        case DEBUG_NORMAL_WORLD_SPACE:
+        case DEBUG_MATERIAL_NORMAL_WORLD_SPACE:
             color.rgb = inputData.normalWS.xyz * 0.5 + 0.5;
             return true;
 
-        case DEBUG_NORMAL_TANGENT_SPACE:
+        case DEBUG_MATERIAL_NORMAL_TANGENT_SPACE:
             color.rgb = surfaceData.normalTS.xyz * 0.5 + 0.5;
             return true;
-        case DEBUG_LOD:
+        case DEBUG_MATERIAL_LOD:
             color.rgb = GetLODDebugColor().rgb;
             return true;
-        case DEBUG_METALLIC:
+        case DEBUG_MATERIAL_METALLIC:
             color.rgb = surfaceData.metallic.xxx;
             return true;
 
