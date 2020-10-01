@@ -265,15 +265,30 @@ namespace UnityEditor.Rendering
             var menu = new GenericMenu();
 
             if (id == 0)
+            {
                 menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Move Up"));
+                menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Move to Top"));
+            }
             else
+            {
+                menu.AddItem(EditorGUIUtility.TrTextContent("Move to Top"), false, () => MoveComponent(id, -id));
                 menu.AddItem(EditorGUIUtility.TrTextContent("Move Up"), false, () => MoveComponent(id, -1));
+            }
 
             if (id == m_Editors.Count - 1)
+            {
+                menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Move to Bottom"));
                 menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Move Down"));
+            }
             else
+            {
+                menu.AddItem(EditorGUIUtility.TrTextContent("Move to Bottom"), false, () => MoveComponent(id, (m_Editors.Count -1) - id));
                 menu.AddItem(EditorGUIUtility.TrTextContent("Move Down"), false, () => MoveComponent(id, 1));
+            }
 
+            menu.AddSeparator(string.Empty);
+            menu.AddItem(EditorGUIUtility.TrTextContent("Collapse All"), false, () => CollapseComponents());
+            menu.AddItem(EditorGUIUtility.TrTextContent("Expand All"), false, () => ExpandComponents());
             menu.AddSeparator(string.Empty);
             menu.AddItem(EditorGUIUtility.TrTextContent("Reset"), false, () => ResetComponent(targetComponent.GetType(), id));
             menu.AddItem(EditorGUIUtility.TrTextContent("Remove"), false, () => RemoveComponent(id));
@@ -424,6 +439,31 @@ namespace UnityEditor.Rendering
             m_Editors[id + offset] = m_Editors[id];
             m_Editors[id] = prev;
         }
+
+        internal void CollapseComponents()
+        {
+            // Move components
+            m_SerializedObject.Update();
+            int numEditors = m_Editors.Count;
+            for (int i = 0; i < numEditors; ++i)
+            {
+                m_Editors[i].baseProperty.isExpanded = false;
+            }
+            m_SerializedObject.ApplyModifiedProperties();
+        }
+
+        internal void ExpandComponents()
+        {
+            // Move components
+            m_SerializedObject.Update();
+            int numEditors = m_Editors.Count;
+            for (int i = 0; i < numEditors; ++i)
+            {
+                m_Editors[i].baseProperty.isExpanded = true;
+            }
+            m_SerializedObject.ApplyModifiedProperties();
+        }
+        
 
         static bool CanPaste(VolumeComponent targetComponent)
         {
