@@ -224,11 +224,9 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 {
                     // The camera is not shared, so it is safe to use it directly in the layer (no need to clone it)
                     m_LayerCamera = m_Camera;
-                    Debug.Log($"Camera {m_Camera.name} was used directly");
                 }
                 else
                 {
-                    Debug.Log($"Camera {m_Camera.name} was cloned");
                     // Clone the camera that was given by the user. We avoid calling Instantiate because we don't want to clone any other children that might be attachen to the camera 
                     var newCameraGameObject = new GameObject("Layer " + layerID)
                     {
