@@ -202,27 +202,22 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void AddPropertyItems(GenericMenu gm)
         {
-            Dictionary<Type, BlackboardInputInfo> blackboardInputInfos = new Dictionary<Type, BlackboardInputInfo>();
-
-            var shaderInputTypes = TypeCache.GetTypesDerivedFrom<ShaderInput>();
+            var shaderInputTypes = TypeCache.GetTypesWithAttribute<BlackboardInputInfo>().ToList();
 
             // Sort the ShaderInput by priority using the BlackboardInputInfo attribute
-            var sortedInputTypes = shaderInputTypes.OrderBy(t => {
-                var info = Attribute.GetCustomAttribute(t, typeof(BlackboardInputInfo)) as BlackboardInputInfo;
-
-                if (info != null)
-                    return info.priority;
+            shaderInputTypes.Sort((s1, s2) => {
+                var info1 = Attribute.GetCustomAttribute(s1, typeof(BlackboardInputInfo)) as BlackboardInputInfo;
+                var info2 = Attribute.GetCustomAttribute(s2, typeof(BlackboardInputInfo)) as BlackboardInputInfo;
+            
+                if (info1.priority == info2.priority)
+                    return (info1.name ?? s1.Name).CompareTo(info2.name ?? s2.Name);
                 else
-                    return int.MaxValue; // By default fields without BlackboardInputInfo will be at the end
+                    return info1.priority.CompareTo(info2.priority);
             });
 
-            foreach (var t in sortedInputTypes)
+            foreach (var t in shaderInputTypes)
             {
                 if (t.IsAbstract)
-                    continue;
-
-                // Shader Keywords are handled differently
-                if (t == typeof(ShaderKeyword))
                     continue;
 
                 var info = Attribute.GetCustomAttribute(t, typeof(BlackboardInputInfo)) as BlackboardInputInfo;
