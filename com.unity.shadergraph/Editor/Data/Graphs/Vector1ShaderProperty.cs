@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph.Internal
             displayName = "Float";
         }
         
-        public override PropertyType propertyType => PropertyType.Vector1;
+        public override PropertyType propertyType => PropertyType.Float;
         
         internal override bool isBatchable => true;
         internal override bool isExposable => true;
