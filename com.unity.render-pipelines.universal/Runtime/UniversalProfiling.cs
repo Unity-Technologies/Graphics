@@ -47,13 +47,16 @@ namespace UnityEngine.Rendering.Universal
     // Keeps most of the profiling related things organized in one place.
     // Static global state, mostly read/sometimes write, non-thread safe (like most things in Universal).
     //
-    // Example:
-    // // Cached CPU
-    // using var profScope = UniversalProfiling.GetCPUScope(URPProfileId.DrawOpaqueObjects);
-    // using var profScope = UniversalProfiling.GetCPUScope(MethodBase.GetCurrentMethod());
-    // using var profScope = UniversalProfiling.GetCPUScope("example name");
-    // // Static GPU
-    // using( UniversalProfiling.GetGPUCPUScope( cmd, UniversalProfiling.Pipeline.ExampleStaticSampler ) ) { ... }
+    // Examples:
+    // Single line scopes with cached & static samplers:
+    // using var profScope = UniversalProfiling.GetCpuScope(myStaticSampler);
+    // using var profScope = UniversalProfiling.GetCpuScope(URPProfileId.DrawOpaqueObjects);  // Tracked by perf framework
+    // using var profScope = UniversalProfiling.GetCpuScope(MethodBase.GetCurrentMethod());
+    // using var profScope = UniversalProfiling.GetCpuScope("example name");
+    // using var profScope = UniversalProfiling.GetGpuCpuScope(cmd, "example gpu name");
+    // Scoped scope with a static sampler:
+    // using( UniversalProfiling.GetGpuCpuScope( cmd, UniversalProfiling.Pipeline.ExampleStaticSampler ) ) { ... }
+
     internal static class UniversalProfiling
     {
         private static Dictionary<string, ProfilingSampler> m_StringSamplerCache = new Dictionary<string, ProfilingSampler>();
@@ -66,6 +69,12 @@ namespace UnityEngine.Rendering.Universal
         {
             // TODO: with Net 5.0 support
             // m_StringSamplerCache.EnsureCapacity(64);
+        }
+
+        public static void Clear()
+        {
+            m_StringSamplerCache.Clear();
+            m_HashSamplerCache.Clear();
         }
 
         // Creates a ProfilingScope for immediate CPU profiling only.
@@ -220,34 +229,38 @@ namespace UnityEngine.Rendering.Universal
         // Roughly categorized using structs.
         public static class Pipeline
         {
-            public static readonly ProfilingSampler beginFrameRendering  = new ProfilingSampler("BeginFrameRendering");
-            public static readonly ProfilingSampler endFrameRendering    = new ProfilingSampler("EndFrameRendering");
-            public static readonly ProfilingSampler beginCameraRendering = new ProfilingSampler("BeginCameraRendering");
-            public static readonly ProfilingSampler endCameraRendering   = new ProfilingSampler("EndCameraRendering");
-        };
+            const string Name = nameof(UniversalRenderPipeline);
+            public static readonly ProfilingSampler BeginFrameRendering  = new ProfilingSampler("BeginFrameRendering");
+            public static readonly ProfilingSampler EndFrameRendering    = new ProfilingSampler("EndFrameRendering");
+            public static readonly ProfilingSampler BeginCameraRendering = new ProfilingSampler("BeginCameraRendering");
+            public static readonly ProfilingSampler EndCameraRendering   = new ProfilingSampler("EndCameraRendering");
 
         public static class Renderer
         {
-            // From pipeline
-            public static readonly ProfilingSampler SetupCullingParameters = new ProfilingSampler(nameof(ScriptableRenderer) + "." + nameof(ScriptableRenderer.SetupCullingParameters));
-            public static readonly ProfilingSampler Setup                  = new ProfilingSampler(nameof(ScriptableRenderer) + "." + nameof(ScriptableRenderer.Setup));
+                const string Name = nameof(ScriptableRenderer);
+                public static readonly ProfilingSampler SetupCullingParameters = new ProfilingSampler($"{Name}.{nameof(ScriptableRenderer.SetupCullingParameters)}");
+                public static readonly ProfilingSampler Setup                  = new ProfilingSampler($"{Name}.{nameof(ScriptableRenderer.Setup)}");
         };
 
         public static class Context
         {
-            // From pipeline
-            public static readonly ProfilingSampler Submit = new ProfilingSampler(nameof(ScriptableRenderContext) + "." + nameof(ScriptableRenderContext.Submit));
+                const string Name = nameof(Context);
+                public static readonly ProfilingSampler Submit = new ProfilingSampler($"{Name}.{nameof(ScriptableRenderContext.Submit)}");
         };
 
         public static class XR
         {
             public static readonly ProfilingSampler MirrorView = new ProfilingSampler("XR Mirror View");
         };
+        };
 
+        public static class Renderer
+        {
         public static class RenderPass
         {
-            // From ScriptableRenderer
-            public static readonly ProfilingSampler Configure = new ProfilingSampler("Configure");
+                const string Name = nameof(ScriptableRenderPass);
+                public static readonly ProfilingSampler Configure = new ProfilingSampler($"{Name}.{nameof(ScriptableRenderPass.Configure)}");
+            }
         }
     }
 }

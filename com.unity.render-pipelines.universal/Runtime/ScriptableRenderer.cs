@@ -294,7 +294,7 @@ namespace UnityEngine.Rendering.Universal
 
         public ScriptableRenderer(ScriptableRendererData data)
         {
-            profilingExecute = new ProfilingSampler(nameof(ScriptableRenderer) + "." + nameof(ScriptableRenderer.Execute)+ ": " + data.name);
+            profilingExecute = new ProfilingSampler($"{nameof(ScriptableRenderer)}.{nameof(ScriptableRenderer.Execute)}: {data.name}");
 
             foreach (var feature in data.rendererFeatures)
             {
@@ -605,7 +605,7 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get();
 
             // Track CPU only as GPU markers for this scope were "too noisy".
-            using (UniversalProfiling.GetCpuScope(UniversalProfiling.RenderPass.Configure))
+            using (UniversalProfiling.GetCpuScope(UniversalProfiling.Renderer.RenderPass.Configure))
             {
                 renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
                 SetRenderPassAttachments(cmd, renderPass, ref cameraData);

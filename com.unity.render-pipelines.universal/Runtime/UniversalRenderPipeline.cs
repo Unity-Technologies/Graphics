@@ -125,7 +125,7 @@ namespace UnityEngine.Rendering.Universal
             using var profScope = UniversalProfiling.GetCpuScope(URPProfileId.UniversalRenderTotal);
 
             // TODO: Would be better to add Profiling name hooks into RenderPipeline.cs
-            using(new ProfilingScope(null, UniversalProfiling.Pipeline.beginFrameRendering))
+            using(new ProfilingScope(null, UniversalProfiling.Pipeline.BeginFrameRendering))
             {
                 BeginFrameRendering(renderContext, cameras);
             }
@@ -147,7 +147,7 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-                    using (new ProfilingScope(null, UniversalProfiling.Pipeline.beginCameraRendering))
+                    using (new ProfilingScope(null, UniversalProfiling.Pipeline.BeginCameraRendering))
                     {
                         BeginCameraRendering(renderContext, camera);
                     }
@@ -159,14 +159,14 @@ namespace UnityEngine.Rendering.Universal
 
                     RenderSingleCamera(renderContext, camera);
 
-                    using (new ProfilingScope(null, UniversalProfiling.Pipeline.endCameraRendering))
+                    using (new ProfilingScope(null, UniversalProfiling.Pipeline.EndCameraRendering))
                     {
                         EndCameraRendering(renderContext, camera);
                     }
                 }
             }
 
-            using (new ProfilingScope(null, UniversalProfiling.Pipeline.endFrameRendering))
+            using (new ProfilingScope(null, UniversalProfiling.Pipeline.EndFrameRendering))
             {
                 EndFrameRendering(renderContext, cameras);
             }
@@ -246,7 +246,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 renderer.Clear(cameraData.renderType);
 
-                using (UniversalProfiling.GetGpuCpuScope( cmd, UniversalProfiling.Renderer.SetupCullingParameters))
+                using (UniversalProfiling.GetGpuCpuScope( cmd, UniversalProfiling.Pipeline.Renderer.SetupCullingParameters))
                 {
                     renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
                 }
@@ -270,7 +270,7 @@ namespace UnityEngine.Rendering.Universal
                     ApplyAdaptivePerformance(ref renderingData);
 #endif
 
-                using (UniversalProfiling.GetGpuCpuScope(cmd, UniversalProfiling.Renderer.Setup))
+                using (UniversalProfiling.GetGpuCpuScope(cmd, UniversalProfiling.Pipeline.Renderer.Setup))
                 {
                     renderer.Setup(context, ref renderingData);
                 }
@@ -284,7 +284,7 @@ namespace UnityEngine.Rendering.Universal
             context.ExecuteCommandBuffer(cmd); // Sends to ScriptableRenderContext all the commands enqueued since cmd.Clear, i.e the "EndSample" command
             CommandBufferPool.Release(cmd);
 
-            using (UniversalProfiling.GetCpuScope(UniversalProfiling.Context.Submit))
+            using (UniversalProfiling.GetCpuScope(UniversalProfiling.Pipeline.Context.Submit))
             {
                 context.Submit(); // Actually execute the commands that we previously sent to the ScriptableRenderContext context
             }
@@ -381,7 +381,7 @@ namespace UnityEngine.Rendering.Universal
                     m_XRSystem.UpdateCameraData(ref baseCameraData, baseCameraData.xr);
                 }
 #endif
-                using(new ProfilingScope(null, UniversalProfiling.Pipeline.beginCameraRendering))
+                using(new ProfilingScope(null, UniversalProfiling.Pipeline.BeginCameraRendering))
                 {
                     BeginCameraRendering(context, baseCamera);
                 }
@@ -395,7 +395,7 @@ namespace UnityEngine.Rendering.Universal
                     ApplyAdaptivePerformance(ref baseCameraData);
 #endif
                 RenderSingleCamera(context, baseCameraData, anyPostProcessingEnabled);
-                using (new ProfilingScope(null, UniversalProfiling.Pipeline.endCameraRendering))
+                using (new ProfilingScope(null, UniversalProfiling.Pipeline.EndCameraRendering))
                 {
                     EndCameraRendering(context, baseCamera);
                 }
@@ -416,7 +416,7 @@ namespace UnityEngine.Rendering.Universal
                             CameraData overlayCameraData = baseCameraData;
                             bool lastCamera = i == lastActiveOverlayCameraIndex;
 
-                            using (new ProfilingScope(null, UniversalProfiling.Pipeline.beginCameraRendering))
+                            using (new ProfilingScope(null, UniversalProfiling.Pipeline.BeginCameraRendering))
                             {
                                 BeginCameraRendering(context, currCamera);
                             }
@@ -432,7 +432,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
                             RenderSingleCamera(context, overlayCameraData, anyPostProcessingEnabled);
 
-                            using (new ProfilingScope(null, UniversalProfiling.Pipeline.endCameraRendering))
+                            using (new ProfilingScope(null, UniversalProfiling.Pipeline.EndCameraRendering))
                             {
                                 EndCameraRendering(context, currCamera);
                             }
@@ -448,7 +448,7 @@ namespace UnityEngine.Rendering.Universal
             if (xrActive)
             {
                 CommandBuffer cmd = CommandBufferPool.Get();
-                using (new ProfilingScope(cmd, UniversalProfiling.XR.MirrorView))
+                using (new ProfilingScope(cmd, UniversalProfiling.Pipeline.XR.MirrorView))
                 {
                     m_XRSystem.RenderMirrorView(cmd, baseCamera);
                 }

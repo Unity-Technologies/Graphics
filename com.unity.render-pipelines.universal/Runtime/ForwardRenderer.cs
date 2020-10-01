@@ -87,7 +87,7 @@ namespace UnityEngine.Rendering.Universal
 
         public ForwardRenderer(ForwardRendererData data) : base(data)
         {
-            m_ProfilingSetup = new ProfilingSampler(GetType().Name + ".Setup");
+            m_ProfilingSetup = new ProfilingSampler($"{nameof(ForwardRenderer)}.{nameof(Setup)}");
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             UniversalRenderPipeline.m_XRSystem.InitializeXRSystemData(data.xrSystemData);
