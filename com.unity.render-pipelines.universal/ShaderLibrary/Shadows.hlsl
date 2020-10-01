@@ -22,12 +22,18 @@
     #endif
 #endif
 
+#if defined(UNITY_DOTS_INSTANCING_ENABLED)
+#define SHADOWMASK_NAME unity_ShadowMasks
+#define SHADOWMASK_SAMPLER_NAME samplerunity_ShadowMasks
+#define SHADOWMASK_SAMPLE_EXTRA_ARGS uv, unity_LightmapIndex.x
+#else
+#define SHADOWMASK_NAME unity_ShadowMask
+#define SHADOWMASK_SAMPLER_NAME samplerunity_ShadowMask
+#define SHADOWMASK_SAMPLE_EXTRA_ARGS uv
+#endif
+
 #if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
-    #ifdef UNITY_DOTS_INSTANCING_ENABLED
-        #define SAMPLE_SHADOWMASK(uv) SAMPLE_TEXTURE2D_ARRAY(unity_ShadowMasks, samplerunity_ShadowMasks_linear_clamp, uv, unity_LightmapIndex.x);
-    #else
-        #define SAMPLE_SHADOWMASK(uv) SAMPLE_TEXTURE2D(unity_ShadowMask, samplerunity_ShadowMask, uv);
-    #endif
+    #define SAMPLE_SHADOWMASK(uv) TEXTURE2D_LIGHTMAP_ARGS(SHADOWMASK_NAME, SHADOWMASK_SAMPLER_NAME, SHADOWMASK_SAMPLE_EXTRA_ARGS);
 #elif !defined (LIGHTMAP_ON)
     #define SAMPLE_SHADOWMASK(uv) unity_ProbesOcclusion;
 #else

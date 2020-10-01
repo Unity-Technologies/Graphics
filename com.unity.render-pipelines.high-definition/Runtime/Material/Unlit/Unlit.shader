@@ -94,11 +94,6 @@ Shader "HDRP/Unlit"
         // Debug constants must be exposed as properties so the shader is compatible
         // with the SRP batcher
         [HideInInspector] _UnlitColorMap_MipInfo("_UnlitColorMap_MipInfo", Vector) = (0, 0, 0, 0)
-
-        
-        [HideInInspector][NoScaleOffset]unity_Lightmaps("unity_Lightmaps", 2DArray) = "" {}
-        [HideInInspector][NoScaleOffset]unity_LightmapsInd("unity_LightmapsInd", 2DArray) = "" {}
-        [HideInInspector][NoScaleOffset]unity_ShadowMasks("unity_ShadowMasks", 2DArray) = "" {}
     }
 
     HLSLINCLUDE
@@ -581,7 +576,7 @@ Shader "HDRP/Unlit"
 
             #define SHADOW_LOW
             #pragma multi_compile _ TRANSPARENT_COLOR_SHADOW
-            
+
             #define SHADERPASS SHADERPASS_RAYTRACING_VISIBILITY
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
