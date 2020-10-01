@@ -10,6 +10,7 @@ namespace UnityEditor.ShaderGraph.Internal
     [Serializable]
     [FormerName("UnityEditor.ShaderGraph.FloatShaderProperty")]
     [FormerName("UnityEditor.ShaderGraph.Vector1ShaderProperty")]
+    [BlackboardInputInfo(0)]
     public sealed class Vector1ShaderProperty : AbstractShaderProperty<float>
     {
         internal Vector1ShaderProperty()
