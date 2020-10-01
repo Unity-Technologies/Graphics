@@ -117,6 +117,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with box light not visible if range is below one and range attenuation is off.
 - Fixed alpha not having TAA applied to it.
 - Fixed issue with bloom showing a thin black line after rescaling window. 
+- LOD meshes are now properly stripped based on the maximum lod value parameters contained in the HDRP asset.
+- Fixed an inconsistency in the LOD group UI where LOD bias was not the right one.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
