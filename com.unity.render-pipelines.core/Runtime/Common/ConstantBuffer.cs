@@ -161,6 +161,11 @@ namespace UnityEngine.Rendering
             {
                 m_Data[0] = data;
                 cmd.SetBufferData(m_GPUConstantBuffer, m_Data);
+#if UNITY_2021_1_OR_NEWER
+                cmd.SetBufferData(m_GPUConstantBuffer, m_Data);
+#else
+                cmd.SetComputeBufferData(m_GPUConstantBuffer, m_Data);
+#endif
             }
 
             public void SetGlobal(CommandBuffer cmd, int shaderId)
