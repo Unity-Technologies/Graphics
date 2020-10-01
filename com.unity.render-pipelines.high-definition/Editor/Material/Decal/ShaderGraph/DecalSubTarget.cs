@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/"
         };
         protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
-        protected override string customInspector => "Rendering.HighDefinition.DecalGUI";
+        protected override string customInspector => "Rendering.HighDefinition.DecalShaderGraphGUI";
         protected override string renderType => HDRenderTypeTags.Opaque.ToString();
         protected override string renderQueue => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Opaque, decalData.drawOrder, false, false));
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Decal;

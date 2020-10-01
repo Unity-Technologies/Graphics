@@ -81,7 +81,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Implement your custom GUI in this function. To display a UI similar to HDRP shaders, use a MaterialUIBlock.
+        /// Implement your custom GUI in this function. To display a UI similar to HDRP shaders, use a MaterialUIBlockList.
         /// </summary>
         /// <param name="materialEditor">The current material editor.</param>
         /// <param name="props">The list of properties the material has.</param>

@@ -9,9 +9,9 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
-    /// GUI for HDRP Shadergraph Decal materials
+    /// GUI for HDRP Shadergraph Decal materials.
     /// </summary>
-    class DecalGUI : DecalShaderGraphGUI
+    public class DecalShaderGraphGUI : HDShaderGUI
     {
         [Flags]
         enum ExpandableBit : uint
@@ -21,13 +21,21 @@ namespace UnityEditor.Rendering.HighDefinition
             Sorting = 1 << 2,
         }
 
-        MaterialUIBlockList uiBlocks = new MaterialUIBlockList
+        MaterialUIBlockList m_UIBlocks = new MaterialUIBlockList
         {
             new DecalSurfaceOptionsUIBlock((MaterialUIBlock.ExpandableBit)ExpandableBit.SurfaceOptions),
             new ShaderGraphUIBlock((MaterialUIBlock.ExpandableBit)ExpandableBit.SurfaceInputs, ShaderGraphUIBlock.Features.None),
             new DecalSortingInputsUIBlock((MaterialUIBlock.ExpandableBit)ExpandableBit.Sorting),
         };
 
+        /// <summary>List of UI Blocks used to render the material inspector.</summary>
+        protected MaterialUIBlockList uiBlocks => m_UIBlocks;
+
+        /// <summary>
+        /// Implement your custom GUI in this function. To display a UI similar to HDRP shaders, use a MaterialUIBlockList.
+        /// </summary>
+        /// <param name="materialEditor">The current material editor.</param>
+        /// <param name="props">The list of properties the material has.</param>
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             // always instanced
@@ -44,12 +52,18 @@ namespace UnityEditor.Rendering.HighDefinition
             materialEditor.serializedObject.ApplyModifiedProperties();
         }
 
-        // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
-        static public void SetupDecalKeywordsAndPass(Material material)
-        {
-            DecalUI.SetupCommonDecalMaterialKeywordsAndPass(material);
-        }
 
+        // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
+        /// <summary>
+        /// Sets up the keywords and passes for a Decal Shader Graph material.
+        /// </summary>
+        /// <param name="material"></param>
+        public static void SetupDecalKeywordsAndPass(Material material) => DecalUI.SetupCommonDecalMaterialKeywordsAndPass(material);
+
+        /// <summary>
+        /// Sets up the keywords and passes for the current selected material.
+        /// </summary>
+        /// <param name="material">The selected material.</param>
         protected override void SetupMaterialKeywordsAndPass(Material material) => SetupDecalKeywordsAndPass(material);
     }
 }
