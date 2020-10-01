@@ -56,7 +56,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         #region Resources
-        [DebuggerDisplay("Resource ({ResType}:{GetName()})")]
+        [DebuggerDisplay("Resource ({GetType().Name}:{GetName()})")]
         class RenderGraphResource<DescType, ResType>
             : IRenderGraphResource
             where DescType : struct
@@ -181,9 +181,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return res.resource;
         }
 
-        internal void BeginRender(int currentFrameIndex)
+        internal void BeginRender(int currentFrameIndex, int executionCount)
         {
             m_CurrentFrameIndex = currentFrameIndex;
+            ResourceHandle.NewFrame(executionCount);
             current = this;
         }
 
@@ -243,7 +244,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (m_CurrentBackbuffer != null)
                 m_CurrentBackbuffer.SetTexture(rt);
             else
-                m_CurrentBackbuffer = RTHandles.Alloc(rt);
+                m_CurrentBackbuffer = RTHandles.Alloc(rt, "Backbuffer");
 
             int newHandle = AddNewResource(m_Resources[(int)RenderGraphResourceType.Texture], out TextureResource texResource);
             texResource.resource = m_CurrentBackbuffer;
@@ -575,6 +576,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             m_TexturePool.Cleanup();
             m_ComputeBufferPool.Cleanup();
+
+            RTHandles.Release(m_CurrentBackbuffer);
         }
 
         void LogTextureCreation(TextureResource rt)
@@ -616,6 +619,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 m_Logger.LogLine("==== Allocated Resources ====\n");
 
                 m_TexturePool.LogResources(m_Logger);
+                m_Logger.LogLine("");
                 m_ComputeBufferPool.LogResources(m_Logger);
             }
         }

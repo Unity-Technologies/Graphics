@@ -115,6 +115,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a warning in materialevalulation
 - Fixed an error when building the player.
 - Fixed issue with box light not visible if range is below one and range attenuation is off.
+- Fixed alpha not having TAA applied to it.
+- Fixed issue with bloom showing a thin black line after rescaling window. 
 - Fixed error Maximum allowed thread group count is 65535 when resolution is very high. 
 
 ### Changed
@@ -144,6 +146,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - On platforms that allow it skip the first mip of the depth pyramid and compute it alongside the depth buffer used for low res transparents.
 - When trying to install the local configuration package, if another one is already present the user is now asked whether they want to keep it or not.
 - Improved MSAA color resolve to fix issues when very bright and very dark samples are resolved together.
+- Improve performance of GPU light AABB generation
 
 ## [10.0.0] - 2019-06-10
 
