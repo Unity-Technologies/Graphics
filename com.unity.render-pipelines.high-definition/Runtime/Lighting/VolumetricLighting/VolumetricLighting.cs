@@ -214,8 +214,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // These two buffers do not depend on the frameID and are therefore shared by all views.
         RTHandle                      m_DensityBuffer;
         RTHandle                      m_LightingBuffer;
+        RTHandle                      m_MaxZMask8x;
         RTHandle                      m_MaxZMask;
-        Vector3Int                    m_CurrentVolumetricBufferSize;
+        RTHandle                      m_DilatedMaxZMask;
+
+        Vector3Int m_CurrentVolumetricBufferSize;
 
         ShaderVariablesVolumetric     m_ShaderVariablesVolumetricCB = new ShaderVariablesVolumetric();
 
@@ -388,16 +391,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return new Vector2Int(viewportWidth & ~7, viewportHeight & ~7);
         }
 
-        static internal void ResizeMaxZMask(ref RTHandle rt, string name, int viewportWidth, int viewportHeight)
+        static internal void ResizeMask(ref RTHandle rt, string name, int viewportWidth, int viewportHeight, GraphicsFormat format)
         {
             Debug.Assert(rt != null);
 
             int width = rt.rt.width;
             int height = rt.rt.height;
 
-            Vector2Int maskSize = GetMaskZDimension(viewportWidth, viewportHeight);
-
-            bool realloc = (width < maskSize.x) || (height < maskSize.y);
+            bool realloc = (width < viewportWidth) || (height < viewportHeight);
 
             if (realloc)
             {
@@ -406,32 +407,70 @@ namespace UnityEngine.Rendering.HighDefinition
                 width = Math.Max(width, viewportWidth);
                 height = Math.Max(height, viewportHeight);
 
-                rt = RTHandles.Alloc(width, height, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat, enableRandomWrite: true, name: name);
+                rt = RTHandles.Alloc(width, height, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: format, enableRandomWrite: true, name: name);
             }
 
         }
 
-        internal void GenerateMaxZ(CommandBuffer cmd, HDCamera camera)
+        internal void GenerateMaxZ(CommandBuffer cmd, HDCamera camera, HDUtils.PackedMipChainInfo depthMipInfo)
         {
 
             // TODO: MOVE TO RG WHEN WORKING
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingBuildCluster)))
             {
-                // TODO: MOVE TO RG WHEN WORKING
+
+                // --------------------------------------------------------------
+                // Downsample 8x8 with max operator
+
                 var cs = defaultResources.shaders.maxZCS;
-                var kernel = cs.FindKernel("ComputeMaxZ16CS");
-                cs.shaderKeywords = null;
+                var kernel = cs.FindKernel("ComputeMaxZ");
 
-                // TODO: SET PROPER DOWNSAMPLE, NOW ONLY 16X DOWNSAMPLE
-                //cmd.EnableShaderKeyword("DOWNSAMPLE16");
+                int maskW = HDUtils.DivRoundUp(camera.actualWidth, 8);
+                int maskH = HDUtils.DivRoundUp(camera.actualHeight, 8);
 
-                int dispatchX = HDUtils.DivRoundUp(camera.actualWidth, 16);
-                int dispatchY = HDUtils.DivRoundUp(camera.actualHeight, 16);
+                int dispatchX = maskW;
+                int dispatchY = maskH;
 
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_MaxZMask);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_MaxZMask8x);
 
                 cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, 1);
 
+                // --------------------------------------------------------------
+                // Downsample to 16x16 and compute gradient
+
+                kernel = cs.FindKernel("ComputeFinalMask");
+
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, m_MaxZMask8x);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_MaxZMask);
+
+                Vector4 srcLimitAndDepthOffset = new Vector4(
+                    maskW,
+                    maskH,
+                    depthMipInfo.mipLevelOffsets[4].x,
+                    depthMipInfo.mipLevelOffsets[4].y
+                    );
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._SrcOffsetAndLimit, srcLimitAndDepthOffset);
+
+                int finalMaskW = maskW / 2;
+                int finalMaskH = maskH / 2;
+
+                dispatchX = HDUtils.DivRoundUp(finalMaskW, 8);
+                dispatchY = HDUtils.DivRoundUp(finalMaskH, 8);
+
+                cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, 1);
+
+                // --------------------------------------------------------------
+                // Dilate max Z and gradient.
+                kernel = cs.FindKernel("DilateMask");
+
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, m_MaxZMask);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_DilatedMaxZMask);
+
+                srcLimitAndDepthOffset.x = finalMaskW;
+                srcLimitAndDepthOffset.y = finalMaskH;
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._SrcOffsetAndLimit, srcLimitAndDepthOffset);
+
+                cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, 1);
             }
 
         }
@@ -528,15 +567,27 @@ namespace UnityEngine.Rendering.HighDefinition
             m_LightingBuffer = RTHandles.Alloc(minSize, minSize, minSize, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, // 8888_sRGB is not precise enough
                                                dimension: TextureDimension.Tex3D, enableRandomWrite: true, name: "VBufferLighting");
 
-            m_MaxZMask = RTHandles.Alloc(minSize, minSize, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat, // 8888_sRGB is not precise enough
+
+            m_MaxZMask8x = RTHandles.Alloc(minSize, minSize, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat, 
+                                    enableRandomWrite: true, name: "MaxZ mask 8x");
+
+            // TMP FORMAT, CHECK FOR R16G16
+
+            m_MaxZMask = RTHandles.Alloc(minSize, minSize, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32G32_SFloat, 
                                                 enableRandomWrite: true, name: "MaxZ mask");
+
+            m_DilatedMaxZMask = RTHandles.Alloc(minSize, minSize, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32G32_SFloat,
+                                    enableRandomWrite: true, name: "Dilated MaxZ mask");
+
         }
 
         internal void DestroyVolumetricLightingBuffers()
         {
             RTHandles.Release(m_LightingBuffer);
             RTHandles.Release(m_DensityBuffer);
+            RTHandles.Release(m_MaxZMask8x);
             RTHandles.Release(m_MaxZMask);
+            RTHandles.Release(m_DilatedMaxZMask);
 
             CoreUtils.SafeRelease(m_VisibleVolumeDataBuffer);
             CoreUtils.SafeRelease(m_VisibleVolumeBoundsBuffer);
@@ -574,7 +625,13 @@ namespace UnityEngine.Rendering.HighDefinition
                                                                             currentParams.viewportSize.y,
                                                                             currentParams.viewportSize.z);
 
-            ResizeMaxZMask(ref m_MaxZMask, "Max Z Mask", currentParams.viewportSize.x, currentParams.viewportSize.y);
+            int maskW = HDUtils.DivRoundUp(hdCamera.actualWidth, 16);
+            int maskH = HDUtils.DivRoundUp(hdCamera.actualHeight, 16);
+
+            ResizeMask(ref m_MaxZMask8x, "Max Z Mask 8x", maskW * 2, maskH * 2, GraphicsFormat.R32_SFloat);
+            // TMP FORMAT, CHECK FOR R16G16
+            ResizeMask(ref m_MaxZMask, "Max Z Mask", maskW, maskH, GraphicsFormat.R32G32_SFloat);
+            ResizeMask(ref m_DilatedMaxZMask, "Dilated Max Z Mask", maskW, maskH, GraphicsFormat.R32G32_SFloat);
 
             // TODO RENDERGRAPH: For now those texture are not handled by render graph.
             // When they are we won't have the m_DensityBuffer handy for getting the current size in UpdateShaderVariablesGlobalVolumetrics
@@ -1046,7 +1103,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     historyRT  = hdCamera.volumetricHistoryBuffers[prevIdx];
                 }
 
-                VolumetricLightingPass(parameters, m_SharedRTManager.GetDepthTexture(), m_DensityBuffer, m_LightingBuffer, m_MaxZMask, historyRT, feedbackRT, m_TileAndClusterData.bigTileLightList, cmd);
+                VolumetricLightingPass(parameters, m_SharedRTManager.GetDepthTexture(), m_DensityBuffer, m_LightingBuffer, m_DilatedMaxZMask, historyRT, feedbackRT, m_TileAndClusterData.bigTileLightList, cmd);
 
                 if (parameters.enableReprojection)
                     hdCamera.volumetricHistoryIsValid = true; // For the next frame...
