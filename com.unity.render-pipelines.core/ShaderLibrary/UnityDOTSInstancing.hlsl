@@ -142,7 +142,7 @@ struct DOTSVisibleData
 // detected as an "instancing cbuffer" by some platforms that use string matching
 // to detect this.
 CBUFFER_START(UnityInstancingDOTS_InstanceVisibility)
-    DOTSVisibleData unity_DOTSVisibleInstances[UNITY_INSTANCED_ARRAY_SIZE];
+    DOTSVisibleData unity_DOTSVisibleInstances[128];
 CBUFFER_END
 
 uint GetDOTSInstanceIndex()

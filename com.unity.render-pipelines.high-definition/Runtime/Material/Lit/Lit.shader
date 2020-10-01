@@ -239,6 +239,8 @@ Shader "HDRP/Lit"
     // Variant
     //-------------------------------------------------------------------------------------
 
+    #pragma enable_d3d11_debug_symbols
+
     #pragma shader_feature_local _ALPHATEST_ON
     #pragma shader_feature_local _ALPHATOMASK_ON
     #pragma shader_feature_local _DEPTHOFFSET_ON

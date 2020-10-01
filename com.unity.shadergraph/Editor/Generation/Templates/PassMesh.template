@@ -19,6 +19,7 @@ Pass
 
     // Pragmas
     $splice(PassPragmas)
+    #pragma enable_d3d11_debug_symbols
 
     $splice(DotsInstancingOptions)
     $splice(HybridV1InjectedBuiltinProperties)
