@@ -177,7 +177,7 @@ Since this feature is a fallback for RTGI, for more information, see [Ray-traced
 
 ### Screen-space reflection and refraction
 
-HDRP provides a screen-space solution for reflection and refraction. It uses the depth and color buffer of the screen to help simulate the path that light travels to the Camera and thus calculate accurate reflection and refraction. For more information, see the [screen-space reflection](Reflection-in-HDRP.md#ScreenSpaceReflection) and [screen-space refraction](Refraction-in-HDRP#ScreenSpaceRefraction) documentation.
+HDRP provides a screen-space solution for reflection and refraction. It uses the depth and color buffer of the screen to help simulate the path that light travels to the Camera and uses this to calculate accurate reflection and refraction. You can use this feature for transparent materials too, such as windows or water. For more information, see the [screen-space reflection](Reflection-in-HDRP.md#ScreenSpaceReflection) and [screen-space refraction](Refraction-in-HDRP#ScreenSpaceRefraction) documentation.
 
 ### Screen-space distortion
 
@@ -188,6 +188,15 @@ HDRP provides a screen-space solution for distortion. Distortion is similar to r
 ![](Images/HDRPFeatures-IESProfiles.png)
 
 HDRP supports the Illuminating Engineering Society's (IES) file format for describing the distribution of light from a light source. HDRP supports the IES profile for Point, Spot (Cone, Pyramid, and Box), and rectangular Area [Lights](Light-Component.md). You can also mix the IES profile with [cookies](https://docs.unity3d.com/Manual/Cookies.html) and even use the profile and cookie mix for [light map baking](https://docs.unity3d.com/Manual/LightMode-Baked.html).
+
+### Exposure
+
+HDRP allows you to calculate exposure using several methods. This includes: 
+
+- Histogram exposure: HDRP's exposure implementation computes a histogram of the image which allows you to select high and low percentile values to discard. Discarding outlying values in the shadows or highlights helps to calculate a more stable exposure.
+- Metering mode: HDRP's exposure implementation includes a metering mask. This includes a texture-based mask and a procedural mode.
+
+For more information, see [Exposure](Override-Exposure.md).
 
 ### Emission
 
@@ -271,6 +280,7 @@ Real time raytracing effect are currently in Preview and behavior could change i
 - [Ray-Traced Reflections](Ray-Traced-Reflections.md) is a replacement for [screen space reflection](Override-Screen-Space-Reflection.md) that uses a ray-traced reflection technique that can use off-screen data.
 - [Ray-Traced Shadows](Ray-Traced-Shadows.md) replace shadow maps for Directional, Point, and Area [Lights](Light-Component.md).
 - [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.md) replaces the rendering pipeline for Meshes. Meshes that use this feature cast refraction and reflection rays recursively.
+- [Ray-Traced Subsurface Scattering](Ray-Traced-Scattering.md) is an alternative to [Subsurface-Scattering](Subsurface-Scattering.md) that can make use of off-screen data.
 
 <a name="Camera"></a>
 
@@ -288,16 +298,50 @@ HDRP includes its own purpose-built implementation for post-processing to produc
 
 HDRP allows you to add your own custom post processes integrated with the volume framework. They can be injected after opaque and sky object, before the [temporal anti-aliasing](Anti-Aliasing.md#TAA) pass, before builtin post processes or after builtin post processes. For more information, see the [Custom Post-processing documentation](Custom-Post-Process.md).
 
+### Path tracing
+
+#### Path-traced depth of field
+
+![](Images/Path-traced-DOF-Feature.png)
+
+HDRP includes a depth of field mode for producing path-traced images with high-quality defocus blur. Compared to post-processed depth of field, this mode works with multiple layers of transparency and does not produce any artifacts, apart from noise typical in path traced images. You can fix this by increasing the sample count and/or using an external denoising tool.
+
+For more information about this feature, see [Depth-of-field](Post-Processing-Depth-of-Field.md).
+
+#### Accumulation motion blur and path tracer convergence APIs
+
+![](Images/Path_tracing_recording-Feature.png)
+
+HDRP includes a recording API which you can use to render effects such as high-quality accumulation motion blur and converged path-traced images. These techniques create the final "converged" frame by combining information from multiple intermediate sub-frames. The new API allows your scripts to extract the properly converged final frames and perform further processing or save them to disk.
+
+For information about this feature, and for some example scripts, see [Multiframe rendering and accumulation](Accumulation.md).
+
+#### Path-traced sub-surface scattering
+
+![](Images/Path-traced-SSS-Feature.png)
+
+Path tracing supports subsurface scattering (SSS), using a random walk approach. To use it, enable path tracing and set up SSS in the same way as you would for HDRP materials.
+
+For information on SSS in HDRP, see [subsurface scattering](Subsurface-Scattering.md).
+
+#### Path-traced fog
+
+![](Images/Path-traced-fog-Feature.png)
+
+Path tracing now supports fog absorption. Like SSS, to use this feature, enable path tracing and set up fog in the same way as you would for standard fog in HDRP.
+
+For information on fog in HDRP, see [fog](Override-Fog.md).
+
 ### Anti-Aliasing
 
 ![](Images/HDRPFeatures-AntiAliasing.png) 
 
 HDRP includes the following [anti-aliasing](Anti-Aliasing.md) methods to help you remove aliasing effects with performance and quality in mind:
 
-- [Multisample anti-aliasing](Anti-Aliasing.md#MSAA): Samples multiple locations within every pixel and combines these samples to produce the final pixel. This is the most resource intensive anti-aliasing technique in HDRP.
-- [Temporal anti-aliasing](Anti-Aliasing.md#TAA): Uses frames from a history buffer to smooth edges more effectively than fast approximate anti-aliasing. It is substantially better at smoothing edges in motion, but you must enable motion vectors for this.
-- [Subpixel morphological anti-aliasing](Anti-Aliasing.md#SMAA): Finds patterns in borders of the image and blends the pixels on these borders according to the pattern.
-- [Fast approximate anti-aliasing](Anti-Aliasing.md#FXAA): Smooths edges on a per-pixel level. This is the least resource intensive anti-aliasing technique in HDRP.
+- [Multisample anti-aliasing](Anti-Aliasing.md#MSAA)(MSAA): Samples multiple locations within every pixel and combines these samples to produce the final pixel. You can use an alpha to mask out an area to use MSAA. This is the most resource intensive anti-aliasing technique in HDRP. 
+- [Temporal anti-aliasing](Anti-Aliasing.md#TAA)(TAA): Uses frames from a history buffer to smooth edges more effectively than fast approximate anti-aliasing. It is substantially better at smoothing edges in motion, but you must enable motion vectors for this.
+- [Subpixel morphological anti-aliasing](Anti-Aliasing.md#SMAA)(SMAA): Finds patterns in borders of the image and blends the pixels on these borders according to the pattern.
+- [Fast approximate anti-aliasing](Anti-Aliasing.md#FXAA)(FXAA): Smooths edges on a per-pixel level. This is the least resource intensive anti-aliasing technique in HDRP.
 
 ### Physical Camera
 
@@ -309,17 +353,15 @@ HDRP uses a physically-based Camera system that works seamlessly with the other 
 
 Custom Passes allow you to inject shader and C# at certain points inside the render loop, giving you the ability to draw objects, do fullscreen passes and read some camera buffers like depth, color or normal, see the [Custom Pass documentation](Custom-Pass.md).
 
+The Custom Pass API allows you to render GameObjects from another point of view, like a disabled camera, within the rendering of your main Camera. This API also comes with built-in support for rendering Depth, Normal and Tangent into an RTHandle.
+
+You can also use this Camera override to render some GameObjects with a different field of view, like arms in a first-person application.
+
 ### Custom Pass AOV Export
 
 ![img](Images/aov_example.png)
 
 This feature allows you to export arbitrary data from custom pass injection points using an extension of the Arbitrary Output Variables (AOV) API in HDRP. An example use-case is for exporting “Object IDs” that are rendered with a custom pass. For information about the feature and example scripts, see the [AOV documentation](AOVs.md).
-
-### Custom Pass API
-
-The Custom Pass API allows you to render GameObjects from another point of view, like a disabled camera, within the rendering of your main Camera. This API also comes with built-in support for rendering Depth, Normal and Tangent into an RTHandle.
-
-You can also use this Camera override to render some GameObjects with a different field of view, like arms in a first-person application.
 
 <a name="Tools"></a>
 
@@ -336,6 +378,45 @@ The Render Pipeline Debugger contains many debugging and visualization tools to 
 ### LookDev
 ![](Images/HDRPFeatures-LookDev.png)
 The LookDev is a viewer that allows you to import and display Assets in a good, consistent lighting environment. Use it to validate outsourced Assets or to showcase your own created Asset with HDRP. For more information on the LookDev, including a description of how to use it, see the [LookDev documentation](Look-Dev.md).
+
+### Debug modes
+
+HDRP includes debug modes that can help you to set the correct exposure for your Scene.
+
+#### Lighting debug view
+
+To help you to debug lighting in your Scene, HDRP includes various lighting debug view modes that allow you to separate the various components of the light into multiple parts. These debug modes are also available in the [AOV](AOVs.md) API to allow recorders to export them:
+
+- Diffuse
+- Specular
+- Direct diffuse
+- Direct specular
+- Indirect diffuse
+- Reflection
+- Refraction
+
+#### Light layer debug mode
+
+HDRP includes a [light layer](Light-Layers.md) debug mode that displays the light layers assigned to each GameObject or highlights GameObjects that match the light layers of a specific Light.
+
+For more information, see the Lighting panel section in the [HDRP debug window](Render-Pipeline-Debug-Window.md).
+
+#### Volume debug mode
+
+The Render Pipeline Debug window has a Volume panel which you can use to visualize the Volume components that affect a specific Camera. 
+
+For each Volume that contributes to the final interpolated value, the Volume panel shows the value of each property and whether or not it is overridden. It also calculates the Volume's influence percentage using the Volume's weight and blend distance. 
+
+For more information, see the Volume panel section in the [HDRP debug window](Render-Pipeline-Debug-Window.md#VolumePanel).
+
+#### Quad Overdraw and Vertex Density
+
+This debug tool is made of two parts:
+
+- Quad Overdraw: This highlights GPU quads running multiple fragment shaders caused by small or thin triangles.
+- Vertex Density: This displays pixels running multiple vertex shaders.
+
+This is useful for Meshes that are far away or highly detailed. This debug tool can help you find GameObjects in your scene that may require LODs. This mode is not currently supported on Metal.
 
 ### MatCap mode
 
