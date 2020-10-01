@@ -3065,8 +3065,6 @@ namespace UnityEngine.Rendering.HighDefinition
             int totalNumberOfGroupsNeeded = (bufferToClear.count + groupSize - 1) / groupSize;
 
             const int maxAllowedGroups = 65535;
-            int numberOfNeededDispatches = HDUtils.DivRoundUp(totalNumberOfGroupsNeeded, maxAllowedGroups);
-
             // On higher resolutions we might end up with more than 65535 group which is not allowed, so we need to to have multiple dispatches.
             int i = 0;
             while(totalNumberOfGroupsNeeded > 0)

@@ -9,6 +9,6 @@ int2 _LightListEntriesAndOffset;
 [numthreads(64, 1, 1)]
 void ClearList(uint3 id : SV_DispatchThreadID)
 {
-    if (id.x < (uint)_LightListEntries)
+    if ((id.x + _LightListOffset) < (uint)_LightListEntries)
         _LightListToClear[id.x] = 0;
 }
