@@ -49,7 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
                 return;
 
-            BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, ref prepassOutput);
+            BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, resolveOnly: false, ref prepassOutput);
 
             TextureHandle depthStencilBuffer = prepassOutput.depthBuffer;
             TextureHandle depthTexture = prepassOutput.depthPyramidTexture;
@@ -68,6 +68,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.cameraFilteringBuffer = builder.CreateTransientTexture(
                                             new TextureDesc(Vector2.one, true, true)
                                             { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, clearBuffer = true, clearColor = Color.clear, name = "SSSCameraFiltering" });
+                }
+                else
+                {
+                    // We need to set this as otherwise it will still be using an handle that is potentially coming from another rendergraph execution.
+                    // For example if we have two cameras, if  NeedTemporarySubsurfaceBuffer() is false, but one camera has MSAA and one hasn't, only one camera
+                    // will have passData.parameters.needTemporaryBuffer true and the other that doesn't, without explicit setting to null handle will try to use handle of the other camera.
+                    passData.cameraFilteringBuffer = TextureHandle.nullHandle;
                 }
 
                 builder.SetRenderFunc(

@@ -462,6 +462,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     numSubMeshes = skinnedMesh.sharedMesh.subMeshCount;
                 }
 
+                // Check the number of sub-meshes
+                if (numSubMeshes >= 32)
+                {
+                    Debug.LogWarning("The object " + currentRenderer.name + " has more than 32 sub-meshes. Above this limit, the cutoff and double sided flags may not match the one defined in the materials.");
+                    generalErrorFlag = true;
+                    continue;
+                }
+
                 bool materialIsOnlyTransparent = true;
                 bool hasTransparentSubMaterial = false;
 

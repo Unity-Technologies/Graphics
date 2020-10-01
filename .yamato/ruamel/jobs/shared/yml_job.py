@@ -40,9 +40,16 @@ class YMLJob():
         existing_dep = list(self.yml['dependencies'])
         existing_dep.extend(dependencies)
         self.yml['dependencies'] = existing_dep
+
+    def replace_dependency(self, old_dep, new_dep):
+        self.yml['dependencies'][old_dep] = self.yml['dependencies'][new_dep]
     
+
     def add_commands(self, commands):
         self.yml['commands'] = commands
+
+    def allow_failure(self):
+        self.yml['allow_failure'] = True
 
     def add_var_custom_revision(self, editor_version):
         if editor_version == 'CUSTOM-REVISION':
