@@ -222,7 +222,10 @@ namespace UnityEditor.Rendering.LookDev
             {
                 styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss);
                 if(styleSheet == null || styleSheet.Equals(null))
-                    Debug.LogWarning("[LookDev] Could not load Stylesheet.");
+                {
+                    //Debug.LogWarning("[LookDev] Could not load Stylesheet.");
+                    return;
+                }
             }
 
             if(!rootVisualElement.styleSheets.Contains(styleSheet))
@@ -235,8 +238,10 @@ namespace UnityEditor.Rendering.LookDev
                 {
                     styleSheetLight = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss_personal_overload);
                     if(styleSheetLight == null || styleSheetLight.Equals(null))
-                        Debug.LogWarning("[LookDev] Could not load Light skin.");
-
+                    {
+                        //Debug.LogWarning("[LookDev] Could not load Light skin.");
+                        return;
+                    }
                 }
                  
                 if(!rootVisualElement.styleSheets.Contains(styleSheetLight))
@@ -251,7 +256,8 @@ namespace UnityEditor.Rendering.LookDev
             // In this case, it will be fixed in OnGUI. Though it can spawn error while reimporting assets.
             // Waiting for filter on stylesheet (case 1228706) to remove last error.
             // On Editor Skin change, OnEnable is called and stylesheets need to be reloaded (case 1278802).
-            ReloadStyleSheets();
+            if(EditorApplication.isUpdating)
+                ReloadStyleSheets();
 
             //Call the open function to configure LookDev
             // in case the window where open when last editor session finished.
@@ -712,11 +718,11 @@ namespace UnityEditor.Rendering.LookDev
                 //        rootVisualElement.styleSheets.Add(styleSheetLight);
                 //}
             }
-            else
-            {
-                //deal with missing style when domain reload...
-                ReloadStyleSheets();
-            }
+            if(EditorApplication.isUpdating)
+                return;
+           
+            //deal with missing style on domain reload...
+            ReloadStyleSheets();
 
             OnUpdateRequestedInternal?.Invoke();
         }
