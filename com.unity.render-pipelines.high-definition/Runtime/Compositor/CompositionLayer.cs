@@ -54,6 +54,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         [SerializeField] bool m_ClearAlpha = true;    // Specifies if the Alpha channel will be cleared when stacking this camera over the previous one (for overlays)
         [SerializeField] Renderer m_OutputRenderer = null; // Specifies the output surface/renderer
         [SerializeField] LayerType m_Type;
+
+        public Camera sourceCamera => m_Camera;
         [SerializeField] Camera m_Camera = null;      // The source camera for the layer (were we get the default properties). The actual rendering, with overridden properties is done by the m_LayerCamera
         [SerializeField] VideoPlayer m_InputVideo = null;
         [SerializeField] Texture m_InputTexture = null;
@@ -131,6 +133,9 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         [SerializeField] Camera m_LayerCamera;
 
+        // Returns true if this layer is using a camera that was cloned internally for drawing
+        bool isUsingACameraClone => !m_LayerCamera.Equals(m_Camera);
+
         private CompositorLayer()
         {
         }
@@ -205,44 +210,54 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             // Compositor output layers (that allocate the render targets) also need a reference camera, just to get the reference pixel width/height 
             // Note: Movie & image layers are rendered at the output resolution (and not the movie/image resolution). This is required to have post-processing effects like film grain at full res.
-            if (m_Camera == null)
+            if (m_Camera == null && m_OutputTarget == OutputTarget.CameraStack)
             {
                 m_Camera = CompositionManager.GetSceceCamera();
             }
 
+            var compositor = CompositionManager.GetInstance();
+
             // Create a new camera if necessary or use the one specified by the user
             if (m_LayerCamera == null && m_OutputTarget == OutputTarget.CameraStack)
             {
-
-                // Clone the camera that was given by the user. We avoid calling Instantiate because we don't want to clone any other children that might be attachen to the camera 
-                var newCameraGameObject = new GameObject("Layer " + layerID)
+                if (!compositor.IsThisCameraShared(m_Camera))
                 {
-                    hideFlags = HideFlags.HideInInspector | HideFlags.HideInHierarchy | HideFlags.HideAndDontSave
-                };
-                m_LayerCamera = newCameraGameObject.AddComponent<Camera>();
-                newCameraGameObject.AddComponent<HDAdditionalCameraData>();
-                CopyInternalCameraData();
-
-                m_LayerCamera.name = "Compositor" + layerID;
-                m_LayerCamera.gameObject.hideFlags = HideFlags.HideInInspector | HideFlags.HideInHierarchy | HideFlags.HideAndDontSave;
-                if(m_LayerCamera.tag == "MainCamera")
-                {
-                    m_LayerCamera.tag = "Untagged";
+                    // The camera is not shared, so it is safe to use it directly in the layer (no need to clone it)
+                    m_LayerCamera = m_Camera;
+                    Debug.Log($"Camera {m_Camera.name} was used directly");
                 }
-
-                // Remove the compositor copy (if exists) from the cloned camera. This will happen if the compositor script was attached to the camera we are cloning 
-                var compositionManager = m_LayerCamera.GetComponent<CompositionManager>();
-                if (compositionManager != null)
+                else
                 {
-                    CoreUtils.Destroy(compositionManager);
-                }
+                    Debug.Log($"Camera {m_Camera.name} was cloned");
+                    // Clone the camera that was given by the user. We avoid calling Instantiate because we don't want to clone any other children that might be attachen to the camera 
+                    var newCameraGameObject = new GameObject("Layer " + layerID)
+                    {
+                        hideFlags = HideFlags.HideInInspector | HideFlags.HideInHierarchy | HideFlags.HideAndDontSave
+                    };
+                    m_LayerCamera = newCameraGameObject.AddComponent<Camera>();
+                    newCameraGameObject.AddComponent<HDAdditionalCameraData>();
+                    CopyInternalCameraData();
 
-                var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
-                if (cameraData == null)
-                {
-                    m_LayerCamera.gameObject.AddComponent(typeof(HDAdditionalCameraData));
-                }
+                    m_LayerCamera.name = "Compositor" + layerID;
+                    m_LayerCamera.gameObject.hideFlags = HideFlags.HideInInspector | HideFlags.HideInHierarchy | HideFlags.HideAndDontSave;
+                    if (m_LayerCamera.tag == "MainCamera")
+                    {
+                        m_LayerCamera.tag = "Untagged";
+                    }
 
+                    // Remove the compositor copy (if exists) from the cloned camera. This will happen if the compositor script was attached to the camera we are cloning 
+                    var compositionManager = m_LayerCamera.GetComponent<CompositionManager>();
+                    if (compositionManager != null)
+                    {
+                        CoreUtils.Destroy(compositionManager);
+                    }
+
+                    var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
+                    if (cameraData == null)
+                    {
+                        m_LayerCamera.gameObject.AddComponent(typeof(HDAdditionalCameraData));
+                    }
+                }
             }
             m_ClearsBackGround = false;
             m_LayerPositionInStack = 0; // will be set in SetupLayerCamera
@@ -299,7 +314,6 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 }
             }
 
-            var compositor = CompositionManager.GetInstance();
             if (m_OutputRenderer != null && Application.IsPlaying(compositor.gameObject))
             {
                 MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
@@ -370,7 +384,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         public void DestroyRT()
         {
-            if (m_LayerCamera != null)
+            // We should destroy the layer camera only if it was cloned
+            if (m_LayerCamera != null && isUsingACameraClone)
             {
                 var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
                 if (cameraData)
@@ -462,6 +477,12 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         internal void CopyInternalCameraData()
         {
+            if (!isUsingACameraClone)
+            {
+                // we are using directly the source camera, so there is no need to copy any properties
+                return;
+            }
+
             // Copy/update the camera data (but preserve the camera depth/draw-order [case 1264552])
             var drawOrder = m_LayerCamera.depth;
             m_LayerCamera.CopyFrom(m_Camera);
