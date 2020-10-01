@@ -16,9 +16,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Harmonized position, direction and velocity composition modes for position (shape, sequential, depth) and Velocity from Direction & Speed blocks
 
 ### Fixed
-- Addressing for mirror and clamp modes in sequential operators and blocks
-
-### Fixed
 - Mesh Sampling incorrect with some GPU (use ByteAddressBuffer instead of Buffer<float>)
 - Fix for node window staying when clicking elsewhere
 - Make VisualEffect created from the GameObject menu have unique names [Case 1262989](https://issuetracker.unity3d.com/product/unity/issues/guid/1262989/)
@@ -37,9 +34,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix corrupted UI in nodes due to corrupted point cache files [Case 1232867](https://fogbugz.unity3d.com/f/cases/1232867/)
 - Fix InvalidCastException when using byte properties in point cache files [Case 1276623](https://fogbugz.unity3d.com/f/cases/1276623/)
 - Fix [Case 1114281](https://fogbugz.unity3d.com/f/cases/1114281/)
-
-### Fixed
 - Fix shadows not being rendered to some cascades with directional lights [Case 1229972](https://issuetracker.unity3d.com/issues/output-inconsistencies-with-vfx-shadow-casting-and-shadow-cascades)
+- Addressing for mirror and clamp modes in sequential operators and blocks
 
 ## [10.0.0] - 2019-06-10
 ### Added
