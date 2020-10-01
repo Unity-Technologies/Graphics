@@ -265,6 +265,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             HLSLPROGRAM
+            #pragma exclude_renderers gles
 
             #pragma multi_compile_vertex _ _SPOT
 
@@ -298,6 +299,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             HLSLPROGRAM
+            #pragma exclude_renderers gles
 
             #pragma multi_compile _POINT _SPOT
             #pragma multi_compile_fragment _LIT
@@ -337,6 +339,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             HLSLPROGRAM
+            #pragma exclude_renderers gles
 
             #pragma multi_compile _POINT _SPOT
             #pragma multi_compile_fragment _SIMPLELIT
@@ -375,6 +378,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             HLSLPROGRAM
+            #pragma exclude_renderers gles
 
             #pragma multi_compile _DIRECTIONAL
             #pragma multi_compile_fragment _LIT
@@ -415,6 +419,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             HLSLPROGRAM
+            #pragma exclude_renderers gles
 
             #pragma multi_compile _DIRECTIONAL
             #pragma multi_compile_fragment _SIMPLELIT
@@ -445,6 +450,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             BlendOp Add, Add
 
             HLSLPROGRAM
+            #pragma exclude_renderers gles
 
             #pragma multi_compile _FOG
             #pragma multi_compile FOG_LINEAR FOG_EXP FOG_EXP2
@@ -477,6 +483,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             HLSLPROGRAM
+            #pragma exclude_renderers gles
 
             #pragma multi_compile _CLEAR_STENCIL_PARTIAL
             #pragma vertex Vertex

@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New operator : Sample Signed distance field
 - New WorldToViewportPoint operator
 - New ViewportToWorldPoint operator
+- Added Output Event Handler API
+- Added Output Event Handler Samples
+- Added ExposedProperty custom Property Drawer
 
 ### Fixed
 - Mesh Sampling incorrect with some GPU (use ByteAddressBuffer instead of Buffer<float>)
@@ -26,6 +29,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix exposed Texture2DArray and Cubemap types from shader graph not being taken into account in Output Mesh [Case 1265221](https://issuetracker.unity3d.com/product/unity/issues/guid/1265221/)
 - Allow world position usage in shaderGraph plugged into an alpha/opacity output [Case 1259511](https://issuetracker.unity3d.com/product/unity/issues/guid/1259511/)
 - GPU Evaluation of Construct Matrix
+- Random Per-Component on Set Attribute in Spawn Context [Case 1279294](https://issuetracker.unity3d.com/product/unity/issues/guid/1279294/)
+- Fix corrupted UI in nodes due to corrupted point cache files [Case 1232867](https://fogbugz.unity3d.com/f/cases/1232867/)
+- Fix InvalidCastException when using byte properties in point cache files [Case 1276623](https://fogbugz.unity3d.com/f/cases/1276623/)
+- Fix [Case 1114281](https://fogbugz.unity3d.com/f/cases/1114281/)
 - Property Binder : Incorrect Destroy called from edit mode. [Case 1274790](https://issuetracker.unity3d.com/product/unity/issues/guid/1274790/)
 - Property Binder : Unexpected null reference exception while using terrain binder. [Case 1247230](https://issuetracker.unity3d.com/product/unity/issues/guid/1247230/)
 - Property Binder : HierarchyRoot null reference exception while using Hierarchy to Attribute Map. [Case 1274788](https://issuetracker.unity3d.com/product/unity/issues/guid/1274788/)

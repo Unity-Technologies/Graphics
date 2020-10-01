@@ -66,7 +66,6 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
 #endif
 
         bool fastPath = false;
-    #if SCALARIZE_LIGHT_LOOP
         uint lightStartLane0;
         fastPath = IsFastPath(lightStart, lightStartLane0);
 
@@ -74,7 +73,6 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
         {
             lightStart = lightStartLane0;
         }
-    #endif
 
         // Scalarized loop. All lights that are in a tile/cluster touched by any pixel in the wave are loaded (scalar load), only the one relevant to current thread/pixel are processed.
         // For clarity, the following code will follow the convention: variables starting with s_ are meant to be wave uniform (meant for scalar register),
