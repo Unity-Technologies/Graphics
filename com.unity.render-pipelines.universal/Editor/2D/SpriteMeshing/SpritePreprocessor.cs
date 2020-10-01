@@ -13,7 +13,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 {
     public class SpritePreprocessor : AssetPostprocessor
     {
-        NativeArray<T> ListToNativeArray<T>(List<T> list) where T : struct
+        NativeArray<T> ListToNativeArray<T>(List<T> list) where T : struc
         {
             NativeArray<T> nativeArray = new NativeArray<T>(list.Count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             for (int i = 0; i < list.Count; i++)
@@ -55,7 +55,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return null;
        }
 
-        void AddGeometry(Vector3[] vertices, int[] triangles, Vector2[] uvs, Vector2 pivot, float pixelsPerUnit, bool isOpaque, List<ushort> colorTriangles, List<ushort> depthTriangles, List<Vector3> allVertices)
+        void AddGeometry(Vector3[] vertices, int[] triangles, Vector2[] uvs, Vector2 pivot, Vector2 multiSpriteOffset, float pixelsPerUnit, bool isOpaque, List<ushort> colorTriangles, List<ushort> depthTriangles, List<Vector3> allVertices)
         {
             int startingIndex = allVertices.Count;
             for (int i = 0; i < triangles.Length; i++)
@@ -68,20 +68,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     depthTriangles.Add(index);
             }
 
-
-            Vector3 v3Pivot = new Vector3(pivot.x, pivot.y);
+            Vector3 v3Pivot = new Vector3(pivot.x - multiSpriteOffset.x, pivot.y - multiSpriteOffset.y);
             for (int i = 0; i < vertices.Length; i++)
                 allVertices.Add((vertices[i]  - v3Pivot) / pixelsPerUnit);
         }
 
-        void CreateSplitSpriteMesh(Sprite sprite, RectInt rect, Vector2 pivot, Vector2[][] customOutline, float pixelsPerUnit)
+        void CreateSplitSpriteMesh(Sprite sprite, RectInt rect, Vector2 pivot, Vector2 multiSpriteOffset, Vector2[][] customOutline, float pixelsPerUnit)
         {
             ShapeLibrary shapeLibrary = new ShapeLibrary();
             Texture2D texture = sprite.texture;
 
             shapeLibrary.SetRegion(rect);
 
-            GenerateMeshes.MakeShapes(shapeLibrary, customOutline, texture, 1, 2); // 2048 will give us a pretty good balance of verts to area. 4096 is the same or better area as previously and less than half the vertices.
+            GenerateMeshes.MakeShapes(shapeLibrary, customOutline, texture, 1, 4096); // 2048 will give us a pretty good balance of verts to area. 4096 is the same or better area as previously and less than half the vertices.
 
             Debug.Log("Shapes generated: " + shapeLibrary.m_Shapes.Count);
 
@@ -90,10 +89,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             List<ushort> depthTriangles = new List<ushort>();
 
             // Tesselate shapes made with MakeShapes
-            GenerateMeshes.TesselateShapes(shapeLibrary, (vertices, triangles, uvs, isOpaque) => AddGeometry(vertices, triangles, uvs, pivot, pixelsPerUnit, isOpaque, colorTriangles, depthTriangles, allVertices));
+            GenerateMeshes.TesselateShapes(shapeLibrary, (vertices, triangles, uvs, isOpaque) => AddGeometry(vertices, triangles, uvs, pivot, multiSpriteOffset, pixelsPerUnit, isOpaque, colorTriangles, depthTriangles, allVertices));
 
             if (customOutline != null && customOutline.Length > 0)
-                GenerateMeshes.TesselateShapes(customOutline, rect, (vertices, triangles, uvs, isOpaque) => AddGeometry(vertices, triangles, uvs, pivot, pixelsPerUnit, false, colorTriangles, depthTriangles, allVertices));
+                GenerateMeshes.TesselateShapes(customOutline, rect, (vertices, triangles, uvs, isOpaque) => AddGeometry(vertices, triangles, uvs, pivot, multiSpriteOffset, pixelsPerUnit, false, colorTriangles, depthTriangles, allVertices));
 
             NativeArray<Vector3> nativeVertices = ListToNativeArray<Vector3>(allVertices);
             NativeArray<ushort> nativeIndices = ListsToNativeArray<ushort>(colorTriangles, depthTriangles);
@@ -124,7 +123,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             float correctedPPU = sprites[0].rect.width / sprites[0].bounds.size.x;
             float textureRescale = correctedPPU / textureImporter.spritePixelsPerUnit;
-            Vector2 textureCenter = new Vector2(0.5f * (float)texture.width, 0.5f * (float)texture.height);
 
             if (textureImporter.spriteMeshType == SpriteMeshType.Tight && textureImporter.spriteGenerateDepthMesh)
             {
@@ -133,13 +131,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     float width = texture.width / correctedPPU;
                     float height = texture.height / correctedPPU;
                     Vector2 spriteSize = new Vector2(width, height);
+                    Vector2 spriteCenter = new Vector2(0.5f * (float)texture.width, 0.5f * (float)texture.height);
                     Vector2 pivotOffset = textureImporter.spritePivot * spriteSize;
 
                     Vector2[][] spriteOutline = textureImporter.spriteOutline;
-                    Vector2[][] transformedOutline = TransformOutline(spriteOutline, textureCenter, textureRescale);
+                    Vector2[][] transformedOutline = TransformOutline(spriteOutline, spriteCenter, textureRescale);
 
                     RectInt rect = new RectInt(new Vector2Int((int)sprites[0].rect.position.x, (int)sprites[0].rect.position.y), new Vector2Int((int)sprites[0].rect.size.x, (int)sprites[0].rect.size.y));
-                    CreateSplitSpriteMesh(sprites[0], rect, pivotOffset, transformedOutline, correctedPPU);
+                    CreateSplitSpriteMesh(sprites[0], rect, pivotOffset, Vector2.zero, transformedOutline, correctedPPU);
                 }
                 else if (textureImporter.spriteImportMode == SpriteImportMode.Multiple)
                 {
@@ -148,13 +147,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         float width = sprites[i].rect.width / correctedPPU;
                         float height = sprites[i].rect.height / correctedPPU;
                         Vector2 spriteSize = new Vector2(width, height);
-                        Vector2 spriteCenter = 0.5f * spriteSize;
-                        
+                        Vector2 spriteCenter = 0.5f * spriteSize * textureRescale;
+                        Vector2 multiSpriteOffset = 0.5f * spriteSize * (1 - textureRescale);
+
                         Vector2 pivotOffset = new Vector2(sprites[i].pivot.x / sprites[i].rect.width, sprites[i].pivot.y / sprites[i].rect.height) * spriteSize;
                         Vector2[][] transformedOutline = TransformOutline(textureImporter.spritesheet[i].outline, spriteCenter, textureRescale);
 
                         RectInt rect = new RectInt(new Vector2Int((int)sprites[i].rect.position.x, (int)sprites[i].rect.position.y), new Vector2Int((int)sprites[i].rect.size.x, (int)sprites[i].rect.size.y));
-                        CreateSplitSpriteMesh(sprites[i], rect, pivotOffset, transformedOutline, correctedPPU);
+                        CreateSplitSpriteMesh(sprites[i], rect, pivotOffset, multiSpriteOffset, transformedOutline, correctedPPU);
                     }
                 }
             }
