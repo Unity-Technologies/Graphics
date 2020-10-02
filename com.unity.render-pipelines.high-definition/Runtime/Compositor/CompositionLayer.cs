@@ -329,7 +329,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     if (layerData == null)
                     {
                         layerData = m_LayerCamera.gameObject.AddComponent<AdditionalCompositorData>();
-                        layerData.hideFlags = HideFlags.HideAndDontSave;
+                        layerData.hideFlags = HideFlags.HideAndDontSave | HideFlags.HideInInspector;
                     }
                     // Reset the layer params (in case we cloned a camera which already had AdditionalCompositorData)
                     if (layerData != null)
