@@ -13,7 +13,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 {
     public class SpritePreprocessor : AssetPostprocessor
     {
-        NativeArray<T> ListToNativeArray<T>(List<T> list) where T : struc
+        NativeArray<T> ListToNativeArray<T>(List<T> list) where T : struct
         {
             NativeArray<T> nativeArray = new NativeArray<T>(list.Count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             for (int i = 0; i < list.Count; i++)
