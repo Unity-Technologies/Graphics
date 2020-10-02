@@ -21,12 +21,11 @@ def create_project_ymls(metafile):
     # project platform_api specific yml files
     project = metafile["project"]
     for platform in metafile['platforms']:
-        for build_config in metafile['build_configs']:
-            for api in platform['apis'] or [""]:
-                if platform["name"]=='Android':
-                    m=5
-                yml = {}
-                for editor in metafile['editors']:
+        for api in platform['apis'] or [""]:
+            
+            yml = {}
+            for editor in metafile['editors']:
+                for build_config in metafile['build_configs']:
                     for test_platform in metafile['test_platforms']:
                         for color_space in metafile['color_spaces']:
 

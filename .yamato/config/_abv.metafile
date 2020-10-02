@@ -60,7 +60,7 @@ nightly:
     - project: URPUpdate
       platform: Win
       api: DX11
-      build_config: il2cpp
+      build_config: il2cpp_4
       color_space: Linear
       test_platforms:
         - editmode
@@ -68,7 +68,7 @@ nightly:
     - project: URPUpdate_Top_Asset_Store
       platform: Win
       api: DX11
-      build_config: il2cpp
+      build_config: il2cpp_4
       color_space: Linear
       test_platforms:
         - editmode
@@ -86,7 +86,7 @@ trunk_verification: # jobs to include in trunk verification job
     - project: Universal
       platform: Win
       api: DX11
-      build_config: il2cpp
+      build_config: il2cpp_4
       color_space: Linear
       test_platforms:
         - playmode
@@ -94,7 +94,7 @@ trunk_verification: # jobs to include in trunk verification job
     - project: ShaderGraph
       platform: Win
       api: DX11
-      build_config: il2cpp
+      build_config: il2cpp_4
       color_space: Linear
       test_platforms:
         - playmode
@@ -102,7 +102,7 @@ trunk_verification: # jobs to include in trunk verification job
     - project: HDRP
       platform: Win
       api: DX11
-      build_config: il2cpp
+      build_config: il2cpp_4
       color_space: Linear
       test_platforms:
         - playmode
@@ -110,7 +110,7 @@ trunk_verification: # jobs to include in trunk verification job
     - project: VFX_HDRP
       platform: Win
       api: DX11
-      build_config: il2cpp
+      build_config: il2cpp_4
       color_space: Linear
       test_platforms:
         - playmode
@@ -118,7 +118,7 @@ trunk_verification: # jobs to include in trunk verification job
     - project: VFX_URP
       platform: Win
       api: DX11
-      build_config: il2cpp
+      build_config: il2cpp_4
       color_space: Linear
       test_platforms:
         - playmode
