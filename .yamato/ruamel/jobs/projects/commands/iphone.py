@@ -21,7 +21,18 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, build_con
      ]
 
 def cmd_playmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    return []
+    scripting_backend = build_config["scripting_backend"]
+    api_level = build_config["api_level"]
+    utr_args = utr_playmode_flags(testproject=f'{TEST_PROJECTS_DIR}/{project_folder}', scripting_backend=f'{scripting_backend}', api_level=f'{api_level}', color_space=f'{color_space}')
+    utr_args.extend(test_platform["extra_utr_flags"])
+
+    return [
+        f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
+        f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } {"".join([f"-c {c} " for c in platform["components"]])}  --wait --published-only',
+        f'curl -s {UTR_INSTALL_URL} --output utr',
+        f'chmod +x ./utr',
+        f'./utr {" ".join(utr_args)}'
+     ]
 
 def cmd_standalone(project_folder, platform, api, test_platform, editor, build_config, color_space):
     scripting_backend = build_config["scripting_backend"]
