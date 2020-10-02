@@ -25,6 +25,7 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, scripti
 
     utr_args = utr_standalone_split_flags(platform_spec='', platform='iOS', player_load_path='players',player_conn_ip=None, scripting_backend=f'{scripting_backend}', color_space=f'{color_space}')
     utr_args.extend(test_platform["extra_utr_flags"])
+    utr_args.extend(platform["extra_utr_flags"])
 
     return [
         f'curl -s {UTR_INSTALL_URL} --output utr',        
@@ -37,6 +38,7 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, s
 
     utr_args = utr_standalone_build_flags(platform_spec='', platform='iOS', testproject=f'{TEST_PROJECTS_DIR}/{project_folder}', player_save_path=PATH_PLAYERS, scripting_backend=f'{scripting_backend}', color_space=f'{color_space}')
     utr_args.extend(test_platform["extra_utr_flags_build"])
+    utr_args.extend(platform["extra_utr_flags_build"])
 
     return [
         f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
