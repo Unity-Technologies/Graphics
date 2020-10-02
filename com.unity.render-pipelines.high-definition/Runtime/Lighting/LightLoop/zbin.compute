@@ -20,7 +20,7 @@ static uint s_BoundedEntityCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT] = (uint
 /* ------------------------------ Outputs ----------------------------------- */
 
 // 1x list for all entites (sorted by category, we concatenate lists of all views).
-RWStructuredBuffer<uint> _zBinBuffer : register(u0); // {start << 16 | count}
+RWStructuredBuffer<uint> _zBinBuffer : register(u0); // {start << 16 | end}
 
 /* ------------------------------ Utilities --------------------------------- */
 
@@ -48,7 +48,7 @@ uint Convert3DCoordinateTo1DIndex(uint3 coord, uint2 size)
          + coord.z * (size.x * size.y);
 }
 
-uint GenerateZBinBufferOffset(uint bin, uint category, uint eye)
+uint GenerateZBinBufferIndex(uint bin, uint category, uint eye)
 {
     // The Z-bin buffer is effectively 3-dimensional.
     return Convert3DCoordinateTo1DIndex(uint3(bin, category, eye),
@@ -106,8 +106,8 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
         }
 
         // The compiler should be able to move most of the calculation outside the loop.
-        uint outputIndex = GenerateZBinBufferOffset(bin, cat, eye);
-        uint outputRange = (first > last) ? 0 : (first << 16) | (last - first + 1);
+        uint outputIndex = GenerateZBinBufferIndex(bin, cat, eye);
+        uint outputRange = (first > last) ? 0 : (first << 16) | (last + 1);
 
         _zBinBuffer[outputIndex] = outputRange;
     }
