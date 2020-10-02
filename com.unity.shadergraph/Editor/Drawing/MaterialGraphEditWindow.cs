@@ -19,6 +19,7 @@ using UnityEngine.UIElements;
 using UnityEditor.VersionControl;
 
 using Unity.Profiling;
+using UnityEngine.Assertions;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -107,11 +108,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         public string assetName
         {
             get { return titleContent.text; }
-            set
-            {
-                titleContent.text = value;
-                graphEditorView.assetName = value;
-            }
         }
 
         void DisplayChangedOnDiskDialog()
@@ -162,10 +158,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if (graphObject != null && graphObject.graph != null)
                 {
-                    Texture2D icon = GetThemeIcon(graphObject.graph);
-
-                    // This is adding the icon at the front of the tab
-                    titleContent = EditorGUIUtility.TrTextContentWithIcon(assetName, icon);
+                    UpdateTitle(); // to swap the icon
                     m_ProTheme = EditorGUIUtility.isProSkin;
                 }
             }
@@ -203,11 +196,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphEditorView = new GraphEditorView(this, materialGraph, messageManager)
                     {
                         viewDataKey = selectedGuid,
-                        assetName = asset.name.Split('/').Last()
                     };
                     m_ColorSpace = PlayerSettings.colorSpace;
                     m_RenderPipelineAsset = GraphicsSettings.renderPipelineAsset;
                     graphObject.Validate();
+
+                    // update blackboard title for the new graphEditorView
+                    UpdateTitle();
                 }
 
                 if (m_ChangedFileDependencies.Count > 0 && graphObject != null && graphObject.graph != null)
@@ -309,15 +304,25 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Deleted = true;
         }
 
-        void UpdateTitle()
+        public void UpdateTitle()
         {
             UpdateTitle(IsDirty());
         }
 
+
         void UpdateTitle(bool isDirty)
         {
-            var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(selectedGuid));
-            titleContent.text = asset.name.Split('/').Last() + (isDirty ? "*" : "");
+            Texture2D icon = GetThemeIcon(graphObject.graph);
+
+            // load the generated shader artifact
+            var assetPath = AssetDatabase.GUIDToAssetPath(selectedGuid);
+            var shaderName = Path.GetFileNameWithoutExtension(assetPath);
+
+            if (graphEditorView != null)
+                graphEditorView.assetName = shaderName;
+
+            var title = shaderName + (isDirty ? "*" : "");
+            titleContent = new GUIContent(title, icon);
         }
 
         void OnDestroy()
@@ -858,10 +863,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 graphObject.graph.messageManager = this.messageManager;
 
-                Texture2D icon = GetThemeIcon(graphObject.graph);
-
-                // This is adding the icon at the front of the tab
-                titleContent = EditorGUIUtility.TrTextContentWithIcon(selectedGuid, icon);
                 UpdateTitle();
 
                 Repaint();
@@ -938,14 +939,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphEditorView = new GraphEditorView(this, m_GraphObject.graph, messageManager)
                     {
                         viewDataKey = selectedGuid,
-                        assetName = asset.name.Split('/').Last()
                     };
                 }
 
-                Texture2D icon = GetThemeIcon(graphObject.graph);
-
-                // This is adding the icon at the front of the tab
-                titleContent = EditorGUIUtility.TrTextContentWithIcon(selectedGuid, icon);
                 UpdateTitle();
 
                 Repaint();
@@ -999,7 +995,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 icon = Resources.Load<Texture2D>("Icons/sg_subgraph_icon_gray"+theme+"@16");
             }
-
             return icon;
         }
 
