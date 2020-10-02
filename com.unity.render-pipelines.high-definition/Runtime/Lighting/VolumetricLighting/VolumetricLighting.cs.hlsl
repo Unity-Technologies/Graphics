@@ -25,7 +25,7 @@ struct DensityVolumeEngineData
 CBUFFER_START(ShaderVariablesVolumetric)
     float4x4 _VBufferCoordToViewDirWS[2];
     float _VBufferUnitDepthTexelSpacing;
-    uint _NumVisibleDensityVolumes;
+    uint _DensityVolumeCount;
     float _CornetteShanksConstant;
     uint _VBufferHistoryIsValid;
     float4 _VBufferSampleOffset;

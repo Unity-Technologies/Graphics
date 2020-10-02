@@ -1,0 +1,114 @@
+#pragma enable_d3d11_debug_symbols
+#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+#pragma kernel main
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightCullUtils.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesGlobal.hlsl"
+
+/* ------------------------------ Inputs ------------------------------------ */
+
+// 1x list for all entites (sorted by category, we concatenate lists of all views).
+StructuredBuffer<float2> _wBoundsBuffer  : register(t0); // {w_min, w_max}
+
+// Repackage to work around ridiculous constant buffer limitations of HLSL.
+static uint s_BoundedEntityCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT] = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityCountPerCategory;
+
+/* ------------------------------ Outputs ----------------------------------- */
+
+// 1x list for all entites (sorted by category, we concatenate lists of all views).
+RWStructuredBuffer<uint> _zBinBuffer : register(u0); // {start << 16 | count}
+
+/* ------------------------------ Utilities --------------------------------- */
+
+uint ComputeZBinFromLinearDepth(float w, float4 encodingParams)
+{
+    float z = EncodeLogarithmicDepth(w, encodingParams);
+    z = saturate(z); // Clamp to the region between the near and the far planes
+
+    return min((uint)(z * ZBIN_COUNT), ZBIN_COUNT - 1);
+}
+
+float2 ComputeZBinLinearDepthBounds(uint bin, float4 encodingParams)
+{
+    float2 bBounds = float2(bin, bin + 1);
+    float2 zBounds = saturate(bBounds * rcp(ZBIN_COUNT));
+
+    return float2(DecodeLogarithmicDepth(zBounds.x, encodingParams),
+                  DecodeLogarithmicDepth(zBounds.y, encodingParams));
+}
+
+uint Convert3DCoordinateTo1DIndex(uint3 coord, uint2 size)
+{
+    return coord.x
+         + coord.y * (size.x)
+         + coord.z * (size.x * size.y);
+}
+
+uint GenerateZBinBufferOffset(uint bin, uint category, uint eye)
+{
+    // The Z-bin buffer is effectively 3-dimensional.
+    return Convert3DCoordinateTo1DIndex(uint3(bin, category, eye),
+                                        uint2(ZBIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT));
+}
+
+// The intervals must be defined s.t.
+// the 'x' component holds the lower bound and
+// the 'y' component holds the upper bound.
+bool IntervalsOverlap(float2 i1, float2 i2)
+{
+    float l = max(i1.x, i2.x); // Lower bound of intersection interval
+    float u = min(i1.y, i2.y); // Upper bound of intersection interval
+
+    return l <= u;             // Is the interval non-empty?
+}
+
+/* ------------------------------ Implementation ---------------------------- */
+
+#define THREADS_PER_GROUP (64)
+
+[numthreads(THREADS_PER_GROUP, 1, 1)]
+void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
+{
+    const uint t   = threadID;
+    const uint g   = groupID.x;
+    const uint eye = groupID.y;
+    const uint bin = t + g * THREADS_PER_GROUP;
+
+    // ZBIN_COUNT must be an integer multiple of THREADS_PER_GROUP.
+    const float2 wBounds = ComputeZBinLinearDepthBounds(bin, _ZBinBufferEncodingParams);
+
+    uint inputIndex = GenerateLightCullDataIndex(0, _BoundedEntityCount, eye);
+
+    for (uint cat = 0; cat < BOUNDEDENTITYCATEGORY_COUNT; cat++)
+    {
+        uint first = (1 << 16), last = 0;
+
+        uint n = s_BoundedEntityCountPerCategory[cat];
+
+        // The algorithm is O(n * m) where 'n' is the entity count and 'm' is bin count.
+        // Therefore, it will be slow if 'n' is large.
+        // We should consider a sorting-based algorithm, which could be closer to O((n + m) * log(n)).
+        // TODO: unroll.
+        for (uint i = 0; i < n; i++, inputIndex++)
+        {
+            float2 wMinMax = _wBoundsBuffer[inputIndex]; // Sorted by category
+
+            // TODO: flatten.
+            if (IntervalsOverlap(wBounds, wMinMax))
+            {
+                first = min(i, first);
+                last  = max(i, last);
+            }
+        }
+
+        // The compiler should be able to move most of the calculation outside the loop.
+        uint outputIndex = GenerateZBinBufferOffset(bin, cat, eye);
+        uint outputRange = (first > last) ? 0 : (first << 16) | (last - first + 1);
+
+        _zBinBuffer[outputIndex] = outputRange;
+    }
+}

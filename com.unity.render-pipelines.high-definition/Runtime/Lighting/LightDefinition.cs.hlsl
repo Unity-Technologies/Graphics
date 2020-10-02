@@ -15,6 +15,9 @@
 #define GPULIGHTTYPE_TUBE (5)
 #define GPULIGHTTYPE_RECTANGLE (6)
 #define GPULIGHTTYPE_DISC (7)
+#define GPULIGHTTYPE_CUBEMAP_REFLECTION (8)
+#define GPULIGHTTYPE_PLANAR_REFLECTION (9)
+#define GPULIGHTTYPE_COUNT (10)
 
 //
 // UnityEngine.Rendering.HighDefinition.GPUImageBasedLightingType:  static fields

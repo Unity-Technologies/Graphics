@@ -146,7 +146,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float    _VBufferLastSliceDist;          // The distance to the middle of the last slice
 
         // Light Loop
-        public const int s_MaxEnv2DLight = 32;
+        public const int s_MaxEnv2DLight = 32; // WTF?
+
 
         public Vector4 _ShadowAtlasSize;
         public Vector4 _CascadeShadowAtlasSize;
@@ -198,6 +199,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4  _PlanarAtlasData;
 
         // Tile/Cluster
+        [HLSLArray(((int)BoundedEntityCategory.Count + 3) / 4, typeof(ShaderGenUInt4))]
+        public fixed uint _BoundedEntityCountPerCategory[(((int)BoundedEntityCategory.Count + 3) / 4) * 4];
+
+        public Vector4  _ZBinBufferEncodingParams;
+
         public uint     _NumTileFtplX;
         public uint     _NumTileFtplY;
         public float    g_fClustScale;

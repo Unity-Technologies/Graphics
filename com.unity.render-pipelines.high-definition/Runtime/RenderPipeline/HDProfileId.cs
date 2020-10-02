@@ -19,6 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ScreenSpaceShadowsDebug,
         BuildLightList,
         GenerateLightAABBs,
+        PerformZBinning,
         ContactShadows,
         BlitToFinalRTDevBuildOnly,
         Distortion,

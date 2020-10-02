@@ -109,6 +109,8 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _CookieAtlasSize;
     float4 _CookieAtlasData;
     float4 _PlanarAtlasData;
+    uint4 _BoundedEntityCountPerCategory[2];
+    float4 _ZBinBufferEncodingParams;
     uint _NumTileFtplX;
     uint _NumTileFtplY;
     float g_fClustScale;

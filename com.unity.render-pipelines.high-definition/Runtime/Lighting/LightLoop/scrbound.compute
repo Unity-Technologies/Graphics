@@ -10,10 +10,12 @@
 
 /* ------------------------------ Inputs ------------------------------------ */
 
-StructuredBuffer<FiniteLightBound> g_data : register(t0);
+// 1x list for all entites (sorted by category, we concatenate lists of all views).
+StructuredBuffer<FiniteLightBound> _EntityBoundsBuffer : register(t0);
 
 /* ------------------------------ Outputs ----------------------------------- */
 
+// 1x list for all entites (sorted by category, we concatenate lists of all views).
 RWStructuredBuffer<float4> _xyBoundsBuffer : register(u0); // {x_min, y_min, x_max, y_max}
 RWStructuredBuffer<float2> _wBoundsBuffer  : register(u1); // {w_min, w_max}
 
@@ -415,20 +417,20 @@ void UpdateAaBb(uint srcBegin, uint srcSize, float4 vertRingBuffer[MAX_CLIP_VERT
 [numthreads(THREADS_PER_GROUP, 1, 1)]
 void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 {
-    const uint t        = threadID;
-    const uint g        = groupID.x;
-    const uint eyeIndex = groupID.y; // Currently, can only be 0 or 1
+    const uint t   = threadID;
+    const uint g   = groupID.x;
+    const uint eye = groupID.y;
 
     const uint intraGroupEntityIndex = t / THREADS_PER_ENTITY;
     const uint globalEntityIndex     = g * ENTITIES_PER_GROUP + intraGroupEntityIndex;
     const uint baseVertexOffset      = intraGroupEntityIndex * NUM_VERTS;
+    const uint clampedEntityIndex    = min(globalEntityIndex, _BoundedEntityCount - 1); // Stay within bounds
 
-    // The function call below will not generate an out-of-bounds index.
-    const uint eyeAdjustedDataOffset = GenerateLightCullDataIndex(globalEntityIndex, _BoundedEntityCount, eyeIndex);
-    const FiniteLightBound cullData  = g_data[eyeAdjustedDataOffset];
+    const uint eyeAdjustedDataOffset = GenerateLightCullDataIndex(clampedEntityIndex, _BoundedEntityCount, eye);
+    const FiniteLightBound cullData  = _EntityBoundsBuffer[eyeAdjustedDataOffset];
 
-    const float4x4 projMat    = g_mProjectionArr[eyeIndex];
-    const float4x4 invProjMat = g_mInvProjectionArr[eyeIndex];
+    const float4x4 projMat    = g_mProjectionArr[eye];
+    const float4x4 invProjMat = g_mInvProjectionArr[eye];
 
     const float  scale = cullData.scaleXY;      // scale.x = scale.y
     const float3 rbpC  = cullData.center.xyz;   // View-space

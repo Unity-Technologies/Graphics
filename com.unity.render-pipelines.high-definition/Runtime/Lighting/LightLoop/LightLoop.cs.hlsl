@@ -24,6 +24,17 @@
 #define LIGHTCATEGORY_COUNT (6)
 
 //
+// UnityEngine.Rendering.HighDefinition.BoundedEntityCategory:  static fields
+//
+#define BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT (0)
+#define BOUNDEDENTITYCATEGORY_AREA_LIGHT (1)
+#define BOUNDEDENTITYCATEGORY_REFLECTION_PROBE (2)
+#define BOUNDEDENTITYCATEGORY_DECAL (3)
+#define BOUNDEDENTITYCATEGORY_DENSITY_VOLUME (4)
+#define BOUNDEDENTITYCATEGORY_COUNT (5)
+#define BOUNDEDENTITYCATEGORY_NONE (5)
+
+//
 // UnityEngine.Rendering.HighDefinition.LightFeatureFlags:  static fields
 //
 #define LIGHTFEATUREFLAGS_PUNCTUAL (4096)
@@ -36,7 +47,7 @@
 #define LIGHTFEATUREFLAGS_PROBE_VOLUME (524288)
 
 //
-// UnityEngine.Rendering.HighDefinition.LightDefinitions:  static fields
+// UnityEngine.Rendering.HighDefinition.TiledLightingConstants:  static fields
 //
 #define MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE (512)
 #define VIEWPORT_SCALE_Z (1)
@@ -44,6 +55,7 @@
 #define TILE_SIZE_FPTL (16)
 #define TILE_SIZE_CLUSTERED (32)
 #define TILE_SIZE_BIG_TILE (64)
+#define ZBIN_COUNT (8192)
 #define TILE_INDEX_MASK (32767)
 #define TILE_INDEX_SHIFT_X (0)
 #define TILE_INDEX_SHIFT_Y (15)
@@ -105,7 +117,7 @@ CBUFFER_START(ShaderVariablesLightList)
     float4x4 g_mProjectionArr[2];
     float4 g_screenSize;
     int2 g_viDimensions;
-    int _BoundedEntityCount;
+    uint _BoundedEntityCount;
     uint g_isOrthographic;
     uint g_BaseFeatureFlags;
     int g_iNumSamplesMSAA;

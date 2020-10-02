@@ -377,6 +377,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static int s_TileSizeClustered = 32;
         public static int s_TileSizeBigTile = 64;
 
+        public static int s_ZBinCount = 8192;
+
         // Tile indexing constants for indirect dispatch deferred pass : [2 bits for eye index | 15 bits for tileX | 15 bits for tileY]
         public static int s_TileIndexMask = 0x7FFF;
         public static int s_TileIndexShiftX = 0;
@@ -516,7 +518,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4      g_screenSize;
 
         public Vector2Int   g_viDimensions;
-        public int          _BoundedEntityCount;
+        public uint         _BoundedEntityCount;
         public uint         g_isOrthographic;
 
         public uint         g_BaseFeatureFlags;
@@ -689,6 +691,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer convexBoundsBuffer { get; /*private*/ set; }
             public ComputeBuffer xyBoundsBuffer { get; private set; }
             public ComputeBuffer wBoundsBuffer { get; private set; }
+            public ComputeBuffer zBinBuffer { get; private set; }
             public ComputeBuffer globalLightListAtomic { get; private set; }
 
             // Tile Output
@@ -764,8 +767,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // The bounds and light volumes are view-dependent, and AABB is additionally projection dependent.
-                xyBoundsBuffer = new ComputeBuffer(viewCount * maxBoundedEntityCount, 4 * sizeof(float)); // {x_min, y_min, x_max, y_max}
-                wBoundsBuffer  = new ComputeBuffer(viewCount * maxBoundedEntityCount, 2 * sizeof(float)); // {w_min, w_max}
+                xyBoundsBuffer = new ComputeBuffer(maxBoundedEntityCount * viewCount, 4 * sizeof(float)); // {x_min, y_min, x_max, y_max}
+                wBoundsBuffer  = new ComputeBuffer(maxBoundedEntityCount * viewCount, 2 * sizeof(float)); // {w_min, w_max}
+                zBinBuffer     = new ComputeBuffer(TiledLightingConstants.s_ZBinCount * (int)BoundedEntityCategory.Count * viewCount, sizeof(uint));  // {start << 16 | count}
 
                 // Make sure to invalidate the content of the buffers
                 listsAreClear = false;
@@ -809,7 +813,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.SafeRelease(xyBoundsBuffer);
                 xyBoundsBuffer = null;
                 CoreUtils.SafeRelease(wBoundsBuffer);
-                wBoundsBuffer  = null;
+                wBoundsBuffer = null;
+                CoreUtils.SafeRelease(zBinBuffer);
+                zBinBuffer = null;
                 CoreUtils.SafeRelease(dispatchIndirectBuffer);
                 dispatchIndirectBuffer = null;
             }
@@ -881,6 +887,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_EnableBakeShadowMask = false; // Track if any light require shadow mask. In this case we will need to enable the keyword shadow mask
 
         ComputeShader buildScreenAABBShader { get { return defaultResources.shaders.buildScreenAABBCS; } }
+        ComputeShader zBinShader { get { return defaultResources.shaders.zBinCS; } }
         ComputeShader buildPerTileLightListShader { get { return defaultResources.shaders.buildPerTileLightListCS; } }
         ComputeShader buildPerBigTileLightListShader { get { return defaultResources.shaders.buildPerBigTileLightListCS; } }
         ComputeShader buildPerVoxelLightListShader { get { return defaultResources.shaders.buildPerVoxelLightListCS; } }
@@ -1011,6 +1018,21 @@ namespace UnityEngine.Rendering.HighDefinition
         List<Matrix4x4> m_WorldToViewMatrices = new List<Matrix4x4>(ShaderConfig.s_XrMaxViews);
 
         static MaterialPropertyBlock m_LightLoopDebugMaterialProperties = new MaterialPropertyBlock();
+
+        static Vector4 GetZBinBufferEncodingParams(HDCamera hdCamera)
+        {
+            // encodingParams = { n, log2(f/n), 1/n, 1/log2(f/n) }
+            // n = 0.1. See ComputeFixedPointLogDepth.
+            float n = 0.1f;
+            float f = hdCamera.camera.farClipPlane; // Assume XR uses the same far plane for all views
+
+            float x = n;
+            float z = 1 / x;
+            float y = Log2f(f * z);
+            float w = 1 / y;
+
+            return new Vector4(x, y, z, w);
+        }
 
         static int GetNumTileBigTileX(HDCamera hdCamera)
         {
@@ -2526,9 +2548,10 @@ namespace UnityEngine.Rendering.HighDefinition
         static int ComputeFixedPointLogDepth(float w, float f, int numBits = 16)
         {
             // z = Log[w/n] / Log[f/n]
-            // Undefined for (w < n, so we must clamp). This should not affect the efficiency of Z-binning.
+            // Undefined for (w < n, so we must clamp). This should not significantly affect the efficiency of Z-binning.
             // Still need the distance to the near plane in order for the math to work.
-            // Setting it too low will quickly consume the availabl bits. 0.1 is a safe value.
+            // Setting it too low will quickly consume the available bits. 0.1 is a safe value.
+            // See https://zero-radiance.github.io/post/z-buffer/
             const float n = 0.1f;
 
             f = Math.Max(n, f);
@@ -3403,7 +3426,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Screen Space AABBs
             public ComputeShader screenSpaceAABBShader;
-            public int screenSpaceAABBKernel;
+
+            // Z-binning
+            public ComputeShader zBinShader;
 
             // Big Tile
             public ComputeShader bigTilePrepassShader;
@@ -3447,6 +3472,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer convexBoundsBuffer;
             public ComputeBuffer xyBoundsBuffer;
             public ComputeBuffer wBoundsBuffer;
+            public ComputeBuffer zBinBuffer;
             public ComputeBuffer globalLightListAtomic;
 
             // Output
@@ -3475,6 +3501,7 @@ namespace UnityEngine.Rendering.HighDefinition
             resources.convexBoundsBuffer = tileAndClusterData.convexBoundsBuffer;
             resources.xyBoundsBuffer = tileAndClusterData.xyBoundsBuffer;
             resources.wBoundsBuffer = tileAndClusterData.wBoundsBuffer;
+            resources.zBinBuffer = tileAndClusterData.zBinBuffer;
             //resources.lightVolumeDataBuffer = tileAndClusterData.lightVolumeDataBuffer;
             resources.tileFeatureFlags = tileAndClusterData.tileFeatureFlags;
             resources.globalLightListAtomic = tileAndClusterData.globalLightListAtomic;
@@ -3516,27 +3543,48 @@ namespace UnityEngine.Rendering.HighDefinition
             //}
         }
 
-        // generate screen-space AABBs (used for both fptl and clustered).
         static void GenerateLightsScreenSpaceAABBs(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, CommandBuffer cmd)
         {
             if (parameters.boundedEntityCount > 0) // Do not perform a dispatch with 0 groups; this will leave the output buffer in an uninitialized state
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.GenerateLightAABBs)))
                 {
-                    // With XR single-pass, we have one set of light bounds per view to iterate over (bounds are in view space for each view)
-                    cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_data, resources.convexBoundsBuffer);
-                    cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs._xyBoundsBuffer, resources.xyBoundsBuffer);
-                    cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs._wBoundsBuffer,  resources.wBoundsBuffer);
+                    var shader = parameters.screenSpaceAABBShader;
+                    int kernel = 0;
 
-                    ConstantBuffer.Push(cmd, parameters.lightListCB, parameters.screenSpaceAABBShader, HDShaderIDs._ShaderVariablesLightList);
+                    cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._EntityBoundsBuffer, resources.convexBoundsBuffer);
+                    cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._xyBoundsBuffer,     resources.xyBoundsBuffer);
+                    cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._wBoundsBuffer,      resources.wBoundsBuffer);
 
-                    const int threadsPerGroup  = 64; // Shader: THREADS_PER_GROUP  (64)
-                    const int threadsPerEntity = 4;  // Shader: THREADS_PER_ENTITY (4)
+                    ConstantBuffer.Push(cmd, parameters.lightListCB, shader, HDShaderIDs._ShaderVariablesLightList);
+
+                    int threadsPerGroup  = 64; // Shader: THREADS_PER_GROUP  (64)
+                    int threadsPerEntity = 4;  // Shader: THREADS_PER_ENTITY (4)
 
                     int groupCount = HDUtils.DivRoundUp(parameters.boundedEntityCount * threadsPerEntity, threadsPerGroup);
 
-                    cmd.DispatchCompute(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, groupCount, parameters.viewCount, 1);
+                    cmd.DispatchCompute(shader, kernel, groupCount, parameters.viewCount, 1);
                 }
+            }
+        }
+
+        static void PerformZBinning(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, CommandBuffer cmd)
+        {
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PerformZBinning)))
+            {
+                var shader = parameters.zBinShader;
+                int kernel = 0;
+
+                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._wBoundsBuffer, resources.wBoundsBuffer);
+                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._zBinBuffer,    resources.zBinBuffer);
+
+                ConstantBuffer.Push(cmd, parameters.lightListCB, shader, HDShaderIDs._ShaderVariablesLightList);
+
+                int threadsPerGroup = 64; // Shader: THREADS_PER_GROUP  (64)
+
+                int groupCount = HDUtils.DivRoundUp(TiledLightingConstants.s_ZBinCount, threadsPerGroup);
+
+                cmd.DispatchCompute(shader, kernel, groupCount, parameters.viewCount, 1);
             }
         }
 
@@ -3792,7 +3840,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int boundedEntityCount = m_BoundedEntityCollection.GetTotalEntityCount();
 
-            cb._BoundedEntityCount = boundedEntityCount;
+            cb._BoundedEntityCount = (uint)boundedEntityCount;
             cb.g_screenSize = hdCamera.screenSize; // TODO remove and use global one.
             cb.g_viDimensions = new Vector2Int((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y);
             cb.g_isOrthographic = camera.orthographic ? 1u : 0u;
@@ -3855,7 +3903,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Screen space AABB
             parameters.screenSpaceAABBShader = buildScreenAABBShader;
-            parameters.screenSpaceAABBKernel = 0;
+
+            // Screen space AABB
+            parameters.zBinShader = zBinShader;
 
             // Big tile prepass
             parameters.runBigTilePrepass = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
@@ -3988,6 +4038,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 // That is fairly efficient, and allows us to avoid weird special cases.
                 ClearLightLists(parameters, resources, cmd);
                 GenerateLightsScreenSpaceAABBs(parameters, resources, cmd);
+                // Both Z-binning and XY-binning can be executed concurrently.
+                // This should improve GPU utilization.
+                PerformZBinning(parameters, resources, cmd);
+
                 // BigTilePrepass(parameters, resources, cmd);
                 // BuildPerTileLightList(parameters, resources, ref tileFlagsWritten, cmd);
                 // VoxelLightListGeneration(parameters, resources, cmd);
@@ -4075,6 +4129,14 @@ namespace UnityEngine.Rendering.HighDefinition
             var geomSeries = (1.0 - Mathf.Pow(k_ClustLogBase, C)) / (1 - k_ClustLogBase); // geometric series: sum_k=0^{C-1} base^k
 
             // Tile/Cluster
+            for (int i = 0; i < (int)BoundedEntityCategory.Count; i++)
+            {
+                cb._BoundedEntityCountPerCategory[i] = (uint)m_BoundedEntityCollection.GetEntityCount((BoundedEntityCategory)i);
+            }
+
+            cb._ZBinBufferEncodingParams = GetZBinBufferEncodingParams(hdCamera);
+
+            // Old stuff below...
             cb._NumTileFtplX = (uint)GetNumTileFtplX(hdCamera);
             cb._NumTileFtplY = (uint)GetNumTileFtplY(hdCamera);
             cb.g_fClustScale = (float)(geomSeries / (hdCamera.camera.farClipPlane - hdCamera.camera.nearClipPlane)); ;
