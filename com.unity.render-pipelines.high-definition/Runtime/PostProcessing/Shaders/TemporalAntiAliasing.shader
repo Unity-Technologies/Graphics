@@ -235,10 +235,6 @@ Shader "Hidden/HDRP/TemporalAA"
 
             color.xyz = ConvertToOutputSpace(finalColor.xyz);
             color.xyz = clamp(color.xyz, 0, CLAMP_MAX);
-#if defined(ENABLE_ALPHA)
-            // Set output alpha to the antialiased alpha.
-            color.w = filteredColor.w;
-#endif
 
             _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color.CTYPE_SWIZZLE;
             outColor = color.CTYPE_SWIZZLE;
