@@ -153,7 +153,13 @@ namespace UnityEditor.VFX.UI
             m_View = view;
             var tpl = VFXView.LoadUXML("VFXComponentBoard");
 
-            tpl.CloneTree(contentContainer);
+            {
+                // CloneTree now respect the target provided by contentContainer
+                // The following lines preserves the old behavior of tpl.instantiate(this).
+                var ve = tpl.Instantiate();
+                while (ve.hierarchy.childCount != 0)
+                    this.hierarchy.Add(ve.hierarchy[0]);
+            }
 
             contentContainer.AddStyleSheetPath("VFXComponentBoard");
 
@@ -606,8 +612,13 @@ namespace UnityEditor.VFX.UI
                 foreach (var added in eventNames.Except(m_Events.Keys).ToArray())
                 {
                     var tpl = VFXView.LoadUXML("VFXComponentBoard-event");
-
-                    tpl.CloneTree(m_EventsContainer);
+                    {
+                        // CloneTree now respect the target provided by contentContainer
+                        // The following lines preserves the old behavior of tpl.instantiate(this).
+                        var ve = tpl.Instantiate();
+                        while (ve.hierarchy.childCount != 0)
+                            this.hierarchy.Add(ve.hierarchy[0]);
+                    }
 
                     VFXComponentBoardEventUI newUI = m_EventsContainer.Children().Last() as VFXComponentBoardEventUI;
                     if (newUI != null)

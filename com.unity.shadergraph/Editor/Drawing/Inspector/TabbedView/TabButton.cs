@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -74,7 +75,14 @@ public class TabButton : VisualElement
         styleSheets.Add(Resources.Load<StyleSheet>($"Styles/{styleName}"));
 
         VisualTreeAsset visualTree = Resources.Load<VisualTreeAsset>($"UXML/{UxmlName}");
-        visualTree.CloneTree(this);
+
+        {
+            // CloneTree now respect the target provided by contentContainer
+            // The following lines preserves the old behavior of tpl.instantiate(this).
+            var ve = visualTree.Instantiate();
+            while (ve.hierarchy.childCount != 0)
+                this.hierarchy.Add(ve.hierarchy[0]);
+        }
 
         m_Label = this.Q<Label>("Label");
         

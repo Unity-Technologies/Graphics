@@ -70,7 +70,13 @@ namespace UnityEditor.VFX.UI
             RecreateResources();
 
             var tpl = VFXView.LoadUXML("VFXSystemBorder");
-            tpl.CloneTree(this);
+            {
+                // CloneTree now respect the target provided by contentContainer
+                // The following lines preserves the old behavior of tpl.instantiate(this).
+                var ve = tpl.Instantiate();
+                while (ve.hierarchy.childCount != 0)
+                    this.hierarchy.Add(ve.hierarchy[0]);
+            }
 
             this.AddStyleSheetPath("VFXSystemBorder");
 

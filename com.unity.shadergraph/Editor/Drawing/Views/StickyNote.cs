@@ -173,8 +173,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             var tpl = Resources.Load<VisualTreeAsset>(uiFile);
             var sheet = Resources.Load<StyleSheet>("Resizable");
             styleSheets.Add(sheet);
+            {
+                // CloneTree now respect the target provided by contentContainer
+                // The following lines preserves the old behavior of tpl.instantiate(this).
+                var ve = tpl.Instantiate();
+                while (ve.hierarchy.childCount != 0)
+                    this.hierarchy.Add(ve.hierarchy[0]);
+            }
 
-            tpl.CloneTree(this);
 
             foreach (Resizer value in System.Enum.GetValues(typeof(Resizer)))
             {
@@ -417,7 +423,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Graph = graph;
             var tpl = Resources.Load<VisualTreeAsset>(uiFile);
 
-            tpl.CloneTree(this);
+            {
+                // CloneTree now respect the target provided by contentContainer
+                // The following lines preserves the old behavior of tpl.instantiate(this).
+                var ve = tpl.Instantiate();
+                while (ve.hierarchy.childCount != 0)
+                    this.hierarchy.Add(ve.hierarchy[0]);
+            }
 
             capabilities = Capabilities.Movable | Capabilities.Deletable | Capabilities.Ascendable | Capabilities.Selectable;
 

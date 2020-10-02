@@ -15,7 +15,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             pickingMode = PickingMode.Ignore;
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/NodeSettings"));
             var uxml = Resources.Load<VisualTreeAsset>("UXML/NodeSettings");
-            uxml.CloneTree(this);
+            {
+                // CloneTree now respect the target provided by contentContainer
+                // The following lines preserves the old behavior of tpl.instantiate(this).
+                var ve = uxml.Instantiate();
+                while (ve.hierarchy.childCount != 0)
+                    this.hierarchy.Add(ve.hierarchy[0]);
+            }
+
             // Get the element we want to use as content container
             m_ContentContainer = this.Q("contentContainer");
             RegisterCallback<MouseDownEvent>(OnMouseDown);
