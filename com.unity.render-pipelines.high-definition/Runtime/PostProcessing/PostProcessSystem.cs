@@ -215,9 +215,6 @@ namespace UnityEngine.Rendering.HighDefinition
             );
 
             FillEmptyExposureTexture();
-
-            // Call after initializing m_LutSize and m_KeepAlpha as it's needed for render target allocation.
-            InitializeNonRenderGraphResources(hdAsset);
         }
 
         public void Cleanup()
@@ -452,27 +449,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        static void ClearWithGuardBands(in ClearWithGuardBandsParameters parameters, CommandBuffer cmd, RTHandle source)
-        {
-            // Guard bands (also known as "horrible hack") to avoid bleeding previous RTHandle
-            // content into smaller viewports with some effects like Bloom that rely on bilinear
-            // filtering and can't use clamp sampler and the likes
-            // Note: some platforms can't clear a partial render target so we directly draw black triangles
-            {
-                int w = parameters.cameraWidth;
-                int h = parameters.cameraHeight;
-                cmd.SetRenderTarget(source, 0, CubemapFace.Unknown, -1);
-
-                if (w < source.rt.width || h < source.rt.height)
-                {
-                    cmd.SetViewport(new Rect(w, 0, k_RTGuardBandSize, h));
-                    cmd.DrawProcedural(Matrix4x4.identity, parameters.clearMaterial, 0, MeshTopology.Triangles, 3, 1);
-                    cmd.SetViewport(new Rect(0, h, w + k_RTGuardBandSize, k_RTGuardBandSize));
-                    cmd.DrawProcedural(Matrix4x4.identity, parameters.clearMaterial, 0, MeshTopology.Triangles, 3, 1);
-                }
-            }
-        }
-
         public void Render(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle colorBuffer, RTHandle afterPostProcessTexture, RenderTargetIdentifier finalRT, RTHandle depthBuffer, RTHandle depthMipChain, RTHandle motionVecTexture, bool flipY)
         {
             var dynResHandler = DynamicResolutionHandler.instance;
@@ -500,8 +476,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (m_PostProcessEnabled)
                 {
-                    ClearWithGuardBands(PrepareClearWithGuardBandsParameters(camera), cmd, source);
-
                     // Optional NaN killer before post-processing kicks in
                     bool stopNaNs = camera.stopNaNs && m_StopNaNFS;
 
@@ -2466,23 +2440,43 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        static RTHandle CoCAllocatorMipsTrue(string id, int frameIndex, RTHandleSystem rtHandleSystem)
+        {
+            return rtHandleSystem.Alloc(
+                Vector2.one, TextureXR.slices, DepthBits.None, GraphicsFormat.R16_SFloat,
+                dimension: TextureXR.dimension, enableRandomWrite: true, useMipMap: true, useDynamicScale: true, name: $"{id} CoC History"
+            );
+        }
+
+        static RTHandle CoCAllocatorMipsFalse(string id, int frameIndex, RTHandleSystem rtHandleSystem)
+        {
+            return rtHandleSystem.Alloc(
+                Vector2.one, TextureXR.slices, DepthBits.None, GraphicsFormat.R16_SFloat,
+                dimension: TextureXR.dimension, enableRandomWrite: true, useMipMap: false, useDynamicScale: true, name: $"{id} CoC History"
+            );
+        }
+
         static void GrabCoCHistory(HDCamera camera, out RTHandle previous, out RTHandle next, bool useMips = false)
         {
-            RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
+            // WARNING WORKAROUND
+            // For some reason, the Allocator as it was declared before would capture the useMips parameter but only when both render graph and XR are enabled.
+            // To work around this we have two hard coded allocators and use one or the other depending on the parameters.
+            // Also don't try to put the right allocator in a temporary variable as it will also generate allocations hence the horrendous copy paste bellow.
+            if (useMips)
             {
-                return rtHandleSystem.Alloc(
-                    Vector2.one, TextureXR.slices, DepthBits.None, GraphicsFormat.R16_SFloat,
-                    dimension: TextureXR.dimension, enableRandomWrite: true, useMipMap:useMips, useDynamicScale: true, name: $"{id} CoC History"
-                );
+                next = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC)
+                    ?? camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC, CoCAllocatorMipsTrue, 2);
             }
-
-            next = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC)
-                ?? camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC, Allocator, 2);
+            else
+            {
+                next = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC)
+                    ?? camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC, CoCAllocatorMipsFalse, 2);
+            }
 
             if (useMips == true && next.rt.mipmapCount == 1)
             {
                 camera.ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC);
-                next = camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC, Allocator, 2);
+                next = camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC, CoCAllocatorMipsTrue, 2);
             }
 
             previous = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC);
