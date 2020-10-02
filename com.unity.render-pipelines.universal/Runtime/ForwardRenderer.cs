@@ -243,6 +243,8 @@ namespace UnityEngine.Rendering.Universal
                 ConfigureCameraTarget(BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
                 AddRenderPasses(ref renderingData);
                 EnqueuePass(m_RenderOpaqueForwardPass);
+
+                // TODO: Do we need to inject transparents and skybox when rendering depth only camera? They don't write to depth.
                 EnqueuePass(m_DrawSkyboxPass);
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
                 if (!needTransparencyPass)
@@ -361,12 +363,6 @@ namespace UnityEngine.Rendering.Universal
                 ConfigureCameraTarget(activeColorRenderTargetId, activeDepthRenderTargetId);
             }
 
-            int count = activeRenderPassQueue.Count;
-            for (int i = count - 1; i >= 0; i--)
-            {
-                if(activeRenderPassQueue[i] == null)
-                    activeRenderPassQueue.RemoveAt(i);
-            }
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 
             if (mainLightShadows)
@@ -624,18 +620,6 @@ namespace UnityEngine.Rendering.Universal
             internal bool requiresDepthPrepass;
             internal bool requiresNormalsTexture;
             internal bool requiresColorTexture;
-        }
-
-        private void AddRenderPasses(ref RenderingData renderingData)
-        {
-            for (int i = 0; i < rendererFeatures.Count; ++i)
-            {
-                if (!rendererFeatures[i].isActive)
-                {
-                    continue;
-                }
-                rendererFeatures[i].AddRenderPasses(this, ref renderingData);
-            }
         }
 
         private RenderPassInputSummary GetRenderPassInputs(ref RenderingData renderingData)
