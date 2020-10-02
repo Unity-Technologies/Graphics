@@ -17,7 +17,6 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, scripting
         utr_args = utr_editmode_flags()
 
     utr_args.extend(test_platform["extra_utr_flags"])
-    utr_args.extend(platform["extra_utr_flags"])
     if api["name"] != "":
         utr_args.append(f'--extra-editor-arg="{api["cmd"]}"')
 
@@ -39,7 +38,6 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, scripting
 def cmd_playmode(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
     utr_args = utr_playmode_flags(scripting_backend=f'{scripting_backend}', color_space=f'{color_space}')
     utr_args.extend(test_platform["extra_utr_flags"])
-    utr_args.extend(platform["extra_utr_flags"])
     if api["name"] != "":
         utr_args.append(f'--extra-editor-arg="{api["cmd"]}"')
 
@@ -60,7 +58,6 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor, scripting
 def cmd_standalone(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
     utr_args = utr_standalone_split_flags("Windows64", scripting_backend=f'{scripting_backend}', color_space=f'{color_space}')
     utr_args.extend(test_platform["extra_utr_flags"])
-    utr_args.extend(platform["extra_utr_flags"])
     utr_args.append(f'--timeout={get_timeout(test_platform, "Win")}')
 
     base = [f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}/{project_folder}/utr.bat']
@@ -79,7 +76,6 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, scripti
 def cmd_standalone_build(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
     utr_args = utr_standalone_build_flags("Windows64", scripting_backend=f'{scripting_backend}', color_space=f'{color_space}')
     utr_args.extend(test_platform["extra_utr_flags_build"])
-    utr_args.extend(platform["extra_utr_flags_build"])
     utr_args.append(f'--timeout={get_timeout(test_platform, "Win", build=True)}')
 
     if not test_platform['is_performance']:

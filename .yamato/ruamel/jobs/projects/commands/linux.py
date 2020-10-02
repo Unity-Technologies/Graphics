@@ -17,7 +17,6 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, scripting
     
     utr_args = utr_editmode_flags()
     utr_args.extend(test_platform["extra_utr_flags"])
-    utr_args.extend(platform["extra_utr_flags"])
     if api["name"] != "":
         utr_args.append(f'--extra-editor-arg="{api["cmd"]}"')
 
@@ -27,7 +26,6 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, scripting
 def cmd_playmode(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
     utr_args = utr_playmode_flags()
     utr_args.extend(test_platform["extra_utr_flags"])
-    utr_args.extend(platform["extra_utr_flags"])
     if api["name"] != "":
         utr_args.append(f'--extra-editor-arg="{api["cmd"]}"')
 
@@ -40,7 +38,6 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, scripti
     except:
         utr_args = utr_standalone_not_split_flags("Linux64")
     utr_args.extend(test_platform["extra_utr_flags"])
-    utr_args.extend(platform["extra_utr_flags"])
     utr_args.extend(['--extra-editor-arg="-executemethod"', f'--extra-editor-arg="CustomBuild.BuildLinux{api["name"]}Linear"'])
 
 

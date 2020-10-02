@@ -10,7 +10,6 @@ def _cmd_base(project_folder, components):
 def cmd_editmode(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):    
     utr_args = utr_editmode_flags( testproject=f'{TEST_PROJECTS_DIR}\{project_folder}',editor_location='WindowsEditor', scripting_backend=f'{scripting_backend}', color_space=f'{color_space}')
     utr_args.extend(test_platform["extra_utr_flags"])
-    utr_args.extend(platform["extra_utr_flags"])
     if test_platform["name"].lower()=='playmode_perf_build':
         utr_args.append('--platform=Android')
 
@@ -41,7 +40,6 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, scripting
 def cmd_playmode(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
     utr_args = utr_playmode_flags(testproject=f'{TEST_PROJECTS_DIR}\{project_folder}',editor_location='WindowsEditor', scripting_backend=f'{scripting_backend}', color_space=f'{color_space}')
     utr_args.extend(test_platform["extra_utr_flags"])
-    utr_args.extend(platform["extra_utr_flags"])
     if test_platform["name"].lower()=='playmode_perf_build':
         utr_args.append('--platform=Android')
 
@@ -71,7 +69,6 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor, scripting
 def cmd_standalone(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):   
     utr_args = utr_standalone_split_flags(platform_spec='', platform='Android', testproject=f'{TEST_PROJECTS_DIR}\{project_folder}', player_load_path=PATH_PLAYERS, player_conn_ip=None, scripting_backend=f'{scripting_backend}', color_space=f'{color_space}')
     utr_args.extend(test_platform["extra_utr_flags"])
-    utr_args.extend(platform["extra_utr_flags"])
     utr_args.extend(['--scripting-backend=il2cpp', f'--editor-location=WindowsEditor'])
     utr_args.append(f'--timeout={get_timeout(test_platform, "Android")}')
 
@@ -92,7 +89,6 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, s
 
     utr_args = utr_standalone_build_flags(platform_spec='', platform='Android', testproject=f'{TEST_PROJECTS_DIR}\\{project_folder}', player_save_path=PATH_PLAYERS, editor_location='WindowsEditor', scripting_backend=f'{scripting_backend}', color_space=f'{color_space}')
     utr_args.extend(test_platform["extra_utr_flags_build"])
-    utr_args.extend(platform["extra_utr_flags_build"])
     utr_args.extend(['--scripting-backend=il2cpp'])
     utr_args.append(f'--timeout={get_timeout(test_platform, "Android", build=True)}')
 
