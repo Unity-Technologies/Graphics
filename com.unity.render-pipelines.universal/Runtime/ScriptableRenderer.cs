@@ -413,6 +413,11 @@ namespace UnityEngine.Rendering.Universal
                 // Sort the render pass queue
                 SortStable(m_ActiveRenderPassQueue);
 
+#if ENABLE_VR
+                if (renderingData.cameraData.isStereoEnabled)
+                    XR.XRDevice.UpdateEyeTextureMSAASetting();
+#endif
+
                 // Upper limits for each block. Each block will contains render passes with events below the limit.
                 NativeArray<RenderPassEvent> blockEventLimits = new NativeArray<RenderPassEvent>(k_RenderPassBlockCount, Allocator.Temp);
                 blockEventLimits[RenderPassBlock.BeforeRendering] = RenderPassEvent.BeforeRenderingPrepasses;

@@ -79,15 +79,6 @@ namespace UnityEngine.Rendering.Universal
         {
             SetSupportedRenderingFeatures();
 
-            // Let engine know we have MSAA on for cases where we support MSAA backbuffer
-            if (QualitySettings.antiAliasing != asset.msaaSampleCount)
-            {
-                QualitySettings.antiAliasing = asset.msaaSampleCount;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                XRSystem.UpdateMSAALevel(asset.msaaSampleCount);
-#endif
-            }
-
 #if ENABLE_VR && ENABLE_XR_MODULE
             XRSystem.UpdateRenderScale(asset.renderScale);
 #endif

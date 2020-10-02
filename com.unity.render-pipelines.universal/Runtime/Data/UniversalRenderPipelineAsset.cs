@@ -691,6 +691,8 @@ namespace UnityEngine.Rendering.Universal
             set { m_UseAdaptivePerformance = value; }
         }
 
+        override public int antialiasing => msaaSampleCount;
+
         public override Material defaultMaterial
         {
             get { return GetMaterial(DefaultMaterialType.Standard); }
@@ -730,6 +732,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return GetMaterial(DefaultMaterialType.Sprite); }
         }
+
 
         public override Shader defaultShader
         {
