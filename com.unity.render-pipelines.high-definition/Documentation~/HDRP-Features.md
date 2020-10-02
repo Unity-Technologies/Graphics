@@ -161,46 +161,55 @@ The HDRP light types use [physical light units](#PLU) to help you light your Sce
 
 For more information, including the full list of light properties, see the [Light component documentation](Light-Component).
 
-### Reflection probes
-
-![](Images/HDRPFeatures-ReflectionProbes.png)
-
-HDRP supports cubemap and planar GPU Reflection Probes to help you produce realistic reflections in your Scene in real time. For more information, see the [introduction to Reflection Probes](Reflection-Probes-Intro.md)
-
-### Planar reflection probe filtering
-
-![](Images/PlanarReflectionFiltering-Feature.png)
-
-Planar reflection probe filtering combines the result of planar reflection and surfaces smoothness. HDRP includes accurate filtering for planar reflection that is close to being physically-based.
-
-### Screen-space global illumination
-
-![](Images/HDRPFeatures-SSGI.png)
-
-HDRP supports screen-space global illumination (SSGI) as a fallback for ray-traced global illumination (RTGI). It is an algorithm that accesses the indirect diffuse lighting that the environment generates. It works in the same way as the [Screen Space Reflection](Override-Screen-Space-Reflection.md) in that it uses ray marching to calculate the result.
-
-Since this feature is a fallback for RTGI, for more information, see [Ray-traced Global Illumination](Ray-Traced-Global-Illumination.md).
-
-### Screen-space reflection and refraction
-
-HDRP provides a screen-space solution for reflection and refraction. It uses the depth and color buffer of the screen to help simulate the path that light travels to the Camera and uses this to calculate accurate reflection and refraction. You can use this feature for transparent materials too, such as windows or water. For more information, see the [screen-space reflection](Reflection-in-HDRP.md#ScreenSpaceReflection) and [screen-space refraction](Refraction-in-HDRP#ScreenSpaceRefraction) documentation.
-
-### Screen-space distortion
-
-HDRP provides a screen-space solution for distortion. Distortion is similar to refraction except that it is purely artistic driven. For more information, see the [distortion](Surface-Type.md#TransparencyInputs) documentation.
-
 ### IES Profiles and light cookies
 
 ![](Images/HDRPFeatures-IESProfiles.png)
 
 HDRP supports the Illuminating Engineering Society's (IES) file format for describing the distribution of light from a light source. HDRP supports the IES profile for Point, Spot (Cone, Pyramid, and Box), and rectangular Area [Lights](Light-Component.md). You can also mix the IES profile with [cookies](https://docs.unity3d.com/Manual/Cookies.html) and even use the profile and cookie mix for [light map baking](https://docs.unity3d.com/Manual/LightMode-Baked.html).
 
+### Reflection probes
+
+![](Images/HDRPFeatures-ReflectionProbes.png)
+
+HDRP supports cubemap reflections that take surface smoothness into account. This helps you produce realistic reflections in your Scene in real time.  For more information, see the [introduction to Reflection Probes](Reflection-Probes-Intro.md)
+
+### Planar reflection probe
+
+![](Images/PlanarReflectionFiltering-Feature.png)
+
+HDRP supports Planar reflection probes that take surface smoothness into account. This allows you to to create effects that mimic a shiny mirror or a wet floor. HDRP includes accurate filtering for planar reflection that is close to being physically-based.
+
+For more information, see [Planar Reflection Probe](Planar-Reflection-Probe.md).
+
+### Screen-space reflection and refraction
+
+HDRP provides a screen-space solution for reflection and refraction. It uses the depth and color buffer of the screen to help simulate the path that light travels to the Camera and uses this to calculate accurate reflection and refraction. You can use this feature for transparent materials too, such as windows or water. For more information, see the [screen-space reflection](Reflection-in-HDRP.md#ScreenSpaceReflection) and [screen-space refraction](Refraction-in-HDRP#ScreenSpaceRefraction) documentation.
+
+### Screen-space global illumination
+
+![](Images/HDRPFeatures-SSGI.png)
+
+HDRP supports screen-space global illumination (SSGI). SSGI is an algorithm that accesses the indirect diffuse lighting that the environment generates. It works in the same way as the [Screen Space Reflection](Override-Screen-Space-Reflection.md) in that it uses ray marching to calculate the result.
+
+### Screen-space distortion
+
+HDRP provides a screen-space solution for distortion. Distortion is similar to refraction except that it is purely artistic driven. For more information, see the [distortion](Surface-Type.md#TransparencyInputs) documentation.
+
 ### Exposure
 
 HDRP allows you to calculate exposure using several methods. This includes: 
 
-- Histogram exposure: HDRP's exposure implementation computes a histogram of the image which allows you to select high and low percentile values to discard. Discarding outlying values in the shadows or highlights helps to calculate a more stable exposure.
-- Metering mode: HDRP's exposure implementation includes a metering mask. This includes a texture-based mask and a procedural mode.
+##### Histogram exposure
+
+![](Images\Exposure_Histogram.png)
+
+HDRP's exposure implementation computes a histogram of the image which allows you to select high and low percentile values to discard. Discarding outlying values in the shadows or highlights helps to calculate a more stable exposure.
+
+For more information, see [Exposure](Override-Exposure.md).
+
+##### Metering mode
+
+HDRP's exposure implementation includes a metering mask. This includes a texture-based mask and a procedural mode.
 
 For more information, see [Exposure](Override-Exposure.md).
 
@@ -298,45 +307,13 @@ Real time raytracing effect are currently in Preview and behavior could change i
 
 HDRP includes its own purpose-built implementation for post-processing to produce exceptionally high-quality graphics. You can use post-processing to apply full-screen filters and effects to the Camera to drastically improve the visuals of your Unity Project with little set-up time. For an overview on HDRP post-processing, see the [post-processing documentation](Post-Processing-Main).
 
-### Custom Post-processing
-
-![Posterize](Images/HDRPFeatures-CustomPostProcess.png)
-
-HDRP allows you to add your own custom post processes integrated with the volume framework. They can be injected after opaque and sky object, before the [temporal anti-aliasing](Anti-Aliasing.md#TAA) pass, before builtin post processes or after builtin post processes. For more information, see the [Custom Post-processing documentation](Custom-Post-Process.md).
-
-### Path tracing
-
-#### Path-traced depth of field
-
-![](Images/Path-traced-DOF-Feature.png)
-
-HDRP includes a depth of field mode for producing path-traced images with high-quality defocus blur. Compared to post-processed depth of field, this mode works with multiple layers of transparency and does not produce any artifacts, apart from noise typical in path traced images. You can fix this by increasing the sample count and/or using an external denoising tool.
-
-For more information about this feature, see [Depth-of-field](Post-Processing-Depth-of-Field.md).
-
-#### Accumulation motion blur and path tracer convergence APIs
+### Accumulation motion blur 
 
 ![](Images/Path_tracing_recording-Feature.png)
 
-HDRP includes a recording API which you can use to render effects such as high-quality accumulation motion blur and converged path-traced images. These techniques create the final "converged" frame by combining information from multiple intermediate sub-frames. The new API allows your scripts to extract the properly converged final frames and perform further processing or save them to disk.
+HDRP includes a recording API which you can use to render effects such as high-quality accumulation motion blur. This technique creates the final "converged" frame by combining information from multiple intermediate sub-frames. This API allows your scripts to extract the properly converged final frames and perform further processing or save them to disk.
 
 For information about this feature, and for some example scripts, see [Multiframe rendering and accumulation](Accumulation.md).
-
-#### Path-traced sub-surface scattering
-
-![](Images/Path-traced-SSS-Feature.png)
-
-Path tracing supports subsurface scattering (SSS), using a random walk approach. To use it, enable path tracing and set up SSS in the same way as you would for HDRP materials.
-
-For information on SSS in HDRP, see [subsurface scattering](Subsurface-Scattering.md).
-
-#### Path-traced fog
-
-![](Images/Path-traced-fog-Feature.png)
-
-Path tracing now supports fog absorption. Like SSS, to use this feature, enable path tracing and set up fog in the same way as you would for standard fog in HDRP.
-
-For information on fog in HDRP, see [fog](Override-Fog.md).
 
 ### Anti-Aliasing
 
@@ -353,6 +330,12 @@ HDRP includes the following [anti-aliasing](Anti-Aliasing.md) methods to help yo
 
 HDRP uses a physically-based Camera system that works seamlessly with the other physical features of HDRP, such as [physical light units](#PLU), to produce physically-accurate, unified results. A physically-based camera works like a real-world camera, and therefore uses the same properties. This allows you to configure an HDRP Camera to mimic the behavior of a real-world camera, with expected results for effects such as exposure and depth of field. For more information on HDRP's physically-based camera, includings a description of how to use it, see the [Camera component documentation](HDRP-Camera.md).
 
+### Custom Post-processing
+
+![Posterize](Images/HDRPFeatures-CustomPostProcess.png)
+
+HDRP allows you to add your own custom post processes integrated with the volume framework. They can be injected after opaque and sky object, before the [temporal anti-aliasing](Anti-Aliasing.md#TAA) pass, before builtin post processes or after builtin post processes. For more information, see the [Custom Post-processing documentation](Custom-Post-Process.md).
+
 ### Custom Passes
 
 ![HDRPFeatures-CustomPass](Images/HDRPFeatures-CustomPass.gif)
@@ -368,6 +351,36 @@ You can also use this Camera override to render some GameObjects with a differen
 ![img](Images/aov_example.png)
 
 This feature allows you to export arbitrary data from custom pass injection points using an extension of the Arbitrary Output Variables (AOV) API in HDRP. An example use-case is for exporting “Object IDs” that are rendered with a custom pass. For information about the feature and example scripts, see the [AOV documentation](AOVs.md).
+
+### Path tracing
+
+#### Path-traced depth of field
+
+![](Images/Path-traced-DOF-Feature.png)
+
+HDRP includes a depth of field mode for producing path-traced images with high-quality defocus blur. Compared to post-processed depth of field, this mode works with multiple layers of transparency and does not produce any artifacts, apart from noise typical in path traced images. You can fix this by increasing the sample count and/or using an external denoising tool.
+
+For more information about this feature, see [Depth-of-field](Post-Processing-Depth-of-Field.md).
+
+#### Path tracer convergence
+
+HDRP includes a recording API which you can use to render converged path-traced images. This technique creates the final "converged" frame by combining information from multiple intermediate sub-frames. This API allows your scripts to extract the properly converged final frames and perform further processing or save them to disk.
+
+#### Path-traced sub-surface scattering
+
+![](Images/Path-traced-SSS-Feature.png)
+
+Path tracing supports subsurface scattering (SSS), using a random walk approach. To use it, enable path tracing and set up SSS in the same way as you would for HDRP materials.
+
+For information on SSS in HDRP, see [subsurface scattering](Subsurface-Scattering.md).
+
+#### Path-traced fog
+
+![](Images/Path-traced-fog-Feature.png)
+
+Path tracing now supports fog absorption. Like SSS, to use this feature, enable path tracing and set up fog in the same way as you would for standard fog in HDRP.
+
+For information on fog in HDRP, see [fog](Override-Fog.md).
 
 <a name="Tools"></a>
 
@@ -387,7 +400,7 @@ The LookDev is a viewer that allows you to import and display Assets in a good, 
 
 ### Debug modes
 
-HDRP includes debug modes that can help you to set the correct exposure for your Scene.
+HDRP includes debug modes that to help you debug your assets, your lighting, and your scene.
 
 #### Lighting debug view
 
