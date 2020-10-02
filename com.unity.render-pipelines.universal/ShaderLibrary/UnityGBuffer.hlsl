@@ -135,6 +135,8 @@ SurfaceData SurfaceDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer
 // This will encode SurfaceData into GBuffer
 FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half smoothness, half3 globalIllumination)
 {
+    // Normals are NOT normalized on purpose so that TerrainLitPasses can emulate some kind of normal "blending" by scaling down normals in the splatmap pass.
+
 #if _GBUFFER_NORMALS_OCT
     float2 octNormalWS = PackNormalOctQuadEncode(inputData.normalWS); // values between [-1, +1], must use fp32 on Nintendo Switch.
     float2 remappedOctNormalWS = octNormalWS * 0.5 + 0.5;             // values between [ 0,  1]

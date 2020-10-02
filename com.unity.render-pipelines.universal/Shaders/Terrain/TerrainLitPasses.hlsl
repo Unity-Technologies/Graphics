@@ -388,13 +388,22 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     BRDFData brdfData;
     InitializeBRDFData(albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, alpha, brdfData);
 
+    // Baked lighting.
+    half4 color;
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
-    half4 color;
     color.rgb = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
     color.a = alpha;
-
     SplatmapFinalColor(color, inputData.fogCoord);
+
+    // Dynamic lighting: emulate SplatmapFinalColor() by scaling gbuffer material properties. This will not give the same results
+    // as forward renderer because we apply blending pre-lighting instead of post-lighting.
+    brdfData.diffuse.rgb *= color.a;
+    brdfData.specular.rgb *= color.a;
+    // The following blending is incorrect. TODO: independent blend could make it closer to forward renderer.
+    inputData.normalWS.rgb *= color.a;
+    // How to deal with reflectivity?
+    //brdfData.reflectivity *= color.a;
 
     return BRDFDataToGbuffer(brdfData, inputData, smoothness, color.rgb);
 
