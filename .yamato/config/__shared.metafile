@@ -133,6 +133,7 @@ platforms:
     apis:
       - name: Metal
         exclude_test_platforms:
+          - playmode
           - playmode_XR
     components:
       - editor
