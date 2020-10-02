@@ -140,6 +140,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Disable quad overdraw on ps4.
 - Fixed error when resizing the graphics compositor's output and when re-adding a compositor in the scene
 - Fixed issue with screen space UI not drawing on the graphics compositor (case 1279272).
+- Fixed issues with bloom, alpha and HDR layers in the compositor (case 1272621).
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.

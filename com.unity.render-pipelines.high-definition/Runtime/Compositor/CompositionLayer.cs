@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         public enum UIColorBufferFormat
         {
             R11G11B10 = GraphicsFormat.B10G11R11_UFloatPack32,
-            R16G16B16A16 = GraphicsFormat.R16G16B16A16_UNorm,
+            R16G16B16A16 = GraphicsFormat.R16G16B16A16_SFloat,
             R32G32B32A32 = GraphicsFormat.R32G32B32A32_SFloat
         };
 
