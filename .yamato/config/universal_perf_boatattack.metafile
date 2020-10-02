@@ -23,6 +23,8 @@ test_platforms:
       - --performance-project-version=C:\build\output\Unity-Technologies\Graphics
 platforms:
   - name: Win
+    extra_utr_flags:
+      - --extra-editor-arg="-playergraphicsapi=Direct3D11"
     apis:
       - DX11
       - Vulkan
