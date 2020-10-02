@@ -15,7 +15,7 @@ HDRP_Hybrid_Win_DX11_playmode_il2cpp_2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -32,7 +32,7 @@ HDRP_Hybrid_Win_DX11_playmode_il2cpp_2_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -49,7 +49,7 @@ HDRP_Hybrid_Win_DX11_playmode_XR_il2cpp_2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -66,7 +66,7 @@ HDRP_Hybrid_Win_DX11_playmode_XR_il2cpp_2_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -81,7 +81,7 @@ HDRP_Hybrid_Win_DX11_Standalone_il2cpp_2_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --timeout=1200
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --timeout=1200
     artifacts:
         logs:
             paths:
@@ -102,7 +102,7 @@ Build_HDRP_Hybrid_Win_DX11_Player_il2cpp_2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
     artifacts:
         logs:
             paths:
@@ -120,7 +120,7 @@ HDRP_Hybrid_Win_DX11_Standalone_il2cpp_2_gamma_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --timeout=1200
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --timeout=1200
     artifacts:
         logs:
             paths:
@@ -141,7 +141,7 @@ Build_HDRP_Hybrid_Win_DX11_Player_il2cpp_2_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
     artifacts:
         logs:
             paths:
@@ -161,7 +161,7 @@ HDRP_Hybrid_Win_DX11_playmode_il2cpp_4_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -178,7 +178,7 @@ HDRP_Hybrid_Win_DX11_playmode_il2cpp_4_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -195,7 +195,7 @@ HDRP_Hybrid_Win_DX11_playmode_XR_il2cpp_4_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -212,7 +212,7 @@ HDRP_Hybrid_Win_DX11_playmode_XR_il2cpp_4_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -227,7 +227,7 @@ HDRP_Hybrid_Win_DX11_Standalone_il2cpp_4_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --timeout=1200
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --timeout=1200
     artifacts:
         logs:
             paths:
@@ -248,7 +248,7 @@ Build_HDRP_Hybrid_Win_DX11_Player_il2cpp_4_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
     artifacts:
         logs:
             paths:
@@ -266,7 +266,7 @@ HDRP_Hybrid_Win_DX11_Standalone_il2cpp_4_gamma_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --timeout=1200
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --timeout=1200
     artifacts:
         logs:
             paths:
@@ -287,7 +287,7 @@ Build_HDRP_Hybrid_Win_DX11_Player_il2cpp_4_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
     artifacts:
         logs:
             paths:
@@ -307,7 +307,7 @@ HDRP_Hybrid_Win_DX11_playmode_mono_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -324,7 +324,7 @@ HDRP_Hybrid_Win_DX11_playmode_mono_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -341,7 +341,7 @@ HDRP_Hybrid_Win_DX11_playmode_XR_mono_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -358,7 +358,7 @@ HDRP_Hybrid_Win_DX11_playmode_XR_mono_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -373,7 +373,7 @@ HDRP_Hybrid_Win_DX11_Standalone_mono_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --timeout=1200
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --timeout=1200
     artifacts:
         logs:
             paths:
@@ -394,7 +394,7 @@ Build_HDRP_Hybrid_Win_DX11_Player_mono_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
     artifacts:
         logs:
             paths:
@@ -412,7 +412,7 @@ HDRP_Hybrid_Win_DX11_Standalone_mono_gamma_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --timeout=1200
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --timeout=1200
     artifacts:
         logs:
             paths:
@@ -433,7 +433,7 @@ Build_HDRP_Hybrid_Win_DX11_Player_mono_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
     artifacts:
         logs:
             paths:
@@ -454,7 +454,7 @@ HDRP_Hybrid_Win_DX11_playmode_il2cpp_2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -475,7 +475,7 @@ HDRP_Hybrid_Win_DX11_playmode_il2cpp_2_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -496,7 +496,7 @@ HDRP_Hybrid_Win_DX11_playmode_XR_il2cpp_2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -517,7 +517,7 @@ HDRP_Hybrid_Win_DX11_playmode_XR_il2cpp_2_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -536,7 +536,7 @@ HDRP_Hybrid_Win_DX11_Standalone_il2cpp_2_Linear_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --timeout=1200
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --timeout=1200
     artifacts:
         logs:
             paths:
@@ -560,7 +560,7 @@ Build_HDRP_Hybrid_Win_DX11_Player_il2cpp_2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
     artifacts:
         logs:
             paths:
@@ -582,7 +582,7 @@ HDRP_Hybrid_Win_DX11_Standalone_il2cpp_2_gamma_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --timeout=1200
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --timeout=1200
     artifacts:
         logs:
             paths:
@@ -606,7 +606,7 @@ Build_HDRP_Hybrid_Win_DX11_Player_il2cpp_2_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
     artifacts:
         logs:
             paths:
@@ -630,7 +630,7 @@ HDRP_Hybrid_Win_DX11_playmode_il2cpp_4_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -651,7 +651,7 @@ HDRP_Hybrid_Win_DX11_playmode_il2cpp_4_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -672,7 +672,7 @@ HDRP_Hybrid_Win_DX11_playmode_XR_il2cpp_4_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -693,7 +693,7 @@ HDRP_Hybrid_Win_DX11_playmode_XR_il2cpp_4_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -712,7 +712,7 @@ HDRP_Hybrid_Win_DX11_Standalone_il2cpp_4_Linear_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --timeout=1200
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --timeout=1200
     artifacts:
         logs:
             paths:
@@ -736,7 +736,7 @@ Build_HDRP_Hybrid_Win_DX11_Player_il2cpp_4_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
     artifacts:
         logs:
             paths:
@@ -758,7 +758,7 @@ HDRP_Hybrid_Win_DX11_Standalone_il2cpp_4_gamma_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --timeout=1200
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --timeout=1200
     artifacts:
         logs:
             paths:
@@ -782,7 +782,7 @@ Build_HDRP_Hybrid_Win_DX11_Player_il2cpp_4_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
     artifacts:
         logs:
             paths:
@@ -806,7 +806,7 @@ HDRP_Hybrid_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -827,7 +827,7 @@ HDRP_Hybrid_Win_DX11_playmode_mono_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -848,7 +848,7 @@ HDRP_Hybrid_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -869,7 +869,7 @@ HDRP_Hybrid_Win_DX11_playmode_XR_mono_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -888,7 +888,7 @@ HDRP_Hybrid_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --timeout=1200
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --timeout=1200
     artifacts:
         logs:
             paths:
@@ -912,7 +912,7 @@ Build_HDRP_Hybrid_Win_DX11_Player_mono_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
     artifacts:
         logs:
             paths:
@@ -934,7 +934,7 @@ HDRP_Hybrid_Win_DX11_Standalone_mono_gamma_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --timeout=1200
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --timeout=1200
     artifacts:
         logs:
             paths:
@@ -958,7 +958,7 @@ Build_HDRP_Hybrid_Win_DX11_Player_mono_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --compilation-errors-as-warnings --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
     artifacts:
         logs:
             paths:

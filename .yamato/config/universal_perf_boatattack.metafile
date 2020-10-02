@@ -13,7 +13,6 @@ test_platforms:
       - --extra-editor-arg="-executemethod Editor.Setup"
       - --extra-editor-arg="-testCategory Performance"
       - --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
-      - --extra-editor-arg="-apicompatibilitylevel=NET_4_6"
       - --extra-editor-arg="-stripenginecode-" 
       - --extra-editor-arg="-managedstrippinglevel=Low"
       - --extra-editor-arg="-allowdebugging-" 

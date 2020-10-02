@@ -10,10 +10,6 @@ test_platforms:
       - --performance-project-id=URP_Performance
     extra_utr_flags_build:
       - --extra-editor-arg="Editor.Setup" 
-      - --extra-editor-arg="-playergraphicsapi=Direct3D11" ###############
-      - --extra-editor-arg="-colorspace=Linear" 
-      - --extra-editor-arg="-scriptingbackend=mono" 
-      - --extra-editor-arg="-apicompatibilitylevel=NET_4_6" 
       - --extra-editor-arg="-stripenginecode-" 
       - --extra-editor-arg="-managedstrippinglevel=Low"
       - --extra-editor-arg="-allowdebugging-" 
