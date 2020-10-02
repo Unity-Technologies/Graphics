@@ -175,5 +175,5 @@ EditorBuildSettings:
     guid: c0966123a38e92644b1aa4482c8950c5
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/26_NonUnifomScale.unity
-    guid: 47b0ab588fdf5b4468f7fb654568d975
+    guid: 6500f9adfe104274fb2b90091786a2d4
   m_configObjects: {}
