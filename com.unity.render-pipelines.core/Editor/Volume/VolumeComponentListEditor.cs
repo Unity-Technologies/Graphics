@@ -434,10 +434,18 @@ namespace UnityEditor.Rendering
             m_ComponentsProperty.MoveArrayElement(id, id + offset);
             m_SerializedObject.ApplyModifiedProperties();
 
+            // We need to keep track of what was expanded before to set it afterwards.
+            bool targetExpanded = m_Editors[id + offset].baseProperty.isExpanded;
+            bool sourceExpanded = m_Editors[id].baseProperty.isExpanded;
+
             // Move editors
             var prev = m_Editors[id + offset];
             m_Editors[id + offset] = m_Editors[id];
             m_Editors[id] = prev;
+
+            // Set the expansion values
+            m_Editors[id + offset].baseProperty.isExpanded = targetExpanded;
+            m_Editors[id].baseProperty.isExpanded = sourceExpanded;
         }
 
         internal void CollapseComponents()
