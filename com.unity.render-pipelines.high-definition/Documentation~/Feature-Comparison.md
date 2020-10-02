@@ -211,11 +211,11 @@ The tables that follow provide an overview of the **Features** that the High Def
 | Fabric                      | Not supported                                 | Yes                                                          |
 
 ## LOD Management
-In the builtin render pipeline, LOD is managed from the QualitySettings. Each quality setting can define a LOD Bias and a Maximum LOD value. As such, they are global to this quality setting and cannot be changed per camera. In HDRP, things are different. As described [here](HDRP-Asset.md) and [here](Frame-Settings.md), HDRP introduces the notion of scalability settings. This allows user to change the LOD settings per camera by using either predetermined values contained in the HDRP asset of the current quality level or overridden values.
+In the Built-in Render Pipeline, you manage levels of detail (LOD) from the QualitySettings. Each quality setting defines a LOD Bias and a Maximum LOD value. As such, they are global to the quality setting and you cannot change them on a per camera basis. In HDRP, there are scalability settings that allow you to change the LOD settings per camera by using either predetermined values contained in the HDRP Asset of the current quality level or overridden values. For more information, see [HDRP Asset](HDRP-Asset.md) and [Frame Settings](Frame-Settings.md).
 
-This has two consequences:
-- Default LOD settings for a quality level are now stored in the HDRP asset instead of the Quality Settings.
-- Builtin APIs such as QualitySettings.lodBias or QualitySettings.maximumLODLevel are not supported anymore. Instead, users need to change them through the camera frame settings. Using them will have no effect at all.
+Managing LOD in this way has two consequences:
+- Default LOD settings for a quality level are now stored in the HDRP Asset instead of the Quality Settings.
+- Built-in APIs such as QualitySettings.lodBias or QualitySettings.maximumLODLevel no longer work. Instead, you need to change these properties through the camera Frame Settings. If you use the Built-in APIs, they have no effect at all.
 
 ## Render Pipeline Hooks
 
