@@ -16,6 +16,7 @@ using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
+
     [InitializeOnLoad]
     class VFXGraphPreprocessor : AssetPostprocessor
     {
@@ -231,6 +232,10 @@ namespace UnityEditor.VFX
         // 4: TransformVector|Position|Direction & DistanceToSphere|Plane|Line have now spaceable outputs
         // 5: Harmonized position blocks composition: PositionAABox was the only one with Overwrite position
         public static readonly int CurrentVersion = 5;
+
+
+        public readonly VFXErrorManager errorManager = new VFXErrorManager();
+
 
         public override void OnEnable()
         {
@@ -764,6 +769,8 @@ namespace UnityEditor.VFX
             m_ExpressionValuesDirty = false;
         }
 
+        public static VFXCompileErrorReporter compileReporter = null;
+
         public void RecompileIfNeeded(bool preventRecompilation = false, bool preventDependencyRecompilation = false)
         {
             SanitizeGraph();
@@ -777,6 +784,7 @@ namespace UnityEditor.VFX
                     PrepareSubgraphs();
 
                     compiledData.Compile(m_CompilationMode, m_ForceShaderValidation);
+
                 }
                 else if (m_ExpressionValuesDirty && !m_ExpressionGraphDirty)
                 {
@@ -877,5 +885,6 @@ namespace UnityEditor.VFX
         }
 
         private VisualEffectResource m_Owner;
+
     }
 }
