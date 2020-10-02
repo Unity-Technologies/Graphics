@@ -47,9 +47,12 @@ build_configs:
 - name: il2cpp_4
   scripting_backend: il2cpp
   api_level: NET_4_6
-- name: mono
+- name: mono_2
   scripting_backend: mono
   api_level: NET_2_0
+- name: mono_4
+  scripting_backend: mono
+  api_level: NET_4_6
 color_spaces:
   - Linear
   - gamma
