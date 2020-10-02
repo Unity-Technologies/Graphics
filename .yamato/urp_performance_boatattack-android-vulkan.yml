@@ -3,8 +3,8 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_linear_trunk:
-    name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_runtime_il2cpp_linear on version trunk
+URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_trunk:
+    name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_runtime_il2cpp_Linear on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -19,18 +19,18 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_li
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=linear" --report-performance-data --performance-project-id=BoatAttack --performance-project-version=C:\build\output\Unity-Technologies\Graphics --scripting-backend=il2cpp --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --performance-project-version=C:\build\output\Unity-Technologies\Graphics --scripting-backend=il2cpp --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#Build_URP_Performance_BoatAttack_Android_Vulkan_Player_il2cpp_linear_trunk
+      -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#Build_URP_Performance_BoatAttack_Android_Vulkan_Player_il2cpp_Linear_trunk
          rerun: on-new-revision
     skip_checkout: true
-Build_URP_Performance_BoatAttack_Android_Vulkan_Player_il2cpp_linear_trunk:
-    name: Build URP_Performance_BoatAttack on Android_Vulkan_il2cpp_linear_Player on version trunk
+Build_URP_Performance_BoatAttack_Android_Vulkan_Player_il2cpp_Linear_trunk:
+    name: Build URP_Performance_BoatAttack on Android_Vulkan_il2cpp_Linear_Player on version trunk
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -44,7 +44,7 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_Player_il2cpp_linear_trunk:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --scripting-backend=il2cpp --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --scripting-backend=il2cpp --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
     artifacts:
         logs:
             paths:
@@ -101,8 +101,8 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_Player_il2cpp_gamma_trunk:
         players:
             paths:
               -  "players/**"
-URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_mono_linear_trunk:
-    name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_runtime_mono_linear on version trunk
+URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_mono_Linear_trunk:
+    name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_runtime_mono_Linear on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -117,18 +117,18 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_mono_line
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=linear" --report-performance-data --performance-project-id=BoatAttack --performance-project-version=C:\build\output\Unity-Technologies\Graphics --scripting-backend=il2cpp --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --performance-project-version=C:\build\output\Unity-Technologies\Graphics --scripting-backend=il2cpp --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#Build_URP_Performance_BoatAttack_Android_Vulkan_Player_mono_linear_trunk
+      -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#Build_URP_Performance_BoatAttack_Android_Vulkan_Player_mono_Linear_trunk
          rerun: on-new-revision
     skip_checkout: true
-Build_URP_Performance_BoatAttack_Android_Vulkan_Player_mono_linear_trunk:
-    name: Build URP_Performance_BoatAttack on Android_Vulkan_mono_linear_Player on version trunk
+Build_URP_Performance_BoatAttack_Android_Vulkan_Player_mono_Linear_trunk:
+    name: Build URP_Performance_BoatAttack on Android_Vulkan_mono_Linear_Player on version trunk
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -142,7 +142,7 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_Player_mono_linear_trunk:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --scripting-backend=il2cpp --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --scripting-backend=il2cpp --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
     artifacts:
         logs:
             paths:
@@ -199,8 +199,8 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_Player_mono_gamma_trunk:
         players:
             paths:
               -  "players/**"
-URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_il2cpp_linear_trunk:
-    name: URP_Performance_BoatAttack on Android_Vulkan_performance_editmode_build_il2cpp_linear on version trunk
+URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_il2cpp_Linear_trunk:
+    name: URP_Performance_BoatAttack on Android_Vulkan_performance_editmode_build_il2cpp_Linear on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -240,7 +240,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_il2cpp_line
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=linear" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --performance-project-version=C:\build\output\Unity-Technologies\Graphics
+                 utr --suite=editor --platform=editmode --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --performance-project-version=C:\build\output\Unity-Technologies\Graphics
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -293,8 +293,8 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_il2cpp_gamm
         logs:
             paths:
               -  "**/test-results/**"
-URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_mono_linear_trunk:
-    name: URP_Performance_BoatAttack on Android_Vulkan_performance_editmode_build_mono_linear on version trunk
+URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_mono_Linear_trunk:
+    name: URP_Performance_BoatAttack on Android_Vulkan_performance_editmode_build_mono_Linear on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -334,7 +334,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_mono_linear
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=linear" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --performance-project-version=C:\build\output\Unity-Technologies\Graphics
+                 utr --suite=editor --platform=editmode --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --performance-project-version=C:\build\output\Unity-Technologies\Graphics
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -387,8 +387,8 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_mono_gamma_
         logs:
             paths:
               -  "**/test-results/**"
-URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_runtime_il2cpp_linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_runtime_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -404,7 +404,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_li
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=linear" --report-performance-data --performance-project-id=BoatAttack --performance-project-version=C:\build\output\Unity-Technologies\Graphics --scripting-backend=il2cpp --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --performance-project-version=C:\build\output\Unity-Technologies\Graphics --scripting-backend=il2cpp --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -413,11 +413,11 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_li
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-      -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#Build_URP_Performance_BoatAttack_Android_Vulkan_Player_il2cpp_linear_CUSTOM-REVISION
+      -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#Build_URP_Performance_BoatAttack_Android_Vulkan_Player_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
     skip_checkout: true
-Build_URP_Performance_BoatAttack_Android_Vulkan_Player_il2cpp_linear_CUSTOM-REVISION:
-    name: Build URP_Performance_BoatAttack on Android_Vulkan_il2cpp_linear_Player on version CUSTOM-REVISION
+Build_URP_Performance_BoatAttack_Android_Vulkan_Player_il2cpp_Linear_CUSTOM-REVISION:
+    name: Build URP_Performance_BoatAttack on Android_Vulkan_il2cpp_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -432,7 +432,7 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_Player_il2cpp_linear_CUSTOM-REVI
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --scripting-backend=il2cpp --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --scripting-backend=il2cpp --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
     artifacts:
         logs:
             paths:
@@ -499,8 +499,8 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_Player_il2cpp_gamma_CUSTOM-REVIS
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_mono_linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_runtime_mono_linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_runtime_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -516,7 +516,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_mono_line
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=linear" --report-performance-data --performance-project-id=BoatAttack --performance-project-version=C:\build\output\Unity-Technologies\Graphics --scripting-backend=il2cpp --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --performance-project-version=C:\build\output\Unity-Technologies\Graphics --scripting-backend=il2cpp --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -525,11 +525,11 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_mono_line
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-      -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#Build_URP_Performance_BoatAttack_Android_Vulkan_Player_mono_linear_CUSTOM-REVISION
+      -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#Build_URP_Performance_BoatAttack_Android_Vulkan_Player_mono_Linear_CUSTOM-REVISION
          rerun: always
     skip_checkout: true
-Build_URP_Performance_BoatAttack_Android_Vulkan_Player_mono_linear_CUSTOM-REVISION:
-    name: Build URP_Performance_BoatAttack on Android_Vulkan_mono_linear_Player on version CUSTOM-REVISION
+Build_URP_Performance_BoatAttack_Android_Vulkan_Player_mono_Linear_CUSTOM-REVISION:
+    name: Build URP_Performance_BoatAttack on Android_Vulkan_mono_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -544,7 +544,7 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_Player_mono_linear_CUSTOM-REVISI
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --scripting-backend=il2cpp --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --scripting-backend=il2cpp --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
     artifacts:
         logs:
             paths:
@@ -611,8 +611,8 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_Player_mono_gamma_CUSTOM-REVISIO
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_il2cpp_linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Android_Vulkan_performance_editmode_build_il2cpp_linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_il2cpp_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on Android_Vulkan_performance_editmode_build_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -653,7 +653,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_il2cpp_line
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=linear" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --performance-project-version=C:\build\output\Unity-Technologies\Graphics
+                 utr --suite=editor --platform=editmode --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --performance-project-version=C:\build\output\Unity-Technologies\Graphics
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -713,8 +713,8 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_il2cpp_gamm
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_mono_linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Android_Vulkan_performance_editmode_build_mono_linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_mono_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on Android_Vulkan_performance_editmode_build_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -755,7 +755,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_mono_linear
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=linear" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --performance-project-version=C:\build\output\Unity-Technologies\Graphics
+                 utr --suite=editor --platform=editmode --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --performance-project-version=C:\build\output\Unity-Technologies\Graphics
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:

@@ -41,35 +41,35 @@ scripting_backends:
   - il2cpp
   - mono
 color_spaces:
-  - linear
+  - Linear
   - gamma
 all:
   dependencies:
     - platform: Win
       api: DX11
       scripting_backend: il2cpp
-      color_space: linear
+      color_space: Linear
       test_platforms:
         - performance_playmode_runtime
         - performance_editmode_build
     - platform: OSX
       api: Metal
       scripting_backend: il2cpp
-      color_space: linear
+      color_space: Linear
       test_platforms:
         - performance_playmode_runtime
         - performance_editmode_build
     - platform: Android
       api: OpenGLES3
       scripting_backend: il2cpp
-      color_space: linear
+      color_space: Linear
       test_platforms:
         - performance_playmode_runtime
         - performance_editmode_build
     - platform: iPhone
       api: Metal
       scripting_backend: il2cpp
-      color_space: linear
+      color_space: Linear
       test_platforms:
         - performance_playmode_runtime
         - performance_editmode_build

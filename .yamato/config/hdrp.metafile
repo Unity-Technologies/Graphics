@@ -54,14 +54,14 @@ scripting_backends:
   - il2cpp
   - mono
 color_spaces:
-  - linear
+  - Linear
   - gamma
 all:
   dependencies:
     - platform: Win
       api: DX11
       scripting_backend: il2cpp
-      color_space: linear
+      color_space: Linear
       test_platforms:
         - editmode
         - playmode
@@ -71,7 +71,7 @@ all:
     - platform: Win
       api: DX12
       scripting_backend: il2cpp
-      color_space: linear
+      color_space: Linear
       test_platforms:
         - playmode
         - playmode_XR
@@ -79,7 +79,7 @@ all:
     - platform: Win
       api: Vulkan
       scripting_backend: il2cpp
-      color_space: linear
+      color_space: Linear
       test_platforms:
         - playmode
         - playmode_XR
@@ -87,14 +87,14 @@ all:
     - platform: OSX
       api: Metal
       scripting_backend: il2cpp
-      color_space: linear
+      color_space: Linear
       test_platforms:
         # - Standalone
         - playmode
     - platform: Linux
       api: Vulkan
       scripting_backend: il2cpp
-      color_space: linear
+      color_space: Linear
       test_platforms:
         - editmode
         - playmode
@@ -103,7 +103,7 @@ all:
       platform: Win
       api: DX12
       scripting_backend: il2cpp
-      color_space: linear
+      color_space: Linear
       test_platforms:
         - playmode
         - playmode_XR

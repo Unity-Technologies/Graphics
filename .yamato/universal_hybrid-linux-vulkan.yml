@@ -3,8 +3,8 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-Universal_Hybrid_Linux_Vulkan_Standalone_il2cpp_linear_trunk:
-    name: Universal_Hybrid on Linux_Vulkan_Standalone_il2cpp_linear on version trunk
+Universal_Hybrid_Linux_Vulkan_Standalone_il2cpp_Linear_trunk:
+    name: Universal_Hybrid on Linux_Vulkan_Standalone_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -41,8 +41,8 @@ Universal_Hybrid_Linux_Vulkan_Standalone_il2cpp_gamma_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-Universal_Hybrid_Linux_Vulkan_Standalone_mono_linear_trunk:
-    name: Universal_Hybrid on Linux_Vulkan_Standalone_mono_linear on version trunk
+Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_trunk:
+    name: Universal_Hybrid on Linux_Vulkan_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -79,8 +79,8 @@ Universal_Hybrid_Linux_Vulkan_Standalone_mono_gamma_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-Universal_Hybrid_Linux_Vulkan_playmode_il2cpp_linear_trunk:
-    name: Universal_Hybrid on Linux_Vulkan_playmode_il2cpp_linear on version trunk
+Universal_Hybrid_Linux_Vulkan_playmode_il2cpp_Linear_trunk:
+    name: Universal_Hybrid on Linux_Vulkan_playmode_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -117,8 +117,8 @@ Universal_Hybrid_Linux_Vulkan_playmode_il2cpp_gamma_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-Universal_Hybrid_Linux_Vulkan_playmode_mono_linear_trunk:
-    name: Universal_Hybrid on Linux_Vulkan_playmode_mono_linear on version trunk
+Universal_Hybrid_Linux_Vulkan_playmode_mono_Linear_trunk:
+    name: Universal_Hybrid on Linux_Vulkan_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -155,8 +155,8 @@ Universal_Hybrid_Linux_Vulkan_playmode_mono_gamma_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-Universal_Hybrid_Linux_Vulkan_Standalone_il2cpp_linear_CUSTOM-REVISION:
-    name: Universal_Hybrid on Linux_Vulkan_Standalone_il2cpp_linear on version CUSTOM-REVISION
+Universal_Hybrid_Linux_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
+    name: Universal_Hybrid on Linux_Vulkan_Standalone_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -201,8 +201,8 @@ Universal_Hybrid_Linux_Vulkan_Standalone_il2cpp_gamma_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
-Universal_Hybrid_Linux_Vulkan_Standalone_mono_linear_CUSTOM-REVISION:
-    name: Universal_Hybrid on Linux_Vulkan_Standalone_mono_linear on version CUSTOM-REVISION
+Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
+    name: Universal_Hybrid on Linux_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -247,8 +247,8 @@ Universal_Hybrid_Linux_Vulkan_Standalone_mono_gamma_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
-Universal_Hybrid_Linux_Vulkan_playmode_il2cpp_linear_CUSTOM-REVISION:
-    name: Universal_Hybrid on Linux_Vulkan_playmode_il2cpp_linear on version CUSTOM-REVISION
+Universal_Hybrid_Linux_Vulkan_playmode_il2cpp_Linear_CUSTOM-REVISION:
+    name: Universal_Hybrid on Linux_Vulkan_playmode_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -293,8 +293,8 @@ Universal_Hybrid_Linux_Vulkan_playmode_il2cpp_gamma_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
-Universal_Hybrid_Linux_Vulkan_playmode_mono_linear_CUSTOM-REVISION:
-    name: Universal_Hybrid on Linux_Vulkan_playmode_mono_linear on version CUSTOM-REVISION
+Universal_Hybrid_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
+    name: Universal_Hybrid on Linux_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable

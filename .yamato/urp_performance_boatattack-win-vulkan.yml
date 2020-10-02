@@ -3,8 +3,8 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_il2cpp_linear_trunk:
-    name: URP_Performance_BoatAttack on Win_Vulkan_performance_playmode_runtime_il2cpp_linear on version trunk
+URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_il2cpp_Linear_trunk:
+    name: URP_Performance_BoatAttack on Win_Vulkan_performance_playmode_runtime_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -13,17 +13,17 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_il2cpp_linear
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=linear" --report-performance-data --performance-project-id=BoatAttack --performance-project-version=C:\build\output\Unity-Technologies\Graphics --timeout=1200
+      -  TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --performance-project-version=C:\build\output\Unity-Technologies\Graphics --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  path: .yamato/urp_performance_boatattack-win-vulkan.yml#Build_URP_Performance_BoatAttack_Win_Vulkan_Player_il2cpp_linear_trunk
+      -  path: .yamato/urp_performance_boatattack-win-vulkan.yml#Build_URP_Performance_BoatAttack_Win_Vulkan_Player_il2cpp_Linear_trunk
          rerun: on-new-revision
     skip_checkout: true
-Build_URP_Performance_BoatAttack_Win_Vulkan_Player_il2cpp_linear_trunk:
-    name: Build URP_Performance_BoatAttack on Win_Vulkan_il2cpp_linear_Player on version trunk
+Build_URP_Performance_BoatAttack_Win_Vulkan_Player_il2cpp_Linear_trunk:
+    name: Build URP_Performance_BoatAttack on Win_Vulkan_il2cpp_Linear_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -55,7 +55,7 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_Player_il2cpp_linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --timeout=1200
     artifacts:
         logs:
             paths:
@@ -123,8 +123,8 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_Player_il2cpp_gamma_trunk:
         players:
             paths:
               -  "players/**"
-URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_linear_trunk:
-    name: URP_Performance_BoatAttack on Win_Vulkan_performance_playmode_runtime_mono_linear on version trunk
+URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_Linear_trunk:
+    name: URP_Performance_BoatAttack on Win_Vulkan_performance_playmode_runtime_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -133,17 +133,17 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_linear_t
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=linear" --report-performance-data --performance-project-id=BoatAttack --performance-project-version=C:\build\output\Unity-Technologies\Graphics --timeout=1200
+      -  TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --performance-project-version=C:\build\output\Unity-Technologies\Graphics --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  path: .yamato/urp_performance_boatattack-win-vulkan.yml#Build_URP_Performance_BoatAttack_Win_Vulkan_Player_mono_linear_trunk
+      -  path: .yamato/urp_performance_boatattack-win-vulkan.yml#Build_URP_Performance_BoatAttack_Win_Vulkan_Player_mono_Linear_trunk
          rerun: on-new-revision
     skip_checkout: true
-Build_URP_Performance_BoatAttack_Win_Vulkan_Player_mono_linear_trunk:
-    name: Build URP_Performance_BoatAttack on Win_Vulkan_mono_linear_Player on version trunk
+Build_URP_Performance_BoatAttack_Win_Vulkan_Player_mono_Linear_trunk:
+    name: Build URP_Performance_BoatAttack on Win_Vulkan_mono_Linear_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -175,7 +175,7 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_Player_mono_linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --timeout=1200
     artifacts:
         logs:
             paths:
@@ -243,8 +243,8 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_Player_mono_gamma_trunk:
         players:
             paths:
               -  "players/**"
-URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_il2cpp_linear_trunk:
-    name: URP_Performance_BoatAttack on Win_Vulkan_performance_editmode_build_il2cpp_linear on version trunk
+URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_il2cpp_Linear_trunk:
+    name: URP_Performance_BoatAttack on Win_Vulkan_performance_editmode_build_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -276,7 +276,7 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_il2cpp_linear_t
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=linear" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --performance-project-version=C:\build\output\Unity-Technologies\Graphics --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --performance-project-version=C:\build\output\Unity-Technologies\Graphics --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -319,8 +319,8 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_il2cpp_gamma_tr
         logs:
             paths:
               -  "**/test-results/**"
-URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_mono_linear_trunk:
-    name: URP_Performance_BoatAttack on Win_Vulkan_performance_editmode_build_mono_linear on version trunk
+URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_mono_Linear_trunk:
+    name: URP_Performance_BoatAttack on Win_Vulkan_performance_editmode_build_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -352,7 +352,7 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_mono_linear_tru
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=linear" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --performance-project-version=C:\build\output\Unity-Technologies\Graphics --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --performance-project-version=C:\build\output\Unity-Technologies\Graphics --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -395,8 +395,8 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_mono_gamma_trun
         logs:
             paths:
               -  "**/test-results/**"
-URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_il2cpp_linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Win_Vulkan_performance_playmode_runtime_il2cpp_linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on Win_Vulkan_performance_playmode_runtime_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -406,7 +406,7 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_il2cpp_linear
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=linear" --report-performance-data --performance-project-id=BoatAttack --performance-project-version=C:\build\output\Unity-Technologies\Graphics --timeout=1200
+      -  TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --performance-project-version=C:\build\output\Unity-Technologies\Graphics --timeout=1200
     artifacts:
         logs:
             paths:
@@ -414,11 +414,11 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_il2cpp_linear
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/urp_performance_boatattack-win-vulkan.yml#Build_URP_Performance_BoatAttack_Win_Vulkan_Player_il2cpp_linear_CUSTOM-REVISION
+      -  path: .yamato/urp_performance_boatattack-win-vulkan.yml#Build_URP_Performance_BoatAttack_Win_Vulkan_Player_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
     skip_checkout: true
-Build_URP_Performance_BoatAttack_Win_Vulkan_Player_il2cpp_linear_CUSTOM-REVISION:
-    name: Build URP_Performance_BoatAttack on Win_Vulkan_il2cpp_linear_Player on version CUSTOM-REVISION
+Build_URP_Performance_BoatAttack_Win_Vulkan_Player_il2cpp_Linear_CUSTOM-REVISION:
+    name: Build URP_Performance_BoatAttack on Win_Vulkan_il2cpp_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -451,7 +451,7 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_Player_il2cpp_linear_CUSTOM-REVISION
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --timeout=1200
     artifacts:
         logs:
             paths:
@@ -529,8 +529,8 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_Player_il2cpp_gamma_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Win_Vulkan_performance_playmode_runtime_mono_linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on Win_Vulkan_performance_playmode_runtime_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -540,7 +540,7 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_linear_C
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=linear" --report-performance-data --performance-project-id=BoatAttack --performance-project-version=C:\build\output\Unity-Technologies\Graphics --timeout=1200
+      -  TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --performance-project-version=C:\build\output\Unity-Technologies\Graphics --timeout=1200
     artifacts:
         logs:
             paths:
@@ -548,11 +548,11 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_linear_C
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/urp_performance_boatattack-win-vulkan.yml#Build_URP_Performance_BoatAttack_Win_Vulkan_Player_mono_linear_CUSTOM-REVISION
+      -  path: .yamato/urp_performance_boatattack-win-vulkan.yml#Build_URP_Performance_BoatAttack_Win_Vulkan_Player_mono_Linear_CUSTOM-REVISION
          rerun: always
     skip_checkout: true
-Build_URP_Performance_BoatAttack_Win_Vulkan_Player_mono_linear_CUSTOM-REVISION:
-    name: Build URP_Performance_BoatAttack on Win_Vulkan_mono_linear_Player on version CUSTOM-REVISION
+Build_URP_Performance_BoatAttack_Win_Vulkan_Player_mono_Linear_CUSTOM-REVISION:
+    name: Build URP_Performance_BoatAttack on Win_Vulkan_mono_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -585,7 +585,7 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_Player_mono_linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --timeout=1200
     artifacts:
         logs:
             paths:
@@ -663,8 +663,8 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_Player_mono_gamma_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_il2cpp_linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Win_Vulkan_performance_editmode_build_il2cpp_linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_il2cpp_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on Win_Vulkan_performance_editmode_build_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -697,7 +697,7 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_il2cpp_linear_C
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=linear" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --performance-project-version=C:\build\output\Unity-Technologies\Graphics --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --performance-project-version=C:\build\output\Unity-Technologies\Graphics --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -747,8 +747,8 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_il2cpp_gamma_CU
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_mono_linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Win_Vulkan_performance_editmode_build_mono_linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_mono_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on Win_Vulkan_performance_editmode_build_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -781,7 +781,7 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_editmode_build_mono_linear_CUS
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=linear" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --performance-project-version=C:\build\output\Unity-Technologies\Graphics --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --performance-project-version=C:\build\output\Unity-Technologies\Graphics --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:

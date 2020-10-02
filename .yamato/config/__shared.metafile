@@ -11,7 +11,7 @@ scripting_backends:
   - il2cpp
   - mono
 color_spaces:
-  - linear
+  - Linear
   - gamma
 platforms:
   Win:

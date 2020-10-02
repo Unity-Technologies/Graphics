@@ -3,8 +3,8 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_il2cpp_linear_trunk:
-    name: URP_Performance_BoatAttack on OSX_OpenGLCore_performance_playmode_runtime_il2cpp_linear on version trunk
+URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_il2cpp_Linear_trunk:
+    name: URP_Performance_BoatAttack on OSX_OpenGLCore_performance_playmode_runtime_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -17,11 +17,11 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_il2cpp_li
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  path: .yamato/urp_performance_boatattack-osx-openglcore.yml#Build_URP_Performance_BoatAttack_OSX_OpenGLCore_Player_il2cpp_linear_trunk
+      -  path: .yamato/urp_performance_boatattack-osx-openglcore.yml#Build_URP_Performance_BoatAttack_OSX_OpenGLCore_Player_il2cpp_Linear_trunk
          rerun: on-new-revision
     skip_checkout: true
-Build_URP_Performance_BoatAttack_OSX_OpenGLCore_Player_il2cpp_linear_trunk:
-    name: Build URP_Performance_BoatAttack on OSX_OpenGLCore_il2cpp_linear_Player on version trunk
+Build_URP_Performance_BoatAttack_OSX_OpenGLCore_Player_il2cpp_Linear_trunk:
+    name: Build URP_Performance_BoatAttack on OSX_OpenGLCore_il2cpp_Linear_Player on version trunk
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -69,8 +69,8 @@ Build_URP_Performance_BoatAttack_OSX_OpenGLCore_Player_il2cpp_gamma_trunk:
         players:
             paths:
               -  "players/**"
-URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_mono_linear_trunk:
-    name: URP_Performance_BoatAttack on OSX_OpenGLCore_performance_playmode_runtime_mono_linear on version trunk
+URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_mono_Linear_trunk:
+    name: URP_Performance_BoatAttack on OSX_OpenGLCore_performance_playmode_runtime_mono_Linear on version trunk
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -83,11 +83,11 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_mono_line
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  path: .yamato/urp_performance_boatattack-osx-openglcore.yml#Build_URP_Performance_BoatAttack_OSX_OpenGLCore_Player_mono_linear_trunk
+      -  path: .yamato/urp_performance_boatattack-osx-openglcore.yml#Build_URP_Performance_BoatAttack_OSX_OpenGLCore_Player_mono_Linear_trunk
          rerun: on-new-revision
     skip_checkout: true
-Build_URP_Performance_BoatAttack_OSX_OpenGLCore_Player_mono_linear_trunk:
-    name: Build URP_Performance_BoatAttack on OSX_OpenGLCore_mono_linear_Player on version trunk
+Build_URP_Performance_BoatAttack_OSX_OpenGLCore_Player_mono_Linear_trunk:
+    name: Build URP_Performance_BoatAttack on OSX_OpenGLCore_mono_Linear_Player on version trunk
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -135,8 +135,8 @@ Build_URP_Performance_BoatAttack_OSX_OpenGLCore_Player_mono_gamma_trunk:
         players:
             paths:
               -  "players/**"
-URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_il2cpp_linear_trunk:
-    name: URP_Performance_BoatAttack on OSX_OpenGLCore_performance_editmode_build_il2cpp_linear on version trunk
+URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_il2cpp_Linear_trunk:
+    name: URP_Performance_BoatAttack on OSX_OpenGLCore_performance_editmode_build_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -171,8 +171,8 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_il2cpp_gamm
         logs:
             paths:
               -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_mono_linear_trunk:
-    name: URP_Performance_BoatAttack on OSX_OpenGLCore_performance_editmode_build_mono_linear on version trunk
+URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_mono_Linear_trunk:
+    name: URP_Performance_BoatAttack on OSX_OpenGLCore_performance_editmode_build_mono_Linear on version trunk
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -207,8 +207,8 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_mono_gamma_
         logs:
             paths:
               -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_il2cpp_linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on OSX_OpenGLCore_performance_playmode_runtime_il2cpp_linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on OSX_OpenGLCore_performance_playmode_runtime_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -224,11 +224,11 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_il2cpp_li
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
-      -  path: .yamato/urp_performance_boatattack-osx-openglcore.yml#Build_URP_Performance_BoatAttack_OSX_OpenGLCore_Player_il2cpp_linear_CUSTOM-REVISION
+      -  path: .yamato/urp_performance_boatattack-osx-openglcore.yml#Build_URP_Performance_BoatAttack_OSX_OpenGLCore_Player_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
     skip_checkout: true
-Build_URP_Performance_BoatAttack_OSX_OpenGLCore_Player_il2cpp_linear_CUSTOM-REVISION:
-    name: Build URP_Performance_BoatAttack on OSX_OpenGLCore_il2cpp_linear_Player on version CUSTOM-REVISION
+Build_URP_Performance_BoatAttack_OSX_OpenGLCore_Player_il2cpp_Linear_CUSTOM-REVISION:
+    name: Build URP_Performance_BoatAttack on OSX_OpenGLCore_il2cpp_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -287,8 +287,8 @@ Build_URP_Performance_BoatAttack_OSX_OpenGLCore_Player_il2cpp_gamma_CUSTOM-REVIS
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
-URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_mono_linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on OSX_OpenGLCore_performance_playmode_runtime_mono_linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on OSX_OpenGLCore_performance_playmode_runtime_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -304,11 +304,11 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_mono_line
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
-      -  path: .yamato/urp_performance_boatattack-osx-openglcore.yml#Build_URP_Performance_BoatAttack_OSX_OpenGLCore_Player_mono_linear_CUSTOM-REVISION
+      -  path: .yamato/urp_performance_boatattack-osx-openglcore.yml#Build_URP_Performance_BoatAttack_OSX_OpenGLCore_Player_mono_Linear_CUSTOM-REVISION
          rerun: always
     skip_checkout: true
-Build_URP_Performance_BoatAttack_OSX_OpenGLCore_Player_mono_linear_CUSTOM-REVISION:
-    name: Build URP_Performance_BoatAttack on OSX_OpenGLCore_mono_linear_Player on version CUSTOM-REVISION
+Build_URP_Performance_BoatAttack_OSX_OpenGLCore_Player_mono_Linear_CUSTOM-REVISION:
+    name: Build URP_Performance_BoatAttack on OSX_OpenGLCore_mono_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -367,8 +367,8 @@ Build_URP_Performance_BoatAttack_OSX_OpenGLCore_Player_mono_gamma_CUSTOM-REVISIO
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
-URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_il2cpp_linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on OSX_OpenGLCore_performance_editmode_build_il2cpp_linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_il2cpp_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on OSX_OpenGLCore_performance_editmode_build_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -411,8 +411,8 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_il2cpp_gamm
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
-URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_mono_linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on OSX_OpenGLCore_performance_editmode_build_mono_linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_mono_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on OSX_OpenGLCore_performance_editmode_build_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable

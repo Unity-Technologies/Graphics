@@ -12,14 +12,14 @@ scripting_backends:
   - il2cpp
   - mono
 color_spaces:
-  - linear
+  - Linear
   - gamma
 all:
   dependencies:
     - platform: Win
       api: ''
       scripting_backend: il2cpp
-      color_space: linear
+      color_space: Linear
       test_platforms:
         - Standalone
         - editmode

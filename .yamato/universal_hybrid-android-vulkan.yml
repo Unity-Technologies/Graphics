@@ -3,8 +3,8 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-Universal_Hybrid_Android_Vulkan_Standalone_il2cpp_linear_trunk:
-    name: Universal_Hybrid on Android_Vulkan_Standalone_il2cpp_linear on version trunk
+Universal_Hybrid_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
+    name: Universal_Hybrid on Android_Vulkan_Standalone_il2cpp_Linear on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -19,18 +19,18 @@ Universal_Hybrid_Android_Vulkan_Standalone_il2cpp_linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=linear" --compilation-errors-as-warnings --scripting-backend=il2cpp --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --scripting-backend=il2cpp --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Player_il2cpp_linear_trunk
+      -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Player_il2cpp_Linear_trunk
          rerun: on-new-revision
     skip_checkout: true
-Build_Universal_Hybrid_Android_Vulkan_Player_il2cpp_linear_trunk:
-    name: Build Universal_Hybrid on Android_Vulkan_il2cpp_linear_Player on version trunk
+Build_Universal_Hybrid_Android_Vulkan_Player_il2cpp_Linear_trunk:
+    name: Build Universal_Hybrid on Android_Vulkan_il2cpp_Linear_Player on version trunk
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -44,7 +44,7 @@ Build_Universal_Hybrid_Android_Vulkan_Player_il2cpp_linear_trunk:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalHybridTest --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=linear" --compilation-errors-as-warnings --scripting-backend=il2cpp --timeout=1800 --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalHybridTest --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --scripting-backend=il2cpp --timeout=1800 --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
     artifacts:
         logs:
             paths:
@@ -101,8 +101,8 @@ Build_Universal_Hybrid_Android_Vulkan_Player_il2cpp_gamma_trunk:
         players:
             paths:
               -  "players/**"
-Universal_Hybrid_Android_Vulkan_Standalone_mono_linear_trunk:
-    name: Universal_Hybrid on Android_Vulkan_Standalone_mono_linear on version trunk
+Universal_Hybrid_Android_Vulkan_Standalone_mono_Linear_trunk:
+    name: Universal_Hybrid on Android_Vulkan_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -117,18 +117,18 @@ Universal_Hybrid_Android_Vulkan_Standalone_mono_linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=linear" --compilation-errors-as-warnings --scripting-backend=il2cpp --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --scripting-backend=il2cpp --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Player_mono_linear_trunk
+      -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Player_mono_Linear_trunk
          rerun: on-new-revision
     skip_checkout: true
-Build_Universal_Hybrid_Android_Vulkan_Player_mono_linear_trunk:
-    name: Build Universal_Hybrid on Android_Vulkan_mono_linear_Player on version trunk
+Build_Universal_Hybrid_Android_Vulkan_Player_mono_Linear_trunk:
+    name: Build Universal_Hybrid on Android_Vulkan_mono_Linear_Player on version trunk
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -142,7 +142,7 @@ Build_Universal_Hybrid_Android_Vulkan_Player_mono_linear_trunk:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalHybridTest --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=linear" --compilation-errors-as-warnings --scripting-backend=il2cpp --timeout=1800 --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalHybridTest --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --scripting-backend=il2cpp --timeout=1800 --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
     artifacts:
         logs:
             paths:
@@ -199,8 +199,8 @@ Build_Universal_Hybrid_Android_Vulkan_Player_mono_gamma_trunk:
         players:
             paths:
               -  "players/**"
-Universal_Hybrid_Android_Vulkan_playmode_il2cpp_linear_trunk:
-    name: Universal_Hybrid on Android_Vulkan_playmode_il2cpp_linear on version trunk
+Universal_Hybrid_Android_Vulkan_playmode_il2cpp_Linear_trunk:
+    name: Universal_Hybrid on Android_Vulkan_playmode_il2cpp_Linear on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -217,7 +217,7 @@ Universal_Hybrid_Android_Vulkan_playmode_il2cpp_linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalHybridTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=linear" --compilation-errors-as-warnings
+                 utr --suite=playmode --testproject=TestProjects\UniversalHybridTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -247,8 +247,8 @@ Universal_Hybrid_Android_Vulkan_playmode_il2cpp_gamma_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-Universal_Hybrid_Android_Vulkan_playmode_mono_linear_trunk:
-    name: Universal_Hybrid on Android_Vulkan_playmode_mono_linear on version trunk
+Universal_Hybrid_Android_Vulkan_playmode_mono_Linear_trunk:
+    name: Universal_Hybrid on Android_Vulkan_playmode_mono_Linear on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -265,7 +265,7 @@ Universal_Hybrid_Android_Vulkan_playmode_mono_linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalHybridTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=linear" --compilation-errors-as-warnings
+                 utr --suite=playmode --testproject=TestProjects\UniversalHybridTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -295,8 +295,8 @@ Universal_Hybrid_Android_Vulkan_playmode_mono_gamma_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-Universal_Hybrid_Android_Vulkan_Standalone_il2cpp_linear_CUSTOM-REVISION:
-    name: Universal_Hybrid on Android_Vulkan_Standalone_il2cpp_linear on version CUSTOM-REVISION
+Universal_Hybrid_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
+    name: Universal_Hybrid on Android_Vulkan_Standalone_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -312,7 +312,7 @@ Universal_Hybrid_Android_Vulkan_Standalone_il2cpp_linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=linear" --compilation-errors-as-warnings --scripting-backend=il2cpp --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --scripting-backend=il2cpp --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -321,11 +321,11 @@ Universal_Hybrid_Android_Vulkan_Standalone_il2cpp_linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-      -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Player_il2cpp_linear_CUSTOM-REVISION
+      -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Player_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
     skip_checkout: true
-Build_Universal_Hybrid_Android_Vulkan_Player_il2cpp_linear_CUSTOM-REVISION:
-    name: Build Universal_Hybrid on Android_Vulkan_il2cpp_linear_Player on version CUSTOM-REVISION
+Build_Universal_Hybrid_Android_Vulkan_Player_il2cpp_Linear_CUSTOM-REVISION:
+    name: Build Universal_Hybrid on Android_Vulkan_il2cpp_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -340,7 +340,7 @@ Build_Universal_Hybrid_Android_Vulkan_Player_il2cpp_linear_CUSTOM-REVISION:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalHybridTest --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=linear" --compilation-errors-as-warnings --scripting-backend=il2cpp --timeout=1800 --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalHybridTest --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --scripting-backend=il2cpp --timeout=1800 --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
     artifacts:
         logs:
             paths:
@@ -407,8 +407,8 @@ Build_Universal_Hybrid_Android_Vulkan_Player_il2cpp_gamma_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-Universal_Hybrid_Android_Vulkan_Standalone_mono_linear_CUSTOM-REVISION:
-    name: Universal_Hybrid on Android_Vulkan_Standalone_mono_linear on version CUSTOM-REVISION
+Universal_Hybrid_Android_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
+    name: Universal_Hybrid on Android_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -424,7 +424,7 @@ Universal_Hybrid_Android_Vulkan_Standalone_mono_linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=linear" --compilation-errors-as-warnings --scripting-backend=il2cpp --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --scripting-backend=il2cpp --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -433,11 +433,11 @@ Universal_Hybrid_Android_Vulkan_Standalone_mono_linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-      -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Player_mono_linear_CUSTOM-REVISION
+      -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Player_mono_Linear_CUSTOM-REVISION
          rerun: always
     skip_checkout: true
-Build_Universal_Hybrid_Android_Vulkan_Player_mono_linear_CUSTOM-REVISION:
-    name: Build Universal_Hybrid on Android_Vulkan_mono_linear_Player on version CUSTOM-REVISION
+Build_Universal_Hybrid_Android_Vulkan_Player_mono_Linear_CUSTOM-REVISION:
+    name: Build Universal_Hybrid on Android_Vulkan_mono_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -452,7 +452,7 @@ Build_Universal_Hybrid_Android_Vulkan_Player_mono_linear_CUSTOM-REVISION:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalHybridTest --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=linear" --compilation-errors-as-warnings --scripting-backend=il2cpp --timeout=1800 --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalHybridTest --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --scripting-backend=il2cpp --timeout=1800 --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
     artifacts:
         logs:
             paths:
@@ -519,8 +519,8 @@ Build_Universal_Hybrid_Android_Vulkan_Player_mono_gamma_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-Universal_Hybrid_Android_Vulkan_playmode_il2cpp_linear_CUSTOM-REVISION:
-    name: Universal_Hybrid on Android_Vulkan_playmode_il2cpp_linear on version CUSTOM-REVISION
+Universal_Hybrid_Android_Vulkan_playmode_il2cpp_Linear_CUSTOM-REVISION:
+    name: Universal_Hybrid on Android_Vulkan_playmode_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -538,7 +538,7 @@ Universal_Hybrid_Android_Vulkan_playmode_il2cpp_linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalHybridTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=linear" --compilation-errors-as-warnings
+                 utr --suite=playmode --testproject=TestProjects\UniversalHybridTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -575,8 +575,8 @@ Universal_Hybrid_Android_Vulkan_playmode_il2cpp_gamma_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-Universal_Hybrid_Android_Vulkan_playmode_mono_linear_CUSTOM-REVISION:
-    name: Universal_Hybrid on Android_Vulkan_playmode_mono_linear on version CUSTOM-REVISION
+Universal_Hybrid_Android_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
+    name: Universal_Hybrid on Android_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -594,7 +594,7 @@ Universal_Hybrid_Android_Vulkan_playmode_mono_linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalHybridTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=linear" --compilation-errors-as-warnings
+                 utr --suite=playmode --testproject=TestProjects\UniversalHybridTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:

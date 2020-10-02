@@ -32,14 +32,14 @@ scripting_backends:
   - il2cpp
   - mono
 color_spaces:
-  - linear
+  - Linear
   - gamma
 all:
   dependencies:
     - platform: Win
       api: DX11
       scripting_backend: il2cpp
-      color_space: linear
+      color_space: Linear
       test_platforms:
         - Standalone
         - playmode

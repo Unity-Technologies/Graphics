@@ -3,8 +3,8 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-URPUpdate_BoatAttack_Win_Vulkan_playmode_il2cpp_linear_trunk:
-    name: URPUpdate_BoatAttack on Win_Vulkan_playmode_il2cpp_linear on version trunk
+URPUpdate_BoatAttack_Win_Vulkan_playmode_il2cpp_Linear_trunk:
+    name: URPUpdate_BoatAttack on Win_Vulkan_playmode_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -45,8 +45,8 @@ URPUpdate_BoatAttack_Win_Vulkan_playmode_il2cpp_gamma_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-URPUpdate_BoatAttack_Win_Vulkan_playmode_mono_linear_trunk:
-    name: URPUpdate_BoatAttack on Win_Vulkan_playmode_mono_linear on version trunk
+URPUpdate_BoatAttack_Win_Vulkan_playmode_mono_Linear_trunk:
+    name: URPUpdate_BoatAttack on Win_Vulkan_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -87,8 +87,8 @@ URPUpdate_BoatAttack_Win_Vulkan_playmode_mono_gamma_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-URPUpdate_BoatAttack_Win_Vulkan_editmode_il2cpp_linear_trunk:
-    name: URPUpdate_BoatAttack on Win_Vulkan_editmode_il2cpp_linear on version trunk
+URPUpdate_BoatAttack_Win_Vulkan_editmode_il2cpp_Linear_trunk:
+    name: URPUpdate_BoatAttack on Win_Vulkan_editmode_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -129,8 +129,8 @@ URPUpdate_BoatAttack_Win_Vulkan_editmode_il2cpp_gamma_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-URPUpdate_BoatAttack_Win_Vulkan_editmode_mono_linear_trunk:
-    name: URPUpdate_BoatAttack on Win_Vulkan_editmode_mono_linear on version trunk
+URPUpdate_BoatAttack_Win_Vulkan_editmode_mono_Linear_trunk:
+    name: URPUpdate_BoatAttack on Win_Vulkan_editmode_mono_Linear on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -171,8 +171,8 @@ URPUpdate_BoatAttack_Win_Vulkan_editmode_mono_gamma_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-URPUpdate_BoatAttack_Win_Vulkan_playmode_il2cpp_linear_CUSTOM-REVISION:
-    name: URPUpdate_BoatAttack on Win_Vulkan_playmode_il2cpp_linear on version CUSTOM-REVISION
+URPUpdate_BoatAttack_Win_Vulkan_playmode_il2cpp_Linear_CUSTOM-REVISION:
+    name: URPUpdate_BoatAttack on Win_Vulkan_playmode_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -221,8 +221,8 @@ URPUpdate_BoatAttack_Win_Vulkan_playmode_il2cpp_gamma_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URPUpdate_BoatAttack_Win_Vulkan_playmode_mono_linear_CUSTOM-REVISION:
-    name: URPUpdate_BoatAttack on Win_Vulkan_playmode_mono_linear on version CUSTOM-REVISION
+URPUpdate_BoatAttack_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
+    name: URPUpdate_BoatAttack on Win_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -271,8 +271,8 @@ URPUpdate_BoatAttack_Win_Vulkan_playmode_mono_gamma_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URPUpdate_BoatAttack_Win_Vulkan_editmode_il2cpp_linear_CUSTOM-REVISION:
-    name: URPUpdate_BoatAttack on Win_Vulkan_editmode_il2cpp_linear on version CUSTOM-REVISION
+URPUpdate_BoatAttack_Win_Vulkan_editmode_il2cpp_Linear_CUSTOM-REVISION:
+    name: URPUpdate_BoatAttack on Win_Vulkan_editmode_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -321,8 +321,8 @@ URPUpdate_BoatAttack_Win_Vulkan_editmode_il2cpp_gamma_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URPUpdate_BoatAttack_Win_Vulkan_editmode_mono_linear_CUSTOM-REVISION:
-    name: URPUpdate_BoatAttack on Win_Vulkan_editmode_mono_linear on version CUSTOM-REVISION
+URPUpdate_BoatAttack_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
+    name: URPUpdate_BoatAttack on Win_Vulkan_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
