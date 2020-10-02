@@ -221,8 +221,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Grab the material for the current sub-mesh
                     Material currentMaterial = materialArray[meshIdx];
 
-                    // The material is transparent if either it has the requested keyword or is in the transparent queue range
-                    if (currentMaterial != null)
+                    // Make sure that the material is both non-null and non-decal
+                    if (currentMaterial != null && !DecalSystem.IsHDRenderPipelineDecal(currentMaterial))
                     {
                         // Mesh is valid given that all requirements are ok
                         validMesh = true;
@@ -233,7 +233,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         || (HDRenderQueue.k_RenderQueue_Transparent.lowerBound <= currentMaterial.renderQueue
                         && HDRenderQueue.k_RenderQueue_Transparent.upperBound >= currentMaterial.renderQueue);
 
-                        // aggregate the transparency info
+                        // Aggregate the transparency info
                         materialIsOnlyTransparent &= subMeshTransparentArray[meshIdx];
                         hasTransparentSubMaterial |= subMeshTransparentArray[meshIdx];
 
