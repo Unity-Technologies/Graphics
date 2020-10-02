@@ -6,7 +6,8 @@ from ...shared.utr_utils import utr_editmode_flags, utr_playmode_flags, utr_stan
 def _cmd_base(project_folder, platform, editor):
     return []
 
-def cmd_editmode(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
+def cmd_editmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
+    scripting_backend = build_config["scripting_backend"]
     utr_args = utr_standalone_build_flags(platform_spec='', platform='iOS', testproject=f'{TEST_PROJECTS_DIR}/{project_folder}', player_save_path=PATH_PLAYERS, scripting_backend=f'{scripting_backend}', color_space=f'{color_space}')
     utr_args.extend(test_platform["extra_utr_flags"])
 
@@ -18,11 +19,11 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, scripting
         f'./utr {" ".join(utr_args)}'
      ]
 
-def cmd_playmode(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
+def cmd_playmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
     return []
 
-def cmd_standalone(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
-
+def cmd_standalone(project_folder, platform, api, test_platform, editor, build_config, color_space):
+    scripting_backend = build_config["scripting_backend"]
     utr_args = utr_standalone_split_flags(platform_spec='', platform='iOS', player_load_path='players',player_conn_ip=None, scripting_backend=f'{scripting_backend}', color_space=f'{color_space}')
     utr_args.extend(test_platform["extra_utr_flags"])
     utr_args.extend(platform["extra_utr_flags"])
@@ -34,8 +35,8 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, scripti
     ]
 
         
-def cmd_standalone_build(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
-
+def cmd_standalone_build(project_folder, platform, api, test_platform, editor, build_config, color_space):
+    scripting_backend = build_config["scripting_backend"]
     utr_args = utr_standalone_build_flags(platform_spec='', platform='iOS', testproject=f'{TEST_PROJECTS_DIR}/{project_folder}', player_save_path=PATH_PLAYERS, scripting_backend=f'{scripting_backend}', color_space=f'{color_space}')
     utr_args.extend(test_platform["extra_utr_flags_build"])
     utr_args.extend(platform["extra_utr_flags_build"])

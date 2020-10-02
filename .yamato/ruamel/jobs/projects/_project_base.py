@@ -5,13 +5,13 @@ from .commands._cmd_mapper import get_cmd
 from ..shared.namer import *
 from ..shared.yml_job import YMLJob
 
-def _job(project_name, test_platform_name, editor, platform, api, cmd, scripting_backend, color_space):
+def _job(project_name, test_platform_name, editor, platform, api, cmd, build_config, color_space):
 
     # define name
     if test_platform_name.lower() == 'standalone_build':
-        job_name = f'Build {project_name} on {platform["name"]}_{api["name"]}_{scripting_backend}_{color_space}_Player on version {editor["track"]}'
+        job_name = f'Build {project_name} on {platform["name"]}_{api["name"]}_{build_config["name"]}_{color_space}_Player on version {editor["track"]}'
     else:
-        job_name = f'{project_name} on {platform["name"]}_{api["name"]}_{test_platform_name}_{scripting_backend}_{color_space} on version {editor["track"]}'
+        job_name = f'{project_name} on {platform["name"]}_{api["name"]}_{test_platform_name}_{build_config["name"]}_{color_space} on version {editor["track"]}'
 
     # define agent
     platform_agents_project = platform.get(f'agents_project_{api["name"]}', platform.get('agents_project'))

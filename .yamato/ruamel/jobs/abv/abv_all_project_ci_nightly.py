@@ -4,14 +4,14 @@ from ..shared.yml_job import YMLJob
 
 class ABV_AllProjectCiNightlyJob():
     
-    def __init__(self, editor, projects, test_platforms, nightly_config, target_branch, scripting_backend, color_space):
+    def __init__(self, editor, projects, test_platforms, nightly_config, target_branch, build_configs, color_space):
         if editor["track"] not in nightly_config["allowed_editors"]:
             raise Exception(f'Tried to construct nightly with PR trigger for version {editor["track"]}')
         self.job_id = abv_job_id_all_project_ci_nightly(editor["track"])
-        self.yml = self.get_job_definition(editor, projects, test_platforms, nightly_config.get("extra_dependencies",[]), target_branch, scripting_backend, color_space).get_yml()
+        self.yml = self.get_job_definition(editor, projects, test_platforms, nightly_config.get("extra_dependencies",[]), target_branch, build_configs, color_space).get_yml()
 
     
-    def get_job_definition(self, editor, projects, test_platforms, extra_dependencies, target_branch, scripting_backend, color_space): 
+    def get_job_definition(self, editor, projects, test_platforms, extra_dependencies, target_branch, build_configs, color_space): 
 
         # define dependencies
         dependencies = [
@@ -36,7 +36,7 @@ class ABV_AllProjectCiNightlyJob():
             else:
                 for tp in dep["test_platforms"]:
                     dependencies.append({
-                        'path': f'{project_filepath_specific(dep["project"], dep["platform"], dep["api"])}#{project_job_id_test(dep["project"], dep["platform"], dep["api"], tp, editor["track"], dep["scripting_backend"], dep["color_space"])}',
+                        'path': f'{project_filepath_specific(dep["project"], dep["platform"], dep["api"])}#{project_job_id_test(dep["project"], dep["platform"], dep["api"], tp, editor["track"], dep["build_config"], dep["color_space"])}',
                         'rerun': editor["rerun_strategy"]})
             
         # construct job

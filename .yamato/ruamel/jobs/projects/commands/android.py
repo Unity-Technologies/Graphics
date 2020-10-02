@@ -7,7 +7,8 @@ def _cmd_base(project_folder, components):
     return [    ]
 
 
-def cmd_editmode(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):    
+def cmd_editmode(project_folder, platform, api, test_platform, editor, build_config, color_space):    
+    scripting_backend = build_config["scripting_backend"]
     utr_args = utr_editmode_flags( testproject=f'{TEST_PROJECTS_DIR}\{project_folder}',editor_location='WindowsEditor', scripting_backend=f'{scripting_backend}', color_space=f'{color_space}')
     utr_args.extend(test_platform["extra_utr_flags"])
     utr_args.extend(platform["extra_utr_flags"])
@@ -38,7 +39,8 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, scripting
     return base
 
 
-def cmd_playmode(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
+def cmd_playmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
+    scripting_backend = build_config["scripting_backend"]
     utr_args = utr_playmode_flags(testproject=f'{TEST_PROJECTS_DIR}\{project_folder}',editor_location='WindowsEditor', scripting_backend=f'{scripting_backend}', color_space=f'{color_space}')
     utr_args.extend(test_platform["extra_utr_flags"])
     utr_args.extend(platform["extra_utr_flags"])
@@ -68,7 +70,8 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor, scripting
             x += 1
     return base
 
-def cmd_standalone(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):   
+def cmd_standalone(project_folder, platform, api, test_platform, editor, build_config, color_space):   
+    scripting_backend = build_config["scripting_backend"]
     utr_args = utr_standalone_split_flags(platform_spec='', platform='Android', testproject=f'{TEST_PROJECTS_DIR}\{project_folder}', player_load_path=PATH_PLAYERS, player_conn_ip=None, scripting_backend=f'{scripting_backend}', color_space=f'{color_space}')
     utr_args.extend(test_platform["extra_utr_flags"])
     utr_args.extend(platform["extra_utr_flags"])
@@ -88,8 +91,8 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, scripti
         ]
 
         
-def cmd_standalone_build(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
-
+def cmd_standalone_build(project_folder, platform, api, test_platform, editor, build_config, color_space):
+    scripting_backend = build_config["scripting_backend"]
     utr_args = utr_standalone_build_flags(platform_spec='', platform='Android', testproject=f'{TEST_PROJECTS_DIR}\\{project_folder}', player_save_path=PATH_PLAYERS, editor_location='WindowsEditor', scripting_backend=f'{scripting_backend}', color_space=f'{color_space}')
     utr_args.extend(test_platform["extra_utr_flags_build"])
     utr_args.extend(platform["extra_utr_flags_build"])

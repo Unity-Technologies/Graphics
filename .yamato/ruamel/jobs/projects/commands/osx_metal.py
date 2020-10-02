@@ -20,8 +20,8 @@ def _cmd_base(project_folder, platform, utr_flags, editor):
     ]
 
 
-def cmd_editmode(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
-
+def cmd_editmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
+    scripting_backend = build_config["scripting_backend"]
     utr_args = utr_editmode_flags(
         testproject=f'/Users/bokken/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}',
         editor_location=f'/Users/bokken/.Editor',
@@ -32,8 +32,8 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, scripting
     utr_args.extend(platform["extra_utr_flags"])
     return  _cmd_base(project_folder, platform, utr_args, editor)
 
-def cmd_playmode(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
-
+def cmd_playmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
+    scripting_backend = build_config["scripting_backend"]
     utr_args = utr_playmode_flags(
         testproject=f'/Users/bokken/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}',
         editor_location=f'/Users/bokken/.Editor',
@@ -45,8 +45,8 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor, scripting
     return  _cmd_base(project_folder, platform, utr_args, editor)
 
 
-def cmd_standalone(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
-
+def cmd_standalone(project_folder, platform, api, test_platform, editor, build_config, color_space):
+    scripting_backend = build_config["scripting_backend"]
     utr_args = utr_standalone_not_split_flags(
         platform='Standalone',
         platform_spec='OSX',
@@ -61,5 +61,5 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, scripti
     return  _cmd_base(project_folder, platform, utr_args, editor)
 
 
-def cmd_standalone_build(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
+def cmd_standalone_build(project_folder, platform, api, test_platform, editor, build_config, color_space):
     raise NotImplementedError('osx_metal: standalone_split set to true but build commands not specified')

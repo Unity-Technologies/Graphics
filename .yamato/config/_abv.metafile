@@ -7,9 +7,10 @@ abv: # specify the editor versions for which to create the expression trigger fo
     - name: HDRP
     - name: VFX_HDRP
     - name: VFX_URP
-  scripting_backends:
-    - il2cpp
-    #- mono
+  build_configs:
+  - name: il2cpp_4
+    scripting_backend: il2cpp
+    api_level: NET_4_6
   color_spaces:
     - Linear
     #- gamma
@@ -20,28 +21,28 @@ nightly:
     - project: Universal
       platform: Android
       api: OpenGLES3
-      scripting_backend: il2cpp
+      build_config: il2cpp_4
       color_space: Linear
       test_platforms:
         - Standalone
     - project: Universal
       platform: Android
       api: Vulkan
-      scripting_backend: il2cpp
+      build_config: il2cpp_4
       color_space: Linear
       test_platforms:
         - Standalone
     - project: Universal
       platform: iPhone
       api: Metal
-      scripting_backend: il2cpp
+      build_config: il2cpp_4
       color_space: Linear
       test_platforms:
         - Standalone
     - project: Universal
       platform: Win
       api: Vulkan
-      scripting_backend: il2cpp
+      build_config: il2cpp_4
       color_space: Linear
       test_platforms:
         - playmode
@@ -49,7 +50,7 @@ nightly:
     - project: Universal
       platform: Win
       api: DX12
-      scripting_backend: il2cpp
+      build_config: il2cpp_4
       color_space: Linear
       test_platforms:
         - Standalone
@@ -59,7 +60,7 @@ nightly:
     - project: URPUpdate
       platform: Win
       api: DX11
-      scripting_backend: il2cpp
+      build_config: il2cpp
       color_space: Linear
       test_platforms:
         - editmode
@@ -67,7 +68,7 @@ nightly:
     - project: URPUpdate_Top_Asset_Store
       platform: Win
       api: DX11
-      scripting_backend: il2cpp
+      build_config: il2cpp
       color_space: Linear
       test_platforms:
         - editmode
@@ -85,7 +86,7 @@ trunk_verification: # jobs to include in trunk verification job
     - project: Universal
       platform: Win
       api: DX11
-      scripting_backend: il2cpp
+      build_config: il2cpp
       color_space: Linear
       test_platforms:
         - playmode
@@ -93,7 +94,7 @@ trunk_verification: # jobs to include in trunk verification job
     - project: ShaderGraph
       platform: Win
       api: DX11
-      scripting_backend: il2cpp
+      build_config: il2cpp
       color_space: Linear
       test_platforms:
         - playmode
@@ -101,7 +102,7 @@ trunk_verification: # jobs to include in trunk verification job
     - project: HDRP
       platform: Win
       api: DX11
-      scripting_backend: il2cpp
+      build_config: il2cpp
       color_space: Linear
       test_platforms:
         - playmode
@@ -109,7 +110,7 @@ trunk_verification: # jobs to include in trunk verification job
     - project: VFX_HDRP
       platform: Win
       api: DX11
-      scripting_backend: il2cpp
+      build_config: il2cpp
       color_space: Linear
       test_platforms:
         - playmode
@@ -117,7 +118,7 @@ trunk_verification: # jobs to include in trunk verification job
     - project: VFX_URP
       platform: Win
       api: DX11
-      scripting_backend: il2cpp
+      build_config: il2cpp
       color_space: Linear
       test_platforms:
         - playmode

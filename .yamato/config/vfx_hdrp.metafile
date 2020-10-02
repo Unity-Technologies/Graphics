@@ -23,9 +23,16 @@ platforms:
   - name: Linux
     apis: 
       - Vulkan
-scripting_backends:
-  - il2cpp
-  - mono
+build_configs:
+- name: il2cpp_2
+  scripting_backend: il2cpp
+  api_level: NET_2_0
+- name: il2cpp_4
+  scripting_backend: il2cpp
+  api_level: NET_4_6
+- name: mono
+  scripting_backend: mono
+  api_level: NET_2_0
 color_spaces:
   - Linear
   - gamma
@@ -33,7 +40,7 @@ all:
   dependencies:
     - platform: Win
       api: DX11
-      scripting_backend: il2cpp
+      build_config: il2cpp_4
       color_space: Linear
       test_platforms:
         - Standalone

@@ -10,7 +10,8 @@ def _cmd_base(project_folder, platform, editor):
     ]
 
 
-def cmd_not_standalone(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
+def cmd_not_standalone(project_folder, platform, api, test_platform, editor, build_config, color_space):
+    scripting_backend = build_config["scripting_backend"]
     base = _cmd_base(project_folder, platform, editor)
     base.extend([ 
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && DISPLAY=:0.0 utr {test_platform["extra_utr_flags"]} --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}'
@@ -18,7 +19,8 @@ def cmd_not_standalone(project_folder, platform, api, test_platform, editor, scr
     base[-1] += f' --extra-editor-arg="{platform["apis"][api]}"' if (api != "" and platform["apis"][api] != None)  else ''
     return base
 
-def cmd_standalone(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
+def cmd_standalone(project_folder, platform, api, test_platform, editor, build_config, color_space):
+    scripting_backend = build_config["scripting_backend"]
     base = [
         f'curl -s {UTR_INSTALL_URL} --output {TEST_PROJECTS_DIR}/{project_folder}/utr',
         f'chmod +x {TEST_PROJECTS_DIR}/{project_folder}/utr',
@@ -28,7 +30,8 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, scripti
       ])
     return base
 
-def cmd_standalone_build(project_folder, platform, api, test_platform, editor, scripting_backend, color_space):
+def cmd_standalone_build(project_folder, platform, api, test_platform, editor, build_config, color_space):
+    scripting_backend = build_config["scripting_backend"]
     base = _cmd_base(project_folder, platform, editor)
     base.extend([
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && DISPLAY=:0.0 utr {test_platform["extra_utr_flags_build"]}Linux64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinux{api["name"]}Linear" --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS} --timeout=1200 --player-save-path=.{PATH_PLAYERS} --build-only'
