@@ -154,6 +154,19 @@ to:
 For example, the call in the Lit shader has been updated to:
 `float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness), lightData.rangeCompressionFactorCompensation, posInput.positionNDC);`
 
+From 10.x, the shader keywords _BLENDMODE_ALPHA _BLENDMODE_ADD and _BLENDMODE_PRE_MULTIPLY have been removed. They are no longer used and the property _Blendmode is used instead.
+For example in Material.hlsl, the following lines:
+```
+    #if defined(_BLENDMODE_ADD) || defined(_BLENDMODE_ALPHA)
+        return float4(diffuseLighting * opacity + specularLighting, opacity);
+```
+is replace by 
+```
+    if (_BlendMode == BLENDMODE_ALPHA || _BlendMode == BLENDMODE_ADDITIVE)
+        return float4(diffuseLighting * opacity + specularLighting, opacity);
+```
+This reduced the number of shader variant. In case of custom shader it can be required to move the include of Material.hlsl after the declaration of the property _Blendmode.
+
 ## raytracing
 
 From Unity 2020.2, the Raytracing Node in shader graph now apply the raytraced path (previously low path) to all raytraced effects but path tracing.
