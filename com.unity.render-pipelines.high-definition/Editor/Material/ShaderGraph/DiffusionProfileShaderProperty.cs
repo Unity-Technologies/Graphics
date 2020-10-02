@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
         internal override bool isRenamable => true;
         internal override bool isGpuInstanceable => true;
 
-        public override PropertyType propertyType => PropertyType.Vector1;
+        public override PropertyType propertyType => PropertyType.Float;
 
         string assetReferenceName => $"{referenceName}_Asset";
 
