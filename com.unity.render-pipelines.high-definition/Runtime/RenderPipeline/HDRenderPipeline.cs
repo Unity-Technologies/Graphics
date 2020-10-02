@@ -346,7 +346,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // RENDER GRAPH
-        internal static bool enableNonRenderGraphTests { get => Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-non-rendergraph-tests"); }
+        internal static bool enableNonRenderGraphTests { get => true; }
         RenderGraph m_RenderGraph = new RenderGraph();
         bool        m_EnableRenderGraph = true;
 
