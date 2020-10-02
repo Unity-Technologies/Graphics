@@ -568,6 +568,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             foreach (var slot in slots)
                 AddShaderPortForSlot(slot);
+            // Make sure the visuals are properly updated to reflect port list
+            RefreshPorts();
         }
 
         void OnEdgeDisconnected(Port obj)
