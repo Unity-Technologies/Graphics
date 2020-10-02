@@ -115,7 +115,7 @@ public class TestShaders
          ShaderUtil.CompileShaderForTargetCompilerPlatform(shader, platform);
          foreach (ShaderMessage message in ShaderUtil.GetShaderMessages(shader, platform))
          {
-             sb.AppendLine($"{AssetDatabase.GetAssetPath(shader)} :: {shader.name} :: {message.platform} :: {message.message} :: Line: {message.line}");
+             sb.AppendLine($"{AssetDatabase.GetAssetPath(shader)} :: {shader.name} :: {message.platform} :: {message.severity} :: {message.message} :: Line: {message.line}");
          }
 
         if (sb.Length > 0)
