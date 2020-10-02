@@ -33,7 +33,10 @@ float4 ApplyBlendMode(float3 diffuseLighting, float3 specularLighting, float opa
     // When doing off screen rendering (low-res transparency or after post process pass) and rendering opaque objects, opacity needs to be set to zero for proper compositing.
     if (_OffScreenRendering != 0)
         opacity = 0;
-
+    else
+        // We hardcode opacity to 1 to avoid issues in forward when alpha might be coming from the texture source, but we don't want to keep it in case alpha is preserved. 
+        opacity = 1;
+        
     return float4(diffuseLighting + specularLighting, opacity);
 #else
 
