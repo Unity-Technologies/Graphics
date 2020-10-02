@@ -128,13 +128,14 @@ namespace UnityEditor.Rendering.HighDefinition
                             {
                                 base.OnInspectorGUI(); // Quality Setting
                                 EditorGUI.indentLevel++;
-                                GUI.enabled = useCustomValue;
-                                PropertyField(m_RayLength);
-                                PropertyField(m_ClampValue);
-                                PropertyField(m_FullResolution);
-                                PropertyField(m_UpscaleRadius);
-                                DenoiserGUI();
-                                GUI.enabled = true;
+                                using (new EditorGUI.DisabledScope(!useCustomValue))
+                                {
+                                    PropertyField(m_RayLength);
+                                    PropertyField(m_ClampValue);
+                                    PropertyField(m_FullResolution);
+                                    PropertyField(m_UpscaleRadius);
+                                    DenoiserGUI();
+                                }
                                 EditorGUI.indentLevel--;
 
                             }
@@ -163,13 +164,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         base.OnInspectorGUI(); // Quality Setting
                         EditorGUI.indentLevel++;
-                        GUI.enabled = useCustomValue;
-                        PropertyField(m_RayLength);
-                        PropertyField(m_ClampValue);
-                        PropertyField(m_FullResolution);
-                        PropertyField(m_UpscaleRadius);
-                        DenoiserGUI();
-                        GUI.enabled = true;
+                        using (new EditorGUI.DisabledScope(!useCustomValue))
+                        {
+                            PropertyField(m_RayLength);
+                            PropertyField(m_ClampValue);
+                            PropertyField(m_FullResolution);
+                            PropertyField(m_UpscaleRadius);
+                            DenoiserGUI();
+                        }
                         EditorGUI.indentLevel--;
                     }
 
@@ -181,11 +183,12 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 base.OnInspectorGUI(); // Quality Setting
                 EditorGUI.indentLevel++;
-                GUI.enabled = useCustomValue;
-                PropertyField(m_FullResolutionSS, EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode."));
-                PropertyField(m_RaySteps);
-                PropertyField(m_FilterRadius);
-                GUI.enabled = true;
+                using (new EditorGUI.DisabledScope(!useCustomValue))
+                {
+                    PropertyField(m_FullResolutionSS, EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode."));
+                    PropertyField(m_RaySteps);
+                    PropertyField(m_FilterRadius);
+                }
                 EditorGUI.indentLevel--;
                 PropertyField(m_DepthBufferThickness, k_DepthBufferThicknessText);
             }
