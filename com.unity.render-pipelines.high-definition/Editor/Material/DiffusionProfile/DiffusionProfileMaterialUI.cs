@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
-        public static void OnGUI(MaterialEditor materialEditor, MaterialProperty diffusionProfileAsset, MaterialProperty diffusionProfileHash, int profileIndex)
+        public static void OnGUI(MaterialEditor materialEditor, MaterialProperty diffusionProfileAsset, MaterialProperty diffusionProfileHash, int profileIndex, string displayName = "Diffusion Profile")
         {
             // We can't cache these fields because of several edge cases like undo/redo or pressing escape in the object picker
             string guid = HDUtils.ConvertVector4ToGUID(diffusionProfileAsset.vectorValue);
@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // is it okay to do this every frame ?
             EditorGUI.BeginChangeCheck();
-            diffusionProfile = (DiffusionProfileSettings)EditorGUILayout.ObjectField("Diffusion Profile", diffusionProfile, typeof(DiffusionProfileSettings), false);
+            diffusionProfile = (DiffusionProfileSettings)EditorGUILayout.ObjectField(displayName, diffusionProfile, typeof(DiffusionProfileSettings), false);
             if (EditorGUI.EndChangeCheck())
             {
                 Vector4 newGuid = Vector4.zero;
