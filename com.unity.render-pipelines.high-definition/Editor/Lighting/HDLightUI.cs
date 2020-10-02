@@ -975,7 +975,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if(serialized.shadowUpdateMode.intValue > 0 && serialized.type != HDLightType.Directional)
                 {
-#if UNITY_2020_2_OR_NEWER
+#if MIXED_CACHED_SHADOW
                     EditorGUILayout.PropertyField(serialized.shadowAlwaysDrawDynamic, s_Styles.shadowAlwaysDrawDynamic);
 #endif
                     EditorGUILayout.PropertyField(serialized.shadowUpdateUponTransformChange, s_Styles.shadowUpdateOnLightTransformChange);

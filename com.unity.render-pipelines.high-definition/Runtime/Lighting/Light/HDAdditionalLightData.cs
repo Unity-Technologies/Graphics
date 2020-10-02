@@ -1868,7 +1868,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal ShadowMapUpdateType GetShadowUpdateType(HDLightType lightType)
         {
             if (ShadowIsUpdatedEveryFrame()) return ShadowMapUpdateType.Dynamic;
-#if UNITY_2020_2_OR_NEWER
+#if MIXED_CACHED_SHADOW
             // Note: For now directional are not supported as it will require extra memory budget. This will change in a near future.
             if (m_AlwaysDrawDynamicShadows && lightType != HDLightType.Directional) return ShadowMapUpdateType.Mixed;
 #endif
