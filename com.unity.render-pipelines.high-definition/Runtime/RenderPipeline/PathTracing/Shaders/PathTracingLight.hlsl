@@ -320,6 +320,9 @@ bool SampleLights(LightList lightList,
     if (!GetLightCount(lightList))
         return false;
 
+    // Are we lighting a volume or a surface?
+    bool isVolume = !any(normal);
+
     if (PickLocalLights(lightList, inputSample.z))
     {
         // Pick a local light from the list
@@ -339,7 +342,7 @@ bool SampleLights(LightList lightList,
             dist = sqrt(sqDist);
             outgoingDir /= dist;
 
-            if (any(normal) && dot(normal, outgoingDir) < 0.001)
+            if (!isVolume && dot(normal, outgoingDir) < 0.001)
                 return false;
 
             float cosTheta = -dot(outgoingDir, lightData.forward);
@@ -373,12 +376,15 @@ bool SampleLights(LightList lightList,
                 pdf = DELTA_PDF;
             }
 
-            if (any(normal) && dot(normal, outgoingDir) < 0.001)
+            if (!isVolume && dot(normal, outgoingDir) < 0.001)
                 return false;
 
             value = GetPunctualEmission(lightData, outgoingDir, dist) * pdf;
             pdf = GetLocalLightWeight(lightList) * pdf;
         }
+
+        if (isVolume)
+            value *= lightData.volumetricLightDimmer;
 
 #ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
         ApplyFogAttenuation(position, outgoingDir, dist, value);
@@ -406,10 +412,13 @@ bool SampleLights(LightList lightList,
             outgoingDir = -lightData.forward;
         }
 
-        if (any(normal) && dot(normal, outgoingDir) < 0.001)
+        if (!isVolume && (dot(normal, outgoingDir) < 0.001))
             return false;
 
         dist = FLT_INF;
+
+    if (isVolume)
+        value *= lightData.volumetricLightDimmer;
 
 #ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
         ApplyFogAttenuation(position, outgoingDir, value);
@@ -524,6 +533,9 @@ bool GetSphereInterval(float3 lightToPos, float radius, float3 rayDirection, out
 
 bool GetRectAreaLightInterval(LightData lightData, float3 rayOrigin, float3 rayDirection, out float tMin, out float tMax)
 {
+    if (lightData.volumetricLightDimmer < 0.001)
+        return false;
+
     float3 lightVec = rayOrigin - GetAbsolutePositionWS(lightData.positionRWS);
 
     if (!GetSphereInterval(lightVec, lightData.range, rayDirection, tMin, tMax))
@@ -541,6 +553,9 @@ bool GetRectAreaLightInterval(LightData lightData, float3 rayOrigin, float3 rayD
 
 bool GetPointLightInterval(LightData lightData, float3 rayOrigin, float3 rayDirection, out float tMin, out float tMax)
 {
+    if (lightData.volumetricLightDimmer < 0.001)
+        return false;
+
     float3 lightVec = rayOrigin - GetAbsolutePositionWS(lightData.positionRWS);
     
     if (!GetSphereInterval(lightVec, lightData.range, rayDirection, tMin, tMax))
