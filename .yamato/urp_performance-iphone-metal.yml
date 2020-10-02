@@ -22,7 +22,6 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_2_Linear_trunk:
     dependencies:
       -  path: .yamato/urp_performance-iphone-metal.yml#Build_URP_Performance_iPhone_Metal_Player_il2cpp_2_Linear_trunk
          rerun: on-new-revision
-    skip_checkout: true
 Build_URP_Performance_iPhone_Metal_Player_il2cpp_2_Linear_trunk:
     name: Build URP_Performance on iPhone_Metal_il2cpp_2_Linear_Player on version trunk
     agent:
@@ -63,7 +62,6 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_2_gamma_trunk:
     dependencies:
       -  path: .yamato/urp_performance-iphone-metal.yml#Build_URP_Performance_iPhone_Metal_Player_il2cpp_2_gamma_trunk
          rerun: on-new-revision
-    skip_checkout: true
 Build_URP_Performance_iPhone_Metal_Player_il2cpp_2_gamma_trunk:
     name: Build URP_Performance on iPhone_Metal_il2cpp_2_gamma_Player on version trunk
     agent:
@@ -140,7 +138,6 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_4_Linear_trunk:
     dependencies:
       -  path: .yamato/urp_performance-iphone-metal.yml#Build_URP_Performance_iPhone_Metal_Player_il2cpp_4_Linear_trunk
          rerun: on-new-revision
-    skip_checkout: true
 Build_URP_Performance_iPhone_Metal_Player_il2cpp_4_Linear_trunk:
     name: Build URP_Performance on iPhone_Metal_il2cpp_4_Linear_Player on version trunk
     agent:
@@ -181,7 +178,6 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_4_gamma_trunk:
     dependencies:
       -  path: .yamato/urp_performance-iphone-metal.yml#Build_URP_Performance_iPhone_Metal_Player_il2cpp_4_gamma_trunk
          rerun: on-new-revision
-    skip_checkout: true
 Build_URP_Performance_iPhone_Metal_Player_il2cpp_4_gamma_trunk:
     name: Build URP_Performance on iPhone_Metal_il2cpp_4_gamma_Player on version trunk
     agent:
@@ -258,7 +254,6 @@ URP_Performance_iPhone_Metal_performance_playmode_mono_Linear_trunk:
     dependencies:
       -  path: .yamato/urp_performance-iphone-metal.yml#Build_URP_Performance_iPhone_Metal_Player_mono_Linear_trunk
          rerun: on-new-revision
-    skip_checkout: true
 Build_URP_Performance_iPhone_Metal_Player_mono_Linear_trunk:
     name: Build URP_Performance on iPhone_Metal_mono_Linear_Player on version trunk
     agent:
@@ -299,7 +294,6 @@ URP_Performance_iPhone_Metal_performance_playmode_mono_gamma_trunk:
     dependencies:
       -  path: .yamato/urp_performance-iphone-metal.yml#Build_URP_Performance_iPhone_Metal_Player_mono_gamma_trunk
          rerun: on-new-revision
-    skip_checkout: true
 Build_URP_Performance_iPhone_Metal_Player_mono_gamma_trunk:
     name: Build URP_Performance on iPhone_Metal_mono_gamma_Player on version trunk
     agent:
@@ -379,7 +373,6 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_2_Linear_CUSTOM-REVISIO
          rerun: always
       -  path: .yamato/urp_performance-iphone-metal.yml#Build_URP_Performance_iPhone_Metal_Player_il2cpp_2_Linear_CUSTOM-REVISION
          rerun: always
-    skip_checkout: true
 Build_URP_Performance_iPhone_Metal_Player_il2cpp_2_Linear_CUSTOM-REVISION:
     name: Build URP_Performance on iPhone_Metal_il2cpp_2_Linear_Player on version CUSTOM-REVISION
     agent:
@@ -427,7 +420,6 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_2_gamma_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/urp_performance-iphone-metal.yml#Build_URP_Performance_iPhone_Metal_Player_il2cpp_2_gamma_CUSTOM-REVISION
          rerun: always
-    skip_checkout: true
 Build_URP_Performance_iPhone_Metal_Player_il2cpp_2_gamma_CUSTOM-REVISION:
     name: Build URP_Performance on iPhone_Metal_il2cpp_2_gamma_Player on version CUSTOM-REVISION
     agent:
@@ -519,7 +511,6 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_4_Linear_CUSTOM-REVISIO
          rerun: always
       -  path: .yamato/urp_performance-iphone-metal.yml#Build_URP_Performance_iPhone_Metal_Player_il2cpp_4_Linear_CUSTOM-REVISION
          rerun: always
-    skip_checkout: true
 Build_URP_Performance_iPhone_Metal_Player_il2cpp_4_Linear_CUSTOM-REVISION:
     name: Build URP_Performance on iPhone_Metal_il2cpp_4_Linear_Player on version CUSTOM-REVISION
     agent:
@@ -567,7 +558,6 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_4_gamma_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/urp_performance-iphone-metal.yml#Build_URP_Performance_iPhone_Metal_Player_il2cpp_4_gamma_CUSTOM-REVISION
          rerun: always
-    skip_checkout: true
 Build_URP_Performance_iPhone_Metal_Player_il2cpp_4_gamma_CUSTOM-REVISION:
     name: Build URP_Performance on iPhone_Metal_il2cpp_4_gamma_Player on version CUSTOM-REVISION
     agent:
@@ -659,7 +649,6 @@ URP_Performance_iPhone_Metal_performance_playmode_mono_Linear_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/urp_performance-iphone-metal.yml#Build_URP_Performance_iPhone_Metal_Player_mono_Linear_CUSTOM-REVISION
          rerun: always
-    skip_checkout: true
 Build_URP_Performance_iPhone_Metal_Player_mono_Linear_CUSTOM-REVISION:
     name: Build URP_Performance on iPhone_Metal_mono_Linear_Player on version CUSTOM-REVISION
     agent:
@@ -707,7 +696,6 @@ URP_Performance_iPhone_Metal_performance_playmode_mono_gamma_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/urp_performance-iphone-metal.yml#Build_URP_Performance_iPhone_Metal_Player_mono_gamma_CUSTOM-REVISION
          rerun: always
-    skip_checkout: true
 Build_URP_Performance_iPhone_Metal_Player_mono_gamma_CUSTOM-REVISION:
     name: Build URP_Performance on iPhone_Metal_mono_gamma_Player on version CUSTOM-REVISION
     agent:

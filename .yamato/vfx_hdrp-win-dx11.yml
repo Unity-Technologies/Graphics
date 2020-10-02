@@ -21,7 +21,6 @@ VFX_HDRP_Win_DX11_Standalone_il2cpp_2_Linear_trunk:
     dependencies:
       -  path: .yamato/vfx_hdrp-win-dx11.yml#Build_VFX_HDRP_Win_DX11_Player_il2cpp_2_Linear_trunk
          rerun: on-new-revision
-    skip_checkout: true
 Build_VFX_HDRP_Win_DX11_Player_il2cpp_2_Linear_trunk:
     name: Build VFX_HDRP on Win_DX11_il2cpp_2_Linear_Player on version trunk
     agent:
@@ -60,7 +59,6 @@ VFX_HDRP_Win_DX11_Standalone_il2cpp_2_gamma_trunk:
     dependencies:
       -  path: .yamato/vfx_hdrp-win-dx11.yml#Build_VFX_HDRP_Win_DX11_Player_il2cpp_2_gamma_trunk
          rerun: on-new-revision
-    skip_checkout: true
 Build_VFX_HDRP_Win_DX11_Player_il2cpp_2_gamma_trunk:
     name: Build VFX_HDRP on Win_DX11_il2cpp_2_gamma_Player on version trunk
     agent:
@@ -201,7 +199,6 @@ VFX_HDRP_Win_DX11_Standalone_il2cpp_4_Linear_trunk:
     dependencies:
       -  path: .yamato/vfx_hdrp-win-dx11.yml#Build_VFX_HDRP_Win_DX11_Player_il2cpp_4_Linear_trunk
          rerun: on-new-revision
-    skip_checkout: true
 Build_VFX_HDRP_Win_DX11_Player_il2cpp_4_Linear_trunk:
     name: Build VFX_HDRP on Win_DX11_il2cpp_4_Linear_Player on version trunk
     agent:
@@ -240,7 +237,6 @@ VFX_HDRP_Win_DX11_Standalone_il2cpp_4_gamma_trunk:
     dependencies:
       -  path: .yamato/vfx_hdrp-win-dx11.yml#Build_VFX_HDRP_Win_DX11_Player_il2cpp_4_gamma_trunk
          rerun: on-new-revision
-    skip_checkout: true
 Build_VFX_HDRP_Win_DX11_Player_il2cpp_4_gamma_trunk:
     name: Build VFX_HDRP on Win_DX11_il2cpp_4_gamma_Player on version trunk
     agent:
@@ -381,7 +377,6 @@ VFX_HDRP_Win_DX11_Standalone_mono_Linear_trunk:
     dependencies:
       -  path: .yamato/vfx_hdrp-win-dx11.yml#Build_VFX_HDRP_Win_DX11_Player_mono_Linear_trunk
          rerun: on-new-revision
-    skip_checkout: true
 Build_VFX_HDRP_Win_DX11_Player_mono_Linear_trunk:
     name: Build VFX_HDRP on Win_DX11_mono_Linear_Player on version trunk
     agent:
@@ -420,7 +415,6 @@ VFX_HDRP_Win_DX11_Standalone_mono_gamma_trunk:
     dependencies:
       -  path: .yamato/vfx_hdrp-win-dx11.yml#Build_VFX_HDRP_Win_DX11_Player_mono_gamma_trunk
          rerun: on-new-revision
-    skip_checkout: true
 Build_VFX_HDRP_Win_DX11_Player_mono_gamma_trunk:
     name: Build VFX_HDRP on Win_DX11_mono_gamma_Player on version trunk
     agent:
@@ -564,7 +558,6 @@ VFX_HDRP_Win_DX11_Standalone_il2cpp_2_Linear_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/vfx_hdrp-win-dx11.yml#Build_VFX_HDRP_Win_DX11_Player_il2cpp_2_Linear_CUSTOM-REVISION
          rerun: always
-    skip_checkout: true
 Build_VFX_HDRP_Win_DX11_Player_il2cpp_2_Linear_CUSTOM-REVISION:
     name: Build VFX_HDRP on Win_DX11_il2cpp_2_Linear_Player on version CUSTOM-REVISION
     agent:
@@ -610,7 +603,6 @@ VFX_HDRP_Win_DX11_Standalone_il2cpp_2_gamma_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/vfx_hdrp-win-dx11.yml#Build_VFX_HDRP_Win_DX11_Player_il2cpp_2_gamma_CUSTOM-REVISION
          rerun: always
-    skip_checkout: true
 Build_VFX_HDRP_Win_DX11_Player_il2cpp_2_gamma_CUSTOM-REVISION:
     name: Build VFX_HDRP on Win_DX11_il2cpp_2_gamma_Player on version CUSTOM-REVISION
     agent:
@@ -782,7 +774,6 @@ VFX_HDRP_Win_DX11_Standalone_il2cpp_4_Linear_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/vfx_hdrp-win-dx11.yml#Build_VFX_HDRP_Win_DX11_Player_il2cpp_4_Linear_CUSTOM-REVISION
          rerun: always
-    skip_checkout: true
 Build_VFX_HDRP_Win_DX11_Player_il2cpp_4_Linear_CUSTOM-REVISION:
     name: Build VFX_HDRP on Win_DX11_il2cpp_4_Linear_Player on version CUSTOM-REVISION
     agent:
@@ -828,7 +819,6 @@ VFX_HDRP_Win_DX11_Standalone_il2cpp_4_gamma_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/vfx_hdrp-win-dx11.yml#Build_VFX_HDRP_Win_DX11_Player_il2cpp_4_gamma_CUSTOM-REVISION
          rerun: always
-    skip_checkout: true
 Build_VFX_HDRP_Win_DX11_Player_il2cpp_4_gamma_CUSTOM-REVISION:
     name: Build VFX_HDRP on Win_DX11_il2cpp_4_gamma_Player on version CUSTOM-REVISION
     agent:
@@ -1000,7 +990,6 @@ VFX_HDRP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/vfx_hdrp-win-dx11.yml#Build_VFX_HDRP_Win_DX11_Player_mono_Linear_CUSTOM-REVISION
          rerun: always
-    skip_checkout: true
 Build_VFX_HDRP_Win_DX11_Player_mono_Linear_CUSTOM-REVISION:
     name: Build VFX_HDRP on Win_DX11_mono_Linear_Player on version CUSTOM-REVISION
     agent:
@@ -1046,7 +1035,6 @@ VFX_HDRP_Win_DX11_Standalone_mono_gamma_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/vfx_hdrp-win-dx11.yml#Build_VFX_HDRP_Win_DX11_Player_mono_gamma_CUSTOM-REVISION
          rerun: always
-    skip_checkout: true
 Build_VFX_HDRP_Win_DX11_Player_mono_gamma_CUSTOM-REVISION:
     name: Build VFX_HDRP on Win_DX11_mono_gamma_Player on version CUSTOM-REVISION
     agent:
