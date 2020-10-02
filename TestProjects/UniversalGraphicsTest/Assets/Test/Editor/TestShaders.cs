@@ -1,15 +1,21 @@
 using System;
-using System.Collections.Generic;
 using System.Text;
 using NUnit.Framework;
 using UnityEditor;
-using UnityEditor.Experimental.GraphView;
 using UnityEditor.Rendering;
 using UnityEngine;
 
 public class TestShaders
 {
     string[] shaders = AssetDatabase.FindAssets("t:shader", new[] {"Packages/com.unity.render-pipelines.universal/Shaders"});
+
+    void DisableGlobalCacheServer()
+    {
+        if(CacheServerPreferences.IsCacheServerV2Enabled)
+        {
+            CacheServerPreferences.DisableCacheServerV2();
+        }
+    }
 
     [Test]
     public void TestURPShadersForMetal()
@@ -83,6 +89,7 @@ public class TestShaders
 
     void CompileForTargetPlatform(ShaderCompilerPlatform platform)
     {
+        DisableGlobalCacheServer();
         // Deleting the local cache so nothing old will be picked up
         FileUtil.DeleteFileOrDirectory("Library/ShaderCache");
         StringBuilder sb = new StringBuilder();
@@ -104,16 +111,16 @@ public class TestShaders
         //         return;
         // }
 
-        //  Shader shader = Shader.Find("Unlit/CameraOpaque");
-        //  ShaderUtil.CompileShaderForTargetCompilerPlatform(shader, platform);
-        //  foreach (ShaderMessage message in ShaderUtil.GetShaderMessages(shader, platform))
-        //  {
-        //      sb.AppendLine($"{AssetDatabase.GetAssetPath(shader)} :: {shader.name} :: {message.platform} :: {message.message} :: Line: {message.line}");
-        //  }
-        //
-        // if (sb.Length > 0)
-        // {
-        //     Assert.Fail(sb.ToString());
-        // }
+         Shader shader = Shader.Find("Unlit/CameraOpaque");
+         ShaderUtil.CompileShaderForTargetCompilerPlatform(shader, platform);
+         foreach (ShaderMessage message in ShaderUtil.GetShaderMessages(shader, platform))
+         {
+             sb.AppendLine($"{AssetDatabase.GetAssetPath(shader)} :: {shader.name} :: {message.platform} :: {message.message} :: Line: {message.line}");
+         }
+
+        if (sb.Length > 0)
+        {
+            Assert.Fail(sb.ToString());
+        }
     }
 }
