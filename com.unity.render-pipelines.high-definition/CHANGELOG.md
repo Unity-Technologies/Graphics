@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed rendering of custom passes in the Custom Pass Volume inspector
 - Fixed issue with volume manager trying to access a null volume.
 - Fixed an issue that caused a null reference when deleting camera component in a prefab. (case 1244430)
+- Fixed nan in pbr sky
 
 ## [7.5.1] - 2020-09-02
 
