@@ -84,6 +84,6 @@ float3x3 BuildTangentToWorld(float4 tangentWS, float3 normalWS)
 
 // Always include Shader Graph version
 // Always include last to avoid double macros
-#include "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl" 
+#include "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl"
 
 #endif // UNITY_GRAPHFUNCTIONS_LW_INCLUDED
