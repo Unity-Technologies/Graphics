@@ -72,6 +72,7 @@ float4 ApplyBlendMode(float3 color, float opacity)
 
 // Used for transparent object. input color is color + alpha of the original transparent pixel.
 // This must be call after ApplyBlendMode to work correctly
+// Caution: Must stay in sync with VFXApplyFog in VFXCommon.hlsl
 float4 EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, float4 inputColor)
 {
     float4 result = inputColor;
@@ -80,7 +81,6 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, float4 i
     float3 volColor, volOpacity;
     EvaluateAtmosphericScattering(posInput, V, volColor, volOpacity); // Premultiplied alpha
 
-    /*
     if (_BlendMode == BLENDMODE_ALPHA)
     {
         // Regular alpha blend need to multiply fog color by opacity (as we do src * src_a inside the shader)
@@ -103,9 +103,6 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, float4 i
         // (see the appendix in the Deep Compositing paper). But do we?
         // Additionally, we do not modify the alpha here, which is most certainly WRONG.
     }
-    */
-    // Branch expression above reduce to this one below. The resulting generated code is exactly the same, but we never know if we met a bad compiler.
-    result.rgb = result.rgb * (1.0 - volOpacity) + (_BlendMode != BLENDMODE_ADDITIVE) ? volColor * result.a : 0.0;
 
 #else
     // Evaluation of fog for opaque objects is currently done in a full screen pass independent from any material parameters.
