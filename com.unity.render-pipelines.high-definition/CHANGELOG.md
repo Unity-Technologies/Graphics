@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the usage of SSAO for shadow matte unlit shader graph.
 - Added a new volume component parameter to control the max ray length of directional lights(case 1279849).
 - Added support for 'Pyramid' and 'Box' spot light shapes in path tracing.
+- Added high quality prefiltering option for Bloom.
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
