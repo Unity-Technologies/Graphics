@@ -124,7 +124,6 @@ namespace UnityEngine.Rendering
             inputRotateAxisY = 0.0f;
             leftShiftBoost = false;
             fire1 = false;
-            Vector2 delta;
 
 #if USE_INPUT_SYSTEM
             var lookDelta = lookAction.ReadValue<Vector2>();
