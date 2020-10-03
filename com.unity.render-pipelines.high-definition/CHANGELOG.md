@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -119,6 +119,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed rendergraph motion vector resolve.
 - Fixed the Ray-Tracing related Debug Display not working in render graph mode.
 - Fix nan in pbr sky
+- Fixed Light skin not properly applied on the LookDev when switching from Dark Skin (case 1278802)
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
