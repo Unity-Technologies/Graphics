@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Simple mode to Earth Preset for PBR Sky
 - Added the export of normals during the prepass for shadow matte for proper SSAO calculation.
 - Added the usage of SSAO for shadow matte unlit shader graph.
-
+- Added a new volume component parameter to control the max ray length of directional lights(case 1279849).
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
 - Fixed GPU hang on D3D12 on xbox. 
@@ -151,6 +151,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - When trying to install the local configuration package, if another one is already present the user is now asked whether they want to keep it or not.
 - Improved MSAA color resolve to fix issues when very bright and very dark samples are resolved together.
 - Improve performance of GPU light AABB generation
+- Removed the max clamp value for the RTR, RTAO and RTGI's ray length (case 1279849).
 
 ## [10.0.0] - 2019-06-10
 

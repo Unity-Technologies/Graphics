@@ -294,7 +294,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-
         bool RenderLightScreenSpaceShadows(HDCamera hdCamera, CommandBuffer cmd)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingLightShadow)))
