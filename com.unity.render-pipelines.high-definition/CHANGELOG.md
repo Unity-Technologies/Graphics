@@ -123,6 +123,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed accumulation on DX11
 - Fixed issue with screen space UI not drawing on the graphics compositor (case 1279272).
 - Fixed error Maximum allowed thread group count is 65535 when resolution is very high. 
+- LOD meshes are now properly stripped based on the maximum lod value parameters contained in the HDRP asset.
+- Fixed an inconsistency in the LOD group UI where LOD bias was not the right one.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
