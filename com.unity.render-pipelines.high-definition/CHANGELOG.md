@@ -120,6 +120,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the Ray-Tracing related Debug Display not working in render graph mode.
 - Fix nan in pbr sky
 - Fixed Light skin not properly applied on the LookDev when switching from Dark Skin (case 1278802)
+- Fixed accumulation on DX11
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
