@@ -118,6 +118,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with bloom showing a thin black line after rescaling window. 
 - Fixed rendergraph motion vector resolve.
 - Fixed the Ray-Tracing related Debug Display not working in render graph mode.
+- Fix nan in pbr sky
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
