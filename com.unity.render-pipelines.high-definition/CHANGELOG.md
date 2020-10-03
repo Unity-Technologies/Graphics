@@ -117,6 +117,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with box light not visible if range is below one and range attenuation is off.
 - Fixed issue with bloom showing a thin black line after rescaling window. 
 - Fixed rendergraph motion vector resolve.
+- Fixed the Ray-Tracing related Debug Display not working in render graph mode.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
