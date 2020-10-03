@@ -58,13 +58,12 @@ namespace UnityEditor.Rendering.HighDefinition
             if (isInAdvancedMode)
             {
                 EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
-
-                GUI.enabled = useCustomValue;
-                PropertyField(m_Resolution);
-                PropertyField(m_HighQualityPrefiltering);
-                PropertyField(m_HighQualityFiltering);
-                GUI.enabled = true;
-
+                using (new EditorGUI.DisabledScope(!useCustomValue))
+                {
+                    PropertyField(m_Resolution);
+                    PropertyField(m_HighQualityPrefiltering);
+                    PropertyField(m_HighQualityFiltering);
+                }
                 PropertyField(m_Anamorphic);
             }
         }

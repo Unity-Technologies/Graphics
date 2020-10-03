@@ -610,15 +610,11 @@ namespace UnityEditor.Rendering.HighDefinition
             if (WillEditorUseFirstGraphicsAPI(target))
             {
                 if (EditorUtility.DisplayDialog("Changing editor graphics device",
-                    "You've changed the active graphics API. This requires a restart of the Editor. After restarting finish fixing DXR configuration by launching the wizard again.",
+                    "You've changed the active graphics API. This requires a restart of the Editor. After restarting, finish fixing DXR configuration by launching the wizard again.",
                     "Restart Editor", "Not now"))
                 {
-                    if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
-                    {
-                        HDProjectSettings.wizardNeedRestartAfterChangingToDX12 = false;
-                        RequestCloseAndRelaunchWithCurrentArguments();
-                        GUIUtility.ExitGUI();
-                    }
+                    HDProjectSettings.wizardNeedRestartAfterChangingToDX12 = false;
+                    RequestCloseAndRelaunchWithCurrentArguments();
                 }
                 else
                     EditorApplication.quitting += () => HDProjectSettings.wizardNeedRestartAfterChangingToDX12 = false;
@@ -633,7 +629,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsDXRAssetCorrect()
             => HDRenderPipeline.defaultAsset != null
-            && HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources != null;
+            && HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources != null
+            && SystemInfo.supportsRayTracing;
         void FixDXRAsset(bool fromAsyncUnused)
         {
             if (!IsHdrpAssetUsedCorrect())
@@ -641,6 +638,8 @@ namespace UnityEditor.Rendering.HighDefinition
             HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources
                 = AssetDatabase.LoadAssetAtPath<HDRenderPipelineRayTracingResources>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRayTracingResources.asset");
             ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath());
+            if (!SystemInfo.supportsRayTracing)
+                Debug.LogError("Your hardware and/or OS don't support DXR!");
         }
 
         bool IsDXRScreenSpaceShadowCorrect()
