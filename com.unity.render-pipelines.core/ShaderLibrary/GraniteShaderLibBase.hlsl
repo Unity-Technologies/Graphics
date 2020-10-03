@@ -665,11 +665,11 @@ struct GraniteLODLookupData
 
 #if (GRA_GLSL_120==1)
 	// Extension needed for texture2DLod
-	#extension GL_ARB_shader_texture_lod : enable
+	//extension GL_ARB_shader_texture_lod : enable
 	// Extensions needed fot texture2DGrad
-	#extension GL_EXT_gpu_shader4 : enable
+	//extension GL_EXT_gpu_shader4 : enable
 	// Extensions needed for bit manipulation
-	#extension GL_ARB_shader_bit_encoding : enable
+	//extension GL_ARB_shader_bit_encoding : enable
 #endif
 
 
