@@ -69,7 +69,7 @@ public class FrameManager : MonoBehaviour
     {
         RenderPipelineManager.beginFrameRendering -= PrepareSubFrameCallBack;
         HDRenderPipeline renderPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-        renderPipeline.EndRecording();
+        renderPipeline?.EndRecording();
         m_Recording = false;
     }
 
