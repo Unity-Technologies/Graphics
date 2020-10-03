@@ -119,7 +119,7 @@ For more information, see the [HDRI Sky documentation](Override-HDRI-Sky.md).
 
 ### Graphics Compositor (in Preview)
 
-![](Images/Compositor-HDRPTemplateWithLogo.png)
+![](Images/Compositor-HDRPTemplateWithLogo_Feature.png)
 The Graphics Compositor allows real-time compositing operations between layers of 3D content, static images, and videos.
 
 The tool support three types of compositing techniques:
@@ -136,7 +136,7 @@ For information about the feature, see the [HDRP Compositor documentation](Compo
 
 #### Path-traced depth of field
 
-![](Images/Path-traced-DOF.png)
+![](Images/Path-traced-DOF-Feature.png)
 
 This version of HDRP includes a new depth of field mode for producing path-traced images with high-quality defocus blur. Compared to post-processed depth of field, this mode works correctly with multiple layers of transparency and does not produce any artifacts, apart from noise typical in path traced images (which you can mitigate by increasing the sample count and/or using an external denoising tool).
 
@@ -144,21 +144,21 @@ For more information about this feature, see [Depth-of-field](Post-Processing-De
 
 #### Accumulation motion blur and path tracer convergence APIs
 
-![](Images/Path_tracing_recording.png)
+![](Images/Path_tracing_recording-Feature.png)
 HDRP now includes a recording API which you can use to render effects such as high-quality accumulation motion blur and converged path-traced images. These techniques create the final "converged" frame by combining information from multiple intermediate sub-frames. The new API allows your scripts to extract the properly converged final frames and do further processing or save them to disk.
 
 For information about this feature and for some example scripts, see [Multiframe rendering and accumulation documentation](Accumulation.md).
 
 #### Path-traced sub-surface scattering
 
-![](Images/Path-traced-SSS.png)
+![](Images/Path-traced-SSS-Feature.png)
 
 Path tracing now supports subsurface scattering (SSS), using a random walk approach. To use it, enable path tracing and set up SSS in the same way as you would for HDRP materials.
 
 For information on SSS in HDRP, see [subsurface scattering](Subsurface-Scattering.md).
 
 #### Path-traced fog
-![](Images/Path-traced-fog.png)
+![](Images/Path-traced-fog-Feature.png)
 
 Path tracing now supports fog absorption. Like SSS, to use this feature, enable path tracing and set up fog in the same way as you would for standard fog in HDRP.
 
@@ -195,7 +195,7 @@ HDRP, being a high-end modern renderer, contains a lot of compute shader passes.
 
 ### Planar reflection probe filtering
 
-![](Images/PlanarReflectionFiltering.png)
+![](Images/PlanarReflectionFiltering-Feature.png)
 
 Planar reflection probe filtering is a process that combines the result of planar reflection and surfaces smoothness. Up until this version, the implementation for planar reflection probe filtering did not always produce results of fantastic quality. This version of HDRP includes a new implementation that is closer to being physically-based and improves on the image quality significantly.
 
