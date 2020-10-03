@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint lightIndex;
     }
 
-    internal class HDRaytracingLightCluster
+    class HDRaytracingLightCluster
     {
         // External data
         RenderPipelineResources m_RenderPipelineResources = null;
@@ -94,9 +94,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Keep track of the render pipeline
             m_RenderPipeline = renderPipeline;
 
-            // Texture used to output debug information
-            m_DebugLightClusterTexture = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "DebugLightClusterTexture");
-
             // Pre allocate the cluster with a dummy size
             m_LightDataGPUArray = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
             m_EnvLightDataGPUArray = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
@@ -112,8 +109,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void ReleaseResources()
         {
-            m_DebugLightClusterTexture.Release();
-
             if (m_LightVolumeGPUArray != null)
             {
                 CoreUtils.SafeRelease(m_LightVolumeGPUArray);
@@ -149,6 +144,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.Destroy(m_DebugMaterial);
                 m_DebugMaterial = null;
             }
+        }
+
+        public void InitializeNonRenderGraphResources()
+        {
+            // Texture used to output debug information
+            m_DebugLightClusterTexture = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "DebugLightClusterTexture");
+        }
+
+        public void CleanupNonRenderGraphResources()
+        {
+            m_DebugLightClusterTexture.Release();
+            m_DebugLightClusterTexture = null;
         }
 
         void ResizeClusterBuffer(int bufferSize)
@@ -301,10 +308,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Reserve space in the cookie atlas
                     m_RenderPipeline.ReserveCookieAtlasTexture(currentLight, light, currentLight.type);
 
-               
+
                     // Grab the light range
                     float lightRange = light.range;
-                    
+
                     if (currentLight.type != HDLightType.Area)
                     {
                         m_LightVolumesCPUArray[realIndex].range = new Vector3(lightRange, lightRange, lightRange);
@@ -520,7 +527,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 processedData.lightDistanceFade = HDUtils.ComputeLinearDistanceFade(processedData.distanceToCamera, additionalLightData.fadeDistance);
                 processedData.isBakedShadowMask = HDRenderPipeline.IsBakedShadowMaskLight(lightComponent);
 
-                // Build a visible light 
+                // Build a visible light
                 Color finalColor = lightComponent.color.linear * lightComponent.intensity;
                 if (additionalLightData.useColorTemperature)
                     finalColor *= Mathf.CorrelatedColorTemperatureToRGB(lightComponent.colorTemperature);
@@ -540,7 +547,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector3 lightDimensions =  new Vector3(0.0f, 0.0f, 0.0f);
 
                 // Use the shared code to build the light data
-                m_RenderPipeline.GetLightData(cmd, hdCamera, hdShadowSettings, visibleLight, lightComponent, in processedData, 
+                m_RenderPipeline.GetLightData(cmd, hdCamera, hdShadowSettings, visibleLight, lightComponent, in processedData,
                     shadowIndex, contactShadowScalableSetting, isRasterization: false, ref lightDimensions, ref screenSpaceShadowIndex, ref screenSpaceChannelSlot, ref lightData);
 
                 // We make the light position camera-relative as late as possible in order
@@ -807,14 +814,14 @@ namespace UnityEngine.Rendering.HighDefinition
 			  // If there is no lights to process or no environment not the shader is missing
             if (totalLightCount == 0 || rayTracingLights.lightCount == 0 || !m_RenderPipeline.GetRayTracingState())
                 return;
-			
+
             // Cull the lights within the evaluated cluster range
             CullLights(cmd);
 
             // Build the light Cluster
             BuildLightCluster(hdCamera, cmd);
         }
-        
+
         public void ReserveCookieAtlasSlots( HDRayTracingLights rayTracingLights)
         {
             for (int lightIdx = 0; lightIdx < rayTracingLights.hdLightArray.Count; ++lightIdx)

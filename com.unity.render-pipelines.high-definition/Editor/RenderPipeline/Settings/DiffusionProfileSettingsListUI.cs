@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition
         void CreateReorderableList(SerializedProperty parameter)
         {
             m_Property = parameter;
-            m_DiffusionProfileList = new ReorderableList(parameter.serializedObject, parameter);
+            m_DiffusionProfileList = new ReorderableList(parameter.serializedObject, parameter, true, true, true, true);
 
             m_DiffusionProfileList.drawHeaderCallback = (rect) => {
                 EditorGUI.LabelField(rect, m_ListName);
@@ -65,6 +65,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 parameter.InsertArrayElementAtIndex(parameter.arraySize);
+                parameter.serializedObject.ApplyModifiedProperties();
             };
         }
     }
