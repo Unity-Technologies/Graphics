@@ -27,7 +27,7 @@ class Editor_PinningTargetToCIJob():
             f'git checkout {target_branch_editor_ci}',
             f'git config --global user.name "noreply@unity3d.com"',
             f'git config --global user.email "noreply@unity3d.com"',
-            f'git merge {target_branch} --ff',
+            f'git merge {target_branch} --no-ff -X theirs',
             f'git push'
         ]
         
