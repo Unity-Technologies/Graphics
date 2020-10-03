@@ -222,7 +222,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     Material currentMaterial = materialArray[meshIdx];
 
                     // Make sure that the material is both non-null and non-decal
-                    if (currentMaterial != null && !DecalSystem.IsHDRenderPipelineDecal(currentMaterial))
+                    if (currentMaterial != null && !DecalSystem.IsDecalMaterial(currentMaterial))
                     {
                         // Mesh is valid given that all requirements are ok
                         validMesh = true;
