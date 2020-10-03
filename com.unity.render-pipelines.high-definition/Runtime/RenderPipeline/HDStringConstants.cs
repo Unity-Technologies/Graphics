@@ -714,6 +714,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ChromaSpectralLut              = Shader.PropertyToID("_ChromaSpectralLut");
         public static readonly int _ChromaParams                   = Shader.PropertyToID("_ChromaParams");
 
+        public static readonly int _AlphaScaleBias                 = Shader.PropertyToID("_AlphaScaleBias");
+
         public static readonly int _VignetteParams1                = Shader.PropertyToID("_VignetteParams1");
         public static readonly int _VignetteParams2                = Shader.PropertyToID("_VignetteParams2");
         public static readonly int _VignetteColor                  = Shader.PropertyToID("_VignetteColor");

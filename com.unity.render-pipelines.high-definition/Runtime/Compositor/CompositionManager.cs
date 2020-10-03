@@ -838,5 +838,28 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         static public CompositionManager GetInstance() =>
             s_CompositorInstance ?? (s_CompositorInstance = GameObject.FindObjectOfType(typeof(CompositionManager), true) as CompositionManager);
 
+        static public Vector4 GetAlphaScaleAndBiasForCamera(HDCamera hdCamera)
+        {
+            AdditionalCompositorData compositorData = null;
+            hdCamera.camera.TryGetComponent<AdditionalCompositorData>(out compositorData);
+
+            if (compositorData)
+            {
+                float alphaMin = compositorData.alphaMin;
+                float alphaMax = compositorData.alphaMax;
+
+                if (alphaMax == alphaMin)
+                    alphaMax += 0.0001f; // Mathf.Epsilon is too small and in this case it creates precission issues 
+
+                float alphaScale = 1.0f / (alphaMax - alphaMin);
+                float alphaBias = -alphaMin * alphaScale;
+
+                return new Vector4(alphaScale, alphaBias, 0.0f, 0.0f);
+            }
+
+            // No compositor-specific data for this camera/layer, just return the default/neutral scale and bias
+            return new Vector4(1.0f, 0.0f, 0.0f, 0.0f);
+        }
+
     }
 }

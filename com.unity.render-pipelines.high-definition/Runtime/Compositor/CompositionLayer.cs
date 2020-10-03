@@ -136,6 +136,10 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         // Returns true if this layer is using a camera that was cloned internally for drawing
         bool isUsingACameraClone => !m_LayerCamera.Equals(m_Camera);
 
+        // The input alpha will be mapped between the min and max range when blending between the post-processed and plain image regions. This way the user can controls how steep is the transition.
+        [SerializeField] float m_AlphaMin = 0.0f;   
+        [SerializeField] float m_AlphaMax = 1.0f;
+
         private CompositorLayer()
         {
         }
@@ -469,6 +473,9 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 if (layerData != null)
                 {
                     layerData.Init(m_InputFilters, m_ClearAlpha);
+
+                    layerData.alphaMin = m_AlphaMin;
+                    layerData.alphaMax = m_AlphaMax;
                 }
             }
         }
@@ -507,7 +514,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             if (m_Type == LayerType.Image)
             {
                 var compositorData = m_LayerCamera.GetComponent<AdditionalCompositorData>();
-                if(compositorData)
+                if (compositorData)
                     compositorData.clearColorTexture = (m_Show && m_InputTexture != null) ? m_InputTexture : Texture2D.blackTexture;
             }
 
