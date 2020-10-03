@@ -44,9 +44,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             base.OnInspectorGUI();
 
-            GUI.enabled = useCustomValue;
-            PropertyField(m_SampleCount);
-            GUI.enabled = true;
+            using (new EditorGUI.DisabledScope(!useCustomValue))
+            {
+                PropertyField(m_SampleCount);
+            }
 
             PropertyField(m_MaxVelocityInPixels);
             PropertyField(m_MinVelInPixels);

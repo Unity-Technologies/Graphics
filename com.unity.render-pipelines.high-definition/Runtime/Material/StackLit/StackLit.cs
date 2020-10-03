@@ -70,16 +70,16 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector3 specularColor;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Normal)]
-            [SurfaceDataAttributes(new string[] {"Normal", "Normal View Space"}, true)]
+            [SurfaceDataAttributes(new string[] {"Normal", "Normal View Space"}, true, checkIsNormalized = true)]
             public Vector3 normalWS;
 
-            [SurfaceDataAttributes(new string[] {"Geometric Normal", "Geometric Normal View Space"}, true)]
+            [SurfaceDataAttributes(new string[] {"Geometric Normal", "Geometric Normal View Space"}, true, checkIsNormalized = true)]
             public Vector3 geomNormalWS;
 
-            [SurfaceDataAttributes(new string[] {"Coat Normal", "Coat Normal View Space"}, true)]
+            [SurfaceDataAttributes(new string[] {"Coat Normal", "Coat Normal View Space"}, true, checkIsNormalized = true)]
             public Vector3 coatNormalWS;
 
-            [SurfaceDataAttributes(new string[] {"Bent Normal", "Bent Normal View Space"}, true)]
+            [SurfaceDataAttributes(new string[] {"Bent Normal", "Bent Normal View Space"}, true, checkIsNormalized = true)]
             public Vector3 bentNormalWS;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Smoothness)]
@@ -204,16 +204,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public float ambientOcclusion;
 
-            [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
+            [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true, checkIsNormalized = true)]
             public Vector3 normalWS;
 
-            [SurfaceDataAttributes(new string[] {"Geometric Normal", "Geometric Normal View Space"}, true)]
+            [SurfaceDataAttributes(new string[] {"Geometric Normal", "Geometric Normal View Space"}, true, checkIsNormalized = true)]
             public Vector3 geomNormalWS;
 
-            [SurfaceDataAttributes(new string[] {"Coat Normal", "Coat Normal View Space"}, true)]
+            [SurfaceDataAttributes(new string[] {"Coat Normal", "Coat Normal View Space"}, true, checkIsNormalized = true)]
             public Vector3 coatNormalWS;
 
-            [SurfaceDataAttributes(new string[] {"Bent Normal", "Bent Normal View Space"}, true)]
+            [SurfaceDataAttributes(new string[] {"Bent Normal", "Bent Normal View Space"}, true, checkIsNormalized = true)]
             public Vector3 bentNormalWS;
 
             public float perceptualRoughnessA;

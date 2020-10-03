@@ -7,6 +7,7 @@ namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
     [FormerName("UnityEditor.ShaderGraph.CubemapShaderProperty")]
+    [BlackboardInputInfo(53)]
     public sealed class CubemapShaderProperty : AbstractShaderProperty<SerializableCubemap>
     {
         internal CubemapShaderProperty()
