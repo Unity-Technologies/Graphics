@@ -6,6 +6,7 @@ namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
     [FormerName("UnityEditor.ShaderGraph.Vector4ShaderProperty")]
+    [BlackboardInputInfo(4)]
     public sealed class Vector4ShaderProperty : VectorShaderProperty
     {
         internal Vector4ShaderProperty()
