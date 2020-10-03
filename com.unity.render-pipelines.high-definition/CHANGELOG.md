@@ -114,6 +114,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a warning in materialevalulation
 - Fixed an error when building the player.
 - Fixed issue with box light not visible if range is below one and range attenuation is off.
+- Fixed an issue that caused a null reference when deleting camera component in a prefab. (case 1244430)
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
