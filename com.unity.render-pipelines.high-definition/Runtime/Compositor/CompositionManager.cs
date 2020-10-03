@@ -797,6 +797,27 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             CommandBufferPool.Release(cmd);
         }
 
+        /// <summary>
+        /// Helper function that indicates if a camera is shared between multiple layers
+        /// </summary>
+        /// <param name="camera">The input camera</param>
+        /// <returns>Returns true if this camera is used to render in more than one layer</returns>
+        internal bool IsThisCameraShared(Camera camera)
+        {
+            int count = 0;
+            foreach (var layer in m_InputLayers)
+            {
+                
+                if (layer.outputTarget == CompositorLayer.OutputTarget.CameraStack &&
+                    camera.Equals(layer.sourceCamera))
+                {
+                    count++;
+                }
+            }
+            // If we found the camera in more than one layer then it is shared between layers
+            return count > 1;
+        }
+
         static public Camera GetSceceCamera()
         {
             if (Camera.main != null)

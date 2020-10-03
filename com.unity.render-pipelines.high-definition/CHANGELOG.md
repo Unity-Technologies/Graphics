@@ -121,6 +121,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix nan in pbr sky
 - Fixed Light skin not properly applied on the LookDev when switching from Dark Skin (case 1278802)
 - Fixed accumulation on DX11
+- Fixed issue with screen space UI not drawing on the graphics compositor (case 1279272).
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
