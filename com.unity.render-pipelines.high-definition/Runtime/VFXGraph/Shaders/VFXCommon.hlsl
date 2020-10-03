@@ -132,18 +132,13 @@ void VFXApplyShadowBias(inout float4 posCS, inout float3 posWS)
 }
 
 float3 VFXGetPositionRWS(float3 posWS); //Forward declaration because this function is actually implemented in VFXCommonOutput.hlsl (but expected to be used in fragment only)
-float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
+
+float4 VFXApplyFog(PositionInputs posInput, float3 V, float4 color)
 {
-    float3 posRWS = VFXGetPositionRWS(posWS);
-    PositionInputs posInput = GetPositionInput(posCS.xy, _ScreenSize.zw, posCS.z, posCS.w, posRWS, uint2(0,0));
-
-    float3 V = GetWorldSpaceNormalizeViewDir(posRWS);
-
     // Caution: This is a copy/paste of EvaluateAtmosphericScattering in Material.hlsl because there is no _BlendMode here
     float3 volColor, volOpacity;
     EvaluateAtmosphericScattering(posInput, V, volColor, volOpacity); // Premultiplied alpha
 
-    
 #if VFX_BLENDMODE_ALPHA
     color.rgb = color.rgb * (1 - volOpacity) + volColor * color.a;
 #elif VFX_BLENDMODE_ADD
@@ -156,6 +151,17 @@ float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
 #endif
 
     return color;
+
+}
+
+float4 VFXApplyFog(float4 color, float4 posCS, float3 posWS)
+{
+    float3 posRWS = VFXGetPositionRWS(posWS);
+    PositionInputs posInput = GetPositionInput(posCS.xy, _ScreenSize.zw, posCS.z, posCS.w, posRWS, uint2(0,0));
+
+    float3 V = GetWorldSpaceNormalizeViewDir(posRWS);
+
+    return VFXApplyFog(posInput, V, color);
 }
 
 #ifdef VFX_VARYING_PS_INPUTS

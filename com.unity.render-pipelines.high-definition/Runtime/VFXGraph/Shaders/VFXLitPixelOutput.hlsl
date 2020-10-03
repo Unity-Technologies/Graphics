@@ -33,7 +33,7 @@ float4 VFXCalcPixelOutputForward(const SurfaceData surfaceData, const BuiltinDat
     specularLighting *= GetCurrentExposureMultiplier();
 
     float4 outColor = ApplyBlendMode(diffuseLighting, specularLighting, builtinData.opacity);
-    outColor = EvaluateAtmosphericScattering(posInput, GetWorldSpaceNormalizeViewDir(posRWS), outColor);
+    outColor = VFXApplyFog(posInput, GetWorldSpaceNormalizeViewDir(posRWS), outColor);
 
 #ifdef DEBUG_DISPLAY
     // Same code in ShaderPassForward.shader
