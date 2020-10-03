@@ -7,9 +7,12 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.cs.hlsl"
 #endif
 
+#ifndef SCALARIZE_LIGHT_LOOP
 // We perform scalarization only for forward rendering as for deferred loads will already be scalar since tiles will match waves and therefore all threads will read from the same tile.
 // More info on scalarization: https://flashypixels.wordpress.com/2018/11/10/intro-to-gpu-scalarization-part-2-scalarize-all-the-lights/
 #define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
+#endif
+
 
 //-----------------------------------------------------------------------------
 // LightLoop
@@ -159,6 +162,14 @@ void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdf
         }
 
         lightLoopOutput.diffuseLighting = SAMPLE_TEXTURE2D_LOD(_DebugMatCapTexture, s_linear_repeat_sampler, UV, 0).rgb * (_MatcapMixAlbedo > 0  ? defaultColor.rgb * _MatcapViewScale : 1.0f);
+
+    #ifdef OUTPUT_SPLIT_LIGHTING // Work as matcap view is only call in forward, OUTPUT_SPLIT_LIGHTING isn't define in deferred.compute
+        if (_EnableSubsurfaceScattering != 0 && ShouldOutputSplitLighting(bsdfData))
+        {
+            lightLoopOutput.specularLighting = lightLoopOutput.diffuseLighting;
+        }
+    #endif
+
     }
 #endif
 }
@@ -252,7 +263,11 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         while (v_lightListOffset < lightCount)
         {
             v_lightIdx = FetchIndex(lightStart, v_lightListOffset);
+#if SCALARIZE_LIGHT_LOOP
             uint s_lightIdx = ScalarizeElementIndex(v_lightIdx, fastPath);
+#else
+            uint s_lightIdx = v_lightIdx;
+#endif
             if (s_lightIdx == -1)
                 break;
 
@@ -353,7 +368,11 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             while (v_envLightListOffset < envLightCount)
             {
                 v_envLightIdx = FetchIndex(envLightStart, v_envLightListOffset);
+#if SCALARIZE_LIGHT_LOOP
                 uint s_envLightIdx = ScalarizeElementIndex(v_envLightIdx, fastPath);
+#else
+                uint s_envLightIdx = v_envLightIdx;
+#endif
                 if (s_envLightIdx == -1)
                     break;
 
@@ -553,7 +572,10 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, builtinDataSSGI);
 
 #endif
-        builtinData.bakeDiffuseLighting += builtinDataSSGI.bakeDiffuseLighting;
+        // In the alpha channel, we have the interpolation value that we use to blend the result of SSGI/RTGI with the other GI thechnique
+        builtinData.bakeDiffuseLighting = lerp(builtinData.bakeDiffuseLighting,
+                                            builtinDataSSGI.bakeDiffuseLighting,
+                                            LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, posInput.positionSS).w);
     }
 #endif
 

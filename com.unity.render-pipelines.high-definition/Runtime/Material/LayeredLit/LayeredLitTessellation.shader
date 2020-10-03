@@ -377,6 +377,10 @@ Shader "HDRP/LayeredLitTessellation"
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
         [ToggleUI] _AddPrecomputedVelocity("AddPrecomputedVelocity", Float) = 0.0
 
+        [HideInInspector][NoScaleOffset]unity_Lightmaps("unity_Lightmaps", 2DArray) = "" {}
+        [HideInInspector][NoScaleOffset]unity_LightmapsInd("unity_LightmapsInd", 2DArray) = "" {}
+        [HideInInspector][NoScaleOffset]unity_ShadowMasks("unity_ShadowMasks", 2DArray) = "" {}
+
     }
 
     HLSLINCLUDE
@@ -425,7 +429,7 @@ Shader "HDRP/LayeredLitTessellation"
     // _ENABLESPECULAROCCLUSION keyword is obsolete but keep here for compatibility. Do not used
     // _ENABLESPECULAROCCLUSION and _SPECULAR_OCCLUSION_X can't exist at the same time (the new _SPECULAR_OCCLUSION replace it)
     // When _ENABLESPECULAROCCLUSION is found we define _SPECULAR_OCCLUSION_X so new code to work
-    #pragma shader_feature _ENABLESPECULAROCCLUSION                     // Non-local 
+    #pragma shader_feature _ENABLESPECULAROCCLUSION                     // Non-local
     #pragma shader_feature _ _SPECULAR_OCCLUSION_NONE _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP // Non-local
     #ifdef _ENABLESPECULAROCCLUSION
     #define _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
@@ -475,6 +479,7 @@ Shader "HDRP/LayeredLitTessellation"
 
     //enable GPU instancing support
     #pragma multi_compile_instancing
+    #pragma multi_compile _ DOTS_INSTANCING_ON
     #pragma instancing_options renderinglayer
 
     //-------------------------------------------------------------------------------------
@@ -834,6 +839,33 @@ Shader "HDRP/LayeredLitTessellation"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitData.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl"
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+            #pragma hull Hull
+            #pragma domain Domain
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "FullScreenDebug"
+            Tags{ "LightMode" = "FullScreenDebug" }
+
+            Cull[_CullMode]
+
+            ZWrite Off
+            ZTest LEqual
+
+            HLSLPROGRAM
+
+            #define SHADERPASS SHADERPASS_FULLSCREEN_DEBUG
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassFullScreenDebug.hlsl"
 
             #pragma vertex Vert
             #pragma fragment Frag

@@ -91,15 +91,16 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (advanced)
                 {
-                    GUI.enabled = useCustomValue;
-                    EditorGUILayout.LabelField("Near Blur", EditorStyles.miniLabel);
-                    PropertyField(m_NearSampleCount, Styles.k_NearSampleCount);
-                    PropertyField(m_NearMaxBlur, Styles.k_NearMaxBlur);
+                    using (new EditorGUI.DisabledScope(!useCustomValue))
+                    {
+                        EditorGUILayout.LabelField("Near Blur", EditorStyles.miniLabel);
+                        PropertyField(m_NearSampleCount, Styles.k_NearSampleCount);
+                        PropertyField(m_NearMaxBlur, Styles.k_NearMaxBlur);
 
-                    EditorGUILayout.LabelField("Far Blur", EditorStyles.miniLabel);
-                    PropertyField(m_FarSampleCount, Styles.k_FarSampleCount);
-                    PropertyField(m_FarMaxBlur, Styles.k_FarMaxBlur);
-                    GUI.enabled = true;
+                        EditorGUILayout.LabelField("Far Blur", EditorStyles.miniLabel);
+                        PropertyField(m_FarSampleCount, Styles.k_FarSampleCount);
+                        PropertyField(m_FarMaxBlur, Styles.k_FarMaxBlur);
+                    }
                 }
             }
             else if (mode == (int)DepthOfFieldMode.Manual)
@@ -112,10 +113,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (advanced)
                 {
-                    GUI.enabled = useCustomValue;
-                    PropertyField(m_NearSampleCount, Styles.k_NearSampleCount);
-                    PropertyField(m_NearMaxBlur, Styles.k_NearMaxBlur);
-                    GUI.enabled = true;
+                    using (new EditorGUI.DisabledScope(!useCustomValue))
+                    {
+                        PropertyField(m_NearSampleCount, Styles.k_NearSampleCount);
+                        PropertyField(m_NearMaxBlur, Styles.k_NearMaxBlur);
+                    }
                 }
 
                 EditorGUILayout.LabelField("Far Blur", EditorStyles.miniLabel);
@@ -124,23 +126,25 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (advanced)
                 {
-                    GUI.enabled = useCustomValue;
-                    PropertyField(m_FarSampleCount, Styles.k_FarSampleCount);
-                    PropertyField(m_FarMaxBlur, Styles.k_FarMaxBlur);
-                    GUI.enabled = true;
+                    using (new EditorGUI.DisabledScope(!useCustomValue))
+                    {
+                        PropertyField(m_FarSampleCount, Styles.k_FarSampleCount);
+                        PropertyField(m_FarMaxBlur, Styles.k_FarMaxBlur);
+                    }
                 }
             }
 
             if (advanced)
             {
-                GUI.enabled = useCustomValue;
-                EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
-                PropertyField(m_Resolution);
-                PropertyField(m_HighQualityFiltering);
-                PropertyField(m_PhysicallyBased, Styles.k_PhysicallyBased);
-                if(m_PhysicallyBased.value.boolValue == true)
-                    EditorGUILayout.HelpBox(Styles.InfoBox, MessageType.Info);
-                GUI.enabled = true;
+                using (new EditorGUI.DisabledScope(!useCustomValue))
+                {
+                    EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
+                    PropertyField(m_Resolution);
+                    PropertyField(m_HighQualityFiltering);
+                    PropertyField(m_PhysicallyBased, Styles.k_PhysicallyBased);
+                    if(m_PhysicallyBased.value.boolValue == true)
+                        EditorGUILayout.HelpBox(Styles.InfoBox, MessageType.Info);
+                }
             }
         }
     }
