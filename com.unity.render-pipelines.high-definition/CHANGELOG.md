@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with bloom showing a thin black line after rescaling window. 
 - Fixed an issue that caused a null reference when deleting camera component in a prefab. (case 1244430)
 - Fixed nan in pbr sky
+- Fixed Light skin not properly applied on the LookDev when switching from Dark Skin (case 1278802)
 
 ### Changed
 - Remove MSAA debug mode when renderpipeline asset has no MSAA
