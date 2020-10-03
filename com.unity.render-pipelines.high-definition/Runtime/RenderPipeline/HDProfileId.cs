@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ScreenSpaceShadows,
         ScreenSpaceShadowsDebug,
         BuildLightList,
+        GenerateLightAABBs,
         ContactShadows,
         BlitToFinalRTDevBuildOnly,
         Distortion,
@@ -189,7 +190,6 @@ namespace UnityEngine.Rendering.HighDefinition
         UpsampleLowResTransparent,
 
         // Post-processing
-        GuardBandClear,
         AlphaCopy,
         StopNaNs,
         FixedExposure,
