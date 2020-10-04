@@ -18,7 +18,7 @@ def _get_editors(metafile, shared, latest_editor_versions):
     for editor in editors:
         if str(editor['track']).lower() != 'CUSTOM-REVISION'.lower():
             editor['revisions'] = {}
-            revisions = [{k:v} for k,v in latest_editor_versions['editor_versions'].items() if str(editor['track']) in k] # get all revisions for this track
+            revisions = [{k:v} for k,v in latest_editor_versions[editor['track']]['editor_versions'].items() if str(editor['track']) in k] # get all revisions for this track
             for rev in revisions:
                 for k,v in rev.items(): # TODO loops over the single dict value, see if there is a better way
                     editor['revisions'][k] = v
@@ -91,13 +91,18 @@ def _unfold_platforms(metafile, shared):
 def _unfold_test_platforms(metafile, shared, root_keys=[]):
     '''Retrieves test platform details from shared metafile, corresponding to the specific metafile. 
     Returns the new 'test_platforms' section.'''
+
     def replace_test_platforms(target_dict):
         test_platforms = []
-        for test_platform_name in target_dict.get('test_platforms',[]):
-            test_platforms.append({
-                "name": test_platform_name,
-                "args": shared['test_platforms'][test_platform_name]
-            })
+        for tp in target_dict.get("test_platforms", []):
+            tp["name"] = tp["type"] if not tp.get("name") else tp.get("name")
+            tp["is_performance"] = False if not tp.get("is_performance") else tp.get("is_performance")
+            tp["extra_utr_flags"] = [] if not tp.get("extra_utr_flags") else tp.get("extra_utr_flags")
+            
+            if tp["type"].lower()=="standalone":
+                tp["extra_utr_flags_build"] = [] if not tp.get("extra_utr_flags_build") else tp.get("extra_utr_flags_build")
+            test_platforms.append(tp)
+
         target_dict['test_platforms'] = test_platforms
         return target_dict
 
