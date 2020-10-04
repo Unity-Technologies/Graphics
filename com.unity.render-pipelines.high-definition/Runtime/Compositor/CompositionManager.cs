@@ -861,5 +861,39 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             return new Vector4(1.0f, 0.0f, 0.0f, 0.0f);
         }
 
+        /// <summary>
+        /// For stacked cameras, returns the color buffer that will be used to draw on top
+        /// </summary>
+        /// <param name="hdCamera">The input camera</param>
+        /// <returns> The color buffer that will be used to draw on top, or null if not a stacked camera </returns>
+        static internal Texture GetClearTextureForStackedCamera(HDCamera hdCamera)
+        {
+            AdditionalCompositorData compositorData = null;
+            hdCamera.camera.TryGetComponent<AdditionalCompositorData>(out compositorData);
+
+            if (compositorData)
+            {
+                return compositorData.clearColorTexture;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// For stacked cameras, returns the depth buffer that will be used to draw on top
+        /// </summary>
+        /// <param name="hdCamera">The input camera</param>
+        /// <returns> The depth buffer that will be used to draw on top, or null if not a stacked camera </returns>
+        static internal RenderTexture GetClearDepthForStackedCamera(HDCamera hdCamera)
+        {
+            AdditionalCompositorData compositorData = null;
+            hdCamera.camera.TryGetComponent<AdditionalCompositorData>(out compositorData);
+
+            if (compositorData)
+            {
+                return compositorData.clearDepthTexture;
+            }
+            return null;
+        }
+
     }
 }
