@@ -131,6 +131,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - LOD meshes are now properly stripped based on the maximum lod value parameters contained in the HDRP asset.
 - Fixed an inconsistency in the LOD group UI where LOD bias was not the right one.
 - Fixed outlines in transitions between post-processed and plain regions in the graphics compositor (case 1278775).
+- Fix decal being applied twice with LOD Crossfade.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
