@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Simple mode to Earth Preset for PBR Sky
 - Added the export of normals during the prepass for shadow matte for proper SSAO calculation.
 - Added the usage of SSAO for shadow matte unlit shader graph.
+- Added the support of input system V2
 - Added a new volume component parameter to control the max ray length of directional lights(case 1279849).
 - Added support for 'Pyramid' and 'Box' spot light shapes in path tracing.
 - Added high quality prefiltering option for Bloom.
