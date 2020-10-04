@@ -55,8 +55,9 @@ To view these properties, click the gear in the top right of the Master Node.
 | **Affects Ambient Occlusion** | Enable or disable the effect of the **Ambient Occlusion** property. |
 | **Affects Smoothness**        | Enable or disable the effect of the **Smoothness** property. |
 | **Affects Emission**          | Enable or disable the effect of the **Emission** property.   |
+| **Support LOD CrossFace**     | Indicates whether dithering occurs when moving from one LOD level of the receiving Mesh to another when sampling Textures. Only use with Decal Mesh. |
 | **Override ShaderGUI**        | Lets you override the [ShaderGUI](https://docs.unity3d.com/ScriptReference/ShaderGUI.html) that this Shader Graph uses. If `true`, the **ShaderGUI** property appears, which lets you specify the ShaderGUI to use. |
-| **- ShaderGUI**                 | The full name of the ShaderGUI class to use, including the class path. |
+| **- ShaderGUI**               | The full name of the ShaderGUI class to use, including the class path. |
 
 <a name="MaterialProperties"></a>
 

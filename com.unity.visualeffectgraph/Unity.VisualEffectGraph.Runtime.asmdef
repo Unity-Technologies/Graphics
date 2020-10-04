@@ -1,8 +1,10 @@
 {
     "name": "Unity.VisualEffectGraph.Runtime",
+    "rootNamespace": "",
     "references": [
         "Unity.Timeline",
-        "Unity.ugui"
+        "Unity.ugui",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -41,6 +43,12 @@
             "name": "com.unity.modules.audio",
             "expression": "1.0.0",
             "define": "VFX_HAS_AUDIO"
+        },
+        {
+            "name": "com.unity.inputsystem",
+            "expression": "0.0.0",
+            "define": "VFX_HAS_INPUT_SYSTEM_PACKAGE"
         }
-    ]
+    ],
+    "noEngineReferences": false
 }

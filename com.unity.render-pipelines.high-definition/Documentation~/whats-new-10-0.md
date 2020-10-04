@@ -111,6 +111,10 @@ HDRP now includes a new sample that contains example fabric and hair materials. 
 
 This version of HDRP introduces Decal Layers which allow you to specify which decals affect which Materials on a layer by layer basis. For more information about Decal Layers, see the [Decal documentation](Decal.md).
 
+### Input System package support
+
+This version of HDRP introduces support for the [Input System package](http://docs.unity3d.com/Packages/com.unity.inputsystem@latest). Before this version, if you enabled the Input System package and disabled the built-in input system, the debug menu and camera control scripts HDRP provides would no longer work. Now, both the debug menu and camera control scripts work when you exclusively enable the Input System package.
+
 ### HDRI Flowmap
 
 The [HDRI Sky](Override-HDRI-Sky.md) override now contains a new property to allow you to apply a flowmap to the sky cubemap.
