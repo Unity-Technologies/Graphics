@@ -161,6 +161,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved MSAA color resolve to fix issues when very bright and very dark samples are resolved together.
 - Improve performance of GPU light AABB generation
 - Removed the max clamp value for the RTR, RTAO and RTGI's ray length (case 1279849).
+- Meshes assigned with a decal material are not visible anymore in ray-tracing or path-tracing.
 
 ## [10.0.0] - 2019-06-10
 
