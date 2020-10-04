@@ -222,7 +222,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float alphaCutoff = _AlphaCutoffPrepass;
     #elif SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_POSTPASS
     float alphaCutoff = _AlphaCutoffPostpass;
-    #elif SHADERPASS == SHADERPASS_SHADOWS
+    #elif (SHADERPASS == SHADERPASS_SHADOWS) || (SHADERPASS == SHADERPASS_RAYTRACING_VISIBILITY)
     float alphaCutoff = _UseShadowThreshold ? _AlphaCutoffShadow : _AlphaCutoff;
     #else
     float alphaCutoff = _AlphaCutoff;

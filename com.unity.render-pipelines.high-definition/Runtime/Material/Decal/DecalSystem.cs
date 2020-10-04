@@ -634,12 +634,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 var influenceForwardVS = worldToView.MultiplyVector(influenceZ / influenceExtents.z);
                 var influencePositionVS = worldToView.MultiplyPoint(pos); // place the mesh pivot in the center
 
-                m_Bounds[m_DecalDatasCount].center = influencePositionVS;
+                m_Bounds[m_DecalDatasCount].center   = influencePositionVS;
                 m_Bounds[m_DecalDatasCount].boxAxisX = influenceRightVS * influenceExtents.x;
                 m_Bounds[m_DecalDatasCount].boxAxisY = influenceUpVS * influenceExtents.y;
                 m_Bounds[m_DecalDatasCount].boxAxisZ = influenceForwardVS * influenceExtents.z;
-                m_Bounds[m_DecalDatasCount].scaleXY.Set(1.0f, 1.0f);
-                m_Bounds[m_DecalDatasCount].radius = influenceExtents.magnitude;
+                m_Bounds[m_DecalDatasCount].scaleXY  = 1.0f;
+                m_Bounds[m_DecalDatasCount].radius   = influenceExtents.magnitude;
 
                 // The culling system culls pixels that are further
                 //   than a threshold to the box influence extents.
@@ -1162,15 +1162,15 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Atlas = null;
         }
 
-        public void RenderDebugOverlay(HDCamera hdCamera, CommandBuffer cmd, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width)
+        public void RenderDebugOverlay(HDCamera hdCamera, CommandBuffer cmd, DebugDisplaySettings debugDisplaySettings, DebugOverlay debugOverlay)
         {
             if (debugDisplaySettings.data.decalsDebugSettings.displayAtlas)
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DisplayDebugDecalsAtlas)))
                 {
-                    cmd.SetViewport(new Rect(x, y, overlaySize, overlaySize));
+                    debugOverlay.SetViewport(cmd);
                     HDUtils.BlitQuad(cmd, Atlas.AtlasTexture, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), (int)debugDisplaySettings.data.decalsDebugSettings.mipLevel, true);
-                    HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
+                    debugOverlay.Next();
                 }
             }
         }
