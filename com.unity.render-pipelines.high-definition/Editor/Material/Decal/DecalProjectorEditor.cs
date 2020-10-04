@@ -351,10 +351,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(m_Size, k_SizeContent);
                 EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
 
+                bool decalLayerEnabled = false;
                 HDRenderPipelineAsset hdrp = HDRenderPipeline.currentAsset;
                 if (hdrp != null)
                 {
-                    using (new EditorGUI.DisabledScope(!(hdrp.currentPlatformRenderPipelineSettings.supportDecals && hdrp.currentPlatformRenderPipelineSettings.supportDecalLayers)))
+                    decalLayerEnabled = hdrp.currentPlatformRenderPipelineSettings.supportDecals && hdrp.currentPlatformRenderPipelineSettings.supportDecalLayers;
+                    using (new EditorGUI.DisabledScope(!decalLayerEnabled))
                     {
                         EditorGUILayout.PropertyField(m_DecalLayerMask, k_DecalLayerMaskContent);
                     }
@@ -366,13 +368,23 @@ namespace UnityEditor.Rendering.HighDefinition
                     m_DrawDistanceProperty.floatValue = 0f;
 
                 EditorGUILayout.PropertyField(m_FadeScaleProperty, k_FadeScaleContent);
-                EditorGUILayout.PropertyField(m_StartAngleFadeProperty, k_StartAngleFadeContent);
-                if (EditorGUI.EndChangeCheck() && m_StartAngleFadeProperty.floatValue > m_EndAngleFadeProperty.floatValue)
-                    m_EndAngleFadeProperty.floatValue = m_StartAngleFadeProperty.floatValue;
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(m_EndAngleFadeProperty, k_EndAngleFadeContent);
-                if (EditorGUI.EndChangeCheck() && m_EndAngleFadeProperty.floatValue < m_StartAngleFadeProperty.floatValue)
-                    m_StartAngleFadeProperty.floatValue = m_EndAngleFadeProperty.floatValue;
+                using (new EditorGUI.DisabledScope(!decalLayerEnabled))
+                {
+                    EditorGUILayout.PropertyField(m_StartAngleFadeProperty, k_StartAngleFadeContent);
+                    if (EditorGUI.EndChangeCheck() && m_StartAngleFadeProperty.floatValue > m_EndAngleFadeProperty.floatValue)
+                        m_EndAngleFadeProperty.floatValue = m_StartAngleFadeProperty.floatValue;
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.PropertyField(m_EndAngleFadeProperty, k_EndAngleFadeContent);
+                    if (EditorGUI.EndChangeCheck() && m_EndAngleFadeProperty.floatValue < m_StartAngleFadeProperty.floatValue)
+                        m_StartAngleFadeProperty.floatValue = m_EndAngleFadeProperty.floatValue;
+                }
+
+                if (!decalLayerEnabled)
+                {
+                    EditorGUILayout.HelpBox("Enable 'Decal Layers' in your HDRP Asset if you want to control the Angle Fade. There is a performance cost of enabling this option.",
+                    MessageType.Info);
+                }
+
                 EditorGUILayout.PropertyField(m_UVScaleProperty, k_UVScaleContent);
                 EditorGUILayout.PropertyField(m_UVBiasProperty, k_UVBiasContent);
                 EditorGUILayout.PropertyField(m_FadeFactor, k_FadeFactorContent);

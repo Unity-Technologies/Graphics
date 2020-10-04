@@ -32,9 +32,11 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
         // Check if this decal projector require angle fading
         float2 angleFade = float2(decalData.normalToWorld[1][3], decalData.normalToWorld[2][3]);
 
-        if (angleFade.x > 0.0f) // if angle fade is enabled
+        // Angle fade is disabled if decal layers isn't enabled for consistency with DBuffer Decal
+        // The test against _EnableDecalLayers is done here to refresh realtime as AngleFade is cached data and need a decal refresh to be updated.
+        if (angleFade.x > 0.0f && _EnableDecalLayers) // if angle fade is enabled
         {
-            float dotAngle = 1.0 - dot(vtxNormal, decalData.normalToWorld[2]);
+            float dotAngle = 1.0 - dot(vtxNormal, decalData.normalToWorld[2].xyz);
             // See equation in DecalSystem.cs - simplified to a madd here
             float angleFadeFactor = 1.0 - saturate(dotAngle * angleFade.x + angleFade.y);
             fadeFactor *= angleFadeFactor;
