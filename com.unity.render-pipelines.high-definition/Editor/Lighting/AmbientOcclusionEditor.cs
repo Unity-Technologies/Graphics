@@ -87,7 +87,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 using (new EditorGUI.DisabledScope(!useCustomValue))
                 {
                     EditorGUI.indentLevel++;
-                    PropertyField(m_RayLength, EditorGUIUtility.TrTextContent("Ray Length", "Controls the length of ambient occlusion rays."));
+                    PropertyField(m_RayLength, EditorGUIUtility.TrTextContent("Max Ray Length", "Controls the maximal length of ambient occlusion rays. The higher this value is, the more expensive ray traced ambient occlusion is."));
                     PropertyField(m_SampleCount, EditorGUIUtility.TrTextContent("Sample Count", "Number of samples for ray traced ambient occlusion."));
                     PropertyField(m_Denoise, EditorGUIUtility.TrTextContent("Denoise", "Enable denoising on the ray traced ambient occlusion."));
                     {
