@@ -18,12 +18,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public DecalSubTarget() => displayName = "Decal";
 
+        static readonly GUID kSubTargetSourceCodeGuid = new GUID("3ec927dfcb5d60e4883b2c224857b6c2");  // DecalSubTarget.cs
+
         protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Decal/ShaderGraph/DecalPass.template";
         protected override string[] templateMaterialDirectories =>  new string[]
         {
             $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/"
         };
-        protected override string subTargetAssetGuid => "3ec927dfcb5d60e4883b2c224857b6c2";
+        protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
         protected override string customInspector => "Rendering.HighDefinition.DecalGUI";
         protected override string renderType => HDRenderTypeTags.Opaque.ToString();
         protected override string renderQueue => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Opaque, decalData.drawOrder, false, false));

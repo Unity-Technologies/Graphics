@@ -4,7 +4,7 @@
 
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-#pragma kernel KMain 
+#pragma kernel KMain
 
 #pragma multi_compile LOW_QUALITY HIGH_QUALITY
 
@@ -12,8 +12,6 @@ TEXTURE2D_X(_InputLowTexture);
 TEXTURE2D_X(_InputHighTexture);
 
 RW_TEXTURE2D_X(float3, _OutputTexture);
-
-SAMPLER(sampler_LinearClamp);
 
 CBUFFER_START(cb0)
     float4 _Params;                 // x: scatter, yzw: unused
@@ -30,20 +28,20 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _TexelSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
-    float2 uv = ClampAndScaleUVForBilinear(posInputs.positionNDC, _TexelSize.zw) ;
-    float3 highRes = LOAD_TEXTURE2D_X(_InputHighTexture, posInputs.positionSS).xyz;
+    float2 uv = ClampAndScaleUV(posInputs.positionNDC, _BloomBicubicParams.zw, 1.0f);
+    float3 highRes = LOAD_TEXTURE2D_X(_InputHighTexture, clamp(posInputs.positionSS, 0, _TexelSize.xy - 1)).xyz;
 
 #if LOW_QUALITY
-    float3 lowRes = SAMPLE_TEXTURE2D_X_LOD(_InputLowTexture, sampler_LinearClamp, uv, 0.0).xyz;
+    float3 lowRes = SAMPLE_TEXTURE2D_X_LOD(_InputLowTexture, s_linear_clamp_sampler, uv, 0.0).xyz;
 #else // HIGH_QUALITY
     float2 maxCoord = (1.0f - _TexelSize.zw) * _RTHandleScale.xy;
-    float3 lowRes = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_InputLowTexture, sampler_LinearClamp), uv, _BloomBicubicParams, maxCoord, unity_StereoEyeIndex).xyz;
+    float3 lowRes = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_InputLowTexture, s_linear_clamp_sampler), uv, _BloomBicubicParams, maxCoord, unity_StereoEyeIndex).xyz;
 #endif
 
     float3 output = lerp(highRes, lowRes, Scatter);
 
     // Guard bands
-    output *= all(dispatchThreadId.xy < uint2(_TexelSize.xy));
+    output *= all(dispatchThreadId.xy <= uint2(_TexelSize.xy));
 
     _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = output;
 }
