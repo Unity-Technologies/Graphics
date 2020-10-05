@@ -522,7 +522,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var metaKeywords = graphView.graph.keywords.Where(x => keywordNodes.Contains(x));
 
             var copyPasteGraph = new CopyPasteGraph(graphView.selection.OfType<ShaderGroup>().Select(x => x.userData),
-                graphView.selection.OfType<IShaderNodeView>().Select(x => x.node).Where(x => !(x is PropertyNode) && x.allowedInSubGraph).ToArray(),
+                nodes,
                 graphView.selection.OfType<Edge>().Select(x => x.userData as Graphing.Edge),
                 graphInputs,
                 metaProperties,
@@ -582,14 +582,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     node.group = null;
                 }
 
-                if (node is PropertyNode pn)
-                {
-                    subGraph.AddGraphInput(pn.property);
-                }
-                else if(node is SubGraphNode sgn)
-                {
-                    //anything need to be done?
-                }
                 subGraph.AddNode(node);
             }
 
