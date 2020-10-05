@@ -18,6 +18,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public HDUnlitSubTarget() => displayName = "Unlit";
 
+        static readonly GUID kSubTargetSourceCodeGuid = new GUID("4516595d40fa52047a77940183dc8e74");  // HDUnlitSubTarget.cs
+
         static string[] passTemplateMaterialDirectories = new string[]
         {
             $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/",
@@ -27,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Unlit;
         protected override string renderType => HDRenderTypeTags.HDUnlitShader.ToString();
-        protected override string subTargetAssetGuid => "4516595d40fa52047a77940183dc8e74"; // HDUnlitSubTarget
+        protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
         protected override string customInspector => "Rendering.HighDefinition.HDUnlitGUI";
         protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "Unlit SubShader", "");
         protected override string raytracingInclude => CoreIncludes.kUnlitRaytracing;

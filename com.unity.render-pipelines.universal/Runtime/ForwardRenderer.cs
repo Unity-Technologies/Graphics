@@ -53,6 +53,7 @@ namespace UnityEngine.Rendering.Universal
         CapturePass m_CapturePass;
 #if ENABLE_VR && ENABLE_XR_MODULE
         XROcclusionMeshPass m_XROcclusionMeshPass;
+        CopyDepthPass m_XRCopyDepthPass;
 #endif
 #if UNITY_EDITOR
         SceneViewDepthCopyPass m_SceneViewDepthCopyPass;
@@ -119,6 +120,8 @@ namespace UnityEngine.Rendering.Universal
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
 #if ENABLE_VR && ENABLE_XR_MODULE
             m_XROcclusionMeshPass = new XROcclusionMeshPass(RenderPassEvent.BeforeRenderingOpaques);
+            // Schedule XR copydepth right after m_FinalBlitPass(AfterRendering + 1)
+            m_XRCopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRendering + 2, m_CopyDepthMaterial);
 #endif
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_DepthNormalPrepass = new DepthNormalOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
@@ -247,6 +250,8 @@ namespace UnityEngine.Rendering.Universal
                 ConfigureCameraTarget(BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
                 AddRenderPasses(ref renderingData);
                 EnqueuePass(m_RenderOpaqueForwardPass);
+
+                // TODO: Do we need to inject transparents and skybox when rendering depth only camera? They don't write to depth.
                 EnqueuePass(m_DrawSkyboxPass);
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
                 if (!needTransparencyPass)
@@ -292,12 +297,6 @@ namespace UnityEngine.Rendering.Universal
             // The copying of depth should normally happen after rendering opaques.
             // But if we only require it for post processing or the scene camera then we do it after rendering transparent objects
             m_CopyDepthPass.renderPassEvent = (!requiresDepthTexture && (applyPostProcessing || isSceneViewCamera)) ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingOpaques;
-
-            // XRTODO: CopyDepth pass is disabled in XR due to required work to handle camera matrices in URP and y-flip.
-            // IF this condition is removed make sure the CopyDepthPass.cs is working properly on all XR modes. This requires PureXR SDK integration.
-            if (cameraData.xr.enabled && requiresDepthTexture)
-                requiresDepthPrepass = true;
-
             bool createColorTexture = RequiresIntermediateColorTexture(ref cameraData);
             createColorTexture |= (rendererFeatures.Count != 0);
             createColorTexture |= renderPassInputs.requiresColorTexture;
@@ -315,8 +314,9 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
-                // URP can't handle msaa/size mismatch between depth RT and color RT(for now we create intermediate depth to ensure they match)
+                // URP can't handle msaa/size mismatch between depth RT and color RT(for now we create intermediate textures to ensure they match)
                 createDepthTexture |= createColorTexture;
+                createColorTexture = createDepthTexture;
             }
 #endif
 
@@ -365,12 +365,6 @@ namespace UnityEngine.Rendering.Universal
                 ConfigureCameraTarget(activeColorRenderTargetId, activeDepthRenderTargetId);
             }
 
-            int count = activeRenderPassQueue.Count;
-            for (int i = count - 1; i >= 0; i--)
-            {
-                if(activeRenderPassQueue[i] == null)
-                    activeRenderPassQueue.RemoveAt(i);
-            }
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 
             if (mainLightShadows)
@@ -498,6 +492,18 @@ namespace UnityEngine.Rendering.Universal
                     m_FinalBlitPass.Setup(cameraTargetDescriptor, sourceForFinalPass);
                     EnqueuePass(m_FinalBlitPass);
                 }
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+                bool depthTargetResolved =
+                    // active depth is depth target, we don't need a blit pass to resolve
+                    m_ActiveCameraDepthAttachment == RenderTargetHandle.GetCameraTarget(cameraData.xr);
+
+                if (!depthTargetResolved && cameraData.xr.copyDepth)
+                {
+                    m_XRCopyDepthPass.Setup(m_ActiveCameraDepthAttachment, RenderTargetHandle.GetCameraTarget(cameraData.xr));
+                    EnqueuePass(m_XRCopyDepthPass);
+                }
+#endif
             }
 
             // stay in RT so we resume rendering on stack after post-processing
@@ -634,18 +640,6 @@ namespace UnityEngine.Rendering.Universal
             internal bool requiresColorTexture;
         }
 
-        private void AddRenderPasses(ref RenderingData renderingData)
-        {
-            for (int i = 0; i < rendererFeatures.Count; ++i)
-            {
-                if (!rendererFeatures[i].isActive)
-                {
-                    continue;
-                }
-                rendererFeatures[i].AddRenderPasses(this, ref renderingData);
-            }
-        }
-
         private RenderPassInputSummary GetRenderPassInputs(ref RenderingData renderingData)
         {
             RenderPassInputSummary inputSummary = new RenderPassInputSummary();
@@ -683,6 +677,10 @@ namespace UnityEngine.Rendering.Universal
                 if (createDepth)
                 {
                     var depthDescriptor = descriptor;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                    // XRTODO: Enabled this line for non-XR pass? URP copy depth pass is already capable of handling MSAA.
+                    depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
+#endif
                     depthDescriptor.colorFormat = RenderTextureFormat.Depth;
                     depthDescriptor.depthBufferBits = k_DepthStencilBufferBits;
                     cmd.GetTemporaryRT(m_ActiveCameraDepthAttachment.id, depthDescriptor, FilterMode.Point);

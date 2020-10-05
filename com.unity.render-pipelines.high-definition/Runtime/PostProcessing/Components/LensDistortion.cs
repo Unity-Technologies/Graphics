@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns><c>true</c> if the effect should be rendered, <c>false</c> otherwise.</returns>
         public bool IsActive()
         {
-            return !Mathf.Approximately(intensity.value, 0f)
+            return Mathf.Abs(intensity.value) > 0 
                 && (xMultiplier.value > 0f || yMultiplier.value > 0f);
         }
     }
