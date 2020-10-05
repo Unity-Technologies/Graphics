@@ -5,20 +5,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
 {
     internal struct LayerBatch
     {
-        public int firstLayerToRender;
+        public int firstLayerID;
+        public int firstLayerOrder;
         public SortingLayerRange layerRange;
         public LightStats lightStats;
-        public unsafe fixed int renderTargetIds[4];
 
-        public void Init(int index)
+        public int GetLightTextureKey(int blendStyleIndex)
         {
-            for (var i = 0; i < 4; i++)
-            {
-                unsafe
-                {
-                    renderTargetIds[i] = Shader.PropertyToID($"_LightTexture_{index}_{i}");
-                }
-            }
+            return firstLayerOrder * 4 + blendStyleIndex;
         }
     }
 
@@ -68,7 +62,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 var layerToRender = cachedSortingLayers[i].id;
                 var lightStats = lightCullResult.GetLightStatsByLayer(layerToRender);
                 var layerBatch = new LayerBatch();
-                layerBatch.Init(i);
 
                 // find the highest layer that share the same set of lights as this layer
                 var upperLayerInBatch = FindUpperBoundInBatch(i, cachedSortingLayers, lightCullResult);
@@ -82,7 +75,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 // renderer within this range share the same set of lights so they should be rendered together
                 var sortingLayerRange = new SortingLayerRange(lowerBound, upperBound);
 
-                layerBatch.firstLayerToRender = layerToRender;
+                layerBatch.firstLayerID = layerToRender;
+                layerBatch.firstLayerOrder = i;
                 layerBatch.layerRange = sortingLayerRange;
                 layerBatch.lightStats = lightStats;
 
@@ -92,6 +86,64 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
 
             return s_LayerBatches;
+        }
+    }
+
+    internal static class LightTextureManager
+    {
+        private static RenderTexture[] s_LightTextures;
+        private static int[] s_Keys;
+        private static RenderTextureDescriptor s_Desc;
+
+        public static void Init(int textureCount, ref RenderTextureDescriptor desc)
+        {
+            if (s_LightTextures == null || s_LightTextures.Length != textureCount)
+            {
+                s_LightTextures = new RenderTexture[textureCount];
+                s_Keys = new int[textureCount];
+            }
+
+            s_Desc = desc;
+        }
+
+        public static void ResetKeys()
+        {
+            for (var i = 0; i < s_Keys.Length; ++i)
+                s_Keys[i] = -1;
+        }
+
+        public static RenderTexture GetLightTexture(int key)
+        {
+            for (var i = 0; i < s_Keys.Length; ++i)
+            {
+                ref var curKey = ref s_Keys[i];
+
+                if (curKey == -1 || curKey == key)
+                {
+                    if (curKey == -1)
+                        curKey = key;
+
+                    ref var lightTexture = ref s_LightTextures[i];
+                    lightTexture ??= RenderTexture.GetTemporary(s_Desc);
+
+                    return lightTexture;
+                }
+            }
+
+            return null;
+        }
+
+        public static void ReleaseLightTextures()
+        {
+            for (var i = 0; i < s_LightTextures.Length; ++i)
+            {
+                ref var lightTexture = ref s_LightTextures[i];
+                if (lightTexture == null)
+                    continue;
+
+                RenderTexture.ReleaseTemporary(lightTexture);
+                lightTexture = null;
+            }
         }
     }
 }
