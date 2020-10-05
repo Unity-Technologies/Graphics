@@ -30,7 +30,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
         public class ImportTestAssetsEnumerator : IEnumerable
         {
-            private const string kGraphsLocation = "PreviousGraphVersions/";
             public IEnumerator GetEnumerator()
             {
                 foreach (string assetGuid in AssetDatabase.FindAssets("*", new string[] { targetUnityDirectoryPath }))
@@ -127,6 +126,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         // [TestCaseSource(typeof(ImportTestAssetsEnumerator))]     // TestCaseSource doesn't seem to work with yield return ...
         IEnumerator SaveLoadSaveDoesntChangeFile(string assetPath)
         {
+            // Load!
             OpenGraphWindow(assetPath);
 
             yield return null;
@@ -137,14 +137,19 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             yield return null;
 
-            bool firstSaveDirty = m_Window.IsDirty();
+            Assert.IsFalse(m_Window.FileOnDiskHasChanged(), $"Loading the graph window should not change the file on disk ({assetPath}).");
+            bool firstSaveChanged = m_Window.GraphHasChangedSinceLastSerialization();
+            bool graphNotEqualFile = m_Window.GraphIsDifferentFromFileOnDisk();
+            Assert.AreEqual(firstSaveChanged, graphNotEqualFile, $"GraphHasChangedSinceLastSerialization should match GraphIsDifferentFromFileOnDisk when no external changes have been made to the file ({assetPath}).");
+
+            // Save!
             bool changedOnFirstSave = m_Window.SaveAsset();
             string firstSaveFile = File.ReadAllText(assetPath);
             fileInfo.Refresh();
             var firstSaveModifiedTime = fileInfo.LastWriteTime;
 
             Assert.That(originalModifiedTime.Equals(firstSaveModifiedTime), Is.EqualTo(!changedOnFirstSave), $"SaveAsset should return true only when the file on disk is modified ({assetPath}).");
-            Assert.That(originalFile.Equals(firstSaveFile), Is.EqualTo(!firstSaveDirty), $"IsDirty should only return true when the serialized files would be different ({assetPath}).");
+            Assert.That(originalFile.Equals(firstSaveFile), Is.EqualTo(!firstSaveChanged), $"GraphHasChangedSinceLastSerialization should only return true when the serialized file would be different ({assetPath}).");
 
             yield return null;
 
@@ -152,16 +157,22 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             yield return null;
 
+            // Load!
             OpenGraphWindow(assetPath);
 
             yield return null;
 
-            // likely to change on first save because of versioning changes
-            bool secondSaveDirty = m_Window.IsDirty();
+            Assert.IsFalse(m_Window.FileOnDiskHasChanged(), $"Loading the graph window should not change the file on disk 2 ({assetPath}).");
+            bool secondSaveDirty = m_Window.GraphHasChangedSinceLastSerialization();
+            bool secondSaveGraphNotEqualFile = m_Window.GraphIsDifferentFromFileOnDisk();
+            Assert.AreEqual(firstSaveChanged, graphNotEqualFile, $"GraphHasChangedSinceLastSerialization should match GraphIsDifferentFromFileOnDisk when no external changes have been made to the file 2 ({assetPath}).");
+
             bool changedOnSecondSave = m_Window.SaveAsset();
             string secondSaveFile = File.ReadAllText(assetPath);
             fileInfo.Refresh();
             var secondSaveModifiedTime = fileInfo.LastWriteTime;
+
+            Assert.IsFalse(secondSaveDirty, $"Save, Load, Save should not result in any changes to the file on the second save ({assetPath}).");
 
             Assert.That(firstSaveModifiedTime.Equals(secondSaveModifiedTime), Is.EqualTo(!changedOnSecondSave), $"SaveAsset should return true only when the file on disk is modified 2 ({assetPath}).");
             Assert.That(firstSaveFile.Equals(secondSaveFile), Is.EqualTo(!secondSaveDirty), $"IsDirty should only return true when the serialized files would be different 2 ({assetPath}).");

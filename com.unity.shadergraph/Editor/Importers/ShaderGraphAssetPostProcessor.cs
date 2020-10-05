@@ -87,6 +87,7 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
+            // moved or imported subgraphs or HLSL files should notify open shadergraphs that they need to handle them
             var changedFiles = movedAssets.Union(importedAssets)
                 .Where(x => x.EndsWith(ShaderSubGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase)
                 || CustomFunctionNode.s_ValidExtensions.Contains(Path.GetExtension(x)))

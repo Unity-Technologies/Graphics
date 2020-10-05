@@ -35,6 +35,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         [SerializeField]
         GraphObject m_GraphObject;
 
+        // this stores the contents of the file on disk, as of the last time we saved or loaded it from disk
+        [SerializeField]
+        string m_LastSerializedFileContents;
+
         [NonSerialized]
         HashSet<string> m_ChangedFileDependencies = new HashSet<string>();
 
@@ -47,8 +51,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         bool m_HasError;
         [NonSerialized]
         bool m_ProTheme;
-        [NonSerialized]
-        bool m_Deleted;
+
+        [SerializeField]
+        bool m_AssetMaybeChangedOnDisk;
+
+        [SerializeField]
+        bool m_AssetMaybeDeleted;
 
         MessageManager m_MessageManager;
         MessageManager messageManager
@@ -110,28 +118,59 @@ namespace UnityEditor.ShaderGraph.Drawing
             get { return titleContent.text; }
         }
 
-        void DisplayChangedOnDiskDialog()
+        bool AssetFileExists()
         {
-            if (EditorUtility.DisplayDialog("Graph has changed on disk, do you want to reload?", AssetDatabase.GUIDToAssetPath(selectedGuid), "Reload", "Don't Reload"))
-            {
-                graphObject = null;
-            }
+            var assetPath = AssetDatabase.GUIDToAssetPath(selectedGuid);
+            return File.Exists(assetPath);
         }
 
-        void DisplayDeletedFromDiskDialog()
+        // returns true when the graph has been successfully saved, or the user has indicated they are ok with discarding the local graph
+        // returns false when saving has failed
+        bool DisplayDeletedFromDiskDialog(bool reopen = true)
         {
-            bool shouldClose = true; // Close unless if the same file was replaced
+            // first double check if we've actually been deleted
+            bool saved = false;
+            bool okToClose = false;
+            string originalAssetPath = AssetDatabase.GUIDToAssetPath(selectedGuid);
 
-            if (EditorUtility.DisplayDialog("\"" + assetName + "\" Graph Asset Missing", AssetDatabase.GUIDToAssetPath(selectedGuid)
-                + " has been deleted or moved outside of Unity.\n\nWould you like to save your Graph Asset?", "Save As", "Close Window"))
+            while (true)
             {
-                shouldClose = !SaveAsImplementation();
+                int option = EditorUtility.DisplayDialogComplex(
+                    "Graph removed from project",
+                    "The file has been deleted or removed from the project folder.\n\n" +
+                    originalAssetPath +
+                    "\n\nWould you like to save your Graph Asset?",
+                    "Save As...", "Cancel", "Discard Graph and Close Window");
+
+                if (option == 0)
+                {
+                    string savedPath = SaveAsImplementation(false);
+                    if (savedPath != null)
+                    {
+                        saved = true;
+
+                        // either close or reopen the local window editor
+                        graphObject = null;
+                        selectedGuid = (reopen ? AssetDatabase.AssetPathToGUID(savedPath) : null);
+
+                        break;
+                    }
+                }
+                else if (option == 2)
+                {
+                    okToClose = true;
+                    graphObject = null;
+                    selectedGuid = null;
+                    break;
+                }
+                else if (option == 1)
+                {
+                    // continue in deleted state...
+                    break;
+                }
             }
 
-            if (shouldClose)
-                Close();
-            else
-                m_Deleted = false; // Was restored
+            return (saved || okToClose);
         }
 
         void Update()
@@ -139,8 +178,23 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_HasError)
                 return;
 
-            if (focusedWindow == this && m_Deleted)
-                DisplayDeletedFromDiskDialog();
+            bool updateTitle = false;
+
+            if (m_AssetMaybeDeleted)
+            {
+                m_AssetMaybeDeleted = false;
+                if (AssetFileExists())
+                {
+                    // it exists... just to be sure, let's check if it changed
+                    m_AssetMaybeChangedOnDisk = true;
+                }
+                else
+                {
+                    // it was really deleted, ask the user what to do
+                    bool handled = DisplayDeletedFromDiskDialog(true);
+                }
+                updateTitle = true;
+            }
 
             if (PlayerSettings.colorSpace != m_ColorSpace)
             {
@@ -158,15 +212,38 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if (graphObject != null && graphObject.graph != null)
                 {
-                    UpdateTitle(); // to swap the icon
+                    updateTitle = true; // trigger icon swap
                     m_ProTheme = EditorGUIUtility.isProSkin;
                 }
             }
 
-            if (m_PromptChangedOnDisk)
+            if (m_AssetMaybeChangedOnDisk)
             {
-                m_PromptChangedOnDisk = false;
-                DisplayChangedOnDiskDialog();
+                m_AssetMaybeChangedOnDisk = false;
+
+                // if we don't have any graph, then it doesn't really matter if the file on disk changed or not
+                // as we're going to reload it below anyways
+                if (graphObject?.graph != null)
+                {
+                    // check if it actually did change on disk
+                    if (FileOnDiskHasChanged())
+                    {
+                        // don't worry people about "losing changes" unless there are changes to lose
+                        bool graphChanged = GraphHasChangedSinceLastSerialization();
+
+                        if (EditorUtility.DisplayDialog(
+                            "Graph has changed on disk",
+                            AssetDatabase.GUIDToAssetPath(selectedGuid) + "\n\n" +
+                            (graphChanged ? "Do you want to reload it and lose the changes made in the graph?" : "Do you want to reload it?"),
+                            graphChanged ? "Discard Changes And Reload" : "Reload",
+                            "Don't Reload"))
+                        {
+                            // clear graph, trigger reload
+                            graphObject = null;
+                        }
+                    }
+                }
+                updateTitle = true;
             }
 
             try
@@ -202,15 +279,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphObject.Validate();
 
                     // update blackboard title for the new graphEditorView
-                    UpdateTitle();
+                    updateTitle = true;
                 }
 
                 if (m_ChangedFileDependencies.Count > 0 && graphObject != null && graphObject.graph != null)
                 {
+                    bool reloadedSomething = false;
                     var subGraphNodes = graphObject.graph.GetNodes<SubGraphNode>();
                     foreach (var subGraphNode in subGraphNodes)
                     {
-                        subGraphNode.Reload(m_ChangedFileDependencies);
+                        var reloaded = subGraphNode.Reload(m_ChangedFileDependencies);
+                        reloadedSomething |= reloaded;
                     }
                     if(subGraphNodes.Count() > 0)
                     {
@@ -221,8 +300,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                     foreach (var customFunctionNode in graphObject.graph.GetNodes<CustomFunctionNode>())
                     {
-                        customFunctionNode.Reload(m_ChangedFileDependencies);
+                        var reloaded = customFunctionNode.Reload(m_ChangedFileDependencies);
+                        reloadedSomething |= reloaded;
                     }
+
+                    // reloading files may change serilization
+                    if (reloadedSomething)
+                        updateTitle = true;
 
                     m_ChangedFileDependencies.Clear();
                 }
@@ -239,13 +323,16 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 if (graphObject.isDirty || wasUndoRedoPerformed)
                 {
-                    UpdateTitle();
+                    updateTitle = true;
                     graphObject.isDirty = false;
                 }
 
                 // Called again to handle changes from deserialization in case an undo/redo was performed
                 graphEditorView.HandleGraphChanges(wasUndoRedoPerformed);
                 graphObject.graph.ClearChanges();
+
+                if (updateTitle)
+                    UpdateTitle();
             }
             catch (Exception e)
             {
@@ -268,60 +355,91 @@ namespace UnityEditor.ShaderGraph.Drawing
         void OnEnable()
         {
             this.SetAntiAliasing(4);
+
+            // subscribe this event so it is registered on assembly reloads (we don't run Initialize on assembly reload)
+            // doing remove before add ensures we never subscribe twice
+            EditorApplication.wantsToQuit -= PromptSaveIfDirtyOnQuit;
+            EditorApplication.wantsToQuit += PromptSaveIfDirtyOnQuit;
         }
 
         void OnDisable()
         {
             graphEditorView = null;
             messageManager.ClearAll();
+            EditorApplication.wantsToQuit -= PromptSaveIfDirtyOnQuit;
         }
 
-        internal bool IsDirty()
+        // returns true only when the file on disk doesn't match the graph we last loaded or saved to disk (i.e. someone else changed it)
+        internal bool FileOnDiskHasChanged()
         {
-            if (m_Deleted || graphObject.graph == null)
-                return false; // Not dirty; it's gone.
-
-            var currentJson = MultiJson.Serialize(graphObject.graph);
-            var fileJson = File.ReadAllText(AssetDatabase.GUIDToAssetPath(selectedGuid));
-            return !string.Equals(currentJson, fileJson, StringComparison.Ordinal);
+            var currentFileJson = ReadAssetFile();
+            return !string.Equals(currentFileJson, m_LastSerializedFileContents, StringComparison.Ordinal);
         }
 
-        [SerializeField]
-        bool m_PromptChangedOnDisk;
+        // returns true only when the graph in this window would serialize different from the last time we loaded or saved it
+        internal bool GraphHasChangedSinceLastSerialization()
+        {
+            Assert.IsTrue(graphObject?.graph != null); // this should be checked by calling code
+            var currentGraphJson = MultiJson.Serialize(graphObject.graph);
+            return !string.Equals(currentGraphJson, m_LastSerializedFileContents, StringComparison.Ordinal);
+        }
+
+        // returns true only when saving the graph in this window would serialize different from the file on disk
+        internal bool GraphIsDifferentFromFileOnDisk()
+        {
+            Assert.IsTrue(graphObject?.graph != null); // this should be checked by calling code
+            var currentGraphJson = MultiJson.Serialize(graphObject.graph);
+            var currentFileJson = ReadAssetFile();
+            return !string.Equals(currentGraphJson, currentFileJson, StringComparison.Ordinal);
+        }
 
         public void CheckForChanges()
         {
-            var isDirty = IsDirty();
-            if (isDirty)
+            if (!m_AssetMaybeDeleted && graphObject?.graph != null)
             {
-                m_PromptChangedOnDisk = true;
+                m_AssetMaybeChangedOnDisk = true;
+                UpdateTitle();
             }
-            UpdateTitle(isDirty);
         }
 
         public void AssetWasDeleted()
         {
-            m_Deleted = true;
+            m_AssetMaybeDeleted = true;
+            UpdateTitle();
         }
 
         public void UpdateTitle()
         {
-            UpdateTitle(IsDirty());
-        }
+            string assetPath = AssetDatabase.GUIDToAssetPath(selectedGuid);
+            string shaderName = Path.GetFileNameWithoutExtension(assetPath);
 
-
-        void UpdateTitle(bool isDirty)
-        {
-            Texture2D icon = GetThemeIcon(graphObject.graph);
-
-            // load the generated shader artifact
-            var assetPath = AssetDatabase.GUIDToAssetPath(selectedGuid);
-            var shaderName = Path.GetFileNameWithoutExtension(assetPath);
-
+            // update blackboard title (before we add suffixes)
             if (graphEditorView != null)
                 graphEditorView.assetName = shaderName;
 
-            var title = shaderName + (isDirty ? "*" : "");
+            // build the window title (with suffixes)
+            string title = shaderName;
+            if (graphObject?.graph == null)
+                title = title + " (nothing loaded)";
+            else
+            {
+                if (GraphHasChangedSinceLastSerialization())
+                    title = title + "*";
+                if (!AssetFileExists())
+                    title = title + " (deleted)";
+            }
+
+            // get window icon
+            bool isSubGraph = graphObject?.graph?.isSubGraph ?? false;
+            Texture2D icon;
+            {
+                string theme = EditorGUIUtility.isProSkin ? "_dark" : "_light";
+                if (isSubGraph)
+                    icon = Resources.Load<Texture2D>("Icons/sg_subgraph_icon_gray" + theme + "@16");
+                else
+                    icon = Resources.Load<Texture2D>("Icons/sg_graph_icon_gray" + theme + "@16");
+            }
+
             titleContent = new GUIContent(title, icon);
         }
 
@@ -391,6 +509,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        // returns true if the asset was succesfully saved
         public bool SaveAsset()
         {
             bool saved = false;
@@ -410,9 +529,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (oldShader != null)
                     ShaderUtil.ClearShaderMessages(oldShader);
 
-                if (FileUtilities.WriteShaderGraphToDisk(path, graphObject.graph))
+                var newFileContents = FileUtilities.WriteShaderGraphToDisk(path, graphObject.graph);
+                if (newFileContents != null)
                 {
                     saved = true;
+                    m_LastSerializedFileContents = newFileContents;
                     AssetDatabase.ImportAsset(path);
                 }
 
@@ -444,57 +565,57 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void SaveAs()
         {
-            SaveAsImplementation();
+            SaveAsImplementation(true);
         }
 
-        // Returns true if the same file as replaced, false if a new file was created or an error occurred
-        bool SaveAsImplementation()
+        // returns the asset path the file was saved to, or NULL if nothing was saved
+        string SaveAsImplementation(bool openWhenSaved)
         {
-            if (selectedGuid != null && graphObject != null)
+            string savedFilePath = null;
+
+            if (selectedGuid != null && graphObject?.graph != null)
             {
-                var pathAndFile = AssetDatabase.GUIDToAssetPath(selectedGuid);
-                if (string.IsNullOrEmpty(pathAndFile) || graphObject == null)
-                    return false;
+                var oldFilePath = AssetDatabase.GUIDToAssetPath(selectedGuid);
+                if (string.IsNullOrEmpty(oldFilePath) || graphObject == null)
+                    return null;
 
                 // The asset's name needs to be removed from the path, otherwise SaveFilePanel assumes it's a folder
-                string path = Path.GetDirectoryName(pathAndFile);
+                string oldDirectory = Path.GetDirectoryName(oldFilePath);
 
                 var extension = graphObject.graph.isSubGraph ? ShaderSubGraphImporter.Extension : ShaderGraphImporter.Extension;
-                var newPath = EditorUtility.SaveFilePanelInProject("Save Graph As...", Path.GetFileNameWithoutExtension(pathAndFile), extension, "", path);
-                newPath = newPath.Replace(Application.dataPath, "Assets");
+                var newFilePath = EditorUtility.SaveFilePanelInProject("Save Graph As...", Path.GetFileNameWithoutExtension(oldFilePath), extension, "", oldDirectory);
+                newFilePath = newFilePath.Replace(Application.dataPath, "Assets");
 
-                if (newPath != path)
+                if (newFilePath != oldFilePath)
                 {
-                    if (!string.IsNullOrEmpty(newPath))
+                    if (!string.IsNullOrEmpty(newFilePath))
                     {
                         // If the newPath already exists, we are overwriting an existing file, and could be creating recursions. Let's check.
-                        if (GraphUtil.CheckForRecursiveDependencyOnPendingSave(newPath, graphObject.graph.GetNodes<SubGraphNode>(), "Save As"))
-                            return false;
+                        if (GraphUtil.CheckForRecursiveDependencyOnPendingSave(newFilePath, graphObject.graph.GetNodes<SubGraphNode>(), "Save As"))
+                            return null;
 
-                        var success = FileUtilities.WriteShaderGraphToDisk(newPath, graphObject.graph);
-                        AssetDatabase.ImportAsset(newPath);
+                        bool success = (FileUtilities.WriteShaderGraphToDisk(newFilePath, graphObject.graph) != null);
+                        AssetDatabase.ImportAsset(newFilePath);
                         if (success)
                         {
-                            ShaderGraphImporterEditor.ShowGraphEditWindow(newPath);
-                            OnSaveGraph(newPath);
+                            if (openWhenSaved)
+                                ShaderGraphImporterEditor.ShowGraphEditWindow(newFilePath);
+                            OnSaveGraph(newFilePath);
+                            savedFilePath = newFilePath;
                         }
                     }
-
-                    graphObject.isDirty = false;
-                    return false;
                 }
                 else
                 {
+                    // saving to the current path
                     if (SaveAsset())
                     {
                         graphObject.isDirty = false;
-                        return true;
+                        savedFilePath = oldFilePath;
                     }
-                    return false;
                 }
             }
-
-            return false;
+            return savedFilePath;
         }
 
         public void ToSubGraph()
@@ -795,7 +916,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            if (FileUtilities.WriteShaderGraphToDisk(path, subGraph))
+            if (FileUtilities.WriteShaderGraphToDisk(path, subGraph) != null)
                 AssetDatabase.ImportAsset(path);
 
             // Store path for next time
@@ -922,14 +1043,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 using (GraphLoadMarker.Auto())
                 {
-                    var textGraph = File.ReadAllText(path, Encoding.UTF8);
+                    m_LastSerializedFileContents = File.ReadAllText(path, Encoding.UTF8);
                     graphObject = CreateInstance<GraphObject>();
                     graphObject.hideFlags = HideFlags.HideAndDontSave;
                     graphObject.graph = new GraphData
                     {
                         assetGuid = assetGuid, isSubGraph = isSubGraph, messageManager = messageManager
                     };
-                    MultiJson.Deserialize(graphObject.graph, textGraph);
+                    MultiJson.Deserialize(graphObject.graph, m_LastSerializedFileContents);
                     graphObject.graph.OnEnable();
                     graphObject.graph.ValidateGraph();
                 }
@@ -956,18 +1077,32 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        // returns contents of the asset file, or null if any exception occurred
+        private string ReadAssetFile()
+        {
+            var filePath = AssetDatabase.GUIDToAssetPath(selectedGuid);
+            return FileUtilities.SafeReadAllText(filePath);
+       }
+
         // returns true when the user is OK with closing the window or application (either they've saved dirty content, or are ok with losing it)
         // returns false when the user wants to cancel closing the window or application
         private bool PromptSaveIfDirtyOnQuit()
         {
-            if (graphObject != null)
+            // only bother unless we've actually got data to preserve
+            if (graphObject?.graph != null)
             {
-                string nameOfFile = AssetDatabase.GUIDToAssetPath(selectedGuid);
-                if (IsDirty())
+                // if the asset has been deleted, ask the user what to do
+                if (!AssetFileExists())
+                    return DisplayDeletedFromDiskDialog(false);
+
+                // if there are unsaved modifications, ask the user what to do
+                if (GraphHasChangedSinceLastSerialization())
                 {
                     int option = EditorUtility.DisplayDialogComplex(
                         "Shader Graph Has Been Modified",
-                        "Do you want to save the changes you made in the Shader Graph?\n" + nameOfFile + "\n\nYour changes will be lost if you don't save them.",
+                        "Do you want to save the changes you made in the Shader Graph?\n\n" +
+                        AssetDatabase.GUIDToAssetPath(selectedGuid) +
+                        "\n\nYour changes will be lost if you don't save them.",
                         "Save", "Cancel", "Discard Changes");
 
                     if (option == 0) // save
@@ -985,17 +1120,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
             return true;
-        }
-
-        Texture2D GetThemeIcon(GraphData graphdata)
-        {
-            string theme = EditorGUIUtility.isProSkin ? "_dark" : "_light";
-            Texture2D icon = Resources.Load<Texture2D>("Icons/sg_graph_icon_gray"+theme+"@16");
-            if (graphdata.isSubGraph)
-            {
-                icon = Resources.Load<Texture2D>("Icons/sg_subgraph_icon_gray"+theme+"@16");
-            }
-            return icon;
         }
 
         void OnGeometryChanged(GeometryChangedEvent evt)

@@ -3,13 +3,15 @@ using System.IO;
 using UnityEditor.ShaderGraph.Serialization;
 using Debug = UnityEngine.Debug;
 using UnityEditor.VersionControl;
+using System.Text;
 
 namespace UnityEditor.ShaderGraph
 {
     static class FileUtilities
     {
-        // returns true if successfully written to disk
-        public static bool WriteShaderGraphToDisk(string path, GraphData data)
+        // if successfully written to disk, returns the serialized file contents as a string
+        // on failure, returns null
+        public static string WriteShaderGraphToDisk(string path, GraphData data)
         {
             if (data == null)
             {
@@ -19,7 +21,11 @@ namespace UnityEditor.ShaderGraph
                 throw new ArgumentNullException(nameof(data));
             }
 
-            return WriteToDisk(path, MultiJson.Serialize(data));
+            var text = MultiJson.Serialize(data);
+            if (WriteToDisk(path, text))
+                return text;
+            else
+                return null;
         }
 
         // returns true if successfully written to disk
@@ -60,6 +66,21 @@ namespace UnityEditor.ShaderGraph
             }
 
             return true;
+        }
+
+        // returns contents of the asset file as a string, or null if any error or exception occurred
+        public static string SafeReadAllText(string assetPath)
+        {
+            string result = null;
+            try
+            {
+                result = File.ReadAllText(assetPath, Encoding.UTF8);
+            }
+            catch
+            {
+                result = null;
+            }
+            return result;
         }
 
         static void CheckoutIfValid(string path)
