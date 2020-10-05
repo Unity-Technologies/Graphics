@@ -48,6 +48,9 @@ class YMLJob():
     def add_commands(self, commands):
         self.yml['commands'] = commands
 
+    def allow_failure(self):
+        self.yml['allow_failure'] = True
+
     def add_var_custom_revision(self, editor_version):
         if editor_version == 'CUSTOM-REVISION':
             self.yml['variables']['CUSTOM_REVISION'] = 'custom_revision_not_set'
