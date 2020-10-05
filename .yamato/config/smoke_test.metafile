@@ -2,9 +2,9 @@ project:
   name: Smoke_Test
   folder: SRP_SmokeTest
 test_platforms:
-  - playmode
-  - editmode
-  - Standalone
+  - type: playmode
+  - type: editmode
+  - type: Standalone
 platforms:
   - name: Win
     apis:

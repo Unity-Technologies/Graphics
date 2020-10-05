@@ -1,6 +1,6 @@
 abv: # specify the editor versions for which to create the expression trigger for all_project_ci job
   trigger_editors:
-    - trunk
+    - 2020.2
   projects:
     - name: Universal
     - name: ShaderGraph
@@ -10,6 +10,7 @@ abv: # specify the editor versions for which to create the expression trigger fo
 nightly:
   allowed_editors: # specify the editor versions for which to create nightly jobs
     - trunk
+    - 2020.2
   extra_dependencies: # additional project jobs to run nightly (in addition to ABV)
     - project: Smoke_Test
       platform: Win
@@ -35,12 +36,18 @@ nightly:
         - Standalone
     - project: Universal
       platform: Win
+      api: Vulkan
+      test_platforms:
+        - playmode
+        - playmode_XR
+    - project: Universal
+      platform: Win
       api: DX12
       test_platforms:
         - Standalone
         - editmode
         - playmode
-        # - playmode_XR # uncomment once bug fixed on XR side 
+        # - playmode_XR # uncomment once bug fixed on XR side
     - project: URPUpdate
       platform: Win
       api: DX11
@@ -54,7 +61,7 @@ nightly:
         - editmode
         - playmode
 trunk_verification: # jobs to include in trunk verification job
-  dependencies:          
+  dependencies:
     - project: Universal
       platform: Win
       api: DX11

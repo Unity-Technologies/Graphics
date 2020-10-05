@@ -1,6 +1,5 @@
 #pragma kernel BilateralUpSampleSingle              BILATERAL_UPSAMPLE=BilateralUpSampleSingle SINGLE_CHANNEL
 #pragma kernel BilateralUpSampleColor               BILATERAL_UPSAMPLE=BilateralUpSampleColor
-#pragma kernel BilateralUpSampleColorTM             BILATERAL_UPSAMPLE=BilateralUpSampleColorTM TONE_MAPPED
 
 //#pragma enable_d3d11_debug_symbols
 
@@ -29,11 +28,11 @@ CBUFFER_END
 RW_TEXTURE2D_X(float4, _OutputUpscaledTexture);
 
 // THe bilateral upscale fonction (color version)
-float3 BilUpColor(float HiDepth, float4 LowDepths, float3 lowValue0, float3 lowValue1, float3 lowValue2, float3 lowValue3)
+float4 BilUpColor(float HiDepth, float4 LowDepths, float4 lowValue0, float4 lowValue1, float4 lowValue2, float4 lowValue3)
 {
     float4 weights = float4(9, 3, 1, 3) / (abs(HiDepth - LowDepths) + _UpsampleTolerance);
     float TotalWeight = dot(weights, 1) + _NoiseFilterStrength;
-    float3 WeightedSum = lowValue0 * weights.x
+    float4 WeightedSum = lowValue0 * weights.x
                         + lowValue1 * weights.y
                         + lowValue2 * weights.z
                         + lowValue3 * weights.w
@@ -108,19 +107,11 @@ void BILATERAL_UPSAMPLE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     _OutputUpscaledTexture[COORD_TEXTURE2D_X(outputCoord)] = BilUpSingle(hiResDepth, lowDepths, lowRes);
 #else
     // Grab all the color values required for upscale
-    float3 lowResCol0 = max(0, _LowResolutionTexture[COORD_TEXTURE2D_X(halfResTap0)].xyz);
-    float3 lowResCol1 = max(0, _LowResolutionTexture[COORD_TEXTURE2D_X(halfResTap1)].xyz);
-    float3 lowResCol2 = max(0, _LowResolutionTexture[COORD_TEXTURE2D_X(halfResTap2)].xyz);
-    float3 lowResCol3 = max(0, _LowResolutionTexture[COORD_TEXTURE2D_X(halfResTap3)].xyz);
+    float4 lowResCol0 = max(0, _LowResolutionTexture[COORD_TEXTURE2D_X(halfResTap0)]);
+    float4 lowResCol1 = max(0, _LowResolutionTexture[COORD_TEXTURE2D_X(halfResTap1)]);
+    float4 lowResCol2 = max(0, _LowResolutionTexture[COORD_TEXTURE2D_X(halfResTap2)]);
+    float4 lowResCol3 = max(0, _LowResolutionTexture[COORD_TEXTURE2D_X(halfResTap3)]);
 
-    // Upscale
-    float3 upscaledColor = BilUpColor(hiResDepth, lowDepths, lowResCol0, lowResCol1, lowResCol2, lowResCol3);
-
-    #if TONE_MAPPED
-    // Reverse the tone mapping (when SSGI is computed in half res, we denoise it in tonemapped space to avoid high variance during the denoising)
-    _OutputUpscaledTexture[COORD_TEXTURE2D_X(outputCoord)] = float4(upscaledColor / (1.0 - upscaledColor), 1.0f);
-    #else
-    _OutputUpscaledTexture[COORD_TEXTURE2D_X(outputCoord)] = float4(upscaledColor, 1.0f);
-    #endif
+    _OutputUpscaledTexture[COORD_TEXTURE2D_X(outputCoord)] = BilUpColor(hiResDepth, lowDepths, lowResCol0, lowResCol1, lowResCol2, lowResCol3);
 #endif
 }
