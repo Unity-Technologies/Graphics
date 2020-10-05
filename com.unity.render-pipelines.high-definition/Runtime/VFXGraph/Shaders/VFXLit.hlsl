@@ -11,9 +11,9 @@
 // Make VFX only sample probe volumes as SH0 for performance.
 #define PROBE_VOLUMES_SAMPLING_MODE PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 
 #if (SHADERPASS == SHADERPASS_FORWARD)
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
 
     // The light loop (or lighting architecture) is in charge to:
@@ -37,6 +37,10 @@
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
 
 #else // (SHADERPASS == SHADERPASS_FORWARD)
+
+    #if (SHADERPASS == SHADERPASS_GBUFFER)
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+    #endif
 
     #ifdef HDRP_MATERIAL_TYPE_SIMPLE
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/SimpleLit.hlsl"
