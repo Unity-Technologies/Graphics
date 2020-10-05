@@ -10,16 +10,30 @@ test_platforms:
 platforms:
   - name: Win
     apis:
-      - DX11
-      - Vulkan
+      - name: DX11
+        cmd: -force-d3d11
+      - name: Vulkan
+        cmd: -force-vulkan
   - name: OSX
     apis:
-      - OpenGLCore
-      - Metal
+      - name: Metal
+        exclude_test_platforms:
+          - playmode_XR
+      - name: OpenGLCore
+        exclude_test_platforms:
+          - playmode_XR
+          - Standalone
   - name: Linux
     apis: 
-      - OpenGLCore
-      - Vulkan
+      - name: OpenGLCore
+        cmd: -force-glcore
+        exclude_test_platforms:
+          - Standalone
+          - playmode_XR
+      - name: Vulkan
+        cmd: -force-vulkan
+        exclude_test_platforms:
+          - playmode_XR
 build_configs:
 - name: il2cpp_2
   scripting_backend: il2cpp

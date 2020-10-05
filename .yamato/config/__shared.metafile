@@ -27,13 +27,6 @@ platforms:
   Win:
     name: Win
     os: windows
-    apis:
-      - name: DX11
-        cmd: -force-d3d11
-      - name: DX12
-        cmd: -force-d3d12
-      - name: Vulkan
-        cmd: -force-vulkan
     components:
       - editor
       - il2cpp
@@ -59,14 +52,6 @@ platforms:
   OSX:
     name: OSX
     os: macos
-    apis:
-      - name: Metal
-        exclude_test_platforms:
-          - playmode_XR
-      - name: OpenGLCore
-        exclude_test_platforms:
-          - playmode_XR
-          - Standalone
     components:
       - editor
       - il2cpp
@@ -89,16 +74,6 @@ platforms:
   Linux:
     name: Linux
     os: linux
-    apis: 
-      - name: OpenGLCore
-        cmd: -force-glcore
-        exclude_test_platforms:
-          - Standalone
-          - playmode_XR
-      - name: Vulkan
-        cmd: -force-vulkan
-        exclude_test_platforms:
-          - playmode_XR
     components:
       - editor
       - il2cpp
@@ -114,9 +89,6 @@ platforms:
   Android:
     name: Android
     os: android
-    apis:
-      - name: OpenGLES3
-      - name: Vulkan
     components:
       - editor
       - il2cpp
@@ -133,11 +105,6 @@ platforms:
   iPhone:
     name: iPhone
     os: ios
-    apis:
-      - name: Metal
-        exclude_test_platforms:
-          - playmode
-          - playmode_XR
     components:
       - editor
       - iOS

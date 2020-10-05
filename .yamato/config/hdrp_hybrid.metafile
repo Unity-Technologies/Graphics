@@ -16,6 +16,9 @@ test_platforms:
   - type: Standalone
     extra_utr_flags:
       - --compilation-errors-as-warnings
+      - extra_editor_args:
+        - mono
+        - 
     extra_utr_flags_build:
       - --compilation-errors-as-warnings
     timeout:
@@ -23,35 +26,32 @@ test_platforms:
 platforms:
   - name: Win
     apis:
-      - DX11
-      - DX12
-      - Vulkan
+      - name: DX11
+        cmd: -force-d3d11
+      - name: DX12
+        cmd: -force-d3d12
+      - name: Vulkan
+        cmd: -force-vulkan
   - name: OSX 
     apis:
-      - Metal
+      - name: Metal
+        exclude_test_platforms:
+          - playmode_XR
   - name: Linux
     apis: 
-      - OpenGLCore
-      - Vulkan
-build_configs:
-- name: il2cpp_2
-  scripting_backend: il2cpp
-  api_level: NET_2_0
-- name: il2cpp_4
-  scripting_backend: il2cpp
-  api_level: NET_4_6
-- name: mono
-  scripting_backend: mono
-  api_level: NET_2_0
-color_spaces:
-  - Linear
-  - gamma
+      - name: OpenGLCore
+        cmd: -force-glcore
+        exclude_test_platforms:
+          - Standalone
+          - playmode_XR
+      - name: Vulkan
+        cmd: -force-vulkan
+        exclude_test_platforms:
+          - playmode_XR
 all:
   dependencies:
     - platform: Win
       api: DX11
-      build_config: il2cpp_4
-      color_space: Linear
       test_platforms:
         - playmode
         - playmode_XR

@@ -10,17 +10,32 @@ test_platforms:
 platforms:
   - name: Win
     apis:
-      - DX11
-#      - DX12
-      - Vulkan
+     - name: DX11
+        cmd: -force-d3d11
+      # - name: DX12
+      #  cmd: -force-d3d12
+      - name: Vulkan
+        cmd: -force-vulkan
   - name: OSX 
     apis:
-      - Metal
-      - OpenGLCore
+      - name: Metal
+        exclude_test_platforms:
+          - playmode_XR
+      - name: OpenGLCore
+        exclude_test_platforms:
+          - playmode_XR
+          - Standalone
   - name: Linux
     apis: 
-      - Vulkan
-      - OpenGLCore
+      - name: OpenGLCore
+        cmd: -force-glcore
+        exclude_test_platforms:
+          - Standalone
+          - playmode_XR
+      - name: Vulkan
+        cmd: -force-vulkan
+        exclude_test_platforms:
+          - playmode_XR
 #  - name: Android
 #    apis: 
 #      - Vulkan
