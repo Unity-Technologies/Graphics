@@ -53,9 +53,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField]
         internal TextureChannel maskTextureChannel;
 
-        [SerializeField, Range(0.01f, 1.0f)]
-        internal float renderTextureScale;
-
         [SerializeField]
         internal BlendMode blendMode;
 

@@ -111,7 +111,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public static RenderTextureDescriptor GetBlendStyleRenderTextureDesc(this IRenderPass2D pass, RenderingData renderingData)
         {
-            var renderTextureScale = Mathf.Clamp(pass.rendererData.lightBlendStyles[0].renderTextureScale, 0.01f, 1.0f);
+            var renderTextureScale = Mathf.Clamp(pass.rendererData.lightRenderTextureScale, 0.01f, 1.0f);
             var width = (int)(renderingData.cameraData.cameraTargetDescriptor.width * renderTextureScale);
             var height = (int)(renderingData.cameraData.cameraTargetDescriptor.height * renderTextureScale);
 
@@ -334,13 +334,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 if (depthTarget != BuiltinRenderTextureType.None)
                     normalRTScale = 1.0f;
                 else
-                {
-                    for (var j = 0; j < pass.rendererData.lightBlendStyles.Length; ++j)
-                    {
-                        if ((lightStats.blendStylesUsed & (1 << j)) != 0)
-                            normalRTScale = Mathf.Max(normalRTScale, Mathf.Clamp(pass.rendererData.lightBlendStyles[j].renderTextureScale, 0.01f, 1.0f));
-                    }
-                }
+                    normalRTScale = Mathf.Clamp(pass.rendererData.lightRenderTextureScale, 0.01f, 1.0f);
 
                 pass.CreateNormalMapRenderTexture(renderingData, cmd, normalRTScale);
 

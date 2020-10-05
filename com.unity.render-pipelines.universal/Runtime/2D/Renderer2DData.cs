@@ -33,6 +33,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField]
         float m_HDREmulationScale = 1;
 
+        [SerializeField, Range(0.01f, 1.0f)]
+        float m_LightRenderTextureScale = 0.5f;
+
         [SerializeField, FormerlySerializedAs("m_LightOperations")]
         Light2DBlendStyle[] m_LightBlendStyles = null;
 
@@ -67,6 +70,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         PostProcessData m_PostProcessData = null;
 
         public float hdrEmulationScale => m_HDREmulationScale;
+        internal float lightRenderTextureScale => m_LightRenderTextureScale;
         public Light2DBlendStyle[] lightBlendStyles => m_LightBlendStyles;
         internal bool useDepthStencilBuffer => m_UseDepthStencilBuffer;
 

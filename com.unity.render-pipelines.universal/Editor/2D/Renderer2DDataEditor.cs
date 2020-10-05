@@ -11,13 +11,13 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static readonly GUIContent transparencySortMode = EditorGUIUtility.TrTextContent("Transparency Sort Mode", "Default sorting mode used for transparent objects");
             public static readonly GUIContent transparencySortAxis = EditorGUIUtility.TrTextContent("Transparency Sort Axis", "Axis used for custom axis sorting mode");
             public static readonly GUIContent hdrEmulationScale = EditorGUIUtility.TrTextContent("HDR Emulation Scale", "Describes the scaling used by lighting to remap dynamic range between LDR and HDR");
+            public static readonly GUIContent lightRenderTextureScale = EditorGUIUtility.TrTextContent("Light Render Texture Scale", "The resolution of the lighting buffers relative to the screen resolution. 1.0 means full screen size.");
             public static readonly GUIContent lightBlendStyles = EditorGUIUtility.TrTextContent("Light Blend Styles", "A Light Blend Style is a collection of properties that describe a particular way of applying lighting.");
             public static readonly GUIContent defaultMaterialType = EditorGUIUtility.TrTextContent("Default Material Type", "Material to use when adding new objects to a scene");
             public static readonly GUIContent defaultCustomMaterial = EditorGUIUtility.TrTextContent("Default Custom Material", "Material to use when adding new objects to a scene");
 
             public static readonly GUIContent name = EditorGUIUtility.TrTextContent("Name");
             public static readonly GUIContent maskTextureChannel = EditorGUIUtility.TrTextContent("Mask Texture Channel", "Which channel of the mask texture will affect this Light Blend Style.");
-            public static readonly GUIContent renderTextureScale = EditorGUIUtility.TrTextContent("Render Texture Scale", "The resolution of the lighting buffer relative to the screen resolution. 1.0 means full screen size.");
             public static readonly GUIContent blendMode = EditorGUIUtility.TrTextContent("Blend Mode", "How the lighting should be blended with the main color of the objects.");
             public static readonly GUIContent customBlendFactors = EditorGUIUtility.TrTextContent("Custom Blend Factors");
             public static readonly GUIContent blendFactorMultiplicative = EditorGUIUtility.TrTextContent("Multiplicative");
@@ -32,16 +32,15 @@ namespace UnityEditor.Experimental.Rendering.Universal
         {
             public SerializedProperty name;
             public SerializedProperty maskTextureChannel;
-            public SerializedProperty renderTextureScale;
             public SerializedProperty blendMode;
             public SerializedProperty blendFactorMultiplicative;
             public SerializedProperty blendFactorAdditive;
         }
 
-
         SerializedProperty m_TransparencySortMode;
         SerializedProperty m_TransparencySortAxis;
         SerializedProperty m_HDREmulationScale;
+        SerializedProperty m_LightRenderTextureScale;
         SerializedProperty m_LightBlendStyles;
         LightBlendStyleProps[] m_LightBlendStylePropsArray;
         SerializedProperty m_UseDepthStencilBuffer;
@@ -75,6 +74,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_TransparencySortMode = serializedObject.FindProperty("m_TransparencySortMode");
             m_TransparencySortAxis = serializedObject.FindProperty("m_TransparencySortAxis");
             m_HDREmulationScale = serializedObject.FindProperty("m_HDREmulationScale");
+            m_LightRenderTextureScale = serializedObject.FindProperty("m_LightRenderTextureScale");
             m_LightBlendStyles = serializedObject.FindProperty("m_LightBlendStyles");
             m_BatchSize = serializedObject.FindProperty("m_BatchSize");
 
@@ -88,7 +88,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
                 props.name = blendStyleProp.FindPropertyRelative("name");
                 props.maskTextureChannel = blendStyleProp.FindPropertyRelative("maskTextureChannel");
-                props.renderTextureScale = blendStyleProp.FindPropertyRelative("renderTextureScale");
                 props.blendMode = blendStyleProp.FindPropertyRelative("blendMode");
                 props.blendFactorMultiplicative = blendStyleProp.FindPropertyRelative("customBlendFactors.multiplicative");
                 props.blendFactorAdditive = blendStyleProp.FindPropertyRelative("customBlendFactors.additive");
@@ -125,6 +124,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
             if (EditorGUI.EndChangeCheck() && m_HDREmulationScale.floatValue < 1.0f)
                 m_HDREmulationScale.floatValue = 1.0f;
 
+            EditorGUILayout.PropertyField(m_LightRenderTextureScale, Styles.lightRenderTextureScale);
+
             EditorGUILayout.LabelField(Styles.lightBlendStyles);
             EditorGUI.indentLevel++;
 
@@ -145,7 +146,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
                     EditorGUILayout.PropertyField(props.name, Styles.name);
                     EditorGUILayout.PropertyField(props.maskTextureChannel, Styles.maskTextureChannel);
-                    EditorGUILayout.PropertyField(props.renderTextureScale, Styles.renderTextureScale);
                     EditorGUILayout.PropertyField(props.blendMode, Styles.blendMode);
 
                     if (props.blendMode.intValue == (int)Light2DBlendStyle.BlendMode.Custom)
