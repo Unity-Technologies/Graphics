@@ -8,8 +8,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added support for the Shadowmask Mixed Lighting Mode (Forward only), which supports up to four baked-shadow Lights.
 - Added ComplexLit shader for advanced material features such as clear coat.
-
-### Added
 - Support for Clear coat and ComplexLit forward only shader in shader graph.
 - Added Parallax Mapping to the Lit shader (Lit.shader).
 - Added the Detail Inputs setting group in the Lit shader (Lit.shader).
@@ -19,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - The maximum number of visible lights when using OpenGL ES 3.x on Android now depends on the minimum OpenGL ES 3.x version as configured in PlayerSettings.
+- The default value of the HDR property of a newly created Universal Render Pipeline Asset, is now set to true.
 
 ### Fixed
 - Fixed an issue were the filter window could not be defocused using the mouse. [case 1242032](https://issuetracker.unity3d.com/issues/urp-volume-override-window-doesnt-disappear-when-clicked-on-the-other-windows-in-the-editor)
