@@ -792,18 +792,6 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
     return vertexLightColor;
 }
 
-half4 GetShadowMask(InputData inputData)
-{
-    // To ensure backward compatibility we have to avoid using shadowMask input, as it is not present in older shaders
-#if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
-    return inputData.shadowMask;
-#elif !defined (LIGHTMAP_ON)
-    return unity_ProbesOcclusion;
-#else
-    return half4(1, 1, 1, 1);
-#endif
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 //                      Fragment Functions                                   //
 //       Used by ShaderGraph and others builtin renderers                    //
