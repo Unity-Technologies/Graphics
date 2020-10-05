@@ -38,7 +38,7 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor):
     utr_args.append(f'--timeout={get_timeout(test_platform, "Linux")}')
 
     base = [f'curl -s {UTR_INSTALL_URL} --output {TEST_PROJECTS_DIR}/{project_folder}/utr']
-    base.append(f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}')
+    base.append(f'cd {TEST_PROJECTS_DIR}/{project_folder} && ./utr {" ".join(utr_args)}')
     
     return base
 
