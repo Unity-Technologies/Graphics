@@ -25,17 +25,36 @@ build_configs:
 color_spaces:
   - Linear
   - gamma
+test_platforms:
+  - type: Standalone
+    extra_utr_flags:
+      - [OSX_Metal]: --timeout=1200
+      - [Win_DX11]: --extra-editor-arg="-force-d3d11"
+      - [Win_DX12]: --extra-editor-arg="-force-d3d12"
+      - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-force-vulkan"
+      - [Linux_OpenGlCore]: --extra-editor-arg="-force-glcore"
+    extra_utr_flags_build:
+      - [Linux_OpenGlCore]: --extra-editor-arg="-executemethod CustomBuild.BuildLinuxOpenGlCoreLinear"
+      - [Linux_Vulkan]: --extra-editor-arg="-executemethod CustomBuild.BuildLinuxVulkanLinear"
+      - [Win_DX11]: --extra-editor-arg="-executemethod CustomBuild.BuildWindowsDX11Linear"
+      - [Win_DX12]: --extra-editor-arg="-executemethod CustomBuild.BuildWindowsDX12Linear"
+      - [Win_Vulkan]: --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear"
+  - type: playmode
+    extra_utr_flags:
+      - [Win_DX11]: --extra-editor-arg="-force-d3d11"
+      - [Win_DX12]: --extra-editor-arg="-force-d3d12"
+      - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-force-vulkan"
+      - [Linux_OpenGlCore]: --extra-editor-arg="-force-glcore"
+  - type: editmode
+    extra_utr_flags:
+      - [Win_DX11]: --extra-editor-arg="-force-d3d11"
+      - [Win_DX12]: --extra-editor-arg="-force-d3d12"
+      - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-force-vulkan"
+      - [Linux_OpenGlCore]: --extra-editor-arg="-force-glcore"
 platforms:
   Win:
     name: Win
     os: windows
-    apis:
-      - name: DX11
-        cmd: -force-d3d11
-      - name: DX12
-        cmd: -force-d3d12
-      - name: Vulkan
-        cmd: -force-vulkan
     components:
       - editor
       - il2cpp
@@ -61,14 +80,6 @@ platforms:
   OSX:
     name: OSX
     os: macos
-    apis:
-      - name: Metal
-        exclude_test_platforms:
-          - playmode_XR
-      - name: OpenGLCore
-        exclude_test_platforms:
-          - playmode_XR
-          - Standalone
     components:
       - editor
       - il2cpp
@@ -91,16 +102,6 @@ platforms:
   Linux:
     name: Linux
     os: linux
-    apis: 
-      - name: OpenGLCore
-        cmd: -force-glcore
-        exclude_test_platforms:
-          - Standalone
-          - playmode_XR
-      - name: Vulkan
-        cmd: -force-vulkan
-        exclude_test_platforms:
-          - playmode_XR
     components:
       - editor
       - il2cpp
@@ -116,9 +117,6 @@ platforms:
   Android:
     name: Android
     os: android
-    apis:
-      - name: OpenGLES3
-      - name: Vulkan
     components:
       - editor
       - il2cpp
@@ -135,11 +133,6 @@ platforms:
   iPhone:
     name: iPhone
     os: ios
-    apis:
-      - name: Metal
-        exclude_test_platforms:
-          - playmode
-          - playmode_XR
     components:
       - editor
       - iOS

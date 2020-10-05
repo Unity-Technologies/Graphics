@@ -3,46 +3,58 @@ project:
   folder: UniversalGraphicsTest
 test_platforms:
   - type: Standalone
-    timeout:
-      OSX_Metal: 2400
-    timeout_build:
-      Android: 1800
-      Win: 2000
+    extra_utr_flags:
+      - [OSX_Metal]: --timeout=2400
+    extra_utr_flags_build:
+      - [Android_OpenGles3, Android_Vulkan]: --timeout=1800
+      - [Win_DX11, Win_DX12, Win_Vulkan]: --timeout=2000
   - type: playmode
   - type: editmode
   - type: playmode
     name: playmode_perf_build
     extra_utr_flags:
-      - --scripting-backend=il2cpp
-      - --timeout=1200
-      - --performance-project-id=URP_Performance
-      - --testfilter=Build
-      - --suite=Editor
+      - [all]: --scripting-backend=il2cpp
+      - [all]: --timeout=1200
+      - [all]: --performance-project-id=URP_Performance
+      - [all]: --testfilter=Build
+      - [all]: --suite=Editor
   - type: playmode
     name: playmode_XR
     extra_utr_flags:
-      - --extra-editor-arg="-xr-tests" 
+      - [all]: --extra-editor-arg="-xr-tests" 
 platforms:
   - name: Win
     apis:
-      - DX11
-      - DX12
-      - Vulkan
+      - name: DX11
+      - name: DX12
+      - name: Vulkan
   - name: OSX
     apis:
-      - Metal
-      - OpenGLCore
+      - name: Metal
+        exclude_test_platforms:
+          - name: playmode_XR
+      - name: OpenGLCore
+        exclude_test_platforms:
+          - name: playmode_XR
+          - name: Standalone
   - name: Linux
-    apis:
-      - Vulkan
-      - OpenGLCore
+    apis: 
+      - name: OpenGLCore
+        exclude_test_platforms:
+          - name: Standalone
+          - name: playmode_XR
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: playmode_XR
   - name: Android
     apis:
-      - Vulkan
-      - OpenGLES3
+      - name: OpenGLES3
+      - name: Vulkan
   - name: iPhone
     apis:
-      - Metal
+      - name: Metal
+        exclude_test_platforms:
+          - name: playmode_XR
 build_configs:
 - name: il2cpp_2
   scripting_backend: il2cpp
