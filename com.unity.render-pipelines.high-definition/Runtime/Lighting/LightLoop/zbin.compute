@@ -12,10 +12,7 @@
 /* ------------------------------ Inputs ------------------------------------ */
 
 // 1x list for all entites (sorted by category, we concatenate lists of all views).
-StructuredBuffer<float2> _wBoundsBuffer  : register(t0); // {w_min, w_max}
-
-// Repackage to work around ridiculous constant buffer limitations of HLSL.
-static uint s_BoundedEntityCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT] = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityCountPerCategory;
+StructuredBuffer<float2> _wBoundsBuffer : register(t0); // {w_min, w_max}
 
 /* ------------------------------ Outputs ----------------------------------- */
 
@@ -23,6 +20,12 @@ static uint s_BoundedEntityCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT] = (uint
 RWStructuredBuffer<uint> _zBinBuffer : register(u0); // {start << 16 | end}
 
 /* ------------------------------ Utilities --------------------------------- */
+
+// The preprocessor does not support the '%' operator.
+#define REMAINDER(a, n) ((a) - (n) * ((a) / (n)))
+
+// Repackage to work around ridiculous constant buffer limitations of HLSL.
+static uint s_BoundedEntityCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT] = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityCountPerCategory;
 
 uint ComputeZBinFromLinearDepth(float w, float4 encodingParams)
 {
@@ -78,7 +81,10 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     const uint eye = groupID.y;
     const uint bin = t + g * THREADS_PER_GROUP;
 
-    // ZBIN_COUNT must be an integer multiple of THREADS_PER_GROUP.
+#if (REMAINDER(ZBIN_COUNT, THREADS_PER_GROUP) != 0)
+    #error "ZBIN_COUNT must be an integer multiple of THREADS_PER_GROUP."
+#endif
+
     const float2 wBounds = ComputeZBinLinearDepthBounds(bin, _ZBinBufferEncodingParams);
 
     uint inputIndex = GenerateLightCullDataIndex(0, _BoundedEntityCount, eye);
