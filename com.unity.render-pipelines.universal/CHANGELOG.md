@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed GLES2 shader compilation.
 - Fixed issue with lens distortion breaking rendering when enabled and its intensity is 0.
 - Fixed issue that caused motion blur to not work in XR.
+- Fixed 2D renderer when using Linear rendering on Android directly to backbuffer.
 
 ## [10.0.0] - 2020-06-10
 ### Added
