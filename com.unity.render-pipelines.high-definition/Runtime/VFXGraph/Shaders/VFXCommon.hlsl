@@ -139,8 +139,9 @@ float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
 
     float3 V = GetWorldSpaceNormalizeViewDir(posRWS);
 
+    float3 volColor = 0;
+    float3 volOpacity = 0;
 #if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_FORWARD)
-    float3 volColor, volOpacity;
     EvaluateAtmosphericScattering(posInput, V, volColor, volOpacity); // Premultiplied alpha
 #endif
     
