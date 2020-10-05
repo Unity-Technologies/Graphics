@@ -6,6 +6,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     internal struct LayerBatch
     {
         public int firstLayerToRender;
+        public int endLayerValue;
         public SortingLayerRange layerRange;
         public LightStats lightStats;
         public unsafe fixed int renderTargetIds[4];
@@ -82,6 +83,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 // renderer within this range share the same set of lights so they should be rendered together
                 var sortingLayerRange = new SortingLayerRange(lowerBound, upperBound);
 
+                layerBatch.endLayerValue = endLayerValue;
                 layerBatch.firstLayerToRender = layerToRender;
                 layerBatch.layerRange = sortingLayerRange;
                 layerBatch.lightStats = lightStats;

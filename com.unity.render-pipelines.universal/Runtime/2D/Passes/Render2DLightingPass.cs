@@ -177,7 +177,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         {
                             var sampleName = "Render 2D Light Volumes";
                             cmd.BeginSample(sampleName);
-                            this.RenderLightVolumes(renderingData, cmd, layerBatch.firstLayerToRender, colorAttachment, depthAttachment, m_Renderer2DData.lightCullResult.visibleLights);
+                            this.RenderLightVolumes(renderingData, cmd, layerBatch.firstLayerToRender, layerBatch.endLayerValue, colorAttachment, depthAttachment, m_Renderer2DData.lightCullResult.visibleLights);
                             cmd.EndSample(sampleName);
                         }
                     }

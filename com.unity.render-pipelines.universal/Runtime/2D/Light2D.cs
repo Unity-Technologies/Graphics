@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using UnityEditor.Experimental.SceneManagement;
@@ -118,7 +119,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal int GetTopMostLitLayer()
         {
-            var largestIndex = -1;
+            var largestIndex = Int32.MinValue;
             var largestLayer = 0;
 
             var layers = Light2DManager.GetCachedSortingLayer();
@@ -128,16 +129,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 {
                     if (layers[layer].id == m_ApplyToSortingLayers[i])
                     {
-                        largestIndex = i;
+                        largestIndex = layers[layer].value;
                         largestLayer = layer;
                     }
                 }
             }
 
-            if (largestIndex >= 0)
-                return m_ApplyToSortingLayers[largestIndex];
-            else
-                return -1;
+            return largestIndex;
         }
 
         internal void UpdateMesh()
