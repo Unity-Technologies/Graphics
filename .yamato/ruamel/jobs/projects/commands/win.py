@@ -73,10 +73,12 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, build_c
     if project_folder.lower() == 'UniversalGraphicsTest'.lower():
         base.append('cd Tools && powershell -command ". .\\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"')
     
-    if not test_platform['is_performance']:
-        base.append(f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}')
-    else:
-        base.append(f'{TEST_PROJECTS_DIR}/{project_folder}/utr {" ".join(utr_args)}')
+    base.append(f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}')
+    
+    # if not test_platform['is_performance']:
+    #     base.append(f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}')
+    # else:
+    #     base.append(f'{TEST_PROJECTS_DIR}/{project_folder}/utr {" ".join(utr_args)}')
 
     
     return base
