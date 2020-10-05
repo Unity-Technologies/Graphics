@@ -182,27 +182,19 @@ void GetHitInfos(uint2 positionSS, out float2 hitPositionNDC, out float srcPerce
     dist = hitData.z;
     hitPositionNDC = hitData.xy;
 
-    int globalSampleIndex = _FrameCount;
     float2 Xi;
-    Xi.x = GetBNDSequenceSample(positionSS, globalSampleIndex, 0);
-    Xi.y = GetBNDSequenceSample(positionSS, globalSampleIndex, 1);
-
-    // Pick which subpixel we will be launching our effects from
-    float subPixelSample = GetBNDSequenceSample(positionSS, globalSampleIndex, 3);
-    int subPixel = clamp((int)(subPixelSample * 4.0), 0, 3);
-    uint2 shift = HalfResIndexToCoordinateShift[subPixel];
-
-    uint2 sourceCoord = positionSS + shift;
+    Xi.x = GetBNDSequenceSample(positionSS, _FrameCount, 0);
+    Xi.y = GetBNDSequenceSample(positionSS, _FrameCount, 1);
 
     NormalData normalData;
-    DecodeFromNormalBuffer(sourceCoord, normalData);
+    DecodeFromNormalBuffer(positionSS, normalData);
 
     srcPerceptualRoughness = normalData.perceptualRoughness;
 
     float roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
     float3x3 localToWorld = GetLocalFrame(normalData.normalWS);
 
-    Xi.x = lerp(Xi.x, 0.0f, srcPerceptualRoughness * 0.7f);
+    Xi.x = lerp(Xi.x, 0.0f, srcPerceptualRoughness * 0.7f); // 0.7 is an arbitrary bias to reduce noise for high roughness
 
 #ifdef DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
     float  deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, positionSS).r;
@@ -299,15 +291,6 @@ float GetTraceDistance(uint2 positionSS)
     GetWorldSpacePoint(positionSS, positionSrcWS, positionDstWS);
 
     return length(positionDstWS - positionSrcWS);
-}
-
-float3 GetVectorSample(uint2 positionSS)
-{
-    float3 positionSrcWS;
-    float3 positionDstWS;
-    GetWorldSpacePoint(positionSS, positionSrcWS, positionDstWS);
-
-    return normalize(positionDstWS - positionSrcWS);
 }
 
 float3 GetHitColorFromUV(float2 prevFrameUV, float perceptualRoughness, out float opacity, int mipLevel = 0)
@@ -451,7 +434,7 @@ void ScreenSpaceReflectionsTracing(uint3 groupId          : SV_GroupID,
     // Apply normal bias with the magnitude dependent on the distance from the camera.
     // Unfortunately, we only have access to the shading normal, which is less than ideal...
     positionWS = camPosWS + (positionWS - camPosWS) * (1 - 0.001 * rcp(max(dot(N, V), FLT_EPS)));
-    /*float*/ deviceDepth = ComputeNormalizedDeviceCoordinatesWithZ(positionWS, UNITY_MATRIX_VP).z;
+    deviceDepth = ComputeNormalizedDeviceCoordinatesWithZ(positionWS, UNITY_MATRIX_VP).z;
     bool killRay = deviceDepth == UNITY_RAW_FAR_CLIP_VALUE;
 
     // Ref. #1: Michal Drobot - Quadtree Displacement Mapping with Height Blending.
@@ -628,7 +611,8 @@ void ScreenSpaceReflectionsTracing(uint3 groupId          : SV_GroupID,
 void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
-    uint2 positionSS0 = dispatchThreadId.xy;
+
+    const uint2 positionSS0 = dispatchThreadId.xy;
 
     float3 N;
     float perceptualRoughness;
@@ -666,13 +650,14 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     float3 color = 0.0f;
     opacity = 0.0f;
 
-    const int radius = 1;
+#define BLOCK_SAMPLE_RADIUS 1
     int samplesCount = 0;
     float4 outputs = 0.0f;
     float wAll = 0.0f;
-    for (int y = -radius; y <= radius; ++y)
+    // TODO: check by Unroll, or sample cross only instead of 3x3 block
+    for (int y = -BLOCK_SAMPLE_RADIUS; y <= BLOCK_SAMPLE_RADIUS; ++y)
     {
-        for (int x = -radius; x <= radius; ++x)
+        for (int x = -BLOCK_SAMPLE_RADIUS; x <= BLOCK_SAMPLE_RADIUS; ++x)
         {
             uint2 positionSS = uint2(int2(positionSS0) + int2(x, y));
 
@@ -702,6 +687,7 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
             }
         }
     }
+#undef BLOCK_SAMPLE_RADIUS
 
     if (wAll > 0.0f)
     {
@@ -740,77 +726,23 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     DecodeFromNormalBuffer(hitSS, hitNormalData);
     float3 hitN = hitNormalData.normalWS;
 
-    float3 hitPositionWS = GetWorldSpacePosition(hitSS);
-    float3 V = GetWorldSpaceNormalizeViewDir(hitPositionWS);
+    float4 original = _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)];
+    float4 previous = _SsrAccumPrev[COORD_TEXTURE2D_X(positionSS)];
 
-    float3x3 hitLocalToWorld = GetLocalFrame(hitN);
+    float2 motionVectorNDC;
+    DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(hitPositionNDC.xy, 1.0f - 0.5f * _ScreenSize.zw)* _RTHandleScale.xy, 0), motionVectorNDC);
+    float speedDst = length(motionVectorNDC);
 
-    //float3 radPoint = hitPositionWS + hitLocalToWorld._11_21_31 * radiusWS;
-    float3 radPoint = hitPositionWS + hitLocalToWorld._11_12_13 * radiusWS;
+    float2 motionVectorCenterNDC;
+    float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw);
+    DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(positionNDC, 1.0f - 0.5f * _ScreenSize.zw)* _RTHandleScale.xy, 0), motionVectorCenterNDC);
+    float speedSrc = length(motionVectorCenterNDC);
+    float speed = saturate((speedDst + speedDst) * 128.0f); // 128 is arbitrary
 
-    // Convert to screen space radius
-    float4 hitCS0 = ComputeClipSpacePosition(hitPositionWS, UNITY_MATRIX_VP);
-    float4 hitCS1 = ComputeClipSpacePosition(radPoint, UNITY_MATRIX_VP);
+    float4 result = lerp(previous, original, lerp(_SsrAccumulationAmount, 1.0f, speed));
 
-    hitCS0 *= rcp(hitCS0.w);
-    hitCS0.xy = hitCS0.xy * 0.5 + 0.5;
-    hitCS1 *= rcp(hitCS1.w);
-    hitCS1.xy = hitCS1.xy * 0.5 + 0.5;
-
-    float radiusSS = length(hitCS0.xy - hitCS1.xy);
-
-#define Const0 0.2206356001526516f // Log(2)/pi
-#define RcpConst0 4.532360141827193f // 1/Const0 == pi/Log(2)
-#define Epsilon 0.000125f
-
-    const float sigma = lerp(0.125f, 64.0f, saturate(radiusSS));
-    const float invSigma = rcp(sigma);
-
-    const int rad = round(clamp(radiusSS, 0.0f, 16.0f));
-    float tot = 0.0f;
-    float4 output = 0.0f;
-    for (int x = -rad; x <= rad; ++x)
-    {
-        for (int y = -rad; y <= rad; ++y)
-        {
-            float4 data = _SSRAccumTexture[COORD_TEXTURE2D_X(int2(positionSS) + int2(x, y))];
-            float4 hitData = _SsrHitPointTexture[COORD_TEXTURE2D_X(int2(positionSS) + int2(x, y))];
-
-            uint3 intCol = asuint(data.rgb);
-            bool  isPosFin = Max3(intCol.r, intCol.g, intCol.b) < 0x7F800000;
-
-            data = isPosFin ? data : 0;
-            float opacity = isPosFin ? data.w : 0;
-
-            float coef = invSigma * Const0 * exp2( -(x * x + y * y) * invSigma);
-
-            tot += coef;
-            output += coef * data;
-        }
-    }
-
-    if (tot > 0.0f)
-    {
-        output = output / tot;
-        float2 motionVectorNDC;
-        DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(hitPositionNDC.xy, 1.0f - 0.5f * _ScreenSize.zw)* _RTHandleScale.xy, 0), motionVectorNDC);
-        float speedDst = length(motionVectorNDC);
-
-        float2 motionVectorCenterNDC;
-        float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw);
-        DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(positionNDC, 1.0f - 0.5f * _ScreenSize.zw)* _RTHandleScale.xy, 0), motionVectorCenterNDC);
-        float speedSrc = length(motionVectorCenterNDC);
-        float speed = saturate((speedDst + speedDst) * 0.5f);
-        speed = speed > 0.0f ? 1.0f : 0.0f;
-
-        float4 result = lerp(
-                            _SsrAccumPrev[COORD_TEXTURE2D_X(positionSS)],
-                            _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)],
-                            lerp(_SsrAccumulationAmount, 1.0f, speed));
-
-        _SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] = result;
-        _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = result;
-    }
+    _SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] = result;
+    _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = result;
 }
 
 #endif
