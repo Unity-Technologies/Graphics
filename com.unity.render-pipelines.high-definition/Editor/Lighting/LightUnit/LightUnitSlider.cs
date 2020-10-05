@@ -12,6 +12,8 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     class LightUnitSlider
     {
+        private SerializedObject m_SerializedObject;
+
         static class SliderConfig
         {
             public const float k_IconSeparator      = 6;
@@ -26,6 +28,11 @@ namespace UnityEditor.Rendering.HighDefinition
         public LightUnitSlider(LightUnitSliderUIDescriptor descriptor)
         {
             m_Descriptor = descriptor;
+        }
+
+        public void SetSerializedObject(SerializedObject serialized)
+        {
+            m_SerializedObject = serialized;
         }
 
         public virtual void Draw(Rect rect, SerializedProperty value)
@@ -58,6 +65,20 @@ namespace UnityEditor.Rendering.HighDefinition
             var thumbPosition = GetPositionOnSlider(thumbValue, level.value);
             var thumbTooltip = levelIconContent.tooltip;
             DoThumbTooltip(sliderRect, thumbPosition, thumbValue, thumbTooltip);
+
+            // Draw context menu
+            // TODO: add to descriptor option for context menu
+            // Note: EventType.Used for UI interaction, EventType.MouseDown
+            var e = Event.current;
+            if (e.type == EventType.MouseDown && e.button == 1)
+            {
+                if (iconRect.Contains(e.mousePosition))
+                {
+                    var menuPosition = iconRect.position + iconRect.size;
+                    DoContextMenu(menuPosition, value);
+                    e.Use();
+                }
+            }
         }
 
         LightUnitSliderUIRange CurrentRange(float value)
@@ -155,6 +176,31 @@ namespace UnityEditor.Rendering.HighDefinition
             thumbMarkerRect.x  = rect.x + (rect.width - size) * position;
 
             EditorGUI.LabelField(thumbMarkerRect, GetLightUnitTooltip(tooltip, value, m_Descriptor.unitName));
+        }
+
+        void DoContextMenu(Vector2 pos, SerializedProperty value)
+        {
+            var menu = new GenericMenu();
+
+            foreach (var preset in m_Descriptor.valueRanges)
+            {
+                // Indicate a checkmark if the value is within this preset range.
+                var isInPreset = CurrentRange(value.floatValue).value == preset.value;
+
+                menu.AddItem(EditorGUIUtility.TrTextContent(preset.content.tooltip), isInPreset, () => SetValueToPreset(value, preset));
+            }
+
+            menu.DropDown(new Rect(pos, Vector2.zero));
+        }
+
+        protected virtual void SetValueToPreset(SerializedProperty value, LightUnitSliderUIRange preset)
+        {
+            m_SerializedObject?.Update();
+
+            // Set the value to the average of the preset range.
+            value.floatValue = 0.5f * (preset.value.x + preset.value.y);
+
+            m_SerializedObject?.ApplyModifiedProperties();
         }
 
         protected virtual GUIContent GetLightUnitTooltip(string baseTooltip, float value, string unit)
@@ -502,6 +548,16 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Settings = settings;
         }
 
+        // The serialized property for color temperature is stored in the build-in light editor, and we need to use this object to apply the update.
+        protected override void SetValueToPreset(SerializedProperty value, LightUnitSliderUIRange preset)
+        {
+            m_Settings.Update();
+
+            base.SetValueToPreset(value, preset);
+
+            m_Settings.ApplyModifiedProperties();
+        }
+
         protected override void DoSlider(Rect rect, SerializedProperty value, Vector2 sliderRange)
         {
             SliderWithTextureNoTextField(rect, value, sliderRange, m_Settings);
@@ -538,6 +594,16 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Kelvin is not classified internally as a light unit so we handle it independently as well.
             k_TemperatureSlider = new TemperatureSlider(LightUnitSliderDescriptors.TemperatureDescriptor);
+        }
+
+        // Need to cache the serialized object on the slider, to add support for the preset selection context menu (need to apply changes to serialized)
+        // TODO: This slider drawer is getting kind of bloated. Break up the implementation into where it is actually used?
+        public void SetSerializedObject(SerializedObject serializedObject)
+        {
+            k_DirectionalLightUnitSlider.SetSerializedObject(serializedObject);
+            k_PunctualLightUnitSlider.SetSerializedObject(serializedObject);
+            k_ExposureSlider.SetSerializedObject(serializedObject);
+            k_TemperatureSlider.SetSerializedObject(serializedObject);
         }
 
         public void Draw(HDLightType type, LightUnit lightUnit, SerializedProperty value, Rect rect, SerializedHDLight light, Editor owner)
