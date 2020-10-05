@@ -2,16 +2,18 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/BloomCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
 
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
 #pragma kernel KMain
 
 #pragma multi_compile LOW_QUALITY HIGH_QUALITY
+#pragma multi_compile _ ENABLE_ALPHA
 
 TEXTURE2D_X(_InputTexture);
 
-RW_TEXTURE2D_X(float3, _OutputTexture);
+RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 
 CBUFFER_START(cb0)
     float4 _TexelSize;
@@ -33,6 +35,7 @@ float3 PartialAverage(float3 c0, float3 c1, float3 c2, float3 c3, float w0, floa
 }
 
 #define GROUP_SIZE 8
+
 
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
 void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
