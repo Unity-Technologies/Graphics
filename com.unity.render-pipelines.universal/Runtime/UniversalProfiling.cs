@@ -3,46 +3,6 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.Universal
 {
-    // These are tracked by the perf framework
-    internal enum URPProfileId
-    {
-        // CPU
-        UniversalRenderTotal,
-        UpdateVolumeFramework,
-        RenderCameraStack,
-
-        // GPU
-        AdditionalLightsShadow,
-        ColorGradingLUT,
-        CopyColor,
-        CopyDepth,
-        DepthNormalPrepass,
-        DepthPrepass,
-
-        // DrawObjectsPass
-        DrawOpaqueObjects,
-        DrawTransparentObjects,
-
-        // RenderObjectsPass
-        //RenderObjects,
-
-        MainLightShadow,
-        ResolveShadows,
-        SSAO,
-
-        // PostProcessPass
-        StopNaNs,
-        SMAA,
-        GaussianDepthOfField,
-        BokehDepthOfField,
-        MotionBlur,
-        PaniniProjection,
-        UberPostProcess,
-        Bloom,
-
-        FinalBlit
-    }
-
     // A collection of profiling samplers, cache, helpers and convenience functions for Universal profiling.
     // Keeps most of the profiling related things organized in one place.
     // Static global state, mostly read/sometimes write, non-thread safe (like most things in Universal).
