@@ -19,37 +19,44 @@ test_platforms:
 platforms:
   - name: Win
     apis:
-      - DX11
-      - DX12
-      - Vulkan
-    overrides:
-      agents_project:
-        # default: package_ci_mac
-        default:
-          type: Unity::VM::GPU
-          image: graphics-foundation/win10-dxr:stable
-          flavor: b1.xlarge
-          model: rtx2080
-        editmode:
-          type: Unity::VM
-          image: graphics-foundation/win10-dxr:stable
-          flavor: b1.xlarge
-        standalone:
-          type: Unity::VM::GPU
-          image: graphics-foundation/win10-dxr:stable
-          flavor: b1.xlarge
-          model: rtx2080
-        standalone_build:
-          type: Unity::VM
-          image: graphics-foundation/win10-dxr:stable
-          flavor: b1.xlarge
-          model: rtx2080
+      - name: DX11
+        cmd: -force-d3d11
+      - name: DX12
+        cmd: -force-d3d12
+      - name: Vulkan
+        cmd: -force-vulkan
+    agents_project:
+      # default: package_ci_mac
+      default:
+        type: Unity::VM::GPU
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+        model: rtx2080
+      editmode:
+        type: Unity::VM
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+      standalone:
+        type: Unity::VM::GPU
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+        model: rtx2080
+      standalone_build:
+        type: Unity::VM
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+        model: rtx2080
   - name: OSX
     apis:
-      - Metal
+      - name: Metal
+        exclude_test_platforms:
+          - playmode_XR
   - name: Linux
     apis:
-      - Vulkan
+      - name: Vulkan
+        cmd: -force-vulkan
+        exclude_test_platforms:
+          - playmode_XR
 build_configs:
 - name: il2cpp_2
   scripting_backend: il2cpp

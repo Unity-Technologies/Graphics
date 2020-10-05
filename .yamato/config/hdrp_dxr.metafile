@@ -15,7 +15,8 @@ test_platforms:
 platforms:
   - name: Win
     apis:
-      - DX12
+      - name: DX12
+        cmd: -force-d3d12
     overrides:
       agents_project:
         default:

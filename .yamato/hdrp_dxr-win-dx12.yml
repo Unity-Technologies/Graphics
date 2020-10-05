@@ -7,9 +7,8 @@ HDRP_DXR_Win_DX12_Standalone_il2cpp_2_Linear_trunk:
     name: HDRP_DXR on Win_DX12_Standalone_il2cpp_2_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -25,10 +24,9 @@ HDRP_DXR_Win_DX12_Standalone_il2cpp_2_Linear_trunk:
 Build_HDRP_DXR_Win_DX12_Player_il2cpp_2_Linear_trunk:
     name: Build HDRP_DXR on Win_DX12_il2cpp_2_Linear_Player on version trunk
     agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.large
-        model: rtx2080
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -47,9 +45,8 @@ HDRP_DXR_Win_DX12_Standalone_il2cpp_2_gamma_trunk:
     name: HDRP_DXR on Win_DX12_Standalone_il2cpp_2_gamma on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -65,10 +62,9 @@ HDRP_DXR_Win_DX12_Standalone_il2cpp_2_gamma_trunk:
 Build_HDRP_DXR_Win_DX12_Player_il2cpp_2_gamma_trunk:
     name: Build HDRP_DXR on Win_DX12_il2cpp_2_gamma_Player on version trunk
     agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.large
-        model: rtx2080
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -87,9 +83,8 @@ HDRP_DXR_Win_DX12_playmode_il2cpp_2_Linear_trunk:
     name: HDRP_DXR on Win_DX12_playmode_il2cpp_2_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -105,9 +100,8 @@ HDRP_DXR_Win_DX12_playmode_il2cpp_2_gamma_trunk:
     name: HDRP_DXR on Win_DX12_playmode_il2cpp_2_gamma on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -123,9 +117,8 @@ HDRP_DXR_Win_DX12_playmode_XR_il2cpp_2_Linear_trunk:
     name: HDRP_DXR on Win_DX12_playmode_XR_il2cpp_2_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -141,9 +134,8 @@ HDRP_DXR_Win_DX12_playmode_XR_il2cpp_2_gamma_trunk:
     name: HDRP_DXR on Win_DX12_playmode_XR_il2cpp_2_gamma on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -159,9 +151,8 @@ HDRP_DXR_Win_DX12_playmode_NonRenderGraph_il2cpp_2_Linear_trunk:
     name: HDRP_DXR on Win_DX12_playmode_NonRenderGraph_il2cpp_2_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -177,9 +168,8 @@ HDRP_DXR_Win_DX12_playmode_NonRenderGraph_il2cpp_2_gamma_trunk:
     name: HDRP_DXR on Win_DX12_playmode_NonRenderGraph_il2cpp_2_gamma on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -195,9 +185,8 @@ HDRP_DXR_Win_DX12_Standalone_il2cpp_4_Linear_trunk:
     name: HDRP_DXR on Win_DX12_Standalone_il2cpp_4_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -213,10 +202,9 @@ HDRP_DXR_Win_DX12_Standalone_il2cpp_4_Linear_trunk:
 Build_HDRP_DXR_Win_DX12_Player_il2cpp_4_Linear_trunk:
     name: Build HDRP_DXR on Win_DX12_il2cpp_4_Linear_Player on version trunk
     agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.large
-        model: rtx2080
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -235,9 +223,8 @@ HDRP_DXR_Win_DX12_Standalone_il2cpp_4_gamma_trunk:
     name: HDRP_DXR on Win_DX12_Standalone_il2cpp_4_gamma on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -253,10 +240,9 @@ HDRP_DXR_Win_DX12_Standalone_il2cpp_4_gamma_trunk:
 Build_HDRP_DXR_Win_DX12_Player_il2cpp_4_gamma_trunk:
     name: Build HDRP_DXR on Win_DX12_il2cpp_4_gamma_Player on version trunk
     agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.large
-        model: rtx2080
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -275,9 +261,8 @@ HDRP_DXR_Win_DX12_playmode_il2cpp_4_Linear_trunk:
     name: HDRP_DXR on Win_DX12_playmode_il2cpp_4_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -293,9 +278,8 @@ HDRP_DXR_Win_DX12_playmode_il2cpp_4_gamma_trunk:
     name: HDRP_DXR on Win_DX12_playmode_il2cpp_4_gamma on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -311,9 +295,8 @@ HDRP_DXR_Win_DX12_playmode_XR_il2cpp_4_Linear_trunk:
     name: HDRP_DXR on Win_DX12_playmode_XR_il2cpp_4_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -329,9 +312,8 @@ HDRP_DXR_Win_DX12_playmode_XR_il2cpp_4_gamma_trunk:
     name: HDRP_DXR on Win_DX12_playmode_XR_il2cpp_4_gamma on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -347,9 +329,8 @@ HDRP_DXR_Win_DX12_playmode_NonRenderGraph_il2cpp_4_Linear_trunk:
     name: HDRP_DXR on Win_DX12_playmode_NonRenderGraph_il2cpp_4_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -365,9 +346,8 @@ HDRP_DXR_Win_DX12_playmode_NonRenderGraph_il2cpp_4_gamma_trunk:
     name: HDRP_DXR on Win_DX12_playmode_NonRenderGraph_il2cpp_4_gamma on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -383,9 +363,8 @@ HDRP_DXR_Win_DX12_Standalone_mono_Linear_trunk:
     name: HDRP_DXR on Win_DX12_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -401,10 +380,9 @@ HDRP_DXR_Win_DX12_Standalone_mono_Linear_trunk:
 Build_HDRP_DXR_Win_DX12_Player_mono_Linear_trunk:
     name: Build HDRP_DXR on Win_DX12_mono_Linear_Player on version trunk
     agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.large
-        model: rtx2080
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -423,9 +401,8 @@ HDRP_DXR_Win_DX12_Standalone_mono_gamma_trunk:
     name: HDRP_DXR on Win_DX12_Standalone_mono_gamma on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -441,10 +418,9 @@ HDRP_DXR_Win_DX12_Standalone_mono_gamma_trunk:
 Build_HDRP_DXR_Win_DX12_Player_mono_gamma_trunk:
     name: Build HDRP_DXR on Win_DX12_mono_gamma_Player on version trunk
     agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.large
-        model: rtx2080
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -463,9 +439,8 @@ HDRP_DXR_Win_DX12_playmode_mono_Linear_trunk:
     name: HDRP_DXR on Win_DX12_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -481,9 +456,8 @@ HDRP_DXR_Win_DX12_playmode_mono_gamma_trunk:
     name: HDRP_DXR on Win_DX12_playmode_mono_gamma on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -499,9 +473,8 @@ HDRP_DXR_Win_DX12_playmode_XR_mono_Linear_trunk:
     name: HDRP_DXR on Win_DX12_playmode_XR_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -517,9 +490,8 @@ HDRP_DXR_Win_DX12_playmode_XR_mono_gamma_trunk:
     name: HDRP_DXR on Win_DX12_playmode_XR_mono_gamma on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -535,9 +507,8 @@ HDRP_DXR_Win_DX12_playmode_NonRenderGraph_mono_Linear_trunk:
     name: HDRP_DXR on Win_DX12_playmode_NonRenderGraph_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -553,9 +524,8 @@ HDRP_DXR_Win_DX12_playmode_NonRenderGraph_mono_gamma_trunk:
     name: HDRP_DXR on Win_DX12_playmode_NonRenderGraph_mono_gamma on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -571,9 +541,8 @@ HDRP_DXR_Win_DX12_Standalone_il2cpp_2_Linear_2020.2:
     name: HDRP_DXR on Win_DX12_Standalone_il2cpp_2_Linear on version 2020.2
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -589,10 +558,9 @@ HDRP_DXR_Win_DX12_Standalone_il2cpp_2_Linear_2020.2:
 Build_HDRP_DXR_Win_DX12_Player_il2cpp_2_Linear_2020.2:
     name: Build HDRP_DXR on Win_DX12_il2cpp_2_Linear_Player on version 2020.2
     agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.large
-        model: rtx2080
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -611,9 +579,8 @@ HDRP_DXR_Win_DX12_Standalone_il2cpp_2_gamma_2020.2:
     name: HDRP_DXR on Win_DX12_Standalone_il2cpp_2_gamma on version 2020.2
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -629,10 +596,9 @@ HDRP_DXR_Win_DX12_Standalone_il2cpp_2_gamma_2020.2:
 Build_HDRP_DXR_Win_DX12_Player_il2cpp_2_gamma_2020.2:
     name: Build HDRP_DXR on Win_DX12_il2cpp_2_gamma_Player on version 2020.2
     agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.large
-        model: rtx2080
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -651,9 +617,8 @@ HDRP_DXR_Win_DX12_playmode_il2cpp_2_Linear_2020.2:
     name: HDRP_DXR on Win_DX12_playmode_il2cpp_2_Linear on version 2020.2
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -669,9 +634,8 @@ HDRP_DXR_Win_DX12_playmode_il2cpp_2_gamma_2020.2:
     name: HDRP_DXR on Win_DX12_playmode_il2cpp_2_gamma on version 2020.2
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -687,9 +651,8 @@ HDRP_DXR_Win_DX12_playmode_XR_il2cpp_2_Linear_2020.2:
     name: HDRP_DXR on Win_DX12_playmode_XR_il2cpp_2_Linear on version 2020.2
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -705,9 +668,8 @@ HDRP_DXR_Win_DX12_playmode_XR_il2cpp_2_gamma_2020.2:
     name: HDRP_DXR on Win_DX12_playmode_XR_il2cpp_2_gamma on version 2020.2
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -723,9 +685,8 @@ HDRP_DXR_Win_DX12_playmode_NonRenderGraph_il2cpp_2_Linear_2020.2:
     name: HDRP_DXR on Win_DX12_playmode_NonRenderGraph_il2cpp_2_Linear on version 2020.2
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -741,9 +702,8 @@ HDRP_DXR_Win_DX12_playmode_NonRenderGraph_il2cpp_2_gamma_2020.2:
     name: HDRP_DXR on Win_DX12_playmode_NonRenderGraph_il2cpp_2_gamma on version 2020.2
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -759,9 +719,8 @@ HDRP_DXR_Win_DX12_Standalone_il2cpp_4_Linear_2020.2:
     name: HDRP_DXR on Win_DX12_Standalone_il2cpp_4_Linear on version 2020.2
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -777,10 +736,9 @@ HDRP_DXR_Win_DX12_Standalone_il2cpp_4_Linear_2020.2:
 Build_HDRP_DXR_Win_DX12_Player_il2cpp_4_Linear_2020.2:
     name: Build HDRP_DXR on Win_DX12_il2cpp_4_Linear_Player on version 2020.2
     agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.large
-        model: rtx2080
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -799,9 +757,8 @@ HDRP_DXR_Win_DX12_Standalone_il2cpp_4_gamma_2020.2:
     name: HDRP_DXR on Win_DX12_Standalone_il2cpp_4_gamma on version 2020.2
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -817,10 +774,9 @@ HDRP_DXR_Win_DX12_Standalone_il2cpp_4_gamma_2020.2:
 Build_HDRP_DXR_Win_DX12_Player_il2cpp_4_gamma_2020.2:
     name: Build HDRP_DXR on Win_DX12_il2cpp_4_gamma_Player on version 2020.2
     agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.large
-        model: rtx2080
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -839,9 +795,8 @@ HDRP_DXR_Win_DX12_playmode_il2cpp_4_Linear_2020.2:
     name: HDRP_DXR on Win_DX12_playmode_il2cpp_4_Linear on version 2020.2
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -857,9 +812,8 @@ HDRP_DXR_Win_DX12_playmode_il2cpp_4_gamma_2020.2:
     name: HDRP_DXR on Win_DX12_playmode_il2cpp_4_gamma on version 2020.2
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -875,9 +829,8 @@ HDRP_DXR_Win_DX12_playmode_XR_il2cpp_4_Linear_2020.2:
     name: HDRP_DXR on Win_DX12_playmode_XR_il2cpp_4_Linear on version 2020.2
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -893,9 +846,8 @@ HDRP_DXR_Win_DX12_playmode_XR_il2cpp_4_gamma_2020.2:
     name: HDRP_DXR on Win_DX12_playmode_XR_il2cpp_4_gamma on version 2020.2
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -911,9 +863,8 @@ HDRP_DXR_Win_DX12_playmode_NonRenderGraph_il2cpp_4_Linear_2020.2:
     name: HDRP_DXR on Win_DX12_playmode_NonRenderGraph_il2cpp_4_Linear on version 2020.2
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -929,9 +880,8 @@ HDRP_DXR_Win_DX12_playmode_NonRenderGraph_il2cpp_4_gamma_2020.2:
     name: HDRP_DXR on Win_DX12_playmode_NonRenderGraph_il2cpp_4_gamma on version 2020.2
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -947,9 +897,8 @@ HDRP_DXR_Win_DX12_Standalone_mono_Linear_2020.2:
     name: HDRP_DXR on Win_DX12_Standalone_mono_Linear on version 2020.2
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -965,10 +914,9 @@ HDRP_DXR_Win_DX12_Standalone_mono_Linear_2020.2:
 Build_HDRP_DXR_Win_DX12_Player_mono_Linear_2020.2:
     name: Build HDRP_DXR on Win_DX12_mono_Linear_Player on version 2020.2
     agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.large
-        model: rtx2080
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -987,9 +935,8 @@ HDRP_DXR_Win_DX12_Standalone_mono_gamma_2020.2:
     name: HDRP_DXR on Win_DX12_Standalone_mono_gamma on version 2020.2
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -1005,10 +952,9 @@ HDRP_DXR_Win_DX12_Standalone_mono_gamma_2020.2:
 Build_HDRP_DXR_Win_DX12_Player_mono_gamma_2020.2:
     name: Build HDRP_DXR on Win_DX12_mono_gamma_Player on version 2020.2
     agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.large
-        model: rtx2080
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -1027,9 +973,8 @@ HDRP_DXR_Win_DX12_playmode_mono_Linear_2020.2:
     name: HDRP_DXR on Win_DX12_playmode_mono_Linear on version 2020.2
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -1045,9 +990,8 @@ HDRP_DXR_Win_DX12_playmode_mono_gamma_2020.2:
     name: HDRP_DXR on Win_DX12_playmode_mono_gamma on version 2020.2
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -1063,9 +1007,8 @@ HDRP_DXR_Win_DX12_playmode_XR_mono_Linear_2020.2:
     name: HDRP_DXR on Win_DX12_playmode_XR_mono_Linear on version 2020.2
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -1081,9 +1024,8 @@ HDRP_DXR_Win_DX12_playmode_XR_mono_gamma_2020.2:
     name: HDRP_DXR on Win_DX12_playmode_XR_mono_gamma on version 2020.2
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -1099,9 +1041,8 @@ HDRP_DXR_Win_DX12_playmode_NonRenderGraph_mono_Linear_2020.2:
     name: HDRP_DXR on Win_DX12_playmode_NonRenderGraph_mono_Linear on version 2020.2
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -1117,9 +1058,8 @@ HDRP_DXR_Win_DX12_playmode_NonRenderGraph_mono_gamma_2020.2:
     name: HDRP_DXR on Win_DX12_playmode_NonRenderGraph_mono_gamma on version 2020.2
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -1135,9 +1075,8 @@ HDRP_DXR_Win_DX12_Standalone_il2cpp_2_Linear_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_Standalone_il2cpp_2_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1156,10 +1095,9 @@ HDRP_DXR_Win_DX12_Standalone_il2cpp_2_Linear_CUSTOM-REVISION:
 Build_HDRP_DXR_Win_DX12_Player_il2cpp_2_Linear_CUSTOM-REVISION:
     name: Build HDRP_DXR on Win_DX12_il2cpp_2_Linear_Player on version CUSTOM-REVISION
     agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.large
-        model: rtx2080
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1182,9 +1120,8 @@ HDRP_DXR_Win_DX12_Standalone_il2cpp_2_gamma_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_Standalone_il2cpp_2_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1203,10 +1140,9 @@ HDRP_DXR_Win_DX12_Standalone_il2cpp_2_gamma_CUSTOM-REVISION:
 Build_HDRP_DXR_Win_DX12_Player_il2cpp_2_gamma_CUSTOM-REVISION:
     name: Build HDRP_DXR on Win_DX12_il2cpp_2_gamma_Player on version CUSTOM-REVISION
     agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.large
-        model: rtx2080
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1229,9 +1165,8 @@ HDRP_DXR_Win_DX12_playmode_il2cpp_2_Linear_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_playmode_il2cpp_2_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1251,9 +1186,8 @@ HDRP_DXR_Win_DX12_playmode_il2cpp_2_gamma_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_playmode_il2cpp_2_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1273,9 +1207,8 @@ HDRP_DXR_Win_DX12_playmode_XR_il2cpp_2_Linear_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_playmode_XR_il2cpp_2_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1295,9 +1228,8 @@ HDRP_DXR_Win_DX12_playmode_XR_il2cpp_2_gamma_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_playmode_XR_il2cpp_2_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1317,9 +1249,8 @@ HDRP_DXR_Win_DX12_playmode_NonRenderGraph_il2cpp_2_Linear_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_playmode_NonRenderGraph_il2cpp_2_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1339,9 +1270,8 @@ HDRP_DXR_Win_DX12_playmode_NonRenderGraph_il2cpp_2_gamma_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_playmode_NonRenderGraph_il2cpp_2_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1361,9 +1291,8 @@ HDRP_DXR_Win_DX12_Standalone_il2cpp_4_Linear_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_Standalone_il2cpp_4_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1382,10 +1311,9 @@ HDRP_DXR_Win_DX12_Standalone_il2cpp_4_Linear_CUSTOM-REVISION:
 Build_HDRP_DXR_Win_DX12_Player_il2cpp_4_Linear_CUSTOM-REVISION:
     name: Build HDRP_DXR on Win_DX12_il2cpp_4_Linear_Player on version CUSTOM-REVISION
     agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.large
-        model: rtx2080
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1408,9 +1336,8 @@ HDRP_DXR_Win_DX12_Standalone_il2cpp_4_gamma_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_Standalone_il2cpp_4_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1429,10 +1356,9 @@ HDRP_DXR_Win_DX12_Standalone_il2cpp_4_gamma_CUSTOM-REVISION:
 Build_HDRP_DXR_Win_DX12_Player_il2cpp_4_gamma_CUSTOM-REVISION:
     name: Build HDRP_DXR on Win_DX12_il2cpp_4_gamma_Player on version CUSTOM-REVISION
     agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.large
-        model: rtx2080
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1455,9 +1381,8 @@ HDRP_DXR_Win_DX12_playmode_il2cpp_4_Linear_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_playmode_il2cpp_4_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1477,9 +1402,8 @@ HDRP_DXR_Win_DX12_playmode_il2cpp_4_gamma_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_playmode_il2cpp_4_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1499,9 +1423,8 @@ HDRP_DXR_Win_DX12_playmode_XR_il2cpp_4_Linear_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_playmode_XR_il2cpp_4_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1521,9 +1444,8 @@ HDRP_DXR_Win_DX12_playmode_XR_il2cpp_4_gamma_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_playmode_XR_il2cpp_4_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1543,9 +1465,8 @@ HDRP_DXR_Win_DX12_playmode_NonRenderGraph_il2cpp_4_Linear_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_playmode_NonRenderGraph_il2cpp_4_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1565,9 +1486,8 @@ HDRP_DXR_Win_DX12_playmode_NonRenderGraph_il2cpp_4_gamma_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_playmode_NonRenderGraph_il2cpp_4_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1587,9 +1507,8 @@ HDRP_DXR_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1608,10 +1527,9 @@ HDRP_DXR_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
 Build_HDRP_DXR_Win_DX12_Player_mono_Linear_CUSTOM-REVISION:
     name: Build HDRP_DXR on Win_DX12_mono_Linear_Player on version CUSTOM-REVISION
     agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.large
-        model: rtx2080
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1634,9 +1552,8 @@ HDRP_DXR_Win_DX12_Standalone_mono_gamma_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_Standalone_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1655,10 +1572,9 @@ HDRP_DXR_Win_DX12_Standalone_mono_gamma_CUSTOM-REVISION:
 Build_HDRP_DXR_Win_DX12_Player_mono_gamma_CUSTOM-REVISION:
     name: Build HDRP_DXR on Win_DX12_mono_gamma_Player on version CUSTOM-REVISION
     agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.large
-        model: rtx2080
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1681,9 +1597,8 @@ HDRP_DXR_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1703,9 +1618,8 @@ HDRP_DXR_Win_DX12_playmode_mono_gamma_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_playmode_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1725,9 +1639,8 @@ HDRP_DXR_Win_DX12_playmode_XR_mono_Linear_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_playmode_XR_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1747,9 +1660,8 @@ HDRP_DXR_Win_DX12_playmode_XR_mono_gamma_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_playmode_XR_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1769,9 +1681,8 @@ HDRP_DXR_Win_DX12_playmode_NonRenderGraph_mono_Linear_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_playmode_NonRenderGraph_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -1791,9 +1702,8 @@ HDRP_DXR_Win_DX12_playmode_NonRenderGraph_mono_gamma_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_playmode_NonRenderGraph_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set

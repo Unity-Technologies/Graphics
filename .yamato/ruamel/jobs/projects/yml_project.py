@@ -28,7 +28,7 @@ def create_project_ymls(metafile):
                 for build_config in metafile['build_configs']:
                     for test_platform in metafile['test_platforms']:
                         for color_space in metafile['color_spaces']:
-
+                            
                             if test_platform['name'].lower() not in map(str.lower, api.get('exclude_test_platforms', [])):
 
                                 if test_platform['type'].lower() == 'standalone':

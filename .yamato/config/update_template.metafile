@@ -7,8 +7,10 @@ test_platforms:
 platforms:
   - name: Win
     apis:
-      - DX11
-      - Vulkan
+      - name: DX11
+        cmd: -force-d3d11
+      - name: Vulkan
+        cmd: -force-vulkan
 #  - name: OSX
 #    apis:
 #      - OpenGLCore

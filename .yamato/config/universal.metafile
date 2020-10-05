@@ -3,49 +3,53 @@ project:
   folder: UniversalGraphicsTest
 test_platforms:
   - type: Standalone
-    extra_utr_flags:
-      - [OSX_Metal]: --timeout=2400
-    extra_utr_flags_build:
-      - [Android_OpenGles3, Android_Vulkan]: --timeout=1800
-      - [Win_DX11, Win_DX12, Win_Vulkan]: --timeout=2000
+    timeout:
+      OSX_Metal: 2400
+    timeout_build:
+      Android: 1800
   - type: playmode
   - type: editmode
   - type: playmode
     name: playmode_perf_build
     extra_utr_flags:
-      - [all]: --scripting-backend=il2cpp
-      - [all]: --timeout=1200
-      - [all]: --performance-project-id=URP_Performance
-      - [all]: --testfilter=Build
-      - [all]: --suite=Editor
+      - --scripting-backend=il2cpp
+      - --timeout=1200
+      - --performance-project-id=URP_Performance
+      - --testfilter=Build
+      - --suite=Editor
   - type: playmode
     name: playmode_XR
     extra_utr_flags:
-      - [all]: --extra-editor-arg="-xr-tests" 
+      - --extra-editor-arg="-xr-tests" 
 platforms:
   - name: Win
     apis:
       - name: DX11
+        cmd: -force-d3d11
       - name: DX12
+        cmd: -force-d3d12
       - name: Vulkan
+        cmd: -force-vulkan
   - name: OSX
     apis:
       - name: Metal
         exclude_test_platforms:
-          - name: playmode_XR
+          - playmode_XR
       - name: OpenGLCore
         exclude_test_platforms:
-          - name: playmode_XR
-          - name: Standalone
+          - playmode_XR
+          - Standalone
   - name: Linux
     apis: 
       - name: OpenGLCore
+        cmd: -force-glcore
         exclude_test_platforms:
-          - name: Standalone
-          - name: playmode_XR
+          - Standalone
+          - playmode_XR
       - name: Vulkan
+        cmd: -force-vulkan
         exclude_test_platforms:
-          - name: playmode_XR
+          - playmode_XR
   - name: Android
     apis:
       - name: OpenGLES3
@@ -54,7 +58,7 @@ platforms:
     apis:
       - name: Metal
         exclude_test_platforms:
-          - name: playmode_XR
+          - playmode_XR
 build_configs:
 - name: il2cpp_2
   scripting_backend: il2cpp
