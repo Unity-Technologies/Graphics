@@ -15,12 +15,12 @@ The High Definition Render Pipeline does **not** support this Node.
 |:------------ |:-------------|:-----|:---|:---|
 | Position      | Output | Vector 3 | None | Position of the Camera's GameObject in world space |
 | Direction       | Output | Vector 3 | None | The Camera's forward vector direction |
-| Orthographic    | Output | Vector 1 | None | Returns 1 if the Camera is orthographic, otherwise 0 |
-| Near Plane       | Output | Vector 1 | None | The Camera's near plane distance |
-| Far Plane       | Output | Vector 1 | None | The Camera's far plane distance |
-| Z Buffer Sign   | Output | Vector 1 | None | Returns -1 when using a reversed Z Buffer, otherwise 1 |
-| Width       | Output | Vector 1 | None | The Camera's width if orthographic |
-| Height       | Output | Vector 1 | None | The Camera's height if orthographic |
+| Orthographic    | Output | Float    | None | Returns 1 if the Camera is orthographic, otherwise 0 |
+| Near Plane       | Output | Float    | None | The Camera's near plane distance |
+| Far Plane       | Output | Float    | None | The Camera's far plane distance |
+| Z Buffer Sign   | Output | Float    | None | Returns -1 when using a reversed Z Buffer, otherwise 1 |
+| Width       | Output | Float    | None | The Camera's width if orthographic |
+| Height       | Output | Float    | None | The Camera's height if orthographic |
 
 ## Generated Code Example
 

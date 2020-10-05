@@ -6,9 +6,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.1.0] - 2019-08-04
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
-
 ### Added
 - Added parallax mapping node and parallax occlusion mapping node.
 - Added the possibility to have multiple POM node in a single graph.
@@ -17,6 +14,8 @@ The version number for this package has increased due to a version update of a r
 ### Changed
 - Added method chaining support to shadergraph collection API.
 - Optimized ShaderSubGraph import dependencies to minimize unnecessary reimports when using CustomFunctionNode
+- Changed UI names from `Vector1` to `Float`
+- Renamed `Float` precision to `Single`
 
 ### Fixed
 - Fixed a bug where ShaderGraph subgraph nodes would not update their slot names or order
