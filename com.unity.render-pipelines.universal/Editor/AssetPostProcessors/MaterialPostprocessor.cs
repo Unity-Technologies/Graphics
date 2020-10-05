@@ -136,7 +136,16 @@ namespace UnityEditor.Rendering.Universal
 
                 var debug = "\n" + material.name;
 
-                var assetVersion = AssetDatabase.LoadAssetAtPath<AssetVersion>(asset);
+                AssetVersion assetVersion = null;
+                var allAssets = AssetDatabase.LoadAllAssetsAtPath(asset);
+                foreach (var subAsset in allAssets)
+                {
+                    if (subAsset is AssetVersion sub)
+                    {
+                        assetVersion = sub;
+                    }
+                }
+
                 if (!assetVersion)
                 {
                     wasUpgraded = true;
