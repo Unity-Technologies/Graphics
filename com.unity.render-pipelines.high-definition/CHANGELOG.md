@@ -28,6 +28,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Simple mode to Earth Preset for PBR Sky
 - Added the export of normals during the prepass for shadow matte for proper SSAO calculation.
 - Added the usage of SSAO for shadow matte unlit shader graph.
+- Added the support of input system V2
+- Added a new volume component parameter to control the max ray length of directional lights(case 1279849).
+- Added support for 'Pyramid' and 'Box' spot light shapes in path tracing.
+- Added high quality prefiltering option for Bloom.
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
@@ -99,6 +103,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed alignment of framesettings in HDRP Default Settings
 - Fixed an exception thrown when closing the look dev because there is no active SRP anymore.
 - Fixed an issue where entering playmode would close the LookDev window.
+- Fixed issue with rendergraph on console failing on SSS pass.
 - Fixed Cutoff not working properly with ray tracing shaders default and SG (case 1261292).
 - Fixed shader compilation issue with Hair shader and debug display mode
 - Fixed cubemap static preview not updated when the asset is imported.
@@ -114,6 +119,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a warning in materialevalulation
 - Fixed an error when building the player.
 - Fixed issue with box light not visible if range is below one and range attenuation is off.
+- Fixed an issue that caused a null reference when deleting camera component in a prefab. (case 1244430)
+- Fixed issue with bloom showing a thin black line after rescaling window. 
+- Fixed rendergraph motion vector resolve.
+- Fixed the Ray-Tracing related Debug Display not working in render graph mode.
+- Fix nan in pbr sky
+- Fixed Light skin not properly applied on the LookDev when switching from Dark Skin (case 1278802)
+- Fixed accumulation on DX11
+- Fixed issue with screen space UI not drawing on the graphics compositor (case 1279272).
+- Fixed error Maximum allowed thread group count is 65535 when resolution is very high. 
+- LOD meshes are now properly stripped based on the maximum lod value parameters contained in the HDRP asset.
+- Fixed an inconsistency in the LOD group UI where LOD bias was not the right one.
+- Fixed outlines in transitions between post-processed and plain regions in the graphics compositor (case 1278775).
+- Fix decal being applied twice with LOD Crossfade.
+- Fixed camera stacking for AOVs in the graphics compositor (case 1273223).
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
@@ -142,6 +161,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - On platforms that allow it skip the first mip of the depth pyramid and compute it alongside the depth buffer used for low res transparents.
 - When trying to install the local configuration package, if another one is already present the user is now asked whether they want to keep it or not.
 - Improved MSAA color resolve to fix issues when very bright and very dark samples are resolved together.
+- Improve performance of GPU light AABB generation
+- Removed the max clamp value for the RTR, RTAO and RTGI's ray length (case 1279849).
+- Meshes assigned with a decal material are not visible anymore in ray-tracing or path-tracing.
 
 ## [10.0.0] - 2019-06-10
 
