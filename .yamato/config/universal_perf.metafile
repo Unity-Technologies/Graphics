@@ -58,7 +58,7 @@ platforms:
     apis: 
       - name: Metal
         exclude_test_platforms:
-          - name: playmode_XR
+          - playmode_XR
 all:
   dependencies:
     - platform: Win

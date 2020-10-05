@@ -5,11 +5,12 @@ test_platforms:
   - type: Standalone
     extra_utr_flags:
       - compilation-errors-as-warnings
- # - type: playmode
   - type: editmode
 platforms:
   - name: Win
-    apis: 
+    apis:
+      - name: DX11
+        cmd: -force-d3d11
 build_configs:
 - name: il2cpp_2
   scripting_backend: il2cpp
@@ -26,10 +27,8 @@ color_spaces:
 all:
   dependencies:
     - platform: Win
-      api: ''
+      api: DX11
       build_config: il2cpp_4
       color_space: Linear
       test_platforms:
         - Standalone
-        - editmode
-  #      - playmode

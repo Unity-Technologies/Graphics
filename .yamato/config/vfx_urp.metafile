@@ -6,14 +6,11 @@ test_platforms:
     timeout:
       OSX_Metal: 2400
   - type: playmode
-#  - type: editmode
 platforms:
   - name: Win
     apis:
-     - name: DX11
+      - name: DX11
         cmd: -force-d3d11
-      # - name: DX12
-      #  cmd: -force-d3d12
       - name: Vulkan
         cmd: -force-vulkan
   - name: OSX 
@@ -36,13 +33,6 @@ platforms:
         cmd: -force-vulkan
         exclude_test_platforms:
           - playmode_XR
-#  - name: Android
-#    apis: 
-#      - Vulkan
-#      - OpenGLES3
-#  - name: iPhone
-#    apis: 
-#      - Metal
 build_configs:
 - name: il2cpp_2
   scripting_backend: il2cpp

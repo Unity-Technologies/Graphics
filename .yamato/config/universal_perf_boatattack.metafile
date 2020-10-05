@@ -48,7 +48,7 @@ platforms:
     apis: 
       - name: Metal
         exclude_test_platforms:
-          - name: playmode_XR
+          - playmode_XR
 build_configs:
 - name: il2cpp_2
   scripting_backend: il2cpp
