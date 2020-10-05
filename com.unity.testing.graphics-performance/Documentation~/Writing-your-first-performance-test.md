@@ -1,7 +1,8 @@
 ## Writing your first performance test
 The following test captures frame timings at runtime. You can use this as a foundation for your first test:
 
-`using System.Collections;
+```
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
@@ -53,7 +54,8 @@ public class MyRuntimePerformanceTests : PerformanceTests
         // Calls a utility function to measure all markers and sends the data using the following format: Timing,CPU,sampler.name.
         yield return MeasureProfilingSamplers(GetAllMarkers(), WarmupCount, MeasurementCount);
     }
-}`
+}
+```
 
 <a name="running-and-analyzing-the-result"></a>
 ## Running and analyzing the result
@@ -71,4 +73,4 @@ If you have gathered the timing over 30 frames, a test might not report the deta
 - Percentile
 - Sum
 
-If you are running multiple tests, you can use Yamato to automate them (see [Using Yamato to automate your tests](#using-yamato-to-automate-your-tests)). To visualize the data Unity gathers from your tests, you can use Grafana (see [Using Grafana to view a performance test report](#using-grafana-to-view-a-performance-test-report)).
+If you are running multiple tests, you can use Yamato to automate them (see [Using Yamato to automate your tests](Using-Yamato-to-automate-your-tests.md)). To visualize the data Unity gathers from your tests, you can use Grafana (see [Using Grafana to view a performance test report](Using-Grafana-to-view-a-performance-test-report.md)).

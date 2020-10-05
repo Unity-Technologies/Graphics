@@ -19,7 +19,7 @@ You can define Static Shader Analysis in the **Static Analysis Tests** asset.
 
 A shared filter is a convenient way to reuse one or more filters across multiple asset definitions. Define a shared filter in the Static Analysis Tests asset’s **Filters** section.
 
-![](Images\EditorShaderStaticAnalysisAsset_Filters.png)
+![](Images/EditorShaderStaticAnalysisAsset_Filters.png)
 
 | Property             | Description                                                  |
 | -------------------- | ------------------------------------------------------------ |

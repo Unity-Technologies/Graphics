@@ -1,5 +1,5 @@
 # Using Grafana to view a performance test report
-You can use [Grafana](https://grafana.com/docs/grafana/latest/getting-started/what-is-grafana/)to display all of your performance metrics. Grafana is easier to customize than the [Observer CDS dashboard](https://observer.cds.internal.unity3d.com/project), and it displays your performance metrics more clearly, which is useful for complex tests. To display your performance metrics, you can write a query with Google BigQuery. If this is your first time using Grafana, see [Grafana Getting Started](https://grafana.com/docs/grafana/latest/guides/getting_started/). To learn what is possible with Grafana, investigate the [Grafana Playground](https://play.grafana.org/).
+You can use [Grafana](https://grafana.com/docs/grafana/latest/getting-started/what-is-grafana/) to display all of your performance metrics. Grafana is easier to customize than the [Observer CDS dashboard](https://observer.cds.internal.unity3d.com/project), and it displays your performance metrics more clearly, which is useful for complex tests. To display your performance metrics, you can write a query with Google BigQuery. If this is your first time using Grafana, see [Grafana Getting Started](https://grafana.com/docs/grafana/latest/guides/getting_started/). To learn what is possible with Grafana, investigate the [Grafana Playground](https://play.grafana.org/).
 
 To access Unity’s internal Grafana:
 
@@ -24,7 +24,7 @@ Some common functions do not work as expected in Grafana, so you need to use an 
 
 The following example query retrieves the frame timings in HDRP:
 
-`#standardSQL
+```#standardSQL
 SELECT
     -- Select the average of the median of all tests.
 	AVG(sampleGroup.Median) as median,
@@ -57,10 +57,15 @@ GROUP BY time, sampleGroup.Definition.Name
 -- Discard medians that have 0 in value.
 HAVING median <> 0
 -- Sort by run date and metric name so that the metrics are always in the same order in the graph.
-ORDER BY time, metric`
+ORDER BY time, metric
+```
+
+```
 <a name="naming-convention"></a>
+```
+
 ## Naming convention
-Before you can report your data in Grafana, you need to pack the information required into a SampleGroup name in Unity. Grafana only allows you to pair one[SampleGroup](https://docs.unity3d.com/Packages/com.unity.test-framework.performance@1.0/api/Unity.PerformanceTesting.SampleGroup.html) name to one metric, so you need to have a  well-defined naming convention.
+Before you can report your data in Grafana, you need to pack the information required into a SampleGroup name in Unity. Grafana only allows you to pair one [SampleGroup](https://docs.unity3d.com/Packages/com.unity.test-framework.performance@1.0/api/Unity.PerformanceTesting.SampleGroup.html) name to one metric, so you need to have a  well-defined naming convention.
 
 The following functions from the `PerformanceTestUtils` class format the data into an effective naming convention. This naming convention makes it easy for you to parse your SampleGroup in Grafana with regular expressions (regex):
 
@@ -71,7 +76,8 @@ The following functions from the `PerformanceTestUtils` class format the data in
 
 When you filter your scenes in Grafana, you can use [REGEXP_CONTAINS](https://cloud.google.com/bigquery/docs/reference/standard-sql/functions-and-operators#regexp_contains) to match a certain format and [REGEXP_EXTRACT](https://cloud.google.com/bigquery/docs/reference/standard-sql/functions-and-operators#regexp_extract) to extract a certain part of the name. For example, the following query uses both of these functions to filter timings and display only the name of the counter:
 
-`#standardSQL
+```
+#standardSQL
 SELECT
     AVG(sampleGroup.Median) as median, run.EndTime as time,
     REGEXP_EXTRACT(sampleGroup.Definition.Name, 'Timing,\\w+,(.*)') as metric
@@ -88,4 +94,5 @@ WHERE
     AND REGEXP_CONTAINS(sampleGroup.Definition.Name, 'Timing,CPU,${Selected_counter:regex}') -- Test suite filters.
 GROUP BY time, sampleGroup.Definition.Name
 HAVING median <> 0
-ORDER BY time, metric`
+ORDER BY time, metric
+```
