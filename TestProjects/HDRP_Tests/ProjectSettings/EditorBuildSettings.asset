@@ -168,6 +168,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1711_DecalMasks_3RT.unity
     guid: edea5f204710d6f428c50856ebb8ff44
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1712_DecalAngleFading.unity
+    guid: 4b93985ba01d5aa49a5f0cdd342faa27
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1800_Classification.unity
     guid: 5043daebf48d1b740bb244b9a55508ef
   - enabled: 1
