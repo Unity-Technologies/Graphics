@@ -158,7 +158,7 @@ namespace UnityEditor.VFX.UI
                 // The following lines preserves the old behavior of tpl.instantiate(this).
                 var ve = tpl.Instantiate();
                 while (ve.hierarchy.childCount != 0)
-                    this.hierarchy.Add(ve.hierarchy[0]);
+                    contentContainer.hierarchy.Add(ve.hierarchy[0]);
             }
 
             contentContainer.AddStyleSheetPath("VFXComponentBoard");
@@ -617,7 +617,7 @@ namespace UnityEditor.VFX.UI
                         // The following lines preserves the old behavior of tpl.instantiate(this).
                         var ve = tpl.Instantiate();
                         while (ve.hierarchy.childCount != 0)
-                            this.hierarchy.Add(ve.hierarchy[0]);
+                            m_EventsContainer.hierarchy.Add(ve.hierarchy[0]);
                     }
 
                     VFXComponentBoardEventUI newUI = m_EventsContainer.Children().Last() as VFXComponentBoardEventUI;
