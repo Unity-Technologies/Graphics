@@ -6,7 +6,7 @@ namespace UnityEditor.ShaderGraph.Internal
     [Serializable]
     [FormerName("UnityEditor.ShaderGraph.Texture2DArrayShaderProperty")]
     [BlackboardInputInfo(51)]
-    public sealed class Texture2DArrayShaderProperty : AbstractShaderProperty<SerializableTextureArray>
+    public class Texture2DArrayShaderProperty : AbstractShaderProperty<SerializableTextureArray>
     {
         internal Texture2DArrayShaderProperty()
         {
@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override string GetPropertyBlockString()
         {
-            return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2DArray) = \"white\" {{}}";
+            return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2DArray) = \"\" {{}}";
         }
 
         internal override string GetPropertyDeclarationString(string delimiter = ";")

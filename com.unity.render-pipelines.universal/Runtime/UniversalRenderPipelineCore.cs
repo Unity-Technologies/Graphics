@@ -179,7 +179,12 @@ namespace UnityEngine.Rendering.Universal
         public bool isDitheringEnabled;
         public AntialiasingMode antialiasing;
         public AntialiasingQuality antialiasingQuality;
-        internal ScriptableRenderer renderer;
+
+        /// <summary>
+        /// Returns the current renderer used by this camera.
+        /// <see cref="ScriptableRenderer"/>
+        /// </summary>
+        public ScriptableRenderer renderer;
 
         /// <summary>
         /// True if this camera is resolving rendering to the final camera render target.
