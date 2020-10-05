@@ -110,6 +110,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader copyDepthBufferPS;
             [Reload("Runtime/ShaderLibrary/Blit.shader")]
             public Shader blitPS;
+            [Reload("Runtime/ShaderLibrary/BlitColorAndDepth.shader")]
+            public Shader blitColorAndDepthPS;
 
             [Reload("Runtime/ShaderLibrary/DownsampleDepth.shader")]
             public Shader downsampleDepthPS;

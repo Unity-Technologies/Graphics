@@ -14,7 +14,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_2_Li
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -32,7 +32,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_2_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-"
@@ -54,7 +54,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_2_ga
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -72,7 +72,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_2_gamma_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-"
@@ -93,7 +93,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_2_Line
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --testfilter=Build
@@ -111,7 +111,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_2_gamm
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack --testfilter=Build
@@ -130,7 +130,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_4_Li
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -148,7 +148,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_4_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-"
@@ -170,7 +170,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_4_ga
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -188,7 +188,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_4_gamma_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-"
@@ -209,7 +209,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_4_Line
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --testfilter=Build
@@ -227,7 +227,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_4_gamm
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack --testfilter=Build
@@ -246,7 +246,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_mono_2_Line
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -264,7 +264,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_2_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-"
@@ -286,7 +286,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_mono_2_gamm
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -304,7 +304,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_2_gamma_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-"
@@ -325,7 +325,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_2_Linear
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --testfilter=Build
@@ -343,7 +343,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_2_gamma_
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack --testfilter=Build
@@ -362,7 +362,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_mono_4_Line
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -380,7 +380,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_4_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-"
@@ -402,7 +402,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_mono_4_gamm
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -420,7 +420,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_4_gamma_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-"
@@ -441,7 +441,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_4_Linear
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --testfilter=Build
@@ -459,7 +459,471 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_4_gamma_
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack --testfilter=Build
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_2_Linear_2020.2:
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_playmode_runtime_il2cpp_2_Linear on version 2020.2
+    agent:
+        type: Unity::mobile::iPhone
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.medium
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --report-performance-data --performance-project-id=BoatAttack
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+    dependencies:
+      -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_2_Linear_2020.2
+         rerun: on-new-revision
+Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_2_Linear_2020.2:
+    name: Build URP_Performance_BoatAttack on iPhone_Metal_il2cpp_2_Linear_Player on version 2020.2
+    agent:
+        type: Unity::VM::osx
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c iOS   --wait --published-only
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-"
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+        players:
+            paths:
+              -  "players/**"
+URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_2_gamma_2020.2:
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_playmode_runtime_il2cpp_2_gamma on version 2020.2
+    agent:
+        type: Unity::mobile::iPhone
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.medium
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --report-performance-data --performance-project-id=BoatAttack
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+    dependencies:
+      -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_2_gamma_2020.2
+         rerun: on-new-revision
+Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_2_gamma_2020.2:
+    name: Build URP_Performance_BoatAttack on iPhone_Metal_il2cpp_2_gamma_Player on version 2020.2
+    agent:
+        type: Unity::VM::osx
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c iOS   --wait --published-only
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-"
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+        players:
+            paths:
+              -  "players/**"
+URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_2_Linear_2020.2:
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_editmode_build_il2cpp_2_Linear on version 2020.2
+    agent:
+        type: Unity::mobile::iPhone
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.medium
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c iOS   --wait --published-only
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --testfilter=Build
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_2_gamma_2020.2:
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_editmode_build_il2cpp_2_gamma on version 2020.2
+    agent:
+        type: Unity::mobile::iPhone
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.medium
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c iOS   --wait --published-only
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack --testfilter=Build
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_4_Linear_2020.2:
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_playmode_runtime_il2cpp_4_Linear on version 2020.2
+    agent:
+        type: Unity::mobile::iPhone
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.medium
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --report-performance-data --performance-project-id=BoatAttack
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+    dependencies:
+      -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_4_Linear_2020.2
+         rerun: on-new-revision
+Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_4_Linear_2020.2:
+    name: Build URP_Performance_BoatAttack on iPhone_Metal_il2cpp_4_Linear_Player on version 2020.2
+    agent:
+        type: Unity::VM::osx
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c iOS   --wait --published-only
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-"
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+        players:
+            paths:
+              -  "players/**"
+URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_4_gamma_2020.2:
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_playmode_runtime_il2cpp_4_gamma on version 2020.2
+    agent:
+        type: Unity::mobile::iPhone
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.medium
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --report-performance-data --performance-project-id=BoatAttack
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+    dependencies:
+      -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_4_gamma_2020.2
+         rerun: on-new-revision
+Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_4_gamma_2020.2:
+    name: Build URP_Performance_BoatAttack on iPhone_Metal_il2cpp_4_gamma_Player on version 2020.2
+    agent:
+        type: Unity::VM::osx
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c iOS   --wait --published-only
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-"
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+        players:
+            paths:
+              -  "players/**"
+URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_4_Linear_2020.2:
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_editmode_build_il2cpp_4_Linear on version 2020.2
+    agent:
+        type: Unity::mobile::iPhone
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.medium
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c iOS   --wait --published-only
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --testfilter=Build
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_4_gamma_2020.2:
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_editmode_build_il2cpp_4_gamma on version 2020.2
+    agent:
+        type: Unity::mobile::iPhone
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.medium
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c iOS   --wait --published-only
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack --testfilter=Build
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_mono_2_Linear_2020.2:
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_playmode_runtime_mono_2_Linear on version 2020.2
+    agent:
+        type: Unity::mobile::iPhone
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.medium
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --report-performance-data --performance-project-id=BoatAttack
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+    dependencies:
+      -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_2_Linear_2020.2
+         rerun: on-new-revision
+Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_2_Linear_2020.2:
+    name: Build URP_Performance_BoatAttack on iPhone_Metal_mono_2_Linear_Player on version 2020.2
+    agent:
+        type: Unity::VM::osx
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c iOS   --wait --published-only
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-"
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+        players:
+            paths:
+              -  "players/**"
+URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_mono_2_gamma_2020.2:
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_playmode_runtime_mono_2_gamma on version 2020.2
+    agent:
+        type: Unity::mobile::iPhone
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.medium
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --report-performance-data --performance-project-id=BoatAttack
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+    dependencies:
+      -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_2_gamma_2020.2
+         rerun: on-new-revision
+Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_2_gamma_2020.2:
+    name: Build URP_Performance_BoatAttack on iPhone_Metal_mono_2_gamma_Player on version 2020.2
+    agent:
+        type: Unity::VM::osx
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c iOS   --wait --published-only
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-"
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+        players:
+            paths:
+              -  "players/**"
+URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_2_Linear_2020.2:
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_editmode_build_mono_2_Linear on version 2020.2
+    agent:
+        type: Unity::mobile::iPhone
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.medium
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c iOS   --wait --published-only
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --testfilter=Build
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_2_gamma_2020.2:
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_editmode_build_mono_2_gamma on version 2020.2
+    agent:
+        type: Unity::mobile::iPhone
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.medium
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c iOS   --wait --published-only
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack --testfilter=Build
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_mono_4_Linear_2020.2:
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_playmode_runtime_mono_4_Linear on version 2020.2
+    agent:
+        type: Unity::mobile::iPhone
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.medium
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --report-performance-data --performance-project-id=BoatAttack
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+    dependencies:
+      -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_4_Linear_2020.2
+         rerun: on-new-revision
+Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_4_Linear_2020.2:
+    name: Build URP_Performance_BoatAttack on iPhone_Metal_mono_4_Linear_Player on version 2020.2
+    agent:
+        type: Unity::VM::osx
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c iOS   --wait --published-only
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-"
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+        players:
+            paths:
+              -  "players/**"
+URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_mono_4_gamma_2020.2:
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_playmode_runtime_mono_4_gamma on version 2020.2
+    agent:
+        type: Unity::mobile::iPhone
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.medium
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --report-performance-data --performance-project-id=BoatAttack
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+    dependencies:
+      -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_4_gamma_2020.2
+         rerun: on-new-revision
+Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_4_gamma_2020.2:
+    name: Build URP_Performance_BoatAttack on iPhone_Metal_mono_4_gamma_Player on version 2020.2
+    agent:
+        type: Unity::VM::osx
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c iOS   --wait --published-only
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-"
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+        players:
+            paths:
+              -  "players/**"
+URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_4_Linear_2020.2:
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_editmode_build_mono_4_Linear on version 2020.2
+    agent:
+        type: Unity::mobile::iPhone
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.medium
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c iOS   --wait --published-only
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --testfilter=Build
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_4_gamma_2020.2:
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_editmode_build_mono_4_gamma on version 2020.2
+    agent:
+        type: Unity::mobile::iPhone
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.medium
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack --testfilter=Build
@@ -479,7 +943,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_2_Li
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -526,7 +990,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_2_ga
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -617,7 +1081,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_4_Li
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -664,7 +1128,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_4_ga
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -755,7 +1219,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_mono_2_Line
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -802,7 +1266,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_mono_2_gamm
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -893,7 +1357,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_mono_4_Line
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -940,7 +1404,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_mono_4_gamm
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:

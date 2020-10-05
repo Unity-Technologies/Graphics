@@ -11,6 +11,7 @@ def utr_playmode_flags(suite='playmode', testproject='.', editor_location='.Edit
         f'--extra-editor-arg="-scriptingbackend={scripting_backend}"',
         f'--extra-editor-arg="-apicompatibilitylevel={api_level}"',
         f'--extra-editor-arg="-colorspace={color_space}"'
+        f'--reruncount=2'
         ]
     return [f for f in flags if f]
 
@@ -27,6 +28,7 @@ def utr_editmode_flags(suite='editor', platform='editmode', testproject='.', edi
         f'--extra-editor-arg="-scriptingbackend={scripting_backend}"',
         f'--extra-editor-arg="-apicompatibilitylevel={api_level}"',
         f'--extra-editor-arg="-colorspace={color_space}"'
+        f'--reruncount=2'
         ]
     return [f for f in flags if f]
 
@@ -43,6 +45,7 @@ def utr_standalone_not_split_flags(platform_spec, suite='playmode', platform='St
         f'--extra-editor-arg="-scriptingbackend={scripting_backend}"',
         f'--extra-editor-arg="-apicompatibilitylevel={api_level}"',
         f'--extra-editor-arg="-colorspace={color_space}"'
+        f'--reruncount=2'
         ]
     return [f for f in flags if f]
 
@@ -59,6 +62,7 @@ def utr_standalone_split_flags(platform_spec, suite='playmode', platform='Standa
         f'--extra-editor-arg="-scriptingbackend={scripting_backend}"',
         f'--extra-editor-arg="-apicompatibilitylevel={api_level}"',
         f'--extra-editor-arg="-colorspace={color_space}"'
+        f'--reruncount=2'
         ]
     return [f for f in flags if f]
 
