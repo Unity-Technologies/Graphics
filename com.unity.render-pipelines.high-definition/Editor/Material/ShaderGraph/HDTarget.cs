@@ -7,6 +7,7 @@ using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.UIElements;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.UIElements;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEditor.ShaderGraph.Legacy;
@@ -39,7 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     sealed class HDTarget : Target, IHasMetadata, ILegacyTarget
     {
         // Constants
-        const string kAssetGuid = "61d9843d4027e3e4a924953135f76f3c";
+        static readonly GUID kSourceCodeGuid = new GUID("61d9843d4027e3e4a924953135f76f3c"); // HDTarget.cs
 
         // SubTarget
         List<SubTarget> m_SubTargets;
@@ -94,7 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             // Setup the Target
-            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
+            context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
 
             // Process SubTargets
             TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
@@ -180,6 +181,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             // SubTarget
             m_ActiveSubTarget.value.CollectShaderProperties(collector, generationMode);
+
+            collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsArray);
+            collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsIndirectionArray);
+            collector.AddShaderProperty(LightmappingShaderProperties.kShadowMasksArray);
         }
 
         public override void ProcessPreviewMaterial(Material material)
@@ -797,40 +802,51 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public static DefineCollection SceneSelection = new DefineCollection
         {
+            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
             { CoreKeywordDescriptors.SceneSelectionPass, 1 },
         };
 
         public static DefineCollection DepthForwardOnly = new DefineCollection
         {
-            { RayTracingNode.GetRayTracingKeyword(), 0 },
+            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
             { CoreKeywordDescriptors.WriteNormalBuffer, 1 },
         };
 
-        public static DefineCollection ShaderGraphRaytracingHigh = new DefineCollection
+        public static DefineCollection DepthForwardOnlyUnlit = new DefineCollection
         {
-            { RayTracingNode.GetRayTracingKeyword(), 0 },
+            { CoreKeywordDescriptors.WriteNormalBuffer, 1, new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, true)},
+        };
+
+        public static DefineCollection ShaderGraphRaytracingDefault = new DefineCollection
+        {
+            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
         };
 
         public static DefineCollection TransparentDepthPrepass = new DefineCollection
         {
-            { RayTracingNode.GetRayTracingKeyword(), 0 },
+            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
         };
 
         public static DefineCollection TransparentDepthPostpass = new DefineCollection
         {
-            { RayTracingNode.GetRayTracingKeyword(), 0 },
+            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
         };
 
         public static DefineCollection Forward = new DefineCollection
         {
             { CoreKeywordDescriptors.HasLightloop, 1 },
-            { RayTracingNode.GetRayTracingKeyword(), 0 },
+            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
+        };
+
+        public static DefineCollection ForwardUnlit = new DefineCollection
+        {
+            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
         };
 
         public static DefineCollection BackThenFront = new DefineCollection
         {
             { CoreKeywordDescriptors.HasLightloop, 1 },
-            { RayTracingNode.GetRayTracingKeyword(), 0 },
+            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
             // { CoreKeywordDescriptors.LightList, 1 }, // BackThenFront Transparent use #define USE_CLUSTERED_LIGHTLIST 
         };
     }
@@ -908,6 +924,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kStandardLit = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StandardLit/StandardLit.hlsl";
         public const string kPassForwardUnlit = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl";
         public const string kPassConstant = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassConstant.hlsl";
+        public const string kPassFullScreenDebug = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassFullScreenDebug.hlsl";
 
         public static IncludeCollection MinimalCorePregraph = new IncludeCollection
         {
