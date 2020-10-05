@@ -25,7 +25,12 @@ def _job(project, test_platform_name, editor, platform, api, cmd):
     job.add_var_custom_revision(editor["track"])
     job.add_commands(cmd)
     job.add_artifacts_test_results()
-    job.add_artifacts_project_logs(project["folder"])
+
+    if test_platform_name.lower()=='standalone':
+        job.add_artifacts_project_logs(project.get("folder_standalone", project["folder"]))
+    else:
+        job.add_artifacts_project_logs(project["folder"])
+        
 
 
     dependencies = [{

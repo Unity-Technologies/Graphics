@@ -94,7 +94,7 @@ HDRP_Win_DX12_Standalone_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/HDRP_Tests/Logs/*.log"
+              -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
     dependencies:
       -  path: .yamato/hdrp-win-dx12.yml#Build_HDRP_Win_DX12_Player_trunk
          rerun: on-new-revision
@@ -212,7 +212,7 @@ HDRP_Win_DX12_Standalone_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/HDRP_Tests/Logs/*.log"
+              -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
     dependencies:
       -  path: .yamato/hdrp-win-dx12.yml#Build_HDRP_Win_DX12_Player_2020.2
          rerun: on-new-revision
@@ -347,7 +347,7 @@ HDRP_Win_DX12_Standalone_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/HDRP_Tests/Logs/*.log"
+              -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always

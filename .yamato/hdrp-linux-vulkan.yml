@@ -82,7 +82,7 @@ HDRP_Linux_Vulkan_Standalone_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/HDRP_Tests/Logs/*.log"
+              -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
 HDRP_Linux_Vulkan_playmode_2020.2:
     name: HDRP on Linux_Vulkan_playmode on version 2020.2
     agent:
@@ -162,7 +162,7 @@ HDRP_Linux_Vulkan_Standalone_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/HDRP_Tests/Logs/*.log"
+              -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
 HDRP_Linux_Vulkan_playmode_CUSTOM-REVISION:
     name: HDRP on Linux_Vulkan_playmode on version CUSTOM-REVISION
     agent:
@@ -255,7 +255,7 @@ HDRP_Linux_Vulkan_Standalone_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/HDRP_Tests/Logs/*.log"
+              -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
