@@ -551,6 +551,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     SetupShaderLightConstants(cmd, ref renderingData);
 
                     // Setup global keywords.
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._GBUFFER_NORMALS_OCT, this.AccurateGbufferNormals);
                     bool isShadowMask = renderingData.lightData.supportsMixedLighting && this.MixedLightingSetup == MixedLightingSetup.ShadowMask;
                     bool isShadowMaskAlways = isShadowMask && QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask;
                     bool isSubtractive = renderingData.lightData.supportsMixedLighting && this.MixedLightingSetup == MixedLightingSetup.Subtractive;
