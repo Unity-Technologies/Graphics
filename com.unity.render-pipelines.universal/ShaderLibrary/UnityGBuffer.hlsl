@@ -16,15 +16,18 @@
 #endif
 
 #define kLightingInvalid  -1  // No dynamic lighting: can aliase any other material type as they are skipped using stencil
+#define kLightingLit       1  // lit shader
 #define kLightingSimpleLit 2  // Simple lit shader
 // clearcoat 3
 // backscatter 4
 // skin 5
 
+// Material flags
 #define kMaterialFlagReceiveShadowsOff        1 // Does not receive dynamic shadows
 #define kMaterialFlagSpecularHighlightsOff    2 // Does not receivce specular
 #define kMaterialFlagSubtractiveMixedLighting 4 // The geometry uses subtractive mixed lighting
 
+// Light flags.
 #define kLightFlagSubtractiveMixedLighting    4 // The light uses subtractive mixed lighting.
 
 struct FragmentOutput
@@ -48,30 +51,66 @@ uint UnpackMaterialFlags(float packedMaterialFlags)
     return uint((packedMaterialFlags * 255.0h) + 0.5h);
 }
 
+#ifdef _GBUFFER_NORMALS_OCT
+half3 PackNormal(half3 n)
+{
+    float2 octNormalWS = PackNormalOctQuadEncode(n);                  // values between [-1, +1], must use fp32 on Nintendo Switch.
+    float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0, +1]
+    return PackFloat2To888(remappedOctNormalWS);                      // values between [ 0, +1]
+}
+
+half3 UnpackNormal(half3 pn)
+{
+    half2 remappedOctNormalWS = Unpack888ToFloat2(pn);                // values between [ 0, +1]
+    half2 octNormalWS = remappedOctNormalWS.xy * 2.0h - 1.0h;         // values between [-1, +1]
+    return UnpackNormalOctQuadEncode(octNormalWS);                    // values between [-1, +1]
+}
+
+half PackSmoothness(half s, int lightingMode)
+{
+    if (lightingMode == kLightingSimpleLit)                           // See SimpleLitInput.hlsl, SampleSpecularSmoothness().
+        return 0.1h * log2(s) - 0.1h;                                 // values between [ 0, +1]
+    else
+        return s;                                                     // values between [ 0, +1]
+}
+
+half UnpackSmoothness(half ps, int lightingMode)
+{
+    if (lightingMode == kLightingSimpleLit)                           // See SimpleLitInput.hlsl, SampleSpecularSmoothness().
+        return exp2(10.0h * ps + 1.0h);
+    else
+        return ps;                                                    // values between [ 0, +1]
+}
+
+#else
+half3 PackNormal(half3 n)
+{ return n; }                                                         // values between [-1, +1]
+
+half3 UnpackNormal(half3 pn)
+{ return pn; }                                                        // values between [-1, +1]
+
+half PackSmoothness(half s, int lightingMode)
+{
+    if (lightingMode == kLightingSimpleLit)                           // See SimpleLitInput.hlsl, SampleSpecularSmoothness().
+        return 0.1h * log2(s) - 0.1h;                                 // Normally values between [-1, +1] but need [0; +1] to make terrain blending works
+    else
+        return s;                                                     // Normally values between [-1, +1] but need [0; +1] to make terrain blending works
+}
+
+half UnpackSmoothness(half ps, int lightingMode)
+{
+    if (lightingMode == kLightingSimpleLit)                           // See SimpleLitInput.hlsl, SampleSpecularSmoothness().
+        return exp2(10.0h * ps + 1.0h);                               // values between [ 0, +1]
+    else
+        return ps;                                                    // values between [ 0, +1]
+}
+#endif
+
 // This will encode SurfaceData into GBuffer
 FragmentOutput SurfaceDataToGbuffer(SurfaceData surfaceData, InputData inputData, half3 globalIllumination, int lightingMode)
 {
-#if _GBUFFER_NORMALS_OCT
-    float2 octNormalWS = PackNormalOctQuadEncode(inputData.normalWS); // values between [-1, +1], must use fp32 on Nintendo Switch.
-    float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
-    half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
-
-    // See SimpleLitInput.hlsl, SampleSpecularSmoothness().
-    half packedSmoothness;
-    if (lightingMode == kLightingSimpleLit)
-        packedSmoothness = 0.1h * log2(surfaceData.smoothness) - 0.1h; // values between [ 0,  1]
-    else
-        packedSmoothness = surfaceData.smoothness;                     // values between [ 0,  1]
-#else
-    half3 packedNormalWS = inputData.normalWS;                         // values between [-1,  1]
-
-    // See SimpleLitInput.hlsl, SampleSpecularSmoothness().
-    half packedSmoothness;
-    if (lightingMode == kLightingSimpleLit)
-        packedSmoothness = 0.2h * log2(surfaceData.smoothness) - 0.2h - 1.0h; // values between [-1,  1]
-    else
-        packedSmoothness = surfaceData.smoothness * 2.0h - 1.0h;       // values between [-1,  1]
-#endif
+    half3 packedNormalWS = PackNormal(inputData.normalWS);
+    half packedSmoothness = PackSmoothness(surfaceData.smoothness, lightingMode);
 
     uint materialFlags = 0;
 
@@ -108,19 +147,7 @@ SurfaceData SurfaceDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer
     uint materialFlags = UnpackMaterialFlags(gbuffer0.a);
     surfaceData.occlusion = 1.0; // Not used by SimpleLit material.
     surfaceData.specular = gbuffer1.rgb;
-    half smoothness;
-
-#if _GBUFFER_NORMALS_OCT
-    if (lightingMode == kLightingSimpleLit)
-        smoothness = exp2(10.0h * gbuffer2.a + 1.0h);
-    else
-        smoothness = gbuffer2.a;
-#else
-    if (lightingMode == kLightingSimpleLit)
-        smoothness = exp2(5.0h * gbuffer2.a + 6.0h);
-    else
-        smoothness = gbuffer2.a * 0.5h + 0.5h;
-#endif
+    half smoothness = UnpackSmoothness(gbuffer2.a, lightingMode);
 
     surfaceData.metallic = 0.0; // Not used by SimpleLit material.
     surfaceData.alpha = 1.0; // gbuffer only contains opaque materials
@@ -135,17 +162,8 @@ SurfaceData SurfaceDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer
 // This will encode SurfaceData into GBuffer
 FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half smoothness, half3 globalIllumination)
 {
-    // Normals are NOT normalized on purpose so that TerrainLitPasses can emulate some kind of normal "blending" by scaling down normals in the splatmap pass.
-
-#if _GBUFFER_NORMALS_OCT
-    float2 octNormalWS = PackNormalOctQuadEncode(inputData.normalWS); // values between [-1, +1], must use fp32 on Nintendo Switch.
-    float2 remappedOctNormalWS = octNormalWS * 0.5 + 0.5;             // values between [ 0,  1]
-    half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);
-    half packedSmoothness = smoothness;
-#else
-    half3 packedNormalWS = inputData.normalWS;                       // values between [-1,  1]
-    half packedSmoothness = smoothness * 2.0h - 1.0h;
-#endif
+    half3 packedNormalWS = PackNormal(inputData.normalWS);
+    half packedSmoothness = PackSmoothness(smoothness, kLightingLit);
 
     uint materialFlags = 0;
 
@@ -188,11 +206,7 @@ BRDFData BRDFDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer2)
     half3 specular = gbuffer1.rgb;
     half reflectivity = gbuffer1.a;
     half oneMinusReflectivity = 1.0h - reflectivity;
-#if _GBUFFER_NORMALS_OCT
-    half smoothness = gbuffer2.a;
-#else
-    half smoothness = gbuffer2.a * 0.5h + 0.5h;
-#endif
+    half smoothness = UnpackSmoothness(gbuffer2.a, kLightingLit);
 
     BRDFData brdfData = (BRDFData)0;
     half alpha = 1.0; // NOTE: alpha can get modfied, forward writes it out (_ALPHAPREMULTIPLY_ON).
@@ -206,14 +220,7 @@ InputData InputDataFromGbufferAndWorldPosition(half4 gbuffer2, float3 wsPos)
     InputData inputData;
 
     inputData.positionWS = wsPos;
-
-#if _GBUFFER_NORMALS_OCT
-    half2 remappedOctNormalWS = Unpack888ToFloat2(gbuffer2.xyz); // values between [ 0,  1]
-    half2 octNormalWS = remappedOctNormalWS.xy * 2.0h - 1.0h;    // values between [-1, +1]
-    inputData.normalWS = UnpackNormalOctQuadEncode(octNormalWS);
-#else
-    inputData.normalWS = normalize(gbuffer2.xyz);  // values between [-1, +1]
-#endif
+    inputData.normalWS = normalize(UnpackNormal(gbuffer2.xyz)); // normalize() is required because terrain shaders use additive blending for normals (not unit-length anymore)
 
     inputData.viewDirectionWS = SafeNormalize(GetWorldSpaceViewDir(wsPos.xyz));
 

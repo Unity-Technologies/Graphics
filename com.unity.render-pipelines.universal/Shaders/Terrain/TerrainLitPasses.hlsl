@@ -398,12 +398,11 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
 
     // Dynamic lighting: emulate SplatmapFinalColor() by scaling gbuffer material properties. This will not give the same results
     // as forward renderer because we apply blending pre-lighting instead of post-lighting.
-    brdfData.diffuse.rgb *= color.a;
-    brdfData.specular.rgb *= color.a;
-    // The following blending is incorrect. TODO: independent blend could make it closer to forward renderer.
-    inputData.normalWS.rgb *= color.a;
-    // How to deal with reflectivity?
-    //brdfData.reflectivity *= color.a;
+    // Blending of smoothness and normals is also not correct but close enough?
+    brdfData.diffuse.rgb *= alpha;
+    brdfData.specular.rgb *= alpha;
+    inputData.normalWS = inputData.normalWS * alpha;
+    smoothness *= alpha;
 
     return BRDFDataToGbuffer(brdfData, inputData, smoothness, color.rgb);
 
