@@ -134,12 +134,10 @@ float Lambda_GGX(float roughness,
 bool SampleGGX(float roughness_,
                float3x3 localToWorld,
                float3 V,
-               float fresnel0,
                float2 inputSample,
            out float3 outgoingDir,
            out float value,
-           out float pdf,
-           out float fresnel)
+           out float pdf)
 {
     float roughness = clamp(roughness_, MIN_GGX_ROUGHNESS, MAX_GGX_ROUGHNESS);
 
@@ -159,8 +157,7 @@ bool SampleGGX(float roughness_,
     pdf = pdfNoGV / lambdaVPlusOne;
 
     float lambdaL = Lambda_GGX(roughness, localL);
-    fresnel = F_Schlick(fresnel0, VdotH);
-    value = fresnel * pdfNoGV / (lambdaVPlusOne + lambdaL);
+    value = pdfNoGV / (lambdaVPlusOne + lambdaL);
 
     if (pdf < 0.001)
         return false;
@@ -210,19 +207,16 @@ void GetHitInfos(uint2 positionSS, out float2 hitPositionNDC, out float srcPerce
 
 #ifdef SAMPLES_VNDF
     float value;
-    float fresnel;
 
     SampleGGX(roughness,
         localToWorld,
         V,
-        1.0f, // F0
         Xi,
         L,
         value,
-        pdf,
-        fresnel);
+        pdf);
 
-    weight = fresnel * value / pdf;
+    weight = value / pdf;
 
     NdotV = dot(normalData.normalWS, V);
     NdotL = dot(normalData.normalWS, L);
@@ -234,11 +228,10 @@ void GetHitInfos(uint2 positionSS, out float2 hitPositionNDC, out float srcPerce
 
     NdotV = dot(normalData.normalWS, V);
     float Vg = V_SmithJointGGX(NdotL, NdotV, roughness);
-    float fresnel = F_Schlick(1.0f, VdotH);
     float D = D_GGX(NdotH, roughness);
 
     pdf = D * NdotH / (4.0 * VdotH);
-    weight = fresnel * D * Vg * NdotL / pdf;
+    weight = D * Vg * NdotL / pdf;
 #endif
 }
 
@@ -332,15 +325,13 @@ float2 GetSampleInfo(uint2 positionSS, out float3 color, out float localBRDF, ou
     float VdotH = dot(V, H);
     float NdotH = dot(normalData.normalWS, H);
     float Vg = V_SmithJointGGX(NdotL, NdotV, roughness);
-    float fresnel = F_Schlick(1.0f, VdotH);
     float D = D_GGX(NdotH, roughness);
 
     float lambdaVPlusOne = Lambda_GGX(roughness, V) + 1.0;
     localPDF = D / lambdaVPlusOne;
 
     float lambdaL = Lambda_GGX(roughness, L);
-    fresnel = F_Schlick(1.0f, VdotH);
-    localBRDF = fresnel * D / (lambdaVPlusOne + lambdaL);
+    localBRDF = D / (lambdaVPlusOne + lambdaL);
 
     color = GetHitColor(hitData.xy, normalData.perceptualRoughness, opacity, 0);
 
@@ -418,7 +409,6 @@ void ScreenSpaceReflectionsTracing(uint3 groupId          : SV_GroupID,
     float NdotL, NdotH, VdotH, NdotV;
     float3 R, V, N;
     float3 positionWS;
-    //float2 hitUV;
     float2 hitPositionNDC;
     float perceptualRoughness;
     GetHitInfos(positionSS, hitPositionNDC, perceptualRoughness, positionWS, pdf, weight, N, R, V, dist, NdotL, NdotH, VdotH, NdotV);
@@ -717,7 +707,6 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
 
     // Compute the radius of the projected solid angle
     float dist = GetTraceDistance(positionSS);
-    float radiusWS = 2.0f * dist * tan(clamp(perceptualRoughness0 * 1.5707963267948966192313216916398f, 0.00125f, 1.5707963267948966192313216916398f - 0.00125f));
 
     // Approximate the footprint based on the hit normal
     float2 hitSS = (hitPositionNDC.xy - (0.5 * _ColorPyramidUvScaleAndLimitPrevFrame.zw)) / _ColorPyramidUvScaleAndLimitPrevFrame.zw;
