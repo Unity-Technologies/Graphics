@@ -8,6 +8,13 @@ All_ShaderGraph_Stereo_trunk:
     dependencies:
       -  path: .yamato/shadergraph_stereo-win-dx11.yml#ShaderGraph_Stereo_Win_DX11_Standalone_il2cpp_4_Linear_trunk
          rerun: on-new-revision
+All_ShaderGraph_Stereo_2020.2:
+    name: All ShaderGraph_Stereo CI - 2020.2
+    dependencies:
+      -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_Standalone_il2cpp_4_Linear_2020.2
+         rerun: on-new-revision
+      -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_editmode_il2cpp_4_Linear_2020.2
+         rerun: on-new-revision
 All_ShaderGraph_Stereo_CUSTOM-REVISION:
     name: All ShaderGraph_Stereo CI - CUSTOM-REVISION
     dependencies:

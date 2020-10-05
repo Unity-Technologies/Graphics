@@ -18,7 +18,12 @@ DEFAULT_TIMEOUT = 1200
 
 
 def get_editor_revision(editor, platform_os):
-    return VAR_CUSTOM_REVISION if str(editor['track']).lower()=='custom-revision' else editor["revisions"][f"{editor['track']}_latest_internal"][platform_os]["revision"]
+    if str(editor['track']).lower()=='custom-revision':
+        return VAR_CUSTOM_REVISION
+    elif str(editor['track']).lower()=='trunk':
+        return editor["revisions"][f"{editor['track']}_latest_internal"][platform_os]["revision"]
+    else:
+        return editor["revisions"][f"{editor['track']}_staging"][platform_os]["revision"]
 
 def get_unity_downloader_cli_cmd(editor, platform_os, cd=False, git_root=False):
     '''Returns the revision used by unity-downloader-cli. 

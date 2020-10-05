@@ -178,7 +178,6 @@ namespace UnityEditor.Experimental.VFX.Utility
                 foreach (var kvp in surfaces)
                 {
                     kvp.Value.Apply();
-                    kvp.Value.hideFlags = HideFlags.HideInHierarchy;
                     ctx.AddObjectToAsset(kvp.Key.Name, kvp.Value);
                     cache.surfaces[k] = kvp.Value;
                     k++;

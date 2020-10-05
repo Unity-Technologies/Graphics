@@ -4,6 +4,8 @@ target_editor: trunk # specifies the target editor used for some package/preview
 editors: # applied for all yml files
   - track: trunk
     rerun_strategy: on-new-revision
+  - track: 2020.2
+    rerun_strategy: on-new-revision
   - track: CUSTOM-REVISION
     rerun_strategy: always
     cmd: -u $CUSTOM_REVISION
@@ -23,6 +25,32 @@ build_configs:
 color_spaces:
   - Linear
   - gamma
+test_platforms:
+  - type: Standalone
+    extra_utr_flags:
+      - [OSX_Metal]: --timeout=1200
+      - [Win_DX11]: --extra-editor-arg="-force-d3d11"
+      - [Win_DX12]: --extra-editor-arg="-force-d3d12"
+      - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-force-vulkan"
+      - [Linux_OpenGlCore]: --extra-editor-arg="-force-glcore"
+    extra_utr_flags_build:
+      - [Linux_OpenGlCore]: --extra-editor-arg="-executemethod CustomBuild.BuildLinuxOpenGlCoreLinear"
+      - [Linux_Vulkan]: --extra-editor-arg="-executemethod CustomBuild.BuildLinuxVulkanLinear"
+      - [Win_DX11]: --extra-editor-arg="-executemethod CustomBuild.BuildWindowsDX11Linear"
+      - [Win_DX12]: --extra-editor-arg="-executemethod CustomBuild.BuildWindowsDX12Linear"
+      - [Win_Vulkan]: --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear"
+  - type: playmode
+    extra_utr_flags:
+      - [Win_DX11]: --extra-editor-arg="-force-d3d11"
+      - [Win_DX12]: --extra-editor-arg="-force-d3d12"
+      - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-force-vulkan"
+      - [Linux_OpenGlCore]: --extra-editor-arg="-force-glcore"
+  - type: editmode
+    extra_utr_flags:
+      - [Win_DX11]: --extra-editor-arg="-force-d3d11"
+      - [Win_DX12]: --extra-editor-arg="-force-d3d12"
+      - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-force-vulkan"
+      - [Linux_OpenGlCore]: --extra-editor-arg="-force-glcore"
 platforms:
   Win:
     name: Win

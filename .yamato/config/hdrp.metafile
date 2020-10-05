@@ -9,9 +9,9 @@ test_platforms:
     extra_utr_flags:
       - --extra-editor-arg="-xr-tests" 
   - type: playmode
-    name: playmode_RenderGraph
+    name: playmode_NonRenderGraph
     extra_utr_flags:
-      - --extra-editor-arg="-rendergraph-tests"
+      - --extra-editor-arg="-non-rendergraph-tests"
   - type: editmode
   - type: Standalone
     timeout:
@@ -80,7 +80,7 @@ all:
         - editmode
         - playmode
         - playmode_XR
-        - playmode_RenderGraph
+        - playmode_NonRenderGraph
         - Standalone
     - platform: Win
       api: DX12
@@ -121,6 +121,6 @@ all:
       test_platforms:
         - playmode
         - playmode_XR
-        - playmode_RenderGraph
+        - playmode_NonRenderGraph
     - project: HDRP_Hybrid
       all: true
