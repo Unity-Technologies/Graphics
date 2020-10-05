@@ -4,7 +4,7 @@ using Unity.Collections;
 
 [ExecuteInEditMode]
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
-class ProceduralMesh : MonoBehaviour
+class DynamicProceduralMesh : MonoBehaviour
 {
     Mesh _mesh;
 
