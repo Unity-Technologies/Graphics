@@ -13,6 +13,7 @@ Universal_Hybrid_Linux_Vulkan_Standalone_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalHybridTest/utr
+      -  chmod +x TestProjects/UniversalHybridTest/utr
       -  cd TestProjects/UniversalHybridTest && ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --reruncount=2 --compilation-errors-as-warnings --timeout=1200
     artifacts:
         logs:
@@ -73,6 +74,7 @@ Universal_Hybrid_Linux_Vulkan_Standalone_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalHybridTest/utr
+      -  chmod +x TestProjects/UniversalHybridTest/utr
       -  cd TestProjects/UniversalHybridTest && ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --reruncount=2 --compilation-errors-as-warnings --timeout=1200
     artifacts:
         logs:
@@ -134,6 +136,7 @@ Universal_Hybrid_Linux_Vulkan_Standalone_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalHybridTest/utr
+      -  chmod +x TestProjects/UniversalHybridTest/utr
       -  cd TestProjects/UniversalHybridTest && ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --reruncount=2 --compilation-errors-as-warnings --timeout=1200
     artifacts:
         logs:
