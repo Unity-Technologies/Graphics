@@ -24,6 +24,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue in ShaderGraph with integer-mode Vector1 properties throwing errors when the value is changed [1264930]
 - Fixed a bug where ShaderGraph would not load graphs using Procedural VT nodes when the nodes were the project had them disabled [1271598]
 - Fixed an issue where the ProceduralVT node was not updating any connected SampleVT nodes when the number of layers was changed [1274288]
+- Fixed an issue with how unknown nodes were treated during validation
 
 ## [10.0.0] - 2019-06-10
 ### Added
