@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Internal
             set { m_GPUInstanced = value; }
         }
 
-        ConcretePrecision m_ConcretePrecision = ConcretePrecision.Float;
+        ConcretePrecision m_ConcretePrecision = ConcretePrecision.Single;
 
         internal Precision precision
         {
