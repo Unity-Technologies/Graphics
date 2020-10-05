@@ -677,10 +677,9 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // Compute the optical depth up to the end of the interval.
         opticalDepth += 0.5 * blendValue.a;
 
-        if (t0*0.99f > ray.maxDist /*&& ray.gradient <= 0.1f*/)
+        if (t0*0.99f > ray.maxDist)
         {
             break;
-           // _VBufferLighting[voxelCoord] = float4(1, 0, 0, 1);
         }
 
         t0 = tNext;
