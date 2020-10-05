@@ -75,6 +75,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SecondDenoiserPass = Unpack(o.Find(x => x.secondDenoiserPass));
         }
 
+        static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Max Ray Length", "Controls the maximal length of global illumination rays. The higher this value is, the more expensive ray traced global illumination is.");
         static public readonly GUIContent k_DepthBufferThicknessText = EditorGUIUtility.TrTextContent("Object Thickness", "Controls the typical thickness of objects the global illumination rays may pass behind.");
 
         public void DenoiserGUI()
@@ -130,6 +131,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                 EditorGUI.indentLevel++;
                                 using (new EditorGUI.DisabledScope(!useCustomValue))
                                 {
+                                    PropertyField(m_RayLength, k_RayLengthText);
                                     PropertyField(m_RayLength);
                                     PropertyField(m_ClampValue);
                                     PropertyField(m_FullResolution);
@@ -142,7 +144,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             break;
                             case RayTracingMode.Quality:
                             {
-                                PropertyField(m_RayLength);
+                                PropertyField(m_RayLength, k_RayLengthText);
                                 PropertyField(m_ClampValue);
                                 PropertyField(m_SampleCount);
                                 PropertyField(m_BounceCount);
@@ -154,7 +156,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                     else if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Quality)
                     {
-                        PropertyField(m_RayLength);
+                        PropertyField(m_RayLength, k_RayLengthText);
                         PropertyField(m_ClampValue);
                         PropertyField(m_SampleCount);
                         PropertyField(m_BounceCount);
@@ -166,6 +168,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUI.indentLevel++;
                         using (new EditorGUI.DisabledScope(!useCustomValue))
                         {
+                            PropertyField(m_RayLength, k_RayLengthText);
                             PropertyField(m_RayLength);
                             PropertyField(m_ClampValue);
                             PropertyField(m_FullResolution);
