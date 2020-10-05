@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static class SliderConfig
         {
-            public const float k_IconSeparator      = 6;
+            public const float k_IconSeparator      = 8;
             public const float k_MarkerWidth        = 2;
             public const float k_MarkerHeight       = 2;
             public const float k_MarkerTooltipScale = 4;
@@ -37,7 +37,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public virtual void Draw(Rect rect, SerializedProperty value)
         {
-            BuildRects(rect, out var sliderRect, out var iconRect);
+            BuildRects(rect, out var sliderRect, out var iconRect, out var optionsRect);
 
             if (m_Descriptor.clampValue)
                 ClampValue(value, m_Descriptor.sliderRange);
@@ -57,6 +57,21 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
+            // Draw context menu
+            // TODO: add to descriptor option for context menu
+            // Note: EventType.Used for UI interaction, EventType.MouseDown
+            GUI.Box(optionsRect, GUIContent.none, EditorStyles.popup);
+            var e = Event.current;
+            if (e.type == EventType.MouseDown)
+            {
+                if (optionsRect.Contains(e.mousePosition))
+                {
+                    var menuPosition = optionsRect.position + optionsRect.size;
+                    DoContextMenu(menuPosition, value);
+                    e.Use();
+                }
+            }
+
             var levelIconContent = level.content;
             var levelRange = level.value;
             DoIcon(iconRect, levelIconContent, levelRange.y);
@@ -65,20 +80,6 @@ namespace UnityEditor.Rendering.HighDefinition
             var thumbPosition = GetPositionOnSlider(thumbValue, level.value);
             var thumbTooltip = levelIconContent.tooltip;
             DoThumbTooltip(sliderRect, thumbPosition, thumbValue, thumbTooltip);
-
-            // Draw context menu
-            // TODO: add to descriptor option for context menu
-            // Note: EventType.Used for UI interaction, EventType.MouseDown
-            var e = Event.current;
-            if (e.type == EventType.MouseDown && e.button == 1)
-            {
-                if (iconRect.Contains(e.mousePosition))
-                {
-                    var menuPosition = iconRect.position + iconRect.size;
-                    DoContextMenu(menuPosition, value);
-                    e.Use();
-                }
-            }
         }
 
         LightUnitSliderUIRange CurrentRange(float value)
@@ -96,14 +97,20 @@ namespace UnityEditor.Rendering.HighDefinition
             return LightUnitSliderUIRange.CautionRange(cautionTooltip, cautionValue);
         }
 
-        void BuildRects(Rect baseRect, out Rect sliderRect, out Rect iconRect)
+        void BuildRects(Rect baseRect, out Rect sliderRect, out Rect iconRect, out Rect optionsRect)
         {
+            const float fudge = 10f;
+
             sliderRect = baseRect;
-            sliderRect.width -= EditorGUIUtility.singleLineHeight + SliderConfig.k_IconSeparator;
+            sliderRect.width -= ( 2f * EditorGUIUtility.singleLineHeight ) + SliderConfig.k_IconSeparator;
 
             iconRect = baseRect;
-            iconRect.x += sliderRect.width + SliderConfig.k_IconSeparator;
+            iconRect.x += sliderRect.width + SliderConfig.k_IconSeparator - 4f;
             iconRect.width = EditorGUIUtility.singleLineHeight;
+
+            optionsRect = iconRect;
+            optionsRect.x += EditorGUIUtility.singleLineHeight + 2;
+            optionsRect.width += 2;
         }
 
         void ClampValue(SerializedProperty value, Vector2 range) =>
