@@ -93,6 +93,26 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// When enabled, bloom uses bicubic sampling instead of bilinear sampling for the upsampling passes.
         /// </summary>
+        public bool highQualityPrefiltering
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                {
+                    return m_HighQualityPrefiltering.value;
+                }
+                else
+                {
+                    int qualityLevel = (int)quality.levelAndOverride.level;
+                    return GetPostProcessingQualitySettings().BloomHighQualityPrefiltering[qualityLevel];
+                }
+            }
+            set { m_HighQualityPrefiltering.value = value; }
+        }
+
+        /// <summary>
+        /// When enabled, bloom uses bicubic sampling instead of bilinear sampling for the upsampling passes.
+        /// </summary>
         public bool highQualityFiltering
         {
             get
@@ -113,6 +133,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Specifies the resolution at which HDRP processes the effect. Quarter resolution is less resource intensive but can result in aliasing artifacts.")]
         [SerializeField, FormerlySerializedAs("resolution")]
         private BloomResolutionParameter m_Resolution = new BloomResolutionParameter(BloomResolution.Half);
+
+        [Tooltip("When enabled, bloom uses multiple bilinear samples for the prefiltering pass.")]
+        [SerializeField]
+        private BoolParameter m_HighQualityPrefiltering = new BoolParameter(false);
 
         [Tooltip("When enabled, bloom uses bicubic sampling instead of bilinear sampling for the upsampling passes.")]
         [SerializeField, FormerlySerializedAs("highQualityFiltering")]

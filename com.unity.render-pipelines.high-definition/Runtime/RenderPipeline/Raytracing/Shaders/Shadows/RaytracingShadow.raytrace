@@ -361,7 +361,7 @@ void RayGenAreaShadowSingle()
 RW_TEXTURE2D_X(float, _RaytracedShadowIntegration);
 RW_TEXTURE2D_X(float, _RaytracingDistanceBufferRW);
 RW_TEXTURE2D_X(float, _VelocityBuffer);
-float _DirectionalLightAngle;
+float _DirectionalMaxRayLength;
 
 [shader("raygeneration")]
 void RayGenDirectionalShadowSingle()
@@ -411,7 +411,7 @@ void RayGenDirectionalShadowSingle()
     rayDescriptor.Origin = rayOrigin;
     rayDescriptor.Direction = rayDirection;
     rayDescriptor.TMin = 0.0;
-    rayDescriptor.TMax = 1000.0;
+    rayDescriptor.TMax = _DirectionalMaxRayLength;
 
     // Create and init the RayIntersection structure for this
     RayIntersection rayIntersection;
@@ -478,7 +478,7 @@ void RayGenDirectionalColorShadowSingle()
     rayDescriptor.Origin = rayOrigin;
     rayDescriptor.Direction = rayDirection;
     rayDescriptor.TMin = 0.0;
-    rayDescriptor.TMax = 1000.0;
+    rayDescriptor.TMax = _DirectionalMaxRayLength;
 
     // Create and init the RayIntersection structure for this
     RayIntersection rayIntersection;
@@ -495,7 +495,7 @@ void RayGenDirectionalColorShadowSingle()
         rayDescriptor.Origin = rayOrigin;
         rayDescriptor.Direction = rayDirection;
         rayDescriptor.TMin = 0.0;
-        rayDescriptor.TMax = 1000.0;
+        rayDescriptor.TMax = _DirectionalMaxRayLength;
         rayIntersection.color = float3(1.0, 1.0, 1.0);
         rayIntersection.t = MISS_RAY_TRACING_SHADOW_DISTANCE;
 

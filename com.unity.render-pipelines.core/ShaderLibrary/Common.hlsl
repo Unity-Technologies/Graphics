@@ -1171,8 +1171,15 @@ bool HasFlag(uint bitfield, uint flag)
 // Normalize that account for vectors with zero length
 real3 SafeNormalize(float3 inVec)
 {
-    float dp3 = max(FLT_MIN, dot(inVec, inVec));
+    real dp3 = max(FLT_MIN, dot(inVec, inVec));
     return inVec * rsqrt(dp3);
+}
+
+// Checks if a vector is normalized
+bool IsNormalized(float3 inVec)
+{
+    real l = length(inVec);
+    return length(l) < 1.0001 && length(l) > 0.9999;
 }
 
 // Division which returns 1 for (inf/inf) and (0/0).
