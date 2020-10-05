@@ -277,7 +277,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bounds.Encapsulate(centerWS - right * extents.x - up * extents.y - forward * extents.z);
         }
 
-        void BuildGPULightVolumes(HDRayTracingLights rayTracingLights)
+        void BuildGPULightVolumes(HDCamera hdCamera, HDRayTracingLights rayTracingLights)
         {
             int totalNumLights = rayTracingLights.lightCount;
 
@@ -308,6 +308,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Reserve space in the cookie atlas
                     m_RenderPipeline.ReserveCookieAtlasTexture(currentLight, light, currentLight.type);
 
+                    // Compute the camera relative position
+                    Vector3 lightPositionRWS = currentLight.gameObject.transform.position;
+                    if (ShaderConfig.s_CameraRelativeRendering != 0)
+                    {
+                        lightPositionRWS -= hdCamera.camera.transform.position;
+                    }
 
                     // Grab the light range
                     float lightRange = light.range;
@@ -315,7 +321,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (currentLight.type != HDLightType.Area)
                     {
                         m_LightVolumesCPUArray[realIndex].range = new Vector3(lightRange, lightRange, lightRange);
-                        m_LightVolumesCPUArray[realIndex].position = currentLight.gameObject.transform.position;
+                        m_LightVolumesCPUArray[realIndex].position = lightPositionRWS;
                         m_LightVolumesCPUArray[realIndex].active = (currentLight.gameObject.activeInHierarchy ? 1 : 0);
                         m_LightVolumesCPUArray[realIndex].lightIndex = (uint)lightIdx;
                         m_LightVolumesCPUArray[realIndex].shape = 0;
@@ -327,7 +333,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // let's compute the oobb of the light influence volume first
                         Vector3 oobbDimensions = new Vector3(currentLight.shapeWidth + 2 * lightRange, currentLight.shapeHeight + 2 * lightRange, lightRange); // One-sided
                         Vector3 extents    = 0.5f * oobbDimensions;
-                        Vector3 oobbCenter = currentLight.gameObject.transform.position + extents.z * currentLight.gameObject.transform.forward;
+                        Vector3 oobbCenter = lightPositionRWS + extents.z * currentLight.gameObject.transform.forward;
 
                         // Let's now compute an AABB that matches the previously defined OOBB
                         OOBBToAABBBounds(oobbCenter, extents, currentLight.gameObject.transform.up, currentLight.gameObject.transform.right, currentLight.gameObject.transform.forward, ref bounds);
@@ -351,19 +357,27 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int lightIdx = 0; lightIdx < rayTracingLights.reflectionProbeArray.Count; ++lightIdx)
             {
                 HDProbe currentEnvLight = rayTracingLights.reflectionProbeArray[lightIdx];
+
+                // Compute the camera relative position
+                Vector3 probePositionRWS = currentEnvLight.influenceToWorld.GetColumn(3);
+                if (ShaderConfig.s_CameraRelativeRendering != 0)
+                {
+                    probePositionRWS -= hdCamera.camera.transform.position;
+                }
+
                 if (currentEnvLight != null)
                 {
                     if(currentEnvLight.influenceVolume.shape == InfluenceShape.Sphere)
                     {
                         m_LightVolumesCPUArray[lightIdx + indexOffset].shape = 0;
                         m_LightVolumesCPUArray[lightIdx + indexOffset].range = new Vector3(currentEnvLight.influenceVolume.sphereRadius, currentEnvLight.influenceVolume.sphereRadius, currentEnvLight.influenceVolume.sphereRadius);
-                        m_LightVolumesCPUArray[lightIdx + indexOffset].position = currentEnvLight.influenceToWorld.GetColumn(3);
+                        m_LightVolumesCPUArray[lightIdx + indexOffset].position = probePositionRWS;
                     }
                     else
                     {
                         m_LightVolumesCPUArray[lightIdx + indexOffset].shape = 1;
                         m_LightVolumesCPUArray[lightIdx + indexOffset].range = new Vector3(currentEnvLight.influenceVolume.boxSize.x / 2.0f, currentEnvLight.influenceVolume.boxSize.y / 2.0f, currentEnvLight.influenceVolume.boxSize.z / 2.0f);
-                        m_LightVolumesCPUArray[lightIdx + indexOffset].position = currentEnvLight.influenceToWorld.GetColumn(3);
+                        m_LightVolumesCPUArray[lightIdx + indexOffset].position = probePositionRWS;
                     }
                     m_LightVolumesCPUArray[lightIdx + indexOffset].active = (currentEnvLight.gameObject.activeInHierarchy ? 1 : 0);
                     m_LightVolumesCPUArray[lightIdx + indexOffset].lightIndex = (uint)lightIdx;
@@ -382,7 +396,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var settings = hdCamera.volumeStack.GetComponent<LightCluster>();
 
-            clusterCenter = hdCamera.camera.gameObject.transform.position;
+            if (ShaderConfig.s_CameraRelativeRendering != 0)
+                clusterCenter.Set(0, 0, 0);
+            else
+                clusterCenter = hdCamera.camera.gameObject.transform.position;
+
             minClusterPos.Set(float.MaxValue, float.MaxValue, float.MaxValue);
             maxClusterPos.Set(-float.MaxValue, -float.MaxValue, -float.MaxValue);
 
@@ -796,7 +814,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Build the Light volumes
-            BuildGPULightVolumes(rayTracingLights);
+            BuildGPULightVolumes(hdCamera, rayTracingLights);
 
             // If no valid light were found, invalidate the cluster and leave
             if (totalLightCount == 0)
