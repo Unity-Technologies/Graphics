@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using Unity.Collections;
+using UnityEngine.Profiling;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -20,6 +21,40 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public abstract partial class ScriptableRenderer : IDisposable
     {
+        private static class Profiling
+        {
+            // NOTE: field names start with lowercase to avoid shadowing method names.
+            private const string Name = nameof(ScriptableRenderer);
+            public static readonly ProfilingSampler setPerCameraShaderVariables = new ProfilingSampler($"{Name}.{nameof(SetPerCameraShaderVariables)}");
+            public static readonly ProfilingSampler sortRenderPasses            = new ProfilingSampler($"Sort Render Passes");
+            public static readonly ProfilingSampler setupLights                 = new ProfilingSampler($"{Name}.{nameof(SetupLights)}");
+            public static readonly ProfilingSampler setupCamera                 = new ProfilingSampler($"Setup Camera Parameters");
+            public static readonly ProfilingSampler addRenderPasses             = new ProfilingSampler($"{Name}.{nameof(AddRenderPasses)}");
+            public static readonly ProfilingSampler clearRenderingState         = new ProfilingSampler($"{Name}.{nameof(ClearRenderingState)}");
+            public static readonly ProfilingSampler internalStartRendering      = new ProfilingSampler($"{Name}.{nameof(InternalStartRendering)}");
+            public static readonly ProfilingSampler internalFinishRendering     = new ProfilingSampler($"{Name}.{nameof(InternalFinishRendering)}");
+
+            public static class RenderBlock
+            {
+                private const string Name = nameof(RenderPassBlock);
+                public static readonly ProfilingSampler beforeRendering          = new ProfilingSampler($"{Name}.{nameof(RenderPassBlock.BeforeRendering)}");
+                public static readonly ProfilingSampler mainRenderingOpaque      = new ProfilingSampler($"{Name}.{nameof(RenderPassBlock.MainRenderingOpaque)}");
+                public static readonly ProfilingSampler mainRenderingTransparent = new ProfilingSampler($"{Name}.{nameof(RenderPassBlock.MainRenderingTransparent)}");
+                public static readonly ProfilingSampler afterRendering           = new ProfilingSampler($"{Name}.{nameof(RenderPassBlock.AfterRendering)}");
+            }
+
+            public static class RenderPass
+            {
+                private const string Name = nameof(ScriptableRenderPass);
+                public static readonly ProfilingSampler configure = new ProfilingSampler($"{Name}.{nameof(ScriptableRenderPass.Configure)}");
+            }
+        }
+
+        /// <summary>
+        /// Override to provide a custom profiling name
+        /// </summary>
+        protected ProfilingSampler profilingExecute { get; set; }
+
         /// <summary>
         /// Configures the supported features for this renderer. When creating custom renderers
         /// for Universal Render Pipeline you can choose to opt-in or out for specific features.
@@ -106,7 +141,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cameraData">CameraData containing camera matrices information.</param>
         void SetPerCameraShaderVariables(CommandBuffer cmd, ref CameraData cameraData)
         {
-            using var profScope = UniversalProfiling.GetGpuCpuScope(cmd, nameof(SetPerCameraShaderVariables));
+            using var profScope = new ProfilingScope(cmd, Profiling.setPerCameraShaderVariables);
 
             Camera camera = cameraData.camera;
 
@@ -297,7 +332,7 @@ namespace UnityEngine.Rendering.Universal
         bool m_FirstTimeCameraDepthTargetIsBound = true; // flag used to track when m_CameraDepthTarget should be cleared (if necessary), the first time m_CameraDepthTarget is bound as a render target
 
         // The pipeline can only guarantee the camera target texture are valid when the pipeline is executing.
-        // Trying to access the camera target before or after might be that the pipeline texture have already been disposed. 
+        // Trying to access the camera target before or after might be that the pipeline texture have already been disposed.
         bool m_IsPipelineExecuting = false;
 
         static RenderTargetIdentifier[] m_ActiveColorAttachments = new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0, 0, 0 };
@@ -329,9 +364,6 @@ namespace UnityEngine.Rendering.Universal
 
             m_ActiveDepthAttachment = depthAttachment;
         }
-
-        // Override to provide a custom profiling name
-        protected ProfilingSampler profilingExecute { get; set; }
 
         public ScriptableRenderer(ScriptableRendererData data)
         {
@@ -451,8 +483,7 @@ namespace UnityEngine.Rendering.Universal
                 SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
-
-                using (UniversalProfiling.GetGpuCpuScope(cmd, "Sort Render Passes"))
+                using (new ProfilingScope(cmd, Profiling.sortRenderPasses))
                 {
                     // Sort the render pass queue
                     SortStable(m_ActiveRenderPassQueue);
@@ -460,12 +491,12 @@ namespace UnityEngine.Rendering.Universal
 
                 using var renderBlocks = new RenderBlocks(m_ActiveRenderPassQueue);
 
-                using (UniversalProfiling.GetGpuCpuScope(cmd, nameof(SetupLights)))
+                using (new ProfilingScope(cmd, Profiling.setupLights))
                 {
                     SetupLights(context, ref renderingData);
                 }
 
-                using (UniversalProfiling.GetGpuCpuScope(cmd, nameof(RenderPassBlock.BeforeRendering)))
+                using (new ProfilingScope(cmd, Profiling.RenderBlock.beforeRendering))
                 {
                     // Before Render Block. This render blocks always execute in mono rendering.
                     // Camera is not setup. Lights are not setup.
@@ -473,7 +504,7 @@ namespace UnityEngine.Rendering.Universal
                     ExecuteBlock(RenderPassBlock.BeforeRendering, in renderBlocks, context, ref renderingData);
                 }
 
-                using (UniversalProfiling.GetGpuCpuScope(cmd, "Setup Camera"))
+                using (new ProfilingScope(cmd, Profiling.setupCamera))
                 {
                     // This is still required because of the following reasons:
                     // - Camera billboard properties.
@@ -505,14 +536,14 @@ namespace UnityEngine.Rendering.Universal
                 // Opaque blocks...
                 if (renderBlocks.GetLength(RenderPassBlock.MainRenderingOpaque) > 0)
                 {
-                    using var profScope = UniversalProfiling.GetGpuCpuScope(cmd, nameof(RenderPassBlock.MainRenderingOpaque));
+                    using var profScope = new ProfilingScope(cmd, Profiling.RenderBlock.mainRenderingOpaque);
                     ExecuteBlock(RenderPassBlock.MainRenderingOpaque, in renderBlocks, context, ref renderingData);
                 }
 
                 // Transparent blocks...
                 if (renderBlocks.GetLength(RenderPassBlock.MainRenderingTransparent) > 0)
                 {
-                    using var profScope = UniversalProfiling.GetGpuCpuScope(cmd, nameof(RenderPassBlock.MainRenderingTransparent));
+                    using var profScope = new ProfilingScope(cmd, Profiling.RenderBlock.mainRenderingTransparent);
                     ExecuteBlock(RenderPassBlock.MainRenderingTransparent, in renderBlocks, context, ref renderingData);
                 }
 
@@ -522,7 +553,7 @@ namespace UnityEngine.Rendering.Universal
                 // In this block after rendering drawing happens, e.g, post processing, video player capture.
                 if (renderBlocks.GetLength(RenderPassBlock.AfterRendering) > 0)
                 {
-                    using var profScope = UniversalProfiling.GetGpuCpuScope(cmd, nameof(RenderPassBlock.AfterRendering));
+                    using var profScope = new ProfilingScope(cmd, Profiling.RenderBlock.afterRendering);
                     ExecuteBlock(RenderPassBlock.AfterRendering, in renderBlocks, context, ref renderingData);
                 }
 
@@ -598,6 +629,8 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData"></param>
         protected void AddRenderPasses(ref RenderingData renderingData)
         {
+            using var profScope = new ProfilingScope(null, Profiling.addRenderPasses);
+
             // Add render passes from custom renderer features
             for (int i = 0; i < rendererFeatures.Count; ++i)
             {
@@ -619,7 +652,7 @@ namespace UnityEngine.Rendering.Universal
 
         void ClearRenderingState(CommandBuffer cmd)
         {
-            using var profScope = UniversalProfiling.GetGpuCpuScope(cmd, nameof(ClearRenderingState));
+            using var profScope = new ProfilingScope(cmd, Profiling.clearRenderingState);
 
             // Reset per-camera shader keywords. They are enabled depending on which render passes are executed.
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadows);
@@ -673,7 +706,7 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get();
 
             // Track CPU only as GPU markers for this scope were "too noisy".
-            using (UniversalProfiling.GetCpuScope(UniversalProfiling.Renderer.RenderPass.Configure))
+            using (new ProfilingScope(cmd, Profiling.RenderPass.configure))
             {
                 renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
                 SetRenderPassAttachments(cmd, renderPass, ref cameraData);
@@ -978,7 +1011,7 @@ namespace UnityEngine.Rendering.Universal
         void InternalStartRendering(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (UniversalProfiling.GetGpuCpuScope(cmd, nameof(InternalStartRendering)))
+            using (new ProfilingScope(cmd, Profiling.internalStartRendering))
             {
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
                 {
@@ -993,7 +1026,7 @@ namespace UnityEngine.Rendering.Universal
         void InternalFinishRendering(ScriptableRenderContext context, bool resolveFinalTarget)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (UniversalProfiling.GetGpuCpuScope(cmd, nameof(InternalFinishRendering)))
+            using (new ProfilingScope(cmd, Profiling.internalFinishRendering))
             {
 
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
@@ -1060,9 +1093,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            /// <summary>
-            ///  Dispose pattern implementation
-            /// </summary>
+            //  RAII like Dispose pattern implementation for 'using' keyword
             public void Dispose()
             {
                 m_BlockRangeLengths.Dispose();

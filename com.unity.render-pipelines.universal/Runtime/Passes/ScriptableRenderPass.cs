@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering.Universal
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
             isBlitRenderPass = false;
-            profilingSampler = new ProfilingSampler( nameof(ScriptableRenderPass) + ": " + GetType().Name);
+            profilingSampler = new ProfilingSampler($"{nameof(ScriptableRenderPass)}");
         }
 
         /// <summary>

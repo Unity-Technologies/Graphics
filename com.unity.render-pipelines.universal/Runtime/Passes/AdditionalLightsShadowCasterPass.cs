@@ -50,6 +50,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public AdditionalLightsShadowCasterPass(RenderPassEvent evt)
         {
+            base.profilingSampler = new ProfilingSampler($"{nameof(AdditionalLightsShadowCasterPass)}");
             renderPassEvent = evt;
 
             AdditionalShadowsConstantBuffer._AdditionalLightsWorldToShadow = Shader.PropertyToID("_AdditionalLightsWorldToShadow");

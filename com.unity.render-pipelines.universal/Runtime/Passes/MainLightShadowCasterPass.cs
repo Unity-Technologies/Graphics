@@ -42,6 +42,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public MainLightShadowCasterPass(RenderPassEvent evt)
         {
+            base.profilingSampler = new ProfilingSampler($"{nameof(MainLightShadowCasterPass)}");
             renderPassEvent = evt;
 
             m_MainLightShadowMatrices = new Matrix4x4[k_MaxCascades + 1];
