@@ -6,20 +6,57 @@ using System.Runtime.CompilerServices;
 
 namespace UnityEditor.VFX
 {
-    #pragma warning disable 0659
-    class VFXExpressionRandom : VFXExpression
+    struct RandId
     {
-        public VFXExpressionRandom(bool perElement = false) : base(perElement ? VFXExpression.Flags.PerElement : VFXExpression.Flags.None)
-        {}
+        public RandId(object owner, int id = 0)
+        {
+            this.owner = new WeakReference(owner);
+            this.id = id;
+        }
 
         public override bool Equals(object obj)
         {
-            return ReferenceEquals(this, obj);
+            if (!(obj is RandId))
+                return false;
+
+            var other = (RandId)obj;
+            return ReferenceEquals(owner.Target, other.owner.Target) && id == other.id;
+        }
+
+        public override int GetHashCode()
+        {
+            // This is not good practice as hashcode will mutate when target gets destroyed but in our case we don't care.
+            // Any entry in cache will just be lost, but it would have never been accessed anyway (as owner is lost)
+            return (RuntimeHelpers.GetHashCode(owner.Target) * 397) ^ id;
+        }
+
+        WeakReference owner;
+        int id;
+    }
+
+    #pragma warning disable 0659
+    class VFXExpressionRandom : VFXExpression
+    {
+        public VFXExpressionRandom(bool perElement, RandId id) : base(perElement ? VFXExpression.Flags.PerElement : VFXExpression.Flags.None)
+        {
+            m_Id = id;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (!base.Equals(obj))
+                return false;
+
+            var other = obj as VFXExpressionRandom;
+            if (other == null)
+                return false;
+
+            return m_Id.Equals(other.m_Id);
         }
 
         protected override int GetInnerHashCode()
         {
-            return RuntimeHelpers.GetHashCode(this);
+            return (base.GetInnerHashCode() * 397) ^ m_Id.GetHashCode();
         }
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.GenerateRandom; } }
@@ -39,6 +76,8 @@ namespace UnityEditor.VFX
             if (Is(Flags.PerElement))
                 yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
         }
+
+        private RandId m_Id;
     }
 
     class VFXExpressionFixedRandom : VFXExpression
