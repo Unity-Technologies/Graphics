@@ -6,7 +6,7 @@
   * [Create a Project from a Template](creating-a-new-project-with-urp.md)
   * [Install URP into an existing Project](InstallURPIntoAProject.md)
 * [Render Pipeline Concepts](urp-concepts.md)
-  * [The Universal Render Pipeline Asset](universalrp-asset.md)
+  * [The URP Asset](universalrp-asset.md)
   * [Forward Renderer](urp-forward-renderer.md)
   * [Renderer Feature](urp-renderer-feature.md)
     * [How to add a Renderer Feature](urp-renderer-feature-how-to-add.md)
