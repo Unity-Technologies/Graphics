@@ -19,18 +19,17 @@ namespace UnityEditor.ShaderGraph
         public const int UVInputId = 2;
         public const int SamplerInputId = 3;
         public const int LODInputId = 4;
-        public const int FallbackInputId = 9;
 
         const string kOutputSlotRGBAName = "RGBA";
         const string kOutputSlotRName = "R";
         const string kOutputSlotGName = "G";
         const string kOutputSlotBName = "B";
         const string kOutputSlotAName = "A";
+
         const string kTextureInputName = "Texture";
         const string kUVInputName = "UV";
         const string kSamplerInputName = "Sampler";
         const string kLODInputName = "LOD";
-        const string kFallbackInputName = "GLES2 Fallback";
 
         public override bool hasPreview { get { return true; } }
 
@@ -88,8 +87,7 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new UVMaterialSlot(UVInputId, kUVInputName, kUVInputName, UVChannel.UV0));
             AddSlot(new SamplerStateMaterialSlot(SamplerInputId, kSamplerInputName, kSamplerInputName, SlotType.Input));
             AddSlot(new Vector1MaterialSlot(LODInputId, kLODInputName, kLODInputName, SlotType.Input, 0));
-            AddSlot(new Vector4MaterialSlot(FallbackInputId, kFallbackInputName, "GLES2Fallback", SlotType.Input, Vector4.zero));
-            RemoveSlotsNameNotMatching(new[] { OutputSlotRGBAId, OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId, TextureInputId, UVInputId, SamplerInputId, LODInputId, FallbackInputId });
+            RemoveSlotsNameNotMatching(new[] { OutputSlotRGBAId, OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId, TextureInputId, UVInputId, SamplerInputId, LODInputId });
         }
 
         public override void Setup()
@@ -115,7 +113,7 @@ namespace UnityEditor.ShaderGraph
             // GLES2 does not always support LOD sampling
             sb.AppendLine("#if defined(SHADER_API_GLES) && (SHADER_TARGET < 30)");
             {
-                sb.AppendLine("  $precision4 {0} = {1};", GetVariableNameForSlot(OutputSlotRGBAId), GetSlotValue(FallbackInputId, generationMode));
+                sb.AppendLine("  $precision4 {0} = $precision4(0.0f, 0.0f, 0.0f, 1.0f);", GetVariableNameForSlot(OutputSlotRGBAId));
             }
             sb.AppendLine("#else");
             {
