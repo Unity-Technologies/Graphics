@@ -3039,9 +3039,6 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.bloomMipInfo = m_BloomMipsInfo;
 
             parameters.bloomPrefilterCS = m_Resources.shaders.bloomPrefilterCS;
-            parameters.bloomPrefilterCS.shaderKeywords = null;
-            if (m_EnableAlpha)
-                parameters.bloomPrefilterCS.EnableKeyword("ENABLE_ALPHA");
             parameters.bloomPrefilterKernel = parameters.bloomPrefilterCS.FindKernel("KMain");
 
             parameters.bloomPrefilterCS.shaderKeywords = null;
@@ -3049,6 +3046,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.bloomPrefilterCS.EnableKeyword("HIGH_QUALITY");
             else
                 parameters.bloomPrefilterCS.EnableKeyword("LOW_QUALITY");
+            if (m_EnableAlpha)
+                parameters.bloomPrefilterCS.EnableKeyword("ENABLE_ALPHA");
 
             parameters.bloomBlurCS = m_Resources.shaders.bloomBlurCS;
             parameters.bloomBlurKernel = parameters.bloomBlurCS.FindKernel("KMain");
