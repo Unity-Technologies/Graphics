@@ -8,7 +8,18 @@
 #pragma kernel ComputeFinalMask FINAL_MASK=1
 #pragma kernel DilateMask DILATE_MASK=1
 
-#pragma enable_d3d11_debug_symbols
+
+// In some cases we might want to avoid stopping integrating volumetric even if > max distance if the gradient is very big.
+// Realistically, with the dilation step this was never seen as necessary. 
+#define GENERATE_GRADIENT 0
+
+#if GENERATE_GRADIENT
+#define OUT_MASK_FORMAT float2 // This must match the component count defined in VolumetricLighting.cs
+#define MASK_SWIZZLE xy
+#else
+#define OUT_MASK_FORMAT float
+#define MASK_SWIZZLE x
+#endif
 
 #ifdef PLATFORM_LANE_COUNT
 #define WAVE_SIZE   PLATFORM_LANE_COUNT  
@@ -92,7 +103,7 @@ void ComputeMaxZ(uint3 dispatchThreadId : SV_DispatchThreadID, uint gid : SV_Gro
 #elif FINAL_MASK
 
 TEXTURE2D_X(_InputTexture);
-RW_TEXTURE2D_X(float2, _OutputTexture);
+RW_TEXTURE2D_X(OUT_MASK_FORMAT, _OutputTexture);
 
 void DownsampleDepth(float s0, float s1, float s2, float s3, out float maxDepth)
 {
@@ -127,21 +138,29 @@ void ComputeFinalMask(uint3 dispatchThreadId : SV_DispatchThreadID, uint gid : S
     float maxDepth;
     DownsampleDepth(s0, s1, s2, s3, maxDepth);
 
+#if GENERATE_GRADIENT
     float minDepth = GetMinDepth(dispatchThreadId.xy);
     float gradient = GetDepthGradient(minDepth, maxDepth);
 
     _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float2(maxDepth, gradient);
+#else
+    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = maxDepth;
+#endif
 }
 
 
 #elif DILATE_MASK
 
 TEXTURE2D_X(_InputTexture);
-RW_TEXTURE2D_X(float2, _OutputTexture);
+RW_TEXTURE2D_X(OUT_MASK_FORMAT, _OutputTexture);
 
-float2 DilateValue(float2 currMax, float2 currSample)
+OUT_MASK_FORMAT DilateValue(OUT_MASK_FORMAT currMax, OUT_MASK_FORMAT currSample)
 {
+#if GENERATE_GRADIENT
     return float2(max(currMax.x, currSample.x), max(currMax.y, currSample.y));
+#else
+    return max(currMax, currSample);
+#endif
 }
 
 [numthreads(8, 8, 1)]
@@ -149,14 +168,12 @@ void DilateMask(uint3 dispatchThreadId : SV_DispatchThreadID, uint gid : SV_Grou
 {
     int dilationWidth = 2;
 
-    float2 dilatedMaxVals = -1;
+    OUT_MASK_FORMAT dilatedMaxVals = -1;
     for (int i = -dilationWidth; i <= dilationWidth; ++i)
     {
         for (int j = -dilationWidth; j <= dilationWidth; ++j)
         {
-            float2 uv = (0.5f + dispatchThreadId.xy + float2(i, j)) * rcp(_SrcLimit);
-            float2 s = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_linear_clamp_sampler, uv, 0);
-            s = _InputTexture[COORD_TEXTURE2D_X(min(dispatchThreadId.xy + int2(i, j), _SrcLimit))].xy;
+            OUT_MASK_FORMAT s = _InputTexture[COORD_TEXTURE2D_X(min(dispatchThreadId.xy + int2(i, j), _SrcLimit))].MASK_SWIZZLE;
             dilatedMaxVals = DilateValue(dilatedMaxVals, s);
         }
     }
