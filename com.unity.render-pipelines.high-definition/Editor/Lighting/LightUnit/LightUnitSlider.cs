@@ -23,6 +23,13 @@ namespace UnityEditor.Rendering.HighDefinition
             public const float k_ThumbTooltipSize   = 10;
         }
 
+        protected static class SliderStyles
+        {
+            public static GUIStyle k_IconButton = new GUIStyle("IconButton");
+            public static GUIStyle k_TemperatureBorder = new GUIStyle("ColorPickerSliderBackground");
+            public static GUIStyle k_TemperatureThumb = new GUIStyle("ColorPickerHorizThumb");
+        }
+
         protected readonly LightUnitSliderUIDescriptor m_Descriptor;
 
         public LightUnitSlider(LightUnitSliderUIDescriptor descriptor)
@@ -59,10 +66,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Draw context menu
             // TODO: add to descriptor option for context menu
-            // Note: EventType.Used for UI interaction, EventType.MouseDown
-            GUI.Box(iconRect, GUIContent.none);
+            GUI.Box(iconRect, GUIContent.none, SliderStyles.k_IconButton);
             var e = Event.current;
-            if (e.type == EventType.MouseDown)
+            if (e.type == EventType.MouseDown && e.button == 0)
             {
                 if (iconRect.Contains(e.mousePosition))
                 {
@@ -568,10 +574,7 @@ namespace UnityEditor.Rendering.HighDefinition
         void SliderWithTextureNoTextField(Rect rect, SerializedProperty value, Vector2 range, LightEditor.Settings settings)
         {
             GUI.DrawTexture(rect, GetKelvinGradientTexture(settings));
-
-            var sliderBorder = new GUIStyle("ColorPickerSliderBackground");
-            var sliderThumb = new GUIStyle("ColorPickerHorizThumb");
-            value.floatValue = GUI.HorizontalSlider(rect, value.floatValue, range.x, range.y, sliderBorder, sliderThumb);
+            value.floatValue = GUI.HorizontalSlider(rect, value.floatValue, range.x, range.y, SliderStyles.k_TemperatureBorder, SliderStyles.k_TemperatureThumb);
         }
     }
 
