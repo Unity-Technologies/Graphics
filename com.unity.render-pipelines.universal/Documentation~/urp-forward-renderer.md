@@ -69,4 +69,8 @@ For more information on how Unity works with the Stencil buffer, see [ShaderLab:
 
 This section contains the list of Renderer Features assigned to the selected Renderer.
 
+For information on how to add a Renderer Feature, see [How to add a Renderer Feature to a Renderer](urp-renderer-feature-how-to-add.md).
+
+URP contains the pre-built Renderer Feature called [Render Objects](urp-renderer-feature.md#render-objects-renderer-feature).
+
 
