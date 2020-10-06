@@ -217,7 +217,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     m_RayMaxIterations.value.intValue = Mathf.Max(0, m_RayMaxIterations.value.intValue);
                     EditorGUI.indentLevel--;
                 }
-                PropertyField(m_AccumulationFactor, k_AccumulationFactorText);
+                if (m_SSRAlgo.value.intValue == (int)ScreenSpaceReflectionAlgorithm.PBRAccumulation)
+                    PropertyField(m_AccumulationFactor, k_AccumulationFactorText);
             }
         }
     }
