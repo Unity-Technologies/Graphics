@@ -7,6 +7,7 @@ test_platforms:
       OSX_Metal: 2400
     timeout_build:
       Android: 1800
+      Win: 2000
   - type: playmode
   - type: editmode
   - type: playmode
@@ -19,20 +20,20 @@ platforms:
       - DX11
       - DX12
       - Vulkan
-  - name: OSX 
+  - name: OSX
     apis:
       - Metal
       - OpenGLCore
   - name: Linux
-    apis: 
+    apis:
       - Vulkan
       - OpenGLCore
   - name: Android
-    apis: 
+    apis:
       - Vulkan
       - OpenGLES3
   - name: iPhone
-    apis: 
+    apis:
       - Metal
 all:
   dependencies:
@@ -47,13 +48,12 @@ all:
       api: Metal
       test_platforms:
         # - Standalone
-        - playmode 
-        - playmode_XR
+        - playmode
     - platform: OSX
       api: OpenGLCore
       test_platforms:
-        - editmode  
+        - editmode
     - project: Universal_Stereo
       all: true
     - project: Universal_Hybrid
-      all: true  
+      all: true

@@ -276,13 +276,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         //if we have slot entries and are at a leaf, add the slot name to the entry title
                         if (nodeEntry.compatibleSlotId != -1 && i == nodeEntry.title.Length - 1)
-                            item = new SearchNodeItem(pathEntry + ": " + nodeEntry.slotName, nodeEntry);
+                            item = new SearchNodeItem(pathEntry + ": " + nodeEntry.slotName, nodeEntry, nodeEntry.node.synonyms);
                         //if we don't have slot entries and are at a leaf, add userdata to the entry
                         else if (nodeEntry.compatibleSlotId == -1 && i == nodeEntry.title.Length - 1)
-                            item = new SearchNodeItem(pathEntry, nodeEntry);
+                            item = new SearchNodeItem(pathEntry, nodeEntry, nodeEntry.node.synonyms);
                         //if we aren't a leaf, don't add user data
                         else
-                            item = new SearchNodeItem(pathEntry, dummyEntry);
+                            item = new SearchNodeItem(pathEntry, dummyEntry, null);
 
                         if (parent != null)
                         {

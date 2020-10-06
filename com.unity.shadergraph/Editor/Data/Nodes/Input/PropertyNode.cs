@@ -138,7 +138,7 @@ namespace UnityEditor.ShaderGraph
                 case PropertyType.Boolean:
                     sb.AppendLine($"$precision {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
                     break;
-                case PropertyType.Vector1:
+                case PropertyType.Float:
                     sb.AppendLine($"$precision {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
                     break;
                 case PropertyType.Vector2:

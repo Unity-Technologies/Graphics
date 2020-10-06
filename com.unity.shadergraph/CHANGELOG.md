@@ -6,9 +6,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.1.0] - 2019-08-04
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
-
 ### Added
 - Added parallax mapping node and parallax occlusion mapping node.
 - Added the possibility to have multiple POM node in a single graph.
@@ -16,6 +13,9 @@ The version number for this package has increased due to a version update of a r
 
 ### Changed
 - Added method chaining support to shadergraph collection API.
+- Optimized ShaderSubGraph import dependencies to minimize unnecessary reimports when using CustomFunctionNode
+- Changed UI names from `Vector1` to `Float`
+- Renamed `Float` precision to `Single`
 
 ### Fixed
 - Fixed a bug where ShaderGraph subgraph nodes would not update their slot names or order
@@ -28,7 +28,14 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue where ShaderGraph shaders did not reimport automatically when some of the included files changed [1269634]
 - Fixed an issue where building a context menu on a dragging block node would leave it floating and undo/redo would result in a soft-lock
 - Fixed an issue where ShaderGraph was logging error when edited in play mode [1274148].
+- Fixed a bug where properties copied over with their graph inputs would not hook up correctly in a new graph [1274306]
 - Fixed an issue where renaming a property in the blackboard at creation would trigger an error.
+- Fixed an issue where ShaderGraph shaders did not reimport automatically when missing dependencies were reintroduced [1182895]
+- Fixed an issue where ShaderGraph previews would not show error shaders when the active render pipeline is incompatible with the shader [1257015]
+- ShaderGraph DDX, DDY, DDXY, and NormalFromHeight nodes do not allow themselves to be connected to vertex shader, as the derivative instructions can't be used [1209087]
+- When ShaderGraph detects no active SRP, it will still continue to render the master preview, but it will use the error shader [1264642]
+- VirtualTexture is no longer allowed as a SubGraph output (it is not supported by current system) [1254483]
+- ShaderGraph Custom Function Node will now correctly convert function and slot names to valid HLSL identifiers [1258832]
 
 ## [10.0.0] - 2019-06-10
 ### Added

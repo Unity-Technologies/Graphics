@@ -7,6 +7,7 @@ namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
     [FormerName("UnityEditor.ShaderGraph.ColorShaderProperty")]
+    [BlackboardInputInfo(10)]
     public sealed class ColorShaderProperty : AbstractShaderProperty<Color>
     {
         public override int latestVersion => 1;
