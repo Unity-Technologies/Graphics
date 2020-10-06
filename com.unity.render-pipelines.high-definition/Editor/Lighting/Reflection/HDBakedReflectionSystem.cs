@@ -83,8 +83,6 @@ namespace UnityEditor.Rendering.HighDefinition
             IScriptableBakedReflectionSystemStageNotifier handle
         )
         {
-            var hdrp = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
-
             if (!AreAllOpenedSceneSaved())
             {
                 handle.SetIsDone(true);
@@ -262,7 +260,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     // Get from cache or render the probe
                     if (!File.Exists(cacheFile))
                     {
-                        var planarRT = HDRenderUtilities.CreatePlanarProbeRenderTarget((int)probe.resolution(hdrp.asset), probeFormat);
+                        var planarRT = HDRenderUtilities.CreatePlanarProbeRenderTarget((int)probe.resolution, probeFormat);
                         RenderAndWriteToFile(probe, cacheFile, cubeRT, planarRT);
                         planarRT.Release();
                     }
@@ -382,7 +380,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     "please switch your render pipeline or use another reflection system");
                 return false;
             }
-            var hdrp = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
+            
 
 
             var cubemapSize = (int)hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize;
@@ -395,7 +393,7 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (var probe in bakedProbes)
             {
                 var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
-                var planarRT = HDRenderUtilities.CreatePlanarProbeRenderTarget((int)probe.resolution(hdrp.asset), probeFormat);
+                var planarRT = HDRenderUtilities.CreatePlanarProbeRenderTarget((int)probe.resolution, probeFormat);
                 RenderAndWriteToFile(probe, bakedTexturePath, cubeRT, planarRT);
                 planarRT.Release();
             }

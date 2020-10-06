@@ -372,9 +372,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Resolution of the probe.
         /// </summary>
-        public PlanarReflectionAtlasResolution resolution(HDRenderPipelineAsset asset)
+        public PlanarReflectionAtlasResolution resolution
         {
-            return m_ProbeSettings.resolutionScalable.Value(asset.currentPlatformRenderPipelineSettings.planarReflectionResolution);
+            get
+            {
+                var hdrp = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
+                // We return whatever value is in resolution if there is no hdrp pipeline (nothing will work anyway)
+                return hdrp != null ? m_ProbeSettings.resolutionScalable.Value(hdrp.asset.currentPlatformRenderPipelineSettings.planarReflectionResolution) : m_ProbeSettings.resolution;
+            }
         }
 
         // Lighting
