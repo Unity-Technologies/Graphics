@@ -30,6 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             static public readonly GUIContent k_AAMode = EditorGUIUtility.TrTextContent("Post Anti-aliasing", "To override the postprocess Anti-aliasing mode, activate the option by clicking on the check-box and then select the desired value.");
             static public readonly GUIContent k_CullingMask = EditorGUIUtility.TrTextContent("Culling Mask", "To override the culling mask, activate the option by clicking on the check-box and then select the desired value.");
             static public readonly GUIContent k_VolumeMask = EditorGUIUtility.TrTextContent("Volume Mask", "To override the volume mask, activate the option by clicking on the check-box and then select the desired value.");
+            static public readonly GUIContent k_AlphaRange = EditorGUIUtility.TrTextContent("Alpha Range", "The range of alpha values used when transitioning from post-processed to plain image regions. A smaller range will result in a steeper transition.");
 
             static public readonly string k_AlphaInfoPost = "The use of AOVs properties in a player require to to enable the Runtime AOV API support in the HDRP quality settings.";
 
@@ -178,6 +179,58 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             rect.y += CompositorStyle.k_Spacing;
 
             EditorGUI.PropertyField(rect, serializedProperties.clearAlpha, Styles.k_ClearAlpha);
+            rect.y += 1.0f * CompositorStyle.k_Spacing;
+
+            // Draw a min/max slider for tha alpha range 
+            {
+                const float spacing = 5;
+                var labelRect = new Rect(rect.x, rect.y, EditorGUIUtility.labelWidth, rect.height);
+                EditorGUI.PrefixLabel(labelRect, Styles.k_AlphaRange);
+
+                var minLabelRect = rect;
+                minLabelRect.x += EditorGUIUtility.labelWidth;
+                minLabelRect.width = EditorGUIUtility.fieldWidth / 2;
+                serializedProperties.alphaMin.floatValue = EditorGUI.FloatField(minLabelRect, serializedProperties.alphaMin.floatValue);
+
+                GUI.SetNextControlName("AlphaMinMaxSlider");
+                var sliderRect = rect;
+                sliderRect.x += EditorGUIUtility.labelWidth + EditorGUIUtility.fieldWidth / 2 + spacing;
+                sliderRect.width -= (EditorGUIUtility.labelWidth + EditorGUIUtility.fieldWidth + 2 * spacing);
+                float minVal = serializedProperties.alphaMin.floatValue;
+                float maxVal = serializedProperties.alphaMax.floatValue;
+
+                EditorGUI.MinMaxSlider(sliderRect, ref minVal, ref maxVal, 0, 1);
+                if (serializedProperties.alphaMin.floatValue != minVal || serializedProperties.alphaMax.floatValue != maxVal)
+                {
+                    // Note: We need to move the focus when the slider changes, otherwise the textField will not update
+                    GUI.FocusControl("AlphaMinMaxSlider");
+                    serializedProperties.alphaMin.floatValue = minVal;
+                    serializedProperties.alphaMax.floatValue = maxVal;
+                }
+
+                var maxLabelRect = rect;
+                maxLabelRect.x = sliderRect.x + sliderRect.width + spacing;
+                maxLabelRect.width = EditorGUIUtility.fieldWidth / 2;
+                serializedProperties.alphaMax.floatValue = EditorGUI.FloatField(maxLabelRect, serializedProperties.alphaMax.floatValue);
+
+                // sanity checks
+                if (serializedProperties.alphaMax.floatValue < serializedProperties.alphaMin.floatValue)
+                {
+                    serializedProperties.alphaMax.floatValue = serializedProperties.alphaMin.floatValue;
+                }
+                if (serializedProperties.alphaMax.floatValue > 1)
+                {
+                    serializedProperties.alphaMax.floatValue = 1;
+                }
+                if (serializedProperties.alphaMin.floatValue > serializedProperties.alphaMax.floatValue)
+                {
+                    serializedProperties.alphaMin.floatValue = serializedProperties.alphaMax.floatValue;
+                }
+                if (serializedProperties.alphaMin.floatValue < 0)
+                {
+                    serializedProperties.alphaMin.floatValue = 0;
+                }
+            }
             rect.y += 1.5f * CompositorStyle.k_Spacing;
 
             // The clear mode should be visible / configurable only for the first layer in the stack. For the other layers we set a camera-stacking specific clear-mode .

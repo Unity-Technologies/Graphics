@@ -30,6 +30,8 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
         public SerializedProperty aovBitmask;
         public SerializedProperty inputFilters;
         public SerializedProperty positionInStack;
+        public SerializedProperty alphaMin;
+        public SerializedProperty alphaMax;
 
         public List<SerializedCompositionFilter> filterList = new List<SerializedCompositionFilter>();
 
@@ -60,6 +62,8 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             aovBitmask = root.FindPropertyRelative("m_AOVBitmask");
             inputFilters = root.FindPropertyRelative("m_InputFilters");
             positionInStack = root.FindPropertyRelative("m_LayerPositionInStack");
+            alphaMin = root.FindPropertyRelative("m_AlphaMin");
+            alphaMax = root.FindPropertyRelative("m_AlphaMax");
 
             for (int index = 0; index < inputFilters.arraySize; index++)
             {
@@ -91,7 +95,8 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                     EditorGUI.GetPropertyHeight(cullingMaskProperty, null) +
                     EditorGUI.GetPropertyHeight(volumeMask, null) +
                     EditorGUI.GetPropertyHeight(inputFilters, null) +
-                    EditorGUIUtility.singleLineHeight * 7; //for the heading and pading
+                    EditorGUI.GetPropertyHeight(alphaMin, null) +   // we use a min/max slider in the UI so it takes a sinle line, so we don't need to count the alphaMax
+                    EditorGUIUtility.singleLineHeight * 7;          // for the heading and pading
 
                 if (inputFilters.arraySize > 0)
                 {

@@ -9,7 +9,7 @@ Adjusts the strength of the normal map defined by input **In** by the amount of 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
 | In      | Input | Vector 3 | None | Input value |
-| Strength      | Input | Vector 1 | None | Strength value |
+| Strength      | Input | Float    | None | Strength value |
 | Out | Output      |    Vector 3 | None | Output value |
 
 ## Generated Code Example

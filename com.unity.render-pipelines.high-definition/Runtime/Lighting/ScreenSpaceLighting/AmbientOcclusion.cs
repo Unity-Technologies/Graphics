@@ -211,7 +211,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // RTAO
         [SerializeField, FormerlySerializedAs("rayLength")]
-        private ClampedFloatParameter m_RayLength = new ClampedFloatParameter(0.5f, 0f, 50f);
+        private MinFloatParameter m_RayLength = new MinFloatParameter(50.0f, 0.01f);
         [SerializeField, FormerlySerializedAs("sampleCount")]
         private ClampedIntParameter m_SampleCount = new ClampedIntParameter(1, 1, 64);
         [SerializeField, FormerlySerializedAs("denoise")]

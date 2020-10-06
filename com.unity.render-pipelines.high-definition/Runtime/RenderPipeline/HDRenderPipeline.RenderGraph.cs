@@ -1389,7 +1389,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 TextureHandle history = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing)
                     ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.PathTracing, PathTracingHistoryBufferAllocatorFunction, 1));
 
-                passData.parameters = PrepareRenderAccumulationParameters(hdCamera, needExposure);
+                bool inputFromRadianceTexture = !inputTexture.Equals(outputTexture);
+                passData.parameters = PrepareRenderAccumulationParameters(hdCamera, needExposure, inputFromRadianceTexture);
                 passData.input = builder.ReadTexture(inputTexture);
                 passData.output = builder.WriteTexture(outputTexture);
                 passData.history = builder.WriteTexture(history);
