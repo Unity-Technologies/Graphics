@@ -86,7 +86,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             PropertyFieldWithoutToggle(ProbeSettingsFields.resolution, serialized.resolution, EditorGUIUtility.TrTextContent("Resolution", "Sets the resolution for the planar probe camera."), displayedFields.probe);
 
-            PropertyFieldWithoutToggle(ProbeSettingsFields.roughReflections, serialized.roughReflections, EditorGUIUtility.TrTextContent("Rough Reflections", "When disabled the reflections evaluated using the planar reflection will be perfectly smooth."), displayedFields.probe);
+            PropertyFieldWithoutToggle(ProbeSettingsFields.roughReflections, serialized.roughReflections, EditorGUIUtility.TrTextContent("Rough Reflections", "When disabled the reflections evaluated using the planar reflection will be perfectly smooth. This save GPU time when the planar reflection is used as a pure mirror."), displayedFields.probe);
 
             if ((displayedFields.probe & proxy) != 0)
             {

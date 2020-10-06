@@ -2543,7 +2543,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // changes the direction vs the coat.)
 
     // Sample the pre-integrated environment lighting
-    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, PerceptualRoughnessToMipmapLevel_LODFlag(preLightData.iblPerceptualRoughness, lightData.hasMipMaps), lightData.rangeCompressionFactorCompensation, posInput.positionNDC);
+    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness) * lightData.roughReflections, lightData.rangeCompressionFactorCompensation, posInput.positionNDC);
     weight *= preLD.w; // Used by planar reflection to discard pixel
 
     envLighting = GetSpecularIndirectDimmer() * preLightData.specularFGD * preLD.xyz;
@@ -2570,7 +2570,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     {
         float   coeff = _CarPaint2_CTCoeffs[lobeIndex];
 
-        float   lobeMipLevel = PerceptualRoughnessToMipmapLevel_LODFlag(preLightData.iblPerceptualRoughness[lobeIndex], lightData.hasMipMaps);
+        float   lobeMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness[lobeIndex], lightData.hasMipMaps);
         float4  preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, lobeMipLevel, lightData.rangeCompressionFactorCompensation, posInput.positionNDC);
 
         //todotodo: try removing coeff
@@ -2597,7 +2597,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // Single lobe approach
     // We computed an average mip level stored in preLightData.iblPerceptualRoughness that we use for all CT lobes
     // Sample the actual environment lighting
-    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, PerceptualRoughnessToMipmapLevel_LODFlag(preLightData.iblPerceptualRoughness, lightData.hasMipMaps), lightData.rangeCompressionFactorCompensation, posInput.positionNDC);
+    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness) * lightData.roughReflections, lightData.rangeCompressionFactorCompensation, posInput.positionNDC);
     float3  envLighting;
 
     envLighting = preLightData.specularCTFGDSingleLobe * GetSpecularIndirectDimmer();

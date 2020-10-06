@@ -143,7 +143,7 @@ struct EnvLightData
     float3 influenceUp;
     float3 influenceRight;
     float3 influenceExtents;
-    float hasMipMaps;
+    float roughReflections;
     float3 blendDistancePositive;
     float3 blendDistanceNegative;
     float3 blendNormalDistancePositive;

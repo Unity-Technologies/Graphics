@@ -60,7 +60,9 @@ The following properties control the method that the Planar Reflection Probe use
 | **Probe Layer Mask**       | Acts as a culling mask for environment lights (light from other Planar Reflection Probes and Reflection Probes). This Planar Reflection Probe ignores all Reflection Probes that are on Layers not included in this Layer mask, so use this property to ignore certain Reflection Probes when rendering this one. |
 | **Custom Frame Settings**  | Allows you to define custom [Frame Settings](Frame-Settings.md) for this Probe. Disable this property to use the **Default Frame Settings** in your Unity Project’s [HDRP Asset](HDRP-Asset.md). |
 | **Resolution**             | Sets the resolution for the probe camera. |
+| **Rough Reflections**      | Disable the checkbox to inform HDRP that this planar reflection will be used as a pure mirror. It mean that the receiving surface must be perfectly smooth. If receiving surface is not smooth, the result will not be accurate. This option allow to save GPU performance when disabled for the case of mirror usage.|
 | **Mirror Position**        | Offsets the position of the mirror from the Transform Position. This is only available in **Advanced** mode. |
+| **Range Compression Factor**  | The result of the rendering of the probe will be divided by this factor. When the probe is read, this factor is undone as the probe data is read. This is especially useful to deal with very bright or dark objects in the reflections that will otherwise be saturated. |
 
 ### Render Settings
 
