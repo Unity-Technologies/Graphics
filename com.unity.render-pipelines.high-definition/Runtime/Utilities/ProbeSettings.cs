@@ -240,7 +240,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 frustum = Frustum.NewDefault(),
                 resolutionScalable = new PlanarReflectionAtlasResolutionScalableSettingValue(),
             };
-            probeSettings.resolutionScalable.@override = PlanarReflectionAtlasResolution.Resolution512;
+            probeSettings.resolutionScalable.@override = PlanarReflectionAtlasResolution.PlanarReflectionResolution512;
 
             return probeSettings;
         }
