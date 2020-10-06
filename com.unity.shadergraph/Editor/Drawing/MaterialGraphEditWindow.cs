@@ -393,6 +393,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             return !string.Equals(currentGraphJson, currentFileJson, StringComparison.Ordinal);
         }
 
+        // NOTE: we're using the AssetPostprocessor Asset Import and Deleted callbacks as a proxy for detecting file changes
+        // We could probably replace both m_AssetMaybeDeleted and  m_AssetMaybeChangedOnDisk with a combined "need to check the real status of the file" flag
         public void CheckForChanges()
         {
             if (!m_AssetMaybeDeleted && graphObject?.graph != null)

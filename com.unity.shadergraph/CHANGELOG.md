@@ -17,6 +17,9 @@ The version number for this package has increased due to a version update of a r
 ### Changed
 - Added method chaining support to shadergraph collection API.
 - Optimized ShaderSubGraph import dependencies to minimize unnecessary reimports when using CustomFunctionNode
+- The * in the ShaderGraph title bar now indicates that the graph has been modified when compared to the state it was loaded, instead of compared to what is on disk
+- Cancelling a "Save changes on Close?" will now cancel the Close as well
+- When attempting to Save and encountering a Read Only file or other exception, ShaderGraph will allow the user to retry as many times as they like
 
 ### Fixed
 - Fixed a bug where ShaderGraph subgraph nodes would not update their slot names or order
@@ -34,6 +37,15 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue where ShaderGraph previews would not show error shaders when the active render pipeline is incompatible with the shader [1257015]
 - ShaderGraph DDX, DDY, DDXY, and NormalFromHeight nodes do not allow themselves to be connected to vertex shader, as the derivative instructions can't be used [1209087]
 - When ShaderGraph detects no active SRP, it will still continue to render the master preview, but it will use the error shader [1264642]
+- Fixed an issue with detection of circular subgraph dependencies [1269841]
+- Fixed an issue where subgraph nodes were constantly changing their serialized data [1281975]
+- Modifying a subgraph will no longer cause ShaderGraphs that use them to "reload from disk?" [1198885]
+- Fixed issues with ShaderGraph title bar not correctly displaying the modified status * [1282031]
+- Fixed issues where ShaderGraph could discard modified data without user approval when closed [1170503]
+- Fixed an issue where ShaderGraph file dependency gathering would fail to include any files that didn't exist
+- Fixed issues with ShaderGraph detection and handling of deleted graph files
+- Fixed an issue where the ShaderGraph was corrupting the translation cache
+- Fixed an issue where ShaderGraph would not prompt the user to save unsaved changes after an assembly reload
 
 ## [10.0.0] - 2019-06-10
 ### Added
