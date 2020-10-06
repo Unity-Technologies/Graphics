@@ -195,9 +195,6 @@ EditorBuildSettings:
     path: Assets/Scenes/3002_AreaShadowsForward_Denoiser.unity
     guid: 22e35301dfb0fdf468a423c8a8390b13
   - enabled: 1
-    path: Assets/Scenes/4000_Alembic.unity
-    guid: 163e04c0245b93648808a42b7f45ce0d
-  - enabled: 1
     path: Assets/Scenes/5001_PathTracing.unity
     guid: 3666dc8006745714997c368c4375f316
   - enabled: 1
@@ -227,4 +224,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/6000_VertexFormats.unity
     guid: 6788ab4459664394f96537c7ad864afb
+  - enabled: 1
+    path: Assets/Scenes/6001_Alembic.unity
+    guid: 163e04c0245b93648808a42b7f45ce0d
   m_configObjects: {}
