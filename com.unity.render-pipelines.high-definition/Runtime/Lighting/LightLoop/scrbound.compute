@@ -722,7 +722,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     ndcAaBbMaxPt.w = asfloat(gs_NdcAaBbMaxPtW[intraGroupLightIndex]);
 #endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
 
-    if ((globalLightIndex < g_iNrVisibLights) && (t % THREADS_PER_LIGHT == 0)) // Avoid bank conflicts
+    if ((globalLightIndex < (uint)g_iNrVisibLights) && (t % THREADS_PER_LIGHT == 0)) // Avoid bank conflicts
     {
         // For stereo, we have two sets of lights. Therefore, each eye has a set of mins
         // followed by a set of maxs, and each set is equal to g_iNrVisibLights.

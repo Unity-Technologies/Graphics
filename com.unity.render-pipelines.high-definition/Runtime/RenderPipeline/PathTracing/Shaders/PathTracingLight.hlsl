@@ -39,7 +39,7 @@ struct LightList
 
 bool IsRectAreaLightActive(LightData lightData, float3 position, float3 normal)
 {
-    float3 lightVec = position - GetAbsolutePositionWS(lightData.positionRWS);
+    float3 lightVec = position - lightData.positionRWS;
 
 #ifndef USE_LIGHT_CLUSTER
     // Check light range first
@@ -62,7 +62,7 @@ bool IsRectAreaLightActive(LightData lightData, float3 position, float3 normal)
 
 bool IsPointLightActive(LightData lightData, float3 position, float3 normal)
 {
-    float3 lightVec = position - GetAbsolutePositionWS(lightData.positionRWS);
+    float3 lightVec = position - lightData.positionRWS;
 
 #ifndef USE_LIGHT_CLUSTER
     // Check light range first
@@ -333,7 +333,7 @@ bool SampleLights(LightList lightList,
             // Generate a point on the surface of the light
             float centerU = inputSample.x - 0.5;
             float centerV = inputSample.y - 0.5;
-            float3 lightCenter = GetAbsolutePositionWS(lightData.positionRWS);
+            float3 lightCenter = lightData.positionRWS;
             float3 samplePos = lightCenter + centerU * lightData.size.x * lightData.right + centerV * lightData.size.y * lightData.up;
 
             // And the corresponding direction
@@ -357,7 +357,7 @@ bool SampleLights(LightList lightList,
         else // Punctual light
         {
             // Direction from shading point to light position
-            outgoingDir = GetAbsolutePositionWS(lightData.positionRWS) - position;
+            outgoingDir = lightData.positionRWS - position;
             float sqDist = Length2(outgoingDir);
             dist = sqrt(sqDist);
             outgoingDir /= dist;
@@ -396,7 +396,7 @@ bool SampleLights(LightList lightList,
         DirectionalLightData lightData = GetDistantLightData(lightList, inputSample.z);
 
         // The position-to-light unnormalized vector is used for cookie evaluation
-        float3 OutgoingVec = GetAbsolutePositionWS(lightData.positionRWS) - position;
+        float3 OutgoingVec = lightData.positionRWS - position;
 
         if (lightData.angularDiameter > 0.0)
         {
@@ -445,7 +445,7 @@ void EvaluateLights(LightList lightList,
 
         float t = rayDescriptor.TMax;
         float cosTheta = -dot(rayDescriptor.Direction, lightData.forward);
-        float3 lightCenter = GetAbsolutePositionWS(lightData.positionRWS);
+        float3 lightCenter = lightData.positionRWS;
 
         // Check if we hit the light plane, at a distance below our tMax (coming from indirect computation)
         if (cosTheta > 0.0 && IntersectPlane(rayDescriptor.Origin, rayDescriptor.Direction, lightCenter, lightData.forward, t))

@@ -353,7 +353,7 @@ namespace UnityEditor.VFX
         public VFXCoordinateSpace space
         {
             get { return m_Space; }
-            set { m_Space = value; Modified(); }
+            set { m_Space = value; Modified(false); }
         }
 
         public override bool CanBeCompiled()
@@ -537,6 +537,7 @@ namespace UnityEditor.VFX
         }
 
         public override void FillDescs(
+            VFXCompileErrorReporter reporter,
             List<VFXGPUBufferDesc> outBufferDescs,
             List<VFXTemporaryGPUBufferDesc> outTemporaryBufferDescs,
             List<VFXEditorSystemDesc> outSystemDescs,
@@ -854,6 +855,7 @@ namespace UnityEditor.VFX
                 {
                     if (mapping.index < 0)
                     {
+                        reporter?.RegisterError(context.GetSlotByPath(true,mapping.name),"GPUNodeLinkedTOCPUSlot",VFXErrorType.Error, "Can not link a GPU operator to a system wide (CPU) input." );;
                         throw new InvalidOperationException("Unable to compute CPU expression for mapping : " + mapping.name);
                     }
                 }

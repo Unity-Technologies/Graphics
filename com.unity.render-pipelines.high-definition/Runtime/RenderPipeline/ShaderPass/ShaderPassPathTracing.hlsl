@@ -76,7 +76,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 #ifndef EMISSIVE_ONLY
 
     // Let's compute the world space position (the non-camera relative one if camera relative rendering is enabled)
-    float3 shadingPosition = GetAbsolutePositionWS(fragInput.positionRWS);
+    float3 shadingPosition = fragInput.positionRWS;
 
     // Get current path throughput
     float3 pathThroughput = pathIntersection.value;
