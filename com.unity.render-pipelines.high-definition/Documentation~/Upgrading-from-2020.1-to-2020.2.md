@@ -166,7 +166,7 @@ to:
 For example, the call in the Lit shader has been updated to:
 `float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness), lightData.rangeCompressionFactorCompensation, posInput.positionNDC);`
 
-From 10.x, a new optimization have been introduce for [Planar Reflection Probe](Planar-Reflection-Probe.md). It required to sample the environment map at the mip 0 with the help of the LightData.roughReflections parameter to be effective in custom shader.
+From 10.x, HDRP includes a new optimization for [Planar Reflection Probes](Planar-Reflection-Probe.md). Now, when a shader samples a probe's environment map, it samples from mip level 0 if the LightData.roughReflections parameter is enabled (has a value of 1.0). You must update your custom shaders to take this behavior into account.
 For example, the call in the Lit shader has been updated to:
 `float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness) * lightData.roughReflections, lightData.rangeCompressionFactorCompensation, posInput.positionNDC);`
 
