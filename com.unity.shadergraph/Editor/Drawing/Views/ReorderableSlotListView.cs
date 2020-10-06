@@ -40,6 +40,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             set => m_OnListRecreatedCallback = value;
         }
 
+        public Func<ConcreteSlotValueType, bool> AllowedTypeCallback;
+
         internal ReorderableSlotListView(AbstractMaterialNode node, SlotType slotType)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/ReorderableSlotListView"));
@@ -102,7 +104,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 var displayName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), oldSlot.RawDisplayName(), EditorStyles.label);
                 var shaderOutputName = NodeUtils.GetHLSLSafeName(displayName);
-                var concreteValueType = (ConcreteSlotValueType)EditorGUI.EnumPopup( new Rect(rect.x + rect.width / 2, rect.y, rect.width - rect.width / 2, EditorGUIUtility.singleLineHeight), oldSlot.concreteValueType);
+
+                var concreteValueType = (ConcreteSlotValueType) EditorGUI.EnumPopup(
+                    new Rect(rect.x + rect.width / 2, rect.y, rect.width - rect.width / 2, EditorGUIUtility.singleLineHeight),
+                    GUIContent.none,
+                    oldSlot.concreteValueType,
+                    e => (AllowedTypeCallback == null) ? true : AllowedTypeCallback((ConcreteSlotValueType) e));
 
                 if(displayName != oldSlot.RawDisplayName())
                     displayName = NodeUtils.GetDuplicateSafeNameForSlot(m_Node, oldSlot.id, displayName);

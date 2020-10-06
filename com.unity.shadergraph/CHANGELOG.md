@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where ShaderGraph previews would not show error shaders when the active render pipeline is incompatible with the shader [1257015]
 - ShaderGraph DDX, DDY, DDXY, and NormalFromHeight nodes do not allow themselves to be connected to vertex shader, as the derivative instructions can't be used [1209087]
 - When ShaderGraph detects no active SRP, it will still continue to render the master preview, but it will use the error shader [1264642]
+- VirtualTexture is no longer allowed as a SubGraph output (it is not supported by current system) [1254483]
 
 ## [10.0.0] - 2019-06-10
 ### Added
