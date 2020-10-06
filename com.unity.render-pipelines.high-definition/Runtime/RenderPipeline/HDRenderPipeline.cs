@@ -2741,8 +2741,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     void AsyncSSAODispatch(CommandBuffer c, HDGPUAsyncTaskParams a)
                         => m_AmbientOcclusionSystem.Dispatch(c, a.hdCamera, depthTexture, normalBuffer, motionVectors, a.frameCount);
                 }
-
-                m_ShadowManager.BlitCacheIntoAtlas(cmd);
                     
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderShadowMaps)))
                 {
