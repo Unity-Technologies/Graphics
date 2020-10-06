@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.Universal
 
         private static class Profiling
         {
-            private static Dictionary<int, ProfilingSampler> m_HashSamplerCache = new Dictionary<int, ProfilingSampler>();
+            private static Dictionary<int, ProfilingSampler> s_HashSamplerCache = new Dictionary<int, ProfilingSampler>();
             public static readonly ProfilingSampler m_UnknownSampler = new ProfilingSampler("Unknown");
 
             public static void Clear()
