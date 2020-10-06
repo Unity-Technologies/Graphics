@@ -17,3 +17,7 @@ To add a Renderer Feature to a Renderer:
     Unity adds the selected Renderer Feature to the Renderer.
 
     ![New Renderer Feature added.](Images/urp-assets/urp-added-new-renderer-feature.png)
+
+Unity shows Renderer Features as child items of the Renderer in the Project Window:
+
+![Renderer Feature as child item of the Renderer in the Project Window](Images/urp-assets/urp-renderer-feature-in-project-window.png)

@@ -42,8 +42,8 @@ This section contains properties that define which layers the renderer draws.
 
 | Property | Description |
 |:-|:-|
-| Opaque Layer Mask | Select which opaque layers this Renderer draws |
-| Transparent Layer Mask | Select which transparent layers this Renderer draws |
+| **Opaque Layer Mask** | Select which opaque layers this Renderer draws |
+| **Transparent Layer Mask** | Select which transparent layers this Renderer draws |
 
 ### Shadows
 
@@ -51,7 +51,7 @@ This section contains properties related to rendering shadows.
 
 | Property | Description |
 |:-|:-|
-| Transparent Receive Shadows | When this option is on, Unity draws shadows on transparent objects. |
+| **Transparent Receive Shadows** | When this option is on, Unity draws shadows on transparent objects. |
 
 ### Overrides
 
