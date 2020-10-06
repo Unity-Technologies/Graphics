@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.Rendering.Universal;
 using UnityEditor.AnimatedValues;
-
+using UnityEditor.Rendering.Universal;
 
 namespace UnityEditor.Experimental.Rendering.Universal
 {
@@ -63,11 +63,18 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static Texture lightCapUp = Resources.Load<Texture>("LightCapUp");
             public static Texture lightCapDown = Resources.Load<Texture>("LightCapDown");
 
+
             public static GUIContent lightTypeFreeform = new GUIContent("Freeform", Resources.Load("InspectorIcons/FreeformLight") as Texture);
             public static GUIContent lightTypeSprite = new GUIContent("Sprite", Resources.Load("InspectorIcons/SpriteLight") as Texture);
-            public static GUIContent lightTypePoint = new GUIContent("Point", Resources.Load("InspectorIcons/PointLight") as Texture);
+            public static GUIContent lightTypePoint = new GUIContent("Spot", Resources.Load("InspectorIcons/PointLight") as Texture);
             public static GUIContent lightTypeGlobal = new GUIContent("Global", Resources.Load("InspectorIcons/GlobalLight") as Texture);
             public static GUIContent[] lightTypeOptions = new GUIContent[] { lightTypeFreeform, lightTypeSprite, lightTypePoint, lightTypeGlobal };
+
+            
+            public static GUIContent blendingSettingsFoldout = EditorGUIUtility.TrTextContent("Blending", "Options used for blending");
+            public static GUIContent shadowsSettingsFoldout = EditorGUIUtility.TrTextContent("Shadows", "Options used for shadows");
+            public static GUIContent volumetricSettingsFoldout = EditorGUIUtility.TrTextContent("Volumetric", "Options used for volumetric lighting");
+            public static GUIContent normalMapsSettingsFoldout = EditorGUIUtility.TrTextContent("Normal Maps", "Options used for normal maps");
 
             public static GUIContent generalLightType = EditorGUIUtility.TrTextContent("Light Type", "Specify the light type");
             public static GUIContent generalFalloffSize = EditorGUIUtility.TrTextContent("Falloff", "Specify the falloff of the light");
@@ -88,8 +95,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             public static GUIContent pointLightInnerAngle =  EditorGUIUtility.TrTextContent("Inner Angle", "Specify the inner angle of the light");
             public static GUIContent pointLightOuterAngle = EditorGUIUtility.TrTextContent("Outer Angle", "Specify the outer angle of the light");
-            public static GUIContent pointLightInnerRadius = EditorGUIUtility.TrTextContent("Inner Radius", "Specify the inner radius of the light");
-            public static GUIContent pointLightOuterRadius = EditorGUIUtility.TrTextContent("Outer Radius", "Specify the outer radius of the light");
+            public static GUIContent pointLightRadius = EditorGUIUtility.TrTextContent("Radius", "For adjusting the falloff of a light");
+            public static GUIContent pointLightInner = EditorGUIUtility.TrTextContent("Inner", "Specify the inner radius of the light");
+            public static GUIContent pointLightOuter = EditorGUIUtility.TrTextContent("Outer", "Specify the outer radius of the light");
 
             public static GUIContent shapeLightSprite = EditorGUIUtility.TrTextContent("Sprite", "Specify the sprite");
             public static GUIContent shapeLightParametricRadius = EditorGUIUtility.TrTextContent("Radius", "Adjust the size of the object");
@@ -133,6 +141,12 @@ namespace UnityEditor.Experimental.Rendering.Universal
         SerializedProperty m_ShapeLightParametricSides;
         SerializedProperty m_ShapeLightSprite;
 
+        SavedBool          m_BlendingSettingsFoldout;
+        SavedBool          m_ShadowsSettingsFoldout;
+        SavedBool          m_VolumetricSettingsFoldout;
+        SavedBool          m_NormalMapsSettingsFoldout;
+
+
         int[]           m_BlendStyleIndices;
         GUIContent[]    m_BlendStyleNames;
         bool            m_AnyBlendStyleEnabled  = false;
@@ -162,6 +176,11 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_Analytics = Analytics.Renderer2DAnalytics.instance;
             m_ModifiedLights = new HashSet<Light2D>();
             m_SortingLayerDropDown = new SortingLayerDropDown();
+
+            m_BlendingSettingsFoldout = new SavedBool($"{target.GetType()}.2DURPBlendingSettingsFoldout", false);
+            m_ShadowsSettingsFoldout = new SavedBool($"{target.GetType()}.2DURPShadowsSettingsFoldout", false);
+            m_VolumetricSettingsFoldout = new SavedBool($"{target.GetType()}.2DURPVolumetricSettingsFoldout", false);
+            m_NormalMapsSettingsFoldout = new SavedBool($"{target.GetType()}.2DURPNormalMapsSettingsFoldout", false);
 
             m_LightType = serializedObject.FindProperty("m_LightType");
             m_LightColor = serializedObject.FindProperty("m_Color");
@@ -240,27 +259,97 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 {
                     SendModifiedAnalytics(m_Analytics, light);
                 }
-            }
+            } 
         }
 
-        void OnPointLight(SerializedObject serializedObject)
+        void DrawBlendingGroup()
         {
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(m_PointInnerRadius, Styles.pointLightInnerRadius);
-            if (EditorGUI.EndChangeCheck())
-                m_PointInnerRadius.floatValue = Mathf.Max(0.0f, Mathf.Min(m_PointInnerRadius.floatValue, m_PointOuterRadius.floatValue));
-
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(m_PointOuterRadius, Styles.pointLightOuterRadius);
-            if (EditorGUI.EndChangeCheck())
-                m_PointOuterRadius.floatValue = Mathf.Max(m_PointInnerRadius.floatValue, m_PointOuterRadius.floatValue);
-
-            DrawInnerAndOuterSpotAngle(m_PointInnerAngle, m_PointOuterAngle, Styles.InnerOuterSpotAngle);
-
-            EditorGUILayout.Slider(m_FalloffIntensity, 0, 1, Styles.generalFalloffIntensity);
-
-            
+            m_BlendingSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_BlendingSettingsFoldout.value, Styles.blendingSettingsFoldout);
+            if (m_BlendingSettingsFoldout.value)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.IntPopup(m_BlendStyleIndex, m_BlendStyleNames, m_BlendStyleIndices, Styles.generalBlendStyle);
+                EditorGUILayout.PropertyField(m_LightOrder, Styles.generalLightOrder);
+                EditorGUILayout.PropertyField(m_OverlapOperation, Styles.generalLightOverlapOperation);
+                EditorGUI.indentLevel--;
+            }
+            EditorGUILayout.EndFoldoutHeaderGroup();
         }
+
+        void DrawShadowsGroup()
+        {
+            m_ShadowsSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_ShadowsSettingsFoldout.value, Styles.shadowsSettingsFoldout);
+            if (m_ShadowsSettingsFoldout.value)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.Slider(m_ShadowIntensity, 0, 1, Styles.generalShadowIntensity);
+                EditorGUI.indentLevel--;
+            }
+            EditorGUILayout.EndFoldoutHeaderGroup();
+        }
+
+        void DrawVolumetricGroup()
+        {
+            m_VolumetricSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_VolumetricSettingsFoldout.value, Styles.volumetricSettingsFoldout);
+            if (m_VolumetricSettingsFoldout.value)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.Slider(m_VolumetricIntensity, 0, 1, Styles.generalVolumeIntensity);
+
+                EditorGUI.BeginDisabledGroup(m_VolumetricIntensity.floatValue <= 0);
+                EditorGUILayout.Slider(m_ShadowVolumeIntensity, 0, 1, Styles.generalShadowVolumeIntensity);
+                EditorGUI.EndDisabledGroup();
+                EditorGUI.indentLevel--;
+            }
+            EditorGUILayout.EndFoldoutHeaderGroup();
+        }
+
+        void DrawNormalMapGroup()
+        {
+            m_NormalMapsSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_NormalMapsSettingsFoldout.value, Styles.normalMapsSettingsFoldout);
+            if (m_NormalMapsSettingsFoldout.value)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_NormalMapQuality, Styles.generalNormalMapLightQuality);
+
+                EditorGUI.BeginDisabledGroup(m_NormalMapQuality.intValue == (int)Light2D.NormalMapQuality.Disabled);
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(m_NormalMapZDistance, Styles.generalNormalMapZDistance);
+                if (EditorGUI.EndChangeCheck())
+                    m_NormalMapZDistance.floatValue = Mathf.Max(0.0f, m_NormalMapZDistance.floatValue);
+
+                EditorGUI.EndDisabledGroup();
+                EditorGUI.indentLevel--;
+            }
+            EditorGUILayout.EndFoldoutHeaderGroup();
+        }
+
+
+        void DrawFoldouts()
+        {
+            DrawBlendingGroup();
+            DrawShadowsGroup();
+            DrawVolumetricGroup();
+            DrawNormalMapGroup();
+        }
+
+        void DrawPropertiesHorizontal(SerializedProperty property1, GUIContent content1, SerializedProperty property2, GUIContent content2)
+        {
+            GUIStyle style = GUI.skin.box;
+
+            float savedLabelWidth = EditorGUIUtility.labelWidth;
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.PrefixLabel("Radius");
+            EditorGUILayout.BeginHorizontal();
+            EditorGUIUtility.labelWidth = style.CalcSize(content1).x;
+            EditorGUILayout.PropertyField(property1, content1);
+            EditorGUIUtility.labelWidth = style.CalcSize(content2).x;
+            EditorGUILayout.PropertyField(property2, content2);
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndHorizontal();
+            EditorGUIUtility.labelWidth = savedLabelWidth;
+        }
+
 
 
         public void DrawInnerAndOuterSpotAngle(SerializedProperty minProperty, SerializedProperty maxProperty, GUIContent label)
@@ -318,22 +407,50 @@ namespace UnityEditor.Experimental.Rendering.Universal
             EditorGUI.EndProperty();
         }
 
-        void OnShapeLight(Light2D.LightType lightType, SerializedObject serializedObject)
-        {
-            if (lightType == Light2D.LightType.Sprite)
-            {
-                EditorGUILayout.PropertyField(m_ShapeLightSprite, Styles.shapeLightSprite);
-            }
-            else if (lightType == Light2D.LightType.Freeform)
-            {
-                EditorGUILayout.PropertyField(m_ShapeLightFalloffSize, Styles.generalFalloffSize);
-                if (m_ShapeLightFalloffSize.floatValue < 0)
-                    m_ShapeLightFalloffSize.floatValue = 0;
 
-                EditorGUILayout.Slider(m_FalloffIntensity, 0, 1, Styles.generalFalloffIntensity);
-            }
+        void DrawGlobalLight(SerializedObject serializedObject)
+        {
+            m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.generalSortingLayerPrefixLabel, AnalyticsTrackChanges);
         }
 
+        void DrawSpotLight(SerializedObject serializedObject)
+        {
+            DrawPropertiesHorizontal(m_PointInnerRadius, Styles.pointLightInner, m_PointOuterRadius, Styles.pointLightOuter);
+            DrawInnerAndOuterSpotAngle(m_PointInnerAngle, m_PointOuterAngle, Styles.InnerOuterSpotAngle);
+            EditorGUILayout.Slider(m_FalloffIntensity, 0, 1, Styles.generalFalloffIntensity);
+
+            m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.generalSortingLayerPrefixLabel, AnalyticsTrackChanges);
+
+            DrawFoldouts();
+        }
+
+        void DrawSpriteLight(SerializedObject serializedObject)
+        {
+            EditorGUILayout.PropertyField(m_ShapeLightSprite, Styles.shapeLightSprite);
+
+            m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.generalSortingLayerPrefixLabel, AnalyticsTrackChanges);
+            DrawFoldouts();
+        }
+
+        void DrawShapeLight(SerializedObject serializedObject)
+        {
+            EditorGUILayout.PropertyField(m_ShapeLightFalloffSize, Styles.generalFalloffSize);
+            if (m_ShapeLightFalloffSize.floatValue < 0)
+                m_ShapeLightFalloffSize.floatValue = 0;
+
+            EditorGUILayout.Slider(m_FalloffIntensity, 0, 1, Styles.generalFalloffIntensity);
+
+            m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.generalSortingLayerPrefixLabel, AnalyticsTrackChanges);
+
+            if (m_LightType.intValue == (int)Light2D.LightType.Freeform)
+            {
+                DoEditButton<FreeformShapeTool>(PathEditorToolContents.icon, "Edit Shape");
+                DoPathInspector<FreeformShapeTool>();
+                DoSnappingInspector<FreeformShapeTool>();
+            }
+
+            DrawFoldouts();
+        }
 
         Vector3 DrawAngleSlider2D(Transform transform, Quaternion rotation, float radius, float offset, Handles.CapFunction capFunc, float capSize, bool leftAngle, bool drawLine, bool useCapOffset, ref float angle)
         {
@@ -566,67 +683,53 @@ namespace UnityEditor.Experimental.Rendering.Universal
             }
             EditorGUI.EndProperty();
 
-            switch (m_LightType.intValue)
-            {
-                case (int)Light2D.LightType.Point:
-                    {
-                        OnPointLight(serializedObject);
-                    }
-                    break;
-                case (int)Light2D.LightType.Freeform:
-                case (int)Light2D.LightType.Sprite:
-                    {
-                        OnShapeLight((Light2D.LightType)m_LightType.intValue, serializedObject);
-                    }
-                    break;
-            }
-
-            if(m_LightType.intValue != (int)Light2D.LightType.Global)
-                EditorGUILayout.PropertyField(m_OverlapOperation, Styles.generalLightOverlapOperation);
-
-            EditorGUILayout.PropertyField(m_LightOrder, Styles.generalLightOrder);
-
-            if (!m_AnyBlendStyleEnabled)
-                EditorGUILayout.HelpBox(Styles.generalLightNoLightEnabled);
-            else
-                EditorGUILayout.IntPopup(m_BlendStyleIndex, m_BlendStyleNames, m_BlendStyleIndices, Styles.generalBlendStyle);
-
+            // Color and intensity
             EditorGUILayout.PropertyField(m_LightColor, Styles.generalLightColor);
-
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_LightIntensity, Styles.generalLightIntensity);
             if (EditorGUI.EndChangeCheck())
                 m_LightIntensity.floatValue = Mathf.Max(m_LightIntensity.floatValue, 0);
 
-            if (m_LightType.intValue != (int)Light2D.LightType.Global)
+
+            switch (m_LightType.intValue)
             {
-                EditorGUILayout.Slider(m_ShadowIntensity, 0, 1, Styles.generalShadowIntensity);
-                EditorGUILayout.Slider(m_VolumetricIntensity, 0, 1, Styles.generalVolumeIntensity);
-                
-                EditorGUI.BeginDisabledGroup(m_VolumetricIntensity.floatValue <= 0);
-                EditorGUILayout.Slider(m_ShadowVolumeIntensity, 0, 1, Styles.generalShadowVolumeIntensity);
-                EditorGUI.EndDisabledGroup();
-
-                
-                EditorGUILayout.PropertyField(m_NormalMapQuality, Styles.generalNormalMapLightQuality);
-
-                EditorGUI.BeginDisabledGroup(m_NormalMapQuality.intValue == (int)Light2D.NormalMapQuality.Disabled);
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(m_NormalMapZDistance, Styles.generalNormalMapZDistance);
-                if (EditorGUI.EndChangeCheck())
-                    m_NormalMapZDistance.floatValue = Mathf.Max(0.0f, m_NormalMapZDistance.floatValue);
-
-                EditorGUI.EndDisabledGroup();
+                case (int)Light2D.LightType.Point:
+                    {
+                        DrawSpotLight(serializedObject);
+                    }
+                    break;
+                case (int)Light2D.LightType.Freeform:
+                    {
+                        DrawShapeLight(serializedObject);
+                    }
+                    break;
+                case (int)Light2D.LightType.Sprite:
+                    {
+                        DrawSpriteLight(serializedObject);
+                    }
+                    break;
+                case (int)Light2D.LightType.Global:
+                    {
+                        DrawGlobalLight(serializedObject);
+                    }
+                    break;
             }
 
-            m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.generalSortingLayerPrefixLabel, AnalyticsTrackChanges);
 
-            if (m_LightType.intValue == (int)Light2D.LightType.Freeform)
-            {
-                DoEditButton<FreeformShapeTool>(PathEditorToolContents.icon, "Edit Shape");
-                DoPathInspector<FreeformShapeTool>();
-                DoSnappingInspector<FreeformShapeTool>();
-            }
+
+
+
+            //if (m_LightType.intValue != (int)Light2D.LightType.Global)
+            //    EditorGUILayout.PropertyField(m_OverlapOperation, Styles.generalLightOverlapOperation);
+
+            //EditorGUILayout.PropertyField(m_LightOrder, Styles.generalLightOrder);
+
+            //if (!m_AnyBlendStyleEnabled)
+            //    EditorGUILayout.HelpBox(Styles.generalLightNoLightEnabled);
+            //else
+            //    EditorGUILayout.IntPopup(m_BlendStyleIndex, m_BlendStyleNames, m_BlendStyleIndices, Styles.generalBlendStyle);
+
+
 
             AnalyticsTrackChanges(serializedObject);
             if (serializedObject.ApplyModifiedProperties())
