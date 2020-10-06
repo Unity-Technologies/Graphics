@@ -57,18 +57,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }),
             MigrationStep.New(PlanarProbeVersion.SeparatePassThrough, (PlanarReflectionProbe t) => k_Migration.ExecuteStep(t, Version.SeparatePassThrough)),
             MigrationStep.New(PlanarProbeVersion.UpgradeFrameSettingsToStruct, (PlanarReflectionProbe t) => k_Migration.ExecuteStep(t, Version.UpgradeFrameSettingsToStruct)),
-            MigrationStep.New(PlanarProbeVersion.CaptureSettings, (PlanarReflectionProbe p) =>
-            {
-#pragma warning disable 618, 612
-                if (p.m_ObsoleteCaptureSettings == null)
-                    p.m_ObsoleteCaptureSettings = new ObsoleteCaptureSettings();
-                if (p.m_ObsoleteOverrideFieldOfView)
-                    p.m_ObsoleteCaptureSettings.overrides |= ObsoleteCaptureSettingsOverrides.FieldOfview;
-                p.m_ObsoleteCaptureSettings.fieldOfView = p.m_ObsoleteFieldOfViewOverride;
-                p.m_ObsoleteCaptureSettings.nearClipPlane = p.m_ObsoleteCaptureNearPlane;
-                p.m_ObsoleteCaptureSettings.farClipPlane = p.m_ObsoleteCaptureFarPlane;
-#pragma warning restore 618, 612
-            }),
             MigrationStep.New(PlanarProbeVersion.PlanarResolutionScalability, (PlanarReflectionProbe p) =>
             {
                 k_Migration.ExecuteStep(p, Version.PlanarResolutionScalability);
