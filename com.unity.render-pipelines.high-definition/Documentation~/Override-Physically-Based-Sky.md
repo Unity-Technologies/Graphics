@@ -33,11 +33,16 @@ To change how much the atmosphere attenuates light, you can change the density o
 
 [!include[](snippets/Volume-Override-Enable-Properties.md)]
 
+### Model
+
+| **Property**                   | **Description**                                         |
+| ------------------------------ | ------------------------------------------------------- |
+| **Type**                       | Indicates a preset HDRP uses to simplify the Inspector. If you select **Earth (Simple)** or **Earth (Advanced)**, the Inspector only shows properties suitable to simulate Earth. |
+
 ### Planet
 
 | **Property**                   | **Description**                                              |
 | ------------------------------ | ------------------------------------------------------------ |
-| **Earth Preset**               | Indicates whether HDRP should simplify the Inspector and only show properties suitable to simulate Earth. |
 | **Spherical Mode**             | Enables **Spherical Mode**. When in Spherical Mode, you can specify the location of the planet. Otherwise, the planet is always below the Camera in the world-space x-z plane. |
 | **Planetary Radius**           | The radius of the planet in meters. The radius is the distance from the center of the planet to the sea level.  Only available in **Spherical Mode**. |
 | **Planet Center Position**     | The world-space position of the planet's center in meters. This does not affect the precomputation. Only available in **Spherical Mode**. |
@@ -50,6 +55,8 @@ To change how much the atmosphere attenuates light, you can change the density o
 
 ### Space
 
+To make this section visible, set **Type** to **Earth (Advanced)** or **Custom Planet**.
+
 | **Property**                  | **Description**                                              |
 | ----------------------------- | ------------------------------------------------------------ |
 | **Space Rotation**            | The orientation of space.                                    |
@@ -58,7 +65,7 @@ To change how much the atmosphere attenuates light, you can change the density o
 
 ### Air
 
-To make this section visible, disable **Earth Preset**.
+To make this section visible, set **Type** to **Custom Planet**.
 
 | **Property**             | **Description**                                              |
 | ------------------------ | ------------------------------------------------------------ |

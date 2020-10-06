@@ -276,7 +276,7 @@ namespace UnityEditor.ShaderGraph
         public bool isSubGraph { get; set; }
 
         [SerializeField]
-        private ConcretePrecision m_ConcretePrecision = ConcretePrecision.Float;
+        private ConcretePrecision m_ConcretePrecision = ConcretePrecision.Single;
 
         public ConcretePrecision concretePrecision
         {
@@ -1548,10 +1548,9 @@ namespace UnityEditor.ShaderGraph
                 {
                     // If the property is not in the current graph, do check if the
                     // property can be made into a concrete node.
-                    var index = graphToPaste.metaProperties.TakeWhile(x => x != propertyNode.property).Count();
-                    var originalId = graphToPaste.metaPropertyIds.ElementAt(index);
-                    var property = m_Properties.SelectValue().FirstOrDefault(x => x.objectId == originalId);
-                    if (property != null)
+                    var property = m_Properties.SelectValue().FirstOrDefault(x => x.objectId == propertyNode.property.objectId
+                                                                              || (x.propertyType == propertyNode.property.propertyType && x.referenceName == propertyNode.property.referenceName));
+                    if(property != null)
                     {
                         propertyNode.property = property;
                     }
@@ -1602,9 +1601,8 @@ namespace UnityEditor.ShaderGraph
                 // Check if the keyword nodes need to have their keywords copied.
                 if (node is KeywordNode keywordNode)
                 {
-                    var index = graphToPaste.metaKeywords.TakeWhile(x => x != keywordNode.keyword).Count();
-                    var originalId = graphToPaste.metaKeywordIds.ElementAt(index);
-                    var keyword = m_Keywords.SelectValue().FirstOrDefault(x => x.objectId == originalId);
+                    var keyword = m_Keywords.SelectValue().FirstOrDefault(x => x.objectId == keywordNode.keyword.objectId
+                                                                      || (x.keywordType == keywordNode.keyword.keywordType && x.referenceName == keywordNode.keyword.referenceName));
                     if (keyword != null)
                     {
                         keywordNode.keyword = keyword;

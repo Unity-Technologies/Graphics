@@ -10,9 +10,9 @@ Creates a mask from values in input **In** equal to input **Mask Color**. Input 
 |:------------ |:-------------|:-----|:---|:---|
 | In      | Input | Vector 3 | None | Input value. |
 | Mask Color      | Input | Vector 3 | Color | Color to use for mask. |
-| Range      | Input | Vector 1 | None | Select colors within this range from input **Mask Color**. |
-| Fuzziness      | Input | Vector 1 | None | Feather edges around selection. Higher values result in a softer selection mask. |
-| Out | Output      |    Vector 1 | None | Output mask value. |
+| Range      | Input | Float    | None | Select colors within this range from input **Mask Color**. |
+| Fuzziness      | Input | Float    | None | Feather edges around selection. Higher values result in a softer selection mask. |
+| Out | Output      |    Float    | None | Output mask value. |
 
 ## Generated Code Example
 

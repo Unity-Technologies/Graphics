@@ -128,6 +128,7 @@ namespace UnityEditor.VFX
         }
 
         public virtual void FillDescs(
+            VFXCompileErrorReporter reporter,
             List<VFXGPUBufferDesc> outBufferDescs,
             List<VFXTemporaryGPUBufferDesc> outTemporaryBufferDescs,
             List<VFXEditorSystemDesc> outSystemDescs,
