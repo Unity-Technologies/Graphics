@@ -1,7 +1,7 @@
 # Upgrading HDRP from 8.x to 10.x
 
 In the High Definition Render Pipeline (HDRP), some features work differently between major versions. This document helps you upgrade HDRP from 8.x to 10.x. 
-Note that a version 9.-x-preview have been published and is compatible with Unity 2020.1 including some features from 10.x. However, this package was for feedback purpose and will not be maintained in the future.
+Note that package version 9.x-preview has now been published. It is compatible with Unity 2020.1 and includes some features from 10.x. However, this package was for feedback purposes and will not be maintained in the future.
 
 ## Constant Buffer API
 
