@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
                 UniversalAdditionalCameraData cameraAdditionalData;
                 camera.TryGetComponent<UniversalAdditionalCameraData>(out cameraAdditionalData);
-                if (cameraAdditionalData.renderType == CameraRenderType.Overlay && camera.targetDisplay != -1)
+                if (cameraAdditionalData?.renderType == CameraRenderType.Overlay && camera.targetDisplay != -1)
                     camera.targetDisplay = -1;
 #endif
                 if (IsGameCamera(camera))
