@@ -89,7 +89,7 @@ Shader "Hidden/HDRP/ApplyDistortion"
             // Get source pixel for distortion
             float2 distordedUV = float2(input.positionCS.xy + distortion * _FetchBias) * _Size.zw;
             float mip = (_ColorPyramidLodCount - 1) * clamp(distortionBlur, 0.0, 1.0);
-            float4 sampled = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, uv, mip);
+            float4 sampled = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, distordedUV * _RTHandleScaleHistory.xy, mip);
 
             return sampled;
         }
