@@ -95,7 +95,7 @@
 |Samples a Texture 2D and returns a color value for use in the shader.|Samples a Texture 2D Array at an Index and returns a color value for use in the shader.|
 |[**Sample Texture 2D LOD**](Sample-Texture-2D-LOD-Node.md)|[**Sample Texture 3D**](Sample-Texture-3D-Node.md)|
 |![Image](images/SampleTexture2DLODNodeThumb.png)|![Image](images/SampleTexture3DNodeThumb.png)|
-|Samples a Texture 2D at a specific LOD and returns a color value for use in the shader.|Samples a Texture 3D and returns a color value for use in the shader.|
+|Samples a Texture 2D at a specific LOD and returns a color value for use in the shader. Returns opaque black if unsupported on the current platform.|Samples a Texture 3D and returns a color value for use in the shader.|
 | [**Sample Virtual Texture**](Sample-Virtual-Texture-Node.md) | [**Sampler State**](Sampler-State-Node.md) |
 | ![image](images/SampleVirtualTextureNodeThumb.png) | ![Image](images/SamplerStateNodeThumb.png) |
 | Samples a Virtual Texture and returns color values for use in the shader. | Defines a Sampler State for sampling textures.|
