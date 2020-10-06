@@ -141,6 +141,12 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 0; i < cameras.Length; ++i)
             {
                 var camera = cameras[i];
+#if UNITY_EDITOR
+                UniversalAdditionalCameraData cameraAdditionalData;
+                camera.TryGetComponent<UniversalAdditionalCameraData>(out cameraAdditionalData);
+                if (cameraAdditionalData.renderType == CameraRenderType.Overlay && camera.targetDisplay != -1)
+                    camera.targetDisplay = -1;
+#endif
                 if (IsGameCamera(camera))
                 {
                     RenderCameraStack(renderContext, camera);
