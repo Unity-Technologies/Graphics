@@ -64,8 +64,6 @@ namespace UnityEditor.Rendering.HighDefinition
             RealtimeReflection
         }
 
-        internal static DiffusionProfileSettingsListUI diffusionProfileUI = new DiffusionProfileSettingsListUI();
-
         internal static SelectedFrameSettings selectedFrameSettings;
 
         internal static VirtualTexturingSettingsUI virtualTexturingSettingsUI = new VirtualTexturingSettingsUI();
@@ -193,6 +191,8 @@ namespace UnityEditor.Rendering.HighDefinition
             //EditorGUILayout.PropertyField(serialized.enableSRPBatcher, k_SRPBatcher);
             EditorGUILayout.PropertyField(serialized.shaderVariantLogLevel, Styles.GeneralSection.shaderVariantLogLevel);
 
+            EditorGUILayout.PropertyField(serialized.lensAttenuation, Styles.GeneralSection.lensAttenuationModeContent);
+
             m_ShowLightLayerNames = EditorGUILayout.Foldout(m_ShowLightLayerNames, Styles.lightLayerNamesText, true);
             if (m_ShowLightLayerNames)
             {
@@ -258,6 +258,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeFormat, Styles.reflectionProbeFormatContent);
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.reflectionCacheCompressed, Styles.compressProbeCacheContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.reflectionCubemapSize, Styles.cubemapSizeContent);
@@ -282,6 +283,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.HelpBox(message, MessageType.Info);
                 }
             }
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.reflectionCacheCompressed, Styles.cubemapSizeContent);
 
             EditorGUILayout.Space();
 
@@ -671,6 +673,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void DrawBloomQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.BloomRes.GetArrayElementAtIndex(tier), Styles.resolutionQuality);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.BloomHighPrefilteringQuality.GetArrayElementAtIndex(tier), Styles.highQualityPrefiltering);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.BloomHighFilteringQuality.GetArrayElementAtIndex(tier), Styles.highQualityFiltering);
         }
 
@@ -864,6 +867,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportMotionVectors, Styles.supportMotionVectorContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportRuntimeDebugDisplay, Styles.supportRuntimeDebugDisplayContent);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportRuntimeAOVAPI, Styles.supportRuntimeAOVAPIContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportDitheringCrossFade, Styles.supportDitheringCrossFadeContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportTerrainHole, Styles.supportTerrainHoleContent);
 
@@ -1004,14 +1008,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.supportFabricConvolution, Styles.supportFabricBSDFConvolutionContent);
-
-            diffusionProfileUI.drawElement = DrawDiffusionProfileElement;
-            diffusionProfileUI.OnGUI(serialized.diffusionProfileSettingsList);
-        }
-
-        static void DrawDiffusionProfileElement(SerializedProperty element, Rect rect, int index)
-        {
-            EditorGUI.ObjectField(rect, element, EditorGUIUtility.TrTextContent("Profile " + index));
         }
 
         const string supportedFormaterMultipleValue = "\u2022 {0} --Multiple different values--";
@@ -1075,6 +1071,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             AppendSupport(builder, serialized.renderPipelineSettings.supportMotionVectors, Styles.supportMotionVectorContent);
             AppendSupport(builder, serialized.renderPipelineSettings.supportRuntimeDebugDisplay, Styles.supportRuntimeDebugDisplayContent);
+            AppendSupport(builder, serialized.renderPipelineSettings.supportRuntimeAOVAPI, Styles.supportRuntimeAOVAPIContent);
             AppendSupport(builder, serialized.renderPipelineSettings.supportDitheringCrossFade, Styles.supportDitheringCrossFadeContent);
             AppendSupport(builder, serialized.renderPipelineSettings.supportTerrainHole, Styles.supportTerrainHoleContent);
             AppendSupport(builder, serialized.renderPipelineSettings.supportDistortion, Styles.supportDistortion);

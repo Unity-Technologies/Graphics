@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         bool m_UseRGBM;
         readonly GraphicsFormat m_SMAAEdgeFormat;
         readonly GraphicsFormat m_GaussianCoCFormat;
-        Matrix4x4 m_PrevViewProjM = Matrix4x4.identity;
+        Matrix4x4[] m_PrevViewProjM = new Matrix4x4[2];
         bool m_ResetHistory;
         int m_DitheringTextureIndex;
         RenderTargetIdentifier[] m_MRT2;
@@ -374,7 +374,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MotionBlur)))
                 {
-                    DoMotionBlur(cameraData.camera, cmd, GetSource(), GetDestination());
+                    DoMotionBlur(cameraData, cmd, GetSource(), GetDestination());
                     Swap();
                 }
             }
@@ -608,9 +608,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void DoGaussianDepthOfField(Camera camera, CommandBuffer cmd, int source, int destination, Rect pixelRect)
         {
+            int downSample = 2;
             var material = m_Materials.gaussianDepthOfField;
-            int wh = m_Descriptor.width / 2;
-            int hh = m_Descriptor.height / 2;
+            int wh = m_Descriptor.width / downSample;
+            int hh = m_Descriptor.height / downSample;
             float farStart = m_DepthOfField.gaussianStart.value;
             float farEnd = Mathf.Max(farStart, m_DepthOfField.gaussianEnd.value);
 
@@ -629,6 +630,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.GetTemporaryRT(ShaderConstants._PingTexture, GetCompatibleDescriptor(wh, hh, m_DefaultHDRFormat), FilterMode.Bilinear);
             cmd.GetTemporaryRT(ShaderConstants._PongTexture, GetCompatibleDescriptor(wh, hh, m_DefaultHDRFormat), FilterMode.Bilinear);
             // Note: fresh temporary RTs don't require explicit RenderBufferLoadAction.DontCare, only when they are reused (such as PingTexture)
+
+            PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
+            cmd.SetGlobalVector(ShaderConstants._DownSampleScaleFactor, new Vector4(1.0f / downSample, 1.0f / downSample, downSample, downSample));
 
             // Compute CoC
             Blit(cmd, source, ShaderConstants._FullCoCTexture, material, 0);
@@ -715,9 +719,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void DoBokehDepthOfField(CommandBuffer cmd, int source, int destination, Rect pixelRect)
         {
+            int downSample = 2;
             var material = m_Materials.bokehDepthOfField;
-            int wh = m_Descriptor.width / 2;
-            int hh = m_Descriptor.height / 2;
+            int wh = m_Descriptor.width / downSample;
+            int hh = m_Descriptor.height / downSample;
 
             // "A Lens and Aperture Camera Model for Synthetic Image Generation" [Potmesil81]
             float F = m_DepthOfField.focalLength.value / 1000f;
@@ -743,6 +748,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.GetTemporaryRT(ShaderConstants._FullCoCTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8_UNorm), FilterMode.Bilinear);
             cmd.GetTemporaryRT(ShaderConstants._PingTexture, GetCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear);
             cmd.GetTemporaryRT(ShaderConstants._PongTexture, GetCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear);
+
+            PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
+            cmd.SetGlobalVector(ShaderConstants._DownSampleScaleFactor, new Vector4(1.0f / downSample, 1.0f / downSample, downSample, downSample));
 
             // Compute CoC
             Blit(cmd, source, ShaderConstants._FullCoCTexture, material, 0);
@@ -770,30 +778,62 @@ namespace UnityEngine.Rendering.Universal.Internal
         #endregion
 
         #region Motion Blur
-
-        void DoMotionBlur(Camera camera, CommandBuffer cmd, int source, int destination)
+#if ENABLE_VR && ENABLE_XR_MODULE
+        // Hold the stereo matrices to avoid allocating arrays every frame
+        internal static readonly Matrix4x4[] viewProjMatrixStereo = new Matrix4x4[2];
+#endif
+        void DoMotionBlur(CameraData cameraData, CommandBuffer cmd, int source, int destination)
         {
             var material = m_Materials.cameraMotionBlur;
 
-            // This is needed because Blit will reset viewproj matrices to identity and UniversalRP currently
-            // relies on SetupCameraProperties instead of handling its own matrices.
-            // TODO: We need get rid of SetupCameraProperties and setup camera matrices in Universal
-            var proj = camera.nonJitteredProjectionMatrix;
-            var view = camera.worldToCameraMatrix;
-            var viewProj = proj * view;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
+            {
+                var viewProj0 = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrix(0), true) * cameraData.GetViewMatrix(0);
+                var viewProj1 = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrix(1), true) * cameraData.GetViewMatrix(1);
+                if (m_ResetHistory)
+                {
+                    viewProjMatrixStereo[0] = viewProj0;
+                    viewProjMatrixStereo[1] = viewProj1;
+                    material.SetMatrixArray("_PrevViewProjMStereo", viewProjMatrixStereo);
+                }
+                else
+                    material.SetMatrixArray("_PrevViewProjMStereo", m_PrevViewProjM);
 
-            material.SetMatrix("_ViewProjM", viewProj);
-
-            if (m_ResetHistory)
-                material.SetMatrix("_PrevViewProjM", viewProj);
+                m_PrevViewProjM[0] = viewProj0;
+                m_PrevViewProjM[1] = viewProj1;
+            }
             else
-                material.SetMatrix("_PrevViewProjM", m_PrevViewProjM);
+#endif
+            {
+                int prevViewProjMIdx = 0;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (cameraData.xr.enabled)
+                    prevViewProjMIdx = cameraData.xr.multipassId;
+#endif
+                // This is needed because Blit will reset viewproj matrices to identity and UniversalRP currently
+                // relies on SetupCameraProperties instead of handling its own matrices.
+                // TODO: We need get rid of SetupCameraProperties and setup camera matrices in Universal
+                var proj = cameraData.GetProjectionMatrix();
+                var view = cameraData.GetViewMatrix();
+                var viewProj = proj * view;
+
+                material.SetMatrix("_ViewProjM", viewProj);
+
+                if (m_ResetHistory)
+                    material.SetMatrix("_PrevViewProjM", viewProj);
+                else
+                    material.SetMatrix("_PrevViewProjM", m_PrevViewProjM[prevViewProjMIdx]);
+
+                m_PrevViewProjM[prevViewProjMIdx] = viewProj;
+            }
 
             material.SetFloat("_Intensity", m_MotionBlur.intensity.value);
             material.SetFloat("_Clamp", m_MotionBlur.clamp.value);
 
+            PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
+
             Blit(cmd, source, BlitDstDiscardContent(cmd, destination), material, (int)m_MotionBlur.quality.value);
-            m_PrevViewProjM = viewProj;
         }
 
         #endregion
@@ -1144,6 +1184,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing)
                 material.EnableKeyword(ShaderKeywordStrings.Fxaa);
 
+            PostProcessUtils.SetSourceSize(cmd, cameraData.cameraTargetDescriptor);
+
             SetupGrain(cameraData, material);
             SetupDithering(cameraData, material);
 
@@ -1290,6 +1332,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _UserLut_Params     = Shader.PropertyToID("_UserLut_Params");
             public static readonly int _InternalLut        = Shader.PropertyToID("_InternalLut");
             public static readonly int _UserLut            = Shader.PropertyToID("_UserLut");
+            public static readonly int _DownSampleScaleFactor = Shader.PropertyToID("_DownSampleScaleFactor");
 
             public static readonly int _FullscreenProjMat  = Shader.PropertyToID("_FullscreenProjMat");
 

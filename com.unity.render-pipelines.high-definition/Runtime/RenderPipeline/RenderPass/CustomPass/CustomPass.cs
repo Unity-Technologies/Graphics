@@ -143,6 +143,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle nonMSAAColorBufferRG;
             public TextureHandle depthBufferRG;
             public TextureHandle normalBufferRG;
+            public TextureHandle motionVectorBufferRG;
         }
 
         enum Version
@@ -234,6 +235,7 @@ namespace UnityEngine.Rendering.HighDefinition
             output.nonMSAAColorBufferRG = builder.ReadTexture(builder.WriteTexture(targets.nonMSAAColorBufferRG));
             output.depthBufferRG = builder.ReadTexture(builder.WriteTexture(targets.depthBufferRG));
             output.normalBufferRG = builder.ReadTexture(builder.WriteTexture(targets.normalBufferRG));
+            output.motionVectorBufferRG = builder.ReadTexture(targets.motionVectorBufferRG);
 
             return output;
         }
@@ -258,13 +260,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     var customPass = data.customPass;
 
+                    ctx.cmd.SetGlobalFloat(HDShaderIDs._CustomPassInjectionPoint, (float)customPass.injectionPoint);
+                    if (customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
+                        ctx.cmd.SetGlobalTexture(HDShaderIDs._AfterPostProcessColorBuffer, customPass.currentRenderTarget.colorBufferRG);
+
+                    if (customPass.injectionPoint == CustomPassInjectionPoint.BeforePostProcess || customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
+                        ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, customPass.currentRenderTarget.motionVectorBufferRG);
+
                     if (!customPass.isSetup)
                     {
                         customPass.Setup(ctx.renderContext, ctx.cmd);
                         customPass.isSetup = true;
                         // TODO RENDERGRAPH: We still need to allocate this otherwise it would be null when switching off render graph (because isSetup stays true).
                         // We can remove the member altogether when we remove the non render graph code path.
-                        userMaterialPropertyBlock = new MaterialPropertyBlock();
+                        customPass.userMaterialPropertyBlock = new MaterialPropertyBlock();
                     }
 
                     customPass.SetCustomPassTarget(ctx.cmd);

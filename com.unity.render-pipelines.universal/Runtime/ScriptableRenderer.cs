@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using Unity.Collections;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -19,7 +18,7 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="ScriptableRendererFeature"/>
     /// <seealso cref="ScriptableRenderPass"/>
     /// </summary>
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public abstract class ScriptableRenderer : IDisposable
+    public abstract partial class ScriptableRenderer : IDisposable
     {
         /// <summary>
         /// Configures the supported features for this renderer. When creating custom renderers
@@ -84,7 +83,14 @@ namespace UnityEngine.Rendering.Universal
                 Matrix4x4 inverseProjectionMatrix = Matrix4x4.Inverse(gpuProjectionMatrix);
                 Matrix4x4 inverseViewProjection = inverseViewMatrix * inverseProjectionMatrix;
 
-                cmd.SetGlobalMatrix(ShaderPropertyId.cameraToWorldMatrix, inverseViewMatrix);
+                // There's an inconsistency in handedness between unity_matrixV and unity_WorldToCamera
+                // Unity changes the handedness of unity_WorldToCamera (see Camera::CalculateMatrixShaderProps)
+                // we will also change it here to avoid breaking existing shaders. (case 1257518)
+                Matrix4x4 worldToCameraMatrix = Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)) * viewMatrix;
+                Matrix4x4 cameraToWorldMatrix = worldToCameraMatrix.inverse;
+                cmd.SetGlobalMatrix(ShaderPropertyId.worldToCameraMatrix, worldToCameraMatrix);
+                cmd.SetGlobalMatrix(ShaderPropertyId.cameraToWorldMatrix, cameraToWorldMatrix);
+
                 cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewMatrix, inverseViewMatrix);
                 cmd.SetGlobalMatrix(ShaderPropertyId.inverseProjectionMatrix, inverseProjectionMatrix);
                 cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewAndProjectionMatrix, inverseViewProjection);
@@ -115,6 +121,12 @@ namespace UnityEngine.Rendering.Universal
                 scaledCameraHeight = (float)cameraData.cameraTargetDescriptor.height;
                 cameraWidth = (float)cameraData.cameraTargetDescriptor.width;
                 cameraHeight = (float)cameraData.cameraTargetDescriptor.height;
+            }
+
+            if (camera.allowDynamicResolution)
+            {
+                scaledCameraWidth *= ScalableBufferManager.widthScaleFactor;
+                scaledCameraHeight *= ScalableBufferManager.heightScaleFactor;
             }
 
             float near = camera.nearClipPlane;
@@ -187,21 +199,59 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector(ShaderPropertyId.timeParameters, timeParametersVector);
         }
 
+        /// <summary>
+        /// Returns the camera color target for this renderer.
+        /// It's only valid to call cameraColorTarget in the scope of <c>ScriptableRenderPass</c>.
+        /// <seealso cref="ScriptableRenderPass"/>.
+        /// </summary>
         public RenderTargetIdentifier cameraColorTarget
         {
-            get => m_CameraColorTarget;
+            get
+            {
+                if (!m_IsPipelineExecuting)
+                {
+                    Debug.LogWarning("You can only call cameraColorTarget inside the scope of a ScriptableRenderPass. Otherwise the pipeline camera target texture might have not been created or might have already been disposed.");
+                    // TODO: Ideally we should return an error texture (BuiltinRenderTextureType.None?)
+                    // but this might break some existing content, so we return the pipeline texture in the hope it gives a "soft" upgrade to users.
+                }
+
+                return m_CameraColorTarget;
+            }
         }
 
-        public RenderTargetIdentifier cameraDepth
+        /// <summary>
+        /// Returns the camera depth target for this renderer.
+        /// It's only valid to call cameraDepthTarget in the scope of <c>ScriptableRenderPass</c>.
+        /// <seealso cref="ScriptableRenderPass"/>.
+        /// </summary>
+        public RenderTargetIdentifier cameraDepthTarget
         {
-            get => m_CameraDepthTarget;
+            get
+            {
+                if (!m_IsPipelineExecuting)
+                {
+                    Debug.LogWarning("You can only call cameraColorTarget inside the scope of a ScriptableRenderPass. Otherwise the pipeline camera target texture might have not been created or might have already been disposed.");
+                    // TODO: Ideally we should return an error texture (BuiltinRenderTextureType.None?)
+                    // but this might break some existing content, so we return the pipeline texture in the hope it gives a "soft" upgrade to users.
+                }
+
+                return m_CameraDepthTarget;
+            }
         }
 
+        /// <summary>
+        /// Returns a list of renderer features added to this renderer.
+        /// <seealso cref="ScriptableRendererFeature"/>
+        /// </summary>
         protected List<ScriptableRendererFeature> rendererFeatures
         {
             get => m_RendererFeatures;
         }
 
+        /// <summary>
+        /// Returns a list of render passes schedules to be executed by this renderer.
+        /// <seealso cref="ScriptableRenderPass"/>
+        /// </summary>
         protected List<ScriptableRenderPass> activeRenderPassQueue
         {
             get => m_ActiveRenderPassQueue;
@@ -243,6 +293,10 @@ namespace UnityEngine.Rendering.Universal
 
         bool m_FirstTimeCameraColorTargetIsBound = true; // flag used to track when m_CameraColorTarget should be cleared (if necessary), as well as other special actions only performed the first time m_CameraColorTarget is bound as a render target
         bool m_FirstTimeCameraDepthTargetIsBound = true; // flag used to track when m_CameraDepthTarget should be cleared (if necessary), the first time m_CameraDepthTarget is bound as a render target
+
+        // The pipeline can only guarantee the camera target texture are valid when the pipeline is executing.
+        // Trying to access the camera target before or after might be that the pipeline texture have already been disposed. 
+        bool m_IsPipelineExecuting = false;
 
         const string k_SetCameraRenderStateTag = "Set Camera Data";
         const string k_SetRenderTarget = "Set RenderTarget";
@@ -299,6 +353,9 @@ namespace UnityEngine.Rendering.Universal
             // Dispose all renderer features...
             for (int i = 0; i < m_RendererFeatures.Count; ++i)
             {
+                if (rendererFeatures[i] == null)
+                    continue;
+
                 rendererFeatures[i].Dispose();
             }
 
@@ -367,6 +424,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData">Current render state information.</param>
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            m_IsPipelineExecuting = true;
             ref CameraData cameraData = ref renderingData.cameraData;
             Camera camera = cameraData.camera;
 
@@ -488,13 +546,6 @@ namespace UnityEngine.Rendering.Universal
         {
             var cameraClearFlags = cameraData.camera.clearFlags;
 
-#if UNITY_EDITOR
-            // We need public API to tell if FrameDebugger is active and enabled. In that case
-            // we want to force a clear to see properly the drawcall stepping.
-            // For now, to fix FrameDebugger in Editor, we force a clear.
-            cameraClearFlags = CameraClearFlags.SolidColor;
-#endif
-
             // Universal RP doesn't support CameraClearFlags.DepthOnly and CameraClearFlags.Nothing.
             // CameraClearFlags.DepthOnly has the same effect of CameraClearFlags.SolidColor
             // CameraClearFlags.Nothing clears Depth on PC/Desktop and in mobile it clears both
@@ -530,6 +581,32 @@ namespace UnityEngine.Rendering.Universal
             return ClearFlag.All;
         }
 
+        /// <summary>
+        /// Calls <c>AddRenderPasses</c> for each feature added to this renderer.
+        /// <seealso cref="ScriptableRendererFeature.AddRenderPasses(ScriptableRenderer, ref RenderingData)"/>
+        /// </summary>
+        /// <param name="renderingData"></param>
+        protected void AddRenderPasses(ref RenderingData renderingData)
+        {
+            // Add render passes from custom renderer features
+            for (int i = 0; i < rendererFeatures.Count; ++i)
+            {
+                if (!rendererFeatures[i].isActive)
+                {
+                    continue;
+                }
+                rendererFeatures[i].AddRenderPasses(this, ref renderingData);
+            }
+
+            // Remove any null render pass that might have been added by user by mistake
+            int count = activeRenderPassQueue.Count;
+            for (int i = count - 1; i >= 0; i--)
+            {
+                if (activeRenderPassQueue[i] == null)
+                    activeRenderPassQueue.RemoveAt(i);
+            }
+        }
+
         void ClearRenderingState(CommandBuffer cmd)
         {
             // Reset per-camera shader keywords. They are enabled depending on which render passes are executed.
@@ -539,7 +616,9 @@ namespace UnityEngine.Rendering.Universal
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightsPixel);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.SoftShadows);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive); // Backward compatibility
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.LightmapShadowMixing);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.ShadowsShadowMask);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
         }
 
@@ -596,7 +675,7 @@ namespace UnityEngine.Rendering.Universal
         {
             Camera camera = cameraData.camera;
             ClearFlag cameraClearFlag = GetCameraClearFlag(ref cameraData);
-            
+
             // Invalid configuration - use current attachment setup
             // Note: we only check color buffers. This is only technically correct because for shadowmaps and depth only passes
             // we bind depth as color and Unity handles it underneath. so we never have a situation that all color buffers are null and depth is bound.
@@ -720,7 +799,7 @@ namespace UnityEngine.Rendering.Universal
                     // early return so we don't change current render target setup.
                     if (renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingOpaques)
                         return;
-                    
+
                     // Otherwise default is the pipeline camera target.
                     passColorAttachment = m_CameraColorTarget;
                     passDepthAttachment = m_CameraDepthTarget;
@@ -935,6 +1014,9 @@ namespace UnityEngine.Rendering.Universal
                         m_ActiveRenderPassQueue[i].OnFinishCameraStackRendering(cmd);
 
                     FinishRendering(cmd);
+
+                    // We finished camera stacking and released all intermediate pipeline textures.
+                    m_IsPipelineExecuting = false;
                 }
             }
 

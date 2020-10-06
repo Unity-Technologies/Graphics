@@ -666,8 +666,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             using (var previewsToCompile = PooledHashSet<PreviewRenderData>.Get())
             {
                 // master node compile is first in the priority list, as it takes longer than the other previews
-                if ((m_PreviewsCompiling.Count + previewsToCompile.Count < m_MaxPreviewsCompiling) &&
-                    ((Shader.globalRenderPipeline != null) && (Shader.globalRenderPipeline.Length > 0)))    // master node requires an SRP
+                if (m_PreviewsCompiling.Count + previewsToCompile.Count < m_MaxPreviewsCompiling)
                 {
                     if (m_PreviewsNeedsRecompile.Contains(m_MasterRenderData) &&
                         !m_PreviewsCompiling.Contains(m_MasterRenderData))
@@ -728,7 +727,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         Assert.IsNotNull(node); // master preview is handled above
 
                         // Get shader code and compile
-                        var generator = new Generator(node.owner, node, GenerationMode.Preview, $"hidden/preview/{node.GetVariableNameForNode()}");
+                        var generator = new Generator(node.owner, node, GenerationMode.Preview, $"hidden/preview/{node.GetVariableNameForNode()}", null);
                         BeginCompile(preview, generator.generatedShader);
                     }
 
@@ -799,7 +798,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     ShaderUtil.UpdateShaderAsset(shaderData.shader, shaderStr, false);
                 }
 
-                CoreUtils.Destroy(shaderData.mat);
+                // Due to case 1259744, we have to re-create the material to update the preview material keywords
+                Object.DestroyImmediate(shaderData.mat);
 
                 if (shaderData.mat == null)
                 {
@@ -1058,7 +1058,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 // Mesh is invalid for VFXTarget
                 // We should handle this more gracefully
-                if (renderData != m_MasterRenderData || !m_Graph.isVFXTarget)
+                if (renderData != m_MasterRenderData || !m_Graph.isOnlyVFXTarget)
                 {
                     m_SceneResources.camera.targetTexture = temp;
                     Graphics.DrawMesh(mesh, transform, renderData.shaderData.mat, 1, m_SceneResources.camera, 0, m_SharedPreviewPropertyBlock, ShadowCastingMode.Off, false, null, false);
@@ -1129,9 +1129,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             var shaderData = masterRenderData?.shaderData;
             
             // Skip generation for VFXTarget
-            if(!m_Graph.isVFXTarget)
+            if(!m_Graph.isOnlyVFXTarget)
             {
-                var generator = new Generator(m_Graph, m_Graph.outputNode, GenerationMode.Preview, "Master");
+                var generator = new Generator(m_Graph, m_Graph.outputNode, GenerationMode.Preview, "Master", null);
                 shaderData.shaderString = generator.generatedShader;
 
                 // Blocks from the generation include those temporarily created for missing stack blocks

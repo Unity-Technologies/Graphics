@@ -64,8 +64,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_BlurAlgorithm = blurAlgorithm;
             m_RenderPipelineResources = renderPipelineResources;
             m_IsACacheForShadows = false;
-
-            AllocateRenderTexture();
         }
 
         public HDShadowAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams,  BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "")

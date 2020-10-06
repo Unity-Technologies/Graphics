@@ -90,8 +90,11 @@ Shader "Hidden/HDRP/TemporalAA"
         TEXTURE2D_X(_DepthTexture);
         TEXTURE2D_X(_InputTexture);
         TEXTURE2D_X(_InputHistoryTexture);
+        #ifdef SHADER_API_PSSL
+        RW_TEXTURE2D_X(CTYPE, _OutputHistoryTexture) : register(u0);
+        #else
         RW_TEXTURE2D_X(CTYPE, _OutputHistoryTexture) : register(u1);
-
+        #endif
 
         #define _HistorySharpening _TaaPostParameters.x
         #define _AntiFlickerIntensity _TaaPostParameters.y
@@ -100,7 +103,11 @@ Shader "Hidden/HDRP/TemporalAA"
 
 #if VELOCITY_REJECTION
         TEXTURE2D_X(_InputVelocityMagnitudeHistory);
-        RW_TEXTURE2D_X(float, _OutputVelocityMagnitudeHistory);
+        #ifdef SHADER_API_PSSL
+        RW_TEXTURE2D_X(float, _OutputVelocityMagnitudeHistory) : register(u1);
+        #else
+        RW_TEXTURE2D_X(float, _OutputVelocityMagnitudeHistory) : register(u2);
+        #endif
 #endif
 
         float4 _TaaPostParameters;

@@ -214,6 +214,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             switch(property)
             {
+            case IShaderPropertyDrawer propDrawer:	
+                propDrawer.HandlePropertyField(propertySheet, _preChangeValueCallback, _postChangeValueCallback);	
+                break;
             case Vector1ShaderProperty vector1Property:
                 HandleVector1ShaderProperty(propertySheet, vector1Property);
                 break;
@@ -368,7 +371,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     var integerPropertyDrawer = new IntegerPropertyDrawer();
                     // Default field
                     propertySheet.Add(integerPropertyDrawer.CreateGUI(
-                        newValue => this._changeValueCallback(newValue),
+                        newValue =>
+                        {
+                            this._preChangeValueCallback("Change property value");
+                            this._changeValueCallback((float)newValue);
+                            this._postChangeValueCallback();
+                        },
                         (int)vector1ShaderProperty.value,
                         "Default",
                         out var integerPropertyField));
