@@ -4,6 +4,8 @@
 
 Returns the result of input **A** to the power of input **B**.
 
+Note: If the input **A** is negative, the output might be inconsistent or NaN.
+
 ## Ports
 
 | Name        | Direction           | Type  | Description |

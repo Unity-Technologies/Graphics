@@ -20,7 +20,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    [VFXInfo(category = "Spawn/Custom", variantProvider = typeof(CustomSpawnerVariant))]
+    [VFXInfo(category = "Custom", variantProvider = typeof(CustomSpawnerVariant))]
     class VFXSpawnerCustomWrapper : VFXAbstractSpawner
     {
         [SerializeField, VFXSetting]

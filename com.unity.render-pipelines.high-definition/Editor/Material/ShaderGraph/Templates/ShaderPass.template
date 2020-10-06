@@ -48,6 +48,19 @@ Pass
     $features.graphVertex:              #define HAVE_MESH_MODIFICATION
     $splice(GraphDefines)
 
+    // Following two define are a workaround introduce in 10.1.x for RaytracingQualityNode
+    // The ShaderGraph don't support correctly migration of this node as it serialize all the node data
+    // in the json file making it impossible to uprgrade. Until we get a fix, we do a workaround here
+    // to still allow us to rename the field and keyword of this node without breaking existing code.
+    #ifdef RAYTRACING_SHADER_GRAPH_DEFAULT 
+    #define RAYTRACING_SHADER_GRAPH_HIGH
+    #endif
+
+    #ifdef RAYTRACING_SHADER_GRAPH_RAYTRACED
+    #define RAYTRACING_SHADER_GRAPH_LOW
+    #endif
+    // end
+
     #ifndef SHADER_UNLIT
     // We need isFrontFace when using double sided - it is not required for unlit as in case of unlit double sided only drive the cullmode
     #ifdef _DOUBLESIDED_ON
@@ -176,7 +189,7 @@ Pass
             #elif SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_POSTPASS
             // DepthPostpass always use its own alpha threshold
             alphaCutoff = surfaceDescription.AlphaClipThresholdDepthPostpass;
-            #elif SHADERPASS == SHADERPASS_SHADOWS
+            #elif (SHADERPASS == SHADERPASS_SHADOWS) || (SHADERPASS == SHADERPASS_RAYTRACING_VISIBILITY)
             // If use shadow threshold isn't enable we don't allow any test
             $DoAlphaTestShadow: alphaCutoff = _UseShadowThreshold ? surfaceDescription.AlphaClipThresholdShadow : alphaCutoff;
             #endif
