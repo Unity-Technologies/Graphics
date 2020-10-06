@@ -42,7 +42,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_2_Linear_trunk:
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -111,7 +111,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_2_gamma_trunk:
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -155,7 +155,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_il2cpp_2
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -200,7 +200,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_il2cpp_2
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -270,7 +270,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_4_Linear_trunk:
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -339,7 +339,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_4_gamma_trunk:
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -383,7 +383,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_il2cpp_4
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -428,7 +428,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_il2cpp_4
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -498,7 +498,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_mono_2_Linear_trunk:
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -567,7 +567,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_mono_2_gamma_trunk:
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -611,7 +611,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_mono_2_L
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -656,7 +656,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_mono_2_g
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -726,7 +726,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_mono_4_Linear_trunk:
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -795,7 +795,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_mono_4_gamma_trunk:
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -839,7 +839,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_mono_4_L
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -884,7 +884,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_mono_4_g
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -958,7 +958,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_2_Linear_CUSTOM
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -1034,7 +1034,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_2_gamma_CUSTOM-
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -1082,7 +1082,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_il2cpp_2
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -1131,7 +1131,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_il2cpp_2
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -1208,7 +1208,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_4_Linear_CUSTOM
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -1284,7 +1284,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_4_gamma_CUSTOM-
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -1332,7 +1332,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_il2cpp_4
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -1381,7 +1381,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_il2cpp_4
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -1458,7 +1458,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_mono_2_Linear_CUSTOM-R
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -1534,7 +1534,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_mono_2_gamma_CUSTOM-RE
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -1582,7 +1582,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_mono_2_L
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -1631,7 +1631,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_mono_2_g
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -1708,7 +1708,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_mono_4_Linear_CUSTOM-R
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -1784,7 +1784,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_mono_4_gamma_CUSTOM-RE
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -1832,7 +1832,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_mono_4_L
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
@@ -1881,7 +1881,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_mono_4_g
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.sahdergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
