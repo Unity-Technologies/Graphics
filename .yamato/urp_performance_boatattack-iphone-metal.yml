@@ -38,7 +38,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_2_Linear_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -99,7 +99,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_2_gamma_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -141,7 +141,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_2_Line
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -180,7 +180,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_2_gamm
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -238,7 +238,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_4_Linear_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -299,7 +299,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_4_gamma_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -341,7 +341,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_4_Line
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -380,7 +380,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_4_gamm
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -438,7 +438,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_2_Linear_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -499,7 +499,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_2_gamma_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -541,7 +541,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_2_Linear
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -580,7 +580,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_2_gamma_
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -638,7 +638,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_4_Linear_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -699,7 +699,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_4_gamma_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -741,7 +741,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_4_Linear
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -780,7 +780,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_4_gamma_
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -842,7 +842,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_2_Linear_CUSTOM-REVI
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -910,7 +910,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_2_gamma_CUSTOM-REVIS
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -956,7 +956,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_2_Line
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -999,7 +999,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_2_gamm
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -1064,7 +1064,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_4_Linear_CUSTOM-REVI
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -1132,7 +1132,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_4_gamma_CUSTOM-REVIS
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -1178,7 +1178,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_4_Line
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -1221,7 +1221,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_4_gamm
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -1286,7 +1286,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_2_Linear_CUSTOM-REVISI
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -1354,7 +1354,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_2_gamma_CUSTOM-REVISIO
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -1400,7 +1400,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_2_Linear
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -1443,7 +1443,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_2_gamma_
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -1508,7 +1508,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_4_Linear_CUSTOM-REVISI
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -1576,7 +1576,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_4_gamma_CUSTOM-REVISIO
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -1622,7 +1622,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_4_Linear
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -1665,7 +1665,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_4_gamma_
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.2.1-preview.1 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.16 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
