@@ -218,7 +218,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUI.indentLevel--;
                 }
                 PropertyField(m_AccumulationFactor, k_AccumulationFactorText);
-                PropertyField(m_AccumulationFactor, k_AccumulationFactorText);
             }
         }
     }

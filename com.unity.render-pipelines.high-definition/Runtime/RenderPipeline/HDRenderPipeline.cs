@@ -4776,6 +4776,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!usePBRAlgo)
             {
                 CoreUtils.SetKeyword(cmd, "SSR_APPROX", true);
+                CoreUtils.SetRenderTarget(cmd, ssrLightingTexture, ClearFlag.Color, Color.clear);
             }
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.SsrTracing)))
@@ -4893,11 +4894,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Evaluate the clear coat mask texture based on the lit shader mode
                 RTHandle clearCoatMask = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? m_GbufferManager.GetBuffer(2) : TextureXR.GetBlackTexture();
-
-                if (settings.ssrAlgo == ScreenSpaceReflectionAlgorithm.Approximation)
-                {
-                    CoreUtils.SetRenderTarget(cmd, m_SsrLightingTexture, ClearFlag.Color, Color.clear);
-                }
 
                 var parameters = PrepareSSRParameters(hdCamera, m_SharedRTManager.GetDepthBufferMipChainInfo(), false);
                 var motionVectors = m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors ? m_SharedRTManager.GetMotionVectorsBuffer() : TextureXR.GetBlackTexture();
