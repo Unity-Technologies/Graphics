@@ -1,6 +1,7 @@
-# Upgrading HDRP from 8.x to 9.x-preview/10.x
+# Upgrading HDRP from 8.x to 10.x
 
-In the High Definition Render Pipeline (HDRP), some features work differently between major versions. This document helps you upgrade HDRP from 8.x to 9.x-preview/10.x. Note that version 9.-x-preview is compatible with Unity 2020.1 but includes several features from 10.x. However, this package will not be maintained in the future.
+In the High Definition Render Pipeline (HDRP), some features work differently between major versions. This document helps you upgrade HDRP from 8.x to 10.x. 
+Note that a version 9.-x-preview have been published and is compatible with Unity 2020.1 including some features from 10.x. However, this package was for feedback purpose and will not be maintained in the future.
 
 ## Constant Buffer API
 
@@ -165,7 +166,12 @@ to:
 For example, the call in the Lit shader has been updated to:
 `float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness), lightData.rangeCompressionFactorCompensation, posInput.positionNDC);`
 
-## raytracing
+From 10.x, a new optimization have been introduce for [Planar Reflection Probe](Planar-Reflection-Probe.md). It required to sample the environment map at the mip 0 with the help of the LightData.roughReflections parameter to be effective in custom shader.
+For example, the call in the Lit shader has been updated to:
+`float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness) * lightData.roughReflections, lightData.rangeCompressionFactorCompensation, posInput.positionNDC);`
+
+
+## Raytracing
 
 From Unity 2020.2, the Raytracing Node in shader graph now apply the raytraced path (previously low path) to all raytraced effects but path tracing.
 
