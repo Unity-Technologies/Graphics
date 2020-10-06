@@ -17,6 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool softShadow;
             public int numShadowSamples;
             public bool colorShadow;
+            public float maxShadowLength;
 
             // Kernels
             public int clearShadowKernel;
@@ -33,6 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RTShadowDirectionalTraceParameters PrepareRTShadowDirectionalTraceParameters(HDCamera hdCamera, HDAdditionalLightData additionalLightData)
         {
             RTShadowDirectionalTraceParameters rtsdtParams = new RTShadowDirectionalTraceParameters();
+            RayTracingSettings rayTracingSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
 
             // Set the camera parameters
             rtsdtParams.texWidth = hdCamera.actualWidth;
@@ -44,6 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // If the surface is infinitively small, we force it to one sample.
             rtsdtParams.numShadowSamples = rtsdtParams.softShadow ? additionalLightData.numRayTracingSamples : 1;
             rtsdtParams.colorShadow = m_CurrentSunLightAdditionalLightData.colorShadow;
+            rtsdtParams.maxShadowLength = rayTracingSettings.directionalShadowRayLength.value;
 
             // Kernels
             rtsdtParams.clearShadowKernel = m_ClearShadowTexture;
@@ -150,6 +153,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Define the shader pass to use for the shadow pass
                 cmd.SetRayTracingShaderPass(rtsdtParams.screenSpaceShadowRT, "VisibilityDXR");
+
+                // Input Uniforms
+                cmd.SetRayTracingFloatParam(rtsdtParams.screenSpaceShadowRT, HDShaderIDs._DirectionalMaxRayLength, rtsdtParams.maxShadowLength);
 
                 // Set ray count texture
                 cmd.SetRayTracingTextureParam(rtsdtParams.screenSpaceShadowRT, HDShaderIDs._RayCountTexture, rtsdtResources.rayCountTexture);

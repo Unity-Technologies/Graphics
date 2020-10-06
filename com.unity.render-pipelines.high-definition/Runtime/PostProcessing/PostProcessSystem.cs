@@ -449,27 +449,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        static void ClearWithGuardBands(in ClearWithGuardBandsParameters parameters, CommandBuffer cmd, RTHandle source)
-        {
-            // Guard bands (also known as "horrible hack") to avoid bleeding previous RTHandle
-            // content into smaller viewports with some effects like Bloom that rely on bilinear
-            // filtering and can't use clamp sampler and the likes
-            // Note: some platforms can't clear a partial render target so we directly draw black triangles
-            {
-                int w = parameters.cameraWidth;
-                int h = parameters.cameraHeight;
-                cmd.SetRenderTarget(source, 0, CubemapFace.Unknown, -1);
-
-                if (w < source.rt.width || h < source.rt.height)
-                {
-                    cmd.SetViewport(new Rect(w, 0, k_RTGuardBandSize, h));
-                    cmd.DrawProcedural(Matrix4x4.identity, parameters.clearMaterial, 0, MeshTopology.Triangles, 3, 1);
-                    cmd.SetViewport(new Rect(0, h, w + k_RTGuardBandSize, k_RTGuardBandSize));
-                    cmd.DrawProcedural(Matrix4x4.identity, parameters.clearMaterial, 0, MeshTopology.Triangles, 3, 1);
-                }
-            }
-        }
-
         public void Render(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle colorBuffer, RTHandle afterPostProcessTexture, RenderTargetIdentifier finalRT, RTHandle depthBuffer, RTHandle depthMipChain, RTHandle motionVecTexture, bool flipY)
         {
             var dynResHandler = DynamicResolutionHandler.instance;
@@ -497,8 +476,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (m_PostProcessEnabled)
                 {
-                    ClearWithGuardBands(PrepareClearWithGuardBandsParameters(camera), cmd, source);
-
                     // Optional NaN killer before post-processing kicks in
                     bool stopNaNs = camera.stopNaNs && m_StopNaNFS;
 
@@ -908,6 +885,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4          bloomBicubicParams;
             public Vector4          bloomDirtTileOffset;
             public Vector4          bloomThreshold;
+
+            public Vector4          alphaScaleBias;
         }
 
         UberPostParameters PrepareUberPostParameters(HDCamera hdCamera, bool isSceneView)
@@ -941,8 +920,21 @@ namespace UnityEngine.Rendering.HighDefinition
             PrepareChromaticAberrationParameters(ref parameters, featureFlags);
             PrepareVignetteParameters(ref parameters, featureFlags);
             PrepareUberBloomParameters(ref parameters, hdCamera);
+            PrepareAlphaScaleParameters(ref parameters, hdCamera);
 
             return parameters;
+        }
+
+        void PrepareAlphaScaleParameters(ref UberPostParameters parameters, HDCamera camera)
+        {
+            if (m_EnableAlpha)
+            {
+                parameters.alphaScaleBias = Compositor.CompositionManager.GetAlphaScaleAndBiasForCamera(camera);
+            }
+            else
+            {
+                parameters.alphaScaleBias = new Vector4(1.0f, 0.0f, 0.0f, 0.0f);
+            }
         }
 
         static void DoUberPostProcess(in UberPostParameters parameters,
@@ -979,6 +971,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeVectorParam(parameters.uberPostCS, HDShaderIDs._BloomDirtScaleOffset, parameters.bloomDirtTileOffset);
             cmd.SetComputeVectorParam(parameters.uberPostCS, HDShaderIDs._BloomThreshold, parameters.bloomThreshold);
 
+            // Alpha scale and bias (only used when alpha is enabled)
+            cmd.SetComputeVectorParam(parameters.uberPostCS, HDShaderIDs._AlphaScaleBias, parameters.alphaScaleBias);
 
             // Dispatch uber post
             cmd.SetComputeVectorParam(parameters.uberPostCS, "_DebugFlags", new Vector4(parameters.outputColorLog ? 1 : 0, 0, 0, 0));
@@ -3046,6 +3040,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.bloomPrefilterCS = m_Resources.shaders.bloomPrefilterCS;
             parameters.bloomPrefilterKernel = parameters.bloomPrefilterCS.FindKernel("KMain");
+
+            parameters.bloomPrefilterCS.shaderKeywords = null;
+            if (m_Bloom.highQualityPrefiltering)
+                parameters.bloomPrefilterCS.EnableKeyword("HIGH_QUALITY");
+            else
+                parameters.bloomPrefilterCS.EnableKeyword("LOW_QUALITY");
 
             parameters.bloomBlurCS = m_Resources.shaders.bloomBlurCS;
             parameters.bloomBlurKernel = parameters.bloomBlurCS.FindKernel("KMain");
