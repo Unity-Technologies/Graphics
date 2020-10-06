@@ -143,9 +143,20 @@ by respectively
 ```
 For an example of best practices to apply decals to a material, see the `ApplyDecalToSurfaceData()` function in the LitDecalData.hlsl file.
 
-From Unity 2020.2, the Raytracing keyword in Shader Graph has been renamed to Raytracing Quality and the RAYTRACING_SHADER_GRAPH_LOW and RAYTRACING_SHADER_GRAPH_HIGH defines are now RAYTRACING_SHADER_GRAPH_DEFAULT and RAYTRACING_SHADER_GRAPH_RAYTRACED respectively. Unless you used these defines in custom Shader code, you do not need to do anything because Shader Graph automatically regenerates its Shaders with the correct defines when you load the Project.
+From 10.x, the decal functions prototype in shader code has changed. A new vertex normal parameters have been added to allow to handle angle based fading.
+The prototype for the function `GetDecalSurfaceData()` has changed from:
+`DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)`
+to:
+ `DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, inout float alpha)`
 
-From 10.x, HDRP adds a new fullscreen debug pass named `FullScreenDebug`. Any object using a material which doesn't contain this pass will no be rendered during the fullscreen debug pass.
+The prototype for the function `ApplyDecalToSurfaceData()` in various Material has changed from:
+`void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, inout SurfaceData surfaceData)`
+to:
+ `void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData)`
+
+From 10.x, HDRP adds a new fullscreen debug pass named `FullScreenDebug`. Any object using a material based on a shader which doesn't contain this pass will no be rendered during the fullscreen debug pass.
+
+From Unity 2020.2, the Raytracing keyword in Shader Graph has been renamed to Raytracing Quality and the RAYTRACING_SHADER_GRAPH_LOW and RAYTRACING_SHADER_GRAPH_HIGH defines are now RAYTRACING_SHADER_GRAPH_DEFAULT and RAYTRACING_SHADER_GRAPH_RAYTRACED respectively. Unless you used these defines in custom Shader code, you do not need to do anything because Shader Graph automatically regenerates its Shaders with the correct defines when you load the Project.
 
 From Unity 2020.2, a parameter `positionNDC` has been added to the function `SampleEnv`. It's prototype has changed from:
 `float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod, float rangeCompressionFactorCompensation, int sliceIdx = 0)`
