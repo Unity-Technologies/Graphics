@@ -90,6 +90,8 @@ void WriteDebugInfo(uint2 positionSS, float4 value)
 #endif
 }
 
+#define USE_COARSE_STENCIL 0
+
 #ifdef SSR_TRACE
 
 [numthreads(8, 8, 1)]
@@ -99,17 +101,23 @@ void ScreenSpaceReflectionsTracing(uint3 groupId          : SV_GroupID,
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
     uint2 positionSS = dispatchThreadId.xy;
 
+    bool doesntReceiveSSR = false;
+
+    // NOTE: Currently we profiled that generating the HTile for SSR and using it is not worth it the optimization.
+    // However if the generated HTile will be used for something else but SSR, this should be re-enabled and in C#.
+#if USE_COARSE_STENCIL
     // Check HTile first. Note htileAddress should be already in scalar before WaveReadLaneFirst, but forcing it to be sure.
     // TODO: Verify the need of WaveReadLaneFirst
     uint htileAddress = WaveReadLaneFirst(Get1DAddressFromPixelCoord(groupId.xy, _CoarseStencilBufferSize.xy, groupId.z));
     uint htileValue   = _CoarseStencilBuffer[htileAddress];
 
-    bool doesntReceiveSSR = (htileValue & _SsrStencilBit) == 0;
+    doesntReceiveSSR = (htileValue & _SsrStencilBit) == 0;
     if (doesntReceiveSSR)
     {
         WriteDebugInfo(positionSS, -1);
         return;
     }
+#endif
 
     uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, dispatchThreadId.xy));
     doesntReceiveSSR = (stencilValue & _SsrStencilBit) == 0;
