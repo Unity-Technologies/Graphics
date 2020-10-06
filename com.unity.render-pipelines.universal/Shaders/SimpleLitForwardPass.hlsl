@@ -108,21 +108,21 @@ Varyings LitPassVertexSimple(Attributes input)
     output.positionCS = vertexInput.positionCS;
 
     output.isFrontFace = true;
-    #if defined(_BACKFACE_VISIBLE)
+#if defined(_BACKFACE_VISIBLE)
     output.isFrontFace = dot(viewDirWS, normalInput.normalWS) > 0;
-    #endif
+#endif
 
 #ifdef _NORMALMAP
     output.normal = half4(normalInput.normalWS, viewDirWS.x);
     output.tangent = half4(normalInput.tangentWS, viewDirWS.y);
     output.bitangent = half4(normalInput.bitangentWS, viewDirWS.z);
 #else
-    output.normal = NormalizeNormalPerVertex(normalInput.normalWS);
+    output.normal = NormalizeNormalPerVertex(output.isFrontFace ? normalInput.normalWS : -normalInput.normalWS);
     output.viewDir = viewDirWS;
 #endif
 
-    //OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
-    //OUTPUT_SH(output.isFrontFace ? output.normal.xyz : -output.normal.xyz, output.vertexSH);
+    OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
+    OUTPUT_SH(output.normal.xyz, output.vertexSH);
 
     output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 

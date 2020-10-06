@@ -166,7 +166,7 @@ namespace UnityEditor
             emissionMapProp = FindProperty("_EmissionMap", properties, false);
             emissionColorProp = FindProperty("_EmissionColor", properties, false);
             queueOffsetProp = FindProperty("_QueueOffset", properties, false);
-            doubleSidedConstantsProp = FindProperty("_DoubleSidedConstants", properties);
+            doubleSidedConstantsProp = FindProperty("_DoubleSidedConstants", properties, false);
         }
 
         public override void OnGUI(MaterialEditor materialEditorIn, MaterialProperty[] properties)
@@ -263,7 +263,7 @@ namespace UnityEditor
                 material.doubleSidedGI = (RenderFace)cullingProp.floatValue != RenderFace.Front;
             }
 
-            if (culling != RenderFace.Front)
+            if (culling != RenderFace.Front && doubleSidedConstantsProp != null)
             {
                 var normalMode = (DoubleSidedNormalMode) doubleSidedConstantsProp.vectorValue.w;
 
