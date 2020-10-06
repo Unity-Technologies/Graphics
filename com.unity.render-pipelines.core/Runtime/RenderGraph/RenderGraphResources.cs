@@ -11,34 +11,50 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         Count
     }
 
-    // Can't have a default constructor with handle = -1 hence the ugly IsValid implementation (where m_IsValid will be false by default).
     internal struct ResourceHandle
     {
-        bool                        m_IsValid;
+        // Note on handles validity.
+        // PassData classes used during render graph passes are pooled and because of that, when users don't fill them completely,
+        // they can contain stale handles from a previous render graph execution that could still be considered valid if we only checked the index.
+        // In order to avoid using those, we incorporate the execution index in a 16 bits hash to make sure the handle is coming from the current execution.
+        // If not, it's considered invalid.
+        // We store this validity mask in the upper 16 bits of the index.
+        const uint kValidityMask = 0xFFFF0000;
+        const uint kIndexMask = 0xFFFF;
 
-        public int index { get; private set; }
+        uint m_Value;
+
+        static uint s_CurrentValidBit = 1 << 16;
+
+        public int index { get { return (int)(m_Value & kIndexMask); } }
         public RenderGraphResourceType type { get; private set; }
         public int iType { get { return (int)type; } }
 
         internal ResourceHandle(int value, RenderGraphResourceType type)
         {
-            index = value;
+            Debug.Assert(value <= 0xFFFF);
+            m_Value = ((uint)value & kIndexMask) | s_CurrentValidBit;
             this.type = type;
-            m_IsValid = true;
         }
 
         public static implicit operator int(ResourceHandle handle) => handle.index;
-        public bool IsValid() => m_IsValid;
-    }
+        public bool IsValid()
+        {
+            var validity = m_Value & kValidityMask;
+            return validity != 0 && validity == s_CurrentValidBit;
+        }
 
-    // BEHOLD C# COPY PASTA
-    // Struct can't be inherited and can't have default member values or constructor
-    // Hence the copy paste and the ugly IsValid implementation.
+        static public void NewFrame(int executionIndex)
+        {
+            // Scramble frame count to avoid collision when wrapping around.
+            s_CurrentValidBit = (uint)(((executionIndex >> 16) ^ (executionIndex & 0xffff) * 58546883) << 16);
+        }
+    }
 
     /// <summary>
     /// Texture resource handle.
     /// </summary>
-    [DebuggerDisplay("Texture ({handle})")]
+    [DebuggerDisplay("Texture ({handle.index})")]
     public struct TextureHandle
     {
         private static TextureHandle s_NullHandle = new TextureHandle();
@@ -84,9 +100,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     /// <summary>
     /// Compute Buffer resource handle.
     /// </summary>
-    [DebuggerDisplay("ComputeBuffer ({handle})")]
+    [DebuggerDisplay("ComputeBuffer ({handle.index})")]
     public struct ComputeBufferHandle
     {
+        private static ComputeBufferHandle s_NullHandle = new ComputeBufferHandle();
+
+        /// <summary>
+        /// Returns a null compute buffer handle
+        /// </summary>
+        /// <returns>A null compute buffer handle.</returns>
+        public static ComputeBufferHandle nullHandle { get { return s_NullHandle; } }
+
         internal ResourceHandle handle;
 
         internal ComputeBufferHandle(int handle) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.ComputeBuffer); }

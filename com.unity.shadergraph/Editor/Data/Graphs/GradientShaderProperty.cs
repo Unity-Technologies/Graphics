@@ -10,6 +10,7 @@ using UnityEditor.ShaderGraph.Internal;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
+    [BlackboardInputInfo(30)]
     class GradientShaderProperty : AbstractShaderProperty<Gradient>
     {
         public GradientShaderProperty()

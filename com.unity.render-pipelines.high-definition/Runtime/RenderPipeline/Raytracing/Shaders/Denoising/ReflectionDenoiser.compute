@@ -154,7 +154,7 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     const BilateralData center = TapBilateralData(centerCoord);
 
     // Compute the effective radius we should be using for the filtering
-    float3 viewWS = normalize(_WorldSpaceCameraPos - center.position);
+    const float3 viewWS = GetWorldSpaceNormalizeViewDir(center.position);
     float2 mappingUV = float2(dot(viewWS, center.normal), center.roughness);
     float2 radiusScale = SAMPLE_TEXTURE2D_LOD(_ReflectionFilterMapping, s_linear_clamp_sampler, mappingUV, 0.0f).xy;
     #if FINAL_PASS
