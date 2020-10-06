@@ -1276,4 +1276,49 @@ float SharpenAlpha(float alpha, float alphaClipTreshold)
 // These clamping function to max of floating point 16 bit are use to prevent INF in code in case of extreme value
 TEMPLATE_1_REAL(ClampToFloat16Max, value, return min(value, HALF_MAX))
 
+uint IndexFromCoordinate(uint4 coord, uint3 size)
+{
+    return coord.x
+         + coord.y * (size.x)
+         + coord.z * (size.x * size.y)
+         + coord.w * (size.x * size.y * size.z);
+}
+
+uint IndexFromCoordinate(uint3 coord, uint2 size)
+{
+    return IndexFromCoordinate(uint4(coord, 0), uint3(size, 1));
+}
+
+uint IndexFromCoordinate(uint2 coord, uint size)
+{
+    return IndexFromCoordinate(uint4(coord, 0, 0), uint3(size, 1, 1));
+}
+
+uint4 CoordinateFromIndex(uint index, uint3 size)
+{
+    uint cube   = (index                             ) / (size.x * size.y * size.z);
+    uint plane  = (index % (size.x * size.y * size.z)) / (size.x * size.y);
+    uint row    = (index % (size.x * size.y)         ) / (size.x);
+    uint column = (index % (size.x));
+
+    return uint4(column, row, plane, cube);
+}
+
+uint3 CoordinateFromIndex(uint index, uint2 size)
+{
+    uint plane  = (index                    ) / (size.x * size.y);
+    uint row    = (index % (size.x * size.y)) / (size.x);
+    uint column = (index % (size.x));
+
+    return uint3(column, row, plane);
+}
+
+uint2 CoordinateFromIndex(uint index, uint size)
+{
+    uint row    = index / size.x;
+    uint column = index % size.x;
+
+    return uint2(column, row);
+}
+
 #endif // UNITY_COMMON_INCLUDED

@@ -17,6 +17,9 @@ StructuredBuffer<float2> _wBoundsBuffer : register(t0); // {w_min, w_max}
 /* ------------------------------ Outputs ----------------------------------- */
 
 // 1x list for all entites (sorted by category, we concatenate lists of all views).
+// The size of the buffer can be computed as follows:
+// ZBIN_COUNT * BOUNDEDENTITYCATEGORY_COUNT * EYE_COUNT * 4 bytes per range.
+// For example (1080p): 8192 * 5 * 1 * 4 = 160 KiB.
 RWStructuredBuffer<uint> _zBinBuffer : register(u0); // {start << 16 | end}
 
 /* ------------------------------ Utilities --------------------------------- */
@@ -44,18 +47,10 @@ float2 ComputeZBinLinearDepthBounds(uint bin, float4 encodingParams)
                   DecodeLogarithmicDepth(zBounds.y, encodingParams));
 }
 
-uint Convert3DCoordinateTo1DIndex(uint3 coord, uint2 size)
-{
-    return coord.x
-         + coord.y * (size.x)
-         + coord.z * (size.x * size.y);
-}
-
 uint GenerateZBinBufferIndex(uint bin, uint category, uint eye)
 {
-    // The Z-bin buffer is effectively 3-dimensional.
-    return Convert3DCoordinateTo1DIndex(uint3(bin, category, eye),
-                                        uint2(ZBIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT));
+    return IndexFromCoordinate(uint3(bin, category, eye),
+                               uint2(ZBIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT));
 }
 
 // The intervals must be defined s.t.
