@@ -134,7 +134,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed outlines in transitions between post-processed and plain regions in the graphics compositor (case 1278775).
 - Fix decal being applied twice with LOD Crossfade.
 - Fixed camera stacking for AOVs in the graphics compositor (case 1273223).
-- Added a tooltip to the Micro Shadows parameters (case 1282692).
+- Disable quad overdraw on ps4.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
