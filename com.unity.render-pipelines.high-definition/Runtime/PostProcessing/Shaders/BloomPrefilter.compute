@@ -41,7 +41,6 @@ float3 PartialAverage(float3 c0, float3 c1, float3 c2, float3 c3, float w0, floa
 
 #define GROUP_SIZE 8
 
-
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
 void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
