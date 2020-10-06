@@ -55,7 +55,6 @@
 #define TILE_SIZE_FPTL (16)
 #define TILE_SIZE_CLUSTERED (32)
 #define TILE_SIZE_BIG_TILE (64)
-#define ZBIN_COUNT (8192)
 #define TILE_INDEX_MASK (32767)
 #define TILE_INDEX_SHIFT_X (0)
 #define TILE_INDEX_SHIFT_Y (15)
@@ -71,6 +70,10 @@
 #define SCREEN_SPACE_COLOR_SHADOW_FLAG (256)
 #define INVALID_SCREEN_SPACE_SHADOW (255)
 #define SCREEN_SPACE_SHADOW_INDEX_MASK (255)
+#define COARSE_TILE_ENTITY_LIMIT (64)
+#define COARSE_TILE_SIZE (64)
+#define FINE_TILE_SIZE (8)
+#define ZBIN_COUNT (8192)
 
 //
 // UnityEngine.Rendering.HighDefinition.ClusterDebugMode:  static fields

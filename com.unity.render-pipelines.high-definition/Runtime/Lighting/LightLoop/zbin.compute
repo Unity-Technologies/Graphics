@@ -6,7 +6,6 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightCullUtils.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesGlobal.hlsl"
 
 /* ------------------------------ Inputs ------------------------------------ */
@@ -18,17 +17,29 @@ StructuredBuffer<float2> _wBoundsBuffer : register(t0); // {w_min, w_max}
 
 // 1x list for all entites (sorted by category, we concatenate lists of all views).
 // The size of the buffer can be computed as follows:
-// ZBIN_COUNT * BOUNDEDENTITYCATEGORY_COUNT * EYE_COUNT * 4 bytes per range.
+// ZBIN_COUNT * BOUNDEDENTITYCATEGORY_COUNT * EYE_COUNT * (4 bytes per range).
 // For example (1080p): 8192 * 5 * 1 * 4 = 160 KiB.
 RWStructuredBuffer<uint> _zBinBuffer : register(u0); // {start << 16 | end}
 
 /* ------------------------------ Utilities --------------------------------- */
 
-// The preprocessor does not support the '%' operator.
+// The HLSL preprocessor does not support the '%' operator.
 #define REMAINDER(a, n) ((a) - (n) * ((a) / (n)))
 
 // Repackage to work around ridiculous constant buffer limitations of HLSL.
-static uint s_BoundedEntityCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT] = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityCountPerCategory;
+static uint s_BoundedEntityCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT]  = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityCountPerCategory;
+static uint s_BoundedEntityOffsetPerCategory[BOUNDEDENTITYCATEGORY_COUNT] = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityOffsetPerCategory;
+
+uint ComputeEntityBoundsBufferOffset(uint entityIndex, uint eye)
+{
+    return IndexFromCoordinate(uint2(entityIndex, eye), _BoundedEntityCount);
+}
+
+uint GenerateZBinBufferOffset(uint bin, uint category, uint eye)
+{
+    return IndexFromCoordinate(uint3(bin, category, eye),
+                               uint2(ZBIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT));
+}
 
 uint ComputeZBinFromLinearDepth(float w, float4 encodingParams)
 {
@@ -45,12 +56,6 @@ float2 ComputeZBinLinearDepthBounds(uint bin, float4 encodingParams)
 
     return float2(DecodeLogarithmicDepth(zBounds.x, encodingParams),
                   DecodeLogarithmicDepth(zBounds.y, encodingParams));
-}
-
-uint GenerateZBinBufferIndex(uint bin, uint category, uint eye)
-{
-    return IndexFromCoordinate(uint3(bin, category, eye),
-                               uint2(ZBIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT));
 }
 
 // The intervals must be defined s.t.
@@ -74,42 +79,42 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     const uint t   = threadID;
     const uint g   = groupID.x;
     const uint eye = groupID.y;
-    const uint bin = t + g * THREADS_PER_GROUP;
+    const uint cat = groupID.z;
+    const uint bin = IndexFromCoordinate(uint2(t, g), THREADS_PER_GROUP);
+
+    // Entities are sorted by category.
+    const uint entityIndex = s_BoundedEntityOffsetPerCategory[cat];
+    const uint entityCount = s_BoundedEntityCountPerCategory[cat];
 
 #if (REMAINDER(ZBIN_COUNT, THREADS_PER_GROUP) != 0)
     #error "ZBIN_COUNT must be an integer multiple of THREADS_PER_GROUP."
 #endif
-
     const float2 wBounds = ComputeZBinLinearDepthBounds(bin, _ZBinBufferEncodingParams);
 
-    uint inputIndex = GenerateLightCullDataIndex(0, _BoundedEntityCount, eye);
+    uint first = (1 << 16), last = 0;
 
-    for (uint cat = 0; cat < BOUNDEDENTITYCATEGORY_COUNT; cat++)
+    uint inputOffset = ComputeEntityBoundsBufferOffset(entityIndex, _BoundedEntityCount);
+
+    // The algorithm is O(n * m) where 'n' is the entity count and 'm' is bin count.
+    // Therefore, it will be slow if 'n' is large.
+    // We should consider a sorting-based algorithm, which could be closer to O((n + m) * log(n)).
+    // TODO: unroll.
+    for (uint i = 0; i < entityCount; i++, inputOffset++)
     {
-        uint first = (1 << 16), last = 0;
+        float2 wMinMax = _wBoundsBuffer[inputOffset];
 
-        uint n = s_BoundedEntityCountPerCategory[cat];
-
-        // The algorithm is O(n * m) where 'n' is the entity count and 'm' is bin count.
-        // Therefore, it will be slow if 'n' is large.
-        // We should consider a sorting-based algorithm, which could be closer to O((n + m) * log(n)).
-        // TODO: unroll.
-        for (uint i = 0; i < n; i++, inputIndex++)
+        // TODO: flatten.
+        if (IntervalsOverlap(wBounds, wMinMax))
         {
-            float2 wMinMax = _wBoundsBuffer[inputIndex]; // Sorted by category
-
-            // TODO: flatten.
-            if (IntervalsOverlap(wBounds, wMinMax))
-            {
-                first = min(i, first);
-                last  = max(i, last);
-            }
+            // We store intra-category indices.
+            first = min(i, first);
+            last  = max(i, last);
         }
-
-        // The compiler should be able to move most of the calculation outside the loop.
-        uint outputIndex = GenerateZBinBufferIndex(bin, cat, eye);
-        uint outputRange = (first > last) ? 0 : (first << 16) | (last + 1);
-
-        _zBinBuffer[outputIndex] = outputRange;
     }
+
+    // The compiler should be able to move most of the calculation outside the loop.
+    uint outputOffset = GenerateZBinBufferOffset(bin, cat, eye);
+    uint outputRange  = (first > last) ? 0 : (first << 16) | (last + 1);
+
+    _zBinBuffer[outputOffset] = outputRange;
 }

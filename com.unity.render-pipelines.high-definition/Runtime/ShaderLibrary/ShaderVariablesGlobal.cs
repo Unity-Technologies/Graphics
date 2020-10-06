@@ -201,6 +201,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Tile/Cluster
         [HLSLArray(((int)BoundedEntityCategory.Count + 3) / 4, typeof(ShaderGenUInt4))]
         public fixed uint _BoundedEntityCountPerCategory[(((int)BoundedEntityCategory.Count + 3) / 4) * 4];
+        [HLSLArray(((int)BoundedEntityCategory.Count + 3) / 4, typeof(ShaderGenUInt4))]
+        public fixed uint _BoundedEntityOffsetPerCategory[(((int)BoundedEntityCategory.Count + 3) / 4) * 4];
 
         public Vector4  _ZBinBufferEncodingParams;
 

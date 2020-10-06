@@ -6,7 +6,6 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightCullUtils.hlsl"
 
 /* ------------------------------ Inputs ------------------------------------ */
 
@@ -91,6 +90,11 @@ float4x4 PerspectiveProjection4x4(float a, float g, float n, float f)
                       0, g, 0, 0,
                       0, 0, b, c,
                       0, 0, 1, 0);
+}
+
+uint ComputeEntityBoundsBufferOffset(uint entityIndex, uint eye)
+{
+    return IndexFromCoordinate(uint2(entityIndex, eye), _BoundedEntityCount);
 }
 
 /* ------------------------------ Implementation ---------------------------- */
@@ -426,8 +430,8 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     const uint baseVertexOffset      = intraGroupEntityIndex * NUM_VERTS;
     const uint clampedEntityIndex    = min(globalEntityIndex, _BoundedEntityCount - 1); // Stay within bounds
 
-    const uint eyeAdjustedDataOffset = GenerateLightCullDataIndex(clampedEntityIndex, _BoundedEntityCount, eye);
-    const FiniteLightBound cullData  = _EntityBoundsBuffer[eyeAdjustedDataOffset];
+    const uint             bufferOffset = ComputeEntityBoundsBufferOffset(clampedEntityIndex, _BoundedEntityCount);
+    const FiniteLightBound cullData     = _EntityBoundsBuffer[bufferOffset];
 
     const float4x4 projMat    = g_mProjectionArr[eye];
     const float4x4 invProjMat = g_mInvProjectionArr[eye];
@@ -724,7 +728,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     if ((globalEntityIndex < (uint)_BoundedEntityCount) && (t % THREADS_PER_ENTITY == 0)) // Avoid bank conflicts
     {
 
-        _xyBoundsBuffer[eyeAdjustedDataOffset] = float4(ndcAaBbMinPt.xy, ndcAaBbMaxPt.xy);
-        _wBoundsBuffer[eyeAdjustedDataOffset]  = float2(ndcAaBbMinPt.w,  ndcAaBbMaxPt.w);
+        _xyBoundsBuffer[bufferOffset] = float4(ndcAaBbMinPt.xy, ndcAaBbMaxPt.xy);
+        _wBoundsBuffer[bufferOffset]  = float2(ndcAaBbMinPt.w,  ndcAaBbMaxPt.w);
     }
 }

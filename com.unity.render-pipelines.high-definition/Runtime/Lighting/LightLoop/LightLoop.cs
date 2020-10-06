@@ -377,8 +377,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static int s_TileSizeClustered = 32;
         public static int s_TileSizeBigTile = 64;
 
-        public static int s_ZBinCount = 8192;
-
         // Tile indexing constants for indirect dispatch deferred pass : [2 bits for eye index | 15 bits for tileX | 15 bits for tileY]
         public static int s_TileIndexMask = 0x7FFF;
         public static int s_TileIndexShiftX = 0;
@@ -403,6 +401,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public static uint s_ScreenSpaceColorShadowFlag = 0x100;
         public static uint s_InvalidScreenSpaceShadow = 0xff;
         public static uint s_ScreenSpaceShadowIndexMask = 0xff;
+
+        // Z-binning
+        public static int s_CoarseTileEntityLimit = 64; // Before pruning, so, in practice, the number is lower
+        public static int s_CoarseTileSize        = 64;
+        public static int s_FineTileSize          = 8;
+        public static int s_ZBinCount             = 8192;
     }
 
     [GenerateHLSL]
@@ -3570,6 +3574,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void PerformZBinning(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, CommandBuffer cmd)
         {
+            // If (boundedEntityCount == 0), we still perform a dispatch that will initialize bins as empty.
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PerformZBinning)))
             {
                 var shader = parameters.zBinShader;
@@ -3584,7 +3589,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 int groupCount = HDUtils.DivRoundUp(TiledLightingConstants.s_ZBinCount, threadsPerGroup);
 
-                cmd.DispatchCompute(shader, kernel, groupCount, parameters.viewCount, 1);
+                cmd.DispatchCompute(shader, kernel, groupCount, parameters.viewCount, (int)BoundedEntityCategory.Count);
+            }
+        }
             }
         }
 
@@ -4132,6 +4139,13 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < (int)BoundedEntityCategory.Count; i++)
             {
                 cb._BoundedEntityCountPerCategory[i] = (uint)m_BoundedEntityCollection.GetEntityCount((BoundedEntityCategory)i);
+            }
+
+            cb._BoundedEntityOffsetPerCategory[0] = 0;
+
+            for (int i = 1; i < (int)BoundedEntityCategory.Count; i++)
+            {
+                cb._BoundedEntityOffsetPerCategory[i] = cb._BoundedEntityOffsetPerCategory[i - 1] + cb._BoundedEntityCountPerCategory[i - 1];
             }
 
             cb._ZBinBufferEncodingParams = GetZBinBufferEncodingParams(hdCamera);
