@@ -158,7 +158,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             return compatibleAnchors;
         }
 
-        internal void ResetSelectedBlockNodes()
+        internal bool ResetSelectedBlockNodes()
         {
             var selectedBlocknodes = selection.FindAll(e => e is MaterialNodeView && ((MaterialNodeView)e).node is BlockNode).Cast<MaterialNodeView>().ToArray();
             foreach (var mNode in selectedBlocknodes)
@@ -173,16 +173,18 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // solution is to call its DragLeave until its interface can be improved.
                 context.DragLeave(null, null, null, null);
             }
+            return selectedBlocknodes.Length > 0;
         }
 
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             Vector2 mousePosition = evt.mousePosition;
 
-            // If a block node is floating, the context menu may not build correctly.     
-            if (!(evt.target is MaterialNodeView && ((MaterialNodeView)evt.target).node is BlockNode))
+            // If the target wasn't a block node, but there is one selected (and reset) by the time we reach this point,
+            // it means a block node was in an invalid configuration and that it may be unsafe to build the context menu.
+            bool targetIsBlockNode = evt.target is MaterialNodeView && ((MaterialNodeView)evt.target).node is BlockNode;
+            if (ResetSelectedBlockNodes() && !targetIsBlockNode)
             {
-                // GraphEditorView will call ResetSelectedBlockNodes via MouseUpEvent to ensure block nodes are reset
                 return;
             }
 
@@ -452,7 +454,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if (selectedNode.node.precision != Precision.Inherit)
                     inheritPrecisionAction = DropdownMenuAction.Status.Normal;
-                if (selectedNode.node.precision != Precision.Float)
+                if (selectedNode.node.precision != Precision.Single)
                     floatPrecisionAction = DropdownMenuAction.Status.Normal;
                 if (selectedNode.node.precision != Precision.Half)
                     halfPrecisionAction = DropdownMenuAction.Status.Normal;
@@ -460,7 +462,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Create the menu options
             evt.menu.AppendAction("Precision/Inherit", _ => SetNodePrecisionOnSelection(Precision.Inherit), (a) => inheritPrecisionAction);
-            evt.menu.AppendAction("Precision/Float", _ => SetNodePrecisionOnSelection(Precision.Float), (a) => floatPrecisionAction);
+            evt.menu.AppendAction("Precision/Single", _ => SetNodePrecisionOnSelection(Precision.Single), (a) => floatPrecisionAction);
             evt.menu.AppendAction("Precision/Half", _ => SetNodePrecisionOnSelection(Precision.Half), (a) => halfPrecisionAction);
         }
 

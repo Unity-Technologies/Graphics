@@ -49,14 +49,9 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializableNodes = new List<SerializationHelper.JSONSerializedElement>();
 
-        public static string[] GetDependencyPaths(string assetPath)
-        {
-            var dependencies = new List<string>();
-            GetDependencyPaths(assetPath, dependencies);
-            return dependencies.ToArray();
-        }
-
-        public static void GetDependencyPaths(string assetPath, List<string> dependencies)
+        // gather all asset dependencies declared by nodes in the given (shadergraph or shadersubgraph) asset
+        // by reading the source file from disk, and doing a minimal parse
+        public static void GatherMinimalDependenciesFromFile(string assetPath, AssetCollection assetCollection)
         {
             var textGraph = File.ReadAllText(assetPath, Encoding.UTF8);
             var entries = MultiJsonInternal.Parse(textGraph);
@@ -83,7 +78,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     var instance = (IHasDependencies)Activator.CreateInstance(minimalType);
                     JsonUtility.FromJsonOverwrite(entry.json, instance);
-                    instance.GetSourceAssetDependencies(dependencies);
+                    instance.GetSourceAssetDependencies(assetCollection);
                 }
             }
         }

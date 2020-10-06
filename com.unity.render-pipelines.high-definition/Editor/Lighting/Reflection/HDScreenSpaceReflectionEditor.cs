@@ -86,7 +86,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_AccumulationFactorText = EditorGUIUtility.TrTextContent("Accumulation Factor", "Controls Controls the amount of accumulation (0 no accumulation, 1 just accumulate).");
         static public readonly GUIContent k_DepthBufferThicknessText = EditorGUIUtility.TrTextContent("Object Thickness", "Controls the typical thickness of objects the reflection rays may pass behind.");
         static public readonly GUIContent k_RayMaxIterationsText = EditorGUIUtility.TrTextContent("Max Ray Steps", "Sets the maximum number of steps HDRP uses for raytracing. Affects both correctness and performance.");
-        static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Ray Length", "Controls the length of reflection rays.");
+        static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Max Ray Length", "Controls the maximal length of reflection rays. The higher this value is, the more expensive ray traced reflections are.");
         static public readonly GUIContent k_ClampValueText = EditorGUIUtility.TrTextContent("Clamp Value", "Clamps the exposed intensity.");
         static public readonly GUIContent k_SampleCountText = EditorGUIUtility.TrTextContent("Sample Count", "Number of samples for reflections.");
         static public readonly GUIContent k_BounceCountText = EditorGUIUtility.TrTextContent("Bounce Count", "Number of bounces for reflection rays.");
@@ -117,7 +117,7 @@ namespace UnityEditor.Rendering.HighDefinition
         void RayTracingPerformanceModeGUI()
         {
             base.OnInspectorGUI();
-            GUI.enabled = useCustomValue;
+            using (new EditorGUI.DisabledScope(!useCustomValue))
             {
                 EditorGUI.indentLevel++;
                 PropertyField(m_MinSmoothness, k_MinimumSmoothnessText);
@@ -135,7 +135,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 EditorGUI.indentLevel--;
             }
-            GUI.enabled = true;
         }
 
         void RayTracedReflectionGUI()
@@ -211,10 +210,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_DepthBufferThickness.value.floatValue = Mathf.Clamp(m_DepthBufferThickness.value.floatValue, 0.001f, 1.0f);
 
                 base.OnInspectorGUI();
-                GUI.enabled = useCustomValue;
-                PropertyField(m_RayMaxIterations, k_RayMaxIterationsText);
-                m_RayMaxIterations.value.intValue = Mathf.Max(0, m_RayMaxIterations.value.intValue);
-                GUI.enabled = true;
+                using (new EditorGUI.DisabledScope(!useCustomValue))
+                {
+                    EditorGUI.indentLevel++;
+                    PropertyField(m_RayMaxIterations, k_RayMaxIterationsText);
+                    m_RayMaxIterations.value.intValue = Mathf.Max(0, m_RayMaxIterations.value.intValue);
+                    EditorGUI.indentLevel--;
+                }
+                PropertyField(m_AccumulationFactor, k_AccumulationFactorText);
                 PropertyField(m_AccumulationFactor, k_AccumulationFactorText);
             }
         }

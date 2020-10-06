@@ -176,6 +176,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_Blit;
         Material m_BlitTexArray;
         Material m_BlitTexArraySingleSlice;
+        Material m_BlitColorAndDepth;
         MaterialPropertyBlock m_BlitPropertyBlock = new MaterialPropertyBlock();
 
         RenderTargetIdentifier[] m_MRTCache2 = new RenderTargetIdentifier[2];
@@ -328,6 +329,7 @@ namespace UnityEngine.Rendering.HighDefinition
         string m_ForwardPassProfileName;
 
         internal Material GetBlitMaterial(bool useTexArray, bool singleSlice) { return useTexArray ? (singleSlice ? m_BlitTexArraySingleSlice : m_BlitTexArray) : m_Blit; }
+        internal Material GetBlitColorAndDepthMaterial() { return m_BlitColorAndDepth; }
 
         ComputeBuffer m_DepthPyramidMipLevelOffsetsBuffer = null;
 
@@ -347,9 +349,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // RENDER GRAPH
-        internal static bool enableRenderGraphTests { get => Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-rendergraph-tests"); }
-        RenderGraph m_RenderGraph;
-        bool        m_EnableRenderGraph;
+        internal static bool enableNonRenderGraphTests { get => Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-non-rendergraph-tests"); }
+        RenderGraph m_RenderGraph = new RenderGraph();
+        bool        m_EnableRenderGraph = true;
 
         // MSAA resolve materials
         Material m_ColorResolveMaterial = null;
@@ -383,6 +385,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ValidAPI = true;
 
             SetRenderingFeatures();
+
+            // Initialize lod settings with the default frame settings. This will pull LoD values from the current quality level HDRP asset if necessary.
+            // This will make the LoD Group UI consistent with the scene view camera like it is for builtin pipeline.
+            QualitySettings.lodBias = m_Asset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).GetResolvedLODBias(m_Asset);
+            QualitySettings.maximumLODLevel = m_Asset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).GetResolvedMaximumLODLevel(m_Asset);
 
             // The first thing we need to do is to set the defines that depend on the render pipeline settings
             m_RayTracingSupported = GatherRayTracingSupport(m_Asset.currentPlatformRenderPipelineSettings);
@@ -536,8 +543,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_DepthPyramidMipLevelOffsetsBuffer = new ComputeBuffer(15, sizeof(int) * 2);
 
-            InitializeRenderTextures();
-
             // TODO RENDERGRAPH: Moved those out of InitializeRenderTexture as they are still needed in render graph and would be deallocated otherwise when switching it on.
             m_CustomPassColorBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetCustomBufferFormat(), enableRandomWrite: true, useDynamicScale: true, name: "CustomPassColorBuffer"));
             m_CustomPassDepthBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_UInt, useDynamicScale: true, name: "CustomPassDepthBuffer", depthBufferBits: DepthBits.Depth32));
@@ -585,8 +590,8 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeProbeVolumes();
             CustomPassUtils.Initialize();
 
-            if (enableRenderGraphTests)
-                EnableRenderGraph(true);
+            if (enableNonRenderGraphTests)
+                EnableRenderGraph(false);
         }
 
 #if UNITY_EDITOR
@@ -755,6 +760,25 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_OpaqueAtmosphericScatteringMSAABuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "OpaqueAtmosphericScatteringMSAA");
                 m_CameraSssDiffuseLightingMSAABuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "CameraSSSDiffuseLightingMSAA");
             }
+
+            if (m_RayTracingSupported)
+            {
+                m_RaytracingGBufferManager.CreateBuffers();
+                m_RayCountManager.InitializeNonRenderGraphResources();
+
+                if (m_Asset.currentPlatformRenderPipelineSettings.supportSSGI)
+                {
+                    m_IndirectDiffuseBuffer0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer0");
+                    m_IndirectDiffuseBuffer1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer1");
+                    m_IndirectDiffuseBuffer2 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer2");
+                    m_IndirectDiffuseBuffer3 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer3");
+                    m_IndirectDiffuseHitPointBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseHitBuffer");
+                }
+
+                m_RayTracingLightCluster.InitializeNonRenderGraphResources();
+
+                m_FlagMaskTextureRT = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8_SNorm, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "FlagMaskTexture");
+            }
         }
 
         void GetOrCreateDebugTextures()
@@ -813,6 +837,29 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugColorPickerBuffer = null;
             m_DebugFullScreenTempBuffer = null;
             m_IntermediateAfterPostProcessBuffer = null;
+
+            if (m_RayTracingSupported)
+            {
+                m_RaytracingGBufferManager.DestroyBuffers();
+                m_RayCountManager.CleanupNonRenderGraphResources();
+
+                if (m_IndirectDiffuseBuffer0 != null)
+                    RTHandles.Release(m_IndirectDiffuseBuffer0);
+                if (m_IndirectDiffuseBuffer1 != null)
+                    RTHandles.Release(m_IndirectDiffuseBuffer1);
+                if (m_IndirectDiffuseBuffer2 != null)
+                    RTHandles.Release(m_IndirectDiffuseBuffer2);
+                if (m_IndirectDiffuseBuffer3 != null)
+                    RTHandles.Release(m_IndirectDiffuseBuffer3);
+                if (m_IndirectDiffuseHitPointBuffer != null)
+                    RTHandles.Release(m_IndirectDiffuseHitPointBuffer);
+
+                m_RayTracingLightCluster.CleanupNonRenderGraphResources();
+
+                RTHandles.Release(m_FlagMaskTextureRT);
+
+                RaytracingManagerCleanupNonRenderGraphResources();
+            }
         }
 
         void SetRenderingFeatures()
@@ -1015,6 +1062,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_AmbientOcclusionSystem.InitializeNonRenderGraphResources();
             m_PostProcessSystem.InitializeNonRenderGraphResources(asset);
             s_lightVolumes.InitializeNonRenderGraphResources();
+            ScreenSpaceShadowInitializeNonRenderGraphResources();
 
             // Reset resolution dependent buffers. Tile, Coarse stencil etc...
             m_MaxCameraWidth = m_MaxCameraHeight = m_MaxViewCount = 1;
@@ -1030,6 +1078,7 @@ namespace UnityEngine.Rendering.HighDefinition
             LightLoopCleanupNonRenderGraphResources();
             m_SharedRTManager.DisposeFullScreenDebugBuffer();
             m_SharedRTManager.DisposeCoarseStencilBuffer();
+            ScreenSpaceShadowCleanupNonRenderGraphResources();
         }
 
         void InitializeDebugMaterials()
@@ -1042,6 +1091,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugColorPicker = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugColorPickerPS);
             m_DebugExposure = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugExposurePS);
             m_Blit = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitPS);
+            m_BlitColorAndDepth = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitColorAndDepthPS);
             m_ErrorMaterial = CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader");
 
             // With texture array enabled, we still need the normal blit version for other systems like atlas
@@ -1095,12 +1145,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             base.Dispose(disposing);
 
+            if (!m_EnableRenderGraph)
+                CleanupNonRenderGraphResources();
+
             ReleaseScreenSpaceShadows();
-            ReleaseScreenSpaceGlobalIllumination();
 
             if (m_RayTracingSupported)
             {
-                ReleaseRecursiveRenderer();
                 ReleaseRayTracingDeferred();
                 ReleaseRayTracedIndirectDiffuse();
                 ReleaseRayTracedReflections();
@@ -1152,14 +1203,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             m_PostProcessSystem.Cleanup();
-            m_AmbientOcclusionSystem.Cleanup();
             m_BlueNoise.Cleanup();
 
             HDCamera.ClearAll();
 
             m_MipGenerator.Release();
-
-            DestroyRenderTextures();
 
             if (m_CustomPassColorBuffer.IsValueCreated)
                 RTHandles.Release(m_CustomPassColorBuffer.Value);
@@ -2255,7 +2303,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             if (m_EnableRenderGraph)
-                m_RenderGraph.PurgeUnusedResources();
+                m_RenderGraph.EndFrame();
             m_XRSystem.ReleaseFrame();
             UnityEngine.Rendering.RenderPipeline.EndFrameRendering(renderContext, cameras);
         }
@@ -4038,8 +4086,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     // When rendering debug material we shouldn't rely on a depth prepass for optimizing the alpha clip test. As it is control on the material inspector side
                     // we must override the state here.
-
                     CoreUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(), ClearFlag.All, Color.clear);
+
+                    // [case 1273223] When the camera is stacked on top of another one, we need to clear the debug view RT using the data from the previous camera in the stack
+                    var clearColorTexture = Compositor.CompositionManager.GetClearTextureForStackedCamera(hdCamera);   // returns null if is not a stacked camera
+                    var clearDepthTexture = Compositor.CompositionManager.GetClearDepthForStackedCamera(hdCamera);     // returns null if is not a stacked camera
+                    if (clearColorTexture)
+                    {
+                        HDUtils.BlitColorAndDepth(cmd, clearColorTexture, clearDepthTexture, new Vector4(1, 1, 0, 0), 0, !hdCamera.clearDepth);
+                    }
+
                     // Render Opaque forward
                     var rendererListOpaque = RendererList.Create(CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_AllForwardOpaquePassNames, m_CurrentRendererConfigurationBakedLighting, stateBlock: m_DepthStateOpaque));
                     DrawOpaqueRendererList(renderContext, cmd, hdCamera.frameSettings, rendererListOpaque);
@@ -5205,6 +5261,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public DebugDisplaySettings debugDisplaySettings;
             public HDCamera hdCamera;
 
+            // Overlay
+            public DebugOverlay debugOverlay;
+
             // Full screen debug
             public bool             resolveFullScreenDebug;
             public Material         debugFullScreenMaterial;
@@ -5220,6 +5279,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Lighting
             public LightLoopDebugOverlayParameters lightingOverlayParameters;
+            public ProbeVolumeDebugOverlayParameters probeVolumeOverlayParameters;
 
             // Color picker
             public bool     colorPickerEnabled;
@@ -5245,6 +5305,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.skyReflectionTexture = m_SkyManager.GetSkyReflection(hdCamera);
             parameters.debugLatlongMaterial = m_DebugDisplayLatlong;
             parameters.lightingOverlayParameters = PrepareLightLoopDebugOverlayParameters();
+            parameters.probeVolumeOverlayParameters = PrepareProbeVolumeOverlayParameters(m_CurrentDebugDisplaySettings.data.lightingDebugSettings);
 
             parameters.rayTracingSupported = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing);
             parameters.rayCountManager = m_RayCountManager;
@@ -5254,6 +5315,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.exposureDebugEnabled = NeedExposureDebugMode(parameters.debugDisplaySettings);
             parameters.debugExposureMaterial = m_DebugExposure;
+
+            float overlayRatio = m_CurrentDebugDisplaySettings.data.debugOverlayRatio;
+            int overlaySize = (int)(Math.Min(hdCamera.actualHeight, hdCamera.actualWidth) * overlayRatio);
+            m_DebugOverlay.StartOverlay(HDUtils.GetRuntimeDebugPanelWidth(hdCamera), hdCamera.actualHeight - overlaySize, overlaySize, hdCamera.actualWidth);
+            parameters.debugOverlay = m_DebugOverlay;
 
             return parameters;
         }
@@ -5412,25 +5478,22 @@ namespace UnityEngine.Rendering.HighDefinition
             HDUtils.DrawFullScreen(cmd, parameters.debugExposureMaterial, output, null, passIndex);
         }
 
-        static void RenderSkyReflectionOverlay(in DebugParameters debugParameters, CommandBuffer cmd, MaterialPropertyBlock mpb, ref float x, ref float y, float overlaySize)
+        static void RenderSkyReflectionOverlay(in DebugParameters debugParameters, CommandBuffer cmd, MaterialPropertyBlock mpb)
         {
             var lightingDebug = debugParameters.debugDisplaySettings.data.lightingDebugSettings;
-            if (lightingDebug.displaySkyReflection)
-            {
-                mpb.SetTexture(HDShaderIDs._InputCubemap, debugParameters.skyReflectionTexture);
-                mpb.SetFloat(HDShaderIDs._Mipmap, lightingDebug.skyReflectionMipmap);
-                mpb.SetFloat(HDShaderIDs._ApplyExposure, 1.0f);
-                mpb.SetFloat(HDShaderIDs._SliceIndex, lightingDebug.cubeArraySliceIndex);
-                cmd.SetViewport(new Rect(x, y, overlaySize, overlaySize));
-                cmd.DrawProcedural(Matrix4x4.identity, debugParameters.debugLatlongMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
-                HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, debugParameters.hdCamera);
-            }
+
+            debugParameters.debugOverlay.SetViewport(cmd);
+            mpb.SetTexture(HDShaderIDs._InputCubemap, debugParameters.skyReflectionTexture);
+            mpb.SetFloat(HDShaderIDs._Mipmap, lightingDebug.skyReflectionMipmap);
+            mpb.SetFloat(HDShaderIDs._ApplyExposure, 1.0f);
+            mpb.SetFloat(HDShaderIDs._SliceIndex, lightingDebug.cubeArraySliceIndex);
+            cmd.DrawProcedural(Matrix4x4.identity, debugParameters.debugLatlongMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
+            debugParameters.debugOverlay.Next();
         }
 
-        static void RenderRayCountOverlay(in DebugParameters debugParameters, CommandBuffer cmd, ref float x, ref float y, float overlaySize)
+        static void RenderRayCountOverlay(in DebugParameters debugParameters, CommandBuffer cmd)
         {
-            if (debugParameters.rayTracingSupported)
-                debugParameters.rayCountManager.EvaluateRayCount(cmd, debugParameters.hdCamera);
+            debugParameters.rayCountManager.EvaluateRayCount(cmd, debugParameters.hdCamera);
         }
 
         void RenderDebug(HDCamera hdCamera, CommandBuffer cmd, CullingResults cullResults)
@@ -5483,26 +5546,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     s_lightVolumes.RenderLightVolumes(cmd, hdCamera, cullResults, lightingDebug, m_IntermediateAfterPostProcessBuffer);
                 }
 
-                // Then overlays
-                HDUtils.ResetOverlay();
-                float debugPanelWidth = HDUtils.GetRuntimeDebugPanelWidth(debugParams.hdCamera);
-                float x = 0.0f;
-                float overlayRatio = debugParams.debugDisplaySettings.data.debugOverlayRatio;
-                float overlaySize = Math.Min(debugParams.hdCamera.actualHeight, debugParams.hdCamera.actualWidth - debugPanelWidth) * overlayRatio;
-                float y = debugParams.hdCamera.actualHeight - overlaySize;
-
-                // Add the width of the debug display if enabled on the camera
-                x += debugPanelWidth;
-
-                RenderSkyReflectionOverlay(debugParams, cmd, m_SharedPropertyBlock, ref x, ref y, overlaySize);
-                RenderRayCountOverlay(debugParams, cmd, ref x, ref y, overlaySize);
-                RenderLightLoopDebugOverlay(debugParams, cmd, ref x, ref y, overlaySize, m_TileAndClusterData.tileList, m_TileAndClusterData.lightList, m_TileAndClusterData.perVoxelLightLists, m_TileAndClusterData.dispatchIndirectBuffer, m_SharedRTManager.GetDepthTexture());
-                RenderProbeVolumeDebugOverlay(debugParams, cmd, ref x, ref y, overlaySize, m_DebugDisplayProbeVolumeMaterial); // TODO(Nicholas): renders as a black square in the upper right.
+                if (lightingDebug.displaySkyReflection)
+                    RenderSkyReflectionOverlay(debugParams, cmd, m_SharedPropertyBlock);
+                if (debugParams.rayTracingSupported)
+                    RenderRayCountOverlay(debugParams, cmd);
+                RenderLightLoopDebugOverlay(debugParams, cmd, m_TileAndClusterData.tileList, m_TileAndClusterData.lightList, m_TileAndClusterData.perVoxelLightLists, m_TileAndClusterData.dispatchIndirectBuffer, m_SharedRTManager.GetDepthTexture());
+                RenderProbeVolumeDebugOverlay(debugParams, cmd); // TODO(Nicholas): renders as a black square in the upper right.
 
                 HDShadowManager.ShadowDebugAtlasTextures atlases = debugParams.lightingOverlayParameters.shadowManager.GetDebugAtlasTextures();
-                RenderShadowsDebugOverlay(debugParams, atlases, cmd, ref x, ref y, overlaySize, m_SharedPropertyBlock);
+                RenderShadowsDebugOverlay(debugParams, atlases, cmd, m_SharedPropertyBlock);
 
-                DecalSystem.instance.RenderDebugOverlay(debugParams.hdCamera, cmd, debugParams.debugDisplaySettings, ref x, ref y, overlaySize, debugParams.hdCamera.actualWidth);
+                DecalSystem.instance.RenderDebugOverlay(debugParams.hdCamera, cmd, debugParams.debugDisplaySettings, debugParams.debugOverlay);
             }
         }
 

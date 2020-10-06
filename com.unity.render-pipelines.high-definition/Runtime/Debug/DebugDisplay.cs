@@ -1318,7 +1318,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         children =
                         {
 
-                            new DebugUI.FloatField { displayName = "Debug Mip", getter = () => data.fullscreenDebugMip, setter = value => data.fullscreenDebugMip = value, min = () => 0f, max = () => 1f, incStep = 0.05f },                            
+                            new DebugUI.FloatField { displayName = "Debug Mip", getter = () => data.fullscreenDebugMip, setter = value => data.fullscreenDebugMip = value, min = () => 0f, max = () => 1f, incStep = 0.05f },
                             new DebugUI.BoolField { displayName = "Enable Depth Remap", getter = () => data.enableDebugDepthRemap, setter = value => data.enableDebugDepthRemap = value },
                             new DebugUI.FloatField { displayName = "Depth range min value", getter = () => data.fullScreenDebugDepthRemap.x, setter = value => data.fullScreenDebugDepthRemap.x = value, min = () => 0f, max = () => 1f, incStep = 0.05f },
                             new DebugUI.FloatField { displayName = "Depth range max value", getter = () => data.fullScreenDebugDepthRemap.y, setter = value => data.fullScreenDebugDepthRemap.y = value, min = () => 0f, max = () => 1f, incStep = 0.05f }
@@ -1752,7 +1752,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 widgetList.Add(new DebugUI.BoolField { displayName = "XR single-pass test mode", getter = () => data.xrSinglePassTestMode, setter = value => data.xrSinglePassTestMode = value });
             }
 
-            // widgetList.Add(new DebugUI.BoolField { displayName = "Enable Render Graph", getter = () => HDRenderPipeline.currentPipeline.IsRenderGraphEnabled(), setter = value => HDRenderPipeline.currentPipeline.EnableRenderGraph(value) });
+            widgetList.Add(new DebugUI.BoolField { displayName = "Enable Render Graph", getter = () => HDRenderPipeline.currentPipeline.IsRenderGraphEnabled(), setter = value => HDRenderPipeline.currentPipeline.EnableRenderGraph(value) });
 
             m_DebugRenderingItems = widgetList.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelRendering, true);

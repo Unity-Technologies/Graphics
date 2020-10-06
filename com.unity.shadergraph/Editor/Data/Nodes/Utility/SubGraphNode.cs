@@ -34,15 +34,19 @@ namespace UnityEditor.ShaderGraph
             [SerializeField]
             string m_SerializedSubGraph = string.Empty;
 
-            public void GetSourceAssetDependencies(List<string> paths)
+            public void GetSourceAssetDependencies(AssetCollection assetCollection)
             {
                 var assetReference = JsonUtility.FromJson<SubGraphAssetReference>(m_SerializedSubGraph);
-                var guid = assetReference?.subGraph?.guid;
-                if (guid != null)
+                string guidString = assetReference?.subGraph?.guid;
+                if (!string.IsNullOrEmpty(guidString) && GUID.TryParse(guidString, out GUID guid))
                 {
-                    var assetPath = AssetDatabase.GUIDToAssetPath(guid);
-                    if (!string.IsNullOrEmpty(assetPath))   // Ideally, we would record the GUID as a missing dependency here
-                        paths.Add(assetPath);
+                    // subgraphs are read as artifacts
+                    // they also should be pulled into .unitypackages
+                    assetCollection.AddAssetDependency(
+                        guid,
+                        AssetCollection.Flags.ArtifactDependency |
+                        AssetCollection.Flags.IsSubGraph |
+                        AssetCollection.Flags.IncludeInExportPackage);
                 }
             }
         }
@@ -188,7 +192,7 @@ namespace UnityEditor.ShaderGraph
             {
                 var outputSlots = new List<MaterialSlot>();
                 GetOutputSlots(outputSlots);
-                var outputPrecision = asset != null ? asset.outputPrecision : ConcretePrecision.Float;
+                var outputPrecision = asset != null ? asset.outputPrecision : ConcretePrecision.Single;
                 foreach (var slot in outputSlots)
                 {
                     sb.AppendLine($"{slot.concreteValueType.ToShaderString(outputPrecision)} {GetVariableNameForSlot(slot.id)} = {slot.GetDefaultValue(GenerationMode.ForReals)};");
@@ -239,7 +243,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var feedbackSlot in asset.vtFeedbackVariables)
             {
                 string feedbackVar = GetVariableNameForNode() + "_" + feedbackSlot;
-                sb.AppendLine("{0} {1};", ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Float), feedbackVar);
+                sb.AppendLine("{0} {1};", ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Single), feedbackVar);
                 arguments.Add(feedbackVar);
             }
 
