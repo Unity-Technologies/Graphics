@@ -21,6 +21,7 @@ class Editor_PrimingJob():
         else:
             platform_os = platform["os"]
         
+        editor_cli_rev = VAR_CUSTOM_REVISION if str(editor['track']).lower()=='custom-revision' else editor["track"]
         # construct job
         job = YMLJob()
         job.set_name(f'[{editor["track"]},{platform["os"]}] Editor priming')
@@ -32,7 +33,7 @@ class Editor_PrimingJob():
         job.add_var_custom_revision(editor["track"])
         job.add_commands([
                 f'pip install unity-downloader-cli --user --upgrade --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
-                f'unity-downloader-cli -u {VAR_CUSTOM_REVISION} -o {platform_os} --wait --skip-download {"".join([f"-c {c} " for c in components])} > {PATH_UNITY_REVISION}'])
+                f'unity-downloader-cli -u {editor_cli_rev} -o {platform_os} --wait --skip-download {"".join([f"-c {c} " for c in components])} > {PATH_UNITY_REVISION}'])
         job.add_artifacts_unity_revision()
         return job
     

@@ -276,7 +276,7 @@ namespace UnityEditor.ShaderGraph
         public bool isSubGraph { get; set; }
 
         [SerializeField]
-        private ConcretePrecision m_ConcretePrecision = ConcretePrecision.Float;
+        private ConcretePrecision m_ConcretePrecision = ConcretePrecision.Single;
 
         public ConcretePrecision concretePrecision
         {

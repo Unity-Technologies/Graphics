@@ -10,8 +10,8 @@
 |:------------ |:-------------|:-----|:---|
 | Normal      | Input | Vector 3 | Normal direction. By default bound to World Space Normal |
 | View Dir      | Input | Vector 3 | View direction. By default bound to World Space View Direction |
-| Power      | Input | Vector 1 | Exponent of the power calculation |
-| Out | Output      |   Vector 1 | Output value |
+| Power      | Input | Float    | Exponent of the power calculation |
+| Out | Output      |   Float    | Output value |
 
 ## Generated Code Example
 

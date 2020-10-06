@@ -48,10 +48,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 return "";
             }
+
+            public virtual bool IsCreated()
+            {
+                return false;
+            }
         }
 
         #region Resources
-        [DebuggerDisplay("Resource ({ResType}:{GetName()})")]
+        [DebuggerDisplay("Resource ({GetType().Name}:{GetName()})")]
         class RenderGraphResource<DescType, ResType>
             : IRenderGraphResource
             where DescType : struct
@@ -69,6 +74,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 base.Reset();
                 resource = null;
+            }
+
+            public override bool IsCreated()
+            {
+                return resource != null;
             }
         }
 
@@ -107,6 +117,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         DynamicArray<IRenderGraphResource>[] m_Resources = new DynamicArray<IRenderGraphResource>[(int)RenderGraphResourceType.Count];
 
         TexturePool                         m_TexturePool = new TexturePool();
+        int                                 m_TextureCreationIndex;
         ComputeBufferPool                   m_ComputeBufferPool = new ComputeBufferPool();
         DynamicArray<RendererListResource>  m_RendererListResources = new DynamicArray<RendererListResource>();
         RenderGraphDebugParams              m_RenderGraphDebug;
@@ -170,9 +181,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return res.resource;
         }
 
-        internal void BeginRender(int currentFrameIndex)
+        internal void BeginRender(int currentFrameIndex, int executionCount)
         {
             m_CurrentFrameIndex = currentFrameIndex;
+            ResourceHandle.NewFrame(executionCount);
             current = this;
         }
 
@@ -200,6 +212,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return m_Resources[res.iType][res.index].imported;
         }
 
+        internal bool IsResourceCreated(in ResourceHandle res)
+        {
+            CheckHandleValidity(res);
+            return m_Resources[res.iType][res.index].IsCreated();
+        }
+
+        internal bool IsRendererListCreated(in RendererListHandle res)
+        {
+            return m_RendererListResources[res].rendererList.isValid;
+        }
+
         internal int GetResourceTransientIndex(in ResourceHandle res)
         {
             CheckHandleValidity(res);
@@ -221,7 +244,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (m_CurrentBackbuffer != null)
                 m_CurrentBackbuffer.SetTexture(rt);
             else
-                m_CurrentBackbuffer = RTHandles.Alloc(rt);
+                m_CurrentBackbuffer = RTHandles.Alloc(rt, "Backbuffer");
 
             int newHandle = AddNewResource(m_Resources[(int)RenderGraphResourceType.Texture], out TextureResource texResource);
             texResource.resource = m_CurrentBackbuffer;
@@ -328,7 +351,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 {
                     // Textures are going to be reused under different aliases along the frame so we can't provide a specific name upon creation.
                     // The name in the desc is going to be used for debugging purpose and render graph visualization.
-                    string name = "RenderGraphTexture";
+                    string name = $"RenderGraphTexture_{m_TextureCreationIndex++}";
 
                     switch (desc.sizeMode)
                     {
@@ -553,6 +576,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             m_TexturePool.Cleanup();
             m_ComputeBufferPool.Cleanup();
+
+            RTHandles.Release(m_CurrentBackbuffer);
         }
 
         void LogTextureCreation(TextureResource rt)
@@ -594,6 +619,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 m_Logger.LogLine("==== Allocated Resources ====\n");
 
                 m_TexturePool.LogResources(m_Logger);
+                m_Logger.LogLine("");
                 m_ComputeBufferPool.LogResources(m_Logger);
             }
         }
