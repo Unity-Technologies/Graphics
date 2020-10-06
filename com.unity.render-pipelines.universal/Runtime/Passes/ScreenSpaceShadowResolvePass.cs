@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public ScreenSpaceShadowResolvePass(RenderPassEvent evt, Material screenspaceShadowsMaterial)
         {
-            base.profilingSampler = new ProfilingSampler($"{nameof(ScreenSpaceShadowResolvePass)}");
+            base.profilingSampler = new ProfilingSampler(nameof(ScreenSpaceShadowResolvePass));
 
             m_ScreenSpaceShadowsMaterial = screenspaceShadowsMaterial;
             m_ScreenSpaceShadowmap.Init("_ScreenSpaceShadowmapTexture");

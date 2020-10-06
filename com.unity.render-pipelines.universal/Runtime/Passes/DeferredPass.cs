@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public DeferredPass(RenderPassEvent evt, DeferredLights deferredLights)
         {
-            base.profilingSampler = new ProfilingSampler($"{nameof(DeferredPass)}");
+            base.profilingSampler = new ProfilingSampler(nameof(DeferredPass));
             base.renderPassEvent = evt;
             m_DeferredLights = deferredLights;
         }

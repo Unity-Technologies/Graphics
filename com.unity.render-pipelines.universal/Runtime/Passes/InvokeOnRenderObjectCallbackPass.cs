@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.Universal
     {
         public InvokeOnRenderObjectCallbackPass(RenderPassEvent evt)
         {
-            base.profilingSampler = new ProfilingSampler($"{nameof(InvokeOnRenderObjectCallbackPass)}");
+            base.profilingSampler = new ProfilingSampler(nameof(InvokeOnRenderObjectCallbackPass));
             renderPassEvent = evt;
         }
 

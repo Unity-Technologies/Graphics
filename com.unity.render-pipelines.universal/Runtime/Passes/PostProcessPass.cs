@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public PostProcessPass(RenderPassEvent evt, PostProcessData data, Material blitMaterial)
         {
-            base.profilingSampler = new ProfilingSampler($"{nameof(PostProcessPass)}");
+            base.profilingSampler = new ProfilingSampler(nameof(PostProcessPass));
             renderPassEvent = evt;
             m_Data = data;
             m_Materials = new MaterialLibrary(data);

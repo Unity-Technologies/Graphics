@@ -30,27 +30,27 @@ namespace UnityEngine.Rendering.Universal
         private static class Profiling
         {
             private static Dictionary<int, ProfilingSampler> s_HashSamplerCache = new Dictionary<int, ProfilingSampler>();
-            public static readonly ProfilingSampler m_UnknownSampler = new ProfilingSampler("Unknown");
+            public static readonly ProfilingSampler unknownSampler = new ProfilingSampler("Unknown");
 
             public static void Clear()
             {
-                m_HashSamplerCache.Clear();
+                s_HashSamplerCache.Clear();
             }
 
             // Specialization for camera loop to avoid allocations.
             public static ProfilingSampler TryGetOrAddCameraSampler(Camera camera)
             {
                 #if UNIVERSAL_PROFILING_NO_ALLOC
-                    return m_UnknownSampler;
+                    return unknownSampler;
                 #else
                     ProfilingSampler ps = null;
                     int cameraId = camera.GetHashCode();
-                    bool exists = m_HashSamplerCache.TryGetValue(cameraId, out ps);
+                    bool exists = s_HashSamplerCache.TryGetValue(cameraId, out ps);
                     if (!exists)
                     {
                         // NOTE: camera.name allocates!
                         ps = new ProfilingSampler( nameof(UniversalRenderPipeline.RenderSingleCamera) + ": " + camera.name);
-                        m_HashSamplerCache.Add(cameraId, ps);
+                        s_HashSamplerCache.Add(cameraId, ps);
                     }
                     return ps;
                 #endif
@@ -60,34 +60,34 @@ namespace UnityEngine.Rendering.Universal
             {
                 // NOTE: field names start with lowercase to avoid shadowing method names.
 
-                // TODO: Would be better to add Profiling name hooks into RenderPipeline.cs
+                // TODO: Would be better to add Profiling name hooks into RenderPipeline.cs, requires changes outside of Universal.
                 public static readonly ProfilingSampler beginFrameRendering  = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(BeginFrameRendering)}");
                 public static readonly ProfilingSampler endFrameRendering    = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(EndFrameRendering)}");
                 public static readonly ProfilingSampler beginCameraRendering = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(BeginCameraRendering)}");
                 public static readonly ProfilingSampler endCameraRendering   = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(EndCameraRendering)}");
 
-                const string Name = nameof(UniversalRenderPipeline);
-                public static readonly ProfilingSampler initializeCameraData           = new ProfilingSampler($"{Name}.{nameof(InitializeCameraData)}");
-                public static readonly ProfilingSampler initializeStackedCameraData    = new ProfilingSampler($"{Name}.{nameof(InitializeStackedCameraData)}");
-                public static readonly ProfilingSampler initializeAdditionalCameraData = new ProfilingSampler($"{Name}.{nameof(InitializeAdditionalCameraData)}");
-                public static readonly ProfilingSampler initializeRenderingData        = new ProfilingSampler($"{Name}.{nameof(InitializeRenderingData)}");
-                public static readonly ProfilingSampler initializeShadowData           = new ProfilingSampler($"{Name}.{nameof(InitializeShadowData)}");
-                public static readonly ProfilingSampler initializeLightData            = new ProfilingSampler($"{Name}.{nameof(InitializeLightData)}");
-                public static readonly ProfilingSampler getPerObjectLightFlags         = new ProfilingSampler($"{Name}.{nameof(GetPerObjectLightFlags)}");
-                public static readonly ProfilingSampler getMainLightIndex              = new ProfilingSampler($"{Name}.{nameof(GetMainLightIndex)}");
-                public static readonly ProfilingSampler setupPerFrameShaderConstants   = new ProfilingSampler($"{Name}.{nameof(SetupPerFrameShaderConstants)}");
+                const string k_Name = nameof(UniversalRenderPipeline);
+                public static readonly ProfilingSampler initializeCameraData           = new ProfilingSampler($"{k_Name}.{nameof(InitializeCameraData)}");
+                public static readonly ProfilingSampler initializeStackedCameraData    = new ProfilingSampler($"{k_Name}.{nameof(InitializeStackedCameraData)}");
+                public static readonly ProfilingSampler initializeAdditionalCameraData = new ProfilingSampler($"{k_Name}.{nameof(InitializeAdditionalCameraData)}");
+                public static readonly ProfilingSampler initializeRenderingData        = new ProfilingSampler($"{k_Name}.{nameof(InitializeRenderingData)}");
+                public static readonly ProfilingSampler initializeShadowData           = new ProfilingSampler($"{k_Name}.{nameof(InitializeShadowData)}");
+                public static readonly ProfilingSampler initializeLightData            = new ProfilingSampler($"{k_Name}.{nameof(InitializeLightData)}");
+                public static readonly ProfilingSampler getPerObjectLightFlags         = new ProfilingSampler($"{k_Name}.{nameof(GetPerObjectLightFlags)}");
+                public static readonly ProfilingSampler getMainLightIndex              = new ProfilingSampler($"{k_Name}.{nameof(GetMainLightIndex)}");
+                public static readonly ProfilingSampler setupPerFrameShaderConstants   = new ProfilingSampler($"{k_Name}.{nameof(SetupPerFrameShaderConstants)}");
 
                 public static class Renderer
                 {
-                    const string Name = nameof(ScriptableRenderer);
-                    public static readonly ProfilingSampler setupCullingParameters = new ProfilingSampler($"{Name}.{nameof(ScriptableRenderer.SetupCullingParameters)}");
-                    public static readonly ProfilingSampler setup                  = new ProfilingSampler($"{Name}.{nameof(ScriptableRenderer.Setup)}");
+                    const string k_Name = nameof(ScriptableRenderer);
+                    public static readonly ProfilingSampler setupCullingParameters = new ProfilingSampler($"{k_Name}.{nameof(ScriptableRenderer.SetupCullingParameters)}");
+                    public static readonly ProfilingSampler setup                  = new ProfilingSampler($"{k_Name}.{nameof(ScriptableRenderer.Setup)}");
                 };
 
                 public static class Context
                 {
-                    const string Name = nameof(Context);
-                    public static readonly ProfilingSampler submit = new ProfilingSampler($"{Name}.{nameof(ScriptableRenderContext.Submit)}");
+                    const string k_Name = nameof(Context);
+                    public static readonly ProfilingSampler submit = new ProfilingSampler($"{k_Name}.{nameof(ScriptableRenderContext.Submit)}");
                 };
 
                 public static class XR

@@ -24,29 +24,29 @@ namespace UnityEngine.Rendering.Universal
         private static class Profiling
         {
             // NOTE: field names start with lowercase to avoid shadowing method names.
-            private const string Name = nameof(ScriptableRenderer);
-            public static readonly ProfilingSampler setPerCameraShaderVariables = new ProfilingSampler($"{Name}.{nameof(SetPerCameraShaderVariables)}");
+            private const string k_Name = nameof(ScriptableRenderer);
+            public static readonly ProfilingSampler setPerCameraShaderVariables = new ProfilingSampler($"{k_Name}.{nameof(SetPerCameraShaderVariables)}");
             public static readonly ProfilingSampler sortRenderPasses            = new ProfilingSampler($"Sort Render Passes");
-            public static readonly ProfilingSampler setupLights                 = new ProfilingSampler($"{Name}.{nameof(SetupLights)}");
+            public static readonly ProfilingSampler setupLights                 = new ProfilingSampler($"{k_Name}.{nameof(SetupLights)}");
             public static readonly ProfilingSampler setupCamera                 = new ProfilingSampler($"Setup Camera Parameters");
-            public static readonly ProfilingSampler addRenderPasses             = new ProfilingSampler($"{Name}.{nameof(AddRenderPasses)}");
-            public static readonly ProfilingSampler clearRenderingState         = new ProfilingSampler($"{Name}.{nameof(ClearRenderingState)}");
-            public static readonly ProfilingSampler internalStartRendering      = new ProfilingSampler($"{Name}.{nameof(InternalStartRendering)}");
-            public static readonly ProfilingSampler internalFinishRendering     = new ProfilingSampler($"{Name}.{nameof(InternalFinishRendering)}");
+            public static readonly ProfilingSampler addRenderPasses             = new ProfilingSampler($"{k_Name}.{nameof(AddRenderPasses)}");
+            public static readonly ProfilingSampler clearRenderingState         = new ProfilingSampler($"{k_Name}.{nameof(ClearRenderingState)}");
+            public static readonly ProfilingSampler internalStartRendering      = new ProfilingSampler($"{k_Name}.{nameof(InternalStartRendering)}");
+            public static readonly ProfilingSampler internalFinishRendering     = new ProfilingSampler($"{k_Name}.{nameof(InternalFinishRendering)}");
 
             public static class RenderBlock
             {
-                private const string Name = nameof(RenderPassBlock);
-                public static readonly ProfilingSampler beforeRendering          = new ProfilingSampler($"{Name}.{nameof(RenderPassBlock.BeforeRendering)}");
-                public static readonly ProfilingSampler mainRenderingOpaque      = new ProfilingSampler($"{Name}.{nameof(RenderPassBlock.MainRenderingOpaque)}");
-                public static readonly ProfilingSampler mainRenderingTransparent = new ProfilingSampler($"{Name}.{nameof(RenderPassBlock.MainRenderingTransparent)}");
-                public static readonly ProfilingSampler afterRendering           = new ProfilingSampler($"{Name}.{nameof(RenderPassBlock.AfterRendering)}");
+                private const string k_Name = nameof(RenderPassBlock);
+                public static readonly ProfilingSampler beforeRendering          = new ProfilingSampler($"{k_Name}.{nameof(RenderPassBlock.BeforeRendering)}");
+                public static readonly ProfilingSampler mainRenderingOpaque      = new ProfilingSampler($"{k_Name}.{nameof(RenderPassBlock.MainRenderingOpaque)}");
+                public static readonly ProfilingSampler mainRenderingTransparent = new ProfilingSampler($"{k_Name}.{nameof(RenderPassBlock.MainRenderingTransparent)}");
+                public static readonly ProfilingSampler afterRendering           = new ProfilingSampler($"{k_Name}.{nameof(RenderPassBlock.AfterRendering)}");
             }
 
             public static class RenderPass
             {
-                private const string Name = nameof(ScriptableRenderPass);
-                public static readonly ProfilingSampler configure = new ProfilingSampler($"{Name}.{nameof(ScriptableRenderPass.Configure)}");
+                private const string k_Name = nameof(ScriptableRenderPass);
+                public static readonly ProfilingSampler configure = new ProfilingSampler($"{k_Name}.{nameof(ScriptableRenderPass.Configure)}");
             }
         }
 
