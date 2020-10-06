@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - When ShaderGraph detects no active SRP, it will still continue to render the master preview, but it will use the error shader [1264642]
 - VirtualTexture is no longer allowed as a SubGraph output (it is not supported by current system) [1254483]
 - ShaderGraph Custom Function Node will now correctly convert function and slot names to valid HLSL identifiers [1258832]
+- Fixed an issue where ShaderGraph Custom Function Node would reorder slots when you modified them [1280106]
 
 ## [10.0.0] - 2019-06-10
 ### Added
