@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static class SliderConfig
         {
-            public const float k_IconSeparator      = 6;
+            public const float k_IconSeparator      = 0;
             public const float k_MarkerWidth        = 2;
             public const float k_MarkerHeight       = 2;
             public const float k_MarkerTooltipScale = 4;
@@ -64,23 +64,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            // Draw context menu
-            // TODO: add to descriptor option for context menu
-            GUI.Box(iconRect, GUIContent.none, SliderStyles.k_IconButton);
-            var e = Event.current;
-            if (e.type == EventType.MouseDown && e.button == 0)
-            {
-                if (iconRect.Contains(e.mousePosition))
-                {
-                    var menuPosition = iconRect.position + iconRect.size;
-                    DoContextMenu(menuPosition, value);
-                    e.Use();
-                }
-            }
-
             var levelIconContent = level.content;
             var levelRange = level.value;
-            DoIcon(iconRect, levelIconContent, levelRange.y);
+            DoIcon(iconRect, levelIconContent, value, levelRange.y);
 
             var thumbValue = value.floatValue;
             var thumbPosition = GetPositionOnSlider(thumbValue, level.value);
@@ -157,14 +143,46 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.LabelField(markerTooltipRect, GetLightUnitTooltip(tooltip, value, m_Descriptor.unitName));
         }
 
-        void DoIcon(Rect rect, GUIContent icon, float range)
+        void DoIcon(Rect rect, GUIContent icon, SerializedProperty value, float range)
         {
+            // Draw the context menu feedback before the icon
+            var menuRect = rect;
+            menuRect.width += 5;
+            GUI.Box(menuRect, GUIContent.none, SliderStyles.k_IconButton);
+
             var oldColor = GUI.color;
             GUI.color = Color.clear;
             EditorGUI.DrawTextureTransparent(rect, icon.image);
             GUI.color = oldColor;
 
             EditorGUI.LabelField(rect, GetLightUnitTooltip(icon.tooltip, range, m_Descriptor.unitName));
+
+            // Handle events for context menu
+            var e = Event.current;
+            if (e.type == EventType.MouseDown && e.button == 0)
+            {
+                if (rect.Contains(e.mousePosition))
+                {
+                    var menuPosition = rect.position + rect.size;
+                    DoContextMenu(menuPosition, value);
+                    e.Use();
+                }
+            }
+        }
+
+        void DoContextMenu(Vector2 pos, SerializedProperty value)
+        {
+            var menu = new GenericMenu();
+
+            foreach (var preset in m_Descriptor.valueRanges)
+            {
+                // Indicate a checkmark if the value is within this preset range.
+                var isInPreset = CurrentRange(value.floatValue).value == preset.value;
+
+                menu.AddItem(EditorGUIUtility.TrTextContent(preset.content.tooltip), isInPreset, () => SetValueToPreset(value, preset));
+            }
+
+            menu.DropDown(new Rect(pos, Vector2.zero));
         }
 
         void DoThumbTooltip(Rect rect, float position, float value, string tooltip)
@@ -183,21 +201,6 @@ namespace UnityEditor.Rendering.HighDefinition
             thumbMarkerRect.x  = rect.x + (rect.width - size) * position;
 
             EditorGUI.LabelField(thumbMarkerRect, GetLightUnitTooltip(tooltip, value, m_Descriptor.unitName));
-        }
-
-        void DoContextMenu(Vector2 pos, SerializedProperty value)
-        {
-            var menu = new GenericMenu();
-
-            foreach (var preset in m_Descriptor.valueRanges)
-            {
-                // Indicate a checkmark if the value is within this preset range.
-                var isInPreset = CurrentRange(value.floatValue).value == preset.value;
-
-                menu.AddItem(EditorGUIUtility.TrTextContent(preset.content.tooltip), isInPreset, () => SetValueToPreset(value, preset));
-            }
-
-            menu.DropDown(new Rect(pos, Vector2.zero));
         }
 
         protected virtual void SetValueToPreset(SerializedProperty value, LightUnitSliderUIRange preset)
