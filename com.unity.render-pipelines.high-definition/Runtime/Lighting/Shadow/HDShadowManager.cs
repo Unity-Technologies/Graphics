@@ -751,7 +751,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                                         m_Atlas.renderTarget,
                                                         cachedShadowManager.punctualShadowAtlas.renderTarget,
                                                         cmd);
-                m_Atlas.ClearPendingBlitsRequests();
             }
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BlitAreaMixedCachedShadowMaps)))
@@ -760,9 +759,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                                         m_AreaLightShadowAtlas.renderTarget,
                                                         cachedShadowManager.areaShadowAtlas.renderTarget,
                                                         cmd);
-                m_AreaLightShadowAtlas.ClearPendingBlitsRequests();
             }
-
         }
 
         public void PushGlobalParameters(CommandBuffer cmd)

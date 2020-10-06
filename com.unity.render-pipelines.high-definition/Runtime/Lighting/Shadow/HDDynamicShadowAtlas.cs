@@ -176,6 +176,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MixedRequestsPendingBlits.Clear();
         }
 
+        public bool HasPendingBlitsRequests()
+        {
+            return m_MixedRequestsPendingBlits.Count > 0;
+        }
+
         internal struct ShadowBlitParameters
         {
             public List<HDShadowRequest> requestsWaitingBlits;
@@ -212,6 +217,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.blitMaterialPropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, sourceScaleBias);
                 CoreUtils.DrawFullScreen(cmd, parameters.blitMaterial, parameters.blitMaterialPropertyBlock, 0);
             }
+
+            parameters.requestsWaitingBlits.Clear();
         }
 
         public override void Clear()
