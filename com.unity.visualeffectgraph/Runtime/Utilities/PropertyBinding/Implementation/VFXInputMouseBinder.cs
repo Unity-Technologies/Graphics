@@ -1,3 +1,8 @@
+#if ENABLE_INPUT_SYSTEM && VFX_HAS_INPUT_SYSTEM_PACKAGE
+    #define USE_INPUT_SYSTEM
+    using UnityEngine.InputSystem;
+#endif
+
 using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
@@ -49,9 +54,9 @@ namespace UnityEngine.VFX.Utility
             Vector3 position = Vector3.zero;
 
             if (CheckLeftClick)
-                component.SetBool(MouseLeftClickProperty, Input.GetMouseButton(0));
+                component.SetBool(MouseLeftClickProperty, IsLeftClickPressed());
             if (CheckRightClick)
-                component.SetBool(MouseRightClickProperty, Input.GetMouseButton(1));
+                component.SetBool(MouseRightClickProperty, IsRightClickPressed());
 
             if (Target != null)
             {
@@ -59,14 +64,14 @@ namespace UnityEngine.VFX.Utility
                 if (UseRaycast) // Raycast version
                 {
                     RaycastHit info;
-                    Ray r = Target.ScreenPointToRay(Input.mousePosition);
+                    Ray r = Target.ScreenPointToRay(GetMousePosition());
                     if (Physics.Raycast(r, out info, Distance))
                     {
                         position = info.point;
                     }
                     else // if not hit, consider not touched
                     {
-                        Vector3 pos = Input.mousePosition;
+                        Vector3 pos = GetMousePosition();
                         pos.z = Distance;
                         position = Target.ScreenToWorldPoint(pos);
                     }
@@ -74,14 +79,14 @@ namespace UnityEngine.VFX.Utility
                 else // Simple version
 #endif
                 {
-                    Vector3 pos = Input.mousePosition;
+                    Vector3 pos = GetMousePosition();
                     pos.z = Distance;
                     position = Target.ScreenToWorldPoint(pos);
                 }
             }
             else
             {
-                position = Input.mousePosition;
+                position = GetMousePosition();
             }
 
             component.SetVector3(m_PositionProperty, position);
@@ -92,6 +97,33 @@ namespace UnityEngine.VFX.Utility
             }
 
             m_PreviousPosition = position;
+        }
+
+        bool IsRightClickPressed()
+        {
+#if USE_INPUT_SYSTEM
+            return (Mouse.current != null) ? Mouse.current.rightButton.isPressed : false;
+#else
+            return Input.GetMouseButton(1);
+#endif
+        }
+
+        bool IsLeftClickPressed()
+        {
+#if USE_INPUT_SYSTEM
+            return (Mouse.current != null) ? Mouse.current.leftButton.isPressed : false;
+#else
+            return Input.GetMouseButton(0);
+#endif
+        }
+
+        Vector2 GetMousePosition()
+        {
+#if USE_INPUT_SYSTEM
+            return Pointer.current.position.ReadValue();
+#else
+            return Input.mousePosition;
+#endif
         }
 
         public override string ToString()

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -134,7 +134,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 newValue => { m_postChangeConcretePrecisionCallback((ConcretePrecision) newValue); },
                 graphData.concretePrecision,
                 "Precision",
-                ConcretePrecision.Float,
+                ConcretePrecision.Single,
                 out var propertyVisualElement));
 
             propertySheet.Add(GetSettings(graphData, () => this.m_postChangeTargetSettingsCallback()));

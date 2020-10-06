@@ -129,7 +129,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float    _HeightFogBaseExtinction;
         public float    _HeightFogBaseHeight;
         public float    _GlobalFogAnisotropy;
-        public float    _Pad3;
+        public int      _VolumetricFilteringEnabled;
         public Vector2  _HeightFogExponents; // { 1/H, H }
         public float    _Pad4;
         public float    _Pad5;

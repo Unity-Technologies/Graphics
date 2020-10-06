@@ -70,6 +70,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (decalData.affectsMaskmap)
                     pass.keywords.Add(DecalDefines.Maskmap);
             }
+
+            if (pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalMeshForwardEmissive] ||
+                pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh])
+            {
+                pass.keywords.Add(CoreKeywordDescriptors.LodFadeCrossfade, new FieldCondition(Fields.LodCrossFade, true));
+            }
         }
 
         public static FieldDescriptor AffectsAlbedo =           new FieldDescriptor(kMaterial, "AffectsAlbedo", "");
@@ -93,6 +99,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(AffectsMaskMap,       decalData.affectsMaskmap);
             context.AddField(DecalDefault,         decalData.affectsAlbedo || decalData.affectsNormal || decalData.affectsMetal ||
                                                                     decalData.affectsAO || decalData.affectsSmoothness );
+            context.AddField(Fields.LodCrossFade, decalData.supportLodCrossFade);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)

@@ -7,6 +7,7 @@ using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.UIElements;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.UIElements;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEditor.ShaderGraph.Legacy;
@@ -179,6 +180,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             // SubTarget
             m_ActiveSubTarget.value.CollectShaderProperties(collector, generationMode);
+
+            collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsArray);
+            collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsIndirectionArray);
+            collector.AddShaderProperty(LightmappingShaderProperties.kShadowMasksArray);
         }
 
         public override void ProcessPreviewMaterial(Material material)
@@ -804,6 +809,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
             { CoreKeywordDescriptors.WriteNormalBuffer, 1 },
+        };
+
+        public static DefineCollection DepthForwardOnlyUnlit = new DefineCollection
+        {
+            { CoreKeywordDescriptors.WriteNormalBuffer, 1, new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, true)},
         };
 
         public static DefineCollection ShaderGraphRaytracingDefault = new DefineCollection

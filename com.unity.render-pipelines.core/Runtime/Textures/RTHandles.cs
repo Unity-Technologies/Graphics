@@ -250,6 +250,17 @@ namespace UnityEngine.Rendering
             return s_DefaultInstance.Alloc(tex);
         }
 
+        /// <summary>
+        /// Allocate a RTHandle from a regular render target identifier for the default RTHandle system.
+        /// </summary>
+        /// <param name="tex">Input render target identifier.</param>
+        /// <param name="name">Name of the render target.</param>
+        /// <returns>A new RTHandle referencing the input render target identifier.</returns>
+        public static RTHandle Alloc(RenderTargetIdentifier tex, string name)
+        {
+            return s_DefaultInstance.Alloc(tex, name);
+        }
+
         private static RTHandle Alloc(RTHandle tex)
         {
             Debug.LogError("Allocation a RTHandle from another one is forbidden.");

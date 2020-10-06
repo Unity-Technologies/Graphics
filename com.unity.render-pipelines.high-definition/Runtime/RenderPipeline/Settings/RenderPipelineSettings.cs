@@ -115,6 +115,7 @@ namespace UnityEngine.Rendering.HighDefinition
             xrSettings = GlobalXRSettings.NewDefault(),
             postProcessQualitySettings = GlobalPostProcessingQualitySettings.NewDefault(),
             lightingQualitySettings = GlobalLightingQualitySettings.NewDefault(),
+            lightSettings = LightSettings.NewDefault(),
 
             supportRayTracing = false,
             supportedRayTracingMode = SupportedRayTracingMode.Both,
@@ -140,6 +141,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             /// <summary>Enable contact shadows.</summary>
             public BoolScalableSetting useContactShadow;
+
+            internal static LightSettings NewDefault() => new LightSettings()
+            {
+                useContactShadow = new BoolScalableSetting(new[] { false, false, true }, ScalableSettingSchemaId.With3Levels)
+            };
+
         }
 
         // Lighting

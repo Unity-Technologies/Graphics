@@ -50,6 +50,8 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
     - Change `nightly.allowed_editors` to contain the editors for which to run nightly (*all_project_ci_nightly*) jobs (e.g. for 9.x.x this would correspond to `2020.1`)
   - In *__editor.metafile*:
     - Change `editor_tracks` to correct track (trunk, 2020.1, etc)
+  - In *_packages.metafile*:
+    - Change `publish_all_track` to correct track (trunk, 2020.1, etc), on which package publish job depends on. This track is also used for setting a separate PR trigger on all package CI job (but it is currently commented out/disabled, as it is already covered by ABV).
 
 ### If trunk track changes:
   - Change `trunk_track` in `_editor.metafile`
@@ -108,22 +110,33 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
     - Gets the editor in a separate job to save on the compute resources, stores the editor version in a .txt file which is then picked up by the parent job which calls unity-downloader-cli
     - Still used for custom-revision jobs, because we don't want to hold on to expensive compute resources the job itself requires, while waiting for the editor 
 - Editor pinning:
-    - Updates editor revisions (`config/_latest_editor_versions.metafile`) on a nightly basis, on the condition that ABV passes. All our jobs (ABV, nightly etc) use revisions from this file (specifically `[track]_latest_internal`). This way, if e.g. trunk breaks, it is discovered by the nightly update job (and revisions for this platform won't be updated), and we continue using the latest working revision, until a new working one becomes available.
-    - Merge job postfixed with ABV refer to the automated flow (branch trigger + ABV dependency). The one without ABV is for manual run (no triggers or ABV dependency), in case ABV blocks us from updating revisions
-    - What to pay attention to (especially when setting up on another branch): target and ci branches are correct, last revision is correct, ci branch exists (should be created manually by branching out from target)
-    - Renamed `merge-to-target` to `merge-revisions`, and `merge-from-target` to `target-to-ci`
-    
-    - ![Editor pinning flow](editor_pinning.png)
+    - Updates editor revisions (`config/_latest_editor_versions_[track].metafile`) on a nightly basis, on the condition that ABV for this editor track passes. This way, if e.g. trunk breaks, it is discovered by the nightly update job (and revisions for this platform won't be updated), and we continue using the latest working revision, until a new working one becomes available.
+    - There are 3 types of revisions retrieved from _unity-downloader-cli_: `staging` corresponds to `--fast`, `latest_public` corresponds to `--published-only`, and `latest_internal` corresponds to no flags
+    - There are 2 `merge-all` jobs, which are identical except for triggers and dependencies:
+        - _[ABV] [CI]_ is the main one used in the CI flow. It is has the branch trigger for versions file, and the dependent merge revision jobs have ABV as dependency (updated revisions only get merged on green ABV)
+        - _[no ABV] [no CI]_ is the manual counterpart of CI flow. It has no triggers, and it does not have ABV dependencies, i.e. it is essentially a forced push of updated revisions (since no ABV is run, it merges whatever revisions are on ci branch into target, and regenerates ymls based on those). It is useful for either testing the editor pinning, or to force updating the revisions when ABV dependency is seen as blocking.
+    - Setup on master: 
+        - 2 nightlies, one for trunk and other for 2020.2 (nightlies contain ABV, package pack/test all, and some additional jobs)
+        - ABV on PRs is triggered for 2020.2 (change under `_abv.metafile` `abv.trigger_editors`)
+        - Trunk targets latest_internal, 2020.2 targets staging (editor revisions)
+        - Package publish all (dependencies) run against trunk (change under `_packages.metafile` `publish_all_track`)
+    - Workflow in short:
+        - Update job runs nightly on target-branch. It merges target-branch into ci-branch (syncs), gets new revisions for all tracks and pushes these together with updated ymls to ci branch
+        - Merge job is triggered on changes to editor version files on ci-branch. It runs a merge job per each track, which (if the ABV with updated revisions passes green) pushes the corresponding editor revisions file to target-branch. Once everything is done, it regenerates all ymls based on whichever revisions have reached master branch.
+    - Workflow in details is on figure below
+    ![Editor pinning flow](editor_pinning.png)
+
 - Running editor pinning locally:
   - Make sure you have the latest version of unity-downloader-cli
   - Update job: `python .yamato\ruamel\editor_pinning\update_revisions.py --target-branch [localbranch] --local`
     - _--local_ flag specifies that no git pull/push/commit gets executed
     - _--target-branch_ would usually correspond to CI branch, but when running locally, just set it to the one you have checked out locally
     - This job updates `_latest_editor_versions.metafile` locally, and also runs `build.py` again to regenerate all ymls with the updated revisions. You can either keep all of the latest revisions, or only the ones you want, and rerun ymls. Once ready, merge like normal PR (i.e. no need to run the merge_revisions job)
-  - Merge job: `python .yamato\ruamel\editor_pinning\merge_revisions.py --target-branch [targetbranch] --local --revision [git sha]`
+  - Merge job: `python .yamato\ruamel\editor_pinning\merge_revisions.py --target-branch [targetbranch] --local --revision [git sha] --track [editortrack]` 
     - _--local_ flag skips checkout/pull of the target branch (but still makes commit on the currently checkout branch, if there is something to commit)
     - _--target-branch_ the target branch into which the revisions get merged to from the ci branch (after jobs passed on ci branch, when CI context used). But due to the local flag, this branch won't get checked out/pulled.
     - _--revision_ the git SHA of the updated revisions commit (the one made on the ci branch by update job). The job runs `git diff HEAD..[revision] -- [path]`, i.e. diff between the current checked out branch vs that SHA (revision). (The _path_ corresponds to yml files or the latest editor versions metafile, but this is already setup within the job). Therefore the merge job only cares about these two paths, and will not merge other changes. This works, because in general, if merge job gets triggered, then CI branch is 1 commit ahead of target branch (which is the updated revisions commit).
+    - _--track_ specifies which editor track the merge job runs for (i.e which editor file it aims to merge)
     - In general there is no need to run this file locally. It is only handy when wanting to test the script for syntax errors/functionality etc.
 
 
