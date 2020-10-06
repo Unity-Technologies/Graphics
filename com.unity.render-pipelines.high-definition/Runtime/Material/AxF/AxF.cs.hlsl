@@ -161,10 +161,10 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             result = surfacedata.specularOcclusion.xxx;
             break;
         case DEBUGVIEW_AXF_SURFACEDATA_NORMAL:
-            result = surfacedata.normalWS * 0.5 + 0.5;
+            result = IsNormalized(surfacedata.normalWS)? surfacedata.normalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
         case DEBUGVIEW_AXF_SURFACEDATA_NORMAL_VIEW_SPACE:
-            result = surfacedata.normalWS * 0.5 + 0.5;
+            result = IsNormalized(surfacedata.normalWS)? surfacedata.normalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
         case DEBUGVIEW_AXF_SURFACEDATA_TANGENT:
             result = surfacedata.tangentWS * 0.5 + 0.5;
@@ -238,10 +238,10 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             result = surfacedata.clearcoatIOR.xxx;
             break;
         case DEBUGVIEW_AXF_SURFACEDATA_GEOMETRIC_NORMAL:
-            result = surfacedata.geomNormalWS * 0.5 + 0.5;
+            result = IsNormalized(surfacedata.geomNormalWS)? surfacedata.geomNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
         case DEBUGVIEW_AXF_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
-            result = surfacedata.geomNormalWS * 0.5 + 0.5;
+            result = IsNormalized(surfacedata.geomNormalWS)? surfacedata.geomNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
     }
 }
@@ -260,10 +260,10 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             result = bsdfdata.specularOcclusion.xxx;
             break;
         case DEBUGVIEW_AXF_BSDFDATA_NORMAL_WS:
-            result = bsdfdata.normalWS * 0.5 + 0.5;
+            result = IsNormalized(bsdfdata.normalWS)? bsdfdata.normalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
         case DEBUGVIEW_AXF_BSDFDATA_NORMAL_VIEW_SPACE:
-            result = bsdfdata.normalWS * 0.5 + 0.5;
+            result = IsNormalized(bsdfdata.normalWS)? bsdfdata.normalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
         case DEBUGVIEW_AXF_BSDFDATA_TANGENT_WS:
             result = bsdfdata.tangentWS * 0.5 + 0.5;
@@ -335,10 +335,10 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             result = bsdfdata.clearcoatIOR.xxx;
             break;
         case DEBUGVIEW_AXF_BSDFDATA_GEOMETRIC_NORMAL:
-            result = bsdfdata.geomNormalWS * 0.5 + 0.5;
+            result = IsNormalized(bsdfdata.geomNormalWS)? bsdfdata.geomNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
         case DEBUGVIEW_AXF_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
-            result = bsdfdata.geomNormalWS * 0.5 + 0.5;
+            result = IsNormalized(bsdfdata.geomNormalWS)? bsdfdata.geomNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
     }
 }
