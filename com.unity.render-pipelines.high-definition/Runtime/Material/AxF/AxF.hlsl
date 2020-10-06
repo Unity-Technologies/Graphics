@@ -2570,7 +2570,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     {
         float   coeff = _CarPaint2_CTCoeffs[lobeIndex];
 
-        float   lobeMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness[lobeIndex], lightData.hasMipMaps);
+        float   lobeMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness[lobeIndex]) * lightData.roughReflections;
         float4  preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, lobeMipLevel, lightData.rangeCompressionFactorCompensation, posInput.positionNDC);
 
         //todotodo: try removing coeff

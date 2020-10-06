@@ -209,15 +209,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void OutputSmoothPlanarReflection(CommandBuffer cmd, RenderTexture sourceColor, RenderTexture target)
-        {
-            int currentTexWidth = sourceColor.width;
-            int currentTexHeight = sourceColor.height;
-
-            // The first color level can be copied straight away in the mip chain.
-            cmd.CopyTexture(sourceColor, 0, 0, 0, 0, sourceColor.width, sourceColor.height, target, 0, 0, 0, 0);
-        }
-
         void BuildColorAndDepthMipChain(CommandBuffer cmd, RenderTexture sourceColor, RenderTexture sourceDepth, ref PlanarTextureFilteringParameters planarTextureFilteringParameters)
         {
             int currentTexWidth = sourceColor.width;
@@ -287,25 +278,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
         override public void FilterPlanarTexture(CommandBuffer cmd, RenderTexture source, ref PlanarTextureFilteringParameters planarTextureFilteringParameters, RenderTexture target)
         {
-            // If we need to export a smooth planar, the code path is different.
+            // Init the mip descent
+            int texWidth = source.width;
+            int texHeight = source.height;
+
+            // First we need to copy the Mip0 (that matches perfectly smooth surface), no processing to be done on it
+            cmd.CopyTexture(source, 0, 0, 0, 0, texWidth, texHeight, target, 0, 0, 0, 0);
+
+            // If we are smooth reflection then the work is finish
             if (planarTextureFilteringParameters.smoothPlanarReflection)
-            {
-                OutputSmoothPlanarReflection(cmd, source, target);
                 return;
-            }
 
             // First we need to make sure that our intermediate textures are the big enough to do our process (these textures are squares)
             CheckIntermediateTexturesSize(source.width, source.height);
 
             // Then we need to build a mip chain (one for color, one for depth) that we will sample later on in the process
             BuildColorAndDepthMipChain(cmd, source, planarTextureFilteringParameters.captureCameraDepthBuffer, ref planarTextureFilteringParameters);
-
-            // Init the mip descent
-            int texWidth = source.width;
-            int texHeight = source.height;
-
-            // First we need to copy the Mip0 (that matches perfectly smooth surface), no processing to be done on it
-            cmd.CopyTexture(m_PlanarReflectionFilterTex0, 0, 0, 0, 0, texWidth, texHeight, target, 0, 0, 0, 0);
 
             // Initialize the parameters for the descent
             int mipIndex = 1;
