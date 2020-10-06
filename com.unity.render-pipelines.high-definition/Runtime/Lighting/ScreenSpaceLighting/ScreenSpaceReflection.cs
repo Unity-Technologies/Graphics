@@ -1,8 +1,35 @@
 using System;
+using System.Diagnostics;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Screen Space Reflection Algorithm
+    /// </summary>
+    public enum ScreenSpaceReflectionAlgorithm
+    {
+        /// <summary>Legacy SSR approximation.</summary>
+        Approximation,
+        /// <summary>Screen Space Reflection, Physically Based with Accumulation through multiple frame.</summary>
+        PBRAccumulation
+    }
+
+    /// <summary>
+    /// Screen Space Reflection Algorithm Type volume parameter.
+    /// </summary>
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
+    public sealed class SSRAlgoParameter : VolumeParameter<ScreenSpaceReflectionAlgorithm>
+    {
+        /// <summary>
+        /// Screen Space Reflection Algorithm Type volume parameter constructor.
+        /// </summary>
+        /// <param name="value">SSR Algo Type parameter.</param>
+        /// <param name="overrideState">Initial override state.</param>
+        public SSRAlgoParameter(ScreenSpaceReflectionAlgorithm value, bool overrideState = false)
+            : base(value, overrideState) { }
+    }
+
     /// <summary>
     /// A volume component that holds settings for screen space reflection and ray traced reflections.
     /// </summary>
@@ -24,6 +51,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Enable Screen Space Reflections.</summary>
         [Tooltip("Enable Screen Space Reflections.")]
         public BoolParameter enabled = new BoolParameter(true);
+
+        /// <summary>Screen Space Reflections Algorithm used.</summary>
+        public SSRAlgoParameter ssrAlgo = new SSRAlgoParameter(ScreenSpaceReflectionAlgorithm.Approximation);
 
         /// <summary>
         /// Enable ray traced reflections.

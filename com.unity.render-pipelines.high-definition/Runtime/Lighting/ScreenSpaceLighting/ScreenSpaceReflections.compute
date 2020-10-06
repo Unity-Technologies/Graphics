@@ -5,17 +5,20 @@
 // #pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-#pragma kernel ScreenSpaceReflectionsTracing            SSR_TRACE
-#pragma kernel ScreenSpaceReflectionsReprojection       SSR_REPROJECT
-#pragma kernel ScreenSpaceReflectionsAccumulate         SSR_ACCUMULATE
+#pragma kernel ScreenSpaceReflectionsTracing        SSR_TRACE
+#pragma kernel ScreenSpaceReflectionsReprojection   SSR_REPROJECT
+#pragma kernel ScreenSpaceReflectionsAccumulate     SSR_ACCUMULATE
 
 #pragma multi_compile _ DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
+#pragma multi_compile _ SSR_APPROX
 
 // Tweak parameters.
 // #define DEBUG
 #define SSR_TRACE_BEHIND_OBJECTS
 #define SSR_TRACE_TOWARDS_EYE
-#define SAMPLES_VNDF
+#ifndef SSR_APPROX
+    #define SAMPLES_VNDF
+#endif
 #define SSR_TRACE_EPS               0.00024414 // 2^-12, should be good up to 4K
 #define MIN_GGX_ROUGHNESS           0.00001f
 #define MAX_GGX_ROUGHNESS           0.99999f
@@ -70,10 +73,9 @@ TEXTURE2D_X(_DepthTexture);
 
 #ifdef SSR_TRACE
     TEXTURE2D_X_UINT2(         _StencilTexture);
-    RW_TEXTURE2D_X(float4, _SsrHitPointTexture);
+    RW_TEXTURE2D_X(float2, _SsrHitPointTexture);
 #elif defined(SSR_REPROJECT)
        TEXTURE2D_X(        _SsrHitPointTexture);
-    RW_TEXTURE2D_X(float4, _SsrLightingTextureRW); // ShaderVariablesScreenSpaceLighting.hlsl already pulls in a non-RW _SsrLightingTexture
     RW_TEXTURE2D_X(float4, _SSRAccumTexture);
 #else //if defined(SSR_ACCUMULATE)
        TEXTURE2D_X(        _SsrHitPointTexture);
@@ -120,7 +122,7 @@ void SampleGGXVisibleNormal(float2 u,
     localH = t1 * viewToLocal[0] + t2 * viewToLocal[1] + sqrt(max(0.0, 1.0 - t1 * t1 - t2 * t2)) * viewToLocal[2];
 
     // Transform the normal back to the ellipsoid configuration
-    localH = normalize(float3(roughness * localH.x, roughness * localH.y, max(0.0, localH.z)));
+    localH = normalize(float3(roughness * localH.xy, max(0.0, localH.z)));
 
     VdotH = saturate(dot(localV, localH));
 }
@@ -131,13 +133,12 @@ float Lambda_GGX(float roughness,
     return 0.5 * (sqrt(1.0 + (Sq(roughness * V.x) + Sq(roughness * V.y)) / Sq(V.z)) - 1.0);
 }
 
-bool SampleGGX(float roughness_,
-               float3x3 localToWorld,
-               float3 V,
-               float2 inputSample,
-           out float3 outgoingDir,
-           out float value,
-           out float pdf)
+bool SampleGGX_VNDF(float roughness_,
+                    float3x3 localToWorld,
+                    float3 V,
+                    float2 inputSample,
+                out float3 outgoingDir,
+                out float weight)
 {
     float roughness = clamp(roughness_, MIN_GGX_ROUGHNESS, MAX_GGX_ROUGHNESS);
 
@@ -154,12 +155,12 @@ bool SampleGGX(float roughness_,
 
     float pdfNoGV = D_GGX(localH.z, roughness);
     float lambdaVPlusOne = Lambda_GGX(roughness, localV) + 1.0;
-    pdf = pdfNoGV / lambdaVPlusOne;
 
     float lambdaL = Lambda_GGX(roughness, localL);
-    value = pdfNoGV / (lambdaVPlusOne + lambdaL);
 
-    if (pdf < 0.001)
+    weight = 1.0f + lambdaL / lambdaVPlusOne;
+
+    if (weight < 0.001)
         return false;
 
     return true;
@@ -171,13 +172,11 @@ float PerceptualRoughnessFade(float perceptualRoughness, float fadeRcpLength, fl
     return Smoothstep01(t);
 }
 
-void GetHitInfos(uint2 positionSS, out float2 hitPositionNDC, out float srcPerceptualRoughness, out float3 positionWS, out float pdf, out float weight, out float3 N, out float3 L, out float3 V, out float dist, out float NdotL, out float NdotH, out float VdotH, out float NdotV)
+void GetHitInfos(uint2 positionSS, out float2 hitPositionNDC, out float srcPerceptualRoughness, out float3 positionWS, out float weight, out float3 N, out float3 L, out float3 V, out float NdotL, out float NdotH, out float VdotH, out float NdotV)
 {
     float2 uv = float2(positionSS) * _RTHandleScale.xy;
 
-    float4 hitData = _SsrHitPointTexture[COORD_TEXTURE2D_X(positionSS)];
-    dist = hitData.z;
-    hitPositionNDC = hitData.xy;
+    hitPositionNDC = _SsrHitPointTexture[COORD_TEXTURE2D_X(positionSS)].xy;
 
     float2 Xi;
     Xi.x = GetBNDSequenceSample(positionSS, _FrameCount, 0);
@@ -208,15 +207,12 @@ void GetHitInfos(uint2 positionSS, out float2 hitPositionNDC, out float srcPerce
 #ifdef SAMPLES_VNDF
     float value;
 
-    SampleGGX(roughness,
+    SampleGGX_VNDF(roughness,
         localToWorld,
         V,
         Xi,
         L,
-        value,
-        pdf);
-
-    weight = value / pdf;
+        weight);
 
     NdotV = dot(normalData.normalWS, V);
     NdotL = dot(normalData.normalWS, L);
@@ -228,10 +224,8 @@ void GetHitInfos(uint2 positionSS, out float2 hitPositionNDC, out float srcPerce
 
     NdotV = dot(normalData.normalWS, V);
     float Vg = V_SmithJointGGX(NdotL, NdotV, roughness);
-    float D = D_GGX(NdotH, roughness);
 
-    pdf = D * NdotH / (4.0 * VdotH);
-    weight = D * Vg * NdotL / pdf;
+    weight = 4.0f * NdotL * VdotH * Vg / NdotH;
 #endif
 }
 
@@ -269,7 +263,7 @@ float2 GetWorldSpacePoint(uint2 positionSS, out float3 positionSrcWS, out float3
 {
     positionSrcWS = GetWorldSpacePosition(positionSS);
 
-    float4 hitData = _SsrHitPointTexture[COORD_TEXTURE2D_X(positionSS)];
+    float2 hitData = _SsrHitPointTexture[COORD_TEXTURE2D_X(positionSS)].xy;
     uint2 positionDstSS = (hitData.xy - (0.5 * _ScreenSize.zw)) / _ScreenSize.zw;
 
     positionDstWS = GetWorldSpacePosition(positionDstSS);
@@ -303,7 +297,7 @@ float3 GetHitColor(float2 hitPositionNDC, float perceptualRoughness, out float o
     return SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, prevFrameUV, mipLevel).rgb;
 }
 
-float2 GetSampleInfo(uint2 positionSS, out float3 color, out float localBRDF, out float localPDF, out float opacity)
+float2 GetSampleInfo(uint2 positionSS, out float3 color, out float weight, out float opacity)
 {
     float3 positionSrcWS;
     float3 positionDstWS;
@@ -325,13 +319,14 @@ float2 GetSampleInfo(uint2 positionSS, out float3 color, out float localBRDF, ou
     float VdotH = dot(V, H);
     float NdotH = dot(normalData.normalWS, H);
     float Vg = V_SmithJointGGX(NdotL, NdotV, roughness);
-    float D = D_GGX(NdotH, roughness);
+
+    float jac = 4.0 * NdotV;
 
     float lambdaVPlusOne = Lambda_GGX(roughness, V) + 1.0;
-    localPDF = D / lambdaVPlusOne;
 
     float lambdaL = Lambda_GGX(roughness, L);
-    localBRDF = D / (lambdaVPlusOne + lambdaL);
+
+    weight = 1.0f + lambdaL / lambdaVPlusOne;
 
     color = GetHitColor(hitData.xy, normalData.perceptualRoughness, opacity, 0);
 
@@ -404,20 +399,31 @@ void ScreenSpaceReflectionsTracing(uint3 groupId          : SV_GroupID,
     float  deviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, positionSS).r;
 #endif
 
-    float pdf, weight;
-    float dist;
+#ifdef SSR_APPROX
+    float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute the half-texel bias? We seem to use it a lot.
+    float3 positionWS = ComputeWorldSpacePosition(positionNDC, deviceDepth, UNITY_MATRIX_I_VP); // Jittered
+    float3 V = GetWorldSpaceNormalizeViewDir(positionWS);
+
+    float3 N;
+    float perceptualRoughness;
+    GetNormalAndPerceptualRoughness(positionSS, N, perceptualRoughness);
+
+    float3 R = reflect(-V, N);
+#else
+    float weight;
     float NdotL, NdotH, VdotH, NdotV;
     float3 R, V, N;
     float3 positionWS;
     float2 hitPositionNDC;
     float perceptualRoughness;
-    GetHitInfos(positionSS, hitPositionNDC, perceptualRoughness, positionWS, pdf, weight, N, R, V, dist, NdotL, NdotH, VdotH, NdotV);
+    GetHitInfos(positionSS, hitPositionNDC, perceptualRoughness, positionWS, weight, N, R, V, NdotL, NdotH, VdotH, NdotV);
 
-    if (NdotL < 0.001f || pdf < 0.001f)
+    if (NdotL < 0.001f || weight < 0.001f)
     {
         WriteDebugInfo(positionSS, -1);
         return;
     }
+#endif
 
     float3 camPosWS = GetCurrentViewPosition();
 
@@ -588,7 +594,7 @@ void ScreenSpaceReflectionsTracing(uint3 groupId          : SV_GroupID,
         // recompute it using the last value of 't', which would result in an overshoot.
         // It also needs to be precisely at the center of the pixel to avoid artifacts.
         float2 hitPositionNDC = floor(rayPos.xy) * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute the half-texel bias? We seem to use it a lot.
-        _SsrHitPointTexture[COORD_TEXTURE2D_X(positionSS)] = float4(hitPositionNDC, t, weight);
+        _SsrHitPointTexture[COORD_TEXTURE2D_X(positionSS)] = hitPositionNDC.xy;
     }
 
     // If we do not hit anything, 'rayPos.xy' provides an indication where we stopped the search.
@@ -624,21 +630,43 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     float3 originWS = posInputOrigin.positionWS + _WorldSpaceCameraPos;
 
     float2 RTSize = 1.0f / _RTHandleScale.xy;
-
     float2 uv = float2(positionSS0) * _ColorPyramidUvScaleAndLimitPrevFrame.xy;
 
     float4 accum = _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS0)];
 
-    float opacity = 1.0f;
-
     if (max(hitPositionNDC.x, hitPositionNDC.y) == 0)
-    { 
+    {
         // Miss.
         return;
     }
 
+    if ((prevFrameUV.x < 0) || (prevFrameUV.x > _ColorPyramidUvScaleAndLimitPrevFrame.z) ||
+        (prevFrameUV.y < 0) || (prevFrameUV.y > _ColorPyramidUvScaleAndLimitPrevFrame.w))
+    {
+        // Off-Screen.
+        return;
+    }
+
+#ifdef SSR_APPROX
+
+    // TODO: filtering is quite awful. Needs to be non-Gaussian, bilateral and anisotropic.
+    float  mipLevel = lerp(0, _SsrColorPyramidMaxMip, perceptualRoughness);
+
+    float3 color    = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, prevFrameUV, mipLevel).rgb;
+    float  opacity  = EdgeOfScreenFade(prevFrameNDC, _SsrEdgeFadeRcpLength)
+                    * PerceptualRoughnessFade(perceptualRoughness, _SsrRoughnessFadeRcpLength, _SsrRoughnessFadeEndTimesRcpLength);
+
+    // Disable SSR for negative, infinite and NaN history values.
+    uint3 intCol   = asuint(color);
+    bool  isPosFin = Max3(intCol.r, intCol.g, intCol.b) < 0x7F800000;
+
+    color   = isPosFin ? color   : 0;
+    opacity = isPosFin ? opacity : 0;
+
+    _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS0)] = float4(color, 1) * opacity;
+#else
     float3 color = 0.0f;
-    opacity = 0.0f;
+    float opacity = 0.0f;
 
 #define BLOCK_SAMPLE_RADIUS 1
     int samplesCount = 0;
@@ -652,10 +680,9 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
             uint2 positionSS = uint2(int2(positionSS0) + int2(x, y));
 
             float3 color;
-            float localBRDF;
-            float localPDF;
             float opacity;
-            float2 hitData = GetSampleInfo(positionSS, color, localBRDF, localPDF, opacity);
+            float weight;
+            float2 hitData = GetSampleInfo(positionSS, color, weight, opacity);
             if (max(hitData.x, hitData.y) != 0.0f && opacity > 0.0f)
             {
                 //// Note that the color pyramid uses it's own viewport scale, since it lives on the camera.
@@ -671,7 +698,6 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
                 color   = isPosFin ? color   : 0;
                 opacity = isPosFin ? opacity : 0;
 
-                float weight = localBRDF / localPDF;
                 outputs += weight * float4(color, opacity);
                 wAll += weight;
             }
@@ -683,6 +709,7 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     {
         _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS0)] = outputs / wAll;
     }
+#endif
 }
 
 #elif defined(SSR_ACCUMULATE)
@@ -703,7 +730,7 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
 
     float4 data0 = _SSRAccumTexture[COORD_TEXTURE2D_X(int2(positionSS))];
 
-    float3 hitPositionNDC = LOAD_TEXTURE2D_X(_SsrHitPointTexture, positionSS).xyz;
+    float2 hitPositionNDC = LOAD_TEXTURE2D_X(_SsrHitPointTexture, positionSS).xy;
 
     // Compute the radius of the projected solid angle
     float dist = GetTraceDistance(positionSS);
@@ -728,7 +755,9 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     float speedSrc = length(motionVectorCenterNDC);
     float speed = saturate((speedDst + speedDst) * 128.0f); // 128 is arbitrary
 
-    float4 result = lerp(previous, original, lerp(_SsrAccumulationAmount, 1.0f, speed));
+    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, speed);
+
+    float4 result = lerp(previous, original, lerp(1.0f, coefExpAvg, saturate(_FrameCount - 2.0f)));
 
     _SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] = result;
     _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = result;
