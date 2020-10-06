@@ -646,7 +646,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                                 ctx.cmd);
 
                         if (data.parameters.filterVolume)
-                            FilterVolumetricLighting(data.parameters, data.densityBuffer, data.lightingBuffer, ctx.cmd);
+                            FilterVolumetricLighting(data.parameters, data.lightingBuffer, ctx.cmd);
                     });
 
                     if (parameters.enableReprojection)

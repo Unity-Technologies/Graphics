@@ -436,7 +436,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, 1);
 
                 // --------------------------------------------------------------
-                // Downsample to 16x16 and compute gradient
+                // Downsample to 16x16 and compute gradient if required
 
                 kernel = cs.FindKernel("ComputeFinalMask");
 
@@ -571,12 +571,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MaxZMask8x = RTHandles.Alloc(minSize, minSize, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat, 
                                     enableRandomWrite: true, name: "MaxZ mask 8x");
 
-            // TMP FORMAT, CHECK FOR R16G16
-
-            m_MaxZMask = RTHandles.Alloc(minSize, minSize, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32G32_SFloat, 
+            m_MaxZMask = RTHandles.Alloc(minSize, minSize, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat, 
                                                 enableRandomWrite: true, name: "MaxZ mask");
 
-            m_DilatedMaxZMask = RTHandles.Alloc(minSize, minSize, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32G32_SFloat,
+            m_DilatedMaxZMask = RTHandles.Alloc(minSize, minSize, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat,
                                     enableRandomWrite: true, name: "Dilated MaxZ mask");
 
         }
@@ -972,12 +970,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader                volumetricLightingCS;
             public ComputeShader                volumetricLightingFilteringCS;
             public int                          volumetricLightingKernel;
-            public int                          volumetricFilteringKernelX;
-            public int                          volumetricFilteringKernelY;
+            public int                          volumetricFilteringKernel;
             public bool                         tiledLighting;
             public Vector4                      resolution;
             public bool                         enableReprojection;
             public int                          viewCount;
+            public int                          sliceCount;
             public bool                         filterVolume;
             public ShaderVariablesVolumetric    volumetricCB;
             public ShaderVariablesLightList     lightListCB;
@@ -1014,14 +1012,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.volumetricLightingKernel = parameters.volumetricLightingCS.FindKernel("VolumetricLighting");
 
-            parameters.volumetricFilteringKernelX = parameters.volumetricLightingFilteringCS.FindKernel("FilterVolumetricLightingX");
-            parameters.volumetricFilteringKernelY = parameters.volumetricLightingFilteringCS.FindKernel("FilterVolumetricLightingY");
+            parameters.volumetricFilteringKernel = parameters.volumetricLightingFilteringCS.FindKernel("FilterVolumetricLighting");
 
             var cvp = currParams.viewportSize;
 
             parameters.resolution = new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y);
             parameters.viewCount = hdCamera.viewCount;
             parameters.filterVolume = ((int)fog.denoisingMode.value & (int)FogDenoisingMode.Gaussian) != 0;
+            parameters.sliceCount = (int)(cvp.z / hdCamera.viewCount);
 
             UpdateShaderVariableslVolumetrics(ref m_ShaderVariablesVolumetricCB, hdCamera, parameters.resolution, frameIndex);
             parameters.volumetricCB = m_ShaderVariablesVolumetricCB;
@@ -1063,20 +1061,17 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, ((int)parameters.resolution.x + 7) / 8, ((int)parameters.resolution.y + 7) / 8, parameters.viewCount);
         }
 
-        static void FilterVolumetricLighting(in VolumetricLightingParameters parameters, RTHandle outputBuffer, RTHandle inputBuffer, CommandBuffer cmd)
+        static void FilterVolumetricLighting(in VolumetricLightingParameters parameters, RTHandle lightingBuffer, CommandBuffer cmd)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricLightingFiltering)))
             {
                 ConstantBuffer.Push(cmd, parameters.volumetricCB, parameters.volumetricLightingFilteringCS, HDShaderIDs._ShaderVariablesVolumetric);
 
-                // The shader defines GROUP_SIZE_1D = 8.
-                cmd.SetComputeTextureParam(parameters.volumetricLightingFilteringCS, parameters.volumetricFilteringKernelX, HDShaderIDs._VBufferFilteringInput,  inputBuffer);  // Read
-                cmd.SetComputeTextureParam(parameters.volumetricLightingFilteringCS, parameters.volumetricFilteringKernelX, HDShaderIDs._VBufferFilteringOutput, outputBuffer); // Write
-                cmd.DispatchCompute(parameters.volumetricLightingFilteringCS, parameters.volumetricFilteringKernelX, ((int)parameters.resolution.x + 7) / 8, ((int)parameters.resolution.y + 7) / 8, parameters.viewCount);
-
-                cmd.SetComputeTextureParam(parameters.volumetricLightingFilteringCS, parameters.volumetricFilteringKernelY, HDShaderIDs._VBufferFilteringInput,  outputBuffer); // Read
-                cmd.SetComputeTextureParam(parameters.volumetricLightingFilteringCS, parameters.volumetricFilteringKernelY, HDShaderIDs._VBufferFilteringOutput, inputBuffer);  // Write
-                cmd.DispatchCompute(parameters.volumetricLightingFilteringCS, parameters.volumetricFilteringKernelY, ((int)parameters.resolution.x + 7) / 8, ((int)parameters.resolution.y + 7) / 8, parameters.viewCount);
+                // The shader defines GROUP_SIZE_1D_XY = 8 and GROUP_SIZE_1D_Z = 1
+                cmd.SetComputeTextureParam(parameters.volumetricLightingFilteringCS, parameters.volumetricFilteringKernel, HDShaderIDs._VBufferLighting, lightingBuffer);
+                cmd.DispatchCompute(parameters.volumetricLightingFilteringCS, parameters.volumetricFilteringKernel, HDUtils.DivRoundUp((int)parameters.resolution.x, 8),
+                                                                                                                    HDUtils.DivRoundUp((int)parameters.resolution.y, 8),
+                                                                                                                    parameters.sliceCount);
             }
         }
 
@@ -1111,7 +1106,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Let's filter out volumetric buffer
             if (parameters.filterVolume)
-                FilterVolumetricLighting(parameters, m_DensityBuffer, m_LightingBuffer, cmd);
+                FilterVolumetricLighting(parameters, m_LightingBuffer, cmd);
 
             cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting, m_LightingBuffer);
         }
