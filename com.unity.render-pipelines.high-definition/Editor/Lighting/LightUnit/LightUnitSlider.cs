@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static class SliderConfig
         {
-            public const float k_IconSeparator      = 8;
+            public const float k_IconSeparator      = 6;
             public const float k_MarkerWidth        = 2;
             public const float k_MarkerHeight       = 2;
             public const float k_MarkerTooltipScale = 4;
@@ -37,7 +37,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public virtual void Draw(Rect rect, SerializedProperty value)
         {
-            BuildRects(rect, out var sliderRect, out var iconRect, out var optionsRect);
+            BuildRects(rect, out var sliderRect, out var iconRect);
 
             if (m_Descriptor.clampValue)
                 ClampValue(value, m_Descriptor.sliderRange);
@@ -60,13 +60,13 @@ namespace UnityEditor.Rendering.HighDefinition
             // Draw context menu
             // TODO: add to descriptor option for context menu
             // Note: EventType.Used for UI interaction, EventType.MouseDown
-            GUI.Box(optionsRect, GUIContent.none, EditorStyles.popup);
+            GUI.Box(iconRect, GUIContent.none);
             var e = Event.current;
             if (e.type == EventType.MouseDown)
             {
-                if (optionsRect.Contains(e.mousePosition))
+                if (iconRect.Contains(e.mousePosition))
                 {
-                    var menuPosition = optionsRect.position + optionsRect.size;
+                    var menuPosition = iconRect.position + iconRect.size;
                     DoContextMenu(menuPosition, value);
                     e.Use();
                 }
@@ -97,20 +97,14 @@ namespace UnityEditor.Rendering.HighDefinition
             return LightUnitSliderUIRange.CautionRange(cautionTooltip, cautionValue);
         }
 
-        void BuildRects(Rect baseRect, out Rect sliderRect, out Rect iconRect, out Rect optionsRect)
+        void BuildRects(Rect baseRect, out Rect sliderRect, out Rect iconRect)
         {
-            const float fudge = 10f;
-
             sliderRect = baseRect;
-            sliderRect.width -= ( 2f * EditorGUIUtility.singleLineHeight ) + SliderConfig.k_IconSeparator;
+            sliderRect.width -= EditorGUIUtility.singleLineHeight + SliderConfig.k_IconSeparator;
 
             iconRect = baseRect;
-            iconRect.x += sliderRect.width + SliderConfig.k_IconSeparator - 4f;
+            iconRect.x += sliderRect.width + SliderConfig.k_IconSeparator;
             iconRect.width = EditorGUIUtility.singleLineHeight;
-
-            optionsRect = iconRect;
-            optionsRect.x += EditorGUIUtility.singleLineHeight + 2;
-            optionsRect.width += 2;
         }
 
         void ClampValue(SerializedProperty value, Vector2 range) =>
