@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - ShaderGraph Custom Function Node will now correctly convert function and slot names to valid HLSL identifiers [1258832]
 - Fixed an issue where ShaderGraph Custom Function Node would reorder slots when you modified them [1280106]
 - Fixed Undo handling when adding or removing Targets from a ShaderGraph [1257028]
+- Fixed SampleTexture2DLOD node to return opaque black on unsupported platforms [1241602]
 
 ## [10.0.0] - 2019-06-10
 ### Added
