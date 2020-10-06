@@ -9,6 +9,7 @@ namespace UnityEditor.Rendering.HighDefinition
     class HDScreenSpaceReflectionEditor : VolumeComponentWithQualityEditor
     {
         SerializedDataParameter m_Enable;
+        SerializedDataParameter m_SSRAlgo;
         SerializedDataParameter m_RayTracing;
 
         // Shared data
@@ -44,6 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var o = new PropertyFetcher<ScreenSpaceReflection>(serializedObject);
             m_Enable                        = Unpack(o.Find(x => x.enabled));
+            m_SSRAlgo                       = Unpack(o.Find(x => x.ssrAlgo));
             m_RayTracing                    = Unpack(o.Find(x => x.rayTracing));
 
             // Shared data
@@ -74,6 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_BounceCount                   = Unpack(o.Find(x => x.bounceCount));
         }
 
+        static public readonly GUIContent k_Algo = EditorGUIUtility.TrTextContent("Algorithm", "The screen space reflection algorithm used.");
         static public readonly GUIContent k_RayTracingText = EditorGUIUtility.TrTextContent("Ray Tracing (Preview)", "Enable ray traced reflections.");
         static public readonly GUIContent k_ReflectSkyText = EditorGUIUtility.TrTextContent("Reflect Sky", "When enabled, SSR handles sky reflection.");
         static public readonly GUIContent k_LayerMaskText = EditorGUIUtility.TrTextContent("Layer Mask", "Layer mask used to include the objects for screen space reflection.");
@@ -195,6 +198,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
+                PropertyField(m_SSRAlgo, k_Algo);
+
                 // Shared Data
                 PropertyField(m_MinSmoothness, k_MinimumSmoothnessText);
                 PropertyField(m_SmoothnessFadeStart, k_SmoothnessFadeStartText);
