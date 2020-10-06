@@ -382,6 +382,12 @@ namespace UnityEngine.Rendering.Universal
                     EnqueuePass(m_DepthPrepass);
                 }
             }
+            else
+            {
+                // SceneDepthNode still might need DepthTexture even if it is disabled in camera
+                m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture, true);
+                EnqueuePass(m_DepthPrepass);
+            }
 
             if (generateColorGradingLUT)
             {

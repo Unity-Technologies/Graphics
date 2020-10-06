@@ -17,6 +17,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         FilteringSettings m_FilteringSettings;
         ShaderTagId m_ShaderTagId = new ShaderTagId("DepthOnly");
+        bool m_SkipRendering;
 
         /// <summary>
         /// Create the DepthOnlyPass
@@ -32,11 +33,19 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         public void Setup(
             RenderTextureDescriptor baseDescriptor,
-            RenderTargetHandle depthAttachmentHandle)
+            RenderTargetHandle depthAttachmentHandle,
+            bool skipRendering = false)
         {
             this.depthAttachmentHandle = depthAttachmentHandle;
             baseDescriptor.colorFormat = RenderTextureFormat.Depth;
             baseDescriptor.depthBufferBits = kDepthBufferBits;
+
+            m_SkipRendering = skipRendering;
+            if (m_SkipRendering)
+            {
+                baseDescriptor.width = 1;
+                baseDescriptor.height = 1;
+            }
 
             // Depth-Only pass don't use MSAA
             baseDescriptor.msaaSamples = 1;
@@ -61,11 +70,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
-                var drawSettings = CreateDrawingSettings(m_ShaderTagId, ref renderingData, sortFlags);
-                drawSettings.perObjectData = PerObjectData.None;
+                if (!m_SkipRendering)
+                {
+                    var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
+                    var drawSettings = CreateDrawingSettings(m_ShaderTagId, ref renderingData, sortFlags);
+                    drawSettings.perObjectData = PerObjectData.None;
 
-                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
+                    context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
+                }
 
             }
             context.ExecuteCommandBuffer(cmd);
