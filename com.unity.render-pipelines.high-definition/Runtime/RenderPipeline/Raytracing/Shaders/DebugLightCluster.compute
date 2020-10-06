@@ -33,8 +33,7 @@ void DebugLightCluster(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : S
     }
 
     // Compute the real world space position of this pixel
-    PositionInputs posInput = GetPositionInput(currentPixelCoordinate, 1.0/ _ScreenSize.xy, depth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
-    posInput.positionWS = GetAbsolutePositionWS(posInput.positionWS);
+    PositionInputs posInput = GetPositionInput(currentPixelCoordinate, 1.0 / _ScreenSize.xy, depth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
 
     // If this position is outisde of the cluster, color is gray
     if(!PointInsideCluster(posInput.positionWS))
