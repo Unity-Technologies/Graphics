@@ -243,7 +243,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 resolutionScalable = new PlanarReflectionAtlasResolutionScalableSettingValue(),
                 roughReflections = true,
             };
-            probeSettings.resolutionScalable.@override = PlanarReflectionAtlasResolution.PlanarReflectionResolution512;
+            probeSettings.resolutionScalable.@override = PlanarReflectionAtlasResolution.Resolution512;
 
             return probeSettings;
         }

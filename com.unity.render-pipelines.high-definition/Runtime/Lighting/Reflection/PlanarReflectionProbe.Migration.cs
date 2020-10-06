@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    p.m_ProbeSettings.resolutionScalable.@override = PlanarReflectionAtlasResolution.PlanarReflectionResolution512;
+                    p.m_ProbeSettings.resolutionScalable.@override = PlanarReflectionAtlasResolution.Resolution512;
                 }
             })
         );
