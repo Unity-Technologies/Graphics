@@ -32,3 +32,10 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSR, so to enable and 
 | **Min Smoothness**            | Use the slider to set the minimum amount of surface smoothness at which HDRP performs SSR tracing. Lower values result in HDRP performing SSR tracing for less smooth GameObjects. |
 | **Smoothness Fade Start**     | Use the slider to set the smoothness value at which SSR reflections begin to fade out. Lower values result in HDRP fading out SSR reflections for less smooth GameObjects |
 | **Reflect Sky**               | Indicates whether HDRP should use SSR to handle sky reflection. If you disable this property, pixels that reflect the sky use the next level of the [reflection hierarchy](Reflection-in-HDRP.md#ReflectionHierarchy).<br />**Note**: SSR uses the depth buffer to calculate reflection and HDRP does not add transparent GameObjects to the depth buffer. If you enable this property, transparent GameObject that appear over the sky in the color buffer can cause visual artifacts and incorrect looking reflection. This is a common limitation for SSR techniques. |
+
+## Limitation
+
+The Screen Space Reflection effect rely on reading a color buffer with blurred mipmap generated at the previous frame. Depends on HDRP asset settings, the content of this color buffer may vary.
+- With Rough Refraction enabled and Distortion enabled, the color buffer included all transparents objects.
+- With Rough Refraction enabled and Distortion disabled, the color buffer included only transparents objects with [Rendering Pass](Surface-Type.md) **BeforeRefraction**. 
+- With Rough Refraction disabled and Distortion disabled, the color buffer included all transparents objects.

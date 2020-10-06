@@ -184,7 +184,6 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_CameraColorBuffer;
         RTHandle m_OpaqueAtmosphericScatteringBuffer; // Necessary to perform dual-source (polychromatic alpha) blending which is not supported by Unity
         RTHandle m_CameraSssDiffuseLightingBuffer;
-        RTHandle m_DistortionIntermediateBuffer;
 
         RTHandle m_ContactShadowBuffer;
         RTHandle m_ScreenSpaceShadowsBuffer;
@@ -737,7 +736,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CameraSssDiffuseLightingBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite: true, useDynamicScale: true, name: "CameraSSSDiffuseLighting");
 
             m_DistortionBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: Builtin.GetDistortionBufferFormat(), useDynamicScale: true, name: "Distortion");
-            m_DistortionIntermediateBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), enableRandomWrite: true, useMipMap: false, useDynamicScale: true, name: "DistortionIntermediateBuffer");
             m_ContactShadowBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_UInt, enableRandomWrite: true, useDynamicScale: true, name: "ContactShadowsBuffer");
 
             if (m_Asset.currentPlatformRenderPipelineSettings.lowresTransparentSettings.enabled)
@@ -818,7 +816,6 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_CameraSssDiffuseLightingBuffer);
 
             RTHandles.Release(m_DistortionBuffer);
-            RTHandles.Release(m_DistortionIntermediateBuffer);
             RTHandles.Release(m_ContactShadowBuffer);
             
             RTHandles.Release(m_LowResTransparentBuffer);
@@ -3618,24 +3615,16 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var currentColorPyramid = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
 
-                bool smoothDistortion = !hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughDistortion);
-                if (smoothDistortion)
-                    HDUtils.BlitCameraTexture(cmd, m_CameraColorBuffer, m_DistortionIntermediateBuffer);
-
                 CoreUtils.SetRenderTarget(cmd, m_CameraColorBuffer);
                 // TODO: Set stencil stuff via parameters rather than hardcoding it in shader.
                 m_ApplyDistortionMaterial.SetTexture(HDShaderIDs._DistortionTexture, m_DistortionBuffer);
-                if (smoothDistortion)
-                    m_ApplyDistortionMaterial.SetTexture(HDShaderIDs._ColorPyramidTexture, m_DistortionIntermediateBuffer);
-                else
-                    m_ApplyDistortionMaterial.SetTexture(HDShaderIDs._ColorPyramidTexture, currentColorPyramid);
+                m_ApplyDistortionMaterial.SetTexture(HDShaderIDs._ColorPyramidTexture, currentColorPyramid);
 
                 var size = new Vector4(hdCamera.actualWidth, hdCamera.actualHeight, 1f / hdCamera.actualWidth, 1f / hdCamera.actualHeight);
                 m_ApplyDistortionMaterial.SetVector(HDShaderIDs._Size, size);
                 m_ApplyDistortionMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.DistortionVectors);
                 m_ApplyDistortionMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.DistortionVectors);
 
-                CoreUtils.SetKeyword(cmd, "SMOOTH_DISTORTION", smoothDistortion);
                 HDUtils.DrawFullScreen(cmd, m_ApplyDistortionMaterial, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(), null, 0);
             }
         }
@@ -4909,10 +4898,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                bool distortionRequiresPyramid = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Distortion);
-                distortionRequiresPyramid = distortionRequiresPyramid && hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughDistortion);
                 // This final Gaussian pyramid can be reused by SSR, so disable it only if there is no distortion
-                if (!distortionRequiresPyramid && !hdCamera.IsSSREnabled())
+                if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Distortion) && !hdCamera.IsSSREnabled())
                     return;
             }
 

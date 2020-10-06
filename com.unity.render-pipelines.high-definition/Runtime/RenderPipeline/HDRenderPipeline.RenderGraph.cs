@@ -1206,12 +1206,11 @@ namespace UnityEngine.Rendering.HighDefinition
         class RenderDistortionPassData
         {
             public Material         applyDistortionMaterial;
-            public TextureHandle    sourceColorBuffer;
+            public TextureHandle    colorPyramidBuffer;
             public TextureHandle    distortionBuffer;
             public TextureHandle    colorBuffer;
             public TextureHandle    depthStencilBuffer;
             public Vector4          size;
-            public bool             smoothDistortion;
         }
 
         void RenderDistortion(  RenderGraph     renderGraph,
@@ -1227,8 +1226,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<RenderDistortionPassData>("Apply Distortion", out var passData, ProfilingSampler.Get(HDProfileId.ApplyDistortion)))
             {
                 passData.applyDistortionMaterial = m_ApplyDistortionMaterial;
-                passData.smoothDistortion = !hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughDistortion);
-                passData.sourceColorBuffer = passData.smoothDistortion ? builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GetColorBufferFormat(), name = "DistortionIntermediateBuffer" }) : builder.ReadTexture(colorPyramidBuffer);
+                passData.colorPyramidBuffer = builder.ReadTexture(colorPyramidBuffer);
                 passData.distortionBuffer = builder.ReadTexture(distortionBuffer);
                 passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
                 passData.depthStencilBuffer = builder.UseDepthBuffer(depthStencilBuffer, DepthAccess.Read);
@@ -1237,17 +1235,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (RenderDistortionPassData data, RenderGraphContext context) =>
                 {
-                    if (data.smoothDistortion)
-                        HDUtils.BlitCameraTexture(context.cmd, passData.colorBuffer, data.sourceColorBuffer);
-
                     // TODO: Set stencil stuff via parameters rather than hard-coding it in shader.
                     data.applyDistortionMaterial.SetTexture(HDShaderIDs._DistortionTexture, data.distortionBuffer);
-                    data.applyDistortionMaterial.SetTexture(HDShaderIDs._ColorPyramidTexture, data.sourceColorBuffer);
+                    data.applyDistortionMaterial.SetTexture(HDShaderIDs._ColorPyramidTexture, data.colorPyramidBuffer);
                     data.applyDistortionMaterial.SetVector(HDShaderIDs._Size, data.size);
                     data.applyDistortionMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.DistortionVectors);
                     data.applyDistortionMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.DistortionVectors);
 
-                    CoreUtils.SetKeyword(context.cmd, "SMOOTH_DISTORTION", data.smoothDistortion);
                     HDUtils.DrawFullScreen(context.cmd, data.applyDistortionMaterial, data.colorBuffer, data.depthStencilBuffer, null, 0);
                 });
             }
