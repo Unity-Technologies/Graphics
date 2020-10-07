@@ -1,5 +1,8 @@
 
 parent_dir = '.yamato'
+def _track_name(editor_track, fast):
+    return f'fast-{editor_track}' if fast else editor_track
+
 
 # editor specific 
 def editor_priming_filepath():
@@ -9,10 +12,7 @@ def editor_pinning_filepath():
     return f'{parent_dir}/_editor_pinning.yml'.lower()
 
 def editor_job_id(editor_version, platform_os, fast):
-    if fast:
-        return f'editor:priming:{editor_version}-fast:{platform_os}'
-    else:
-        return f'editor:priming:{editor_version}:{platform_os}'
+    return f'editor:priming:{_track_name(editor_version, fast)}:{platform_os}'
 
 
 def editor_job_id_test_min_editor(platform_os):
@@ -119,14 +119,14 @@ def project_filepath_all(project_name):
     # return f'{parent_dir}/{project_name}/all-{project_name}.yml'.lower()
     return f'{parent_dir}/all-{project_name}.yml'.lower()
 
-def project_job_id_test(project_name, platform_name, api_name, test_platform_name, editor_version):
-    return f'{project_name}_{platform_name}_{api_name}_{test_platform_name}_{editor_version}'.replace('__','_')
+def project_job_id_test(project_name, platform_name, api_name, test_platform_name, editor_version, fast):
+    return f'{project_name}_{platform_name}_{api_name}_{test_platform_name}_{_track_name(editor_version, fast)}'.replace('__','_')
 
-def project_job_id_build(project_name, platform_name, api_name, editor_version):
-    return f'Build_{project_name}_{platform_name}_{api_name}_Player_{editor_version}'.replace('__','_')
+def project_job_id_build(project_name, platform_name, api_name, editor_version, fast):
+    return f'Build_{project_name}_{platform_name}_{api_name}_Player_{_track_name(editor_version, fast)}'.replace('__','_')
 
-def project_job_id_all(project_name, editor_version):
-    return f'All_{project_name}_{ editor_version}'
+def project_job_id_all(project_name, editor_version, fast):
+    return f'All_{project_name}_{ _track_name(editor_version, fast)}'
 
 
 # abv specific

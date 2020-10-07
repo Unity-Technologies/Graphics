@@ -1,16 +1,16 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
-from ..shared.namer import editor_job_id
+from ..shared.namer import editor_job_id, _track_name
 from ..shared.constants import VAR_UPM_REGISTRY, PATH_UNITY_REVISION, UNITY_DOWNLOADER_CLI_URL, VAR_CUSTOM_REVISION
 from ..shared.yml_job import YMLJob
 
 class Editor_PrimingJob():
     
-    def __init__(self, platform, editor, agent, fast):
-        self.job_id = editor_job_id(editor["track"], platform["os"], fast)
-        self.yml = self.get_job_definition(platform, editor, agent, fast).get_yml()
+    def __init__(self, platform, editor, agent):
+        self.job_id = editor_job_id(editor["track"], platform["os"],editor.get('fast'))
+        self.yml = self.get_job_definition(platform, editor, agent).get_yml()
 
 
-    def get_job_definition(self, platform, editor, agent, fast):
+    def get_job_definition(self, platform, editor, agent):
         
         components = platform["components"]
 
@@ -25,14 +25,14 @@ class Editor_PrimingJob():
             editor_cli_rev = VAR_CUSTOM_REVISION 
         else:
             editor_cli_rev = str(editor["track"])
-            if fast: 
+            if editor.get('fast'): 
                 editor_cli_rev += " --fast"
         
         
         
         # construct job
         job = YMLJob()
-        job.set_name(f'[{editor["track"]},{platform["os"]}] Editor priming')
+        job.set_name(f'[{_track_name(editor["track"], editor.get("fast"))},{platform["os"]}] Editor priming')
         job.set_agent(agent)
         job.set_skip_checkout(True)
         job.add_var_custom('PATH', '/home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin')

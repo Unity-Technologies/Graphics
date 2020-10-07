@@ -17,6 +17,7 @@ GITHUB_CDS_URL = 'https://github.cds.internal.unity3d.com'
 DEFAULT_TIMEOUT = 1200
 
 
+
 def get_editor_revision(editor, platform_os):
     if str(editor['track']).lower()=='custom-revision':
         return VAR_CUSTOM_REVISION

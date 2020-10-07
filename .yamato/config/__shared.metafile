@@ -8,9 +8,15 @@ editors: # applied for all yml files
   - track: 2020.2
     rerun_strategy: on-new-revision
     editor_pinning: False
+    fast: True
+  - track: 2020.2
+    rerun_strategy: on-new-revision
+    editor_pinning: False
+    fast: False
   - track: CUSTOM-REVISION
     rerun_strategy: always
     editor_pinning: False
+    fast: False
 platforms:
   Win:
     name: Win
