@@ -112,7 +112,7 @@ namespace UnityEditor.ShaderGraph.Serialization
             {
                 var split = displayName.Split('.');
                 var last = split[split.Length - 1];
-                this.displayName = last.Replace("Target", "");
+                this.displayName = last.Replace("Target", "") + " (Unknown)";
                 isHidden = false;
                 this.jsonData = jsonData;
             }
@@ -153,6 +153,7 @@ namespace UnityEditor.ShaderGraph.Serialization
 
             public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<string> registerUndo)
             {
+                context.AddHelpBox(MessageType.Warning, "Cannot find the code for this Target, a package may be missing.");
             }
 
             public override bool IsActive() => false;
@@ -201,6 +202,7 @@ namespace UnityEditor.ShaderGraph.Serialization
 
             public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<string> registerUndo)
             {
+                context.AddHelpBox(MessageType.Warning, "Cannot find the code for this SubTarget, a package may be missing.");
             }
 
             public override bool IsActive() => false;

@@ -19,16 +19,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected override bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {
-            // Strip every useless shadow configs
-            var shadowInitParams = hdrpAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
-
-            foreach (var shadowVariant in m_ShadowKeywords.ShadowVariants)
-            {
-                if (shadowVariant.Key != shadowInitParams.shadowFilteringQuality)
-                    if (inputData.shaderKeywordSet.IsEnabled(shadowVariant.Value))
-                        return true;
-            }
-
             // CAUTION: Pass Name and Lightmode name must match in master node and .shader.
             // HDRP use LightMode to do drawRenderer and pass name is use here for stripping!
 
@@ -67,10 +57,21 @@ namespace UnityEditor.Rendering.HighDefinition
             if (isRayTracingPrepass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
                 return true;
 
-            // If we are in a release build, don't compile debug display variant
-            // Also don't compile it if not requested by the render pipeline settings
-            if ((!Debug.isDebugBuild || !hdrpAsset.currentPlatformRenderPipelineSettings.supportRuntimeDebugDisplay) && inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
+            // If requested by the render pipeline settings, or if we are in a release build,
+			// don't compile fullscreen debug display variant
+            bool isFullScreenDebugPass = snippet.passName == "FullScreenDebug";
+			if (isFullScreenDebugPass && (!Debug.isDebugBuild || !hdrpAsset.currentPlatformRenderPipelineSettings.supportRuntimeDebugDisplay))
                 return true;
+			
+            // Debug Display shader is currently the longest shader to compile, so we allow users to disable it at runtime.
+            // We also don't want it in release build.
+            // However our AOV API rely on several debug display shader. In case AOV API is requested at runtime (like for the Graphics Compositor)
+            // we allow user to make explicit request for it and it bypass other request
+            if (!hdrpAsset.currentPlatformRenderPipelineSettings.supportRuntimeAOVAPI)
+            {
+                if ((!Debug.isDebugBuild || !hdrpAsset.currentPlatformRenderPipelineSettings.supportRuntimeDebugDisplay) && inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
+                    return true;
+            }
 
             if (inputData.shaderKeywordSet.IsEnabled(m_LodFadeCrossFade) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportDitheringCrossFade)
                 return true;
@@ -82,29 +83,60 @@ namespace UnityEditor.Rendering.HighDefinition
             if (inputData.shaderKeywordSet.IsEnabled(m_SubsurfaceScattering) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportSubsurfaceScattering)
                 return true;
 
+            if (inputData.shaderKeywordSet.IsEnabled(m_Transparent))
+            {
+                // If transparent we don't need the depth only pass
+                bool isDepthOnlyPass = snippet.passName == "DepthForwardOnly";
+                if (isDepthOnlyPass)
+                    return true;
+
+                // If transparent we don't need the motion vector pass
+                if (isMotionPass)
+                    return true;
+
+                // If we are transparent we use cluster lighting and not tile lighting
+                if (inputData.shaderKeywordSet.IsEnabled(m_TileLighting))
+                    return true;
+            }
+            else // Opaque
+            {
+                // If opaque, we never need transparent specific passes (even in forward only mode)
+                bool isTransparentForwardPass = isTransparentPostpass || isTransparentBackface || isTransparentPrepass || isDistortionPass;
+                if (isTransparentForwardPass)
+                    return true;
+
+                // TODO: Should we remove Cluster version if we know MSAA is disabled ? This prevent to manipulate LightLoop Settings (useFPTL option)
+                // For now comment following code
+                // if (inputData.shaderKeywordSet.IsEnabled(m_ClusterLighting) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportMSAA)
+                //    return true;
+            }
+
+            // SHADOW
+
+            // Strip every useless shadow configs
+            var shadowInitParams = hdrpAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
+
+            foreach (var shadowVariant in m_ShadowKeywords.ShadowVariants)
+            {
+                if (shadowVariant.Key != shadowInitParams.shadowFilteringQuality)
+                    if (inputData.shaderKeywordSet.IsEnabled(shadowVariant.Value))
+                        return true;
+            }
+
+            // Screen space shadow variant is exclusive, either we have a variant with dynamic if that support screen space shadow or not
+            // either we have a variant that don't support at all. We can't have both at the same time.
+            if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowOFFKeywords) && shadowInitParams.supportScreenSpaceShadows)
+                return true;
+
+            if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowONKeywords) && !shadowInitParams.supportScreenSpaceShadows)
+                return true;
+
             // DECAL
 
-            // Identify when we compile a decal shader
-            bool isDecal3RTPass = false;
-            bool isDecal4RTPass = false;
-            bool isDecalPass = false;
-
-            if (snippet.passName.Contains("DBufferMesh") || snippet.passName.Contains("DBufferProjector"))
-            {
-                isDecalPass = true;
-
-                // All decal pass name can be see in Decalsystem.s_MaterialDecalPassNames and Decalsystem.s_MaterialSGDecalPassNames
-                // All pass that have 3RT in named are use when perChannelMask is false. All 4RT are used when perChannelMask is true.
-                // There is one exception, it is DBufferProjector_S that is used for both 4RT and 3RT as mention in Decal.shader
-                // there is a multi-compile to handle this pass, so it will be correctly removed by testing m_Decals3RT or m_Decals4RT
-                if (snippet.passName != DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferProjector_S])
-                {
-                    isDecal3RTPass = snippet.passName.Contains("3RT");
-                    isDecal4RTPass = !isDecal3RTPass;
-                }
-
-                // Note that we can't strip Emissive pass of decal.shader as we don't have the information here if it is used or not...
-            }
+            // Strip the decal prepass variant when decals are disabled
+            if (inputData.shaderKeywordSet.IsEnabled(m_WriteDecalBuffer) &&
+                    !(hdrpAsset.currentPlatformRenderPipelineSettings.supportDecals && hdrpAsset.currentPlatformRenderPipelineSettings.supportDecalLayers))
+                return true;
 
             // If decal support, remove unused variant
             if (hdrpAsset.currentPlatformRenderPipelineSettings.supportDecals)
@@ -113,16 +145,21 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (inputData.shaderKeywordSet.IsEnabled(m_DecalsOFF))
                     return true;
 
-                // If decal but with 4RT remove 3RT variant and vice versa
-                if ((inputData.shaderKeywordSet.IsEnabled(m_Decals3RT) || isDecal3RTPass) && hdrpAsset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask)
+                // If decal but with 4RT remove 3RT variant and vice versa for both Material and Decal Material
+                if (inputData.shaderKeywordSet.IsEnabled(m_Decals3RT) && hdrpAsset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask)
                     return true;
 
-                if ((inputData.shaderKeywordSet.IsEnabled(m_Decals4RT) || isDecal4RTPass) && !hdrpAsset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask)
+                if (inputData.shaderKeywordSet.IsEnabled(m_Decals4RT) && !hdrpAsset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask)
                     return true;
             }
             else
             {
-                if (isDecalPass)
+                // Strip if it is a decal pass
+                bool isDBufferMesh = snippet.passName == "DBufferMesh";
+                bool isDecalMeshForwardEmissive = snippet.passName == "DecalMeshForwardEmissive";
+                bool isDBufferProjector = snippet.passName == "DBufferProjector";
+                bool isDecalProjectorForwardEmissive = snippet.passName == "DecalProjectorForwardEmissive";
+                if (isDBufferMesh || isDecalMeshForwardEmissive || isDBufferProjector || isDecalProjectorForwardEmissive)
                     return true;
 
                 // If no decal support, remove decal variant
@@ -134,6 +171,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 
+#if UNITY_2020_2_OR_NEWER
     class HDRPPreprocessComputeShaders : IPreprocessComputeShaders
     {
         struct ExportComputeShaderStrip : System.IDisposable
@@ -195,6 +233,8 @@ namespace UnityEditor.Rendering.HighDefinition
         protected ShadowKeywords m_ShadowKeywords = new ShadowKeywords();
         protected ShaderKeyword m_EnableAlpha = new ShaderKeyword("ENABLE_ALPHA");
         protected ShaderKeyword m_MSAA = new ShaderKeyword("ENABLE_MSAA");
+        protected ShaderKeyword m_ScreenSpaceShadowOFFKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_OFF");
+        protected ShaderKeyword m_ScreenSpaceShadowONKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_ON");
 
         public int callbackOrder { get { return 0; } }
 
@@ -226,18 +266,24 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (shadowVariant.Key != shadowInitParams.shadowFilteringQuality)
                 {
                     if (inputData.shaderKeywordSet.IsEnabled(shadowVariant.Value))
-                    {
                         return true;
-                    }
                 }
             }
 
-            if(inputData.shaderKeywordSet.IsEnabled(m_MSAA) && !hdAsset.currentPlatformRenderPipelineSettings.supportMSAA)
+            // Screen space shadow variant is exclusive, either we have a variant with dynamic if that support screen space shadow or not
+            // either we have a variant that don't support at all. We can't have both at the same time.
+            if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowOFFKeywords) && shadowInitParams.supportScreenSpaceShadows)
+                return true;
+
+            if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowONKeywords) && !shadowInitParams.supportScreenSpaceShadows)
+                return true;
+
+            if (inputData.shaderKeywordSet.IsEnabled(m_MSAA) && !hdAsset.currentPlatformRenderPipelineSettings.supportMSAA)
             {
                 return true;
             }
 
-            if(inputData.shaderKeywordSet.IsEnabled(m_EnableAlpha) && !hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha)
+            if (inputData.shaderKeywordSet.IsEnabled(m_EnableAlpha) && !hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha)
             {
                 return true;
             }
@@ -308,6 +354,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
     }
+#endif // #if UNITY_2020_2_OR_NEWER
 
     class HDRPreprocessShaders : IPreprocessShaders
     {

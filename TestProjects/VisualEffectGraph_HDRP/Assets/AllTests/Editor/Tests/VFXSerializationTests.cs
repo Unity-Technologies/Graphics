@@ -348,14 +348,14 @@ namespace UnityEditor.VFX.Test
         {
             Action<VisualEffectAsset> write = delegate(VisualEffectAsset asset)
             {
-                var builtIn = VFXLibrary.GetOperators().First(o => o.name == ObjectNames.NicifyVariableName(VFXExpressionOperation.TotalTime.ToString())).CreateInstance();
+                var builtIn = VFXLibrary.GetOperators().First(o => o.name.StartsWith("Total Time (VFX)")).CreateInstance();
                 asset.GetResource().GetOrCreateGraph().AddChild(builtIn);
                 Assert.AreEqual(VFXExpressionOperation.TotalTime, builtIn.outputSlots[0].GetExpression().operation);
             };
 
             Action<VisualEffectAsset> read = delegate(VisualEffectAsset asset)
             {
-                var builtIn = asset.GetResource().GetOrCreateGraph()[0] as VFXBuiltInParameter;
+                var builtIn = asset.GetResource().GetOrCreateGraph()[0] as VFXDynamicBuiltInParameter;
                 Assert.AreNotEqual(null, builtIn);
                 Assert.AreEqual(VFXExpressionOperation.TotalTime, builtIn.outputSlots[0].GetExpression().operation);
             };
@@ -369,7 +369,7 @@ namespace UnityEditor.VFX.Test
             {
                 var graph = asset.GetResource().GetOrCreateGraph();
                 var add = ScriptableObject.CreateInstance<Operator.Add>();
-                var builtIn = VFXLibrary.GetOperators().First(o => o.name == ObjectNames.NicifyVariableName(VFXExpressionOperation.TotalTime.ToString())).CreateInstance();
+                var builtIn = VFXLibrary.GetOperators().First(o => o.name.StartsWith("Total Time (VFX)")).CreateInstance();
                 graph.AddChild(builtIn);
                 graph.AddChild(add);
                 add.inputSlots[0].Link(builtIn.outputSlots[0]);
@@ -381,7 +381,7 @@ namespace UnityEditor.VFX.Test
             Action<VisualEffectAsset> read = delegate(VisualEffectAsset asset)
             {
                 var graph = asset.GetResource().GetOrCreateGraph();
-                var builtIn = graph[0] as VFXBuiltInParameter;
+                var builtIn = graph[0] as VFXDynamicBuiltInParameter;
                 var add = graph[1] as Operator.Add;
 
                 Assert.AreNotEqual(null, builtIn);

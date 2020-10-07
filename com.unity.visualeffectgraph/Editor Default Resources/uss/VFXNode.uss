@@ -93,6 +93,7 @@
 {
     padding-top: 6px;
     padding-bottom: 6px;
+    flex: 1 1 auto;
 }
 
 #line

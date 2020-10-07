@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Reflection;
-using Data.Interfaces;
 using UnityEditor.ShaderGraph.Drawing;
-using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Drawing.Inspector.PropertyDrawers
+namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
     [SGPropertyDrawer(typeof(Matrix4x4))]
     class MatrixPropertyDrawer : IPropertyDrawer

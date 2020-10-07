@@ -18,6 +18,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public EyeSubTarget() => displayName = "Eye";
 
+        static readonly GUID kSubTargetSourceCodeGuid = new GUID("864e4e09d6293cf4d98457f740bb3301");  // EyeSubTarget.cs
+
         static string[] passTemplateMaterialDirectories = new string[]
         {
             $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Eye/ShaderGraph/",
@@ -25,8 +27,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         };
 
         protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
-        protected override string customInspector => "Rendering.HighDefinition.EyeGUI";
-        protected override string subTargetAssetGuid => "864e4e09d6293cf4d98457f740bb3301";
+        protected override string customInspector => "Rendering.HighDefinition.LightingShaderGraphGUI";
+        protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Eye;
         protected override string subShaderInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/Eye.hlsl";
         protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "Eye SubShader", "");
@@ -59,6 +61,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(Eye,                                  eyeData.materialType == EyeData.MaterialType.Eye);
             context.AddField(EyeCinematic,                         eyeData.materialType == EyeData.MaterialType.EyeCinematic);
             context.AddField(SubsurfaceScattering,                 eyeData.subsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
+
+            context.AddField(SpecularAA, lightingData.specularAA &&
+                                context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold) &&
+                                context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance));
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)

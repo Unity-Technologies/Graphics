@@ -26,16 +26,19 @@ namespace UnityEditor.ShaderGraph
             [SerializeField]
             string m_FunctionSource = null;
 
-            public void GetSourceAssetDependencies(List<string> paths)
+            public void GetSourceAssetDependencies(AssetCollection assetCollection)
             {
                 if (m_SourceType == HlslSourceType.File)
                 {
                     m_FunctionSource = UpgradeFunctionSource(m_FunctionSource);
                     if (IsValidFunction(m_SourceType, m_FunctionName, m_FunctionSource, null))
                     {
-                        var assetPath = AssetDatabase.GUIDToAssetPath(m_FunctionSource);
-                        if (!string.IsNullOrEmpty(assetPath))   // Ideally, we would record the GUID as a missing dependency here
-                            paths.Add(assetPath);
+                        if (GUID.TryParse(m_FunctionSource, out GUID guid))
+                        {
+                            // as this is just #included into the generated .shader file
+                            // it doesn't actually need to be a dependency, other than for export package
+                            assetCollection.AddAssetDependency(guid, AssetCollection.Flags.IncludeInExportPackage);
+                        }
                     }
                 }
             }
@@ -281,10 +284,6 @@ namespace UnityEditor.ShaderGraph
 
         public override void ValidateNode()
         {
-            if (!this.GetOutputSlots<MaterialSlot>().Any())
-            {
-                owner.AddValidationError(objectId, k_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
-            }
             if(sourceType == HlslSourceType.File)
             {
                 if(!string.IsNullOrEmpty(functionSource))
@@ -297,8 +296,16 @@ namespace UnityEditor.ShaderGraph
                         {
                             owner.AddValidationError(objectId, k_InvalidFileType, ShaderCompilerMessageSeverity.Error);
                         }
+                        else
+                        {
+                            owner.ClearErrorsForNode(this);
+                        }
                     }
                 }
+            }
+            if (!this.GetOutputSlots<MaterialSlot>().Any())
+            {
+                owner.AddValidationError(objectId, k_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
             }
             ValidateSlotName();
 

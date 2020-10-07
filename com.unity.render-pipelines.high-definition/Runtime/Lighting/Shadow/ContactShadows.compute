@@ -14,10 +14,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/ContactShadows.hlsl"
 
-// We perform scalarization all the time here as we don't know if we have clustered data structure or not at this point. 
-// More info on scalarization: https://flashypixels.wordpress.com/2018/11/10/intro-to-gpu-scalarization-part-2-scalarize-all-the-lights/
-#define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER))
-
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
 // #pragma enable_d3d11_debug_symbols
@@ -26,7 +22,7 @@
     TEXTURE2D_X(_CameraDepthValues);
 #endif
 
-#define DEFERRED_SHADOW_TILE_SIZE 16
+#define DEFERRED_SHADOW_TILE_SIZE 8
 
 float SampleDepth(float2 UV, bool HalfRes)
 {
@@ -41,6 +37,16 @@ float SampleDepth(float2 UV, bool HalfRes)
     return LoadCameraDepth(pixelCoord);
 }
 
+float GetDepthCompareThreshold(float step, float rayStartZ, float rayOrthoZ)
+{
+    return abs(rayOrthoZ - rayStartZ) * _ContactShadowThickness * max(0.07, step);
+}
+
+bool CompareDepth(float depthDiff, float compareThreshold)
+{
+    return abs(compareThreshold - depthDiff) < compareThreshold;
+}
+
 
 bool ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirWS, float rayLength, uint2 positionSS, out float fade)
 {
@@ -50,7 +56,7 @@ bool ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirWS, float rayLengt
     uint taaEnabled = _TaaFrameInfo.w;
     float dither = InterleavedGradientNoise(positionSS, (_FrameCount % 8u) * taaEnabled) - ditherBias;
 
-    float3 rayStartWS = positionWS;
+    float3 rayStartWS = positionWS - positionWS * _ContactShadowBias;
     float3 rayEndWS = rayStartWS + rayDirWS * rayLength;
 
     float4 rayStartCS = TransformWorldToHClip(rayStartWS);
@@ -68,7 +74,7 @@ bool ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirWS, float rayLengt
     float3 rayDirCS = rayEndCS.xyz - rayStartCS.xyz;
 
     float step = 1.0f / _SampleCount;
-    float compareThreshold = abs(rayOrthoViewSpace.z - rayStartCS.z) * max(0.07f, step);
+    float compareThreshold = GetDepthCompareThreshold(step, rayStartCS.z, rayOrthoViewSpace.z);
 
     float occluded = 0.0f;
 
@@ -107,7 +113,7 @@ bool ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirWS, float rayLengt
 
         float depthDiff = sampleDepth - sampleAlongRay.z;
 
-        if (depthDiff > 0.0f && depthDiff < compareThreshold && sampleAlongRay.z > 0)
+        if (depthDiff > 0.0f && CompareDepth(depthDiff, compareThreshold) && sampleAlongRay.z > 0)
         {
             if (tracingHalfRes)
             {
@@ -163,7 +169,8 @@ void DeferredContactShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     uint2 pixelCoord = groupId * DEFERRED_SHADOW_TILE_SIZE + groupThreadId;
-    uint2 tileCoord = groupId;
+    // There might be a mismatch between the size of a tile and the group size of this shader.
+    uint2 tileCoord = groupId * (DEFERRED_SHADOW_TILE_SIZE / TILE_SIZE_FPTL);
 
 #ifdef ENABLE_MSAA
     float depth = LOAD_TEXTURE2D_X(_CameraDepthValues, pixelCoord.xy).z;

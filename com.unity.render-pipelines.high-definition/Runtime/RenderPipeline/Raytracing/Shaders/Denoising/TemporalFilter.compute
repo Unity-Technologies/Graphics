@@ -35,7 +35,7 @@ TEXTURE2D_X(_DepthTexture);
 // Depth buffer of the previous frame
 TEXTURE2D_X(_HistoryDepthTexture);
 // Normal buffer of the previous frame
-TEXTURE2D_X(_HistoryNormalBufferTexture);
+TEXTURE2D_X(_HistoryNormalTexture);
 // Buffer that stores the result of the validation pass of the history
 RW_TEXTURE2D_X(float, _ValidationBufferRW);
 // Velocity buffer for history rejection
@@ -104,7 +104,7 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     float3 historyPositionWS = ComputeWorldSpacePosition(posInputs.positionNDC - velocity, historyDepth, UNITY_MATRIX_PREV_I_VP);
 
     // Compute the max reprojection distance. This is evaluated as the max between a fixed radius value and an approximation of the footprint of the pixel.
-    float3 viewWS = normalize(-posInputs.positionWS);
+    const float3 viewWS = GetWorldSpaceNormalizeViewDir(posInputs.positionWS);
     float parallelPixelFootPrint = _PixelSpreadAngleTangent * length(posInputs.positionWS);
     float realPixelFootPrint = parallelPixelFootPrint / abs(dot(normalData.normalWS, viewWS));
     float maxRadius = max(MAX_WORLD_SPACE_DISTANCE, realPixelFootPrint * PIXEL_RADIUS_TOLERANCE_THRESHOLD);
@@ -117,9 +117,9 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     }
 
     // Compute the world space normal (from previous frame)
-    float4 historyNormal = LOAD_TEXTURE2D_X(_HistoryNormalBufferTexture, historyTapCoord);
+    float4 historyNormal = LOAD_TEXTURE2D_X(_HistoryNormalTexture, historyTapCoord);
     NormalData historyNormalData;
-    DecodeFromNormalBuffer(historyNormal, uint2(0,0), historyNormalData);
+    DecodeFromNormalBuffer(historyNormal, historyNormalData);
     
     // If the current normal is too different from the previous one, discard the history.
     if (dot(normalData.normalWS, historyNormalData.normalWS) < MAX_NORMAL_DIFFERENCE)

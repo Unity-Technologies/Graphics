@@ -14,6 +14,7 @@ using UnityEditor.ShaderGraph.Serialization;
 using Edge = UnityEditor.Graphing.Edge;
 
 using UnityEngine.UIElements;
+using UnityEngine.Assertions;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -276,7 +277,7 @@ namespace UnityEditor.ShaderGraph
         public bool isSubGraph { get; set; }
 
         [SerializeField]
-        private ConcretePrecision m_ConcretePrecision = ConcretePrecision.Float;
+        private ConcretePrecision m_ConcretePrecision = ConcretePrecision.Single;
 
         public ConcretePrecision concretePrecision
         {
@@ -297,52 +298,199 @@ namespace UnityEditor.ShaderGraph
         internal static SaveGraphDelegate onSaveGraph;
 
         #region Targets
+
+        // Serialized list of user-selected active targets, sorted in displayName order (to maintain deterministic serialization order)
+        // some of these may be MultiJsonInternal.UnknownTargetType if we can't recognize the type of the target
         [SerializeField]
-        List<JsonData<Target>> m_ActiveTargets = new List<JsonData<Target>>();
-
-        [NonSerialized]
-        List<Target> m_ValidTargets = new List<Target>();
-
-        [NonSerialized]
-        List<Target> m_UnsupportedTargets = new List<Target>();
-
-        public List<Target> unsupportedTargets { get => m_UnsupportedTargets; }
-
-        int m_ActiveTargetBitmask;
-        public int activeTargetBitmask
-        {
-            get => m_ActiveTargetBitmask;
-            set => m_ActiveTargetBitmask = value;
-        }
-
-        public List<Target> validTargets => m_ValidTargets;
+        internal List<JsonData<Target>> m_ActiveTargets = new List<JsonData<Target>>();      // After adding to this list, you MUST call SortActiveTargets()
         public DataValueEnumerable<Target> activeTargets => m_ActiveTargets.SelectValue();
 
-        // TODO: Need a better way to handle this
-        public bool isVFXTarget => !isSubGraph && activeTargets.Count() > 0 && activeTargets.ElementAt(0).GetType() == typeof(VFXTarget);
-        #endregion
+        // this stores all of the current possible Target types (including any unknown target types we serialized in)
+        class PotentialTarget
+        {
+            // the potential Target
+            Target m_Target;
+
+            // a Target is either known (we know the Type) or unknown (can't find a matching definition of the Type)
+            // Targets of unknown type are stored in an UnknownTargetType
+            private Type m_KnownType;
+            private MultiJsonInternal.UnknownTargetType m_UnknownTarget;
+
+            public PotentialTarget(Target target)
+            {
+                m_Target = target;
+
+                if (target is MultiJsonInternal.UnknownTargetType)
+                {
+                    m_UnknownTarget = (MultiJsonInternal.UnknownTargetType) target;
+                    m_KnownType = null;
+                }
+                else
+                {
+                    m_UnknownTarget = null;
+                    m_KnownType = target.GetType();
+                }
+            }
+
+            public bool IsUnknown()
+            {
+                return m_UnknownTarget != null;
+            }
+
+            public MultiJsonInternal.UnknownTargetType GetUnknown()
+            {
+                return m_UnknownTarget;
+            }
+
+            public Type knownType { get { return m_KnownType; } }
+
+            public bool Is(Target t)
+            {
+                return t == m_Target;
+            }
+
+            public string GetDisplayName()
+            {
+                return m_Target.displayName;
+            }
+
+            public void ReplaceStoredTarget(Target t)
+            {
+                if (m_KnownType != null)
+                    Assert.IsTrue(t.GetType() == m_KnownType);
+                m_Target = t;
+            }
+
+            public Target GetTarget()
+            {
+                return m_Target;
+            }
+        }
+        [NonSerialized]
+        List<PotentialTarget> m_AllPotentialTargets = new List<PotentialTarget>();
+        public IEnumerable<Target> allPotentialTargets => m_AllPotentialTargets.Select(x => x.GetTarget());
+
+        public int GetTargetIndexByKnownType(Type targetType)
+        {
+            return m_AllPotentialTargets.FindIndex(pt => pt.knownType == targetType);
+        }
+
+        public int GetTargetIndex(Target t)
+        {
+            int result = m_AllPotentialTargets.FindIndex(pt => pt.Is(t));
+            return result;
+        }
+
+        public List<string> GetPotentialTargetDisplayNames()
+        {
+            List<string> displayNames = new List<string>(m_AllPotentialTargets.Count);
+            for (int validIndex = 0; validIndex < m_AllPotentialTargets.Count; validIndex++)
+            {
+                displayNames.Add(m_AllPotentialTargets[validIndex].GetDisplayName());
+            }
+            return displayNames;
+        }
+
+        public void SetTargetActive(Target target, bool skipSortAndUpdate = false)
+        {
+            int activeIndex = m_ActiveTargets.IndexOf(target);
+            if (activeIndex < 0)
+            {
+                activeIndex = m_ActiveTargets.Count;
+                m_ActiveTargets.Add(target);
+            }
+
+            // active known targets should replace the stored Target in AllPotentialTargets
+            if (target is MultiJsonInternal.UnknownTargetType unknownTarget)
+            {
+                // find any existing potential target with the same unknown jsonData
+                int targetIndex = m_AllPotentialTargets.FindIndex(
+                    pt => pt.IsUnknown() && (pt.GetUnknown().jsonData == unknownTarget.jsonData));
+
+                // replace existing target, or add it if there is none
+                if (targetIndex >= 0)
+                    m_AllPotentialTargets[targetIndex] = new PotentialTarget(target);
+                else
+                    m_AllPotentialTargets.Add(new PotentialTarget(target));
+            }
+            else
+            {
+                // known types should already have been registered
+                Type targetType = target.GetType();
+                int targetIndex = GetTargetIndexByKnownType(targetType);
+                Assert.IsTrue(targetIndex >= 0);
+                m_AllPotentialTargets[targetIndex].ReplaceStoredTarget(target);
+            }
+
+            if (!skipSortAndUpdate)
+                SortAndUpdateActiveTargets();
+        }
+
+        public void SetTargetActive(int targetIndex, bool skipSortAndUpdate = false)
+        {
+            Target target = m_AllPotentialTargets[targetIndex].GetTarget();
+            SetTargetActive(target, skipSortAndUpdate);
+        }
+
+        public void SetTargetInactive(Target target, bool skipSortAndUpdate = false)
+        {
+            int activeIndex = m_ActiveTargets.IndexOf(target);
+            if (activeIndex < 0)
+                return;
+
+            int targetIndex = GetTargetIndex(target);
+
+            // if a target was in the active targets, it should also have been in the potential targets list
+            Assert.IsTrue(targetIndex >= 0);
+
+            m_ActiveTargets.RemoveAt(activeIndex);
+
+            if (!skipSortAndUpdate)
+                SortAndUpdateActiveTargets();
+        }
+
+        // this list is populated by graph validation, and lists all of the targets that nodes did not like
+        [NonSerialized]
+        List<Target> m_UnsupportedTargets = new List<Target>();
+        public List<Target> unsupportedTargets { get => m_UnsupportedTargets; }
 
         private Comparison<Target> targetComparison = new Comparison<Target>((a, b) => string.Compare(a.displayName, b.displayName));
+        public void SortActiveTargets()
+        {
+            activeTargets.Sort(targetComparison);
+        }
+
+        // TODO: Need a better way to handle this
+#if VFX_GRAPH_10_0_0_OR_NEWER
+        public bool hasVFXTarget => !isSubGraph && activeTargets.Count() > 0 && activeTargets.OfType<VFXTarget>().Any();
+        public bool isOnlyVFXTarget => hasVFXTarget && activeTargets.Count() == 1;
+#else
+        public bool isVFXTarget => false;
+        public bool isOnlyVFXTarget => false;
+#endif
+        #endregion
 
         public GraphData()
         {
             m_GroupItems[null] = new List<IGroupItem>();
             GetBlockFieldDescriptors();
-            GetTargets();
+            AddKnownTargetsToPotentialTargets();
         }
 
+        // used to initialize the graph with targets, i.e. when creating new graphs via the popup menu
         public void InitializeOutputs(Target[] targets, BlockFieldDescriptor[] blockDescriptors)
         {
-            if(targets == null)
+            if (targets == null)
                 return;
 
-            foreach(var target in targets)
+            foreach (var target in targets)
             {
-                if(m_ValidTargets.Any(x => x.GetType().Equals(target.GetType())))
+                if (GetTargetIndexByKnownType(target.GetType()) >= 0)
                 {
-                    m_ActiveTargets.Add(target);
+                    SetTargetActive(target, true);
                 }
             }
+            SortActiveTargets();
 
             if(blockDescriptors != null)
             {
@@ -363,81 +511,55 @@ namespace UnityEditor.ShaderGraph
         void GetBlockFieldDescriptors()
         {
             m_BlockFieldDescriptors = new List<BlockFieldDescriptor>();
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+
+            var asmTypes = TypeCache.GetTypesWithAttribute<GenerateBlocksAttribute>();
+            foreach (var type in asmTypes)
             {
-                foreach (var nestedType in assembly.GetTypes().SelectMany(t => t.GetNestedTypes()))
+                var attrs = type.GetCustomAttributes(typeof(GenerateBlocksAttribute), false);
+                if (attrs == null || attrs.Length <= 0)
+                    continue;
+
+                var attribute = attrs[0] as GenerateBlocksAttribute;
+
+                // Get all fields that are BlockFieldDescriptor
+                // If field and context stages match add to list
+                foreach (var fieldInfo in type.GetFields())
                 {
-                    var attrs = nestedType.GetCustomAttributes(typeof(GenerateBlocksAttribute), false);
-                    if (attrs == null || attrs.Length <= 0)
-                        continue;
-
-                    var attribute = attrs[0] as GenerateBlocksAttribute;
-
-                    // Get all fields that are BlockFieldDescriptor
-                    // If field and context stages match add to list
-                    foreach (var fieldInfo in nestedType.GetFields())
+                    if (fieldInfo.GetValue(type) is BlockFieldDescriptor blockFieldDescriptor)
                     {
-                        if(fieldInfo.GetValue(nestedType) is BlockFieldDescriptor blockFieldDescriptor)
-                        {
-                            blockFieldDescriptor.path = attribute.path;
-                            m_BlockFieldDescriptors.Add(blockFieldDescriptor);
-                        }
+                        blockFieldDescriptor.path = attribute.path;
+                        m_BlockFieldDescriptors.Add(blockFieldDescriptor);
                     }
                 }
             }
         }
 
-        void GetTargets()
+        void AddKnownTargetsToPotentialTargets()
         {
-            // Find all valid Targets
-            var typeCollection = TypeCache.GetTypesDerivedFrom<Target>();
-            foreach(var type in typeCollection)
+            Assert.AreEqual(m_AllPotentialTargets.Count, 0);
+
+            // Find all valid Targets by looking in the TypeCache
+            var targetTypes = TypeCache.GetTypesDerivedFrom<Target>();
+            foreach (var type in targetTypes)
             {
                 if(type.IsAbstract || type.IsGenericType || !type.IsClass)
                     continue;
 
-                var target = (Target)Activator.CreateInstance(type);
-                if(!target.isHidden)
+                // create a new instance of the Target, to represent the potential Target
+                // NOTE: this instance may be replaced later if we serialize in an Active Target of that type
+                var target = (Target) Activator.CreateInstance(type);
+                if (!target.isHidden)
                 {
-                    m_ValidTargets.Add(target);
+                    m_AllPotentialTargets.Add(new PotentialTarget(target));
                 }
             }
         }
 
-        public void UpdateActiveTargets(bool reevaluateActivity = true)
+        public void SortAndUpdateActiveTargets()
         {
-            // Update active TargetImplementation list
-            if(m_ActiveTargets != null)
-            {
-                m_ActiveTargets.Clear();
-                var invalidTargetsToRemove = ListPool<Target>.Get();
-                var targetCount = m_ValidTargets.Count;
-                for(int i = 0; i < targetCount; i++)
-                {
-                    if(((1 << i) & m_ActiveTargetBitmask) == (1 << i))
-                    {
-                        m_ActiveTargets.Add(m_ValidTargets[i]);
-                    }
-                    //if we no longer have an unknown target as active, remove it
-                    else if(m_ValidTargets[i] is MultiJsonInternal.UnknownTargetType)
-                    {
-                        invalidTargetsToRemove.Add(m_ValidTargets[i]);
-                    }
-                }
-
-                foreach(var invalidTarget in invalidTargetsToRemove)
-                {
-                    m_ValidTargets.Remove(invalidTarget);
-                }
-                ListPool<Target>.Release(invalidTargetsToRemove);
-            }
-            if (reevaluateActivity)
-            {
-                ValidateGraph();
-                NodeUtils.ReevaluateActivityOfNodeList(m_Nodes.SelectValue());
-            }
-            //deal with the fact that target order might switch if unknown targets are collected
-            activeTargets.Sort(targetComparison);
+            SortActiveTargets();
+            ValidateGraph();
+            NodeUtils.ReevaluateActivityOfNodeList(m_Nodes.SelectValue());
         }
 
         public void ClearChanges()
@@ -1477,15 +1599,21 @@ namespace UnityEditor.ShaderGraph
 
             outputNode = other.outputNode;
 
-            // Copy all targets
+            // clear our local active targets and copy state from the other GraphData
+
+            // NOTE:  we DO NOT clear or rebuild m_AllPotentialTargets, in order to
+            // retain the data from any inactive targets.
+            // this allows the user can add them back and keep the old settings
+
             m_ActiveTargets.Clear();
-            foreach(var target in other.activeTargets)
+            foreach (var target in other.activeTargets)
             {
                 // Ensure target inits correctly
                 var context = new TargetSetupContext();
                 target.Setup(ref context);
-                m_ActiveTargets.Add(target);
+                SetTargetActive(target, true);
             }
+            SortActiveTargets();
 
             // Active blocks
             var activeBlocks = GetActiveBlocksForAllActiveTargets();
@@ -1543,10 +1671,9 @@ namespace UnityEditor.ShaderGraph
                 {
                     // If the property is not in the current graph, do check if the
                     // property can be made into a concrete node.
-                    var index = graphToPaste.metaProperties.TakeWhile(x => x != propertyNode.property).Count();
-                    var originalId = graphToPaste.metaPropertyIds.ElementAt(index);
-                    var property = m_Properties.SelectValue().FirstOrDefault(x => x.objectId == originalId);
-                    if (property != null)
+                    var property = m_Properties.SelectValue().FirstOrDefault(x => x.objectId == propertyNode.property.objectId
+                                                                              || (x.propertyType == propertyNode.property.propertyType && x.referenceName == propertyNode.property.referenceName));
+                    if(property != null)
                     {
                         propertyNode.property = property;
                     }
@@ -1597,9 +1724,8 @@ namespace UnityEditor.ShaderGraph
                 // Check if the keyword nodes need to have their keywords copied.
                 if (node is KeywordNode keywordNode)
                 {
-                    var index = graphToPaste.metaKeywords.TakeWhile(x => x != keywordNode.keyword).Count();
-                    var originalId = graphToPaste.metaKeywordIds.ElementAt(index);
-                    var keyword = m_Keywords.SelectValue().FirstOrDefault(x => x.objectId == originalId);
+                    var keyword = m_Keywords.SelectValue().FirstOrDefault(x => x.objectId == keywordNode.keyword.objectId
+                                                                      || (x.keywordType == keywordNode.keyword.keywordType && x.referenceName == keywordNode.keyword.referenceName));
                     if (keyword != null)
                     {
                         keywordNode.keyword = keyword;
@@ -1932,21 +2058,26 @@ namespace UnityEditor.ShaderGraph
                     m_VertexContext.position = oldPosition;
                     m_FragmentContext.position = new Vector2(oldPosition.x, oldPosition.y + 200);
 
-                    // Try to upgrade all valid targets from master node
-                    // On ShaderGraph side we dont know what Targets exist so make no assumptions
-                    if(masterNode != null)
+                    // Try to upgrade all potential targets from master node
+                    if (masterNode != null)
                     {
-                        foreach(var target in m_ValidTargets)
+                        foreach (var potentialTarget in m_AllPotentialTargets)
                         {
-                            if(!(target is ILegacyTarget legacyTarget))
+                            if (potentialTarget.IsUnknown())
                                 continue;
 
-                            if(!legacyTarget.TryUpgradeFromMasterNode(masterNode, out var newBlockMap))
+                            var target = potentialTarget.GetTarget();
+                            if (!(target is ILegacyTarget legacyTarget))
                                 continue;
 
-                            m_ActiveTargets.Add(target);
+                            if (!legacyTarget.TryUpgradeFromMasterNode(masterNode, out var newBlockMap))
+                                continue;
+
+                            // upgrade succeeded!  Activate it
+                            SetTargetActive(target, true);
                             UpgradeFromBlockMap(newBlockMap);
                         }
+                        SortActiveTargets();
                     }
 
                     // Clean up after upgrade
@@ -2066,21 +2197,26 @@ namespace UnityEditor.ShaderGraph
             DeserializeContextData(m_VertexContext, ShaderStage.Vertex);
             DeserializeContextData(m_FragmentContext, ShaderStage.Fragment);
 
-            foreach(var target in m_ActiveTargets.SelectValue())
+            // there should be no unknown potential targets at this point
+            Assert.IsFalse(m_AllPotentialTargets.Any(pt => pt.IsUnknown()));
+
+            foreach (var target in m_ActiveTargets.SelectValue())
             {
-                //need to mark the target as valid just so other logic doesnt break
-                if(target.GetType() == typeof(MultiJsonInternal.UnknownTargetType))
+                var targetType = target.GetType();
+                if (targetType == typeof(MultiJsonInternal.UnknownTargetType))
                 {
-                    m_ValidTargets.Add(target);
+                    // register any active UnknownTargetType as a potential target
+                    m_AllPotentialTargets.Add(new PotentialTarget(target));
                 }
-                var activeTargetCurrent = m_ValidTargets.FirstOrDefault(x => x.GetType() == target.GetType());
-                var targetIndex = m_ValidTargets.IndexOf(activeTargetCurrent);
-                m_ActiveTargetBitmask = m_ActiveTargetBitmask | (1 << targetIndex);
-                m_ValidTargets[targetIndex] = target;
+                else
+                {
+                    // active known targets should replace the stored Target in AllPotentialTargets
+                    int targetIndex = m_AllPotentialTargets.FindIndex(pt => pt.knownType == targetType);
+                    m_AllPotentialTargets[targetIndex].ReplaceStoredTarget(target);
+                }
             }
 
-            UpdateActiveTargets(false);
-
+            SortActiveTargets();
         }
 
         private void ReplaceNodeWithNode(LegacyUnknownTypeNode nodeToReplace, AbstractMaterialNode nodeReplacement)

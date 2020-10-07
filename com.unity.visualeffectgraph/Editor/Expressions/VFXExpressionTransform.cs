@@ -301,7 +301,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionExtractScaleFromMatrix(VFXExpression parent) : base(VFXExpression.Flags.InvalidOnGPU, new VFXExpression[] { parent })
+        public VFXExpressionExtractScaleFromMatrix(VFXExpression parent) : base(VFXExpression.Flags.None, new VFXExpression[] { parent })
         {
         }
 
@@ -328,6 +328,10 @@ namespace UnityEditor.VFX
             var matrix = matrixReduce.Get<Matrix4x4>();
             matrix.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
             return VFXValue.Constant(matrix.lossyScale);
+        }
+        public override string GetCodeString(string[] parents)
+        {
+            return string.Format("float3(length({0}[0]),length({0}[1]),length({0}[2]))", parents[0]);
         }
     }
 
@@ -439,8 +443,8 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionTransformVector4(VFXExpression matrix, VFXExpression position)
-            : base(VFXExpression.Flags.InvalidOnCPU, new VFXExpression[] { matrix, position }) // TODO add CPU implementation in C++
+        public VFXExpressionTransformVector4(VFXExpression matrix, VFXExpression vec)
+            : base(VFXExpression.Flags.None, new VFXExpression[] { matrix, vec })
         {
         }
 
@@ -448,26 +452,26 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOperation.None;
+                return VFXExpressionOperation.TransformVector4;
             }
         }
-
-        sealed public override VFXValueType valueType { get { return VFXValueType.Float4; } }
 
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             var matrixReduce = constParents[0];
-            var positionReduce = constParents[1];
+            var vReduce = constParents[1];
 
             var matrix = matrixReduce.Get<Matrix4x4>();
-            var position = VFXValue.Constant<Vector4>(positionReduce.Get<Vector4>());
+            var vec = vReduce.Get<Vector4>();
 
-            var dstX = VFXOperatorUtility.Dot(VFXValue.Constant<Vector4>(matrix.GetRow((0))), position);
-            var dstY = VFXOperatorUtility.Dot(VFXValue.Constant<Vector4>(matrix.GetRow((1))), position);
-            var dstZ = VFXOperatorUtility.Dot(VFXValue.Constant<Vector4>(matrix.GetRow((2))), position);
-            var dstW = VFXOperatorUtility.Dot(VFXValue.Constant<Vector4>(matrix.GetRow((3))), position);
+            // No multiply Vector4 in Unity API :(
+            Vector4 dst = new Vector4();
+            dst.x = Vector4.Dot(matrix.GetRow(0), vec);
+            dst.y = Vector4.Dot(matrix.GetRow(1), vec);
+            dst.z = Vector4.Dot(matrix.GetRow(2), vec);
+            dst.w = Vector4.Dot(matrix.GetRow(3), vec);
 
-            return new VFXExpressionCombine(dstX, dstY, dstZ, dstW);
+            return VFXValue.Constant(dst);
         }
 
         public override string GetCodeString(string[] parents)
@@ -553,7 +557,7 @@ namespace UnityEditor.VFX
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("float4x4(float4({0}, 0.0), float4({1}, 0.0), float4({2}, 0.0), float4({3}, 1.0));", parents[0], parents[1], parents[2], parents[3]);
+            return string.Format("VFXCreateMatrixFromColumns(float4({0}, 0.0), float4({1}, 0.0), float4({2}, 0.0), float4({3}, 1.0));", parents[0], parents[1], parents[2], parents[3]);
         }
     }
 
@@ -599,7 +603,7 @@ namespace UnityEditor.VFX
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("float4x4({0}, {1}, {2}, {3});", parents[0], parents[1], parents[2], parents[3]);
+            return string.Format("VFXCreateMatrixFromColumns({0}, {1}, {2}, {3});", parents[0], parents[1], parents[2], parents[3]);
         }
     }
 

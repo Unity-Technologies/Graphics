@@ -6,21 +6,34 @@
 
 // inspired from [builtin_shaders]/CGIncludes/UnityGBuffer.cginc
 
+// Non-static meshes with real-time lighting need to write shadow mask, which in that case stores per-object occlusion probe values.
+#if !defined(LIGHTMAP_ON) && defined(_MIXED_LIGHTING_SUBTRACTIVE)
+#define USE_SHADOWMASK 1
+#else
+#define USE_SHADOWMASK 0
+#endif
+
 #define kLightingInvalid  -1  // No dynamic lighting: can aliase any other material type as they are skipped using stencil
 #define kLightingSimpleLit 2  // Simple lit shader
 // clearcoat 3
 // backscatter 4
 // skin 5
 
-#define kMaterialFlagReceiveShadowsOff     1
-#define kMaterialFlagSpecularHighlightsOff 2
+#define kMaterialFlagReceiveShadowsOff        1 // Does not receive dynamic shadows
+#define kMaterialFlagSpecularHighlightsOff    2 // Does not receivce specular
+#define kMaterialFlagSubtractiveMixedLighting 4 // The geometry uses subtractive mixed lighting
+
+#define kLightFlagSubtractiveMixedLighting    4 // The light uses subtractive mixed lighting.
 
 struct FragmentOutput
 {
-    half4 GBuffer0 : SV_Target0; // maps to GBufferPass.m_GBufferAttachments[0] on C# side
-    half4 GBuffer1 : SV_Target1; // maps to GBufferPass.m_GBufferAttachments[1] on C# side
-    half4 GBuffer2 : SV_Target2; // maps to GBufferPass.m_GBufferAttachments[2] on C# side
-    half4 GBuffer3 : SV_Target3; // maps to DeferredPass.m_CameraColorAttachment on C# side
+    half4 GBuffer0 : SV_Target0;
+    half4 GBuffer1 : SV_Target1;
+    half4 GBuffer2 : SV_Target2;
+    half4 GBuffer3 : SV_Target3; // Camera color attachment
+    #if USE_SHADOWMASK
+    half4 GBuffer4 : SV_Target4;
+    #endif
 };
 
 float PackMaterialFlags(uint materialFlags)
@@ -30,7 +43,7 @@ float PackMaterialFlags(uint materialFlags)
 
 uint UnpackMaterialFlags(float packedMaterialFlags)
 {
-    return uint(packedMaterialFlags * 255.0h);
+    return uint((packedMaterialFlags * 255.0h) + 0.5h);
 }
 
 // This will encode SurfaceData into GBuffer
@@ -66,11 +79,18 @@ FragmentOutput SurfaceDataToGbuffer(SurfaceData surfaceData, InputData inputData
     materialFlags |= kMaterialFlagReceiveShadowsOff;
 #endif
 
+#if defined(LIGHTMAP_ON) && defined(_MIXED_LIGHTING_SUBTRACTIVE)
+    materialFlags |= kMaterialFlagSubtractiveMixedLighting;
+#endif
+
     FragmentOutput output;
     output.GBuffer0 = half4(surfaceData.albedo.rgb, PackMaterialFlags(materialFlags));   // albedo          albedo          albedo          materialFlags   (sRGB rendertarget)
     output.GBuffer1 = half4(surfaceData.specular.rgb, 0);                                // specular        specular        specular        [unused]        (sRGB rendertarget)
     output.GBuffer2 = half4(packedNormalWS, packedSmoothness);                           // encoded-normal  encoded-normal  encoded-normal  packed-smoothness
     output.GBuffer3 = half4(globalIllumination, 0);                                      // GI              GI              GI              [not_available] (lighting buffer)
+    #if USE_SHADOWMASK
+    output.GBuffer4 = unity_ProbesOcclusion;
+    #endif
 
     return output;
 }
@@ -136,11 +156,18 @@ FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half sm
     specular = 0.0.xxx;
 #endif
 
+#if defined(LIGHTMAP_ON) && defined(_MIXED_LIGHTING_SUBTRACTIVE)
+    materialFlags |= kMaterialFlagSubtractiveMixedLighting;
+#endif
+
     FragmentOutput output;
     output.GBuffer0 = half4(brdfData.diffuse.rgb, PackMaterialFlags(materialFlags)); // diffuse         diffuse         diffuse         materialFlags   (sRGB rendertarget)
     output.GBuffer1 = half4(specular, brdfData.reflectivity);                        // specular        specular        specular        reflectivity    (sRGB rendertarget)
     output.GBuffer2 = half4(packedNormalWS, packedSmoothness);                       // encoded-normal  encoded-normal  encoded-normal  smoothness
     output.GBuffer3 = half4(globalIllumination, 0);                                  // GI              GI              GI              [not_available] (lighting buffer)
+    #if USE_SHADOWMASK
+    output.GBuffer4 = unity_ProbesOcclusion;
+    #endif
 
     return output;
 }
@@ -159,9 +186,9 @@ BRDFData BRDFDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer2)
     half smoothness = gbuffer2.a * 0.5h + 0.5h;
 #endif
 
-    BRDFData brdfData;
+    BRDFData brdfData = (BRDFData)0;
     half alpha = 1.0; // NOTE: alpha can get modfied, forward writes it out (_ALPHAPREMULTIPLY_ON).
-    InitializeBRDFDataDirect(gbuffer0.rgb, gbuffer1.rgb, reflectivity, oneMinusReflectivity, smoothness, alpha, brdfData);
+    InitializeBRDFDataDirect(diffuse, specular, reflectivity, oneMinusReflectivity, smoothness, alpha, brdfData);
 
     return brdfData;
 }
@@ -177,10 +204,10 @@ InputData InputDataFromGbufferAndWorldPosition(half4 gbuffer2, float3 wsPos)
     half2 octNormalWS = remappedOctNormalWS.xy * 2.0h - 1.0h;    // values between [-1, +1]
     inputData.normalWS = UnpackNormalOctQuadEncode(octNormalWS);
 #else
-    inputData.normalWS = gbuffer2.xyz;  // values between [-1, +1]
+    inputData.normalWS = normalize(gbuffer2.xyz);  // values between [-1, +1]
 #endif
 
-    inputData.viewDirectionWS = normalize(GetCameraPositionWS() - wsPos.xyz);
+    inputData.viewDirectionWS = SafeNormalize(GetWorldSpaceViewDir(wsPos.xyz));
 
     // TODO: pass this info?
     inputData.shadowCoord     = (float4)0;

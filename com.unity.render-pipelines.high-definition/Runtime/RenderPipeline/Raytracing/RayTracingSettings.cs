@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -17,12 +18,29 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Enables the override of the shadow culling. This increases the validity area of shadow maps outside of the frustum.
         /// </summary>
-        [Tooltip("Enables the override of the shadow culling.")]
-        public BoolParameter extendCulling = new BoolParameter(false);
+        [Tooltip("Enables the override of the shadow culling. This increases the validity area of shadow maps outside of the frustum.")]
+        [FormerlySerializedAs("extendCulling")]
+        public BoolParameter extendShadowCulling = new BoolParameter(false);
 
-        RayTracingSettings()
+        /// <summary>
+        /// Enables the override of the camera culling. This increases the validity area of animated skinned mesh that are outside of the frustum..
+        /// </summary>
+        [Tooltip("Enables the override of the camera culling. This increases the validity area of animated skinned mesh that are outside of the frustum.")]
+        public BoolParameter extendCameraCulling = new BoolParameter(false);
+
+        /// <summary>
+        /// Controls the maximal ray length for ray traced shadows.
+        /// </summary>
+        [Tooltip("Controls the maximal ray length for ray traced directional shadows.")]
+        public MinFloatParameter directionalShadowRayLength = new MinFloatParameter(1000.0f, 0.01f);
+
+        /// <summary>
+        /// Default constructor for the ray tracing settings volume component.
+        /// </summary>
+        public RayTracingSettings()
         {
             displayName = "Ray Tracing Settings (Preview)";
         }
     }
 }
+

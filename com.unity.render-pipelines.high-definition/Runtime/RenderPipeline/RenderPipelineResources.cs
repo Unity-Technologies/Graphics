@@ -33,6 +33,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader debugLightVolumeCS;
             [Reload("Runtime/Debug/DebugBlitQuad.Shader")]
             public Shader debugBlitQuad;
+            [Reload("Runtime/Debug/DebugVTBlit.Shader")]
+            public Shader debugViewVirtualTexturingBlit;
+            [Reload("Runtime/Debug/MaterialError.Shader")]
+            public Shader materialError;
 
             // Lighting
             [Reload("Runtime/Lighting/Deferred.Shader")]
@@ -106,6 +110,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader copyDepthBufferPS;
             [Reload("Runtime/ShaderLibrary/Blit.shader")]
             public Shader blitPS;
+            [Reload("Runtime/ShaderLibrary/BlitColorAndDepth.shader")]
+            public Shader blitColorAndDepthPS;
 
             [Reload("Runtime/ShaderLibrary/DownsampleDepth.shader")]
             public Shader downsampleDepthPS;
@@ -191,8 +197,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Decal
             [Reload("Runtime/Material/Decal/DecalNormalBuffer.shader")]
             public Shader decalNormalBufferPS;
-            [Reload("Runtime/Material/Decal/ClearPropertyMaskBuffer.compute")]
-            public ComputeShader decalClearPropertyMaskBufferCS;
 
             // Ambient occlusion
             [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAO.compute")]
@@ -228,6 +232,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader histogramExposureCS;
             [Reload("Runtime/PostProcessing/Shaders/ApplyExposure.compute")]
             public ComputeShader applyExposureCS;
+            [Reload("Runtime/PostProcessing/Shaders/DebugHistogramImage.compute")]
+            public ComputeShader debugImageHistogramCS;
             [Reload("Runtime/PostProcessing/Shaders/UberPost.compute")]
             public ComputeShader uberPostCS;
             [Reload("Runtime/PostProcessing/Shaders/LutBuilder3D.compute")]
@@ -284,6 +290,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader SMAAPS;
             [Reload("Runtime/PostProcessing/Shaders/TemporalAntialiasing.shader")]
             public Shader temporalAntialiasingPS;
+
+            // Physicaly based DoF
+            [Reload("Runtime/PostProcessing/Shaders/DoFCircleOfConfusion.compute")]
+            public ComputeShader dofCircleOfConfusion;
+            [Reload("Runtime/PostProcessing/Shaders/DoFGather.compute")]
+            public ComputeShader dofGatherCS;
+            [Reload("Runtime/PostProcessing/Shaders/DoFCoCPyramid.compute")]
+            public ComputeShader DoFCoCPyramidCS;
 
             [Reload("Runtime/PostProcessing/Shaders/ContrastAdaptiveSharpen.compute")]
             public ComputeShader contrastAdaptiveSharpenCS;

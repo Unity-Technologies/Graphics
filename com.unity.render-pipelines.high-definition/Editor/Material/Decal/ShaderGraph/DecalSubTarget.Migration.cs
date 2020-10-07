@@ -20,7 +20,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             blockMap = null;
             if(!(masterNode is DecalMasterNode1 decalMasterNode))
                 return false;
-            
+
+            m_MigrateFromOldSG = true;
+
             // Set data
             systemData.surfaceType = (SurfaceType)decalMasterNode.m_SurfaceType;
             systemData.dotsInstancing = decalMasterNode.m_DOTSInstancing;

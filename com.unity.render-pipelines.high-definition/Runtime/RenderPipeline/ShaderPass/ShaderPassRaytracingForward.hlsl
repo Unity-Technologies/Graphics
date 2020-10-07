@@ -1,5 +1,5 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingFragInputs.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RayTracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
 
 // Generic function that handles the reflection code
 [shader("closesthit")]
@@ -19,16 +19,14 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
     float3 viewWS = -rayIntersection.incidentDirection;
 
     // Let's compute the world space position (the non-camera relative one if camera relative rendering is enabled)
-    float3 pointWSPos = GetAbsolutePositionWS(fragInput.positionRWS);
+    float3 pointWSPos = fragInput.positionRWS;
 
     // Make sure to add the additional travel distance
-    float travelDistance = length(pointWSPos - rayIntersection.origin);
+    float travelDistance = length(fragInput.positionRWS - rayIntersection.origin);
     rayIntersection.t = travelDistance;
     rayIntersection.cone.width += travelDistance * abs(rayIntersection.cone.spreadAngle);
 
-    PositionInputs posInput;
-    posInput.positionWS = fragInput.positionRWS;
-    posInput.positionSS = rayIntersection.pixelCoord;
+    PositionInputs posInput = GetPositionInput(rayIntersection.pixelCoord, _ScreenSize.zw, fragInput.positionRWS);
 
     // Build the surfacedata and builtindata
     SurfaceData surfaceData;

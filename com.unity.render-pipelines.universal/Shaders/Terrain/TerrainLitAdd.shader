@@ -44,7 +44,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
 
     SubShader
     {
-        Tags { "Queue" = "Geometry-99" "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True"}
+        Tags { "Queue" = "Geometry-99" "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "UniversalMaterialType" = "Lit" "IgnoreProjector" = "True"}
 
         Pass
         {
@@ -52,9 +52,6 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
             Tags { "LightMode" = "UniversalForward" }
             Blend One One
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
             #pragma target 3.0
 
             #pragma vertex SplatmapVert
@@ -67,11 +64,13 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
-            #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+            #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             // -------------------------------------
             // Unity defined keywords
-            #pragma multi_compile_fragment _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
@@ -79,7 +78,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
 
             #pragma shader_feature_local_fragment _TERRAIN_BLEND_HEIGHT
             #pragma shader_feature_local _NORMALMAP
-            #pragma shader_feature_local_fragment _MASKMAP            
+            #pragma shader_feature_local_fragment _MASKMAP
             // Sample normal in pixel shader when doing instancing
             #pragma shader_feature_local _TERRAIN_INSTANCED_PERPIXEL_NORMAL
             #define TERRAIN_SPLAT_ADDPASS
@@ -96,23 +95,9 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
 
             Blend One One
 
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
-            // This is a Lit material.
-            Stencil {
-                Ref 32       // 0b00100000
-                WriteMask 96 // 0b01100000
-                Comp Always
-                Pass Replace
-                Fail Keep
-                ZFail Keep
-            }
-
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
+            #pragma exclude_renderers gles
             #pragma target 3.0
-
             #pragma vertex SplatmapVert
             #pragma fragment SplatmapFragment
 
@@ -123,7 +108,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
             //#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT
-            //#pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+            #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
 
             // -------------------------------------
             // Unity defined keywords
@@ -136,9 +121,9 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
 
             #pragma shader_feature_local _TERRAIN_BLEND_HEIGHT
             #pragma shader_feature_local _NORMALMAP
-            #pragma shader_feature_local _MASKMAP    
+            #pragma shader_feature_local _MASKMAP
             // Sample normal in pixel shader when doing instancing
-            #pragma shader_feature_local _TERRAIN_INSTANCED_PERPIXEL_NORMAL            
+            #pragma shader_feature_local _TERRAIN_INSTANCED_PERPIXEL_NORMAL
             #define TERRAIN_SPLAT_ADDPASS 1
             #define TERRAIN_GBUFFER 1
 

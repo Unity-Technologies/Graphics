@@ -42,10 +42,21 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty customBufferFormat;
 
         public SerializedProperty supportDecals;
+        public SerializedProperty supportDecalLayers;
+        public SerializedProperty decalLayerName0;
+        public SerializedProperty decalLayerName1;
+        public SerializedProperty decalLayerName2;
+        public SerializedProperty decalLayerName3;
+        public SerializedProperty decalLayerName4;
+        public SerializedProperty decalLayerName5;
+        public SerializedProperty decalLayerName6;
+        public SerializedProperty decalLayerName7;
+
         public bool supportMSAA => MSAASampleCount.GetEnumValue<UnityEngine.Rendering.MSAASamples>() != UnityEngine.Rendering.MSAASamples.None;
         public SerializedProperty MSAASampleCount;
         public SerializedProperty supportMotionVectors;
         public SerializedProperty supportRuntimeDebugDisplay;
+        public SerializedProperty supportRuntimeAOVAPI;
         public SerializedProperty supportDitheringCrossFade;
         public SerializedProperty supportTerrainHole;
         public SerializedProperty supportRayTracing;
@@ -104,9 +115,19 @@ namespace UnityEditor.Rendering.HighDefinition
             supportedLitShaderMode          = root.Find((RenderPipelineSettings s) => s.supportedLitShaderMode);
 
             supportDecals                   = root.Find((RenderPipelineSettings s) => s.supportDecals);
+            supportDecalLayers              = root.Find((RenderPipelineSettings s) => s.supportDecalLayers);
+            decalLayerName0                 = root.Find((RenderPipelineSettings s) => s.decalLayerName0);
+            decalLayerName1                 = root.Find((RenderPipelineSettings s) => s.decalLayerName1);
+            decalLayerName2                 = root.Find((RenderPipelineSettings s) => s.decalLayerName2);
+            decalLayerName3                 = root.Find((RenderPipelineSettings s) => s.decalLayerName3);
+            decalLayerName4                 = root.Find((RenderPipelineSettings s) => s.decalLayerName4);
+            decalLayerName5                 = root.Find((RenderPipelineSettings s) => s.decalLayerName5);
+            decalLayerName6                 = root.Find((RenderPipelineSettings s) => s.decalLayerName6);
+            decalLayerName7                 = root.Find((RenderPipelineSettings s) => s.decalLayerName7);
             MSAASampleCount                 = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);
             supportMotionVectors            = root.Find((RenderPipelineSettings s) => s.supportMotionVectors);
             supportRuntimeDebugDisplay      = root.Find((RenderPipelineSettings s) => s.supportRuntimeDebugDisplay);
+            supportRuntimeAOVAPI            = root.Find((RenderPipelineSettings s) => s.supportRuntimeAOVAPI);
             supportDitheringCrossFade       = root.Find((RenderPipelineSettings s) => s.supportDitheringCrossFade);
             supportTerrainHole              = root.Find((RenderPipelineSettings s) => s.supportTerrainHole);
             supportDistortion               = root.Find((RenderPipelineSettings s) => s.supportDistortion);

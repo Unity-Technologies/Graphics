@@ -68,6 +68,10 @@ namespace UnityEngine.Rendering
         /// <returns>RenderTexture representation of the RTHandle.</returns>
         public static implicit operator RenderTexture(RTHandle handle)
         {
+            // If RTHandle is null then conversion should give a null RenderTexture
+            if (handle == null)
+                return null;
+
             Debug.Assert(handle.rt != null, "RTHandle was created using a regular Texture and is used as a RenderTexture");
             return handle.rt;
         }
@@ -79,6 +83,10 @@ namespace UnityEngine.Rendering
         /// <returns>Texture representation of the RTHandle.</returns>
         public static implicit operator Texture(RTHandle handle)
         {
+            // If RTHandle is null then conversion should give a null Texture
+            if (handle == null)
+                return null;
+
             Debug.Assert(handle.m_ExternalTexture != null || handle.rt != null);
             return (handle.rt != null) ? handle.rt : handle.m_ExternalTexture;
         }

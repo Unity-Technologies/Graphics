@@ -69,6 +69,8 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_ValidRayTracingState = false;
         bool m_ValidRayTracingCluster = false;
         bool m_ValidRayTracingClusterCulling = false;
+        bool m_RayTracedShadowsRequired = false;
+        bool m_RayTracedContactShadowsRequired = false;
 
         // Denoisers
         HDTemporalFilter m_TemporalFilter;
@@ -77,7 +79,6 @@ namespace UnityEngine.Rendering.HighDefinition
         HDReflectionDenoiser m_ReflectionDenoiser;
         HDDiffuseShadowDenoiser m_DiffuseShadowDenoiser;
         SSGIDenoiser m_SSGIDenoiser;
-        
 
         // Ray-count manager data
         RayCountManager m_RayCountManager;
@@ -124,30 +125,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void ReleaseRayTracingManager()
         {
-            if (m_RayTracingDistanceBuffer != null)
-                RTHandles.Release(m_RayTracingDistanceBuffer);
-            if (m_RayTracingDirectionBuffer != null)
-                RTHandles.Release(m_RayTracingDirectionBuffer);
-
-            if (m_RayTracingIntermediateBufferR0 != null)
-                RTHandles.Release(m_RayTracingIntermediateBufferR0);
-            if (m_RayTracingIntermediateBufferR1 != null)
-                RTHandles.Release(m_RayTracingIntermediateBufferR1);
-            if (m_RayTracingIntermediateBufferRG0 != null)
-                RTHandles.Release(m_RayTracingIntermediateBufferRG0);
-            if (m_RayTracingIntermediateBufferRG1 != null)
-                RTHandles.Release(m_RayTracingIntermediateBufferRG1);
-            if (m_RayTracingIntermediateBufferRGBA0 != null)
-                RTHandles.Release(m_RayTracingIntermediateBufferRGBA0);
-            if (m_RayTracingIntermediateBufferRGBA1 != null)
-                RTHandles.Release(m_RayTracingIntermediateBufferRGBA1);
-            if (m_RayTracingIntermediateBufferRGBA2 != null)
-                RTHandles.Release(m_RayTracingIntermediateBufferRGBA2);
-            if (m_RayTracingIntermediateBufferRGBA3 != null)
-                RTHandles.Release(m_RayTracingIntermediateBufferRGBA3);
-            if (m_RayTracingIntermediateBufferRGBA4 != null)
-                RTHandles.Release(m_RayTracingIntermediateBufferRGBA4);
-
             if (m_RayTracingLightCluster != null)
                 m_RayTracingLightCluster.ReleaseResources();
             if (m_RayCountManager != null)
@@ -165,6 +142,33 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DiffuseShadowDenoiser.Release();
             if (m_DiffuseDenoiser != null)
                 m_DiffuseDenoiser.Release();
+        }
+
+        void RaytracingManagerCleanupNonRenderGraphResources()
+        {
+            RTHandles.Release(m_RayTracingDistanceBuffer);
+            m_RayTracingDistanceBuffer = null;
+            RTHandles.Release(m_RayTracingDirectionBuffer);
+            m_RayTracingDirectionBuffer = null;
+
+            RTHandles.Release(m_RayTracingIntermediateBufferR0);
+            m_RayTracingIntermediateBufferR0 = null;
+            RTHandles.Release(m_RayTracingIntermediateBufferR1);
+            m_RayTracingIntermediateBufferR1 = null;
+            RTHandles.Release(m_RayTracingIntermediateBufferRG0);
+            m_RayTracingIntermediateBufferRG0 = null;
+            RTHandles.Release(m_RayTracingIntermediateBufferRG1);
+            m_RayTracingIntermediateBufferRG1 = null;
+            RTHandles.Release(m_RayTracingIntermediateBufferRGBA0);
+            m_RayTracingIntermediateBufferRGBA0 = null;
+            RTHandles.Release(m_RayTracingIntermediateBufferRGBA1);
+            m_RayTracingIntermediateBufferRGBA1 = null;
+            RTHandles.Release(m_RayTracingIntermediateBufferRGBA2);
+            m_RayTracingIntermediateBufferRGBA2 = null;
+            RTHandles.Release(m_RayTracingIntermediateBufferRGBA3);
+            m_RayTracingIntermediateBufferRGBA3 = null;
+            RTHandles.Release(m_RayTracingIntermediateBufferRGBA4);
+            m_RayTracingIntermediateBufferRGBA4 = null;
         }
 
         AccelerationStructureStatus AddInstanceToRAS(Renderer currentRenderer,
@@ -195,6 +199,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 numSubMeshes = skinnedMesh.sharedMesh.subMeshCount;
             }
 
+            // Let's clamp the number of sub-meshes to avoid throwing an unwated error
+            numSubMeshes = Mathf.Min(numSubMeshes, maxNumSubMeshes);
+
             // Get the layer of this object
             int objectLayerValue = 1 << currentRenderer.gameObject.layer;
 
@@ -207,15 +214,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             for (int meshIdx = 0; meshIdx < numSubMeshes; ++meshIdx)
             {
-                // Intially we consider the potential mesh as invalid
+                // Initially we consider the potential mesh as invalid
                 bool validMesh = false;
                 if (materialArray.Count > meshIdx)
                 {
                     // Grab the material for the current sub-mesh
                     Material currentMaterial = materialArray[meshIdx];
 
-                    // The material is transparent if either it has the requested keyword or is in the transparent queue range
-                    if (currentMaterial != null)
+                    // Make sure that the material is both non-null and non-decal
+                    if (currentMaterial != null && !DecalSystem.IsDecalMaterial(currentMaterial))
                     {
                         // Mesh is valid given that all requirements are ok
                         validMesh = true;
@@ -226,7 +233,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         || (HDRenderQueue.k_RenderQueue_Transparent.lowerBound <= currentMaterial.renderQueue
                         && HDRenderQueue.k_RenderQueue_Transparent.upperBound >= currentMaterial.renderQueue);
 
-                        // aggregate the transparency info
+                        // Aggregate the transparency info
                         materialIsOnlyTransparent &= subMeshTransparentArray[meshIdx];
                         hasTransparentSubMaterial |= subMeshTransparentArray[meshIdx];
 
@@ -275,8 +282,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            // Propagate the opacity mask only if all submaterials are opaque
-            if (!hasTransparentSubMaterial)
+            // Propagate the opacity mask only if all sub materials are opaque
+            bool isOpaque = !hasTransparentSubMaterial;
+            if (isOpaque)
             {
                 instanceFlag |= (uint)(RayTracingRendererFlag.Opaque);
             }
@@ -354,7 +362,15 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ValidRayTracingState = false;
             m_ValidRayTracingCluster = false;
             m_ValidRayTracingClusterCulling = false;
-            bool rayTracedShadow = false;
+            m_RayTracedShadowsRequired = false;
+            m_RayTracedContactShadowsRequired = false;
+
+            // If the camera does not have a ray tracing frame setting or it is a preview camera (due to the fact that the sphere does not exist as a game object we can't create the RTAS) we do not want to build a RTAS
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
+                return;
+
+            // We only support ray traced shadows if the camera supports ray traced shadows
+            bool screenSpaceShadowsSupported = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenSpaceShadows);
 
             // fetch all the lights in the scene
             HDAdditionalLightData[] hdLightArray = UnityEngine.GameObject.FindObjectsOfType<HDAdditionalLightData>();
@@ -365,7 +381,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (hdLight.enabled)
                 {
                     // Check if there is a ray traced shadow in the scene
-                    rayTracedShadow |= (hdLight.useRayTracedShadows || (hdLight.useContactShadow.@override && hdLight.rayTraceContactShadow));
+                    m_RayTracedShadowsRequired |= (hdLight.useRayTracedShadows && screenSpaceShadowsSupported);
+                    m_RayTracedContactShadowsRequired |= (hdLight.useContactShadow.@override && hdLight.rayTraceContactShadow);
 
                     switch (hdLight.type)
                     {
@@ -392,6 +409,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+            // Aggregate the shadow requirement
+            bool rayTracedShadows = m_RayTracedShadowsRequired || m_RayTracedContactShadowsRequired;
+
             m_RayTracingLights.hdLightArray.AddRange(m_RayTracingLights.hdPointLightArray);
             m_RayTracingLights.hdLightArray.AddRange(m_RayTracingLights.hdLineLightArray);
             m_RayTracingLights.hdLightArray.AddRange(m_RayTracingLights.hdRectLightArray);
@@ -413,10 +433,22 @@ namespace UnityEngine.Rendering.HighDefinition
                                             + m_RayTracingLights.reflectionProbeArray.Count;
 
             AmbientOcclusion aoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
+            bool rtAOEnabled = aoSettings.rayTracing.value && hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSAO);
             ScreenSpaceReflection reflSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
+            bool rtREnabled = reflSettings.enabled.value && reflSettings.rayTracing.value && hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSR);
             GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
+            bool rtGIEnabled = giSettings.enable.value && giSettings.rayTracing.value && hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSGI);
             RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
+            bool rrEnabled = recursiveSettings.enable.value;
+            SubSurfaceScattering sssSettings = hdCamera.volumeStack.GetComponent<SubSurfaceScattering>();
+            bool rtSSSEnabled = sssSettings.rayTracing.value && hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering);
             PathTracing pathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
+            bool ptEnabled = pathTracingSettings.enable.value;
+
+            // We need to check if we should be building the ray tracing acceleration structure (if required by any effect)
+            bool rayTracingRequired = rtAOEnabled || rtREnabled || rtGIEnabled || rrEnabled || rtSSSEnabled || ptEnabled || rayTracedShadows;
+            if (!rayTracingRequired)
+                return;
 
             // We need to process the emissive meshes of the rectangular area lights
             for (var i = 0; i < m_RayTracingLights.hdRectLightArray.Count; i++)
@@ -429,12 +461,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // This objects should be included into the RAS
                 AddInstanceToRAS(currentRenderer,
-                                rayTracedShadow,
-                                aoSettings.rayTracing.value, aoSettings.layerMask.value,
-                                reflSettings.rayTracing.value, reflSettings.layerMask.value,
-                                giSettings.rayTracing.value, giSettings.layerMask.value,
-                                recursiveSettings.enable.value, recursiveSettings.layerMask.value,
-                                pathTracingSettings.enable.value, pathTracingSettings.layerMask.value);
+                                rayTracedShadows,
+                                rtAOEnabled, aoSettings.layerMask.value,
+                                rtREnabled, reflSettings.layerMask.value,
+                                rtGIEnabled, giSettings.layerMask.value,
+                                rrEnabled, recursiveSettings.layerMask.value,
+                                ptEnabled, pathTracingSettings.layerMask.value);
             }
 
             int matCount = m_MaterialCRCs.Count;
@@ -460,7 +492,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             // This objects should but included into the RAS
                             AddInstanceToRAS(currentRenderer,
-                                rayTracedShadow,
+                                rayTracedShadows,
                                 aoSettings.rayTracing.value, aoSettings.layerMask.value,
                                 reflSettings.rayTracing.value, reflSettings.layerMask.value,
                                 giSettings.rayTracing.value, giSettings.layerMask.value,
@@ -506,7 +538,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // This objects should be included into the RAS
                 AddInstanceToRAS(currentRenderer,
-                                rayTracedShadow,
+                                rayTracedShadows,
                                 aoSettings.rayTracing.value, aoSettings.layerMask.value,
                                 reflSettings.rayTracing.value, reflSettings.layerMask.value,
                                 giSettings.rayTracing.value, giSettings.layerMask.value,
@@ -517,14 +549,16 @@ namespace UnityEngine.Rendering.HighDefinition
             // Check if the amount of materials being tracked has changed
             m_MaterialsDirty |= (matCount != m_MaterialCRCs.Count);
 
-            // build the acceleration structure
-            m_CurrentRAS.Build();
+            if (ShaderConfig.s_CameraRelativeRendering != 0)
+                m_CurrentRAS.Build(hdCamera.camera.transform.position);
+            else
+                m_CurrentRAS.Build();
 
             // tag the structures as valid
             m_ValidRayTracingState = true;
         }
 
-        internal bool ValidRayTracingHistory(HDCamera hdCamera)
+        static internal bool ValidRayTracingHistory(HDCamera hdCamera)
         {
             return hdCamera.historyRTHandleProperties.previousViewportSize.x == hdCamera.actualWidth
                 && hdCamera.historyRTHandleProperties.previousViewportSize.y == hdCamera.actualHeight;
@@ -538,6 +572,16 @@ namespace UnityEngine.Rendering.HighDefinition
             else
         #endif
             return hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)m_FrameCount % 8;
+        }
+
+        internal int RayTracingFrameIndex(HDCamera hdCamera, int targetFrameCount = 8)
+        {
+            #if UNITY_HDRP_DXR_TESTS_DEFINE
+            if (Application.isPlaying)
+                return 0;
+            else
+            #endif
+                return (int)hdCamera.GetCameraFrameCount() % targetFrameCount;
         }
 
         internal bool RayTracingLightClusterRequired(HDCamera hdCamera)
@@ -559,7 +603,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_ValidRayTracingState && RayTracingLightClusterRequired(hdCamera))
             {
-                m_RayTracingLightCluster.CullForRayTracing(cmd, hdCamera, m_RayTracingLights);
+                m_RayTracingLightCluster.CullForRayTracing(hdCamera, m_RayTracingLights);
                 m_ValidRayTracingClusterCulling = true;
             }
         }
@@ -580,9 +624,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ValidRayTracingCluster = true;
 
                 UpdateShaderVariablesRaytracingLightLoopCB(hdCamera, cmd);
-				
+
 				m_RayTracingLightCluster.BuildLightClusterBuffer(cmd, hdCamera, m_RayTracingLights);
             }
+        }
+
+        static internal float EvaluateHistoryValidity(HDCamera hdCamera)
+        {
+            float historyValidity = 1.0f;
+#if UNITY_HDRP_DXR_TESTS_DEFINE
+            if (Application.isPlaying)
+                historyValidity = 0.0f;
+            else
+#endif
+                // We need to check if something invalidated the history buffers
+                historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
+            return historyValidity;
         }
 
         void UpdateShaderVariablesRaytracingLightLoopCB(HDCamera hdCamera, CommandBuffer cmd)
@@ -595,6 +652,16 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShaderVariablesRaytracingLightLoopCB._EnvLightCountRT = (uint)m_RayTracingLightCluster.GetEnvLightCount();
 
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRaytracingLightLoopCB, HDShaderIDs._ShaderVariablesRaytracingLightLoop);
+        }
+
+        internal bool RayTracedShadowsRequired()
+        {
+            return m_RayTracedShadowsRequired;
+        }
+
+        internal bool RayTracedContactShadowsRequired()
+        {
+            return m_RayTracedContactShadowsRequired;
         }
 
         internal RayTracingAccelerationStructure RequestAccelerationStructure()

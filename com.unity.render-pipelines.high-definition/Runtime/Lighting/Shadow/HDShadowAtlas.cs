@@ -26,6 +26,10 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthBits                   m_DepthBufferBits;
         RenderTextureFormat         m_Format;
         string                      m_Name;
+        string                      m_MomentName;
+        string                      m_MomentCopyName;
+        string                      m_IntermediateSummedAreaName;
+        string                      m_SummedAreaName;
         int                         m_AtlasShaderID;
         RenderPipelineResources     m_RenderPipelineResources;
 
@@ -45,12 +49,15 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DepthBufferBits = depthBufferBits;
             m_Format = format;
             m_Name = name;
+            // With render graph, textures are "allocated" every frame so we need to prepare strings beforehand.
+            m_MomentName = m_Name + "Moment";
+            m_MomentCopyName = m_Name + "MomentCopy";
+            m_IntermediateSummedAreaName = m_Name + "IntermediateSummedArea";
+            m_SummedAreaName = m_Name + "SummedAreaFinal";
             m_AtlasShaderID = atlasShaderID;
             m_ClearMaterial = clearMaterial;
             m_BlurAlgorithm = blurAlgorithm;
             m_RenderPipelineResources = renderPipelineResources;
-
-            AllocateRenderTexture();
         }
 
         public HDShadowAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams,  BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "")
@@ -67,17 +74,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_BlurAlgorithm == BlurAlgorithm.IM)
             {
-                string momentShadowMapName = m_Name + "Moment";
                 m_AtlasMoments = new RTHandle[1];
-                m_AtlasMoments[0] = RTHandles.Alloc(width, height, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, enableRandomWrite: true, name: momentShadowMapName);
-                string intermediateSummedAreaName = m_Name + "IntermediateSummedArea";
-                m_IntermediateSummedAreaTexture = RTHandles.Alloc(width, height, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32G32B32A32_SInt, enableRandomWrite: true, name: intermediateSummedAreaName);
-                string summedAreaName = m_Name + "SummedAreaFinal";
-                m_SummedAreaTexture = RTHandles.Alloc(width, height, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32G32B32A32_SInt, enableRandomWrite: true, name: summedAreaName);
+                m_AtlasMoments[0] = RTHandles.Alloc(width, height, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, enableRandomWrite: true, name: m_MomentName);
+                m_IntermediateSummedAreaTexture = RTHandles.Alloc(width, height, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32G32B32A32_SInt, enableRandomWrite: true, name: m_IntermediateSummedAreaName);
+                m_SummedAreaTexture = RTHandles.Alloc(width, height, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32G32B32A32_SInt, enableRandomWrite: true, name: m_SummedAreaName);
             }
             else if (m_BlurAlgorithm == BlurAlgorithm.EVSM)
             {
-                string[] momentShadowMapNames = { m_Name + "Moment", m_Name + "MomentCopy" };
+                string[] momentShadowMapNames = { m_MomentName, m_MomentCopyName };
                 m_AtlasMoments = new RTHandle[2];
                 for (int i = 0; i < 2; ++i)
                 {
@@ -224,7 +228,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public bool HasBlurredEVSM()
         {
-            return (m_BlurAlgorithm == BlurAlgorithm.EVSM) && m_AtlasMoments[0] != null;
+            return (m_BlurAlgorithm == BlurAlgorithm.EVSM);
         }
 
         // This is a 9 tap filter, a gaussian with std. dev of 3. This standard deviation with this amount of taps probably cuts

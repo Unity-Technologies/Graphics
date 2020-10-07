@@ -31,14 +31,9 @@ namespace UnityEditor.Rendering.HighDefinition
         static void CreatePlanarReflectionGameObject(MenuCommand menuCommand)
         {
             var parent = menuCommand.context as GameObject;
-            var go = CoreEditorUtils.CreateGameObject(parent, "Planar Reflection");
+            var go = CoreEditorUtils.CreateGameObject("Planar Reflection", parent);
             var planarProbe = go.AddComponent<PlanarReflectionProbe>();
             planarProbe.influenceVolume.boxSize = new Vector3(1, 0.01f, 1);
-            // Ensure it gets re-parented if this was a context click (otherwise does nothing)
-            GameObjectUtility.SetParentAndAlign(go, menuCommand.context as GameObject);
-            // Register the creation in the undo system
-            Undo.RegisterCreatedObjectUndo(go, "Create " + go.name);
-            Selection.activeObject = go;
         }
     }
 }

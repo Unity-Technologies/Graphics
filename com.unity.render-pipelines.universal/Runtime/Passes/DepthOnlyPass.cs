@@ -16,8 +16,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal RenderTextureDescriptor descriptor { get; private set; }
 
         FilteringSettings m_FilteringSettings;
-        const string m_ProfilerTag = "Depth Prepass";
-        ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
         ShaderTagId m_ShaderTagId = new ShaderTagId("DepthOnly");
 
         /// <summary>
@@ -55,8 +53,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
-            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            // NOTE: Do NOT mix ProfilingScope with named CommandBuffers i.e. CommandBufferPool.Get("name").
+            // Currently there's an issue which results in mismatched markers.
+            CommandBuffer cmd = CommandBufferPool.Get();
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.DepthPrepass)))
             {
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();

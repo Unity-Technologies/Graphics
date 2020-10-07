@@ -37,6 +37,7 @@ Shader "Hidden/HDRP/DebugExposure"
     #define _DrawTonemapCurve               _ExposureDebugParams.x
     #define _TonemapType                    _ExposureDebugParams.y
     #define _CenterAroundTargetExposure     _ExposureDebugParams.z
+    #define _FinalImageHistogramRGB         _ExposureDebugParams.w
 
 
     struct Attributes
@@ -112,7 +113,7 @@ Shader "Hidden/HDRP/DebugExposure"
         {
             float inRange = (uv.x - startSidebar.x) / (endSidebar.x - startSidebar.x);
             evValueRange = clamp(evValueRange, 0.0f, 1.0f);
-            int distanceInPixels = abs(evValueRange - inRange) * sidebarSize.x * _ScreenSize.x;
+            int distanceInPixels = abs(evValueRange - inRange) * sidebarSize.x * _ScreenSize.x / _RTHandleScale.x;
             if (distanceInPixels < indicatorHalfSize)
             {
                 sidebarColor = indicatorColor;
@@ -469,7 +470,7 @@ Shader "Hidden/HDRP/DebugExposure"
         if (all(input.positionCS.xy < topRight))
         {
             float2 scaledUV = uv / pipFraction;
-            float3 pipColor = SAMPLE_TEXTURE2D_X_LOD(_SourceTexture, s_linear_clamp_sampler, scaledUV, 0.0).xyz;
+            float3 pipColor = _ExposureDebugParams.x > 0 ? float3(1.0f, 1.0f, 1.0f) : SAMPLE_TEXTURE2D_X_LOD(_SourceTexture, s_linear_clamp_sampler, scaledUV, 0.0).xyz;
             float  luminance = SampleLuminance(scaledUV);
             float weight = WeightSample(scaledUV.xy * _ScreenSize.xy / _RTHandleScale.xy, _ScreenSize.xy, luminance);
 
@@ -522,7 +523,7 @@ Shader "Hidden/HDRP/DebugExposure"
         }
 
         // Get value at indicator
-        float2 indicatorUV = _MousePixelCoord.zw;
+        float2 indicatorUV = _MousePixelCoord.xy * _ScreenSize.zw * _RTHandleScale.xy;
         float indicatorEV = GetEVAtLocation(indicatorUV);
         float indicatorEVRange = (indicatorEV - ParamExposureLimitMin) / (ParamExposureLimitMax - ParamExposureLimitMin);
 
@@ -558,10 +559,15 @@ Shader "Hidden/HDRP/DebugExposure"
         }
 
         int displayTextOffsetX = DEBUG_FONT_TEXT_WIDTH;
+        textLocation = uint2(_MousePixelCoord.x + displayTextOffsetX + 1, _MousePixelCoord.y - 1);
+        DrawFloatExplicitPrecision(indicatorEV, 1.0f - textColor, unormCoord, 1, textLocation, outputColor.rgb);
         textLocation = uint2(_MousePixelCoord.x + displayTextOffsetX, _MousePixelCoord.y);
         DrawFloatExplicitPrecision(indicatorEV, textColor, unormCoord, 1, textLocation, outputColor.rgb);
+
+        textLocation = uint2(_MousePixelCoord.x + 1, _MousePixelCoord.y - 1);
+        DrawCharacter('X', 1.0f - textColor, unormCoord, textLocation, outputColor.rgb);
         textLocation = _MousePixelCoord.xy;
-        DrawCharacter('X', float3(0.0f, 0.0f, 0.0f), unormCoord, textLocation, outputColor.rgb);
+        DrawCharacter('X', textColor, unormCoord, textLocation, outputColor.rgb);
 
         return outputColor;
     }
@@ -683,6 +689,71 @@ Shader "Hidden/HDRP/DebugExposure"
         return outputColor;
     }
 
+    StructuredBuffer<uint4> _FullImageHistogram;
+
+    float3 FragImageHistogram(Varyings input) : SV_Target
+    {
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+        float2 uv = input.texcoord.xy;
+        float3 color = SAMPLE_TEXTURE2D_X_LOD(_DebugFullScreenTexture, s_linear_clamp_sampler, uv, 0.0).xyz;
+        float3 outputColor = color;
+        float heightLabelBar = (DEBUG_FONT_TEXT_WIDTH * 1.25) * _ScreenSize.w * _RTHandleScale.y;
+        uint maxValue = 0;
+        uint maxLuma = 0;
+        for (int i = 0; i < 256; ++i)
+        {
+            uint histogramVal = Max3(_FullImageHistogram[i].x, _FullImageHistogram[i].y, _FullImageHistogram[i].z);
+            maxValue = max(histogramVal, maxValue);
+            maxLuma = max(_FullImageHistogram[i].w, maxLuma);
+        }
+        float histFrameHeight = 0.2 * _RTHandleScale.y;
+        float safeBand = 1.0f / 255.0f;
+        float binLocMin = safeBand;
+        float binLocMax = 1.0f - safeBand;
+        if (DrawEmptyFrame(uv, float3(0.125, 0.125, 0.125), 0.4, histFrameHeight, heightLabelBar, outputColor))
+        {
+            // Draw labels	
+            const int labelCount = 12;
+            int minLabelLocationX = DEBUG_FONT_TEXT_WIDTH * 0.25;
+            int maxLabelLocationX = _ScreenSize.x - (DEBUG_FONT_TEXT_WIDTH * 3);
+            int labelLocationY = 0.0f;
+            uint2 unormCoord = input.positionCS.xy;
+
+            for (int i = 0; i <= labelCount; ++i)
+            {
+                float t = rcp(labelCount) * i;
+                uint2 labelLoc = uint2((uint)lerp(minLabelLocationX, maxLabelLocationX, t), labelLocationY);
+                float labelValue = lerp(0.0, 255.0, t);
+                labelLoc.x += 2;
+                DrawInteger(labelValue, float3(1.0f, 1.0f, 1.0f), unormCoord, labelLoc, outputColor.rgb);
+            }
+            float remappedX = (((float)unormCoord.x / _ScreenSize.x) - binLocMin) / (binLocMax - binLocMin);
+            // Draw bins	
+            uint bin = saturate(remappedX) * 255;
+            float4 val = _FullImageHistogram[bin];
+            val /= float4(maxValue, maxValue, maxValue, maxLuma);
+            val *= 0.95*(histFrameHeight - heightLabelBar);
+            val += heightLabelBar;
+            if (_FinalImageHistogramRGB > 0)
+            {
+                float3 alphas = 0;
+                if (uv.y < val.x && uv.y > heightLabelBar)
+                    alphas.x = 0.3333f;
+                if (uv.y < val.y && uv.y > heightLabelBar)
+                    alphas.y = 0.3333f;
+                if (uv.y < val.z && uv.y > heightLabelBar)
+                    alphas.z = 0.3333f;
+                outputColor = outputColor * (1.0f - (alphas.x + alphas.y + alphas.z)) + alphas;
+            }
+            else
+            {
+                if (uv.y < val.w && uv.y > heightLabelBar)
+                    outputColor = 0.3333f;
+            }
+        }
+        return outputColor;
+    }
+
     ENDHLSL
 
     SubShader
@@ -721,6 +792,17 @@ Shader "Hidden/HDRP/DebugExposure"
 
             HLSLPROGRAM
                 #pragma fragment FragHistogram
+            ENDHLSL
+        }
+
+        Pass
+        {
+            ZWrite Off
+            ZTest Always
+            Blend Off
+            Cull Off
+            HLSLPROGRAM
+                #pragma fragment FragImageHistogram	
             ENDHLSL
         }
 

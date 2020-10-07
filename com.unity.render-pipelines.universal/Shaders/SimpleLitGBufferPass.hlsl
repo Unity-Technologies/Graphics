@@ -72,6 +72,8 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.fogCoord = 0; // we don't apply fog in the guffer pass
     inputData.vertexLighting = input.vertexLighting.xyz;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
+    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
+    inputData.shadowMask = SAMPLE_SHADOWMASK(input.lightmapUV);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -131,7 +133,7 @@ FragmentOutput LitPassFragmentSimple(Varyings input)
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
 
-    half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData.albedo, half4(surfaceData.specular, surfaceData.smoothness), surfaceData.smoothness, surfaceData.emission, surfaceData.alpha);
+    half4 color = half4(inputData.bakedGI * surfaceData.albedo + surfaceData.emission, surfaceData.alpha);
 
     return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit);
 };

@@ -21,6 +21,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public StackLitSubTarget() => displayName = "StackLit";
 
+        static readonly GUID kSubTargetSourceCodeGuid = new GUID("5f7ba34a143e67647b202a662748dae3");  // StackLitSubTarget.cs
+
         static string[] passTemplateMaterialDirectories = new string[]
         {
             $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/StackLit/ShaderGraph/",
@@ -28,8 +30,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         };
 
         protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
-        protected override string customInspector => "Rendering.HighDefinition.StackLitGUI";
-        protected override string subTargetAssetGuid => "5f7ba34a143e67647b202a662748dae3"; // StackLitSubTarget.cs
+        protected override string customInspector => "Rendering.HighDefinition.LightingShaderGraphGUI";
+        protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_StackLit;
         protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "StackLit SubShader", "");
         protected override string raytracingInclude => CoreIncludes.kStackLitRaytracing;

@@ -11,6 +11,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         PostProcessPass m_PostProcessPass;
         FinalBlitPass m_FinalBlitPass;
         PostProcessPass m_FinalPostProcessPass;
+        Light2DCullResult m_LightCullResult;
+
+        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Create Camera Textures");
 
         bool m_UseDepthStencilBuffer = true;
         bool m_CreateColorTexture;
@@ -53,10 +56,18 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 cameraStacking = true,
             };
+
+            m_LightCullResult = new Light2DCullResult();
+            m_Renderer2DData.lightCullResult = m_LightCullResult;
         }
 
         protected override void Dispose(bool disposing)
         {
+            // always dispose unmanaged resources
+            m_PostProcessPass.Cleanup();
+            m_FinalPostProcessPass.Cleanup();
+            m_ColorGradingLutPass.Cleanup();
+            
             CoreUtils.Destroy(m_BlitMaterial);
         }
 
@@ -155,8 +166,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             RenderTargetHandle colorTargetHandle;
             RenderTargetHandle depthTargetHandle;
 
-            CommandBuffer cmd = CommandBufferPool.Get("Create Camera Textures");
-            CreateRenderTextures(ref cameraData, ppcUsesOffscreenRT, colorTextureFilterMode, cmd, out colorTargetHandle, out depthTargetHandle);
+            CommandBuffer cmd = CommandBufferPool.Get();
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            {
+                CreateRenderTextures(ref cameraData, ppcUsesOffscreenRT, colorTextureFilterMode, cmd,
+                    out colorTargetHandle, out depthTargetHandle);
+            }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
@@ -213,6 +228,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cullingParameters.cullingOptions = CullingOptions.None;
             cullingParameters.isOrthographic = cameraData.camera.orthographic;
             cullingParameters.shadowDistance = 0.0f;
+            m_LightCullResult.SetupCulling(ref cullingParameters, cameraData.camera);
         }
 
         public override void FinishRendering(CommandBuffer cmd)

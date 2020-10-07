@@ -1,5 +1,6 @@
 #if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.VFX;
@@ -74,6 +75,95 @@ namespace UnityEditor.VFX.Test
             Assert.IsInstanceOf<VFXDataParticle>(output.GetData());
         }
 
+        string tempFilePath = "Assets/Temp_vfxTest_Ddata.vfx";
+
+        VFXGraph MakeTemporaryGraph()
+        {
+            if (System.IO.File.Exists(tempFilePath))
+            {
+                AssetDatabase.DeleteAsset(tempFilePath);
+            }
+            var asset = VisualEffectAssetEditorUtility.CreateNewAsset(tempFilePath);
+            VisualEffectResource resource = asset.GetResource(); // force resource creation
+            VFXGraph graph = ScriptableObject.CreateInstance<VFXGraph>();
+            graph.visualEffectResource = resource;
+            return graph;
+        }
+
+        [OneTimeTearDown]
+        public void CleanUp()
+        {
+            AssetDatabase.DeleteAsset(tempFilePath);
+        }
+
+        [Test]
+        public void CheckName_Sharing_Between_Output_Event()
+        {
+            var graph = MakeTemporaryGraph();
+
+            var gameObj = new GameObject("CheckData_Sharing_Between_Output_Event");
+            var vfxComponent = gameObj.AddComponent<VisualEffect>();
+            vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
+
+            var sourceSpawner = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            var eventOutput_A = ScriptableObject.CreateInstance<VFXOutputEvent>();
+            var eventOutput_B = ScriptableObject.CreateInstance<VFXOutputEvent>();
+            eventOutput_A.LinkFrom(sourceSpawner);
+            eventOutput_B.LinkFrom(sourceSpawner);
+            Assert.AreEqual(1u, eventOutput_A.inputContexts.Count());
+            Assert.AreEqual(1u, eventOutput_B.inputContexts.Count());
+
+            graph.AddChild(sourceSpawner);
+            graph.AddChild(eventOutput_A);
+            graph.AddChild(eventOutput_B);
+
+            var name_A = eventOutput_A.GetSetting("eventName").value as string;
+            var name_B = eventOutput_B.GetSetting("eventName").value as string;
+
+            //Equals names
+            Assert.AreEqual(name_A, name_B);
+            Assert.AreNotEqual(eventOutput_A.GetData(), eventOutput_B.GetData());
+
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            var names = new List<string>();
+            vfxComponent.GetOutputEventNames(names);
+            Assert.AreEqual(1, names.Count);
+            Assert.AreEqual(name_A, names[0]);
+
+            var newName = "miaou";
+            eventOutput_A.SetSettingValue("eventName", newName);
+            name_A = eventOutput_A.GetSetting("eventName").value as string;
+            name_B = eventOutput_B.GetSetting("eventName").value as string;
+            
+            //Now, different names
+            Assert.AreNotEqual(name_A, name_B);
+            Assert.AreNotEqual(eventOutput_A.GetData(), eventOutput_B.GetData());
+            Assert.AreEqual((eventOutput_A.GetData() as VFXDataOutputEvent).eventName, name_A);
+            Assert.AreEqual((eventOutput_B.GetData() as VFXDataOutputEvent).eventName, name_B);
+
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            vfxComponent.GetOutputEventNames(names);
+            Assert.AreEqual(2, names.Count);
+            Assert.IsTrue(names.Contains(newName));
+            Assert.AreNotEqual(name_B, newName);
+            Assert.IsTrue(names.Contains(name_B));
+
+            //Back to equals names
+            eventOutput_B.SetSettingValue("eventName", newName);
+            name_A = eventOutput_A.GetSetting("eventName").value as string;
+            name_B = eventOutput_B.GetSetting("eventName").value as string;
+
+            Assert.AreEqual(name_A, name_B);
+            Assert.AreNotEqual(eventOutput_A.GetData(), eventOutput_B.GetData());
+            Assert.AreEqual((eventOutput_A.GetData() as VFXDataOutputEvent).eventName, name_A);
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            vfxComponent.GetOutputEventNames(names);
+            Assert.AreEqual(1, names.Count);
+            Assert.AreEqual(newName, names[0]);
+
+            UnityEngine.Object.DestroyImmediate(gameObj);
+        }
+
         [Test]
         public void CheckDataPropagation_Link()
         {
@@ -92,7 +182,7 @@ namespace UnityEditor.VFX.Test
             var spawnData = spawn.GetData();
             var particleData = init.GetData();
 
-            Assert.IsNull(spawnData);
+            Assert.IsNotNull(spawnData);
             Assert.IsNotNull(particleData);
             Assert.AreEqual(particleData, update.GetData());
             Assert.AreEqual(particleData, output0.GetData());
@@ -160,6 +250,34 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(data.IsCurrentAttributeWritten(attrib2));
             Assert.IsFalse(data.IsCurrentAttributeWritten(attrib3));
             Assert.IsTrue(data.IsCurrentAttributeWritten(attrib4));
+        }
+
+        [Test]
+        public void CheckCapacityCannotBeZero()
+        {
+            var init = ScriptableObject.CreateInstance<ContextTestInit>();
+            var data = init.GetData();
+            data.SetSettingValue("capacity", 0u);
+            uint capacity = (uint)data.GetSettingValue("capacity");
+            Assert.NotZero(capacity);
+        }
+
+        [Test]
+        public void CheckStripCapacityCannotBeZero()
+        {
+            var init = ScriptableObject.CreateInstance<ContextTestInit>();
+            var data = init.GetData();
+            data.SetSettingValue("dataType", VFXDataParticle.DataType.ParticleStrip);
+            data.SetSettingValue("stripCapacity", 0u);
+            data.SetSettingValue("particlePerStripCount", 0u);
+
+            uint capacity = (uint)data.GetSettingValue("capacity");
+            uint stripCapacity = (uint)data.GetSettingValue("stripCapacity");
+            uint particlePerStripCount = (uint)data.GetSettingValue("particlePerStripCount");
+
+            Assert.NotZero(capacity);
+            Assert.NotZero(stripCapacity);
+            Assert.NotZero(particlePerStripCount);
         }
     }
 }

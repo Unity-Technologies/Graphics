@@ -24,7 +24,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // This texture stores a set of depth values that are required for evaluating a bunch of effects in MSAA mode (R = Samples Max Depth, G = Samples Min Depth, G =  Samples Average Depth)
         RTHandle m_CameraDepthValuesBuffer = null;
 
+        // Buffer used for quad overshading and vertex density debug modes
+        // Should be a texture but metal doesn't support texture atomics
+        ComputeBuffer m_FullScreenDebugBuffer = null;
+
         ComputeBuffer m_CoarseStencilBuffer = null;
+        RTHandle m_DecalPrePassBuffer = null;
+        RTHandle m_DecalPrePassBufferMSAA = null;
 
         // MSAA resolve materials
         Material m_DepthResolveMaterial  = null;
@@ -35,12 +41,19 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_ReuseGBufferMemory = false;
         bool m_MotionVectorsSupport = false;
         bool m_MSAASupported = false;
+        bool m_DecalLayersSupported;
         MSAASamples m_MSAASamples = MSAASamples.None;
 
         // Arrays of RTIDs that are used to set render targets (when MSAA and when not MSAA)
+        // Note: we have two set because as we can have both MRT for deferred and MRT for forward
+        // at the same time in a pass, so we can't reuse the same array in this case
+        // Firt set is used for Forward case
         protected RenderTargetIdentifier[] m_RTIDs1 = new RenderTargetIdentifier[1];
         protected RenderTargetIdentifier[] m_RTIDs2 = new RenderTargetIdentifier[2];
         protected RenderTargetIdentifier[] m_RTIDs3 = new RenderTargetIdentifier[3];
+        protected RenderTargetIdentifier[] m_RTIDs4 = new RenderTargetIdentifier[4];
+        // Second set is use for Deferred case
+        protected RenderTargetIdentifier[] m_RTIDs1Deferred = new RenderTargetIdentifier[1];
 
         // Property block used for the resolves
         MaterialPropertyBlock m_PropertyBlock = new MaterialPropertyBlock();
@@ -56,6 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MSAASamples = m_MSAASupported ? settings.msaaSampleCount : MSAASamples.None;
             m_MotionVectorsSupport = settings.supportMotionVectors;
             m_ReuseGBufferMemory = settings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly;
+            m_DecalLayersSupported = settings.supportDecals && settings.supportDecalLayers;
 
             // Create the depth/stencil buffer
             m_CameraDepthStencilBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, DepthBits.Depth32, dimension: TextureXR.dimension, useDynamicScale: true, name: "CameraDepthStencil");
@@ -97,8 +111,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ColorResolveMaterial = CoreUtils.CreateEngineMaterial(resources.shaders.colorResolvePS);
                 m_MotionVectorResolve = CoreUtils.CreateEngineMaterial(resources.shaders.resolveMotionVecPS);
 
+                if (m_DecalLayersSupported)
+                    m_DecalPrePassBufferMSAA = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableMSAA: true, useDynamicScale: true, name: "Decal PrePass Buffer MSAA");
+
                 CoreUtils.SetKeyword(m_DepthResolveMaterial, "_HAS_MOTION_VECTORS", m_MotionVectorsSupport);
             }
+
+            // TODO: try to save this memory allocation. We can't reuse GBuffer for now as it require an additional clear before the GBuffer pass, otherwise the buffer can contain garbage that can be misinterpreted
+            // if forward object are render (see test in HDRP_Test DecalNormalPatch buffer)
+            if (m_DecalLayersSupported)
+                m_DecalPrePassBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, useDynamicScale: true, name: "Decal PrePass Buffer");
 
             // If we are in the forward only mode
             if (!m_ReuseGBufferMemory)
@@ -123,40 +145,118 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Function that will return the set of buffers required for the prepass (depending on if msaa is enabled or not)
-        public RenderTargetIdentifier[] GetPrepassBuffersRTI(FrameSettings frameSettings)
+        public RenderTargetIdentifier[] GetDepthPrepassForwardRTI(FrameSettings frameSettings)
         {
-            if (frameSettings.IsEnabled(FrameSettingsField.MSAA))
+            // Note: Hardware allow to not write in all RT bind only if all the previous RT have been written (i.e there is no bubble)
+            // So here we need to guarantee that all RTs but last are written by the shader.
+            // Material could enable decal or not in Material so it need to be the last target
+            using (ListPool<RenderTargetIdentifier>.Get(out var mrts))
             {
-                Debug.Assert(m_MSAASupported);
-                m_RTIDs2[0] = m_DepthAsColorMSAART.nameID;
-                m_RTIDs2[1] = m_NormalMSAART.nameID;
-                return m_RTIDs2;
-            }
-            else
-            {
-                m_RTIDs1[0] = m_NormalRT.nameID;
-                return m_RTIDs1;
+                if (frameSettings.IsEnabled(FrameSettingsField.MSAA))
+                {
+                    Debug.Assert(m_MSAASupported);
+                    mrts.Add(m_DepthAsColorMSAART.nameID);
+                    mrts.Add(m_NormalMSAART.nameID);
+                    if (frameSettings.IsEnabled(FrameSettingsField.DecalLayers))
+                        mrts.Add(m_DecalPrePassBufferMSAA);
+                }
+                else
+                {
+                    mrts.Add(m_NormalRT.nameID);
+                    if (frameSettings.IsEnabled(FrameSettingsField.DecalLayers))
+                        mrts.Add(m_DecalPrePassBuffer);
+                }
+
+                switch (mrts.Count)
+                {
+                    case 1:
+                        mrts.CopyTo(m_RTIDs1);
+                        return m_RTIDs1;
+                    case 2:
+                        mrts.CopyTo(m_RTIDs2);
+                        return m_RTIDs2;
+                    case 3:
+                        mrts.CopyTo(m_RTIDs3);
+                        return m_RTIDs3;
+                    default:
+                        return null;
+                }
             }
         }
 
-        // Function that will return the set of buffers required for the motion vector pass
-        public RenderTargetIdentifier[] GetMotionVectorsPassBuffersRTI(FrameSettings frameSettings)
+        // Function that will return the set of buffers required for the prepass (depending on if msaa is enabled or not)
+        public RenderTargetIdentifier[] GetDepthPrepassDeferredRTI(FrameSettings frameSettings)
         {
+            // In deferred we did nothing if decal aren't enabled
+            if (!frameSettings.IsEnabled(FrameSettingsField.DecalLayers))
+                return null;
+
+            // Note: In deferred we can't have MSAA
+            m_RTIDs1Deferred[0] = m_DecalPrePassBuffer.nameID;
+            return m_RTIDs1Deferred;
+        }
+
+        // Function that will return the set of buffers required for the motion vector pass
+        public RenderTargetIdentifier[] GetMotionVectorsPassRTI(FrameSettings frameSettings)
+        {
+            // Note: Hardware allow to not write in all RT bind only if all the previous RT have been written (i.e there is no bubble)
+            // So here we need to guarantee that all RTs but last are written by the shader.
+            // Material could enable decal or not in Material so it should be last target
+            // However with motion vector pass, unlike for depth prepass we have no way to no if we are deferred (don't write normal buffer)
+            // or forward (write normal buffer). As we have a single function to setup the target, we are forcing
+            // disabled decals to still write 0 in DecalBuffer while render in the Motion vector pass
+            // For this reasons we render normal last, as now decal is permanent
             Debug.Assert(m_MotionVectorsSupport);
-            if (frameSettings.IsEnabled(FrameSettingsField.MSAA))
+            using (ListPool<RenderTargetIdentifier>.Get(out var mrts))
+            {
+                if (frameSettings.IsEnabled(FrameSettingsField.MSAA))
+                {
+                    Debug.Assert(m_MSAASupported);
+                    mrts.Add(m_DepthAsColorMSAART.nameID);
+                    mrts.Add(m_MotionVectorsMSAART.nameID);
+                    if (frameSettings.IsEnabled(FrameSettingsField.DecalLayers))
+                        mrts.Add(m_DecalPrePassBufferMSAA.nameID);
+                    mrts.Add(m_NormalMSAART.nameID);
+                }
+                else
+                {
+                    mrts.Add(m_MotionVectorsRT.nameID);
+                    if (frameSettings.IsEnabled(FrameSettingsField.DecalLayers))
+                        mrts.Add(m_DecalPrePassBuffer.nameID);
+                    mrts.Add(m_NormalRT.nameID);
+                }
+
+                switch (mrts.Count)
+                {
+                    case 1:
+                        mrts.CopyTo(m_RTIDs1);
+                        return m_RTIDs1;
+                    case 2:
+                        mrts.CopyTo(m_RTIDs2);
+                        return m_RTIDs2;
+                    case 3:
+                        mrts.CopyTo(m_RTIDs3);
+                        return m_RTIDs3;
+                    case 4:
+                        mrts.CopyTo(m_RTIDs4);
+                        return m_RTIDs4;
+                    default:
+                        return null;
+                }
+            }
+        }
+
+        // Request the normal buffer (MSAA or not)
+        public RTHandle GetDecalPrepassBuffer(bool isMSAA = false)
+        {
+            if (isMSAA)
             {
                 Debug.Assert(m_MSAASupported);
-                m_RTIDs3[0] = m_DepthAsColorMSAART.nameID;
-                m_RTIDs3[1] = m_MotionVectorsMSAART.nameID;
-                m_RTIDs3[2] = m_NormalMSAART.nameID;
-                return m_RTIDs3;
+                return m_DecalPrePassBufferMSAA;
             }
             else
             {
-                Debug.Assert(m_MotionVectorsSupport);
-                m_RTIDs2[0] = m_MotionVectorsRT.nameID;
-                m_RTIDs2[1] = m_NormalRT.nameID;
-                return m_RTIDs2;
+                return m_DecalPrePassBuffer;
             }
         }
 
@@ -246,6 +346,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_CameraDepthValuesBuffer;
         }
 
+        public ComputeBuffer GetFullScreenDebugBuffer()
+        {
+            return m_FullScreenDebugBuffer;
+        }
+
         public void SetNumMSAASamples(MSAASamples msaaSamples)
         {
             m_MSAASamples = msaaSamples;
@@ -272,13 +377,26 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CoarseStencilBuffer = new ComputeBuffer(HDUtils.DivRoundUp(width, 8) * HDUtils.DivRoundUp(height, 8) * viewCount, sizeof(uint));
         }
 
+        public void AllocateFullScreenDebugBuffer(int width, int height, int viewCount)
+        {
+            m_FullScreenDebugBuffer = new ComputeBuffer(width * height * viewCount, sizeof(uint));
+        }
+
         public void DisposeCoarseStencilBuffer()
         {
             CoreUtils.SafeRelease(m_CoarseStencilBuffer);
         }
 
+        public void DisposeFullScreenDebugBuffer()
+        {
+            CoreUtils.SafeRelease(m_FullScreenDebugBuffer);
+        }
+
         public void Cleanup()
         {
+            if (m_DecalLayersSupported)
+                RTHandles.Release(m_DecalPrePassBuffer);
+
             if (!m_ReuseGBufferMemory)
             {
                 RTHandles.Release(m_NormalRT);
@@ -310,6 +428,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.Destroy(m_DepthResolveMaterial);
                 CoreUtils.Destroy(m_ColorResolveMaterial);
                 CoreUtils.Destroy(m_MotionVectorResolve);
+
+                if (m_DecalLayersSupported)
+                    RTHandles.Release(m_DecalPrePassBufferMSAA);
             }
         }
 

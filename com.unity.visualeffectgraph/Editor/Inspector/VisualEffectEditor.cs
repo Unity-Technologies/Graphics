@@ -174,7 +174,9 @@ namespace UnityEditor.VFX
             toggleRect.yMin += 2.0f;
             toggleRect.width = 18;
             EditorGUI.BeginChangeCheck();
+            EditorGUI.BeginProperty(toggleRect, GUIContent.none, overridenProperty);
             bool newOverriden = EditorGUI.Toggle(toggleRect, overrideMixed ? false : overridenProperty.boolValue, overrideMixed ? Styles.toggleMixedStyle : Styles.toggleStyle);
+            EditorGUI.EndProperty();
             overriddenChanged = EditorGUI.EndChangeCheck();
             if (overriddenChanged)
             {
@@ -196,6 +198,15 @@ namespace UnityEditor.VFX
                         EditorGUI.Slider(rect, valueProperty, parameter.min, parameter.max, nameContent);
                     else
                         EditorGUI.IntSlider(rect, valueProperty, (int)parameter.min, (int)parameter.max, nameContent);
+                }
+                else if( parameter.enumValues != null && parameter.enumValues.Count > 0)
+                {
+                    long currentValue = valueProperty.longValue;
+                    int newIndex = EditorGUI.Popup(rect, nameContent, (int)currentValue, parameter.enumValues.ToArray());
+                    if (newIndex != currentValue)
+                    {
+                        valueProperty.longValue = newIndex;
+                    }
                 }
                 else if (parameter.realType == typeof(Color).Name)
                 {
@@ -341,6 +352,15 @@ namespace UnityEditor.VFX
                             if (GUI.changed)
                             {
                                 valueProperty.intValue = value;
+                                changed = true;
+                            }
+                        }
+                        else if (parameter.enumValues != null && parameter.enumValues.Count > 0)
+                        {
+                            int newIndex = EditorGUI.Popup(rect, nameContent, (int)0, parameter.enumValues.ToArray());
+                            if (GUI.changed)
+                            {
+                                valueProperty.intValue = newIndex;
                                 changed = true;
                             }
                         }
@@ -656,7 +676,9 @@ namespace UnityEditor.VFX
                 fakeInitialEventNameField.stringValue = resource != null ? resource.initialEventName : "OnPlay";
 
                 EditorGUI.BeginChangeCheck();
+                EditorGUI.BeginProperty(toggleRect, GUIContent.none, m_InitialEventNameOverriden);
                 bool resultOverriden = EditorGUI.Toggle(toggleRect, m_InitialEventNameOverriden.boolValue, Styles.toggleStyle);
+                EditorGUI.EndProperty();
                 if (EditorGUI.EndChangeCheck())
                 {
                     m_InitialEventNameOverriden.boolValue = resultOverriden;
@@ -761,6 +783,9 @@ namespace UnityEditor.VFX
             GUI.enabled = true;
         }
 
+
+        Dictionary<string, Dictionary<string, SerializedProperty>> m_PropertyToProp = new Dictionary<string, Dictionary<string, SerializedProperty>>();
+
         protected virtual void DrawParameters(VisualEffectResource resource)
         {
             var component = (VisualEffect)target;
@@ -781,6 +806,25 @@ namespace UnityEditor.VFX
                 {
                     graph.BuildParameterInfo();
                 }
+
+
+                m_PropertyToProp.Clear();
+
+                foreach (var sheetType in graph.m_ParameterInfo.Select(t => t.sheetType).Where(t=>!string.IsNullOrEmpty(t)).Distinct())
+                {
+                    var nameToIndices = new Dictionary<string, SerializedProperty>();
+
+                    var sourceVfxField = m_VFXPropertySheet.FindPropertyRelative(sheetType + ".m_Array");
+                    for (int i = 0; i < sourceVfxField.arraySize; ++i)
+                    {
+                        SerializedProperty sourceProperty = sourceVfxField.GetArrayElementAtIndex(i);
+                        var nameProperty = sourceProperty.FindPropertyRelative("m_Name").stringValue;
+
+                        nameToIndices[nameProperty] = sourceProperty;
+                    }
+                    m_PropertyToProp[sheetType] = nameToIndices;
+                }
+
 
                 if (graph.m_ParameterInfo != null)
                 {
@@ -854,20 +898,10 @@ namespace UnityEditor.VFX
                                 }
                             }
                             else if (!ignoreUntilNextCat)
-                            {
-                                //< Try find source property
-                                var sourceVfxField = m_VFXPropertySheet.FindPropertyRelative(parameter.sheetType + ".m_Array");
+                            {   
                                 SerializedProperty sourceProperty = null;
-                                for (int i = 0; i < sourceVfxField.arraySize; ++i)
-                                {
-                                    sourceProperty = sourceVfxField.GetArrayElementAtIndex(i);
-                                    var nameProperty = sourceProperty.FindPropertyRelative("m_Name").stringValue;
-                                    if (nameProperty == parameter.path)
-                                    {
-                                        break;
-                                    }
-                                    sourceProperty = null;
-                                }
+
+                                m_PropertyToProp[parameter.sheetType].TryGetValue(parameter.path, out sourceProperty);
 
                                 //< Prepare potential indirection
                                 bool wasNewProperty = false;
@@ -961,7 +995,13 @@ namespace UnityEditor.VFX
                                             }
 
                                             if (otherSourceProperty != null)
-                                                valueMixed = valueMixed || !GetObjectValue(otherSourceProperty.FindPropertyRelative("m_Value")).Equals(GetObjectValue(actualDisplayedPropertyValue));
+                                            {
+                                                var otherValue = GetObjectValue(otherSourceProperty.FindPropertyRelative("m_Value"));
+                                                if (otherValue == null)
+                                                    valueMixed = valueMixed || GetObjectValue(actualDisplayedPropertyValue) != null;
+                                                else
+                                                    valueMixed = valueMixed || !otherValue.Equals(GetObjectValue(actualDisplayedPropertyValue));
+                                            }
 
                                             if (valueMixed)
                                                 break;
@@ -1010,6 +1050,7 @@ namespace UnityEditor.VFX
                                     }
                                     if (wasNewProperty)
                                     {
+                                        var sourceVfxField = m_VFXPropertySheet.FindPropertyRelative(parameter.sheetType + ".m_Array");
                                         //We start editing a new exposed value which wasn't stored in this Visual Effect Component
                                         sourceVfxField.InsertArrayElementAtIndex(sourceVfxField.arraySize);
                                         var newEntry = sourceVfxField.GetArrayElementAtIndex(sourceVfxField.arraySize - 1);

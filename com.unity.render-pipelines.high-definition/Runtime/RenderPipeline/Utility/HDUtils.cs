@@ -122,31 +122,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return types;
         }
 
-        // Helper to help to display debug info on screen
-        static float s_OverlayLineHeight = -1.0f;
-        internal static void ResetOverlay() => s_OverlayLineHeight = -1.0f;
-
-        internal static float GetRuntimeDebugPanelWidth(HDCamera hdCamera)
+        internal static int GetRuntimeDebugPanelWidth(HDCamera hdCamera)
         {
             // 600 is the panel size from 'DebugUI Panel' prefab + 10 pixels of padding
-            float width = DebugManager.instance.displayRuntimeUI ? 610.0f : 0.0f;
-            return Mathf.Min(hdCamera.actualWidth, width);
-        }
-
-        internal static void NextOverlayCoord(ref float x, ref float y, float overlayWidth, float overlayHeight, HDCamera hdCamera)
-        {
-            x += overlayWidth;
-            s_OverlayLineHeight = Mathf.Max(overlayHeight, s_OverlayLineHeight);
-            // Go to next line if it goes outside the screen.
-            if ( (x + overlayWidth) > hdCamera.actualWidth)
-            {
-                x = 0.0f;
-                y -= s_OverlayLineHeight;
-                s_OverlayLineHeight = -1.0f;
-            }
-
-            if (x == 0)
-                x += GetRuntimeDebugPanelWidth(hdCamera);
+            int width = DebugManager.instance.displayRuntimeUI ? 610 : 0;
+            return Math.Min(hdCamera.actualWidth, width);
         }
 
         /// <summary>Get the aspect ratio of a projection matrix.</summary>
@@ -324,10 +304,48 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="bilinear">Enable bilinear filtering.</param>
         public static void BlitTexture(CommandBuffer cmd, RTHandle source, Vector4 scaleBias, float mipLevel, bool bilinear)
         {
-            s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
-            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
             s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevel);
-            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(TextureXR.dimension), bilinear ? 1 : 0, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
+            BlitTexture(cmd, source, scaleBias, GetBlitMaterial(TextureXR.dimension), bilinear ? 1 : 0);
+        }
+
+        /// <summary>
+        /// Blit a 2D texture and depth buffer.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="sourceColor">Source Texture for color.</param>
+        /// <param name="sourceDepth">Source RenderTexture for depth.</param>
+        /// <param name="scaleBias">Scale and bias for sampling the input texture.</param>
+        /// <param name="mipLevel">Mip level to blit.</param>
+        /// <param name="bilinear">Enable bilinear filtering.</param>
+        internal static void BlitColorAndDepth(CommandBuffer cmd, Texture sourceColor, RenderTexture sourceDepth, Vector4 scaleBias, float mipLevel, bool blitDepth)
+        {
+            HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            if (hdPipeline != null)
+            {
+                Material mat = hdPipeline.GetBlitColorAndDepthMaterial();
+
+                s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevel);
+                s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
+                s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, sourceColor);
+                if (blitDepth)
+                    s_PropertyBlock.SetTexture(HDShaderIDs._InputDepth, sourceDepth, RenderTextureSubElement.Depth);
+                cmd.DrawProcedural(Matrix4x4.identity, mat, blitDepth ? 1 : 0, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
+            }
+        }
+
+        /// <summary>
+        /// Blit a RTHandle texture
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="source">Source RTHandle.</param>
+        /// <param name="scaleBias">Scale and bias for sampling the input texture.</param>
+        /// <param name="material">Material to invoke when blitting.</param>
+        /// <param name="pass">Pass idx within the material to invoke.</param>
+        static void BlitTexture(CommandBuffer cmd, RTHandle source, Vector4 scaleBias, Material material, int pass)
+        {
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
+            s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
+            cmd.DrawProcedural(Matrix4x4.identity, material, pass, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
         }
 
         // In the context of HDRP, the internal render targets used during the render loop are the same for all cameras, no matter the size of the camera.
@@ -349,6 +367,24 @@ namespace UnityEngine.Rendering.HighDefinition
             // Will set the correct camera viewport as well.
             CoreUtils.SetRenderTarget(cmd, destination);
             BlitTexture(cmd, source, viewportScale, mipLevel, bilinear);
+        }
+
+        /// <summary>
+        /// Blit a RTHandle to another RTHandle.
+        /// This will properly account for partial usage (in term of resolution) of the texture for the current viewport.
+        /// This overloads allows the user to override the default blit shader
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="source">Source RTHandle.</param>
+        /// <param name="destination">Destination RTHandle.</param>
+        /// <param name="material">The material to use when blitting</param>
+        /// <param name="pass">pass to use of the provided material</param>
+        public static void BlitCameraTexture(CommandBuffer cmd, RTHandle source, RTHandle destination, Material material, int pass)
+        {
+            Vector2 viewportScale = new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y);
+            // Will set the correct camera viewport as well.
+            CoreUtils.SetRenderTarget(cmd, destination);
+            BlitTexture(cmd, source, viewportScale, material, pass);
         }
 
 
@@ -737,31 +773,37 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif
 
+        internal static bool IsMacOSVersionAtLeast(string os, int majorVersion, int minorVersion, int patchVersion)
+        {
+            int startIndex = os.LastIndexOf(" ");
+            var parts = os.Substring(startIndex + 1).Split('.');
+            int currentMajorVersion = Convert.ToInt32(parts[0]);
+            int currentMinorVersion = Convert.ToInt32(parts[1]);
+            int currentPatchVersion = Convert.ToInt32(parts[2]);
+
+            if (currentMajorVersion < majorVersion) return false;
+            if (currentMajorVersion > majorVersion) return true;
+            if (currentMinorVersion < minorVersion) return false;
+            if (currentMinorVersion > minorVersion) return true;
+            if (currentPatchVersion < patchVersion) return false;
+            if (currentPatchVersion > patchVersion) return true;
+            return true;
+        }
+
         internal static bool IsOperatingSystemSupported(string os)
         {
             // Metal support depends on OS version:
             // macOS 10.11.x doesn't have tessellation / earlydepthstencil support, early driver versions were buggy in general
             // macOS 10.12.x should usually work with AMD, but issues with Intel/Nvidia GPUs. Regardless of the GPU, there are issues with MTLCompilerService crashing with some shaders
-            // macOS 10.13.x is expected to work, and if it's a driver/shader compiler issue, there's still hope on getting it fixed to next shipping OS patch release
+            // macOS 10.13.x should work, but active development tests against current OS
             //
             // Has worked experimentally with iOS in the past, but it's not currently supported
             //
 
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
             {
-                if (os.StartsWith("Mac"))
-                {
-                    // TODO: Expose in C# version number, for now assume "Mac OS X 10.10.4" format with version 10 at least
-                    int startIndex = os.LastIndexOf(" ");
-                    var parts = os.Substring(startIndex + 1).Split('.');
-                    int a = Convert.ToInt32(parts[0]);
-                    int b = Convert.ToInt32(parts[1]);
-                    // In case in the future there's a need to disable specific patch releases
-                    // int c = Convert.ToInt32(parts[2]);
-
-                    if (a < 10 || b < 13)
-                        return false;
-                }
+                if (os.StartsWith("Mac") && !IsMacOSVersionAtLeast(os, 10, 13, 0))
+                    return false;
             }
 
             return true;
@@ -893,22 +935,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="renderContext">Current Scriptable Render Context.</param>
         /// <param name="cmd">Command Buffer used for rendering.</param>
         /// <param name="rendererList">Renderer List to render.</param>
+        [Obsolete("Please use CoreUtils.DrawRendererList instead.")]
         public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, RendererList rendererList)
         {
-            if (!rendererList.isValid)
-                throw new ArgumentException("Invalid renderer list provided to DrawRendererList");
-
-            // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders or things will be executed out of order
-            renderContext.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
-
-            if (rendererList.stateBlock == null)
-                renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings);
-            else
-            {
-                var renderStateBlock = rendererList.stateBlock.Value;
-                renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings, ref renderStateBlock);
-            }
+            CoreUtils.DrawRendererList(renderContext, cmd, rendererList);
         }
 
         // $"HDProbe RenderCamera ({probeName}: {face:00} for viewer '{viewerName}')"
@@ -1010,15 +1040,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return 0;
 #endif
 
-        }
-
-        internal static ulong GetSceneCullingMaskFromGameObject(GameObject go)
-        {
-#if UNITY_EDITOR
-            return (go.scene == null) ? ~(ulong)0 : EditorSceneManager.GetSceneCullingMask(go.scene);
-#else
-            return 0;
-#endif
         }
 
         internal static HDAdditionalCameraData TryGetAdditionalCameraDataOrDefault(Camera camera)

@@ -14,6 +14,9 @@ namespace UnityEngine.Rendering.HighDefinition
     public class HDCachedShadowManager
     {
         private static HDCachedShadowManager s_Instance = new HDCachedShadowManager();
+        /// <summary>
+        /// Get the cached shadow manager to control cached shadow maps.
+        /// </summary>
         public static HDCachedShadowManager instance { get { return s_Instance; } }
 
         // Data for cached directional light shadows.

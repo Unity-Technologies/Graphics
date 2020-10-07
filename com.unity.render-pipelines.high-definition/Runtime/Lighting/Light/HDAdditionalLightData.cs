@@ -30,6 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// HDRP Additional light data component. It contains the light API and fields used by HDRP.
     /// </summary>
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Light-Component" + Documentation.endURL)]
+    [AddComponentMenu("")] // Hide in menu
     [RequireComponent(typeof(Light))]
     [ExecuteAlways]
     public partial class HDAdditionalLightData : MonoBehaviour, ISerializationCallbackReceiver
@@ -1586,6 +1587,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal MeshRenderer emissiveMeshRenderer { get; private set; }
 
 #if UNITY_EDITOR
+        bool m_NeedsPrefabInstanceCheck = false;
         bool needRefreshPrefabInstanceEmissiveMeshes = false;
 #endif
         bool needRefreshEmissiveMeshesFromTimeLineUpdate = false;
@@ -1721,7 +1723,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
 
                 m_AreaLightEmissiveMeshLayer = value;
-                if (emissiveMeshRenderer != null && !emissiveMeshRenderer.Equals(null))
+                if (emissiveMeshRenderer != null && !emissiveMeshRenderer.Equals(null) && m_AreaLightEmissiveMeshLayer != -1)
                 {
                     emissiveMeshRenderer.gameObject.layer = m_AreaLightEmissiveMeshLayer;
                 }
@@ -1778,6 +1780,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// when Update Mode is set to On Demand. For example, to request the update of a second cascade, shadowIndex should be 1.
         /// Note: if shadowIndex is a 0-based index and it must be lower than the number of shadow maps a light renders (i.e. cascade count for directional lights, 6 for point lights).
         /// </summary>
+        /// <param name="shadowIndex">The index of the subshadow to update.</param>
         public void RequestSubShadowMapRendering(int shadowIndex)
         {
             if (shadowUpdateMode == ShadowUpdateMode.OnDemand)
@@ -2018,6 +2021,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (shadowRequestIndex == -1)
                     continue;
 
+                shadowRequest.atlasViewport = resolutionRequest.atlasViewport;
+
                 if (!shadowNeedsRendering)
                 {
                     shadowRequest.cachedShadowData.cacheTranslationDelta = cameraPos - m_CachedViewPos;
@@ -2077,7 +2082,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     SetCommonShadowRequestSettings(shadowRequest, visibleLight, cameraPos, invViewProjection, viewportSize, lightIndex, lightType, filteringQuality);
                 }
 
-                shadowRequest.atlasViewport = resolutionRequest.atlasViewport;
                 manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest, shadowIsInCachedSystem);
 
                 if(shadowIsInCachedSystem && shadowNeedsRendering)
@@ -2292,6 +2296,14 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
 #if UNITY_EDITOR
+
+            // If modification are due to change on prefab asset that are non overridden on this prefab instance
+            if (m_NeedsPrefabInstanceCheck && PrefabUtility.IsPartOfPrefabInstance(this) && ((PrefabUtility.GetCorrespondingObjectFromOriginalSource(this) as HDAdditionalLightData)?.needRefreshPrefabInstanceEmissiveMeshes ?? false))
+            {
+                needRefreshPrefabInstanceEmissiveMeshes = true;
+            }
+            m_NeedsPrefabInstanceCheck = false;
+
             // Update the list of overlapping lights for the LightOverlap scene view mode
             if (IsOverlapping())
                 s_overlappingHDLights.Add(this);
@@ -2300,6 +2312,14 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
 #if UNITY_EDITOR
+
+            // If we requested an emissive mesh but for some reason (e.g. Reload scene unchecked in the Enter Playmode options) Awake has not been called,
+            // we need to create it manually.
+            if (m_DisplayAreaLightEmissiveMesh && (m_ChildEmissiveMeshViewer == null || m_ChildEmissiveMeshViewer.Equals(null)))
+            {
+                UpdateAreaLightEmissiveMesh();
+            }
+
             //if not parented anymore, refresh it
             if (m_ChildEmissiveMeshViewer != null && !m_ChildEmissiveMeshViewer.Equals(null))
             {
@@ -2490,6 +2510,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             lightData.normalBias           = 0.75f;
             lightData.slopeBias            = 0.5f;
+
+            // Enable filter/temperature mode by default for all light types
+            lightData.useColorTemperature = true;
         }
 
         void OnValidate()
@@ -2499,13 +2522,9 @@ namespace UnityEngine.Rendering.HighDefinition
             RefreshCachedShadow();
 
 #if UNITY_EDITOR
-            // If modification are due to change on prefab asset that are non overridden on this prefab instance
-            if (PrefabUtility.IsPartOfPrefabInstance(this) && ((PrefabUtility.GetCorrespondingObjectFromOriginalSource(this) as HDAdditionalLightData)?.needRefreshPrefabInstanceEmissiveMeshes ?? false))
-            {
-                // As we cannot Create/Destroy in OnValidate, delay call to next Update
-                // To do this, wo set the same flag on prefab instances
-                needRefreshPrefabInstanceEmissiveMeshes = true;
-            }
+            // If modification are due to change on prefab asset, we want to have prefab instances to self-update, but we cannot check in OnValidate if this is part of
+            // prefab instance. So we delay the check on next update (and before teh LateUpdate logic)
+            m_NeedsPrefabInstanceCheck = true;
 #endif
         }
 
@@ -2736,6 +2755,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 emissiveMeshRenderer.sharedMaterial.SetTexture("_EmissiveColorMap", Texture2D.whiteTexture);
             }
             CoreUtils.SetKeyword(emissiveMeshRenderer.sharedMaterial, "_EMISSIVE_COLOR_MAP", enableEmissiveColorMap);
+
+            if (m_AreaLightEmissiveMeshLayer != -1)
+                emissiveMeshRenderer.gameObject.layer = m_AreaLightEmissiveMeshLayer;
         }
 
         void UpdateRectangleLightBounds()
@@ -2822,6 +2844,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // Force to clamp the shape if we changed the type of the light
             shapeWidth = m_ShapeWidth;
             shapeHeight = m_ShapeHeight;
+
+#if UNITY_EDITOR
+            // We don't want to update the disc area since their shape is largely handled by builtin.
+            if (GetLightTypeAndShape() != HDLightTypeAndShape.DiscArea)
+                legacyLight.areaSize = new Vector2(shapeWidth, shapeHeight);
+#endif
         }
 
         /// <summary>

@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
     sealed class UniversalSpriteUnlitSubTarget : SubTarget<UniversalTarget>, ILegacyTarget
     {
-        const string kAssetGuid = "ed7c0aacec26e9646b45c96fb318e5a3";
+        static readonly GUID kSourceCodeGuid = new GUID("ed7c0aacec26e9646b45c96fb318e5a3"); // UniversalSpriteUnlitSubTarget.cs
 
         public UniversalSpriteUnlitSubTarget()
         {
@@ -18,10 +18,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         }
 
         public override bool IsActive() => true;
-        
+
         public override void Setup(ref TargetSetupContext context)
         {
-            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
+            context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             context.AddSubShader(SubShaders.SpriteUnlit);
         }
 
@@ -33,8 +33,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddField(CoreFields.UseLegacySpriteBlocks, useLegacyBlocks);
 
             // Surface Type & Blend Mode
-            context.AddField(Fields.SurfaceTransparent);
+            context.AddField(UniversalFields.SurfaceTransparent);
             context.AddField(Fields.BlendAlpha);
+            context.AddField(Fields.DoubleSided);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -42,7 +43,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Only support SpriteColor legacy block if BaseColor/Alpha are not active
             bool useLegacyBlocks = !context.currentBlocks.Contains(BlockFields.SurfaceDescription.BaseColor) && !context.currentBlocks.Contains(BlockFields.SurfaceDescription.Alpha);
             context.AddBlock(BlockFields.SurfaceDescriptionLegacy.SpriteColor, useLegacyBlocks);
-            
+
             context.AddBlock(BlockFields.SurfaceDescription.Alpha);
         }
 
@@ -67,13 +68,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             return true;
         }
-        
+
 #region SubShader
         static class SubShaders
         {
             public static SubShaderDescriptor SpriteUnlit = new SubShaderDescriptor()
             {
                 pipelineTag = UniversalTarget.kPipelineTag,
+                customTags = UniversalTarget.kUnlitMaterialTypeTag,
                 renderType = $"{RenderType.Transparent}",
                 renderQueue = $"{UnityEditor.ShaderGraph.RenderQueue.Transparent}",
                 generatesPreview = true,

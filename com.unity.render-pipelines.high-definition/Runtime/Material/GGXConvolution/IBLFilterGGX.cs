@@ -195,13 +195,15 @@ namespace UnityEngine.Rendering.HighDefinition
             // If the first texture is not the right size
             if (m_PlanarReflectionFilterTex0 == null || m_PlanarReflectionFilterTex0.rt.width < texWidth)
             {
+                var hdPipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
+                var probeFormat = (GraphicsFormat)hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
                 // We re-allocate them all
                 RTHandles.Release(m_PlanarReflectionFilterTex0);
                 RTHandles.Release(m_PlanarReflectionFilterTex1);
                 RTHandles.Release(m_PlanarReflectionFilterDepthTex0);
                 RTHandles.Release(m_PlanarReflectionFilterDepthTex1);
-                m_PlanarReflectionFilterTex0 = RTHandles.Alloc(texWidth, texHeight, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: false, useMipMap: true, name: "PlanarReflectionTextureIntermediate0");
-                m_PlanarReflectionFilterTex1 = RTHandles.Alloc(texWidth, texHeight, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: false, useMipMap: false, name: "PlanarReflectionTextureIntermediate1");
+                m_PlanarReflectionFilterTex0 = RTHandles.Alloc(texWidth, texHeight, TextureXR.slices, colorFormat: probeFormat, enableRandomWrite: true, useDynamicScale: false, useMipMap: true, name: "PlanarReflectionTextureIntermediate0");
+                m_PlanarReflectionFilterTex1 = RTHandles.Alloc(texWidth, texHeight, TextureXR.slices, colorFormat: probeFormat, enableRandomWrite: true, useDynamicScale: false, useMipMap: false, name: "PlanarReflectionTextureIntermediate1");
                 m_PlanarReflectionFilterDepthTex0 = RTHandles.Alloc(texWidth, texHeight, TextureXR.slices, colorFormat: GraphicsFormat.R32_SFloat, enableRandomWrite: true, useDynamicScale: false, useMipMap: true, name: "PlanarReflectionTextureIntermediateDepth0");
                 m_PlanarReflectionFilterDepthTex1 = RTHandles.Alloc(texWidth, texHeight, TextureXR.slices, colorFormat: GraphicsFormat.R32_SFloat, enableRandomWrite: true, useDynamicScale: false, useMipMap: false, name: "PlanarReflectionTextureIntermediateDepth1");
             }
@@ -212,7 +214,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int currentTexWidth = sourceColor.width;
             int currentTexHeight = sourceColor.height;
 
-            // The first color level can be copied straight away in the mip chain, nothing special to be done
+            // The first color level can be copied straight away in the mip chain. Unfortunately due to a format incompatibility, we have to go through a compute shader copy.
             cmd.CopyTexture(sourceColor, 0, 0, 0, 0, sourceColor.width, sourceColor.height, m_PlanarReflectionFilterTex0, 0, 0, 0, 0);
 
             // For depth it is a bit trickier, we want to convert the depth from oblique space to non-oblique space due to the poor interpolation properties of the oblique matrix

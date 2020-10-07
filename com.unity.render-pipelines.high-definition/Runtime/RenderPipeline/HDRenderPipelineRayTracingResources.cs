@@ -49,7 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Sub-Surface Scattering
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RayTracingSubSurface.raytrace")]
-        public RayTracingShader subSurfaceRayTracing;
+        public RayTracingShader subSurfaceRayTracingRT;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/SubSurface/RayTracingSubSurface.compute")]
         public ComputeShader subSurfaceRayTracingCS;
 
@@ -86,9 +86,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Filtering for reflections
         [Reload("Runtime/RenderPipelineResources/Texture/ReflectionKernelMapping.png")]
         public Texture2D reflectionFilterMapping;
-        [Reload("Runtime/RenderPipelineResources/Texture/ShadowKernelMapping.asset")]
-        public Texture3D shadowFilterMapping;
-        
 
 #if UNITY_EDITOR
         [UnityEditor.CustomEditor(typeof(HDRenderPipelineRayTracingResources))]

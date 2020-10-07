@@ -76,6 +76,8 @@ namespace UnityEditor.ShaderGraph
             set { m_Name = value; }
         }
 
+        public string[] synonyms;
+
         protected virtual string documentationPage => name;
         public virtual string documentationURL => NodeUtils.GetDocumentationString(documentationPage);
 
@@ -96,7 +98,7 @@ namespace UnityEditor.ShaderGraph
             get { return true; }
         }
 
-        private ConcretePrecision m_ConcretePrecision = ConcretePrecision.Float;
+        private ConcretePrecision m_ConcretePrecision = ConcretePrecision.Single;
 
         public ConcretePrecision concretePrecision
         {
@@ -382,8 +384,11 @@ namespace UnityEditor.ShaderGraph
 
         public AbstractShaderProperty GetSlotProperty(int inputSlotId)
         {
+            if (owner == null)
+                return null;
+
             var inputSlot = FindSlot<MaterialSlot>(inputSlotId);
-            if (inputSlot == null)
+            if (inputSlot?.slotReference.node == null)
                 return null;
 
             var edges = owner.GetEdges(inputSlot.slotReference);
@@ -746,36 +751,50 @@ namespace UnityEditor.ShaderGraph
             return defaultVariableName;
         }
 
-        public void AddSlot(MaterialSlot slot, bool findPrevInstance = true)
+        public MaterialSlot AddSlot(MaterialSlot slot, bool attemptToModifyExistingInstance = true)
         {
             if(slot == null)
             {
                 throw new ArgumentException($"Trying to add null slot to node {this}");
             }
-            var foundSlot = FindSlot<MaterialSlot>(slot.id);
+            MaterialSlot foundSlot = FindSlot<MaterialSlot>(slot.id);
+
+            if (slot == foundSlot)
+                return foundSlot;
 
             // Try to keep the existing instance to avoid unnecessary changes to file
-            if (foundSlot != null && slot.GetType() == foundSlot.GetType() && findPrevInstance)
+            if (attemptToModifyExistingInstance && foundSlot != null && slot.GetType() == foundSlot.GetType())
             {
                 foundSlot.displayName = slot.RawDisplayName();
                 foundSlot.CopyDefaultValue(slot);
-                return;
+                return foundSlot;
             }
 
-            // this will remove the old slot and add a new one
-            // if an old one was found. This allows updating values
-            m_Slots.RemoveAll(x => x.value.id == slot.id);
+            // keep the same ordering by replacing the first match, if it exists
+            int firstIndex = m_Slots.FindIndex(s => s.value.id == slot.id);
+            if (firstIndex >= 0)
+            {
+                m_Slots[firstIndex] = slot;
 
-            m_Slots.Add(slot);
+                // remove additional matches to get rid of unused duplicates
+                m_Slots.RemoveAllFromRange(s => s.value.id == slot.id, firstIndex + 1, m_Slots.Count - (firstIndex + 1));
+            }
+            else
+                m_Slots.Add(slot);
+
             slot.owner = this;
 
             OnSlotsChanged();
 
-            if (foundSlot == null || foundSlot == slot)
-                return;
+            if (foundSlot == null)
+                return slot;
 
+            // foundSlot is of a different type; try to copy values
+            // I think this is to support casting if implemented in CopyValuesFrom ?
             slot.CopyValuesFrom(foundSlot);
             foundSlot.owner = null;
+
+            return slot;
         }
 
         public void RemoveSlot(int slotId)

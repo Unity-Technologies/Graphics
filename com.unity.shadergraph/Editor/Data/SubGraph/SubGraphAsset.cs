@@ -1,6 +1,10 @@
 using System;
 using System.Collections.Generic;
+#if UNITY_2020_2_OR_NEWER
+using UnityEditor.AssetImporters;
+#else
 using UnityEditor.Experimental.AssetImporters;
+#endif
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Serialization;
@@ -82,7 +86,9 @@ namespace UnityEditor.ShaderGraph
             if(m_SubGraphData == null)
             {
                 m_SubGraphData = new SubGraphData();
+                m_SubGraphData.OverrideObjectId(assetGuid, "_subGraphData");
             }
+
             m_SubGraphData.inputs.Clear();
             m_SubGraphData.keywords.Clear();
             m_SubGraphData.nodeProperties.Clear();
@@ -130,7 +136,7 @@ namespace UnityEditor.ShaderGraph
         public void LoadGraphData()
         {
             m_SubGraphData = new SubGraphData();
-            if(!String.IsNullOrEmpty(m_SerializedSubGraphData.JSONnodeData))
+            if (!String.IsNullOrEmpty(m_SerializedSubGraphData.JSONnodeData))
             {
                 MultiJson.Deserialize(m_SubGraphData, m_SerializedSubGraphData.JSONnodeData);
             }

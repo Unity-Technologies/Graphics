@@ -98,7 +98,6 @@ void RayGenGBuffer()
 
     // Compute the position input structure
     PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
     // Decode the world space normal
     NormalData normalData;
     DecodeFromNormalBuffer(currentPixelCoord, normalData);
@@ -113,7 +112,7 @@ void RayGenGBuffer()
     // Read the ray distance
     float3 rayDirection = _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentPixelCoord)].xyz;
 
-    float3 rayOrigin = positionWS + normalData.normalWS * _RaytracingRayBias;
+    float3 rayOrigin = posInput.positionWS + normalData.normalWS * _RaytracingRayBias;
 
     // Create the ray descriptor for this pixel
     RayDesc rayDescriptor;
@@ -195,7 +194,6 @@ void RayGenGBufferBinned()
     // Compute the position input structure
     PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
     float distanceToCamera = length(posInput.positionWS);
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
     // Decode the world space normal
     NormalData normalData;
     DecodeFromNormalBuffer(currentPixelCoord, normalData);
@@ -210,7 +208,7 @@ void RayGenGBufferBinned()
     // Read the ray distance
     float3 rayDirection = _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentPixelCoord)].xyz;
 
-    float3 rayOrigin = positionWS + normalData.normalWS * _RaytracingRayBias;
+    float3 rayOrigin = posInput.positionWS + normalData.normalWS * _RaytracingRayBias;
 
     // Create the ray descriptor for this pixel
     RayDesc rayDescriptor;

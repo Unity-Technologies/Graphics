@@ -32,6 +32,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public HDLitSubTarget() => displayName = "Lit";
 
+        static readonly GUID kSubTargetSourceCodeGuid = new GUID("caab952c840878340810cca27417971c");  // HDLitSubTarget.cs
+
         static string[] passTemplateMaterialDirectories = new string[]
         {
             $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Lit/ShaderGraph/",
@@ -39,8 +41,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         };
 
         protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
-        protected override string customInspector => "Rendering.HighDefinition.HDLitGUI";
-        protected override string subTargetAssetGuid => "caab952c840878340810cca27417971c"; // HDLitSubTarget.cs
+        protected override string customInspector => "Rendering.HighDefinition.LightingShaderGraphGUI";
+        protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
         protected override string postDecalsInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl";
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Lit;
         protected override string raytracingInclude => CoreIncludes.kLitRaytracing;
@@ -119,6 +121,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(ClearCoat,                            litData.clearCoat); // Enable clear coat material feature
             context.AddField(Tangent,                              descs.Contains(HDBlockFields.SurfaceDescription.Tangent) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Tangent));
             context.AddField(RayTracing,                           litData.rayTracing);
+
+            context.AddField(SpecularAA, lightingData.specularAA &&
+                                context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold) &&
+                                context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance));
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
