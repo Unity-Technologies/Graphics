@@ -100,7 +100,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         blendStyleMask >>= 1;
                     }
 
-                    if (!LightTextureManager.HasBudgetFor(blendStyleCount))
+                    if (!LightTextureManager.HasBudgetFor((int)blendStyleCount))
                         break;
 
                     batchesDrawn++;
@@ -140,8 +140,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                                 if (blendStyleUsed)
                                 {
-                                    var lightTexture = LightTextureManager.GetLightTexture(cmd, layerBatch.GetLightTextureKey(blendStyleIndex));
-                                    cmd.SetGlobalTexture(k_ShapeLightTextureIDs[blendStyleIndex], lightTexture);
+                                    var identifier = LightTextureManager.GetLightTextureIdentifier(cmd, layerBatch.GetLightTextureKey(blendStyleIndex));
+                                    cmd.SetGlobalTexture(k_ShapeLightTextureIDs[blendStyleIndex], identifier);
                                 }
 
                                 RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleUsed);
@@ -214,7 +214,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 this.SetShapeLightShaderGlobals(cmd);
 
                 var desc = this.GetBlendStyleRenderTextureDesc(renderingData);
-                LightTextureManager.Init(ref desc, m_Renderer2DData.batchSize * 1024 * 1024);
+                LightTextureManager.Initialize(ref desc, m_Renderer2DData.batchSize * 1024 * 1024);
 
                 var layerBatches = LayerUtility.CalculateBatches(m_Renderer2DData.lightCullResult);
                 var batchCount = layerBatches.Count;

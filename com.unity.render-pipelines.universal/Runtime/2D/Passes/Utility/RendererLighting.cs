@@ -376,9 +376,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 if (!Light2DManager.GetGlobalColor(layerToRender, i, out var clearColor))
                     clearColor = Color.black;
 
-                var lightTexture = LightTextureManager.GetLightTexture(cmd, layerBatch.GetLightTextureKey(i));
+                var identifier = LightTextureManager.GetLightTextureIdentifier(cmd, layerBatch.GetLightTextureKey(i));
 
-                cmd.SetRenderTarget(lightTexture,
+                cmd.SetRenderTarget(identifier,
                     RenderBufferLoadAction.DontCare,
                     RenderBufferStoreAction.Store,
                     RenderBufferLoadAction.DontCare,
@@ -390,7 +390,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     i,
                     cmd,
                     layerToRender,
-                    lightTexture,
+                    identifier,
                     pass.rendererData.lightCullResult.visibleLights
                 );
 

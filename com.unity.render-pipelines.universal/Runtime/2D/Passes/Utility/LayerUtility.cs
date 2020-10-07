@@ -103,9 +103,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         
         private static RenderTextureDescriptor s_Desc;
         private static long s_MemoryBudget;
-        private static int s_TextureCount;
+        private static int s_ActiveTextureCount;
 
-        public static void Init(ref RenderTextureDescriptor desc, long memoryBudget)
+        public static void Initialize(ref RenderTextureDescriptor desc, long memoryBudget)
         {
             var maxTextureCount = Light2DManager.GetCachedSortingLayer().Length * 4;
             if (s_AllNameIDs == null || s_AllNameIDs.Capacity != maxTextureCount)
@@ -134,9 +134,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 s_AllTextureInfo.Add(new TextureInfo());
         }
 
-        public static bool HasBudgetFor(uint textureCount)
+        public static bool HasBudgetFor(int textureCount)
         {
-            return s_AllTextureInfo.Count - s_TextureCount >= textureCount;
+            return s_AllTextureInfo.Count - s_ActiveTextureCount >= textureCount;
         }
 
         public static void ResetKeys()
@@ -148,10 +148,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 s_AllTextureInfo[i] = textureInfo;
             }
 
-            s_TextureCount = 0;
+            s_ActiveTextureCount = 0;
         }
 
-        public static RenderTargetIdentifier GetLightTexture(CommandBuffer cmd, int key)
+        public static RenderTargetIdentifier GetLightTextureIdentifier(CommandBuffer cmd, int key)
         {
             for (var i = 0; i < s_AllTextureInfo.Count; ++i)
             {
@@ -162,7 +162,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     if (textureInfo.key == -1)
                     {
                         textureInfo.key = key;
-                        s_TextureCount++;
+                        s_ActiveTextureCount++;
                     }
 
                     var nameID = s_AllNameIDs[i];
