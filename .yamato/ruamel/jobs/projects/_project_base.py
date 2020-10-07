@@ -29,7 +29,7 @@ def _job(project_name, test_platform_name, editor, platform, api, cmd):
 
     if not editor['editor_pinning']:
         job.add_dependencies([{
-                'path' : f'{editor_priming_filepath()}#{editor_job_id(editor["track"], platform["os"])}',
+                'path' : f'{editor_priming_filepath()}#{editor_job_id(editor["track"], platform["os"],fast=False)}',
                 'rerun' : editor["rerun_strategy"]}])
 
     return job

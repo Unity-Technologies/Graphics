@@ -134,6 +134,8 @@ smoke_test_playmode_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  .yamato/_editor_priming.yml#editor:priming:2020.2:windows
 smoke_test_editmode_2020.2:
     name: SRP Smoke Test - editmode_2020.2
     agent:
@@ -151,6 +153,8 @@ smoke_test_editmode_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  .yamato/_editor_priming.yml#editor:priming:2020.2:windows
 all_smoke_tests_2020.2:
     name: All Smoke Tests - 2020.2
     dependencies:

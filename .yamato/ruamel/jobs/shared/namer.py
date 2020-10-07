@@ -8,8 +8,12 @@ def editor_priming_filepath():
 def editor_pinning_filepath():
     return f'{parent_dir}/_editor_pinning.yml'.lower()
 
-def editor_job_id(editor_version, platform_os):
-    return f'editor:priming:{editor_version}:{platform_os}'
+def editor_job_id(editor_version, platform_os, fast):
+    if fast:
+        return f'editor:priming:{editor_version}-fast:{platform_os}'
+    else:
+        return f'editor:priming:{editor_version}:{platform_os}'
+
 
 def editor_job_id_test_min_editor(platform_os):
     return f'editor:priming:test_min_editor:{platform_os}'

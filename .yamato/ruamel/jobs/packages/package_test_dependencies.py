@@ -17,7 +17,7 @@ class Package_TestDependenciesJob():
         dependencies = [f'{packages_filepath()}#{package_job_id_test(package["id"],platform["os"],editor["track"])}']
         dependencies.extend([f'{packages_filepath()}#{package_job_id_pack(dep)}' for dep in package["dependencies"]])
         if str(editor['track']).lower() == 'custom-revision':
-            dependencies.extend([f'{editor_priming_filepath()}#{editor_job_id(editor["track"], platform["os"]) }'])
+            dependencies.extend([f'{editor_priming_filepath()}#{editor_job_id(editor["track"], platform["os"], fast=False) }'])
         
         # define commands
         commands =  [

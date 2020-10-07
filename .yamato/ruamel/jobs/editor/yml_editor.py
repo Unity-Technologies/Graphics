@@ -15,7 +15,10 @@ def create_editor_yml(metafile):
     yml = {}
     for platform in metafile["platforms"]:
         for editor in metafile['editors']:
-            job = Editor_PrimingJob(platform, editor, metafile["editor_priming_agent"])
+            job = Editor_PrimingJob(platform, editor, metafile["editor_priming_agent"], fast=False)
+            yml[job.job_id] = job.yml
+
+            job = Editor_PrimingJob(platform, editor, metafile["editor_priming_agent"], fast=True)
             yml[job.job_id] = job.yml
         
         job = Editor_PrimingMinEditorJob(platform, metafile["editor_priming_agent"])

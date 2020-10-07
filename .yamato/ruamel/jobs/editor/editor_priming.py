@@ -5,12 +5,12 @@ from ..shared.yml_job import YMLJob
 
 class Editor_PrimingJob():
     
-    def __init__(self, platform, editor, agent):
-        self.job_id = editor_job_id(editor["track"], platform["os"])
-        self.yml = self.get_job_definition(platform, editor, agent).get_yml()
+    def __init__(self, platform, editor, agent, fast):
+        self.job_id = editor_job_id(editor["track"], platform["os"], fast)
+        self.yml = self.get_job_definition(platform, editor, agent, fast).get_yml()
 
 
-    def get_job_definition(self, platform, editor, agent):
+    def get_job_definition(self, platform, editor, agent, fast):
         
         components = platform["components"]
 
@@ -21,7 +21,15 @@ class Editor_PrimingJob():
         else:
             platform_os = platform["os"]
         
-        editor_cli_rev = VAR_CUSTOM_REVISION if str(editor['track']).lower()=='custom-revision' else editor["track"]
+        if str(editor['track']).lower()=='custom-revision':
+            editor_cli_rev = VAR_CUSTOM_REVISION 
+        else:
+            editor_cli_rev = str(editor["track"])
+            if fast: 
+                editor_cli_rev += " --fast"
+        
+        
+        
         # construct job
         job = YMLJob()
         job.set_name(f'[{editor["track"]},{platform["os"]}] Editor priming')

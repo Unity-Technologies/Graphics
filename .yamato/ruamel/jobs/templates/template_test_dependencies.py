@@ -16,7 +16,7 @@ class Template_TestDependenciesJob():
         dependencies = [f'{templates_filepath()}#{template_job_id_pack(template["id"])}'] 
         dependencies.extend([f'{packages_filepath()}#{package_job_id_pack(dep)}' for dep in template["dependencies"]])
         if str(editor['track']).lower() == 'custom-revision':
-            dependencies.extend([f'{editor_priming_filepath()}#{editor_job_id(editor["track"], platform["os"]) }'])
+            dependencies.extend([f'{editor_priming_filepath()}#{editor_job_id(editor["track"], platform["os"],fast=False) }'])
         
         # define commands
         commands =  [
