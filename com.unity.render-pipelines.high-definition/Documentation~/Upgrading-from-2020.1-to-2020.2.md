@@ -183,6 +183,8 @@ From 10.x, HDRP includes a new optimization for [Planar Reflection Probes](Plana
 For example, the call in the Lit shader has been updated to:
 `float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness) * lightData.roughReflections, lightData.rangeCompressionFactorCompensation, posInput.positionNDC);`
 
+## Raytracing
+
 From Unity 2020.2, the Raytracing Node in shader graph now apply the raytraced path (previously low path) to all raytraced effects but path tracing.
 
 ## Custom pass API
