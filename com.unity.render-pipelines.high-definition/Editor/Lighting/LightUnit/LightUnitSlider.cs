@@ -208,7 +208,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SerializedObject?.Update();
 
             // Set the value to the average of the preset range.
-            value.floatValue = 0.5f * (preset.value.x + preset.value.y);
+            value.floatValue = preset.presetValue;
 
             m_SerializedObject?.ApplyModifiedProperties();
         }
@@ -510,11 +510,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             m_Light?.Update();
 
-            // Set the value to the average of the preset range.
-            var newValue = 0.5f * (preset.value.x + preset.value.y);
-
             // Convert to the actual unit.
-            value.floatValue = LumenToUnit(newValue);
+            value.floatValue = LumenToUnit(preset.presetValue);
 
             m_Light?.Apply();
         }

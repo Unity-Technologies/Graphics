@@ -42,20 +42,33 @@ namespace UnityEditor.Rendering.HighDefinition
     struct LightUnitSliderUIRange
     {
         public LightUnitSliderUIRange(Texture2D icon, string tooltip, Vector2 value)
+            // If no preset value provided, then by default it is the average of the value range.
+            : this(icon, tooltip, value, 0.5f * (value.x + value.y))
+        {}
+
+        public LightUnitSliderUIRange(Texture2D icon, string tooltip, Vector2 value, float presetValue)
         {
             this.content = new GUIContent(icon, tooltip);
             this.value = value;
+
+            Debug.Assert(presetValue > value.x && presetValue < value.y, "Preset value is outside the slider value range.");
+
+            // Preset values are arbitrarily chosen by artist, and we must use it instead of
+            // deriving it automatically (ie, the value range average).
+            this.presetValue = presetValue;
         }
 
         public static LightUnitSliderUIRange CautionRange(string tooltip, float value) => new LightUnitSliderUIRange
         {
             // Load the buildin caution icon with provided tooltip.
             content = new GUIContent( EditorGUIUtility.TrIconContent("console.warnicon").image, tooltip),
-            value = new Vector2(-1, value)
+            value = new Vector2(-1, value),
+            presetValue = -1
         };
 
         public GUIContent content;
         public Vector2    value;
+        public float      presetValue;
     }
 
     static class LightUnitSliderDescriptors
