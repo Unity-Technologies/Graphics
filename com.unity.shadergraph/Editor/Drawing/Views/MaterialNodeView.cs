@@ -162,6 +162,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Register OnMouseHover callbacks for node highlighting
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
+
+            ShaderGraphPreferences.onAllowDeprecatedChanged += UpdateTitle;
         }
 
         public void AttachMessage(string errString, ShaderCompilerMessageSeverity severity)
@@ -445,7 +447,23 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (node is SubGraphNode subGraphNode && subGraphNode.asset != null)
                 title = subGraphNode.asset.name;
             else
-                title = node.name;
+            {
+                if (node.sgVersion < node.latestVersion)
+                {
+                    if (ShaderGraphPreferences.allowDeprecatedBehaviors)
+                    {
+                        title = node.name + $" (Deprecated V{node.sgVersion})";
+                    }
+                    else
+                    {
+                        title = node.name + $" (Deprecated)";
+                    }
+                }
+                else
+                {
+                    title = node.name;
+                }
+            }
         }
 
         public void OnModified(ModificationScope scope)
@@ -725,6 +743,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_PreviewRenderData.onPreviewChanged -= UpdatePreviewTexture;
                 m_PreviewRenderData = null;
             }
+            ShaderGraphPreferences.onAllowDeprecatedChanged -= UpdateTitle;
         }
     }
 }

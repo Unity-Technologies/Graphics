@@ -108,7 +108,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (type.GetCustomAttributes(typeof(TitleAttribute), false) is TitleAttribute[] attrs && attrs.Length > 0)
                 {
                     var node = (AbstractMaterialNode) Activator.CreateInstance(type);
-                    AddEntries(node, attrs[0].title, nodeEntries);
+                    if(ShaderGraphPreferences.allowDeprecatedBehaviors && node.latestVersion > 0)
+                    {
+                        for(int i = 0; i <= node.latestVersion; ++i)
+                        {
+                            var depNode = (AbstractMaterialNode)Activator.CreateInstance(type);
+                            depNode.ChangeVersion(i);
+                            AddEntries(depNode, attrs[0].title.Append($"V{i}").ToArray(), nodeEntries);
+                        }
+                    }
+                    else
+                    {
+                        AddEntries(node, attrs[0].title, nodeEntries);
+                    }
                 }
             }
 
@@ -348,6 +360,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         public AbstractMaterialNode CopyNodeForGraph(AbstractMaterialNode oldNode)
         {
             var newNode = (AbstractMaterialNode)Activator.CreateInstance(oldNode.GetType());
+            if (ShaderGraphPreferences.allowDeprecatedBehaviors && oldNode.sgVersion != newNode.sgVersion)
+            {
+                newNode.ChangeVersion(oldNode.sgVersion);
+            }
             if (newNode is SubGraphNode subgraphNode)
             {
                 subgraphNode.asset = ((SubGraphNode)oldNode).asset;
