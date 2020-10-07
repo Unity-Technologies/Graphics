@@ -2156,6 +2156,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 shadowRequest.isInCachedAtlas = isSampledFromCache;
                 shadowRequest.isMixedCached = updateType == ShadowMapUpdateType.Mixed;
+                shadowRequest.shouldUseCachedShadowData = false;  
 
                 Vector2 viewportSize = resolutionRequest.resolution;
 
