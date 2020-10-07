@@ -1,6 +1,8 @@
 # Complex Lit Shader
 
-The Complex Lit Shader inherits the functionality of the Lit shader and adds advanced material features. Some features in this shader might be considerably more resource-intensive and require [Unity Shader Model 4.5](https://docs.unity3d.com/Manual/SL-ShaderCompileTargets.html) hardware. This shader contains the features that are incompatible with the Deferred Rendering Path. URP renders the Complex Lit shader using the Forward Rendering Path, and uses the Complex Lit shader as a fallback shader in the Deferred Rendering Path. 
+The Complex Lit Shader contains all the functionality of the Lit shader and adds advanced material features. Some features in this shader might be considerably more resource-intensive and require [Unity Shader Model 4.5](https://docs.unity3d.com/Manual/SL-ShaderCompileTargets.html) hardware. This shader contains features that the Deferred Rendering Path does not support.
+
+URP renders objects that have the Complex Lit shader using the Forward Rendering Path. If the hardware of the target platform does not support features in the Complex Lit shader, URP uses the Lit shader instead. 
 
 ## Using the Complex Lit Shader in the Editor 
 
