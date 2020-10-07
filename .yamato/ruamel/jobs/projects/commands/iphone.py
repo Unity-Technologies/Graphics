@@ -3,7 +3,7 @@ from ruamel.yaml.scalarstring import PreservedScalarString as pss
 from ...shared.utr_utils import utr_editmode_flags, utr_playmode_flags, utr_standalone_split_flags,utr_standalone_not_split_flags, utr_standalone_build_flags
 
 
-def _cmd_base(project_folder, components):
+def _cmd_base(project_folder, platform, editor):
     return []
 
 def cmd_editmode(project_folder, platform, api, test_platform, editor):

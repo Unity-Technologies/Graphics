@@ -17,11 +17,11 @@ def create_abv_ymls(metafile):
         job = ABV_AllSmokeTestsJob(editor, metafile["smoke_test"]["test_platforms"])
         yml[job.job_id] = job.yml
 
-        job = ABV_AllProjectCiJob(editor, metafile["abv"]["projects"], metafile["abv"]["trigger_editors"], metafile["target_branch"])
+        job = ABV_AllProjectCiJob(editor, metafile["abv"]["projects"], metafile["target_branch"])
         yml[job.job_id] = job.yml
 
-        if editor["version"] in metafile["nightly"]["allowed_editors"]:
-            job = ABV_AllProjectCiNightlyJob(editor, metafile["abv"]["projects"], metafile["smoke_test"]["test_platforms"], metafile["nightly"], metafile["target_branch"])
+        if editor.get("nightly"):
+            job = ABV_AllProjectCiNightlyJob(editor, metafile["smoke_test"]["test_platforms"], metafile["nightly"], metafile["target_branch"])
             yml[job.job_id] = job.yml
 
         job = ABV_TrunkVerificationJob(editor, metafile["trunk_verification"]["dependencies"])
