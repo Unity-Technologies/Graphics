@@ -112,18 +112,18 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public static readonly LightUnitSliderUIRange[] LumenValueTable =
             {
-                new LightUnitSliderUIRange(LightUnitIcon.ExteriorLight,  LightUnitTooltips.k_PunctualExterior,   new Vector2(3000, 40000)),
-                new LightUnitSliderUIRange(LightUnitIcon.InteriorLight,  LightUnitTooltips.k_PunctualInterior,   new Vector2(300,  3000)),
-                new LightUnitSliderUIRange(LightUnitIcon.DecorativeLight,LightUnitTooltips.k_PunctualDecorative, new Vector2(15,   300)),
-                new LightUnitSliderUIRange(LightUnitIcon.Candlelight,    LightUnitTooltips.k_PunctualCandle,     new Vector2(0,    15)),
+                new LightUnitSliderUIRange(LightUnitIcon.ExteriorLight,  LightUnitTooltips.k_PunctualExterior,   new Vector2(3000, 40000), 10000),
+                new LightUnitSliderUIRange(LightUnitIcon.InteriorLight,  LightUnitTooltips.k_PunctualInterior,   new Vector2(300,  3000),  1000),
+                new LightUnitSliderUIRange(LightUnitIcon.DecorativeLight,LightUnitTooltips.k_PunctualDecorative, new Vector2(15,   300),   100),
+                new LightUnitSliderUIRange(LightUnitIcon.Candlelight,    LightUnitTooltips.k_PunctualCandle,     new Vector2(0,    15),    12.5f),
             };
 
             public static readonly LightUnitSliderUIRange[] LuxValueTable =
             {
-                new LightUnitSliderUIRange(LightUnitIcon.BrightSky,     LightUnitTooltips.k_LuxBrightSky,     new Vector2(80000, 120000)),
-                new LightUnitSliderUIRange(LightUnitIcon.Overcast,      LightUnitTooltips.k_LuxOvercastSky,   new Vector2(10000, 80000)),
-                new LightUnitSliderUIRange(LightUnitIcon.SunriseSunset, LightUnitTooltips.k_LuxSunriseSunset, new Vector2(1,     10000)),
-                new LightUnitSliderUIRange(LightUnitIcon.Moonlight,     LightUnitTooltips.k_LuxMoonlight,     new Vector2(0,     1)),
+                new LightUnitSliderUIRange(LightUnitIcon.BrightSky,     LightUnitTooltips.k_LuxBrightSky,     new Vector2(80000, 120000), 100000),
+                new LightUnitSliderUIRange(LightUnitIcon.Overcast,      LightUnitTooltips.k_LuxOvercastSky,   new Vector2(10000, 80000),  20000),
+                new LightUnitSliderUIRange(LightUnitIcon.SunriseSunset, LightUnitTooltips.k_LuxSunriseSunset, new Vector2(1,     10000),  5000),
+                new LightUnitSliderUIRange(LightUnitIcon.Moonlight,     LightUnitTooltips.k_LuxMoonlight,     new Vector2(0,     1),      0.5f),
             };
 
             public static readonly LightUnitSliderUIRange[] ExposureValueTable =
@@ -138,13 +138,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static readonly LightUnitSliderUIRange[] KelvinValueTableNew =
             {
-                new LightUnitSliderUIRange(LightUnitIcon.BlueSky,          LightUnitTooltips.k_TemperatureBlueSky,          new Vector2(10000, 20000)),
-                new LightUnitSliderUIRange(LightUnitIcon.Shade,            LightUnitTooltips.k_TemperatureShade,            new Vector2(7000,  10000)),
-                new LightUnitSliderUIRange(LightUnitIcon.CloudySky,        LightUnitTooltips.k_TemperatureCloudySky,        new Vector2(6000,   7000)),
-                new LightUnitSliderUIRange(LightUnitIcon.DirectSunlight,   LightUnitTooltips.k_TemperatureDirectSunlight,   new Vector2(4500,   6000)),
-                new LightUnitSliderUIRange(LightUnitIcon.Fluorescent,      LightUnitTooltips.k_TemperatureFluorescent,      new Vector2(3500,   4500)),
-                new LightUnitSliderUIRange(LightUnitIcon.IntenseAreaLight, LightUnitTooltips.k_TemperatureIncandescent,     new Vector2(2500,   3500)),
-                new LightUnitSliderUIRange(LightUnitIcon.Candlelight,      LightUnitTooltips.k_TemperatureCandle,           new Vector2(1500,   2500)),
+                new LightUnitSliderUIRange(LightUnitIcon.BlueSky,          LightUnitTooltips.k_TemperatureBlueSky,          new Vector2(10000, 20000), 15000),
+                new LightUnitSliderUIRange(LightUnitIcon.Shade,            LightUnitTooltips.k_TemperatureShade,            new Vector2(7000,  10000), 8000),
+                new LightUnitSliderUIRange(LightUnitIcon.CloudySky,        LightUnitTooltips.k_TemperatureCloudySky,        new Vector2(6000,   7000), 6500),
+                new LightUnitSliderUIRange(LightUnitIcon.DirectSunlight,   LightUnitTooltips.k_TemperatureDirectSunlight,   new Vector2(4500,   6000), 5500),
+                new LightUnitSliderUIRange(LightUnitIcon.Fluorescent,      LightUnitTooltips.k_TemperatureFluorescent,      new Vector2(3500,   4500), 4000),
+                new LightUnitSliderUIRange(LightUnitIcon.IntenseAreaLight, LightUnitTooltips.k_TemperatureIncandescent,     new Vector2(2500,   3500), 3000),
+                new LightUnitSliderUIRange(LightUnitIcon.Candlelight,      LightUnitTooltips.k_TemperatureCandle,           new Vector2(1500,   2500), 1900),
             };
         }
 
