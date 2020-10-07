@@ -939,11 +939,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static IncludeCollection RaytracingCorePregraph = new IncludeCollection
         {
             // Pregraph includes
-            { CoreIncludes.kFragInputs, IncludeLocation.Pregraph },
-
-            // Ray Tracing macros should be included before shader variables to guarantee that the macros are overriden
             { CoreIncludes.kRaytracingMacros, IncludeLocation.Pregraph },
-            { CoreIncludes.kShaderVariables, IncludeLocation.Pregraph },
             { CoreIncludes.kMaterial, IncludeLocation.Pregraph },
             { CoreIncludes.kShaderVariablesRaytracing, IncludeLocation.Pregraph },
             { CoreIncludes.kShaderVariablesRaytracingLightLoop, IncludeLocation.Pregraph },
