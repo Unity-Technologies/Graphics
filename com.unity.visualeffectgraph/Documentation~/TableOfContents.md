@@ -35,10 +35,11 @@
     * [Update Particle](Context-Update.md)
     * Block
       * Attribute
+        * [Curve](Block-SetAttributeFromCurve.md)
         * Derived
           * [Calculate Mass from Volume](Block-CalculateMassFromVolume.md)
-        * Set
-          * [Set Attribute](Block-SetAttribute.md)
+        * [Map](Block-SetAttributeFromMap.md)
+        * [Set](Block-SetAttribute.md)
       * Collision
         * [Collide with AABox](Block-CollideWithAABox.md)
         * [Collide with Cylinder](Block-CollideWithCylinder.md)
