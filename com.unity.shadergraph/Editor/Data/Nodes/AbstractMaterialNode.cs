@@ -7,6 +7,7 @@ using UnityEditor.ShaderGraph.Drawing.Colors;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Serialization;
+using UnityEngine.Assertions;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -751,7 +752,7 @@ namespace UnityEditor.ShaderGraph
             return defaultVariableName;
         }
 
-        public MaterialSlot AddSlot(MaterialSlot slot, bool findPrevInstance = true)
+        public MaterialSlot AddSlot(MaterialSlot slot, bool attemptToModifyExistingInstance = true)
         {
             if(slot == null)
             {
@@ -763,16 +764,25 @@ namespace UnityEditor.ShaderGraph
                 return foundSlot;
 
             // Try to keep the existing instance to avoid unnecessary changes to file
-            if (findPrevInstance && foundSlot != null && slot.GetType() == foundSlot.GetType())
+            if (attemptToModifyExistingInstance && foundSlot != null && slot.GetType() == foundSlot.GetType())
             {
                 foundSlot.displayName = slot.RawDisplayName();
                 foundSlot.CopyDefaultValue(slot);
                 return foundSlot;
             }
 
-            // this will remove any old slots and then add the new one
-            m_Slots.RemoveAll(x => x.value.id == slot.id);
-            m_Slots.Add(slot);
+            // keep the same ordering by replacing the first match, if it exists
+            int firstIndex = m_Slots.FindIndex(s => s.value.id == slot.id);
+            if (firstIndex >= 0)
+            {
+                m_Slots[firstIndex] = slot;
+
+                // remove additional matches to get rid of unused duplicates
+                m_Slots.RemoveAllFromRange(s => s.value.id == slot.id, firstIndex + 1, m_Slots.Count - (firstIndex + 1));
+            }
+            else
+                m_Slots.Add(slot);
+
             slot.owner = this;
 
             OnSlotsChanged();
@@ -822,6 +832,28 @@ namespace UnityEditor.ShaderGraph
                 if (!supressWarnings)
                     Debug.LogWarningFormat("Removing Invalid MaterialSlot: {0}", invalidSlot);
                 RemoveSlot(invalidSlot);
+            }
+        }
+
+        public void SetSlotOrder(List<int> desiredOrderSlotIds)
+        {
+            int writeIndex = 0;
+            for (int orderIndex = 0; orderIndex < desiredOrderSlotIds.Count; orderIndex++)
+            {
+                var id = desiredOrderSlotIds[orderIndex];
+                var matchIndex = m_Slots.FindIndex(s => s.value.id == id);
+                if (matchIndex < 0)
+                {
+                    // no matching slot with that id.. skip it
+                }
+                else if (writeIndex != orderIndex)
+                {
+                    // swap the matching slot into position
+                    var slot = m_Slots[matchIndex];
+                    m_Slots[matchIndex] = m_Slots[writeIndex];
+                    m_Slots[writeIndex] = slot;
+                    writeIndex++;
+                }
             }
         }
 

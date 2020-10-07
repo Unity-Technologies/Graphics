@@ -255,11 +255,11 @@ namespace UnityEditor.ShaderGraph
             UpdateSlots();
         }
 
-        public void Reload(HashSet<string> changedFileDependencies)
+        public bool Reload(HashSet<string> changedFileDependencies)
         {
             if (asset == null)
             {
-                return;
+                return false;
             }
 
             if (changedFileDependencies.Contains(asset.assetGuid) || asset.descendents.Any(changedFileDependencies.Contains))
@@ -269,13 +269,15 @@ namespace UnityEditor.ShaderGraph
 
                 if (hasError)
                 {
-                    return;
+                    return true;
                 }
 
                 owner.ClearErrorsForNode(this);
                 ValidateNode();
                 Dirty(ModificationScope.Graph);
             }
+
+            return true;
         }
 
         public virtual void UpdateSlots()
@@ -413,7 +415,7 @@ namespace UnityEditor.ShaderGraph
                         break;
                 }
 
-                AddSlot(slot, false);       // always replace to force reordering of the slots
+                AddSlot(slot);
                 validNames.Add(id);
             }
 
@@ -423,11 +425,14 @@ namespace UnityEditor.ShaderGraph
             {
                 var newSlot = MaterialSlot.CreateMaterialSlot(slot.valueType, slot.id, slot.RawDisplayName(),
                     slot.shaderOutputName, SlotType.Output, Vector4.zero, outputStage, slot.hidden);
-                AddSlot(newSlot, false);    // always replace to force reordering of the slots
+                AddSlot(newSlot);
                 validNames.Add(slot.id);
             }
 
             RemoveSlotsNameNotMatching(validNames, true);
+
+            // sort slot order to match subgraph property order
+            SetSlotOrder(validNames);
         }
 
         void ValidateShaderStage()
