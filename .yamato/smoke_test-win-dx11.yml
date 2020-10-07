@@ -20,6 +20,7 @@ Smoke_Test_Win_DX11_playmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/SRP_SmokeTest/Logs/*.log"
 Smoke_Test_Win_DX11_editmode_trunk:
     name: Smoke_Test on Win_DX11_editmode on version trunk
     agent:
@@ -37,6 +38,7 @@ Smoke_Test_Win_DX11_editmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/SRP_SmokeTest/Logs/*.log"
 Smoke_Test_Win_DX11_Standalone_trunk:
     name: Smoke_Test on Win_DX11_Standalone on version trunk
     agent:
@@ -52,6 +54,7 @@ Smoke_Test_Win_DX11_Standalone_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/SRP_SmokeTest/Logs/*.log"
     dependencies:
       -  path: .yamato/smoke_test-win-dx11.yml#Build_Smoke_Test_Win_DX11_Player_trunk
          rerun: on-new-revision
@@ -73,6 +76,7 @@ Build_Smoke_Test_Win_DX11_Player_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/SRP_SmokeTest/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -93,6 +97,7 @@ Smoke_Test_Win_DX11_playmode_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/SRP_SmokeTest/Logs/*.log"
 Smoke_Test_Win_DX11_editmode_2020.2:
     name: Smoke_Test on Win_DX11_editmode on version 2020.2
     agent:
@@ -110,6 +115,7 @@ Smoke_Test_Win_DX11_editmode_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/SRP_SmokeTest/Logs/*.log"
 Smoke_Test_Win_DX11_Standalone_2020.2:
     name: Smoke_Test on Win_DX11_Standalone on version 2020.2
     agent:
@@ -125,6 +131,7 @@ Smoke_Test_Win_DX11_Standalone_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/SRP_SmokeTest/Logs/*.log"
     dependencies:
       -  path: .yamato/smoke_test-win-dx11.yml#Build_Smoke_Test_Win_DX11_Player_2020.2
          rerun: on-new-revision
@@ -146,6 +153,7 @@ Build_Smoke_Test_Win_DX11_Player_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/SRP_SmokeTest/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -167,6 +175,7 @@ Smoke_Test_Win_DX11_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/SRP_SmokeTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
@@ -188,6 +197,7 @@ Smoke_Test_Win_DX11_editmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/SRP_SmokeTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
@@ -207,6 +217,7 @@ Smoke_Test_Win_DX11_Standalone_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/SRP_SmokeTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
@@ -231,6 +242,7 @@ Build_Smoke_Test_Win_DX11_Player_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/SRP_SmokeTest/Logs/*.log"
         players:
             paths:
               -  "players/**"
