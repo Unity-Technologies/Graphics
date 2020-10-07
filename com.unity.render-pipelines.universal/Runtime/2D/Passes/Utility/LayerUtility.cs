@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.Universal
@@ -91,28 +92,49 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
     internal static class LightTextureManager
     {
-        private static RenderTexture[] s_LightTextures;
+        private static int[] s_NameIDs;
+        private static bool[] s_RTAllocated;
         private static int[] s_Keys;
-        private static RenderTextureDescriptor s_Desc;
 
-        public static void Init(int textureCount, ref RenderTextureDescriptor desc)
+        private static RenderTextureDescriptor s_Desc;
+        private static long s_MemoryBudget;
+        private static int s_TextureCount;
+
+        public static void Init(ref RenderTextureDescriptor desc, long memoryBudget)
         {
-            if (s_LightTextures == null || s_LightTextures.Length != textureCount)
-            {
-                s_LightTextures = new RenderTexture[textureCount];
-                s_Keys = new int[textureCount];
-            }
+            if (s_RTAllocated != null && s_MemoryBudget == memoryBudget && s_Desc.width == desc.width && s_Desc.height == desc.height)
+                return;
 
             s_Desc = desc;
+            s_MemoryBudget = memoryBudget;
+
+            var dummyTexture = RenderTexture.GetTemporary(desc);
+            dummyTexture.Create();
+            var maxTextureCount = Mathf.Max((int)(memoryBudget / Profiler.GetRuntimeMemorySizeLong(dummyTexture)), 4);
+            RenderTexture.ReleaseTemporary(dummyTexture);
+
+            s_RTAllocated = new bool[maxTextureCount];
+            s_Keys = new int[maxTextureCount];
+            s_NameIDs = new int[maxTextureCount];
+
+            for (var i = 0; i < s_NameIDs.Length; ++i)
+                s_NameIDs[i] = Shader.PropertyToID("_LightTexture" + i);
+        }
+
+        public static bool HasBudgetFor(uint textureCount)
+        {
+            return s_Keys.Length - s_TextureCount >= textureCount;
         }
 
         public static void ResetKeys()
         {
             for (var i = 0; i < s_Keys.Length; ++i)
                 s_Keys[i] = -1;
+
+            s_TextureCount = 0;
         }
 
-        public static RenderTexture GetLightTexture(int key)
+        public static RenderTargetIdentifier GetLightTexture(CommandBuffer cmd, int key)
         {
             for (var i = 0; i < s_Keys.Length; ++i)
             {
@@ -121,28 +143,33 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 if (curKey == -1 || curKey == key)
                 {
                     if (curKey == -1)
+                    {
                         curKey = key;
+                        s_TextureCount++;
+                    }
 
-                    ref var lightTexture = ref s_LightTextures[i];
-                    lightTexture ??= RenderTexture.GetTemporary(s_Desc);
+                    if (!s_RTAllocated[i])
+                    {
+                        cmd.GetTemporaryRT(s_NameIDs[i], s_Desc, FilterMode.Bilinear);
+                        s_RTAllocated[i] = true;
+                    }
 
-                    return lightTexture;
+                    return s_NameIDs[i];
                 }
             }
 
-            return null;
+            return BuiltinRenderTextureType.None;
         }
 
-        public static void ReleaseLightTextures()
+        public static void ReleaseLightTextures(CommandBuffer cmd)
         {
-            for (var i = 0; i < s_LightTextures.Length; ++i)
+            for (var i = 0; i < s_RTAllocated.Length; ++i)
             {
-                ref var lightTexture = ref s_LightTextures[i];
-                if (lightTexture == null)
+                if (!s_RTAllocated[i])
                     continue;
 
-                RenderTexture.ReleaseTemporary(lightTexture);
-                lightTexture = null;
+                cmd.ReleaseTemporaryRT(s_NameIDs[i]);
+                s_RTAllocated[i] = false;
             }
         }
     }

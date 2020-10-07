@@ -72,10 +72,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        private void DrawLayerBatches(
+        private int DrawLayerBatches(
             List<LayerBatch> layerBatches,
             int startIndex,
-            int batchSize,
             CommandBuffer cmd,
             ScriptableRenderContext context,
             ref RenderingData renderingData,
@@ -83,14 +82,28 @@ namespace UnityEngine.Experimental.Rendering.Universal
             ref DrawingSettings normalsDrawSettings,
             ref DrawingSettings drawSettings)
         {
-            var blendStylesCount = m_Renderer2DData.lightBlendStyles.Length;
+            var batchesDrawn = 0;
+            LightTextureManager.ResetKeys();
 
             // Draw lights
             using (new ProfilingScope(cmd, m_ProfilingDrawLights))
             {
-                for (var i = 0; i < batchSize; i++)
+                for (var i = 0; startIndex + i < layerBatches.Count; ++i)
                 {
                     var layerBatch = layerBatches[startIndex + i];
+
+                    var blendStyleMask = layerBatch.lightStats.blendStylesUsed;
+                    uint blendStyleCount = 0;
+                    while (blendStyleMask > 0)
+                    {
+                        blendStyleCount += blendStyleMask & 1;
+                        blendStyleMask >>= 1;
+                    }
+
+                    if (!LightTextureManager.HasBudgetFor(blendStyleCount))
+                        break;
+
+                    batchesDrawn++;
 
                     if (layerBatch.lightStats.totalNormalMapUsage > 0)
                     {
@@ -107,11 +120,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
 
             // Draw renderers
+            var blendStylesCount = m_Renderer2DData.lightBlendStyles.Length;
             using (new ProfilingScope(cmd, m_ProfilingDrawRenderers))
             {
                 CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment, ClearFlag.None, Color.white);
 
-                for (var i = 0; i < batchSize; i++)
+                for (var i = 0; i < batchesDrawn; i++)
                 {
                     using (new ProfilingScope(cmd, m_ProfilingDrawLayerBatch))
                     {
@@ -126,8 +140,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                                 if (blendStyleUsed)
                                 {
-                                    var lightTexture = LightTextureManager.GetLightTexture(layerBatch.GetLightTextureKey(blendStyleIndex));
-                                    cmd.SetGlobalTexture(k_ShapeLightTextureIDs[blendStyleIndex], new RenderTargetIdentifier(lightTexture));
+                                    var lightTexture = LightTextureManager.GetLightTexture(cmd, layerBatch.GetLightTextureKey(blendStyleIndex));
+                                    cmd.SetGlobalTexture(k_ShapeLightTextureIDs[blendStyleIndex], lightTexture);
                                 }
 
                                 RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleUsed);
@@ -159,6 +173,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     }
                 }
             }
+
+            return batchesDrawn;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -198,20 +214,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 this.SetShapeLightShaderGlobals(cmd);
 
                 var desc = this.GetBlendStyleRenderTextureDesc(renderingData);
-                LightTextureManager.Init(Light2DManager.GetCachedSortingLayer().Length * 4, ref desc);
+                LightTextureManager.Init(ref desc, m_Renderer2DData.batchSize * 1024 * 1024);
 
                 var layerBatches = LayerUtility.CalculateBatches(m_Renderer2DData.lightCullResult);
                 var batchCount = layerBatches.Count;
-                var batchSize = m_Renderer2DData.batchSize;
+                var batchesDrawn = 0;
 
-                for (var i = 0; i < batchCount; i += batchSize)
-                {
-                    LightTextureManager.ResetKeys();
-                    var effectiveBatchSize = math.min(batchSize, batchCount - i);
-                    DrawLayerBatches(layerBatches, i, effectiveBatchSize, cmd, context, ref renderingData, ref filterSettings, ref normalsDrawSettings, ref combinedDrawSettings);
-                }
+                for (var i = 0; i < batchCount; i += batchesDrawn)
+                    batchesDrawn = DrawLayerBatches(layerBatches, i, cmd, context, ref renderingData, ref filterSettings, ref normalsDrawSettings, ref combinedDrawSettings);
 
-                this.ReleaseRenderTextures(cmd, layerBatches);
+                this.ReleaseRenderTextures(cmd);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
             }

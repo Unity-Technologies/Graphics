@@ -92,7 +92,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                         if (shadowCasters != null)
                         {
-                            // Draw the shadow casting group first, then draw the silhouttes..
+                            // Draw the shadow casting group first, then draw the silhouettes..
                             for (var i = 0; i < shadowCasters.Count; i++)
                             {
                                 var shadowCaster = shadowCasters[i];

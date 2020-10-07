@@ -136,9 +136,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmd.DisableShaderKeyword(keyword);
         }
 
-        public static void ReleaseRenderTextures(this IRenderPass2D pass, CommandBuffer cmd, List<LayerBatch> layerBatches)
+        public static void ReleaseRenderTextures(this IRenderPass2D pass, CommandBuffer cmd)
         {
-            LightTextureManager.ReleaseLightTextures();
+            LightTextureManager.ReleaseLightTextures(cmd);
 
             pass.rendererData.isNormalsRenderTargetValid = false;
             pass.rendererData.normalsRenderTargetScale = 0.0f;
@@ -376,9 +376,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 if (!Light2DManager.GetGlobalColor(layerToRender, i, out var clearColor))
                     clearColor = Color.black;
 
-                var lightTexture = LightTextureManager.GetLightTexture(layerBatch.GetLightTextureKey(i));
-                var rtID = new RenderTargetIdentifier(lightTexture);
-                cmd.SetRenderTarget(rtID,
+                var lightTexture = LightTextureManager.GetLightTexture(cmd, layerBatch.GetLightTextureKey(i));
+
+                cmd.SetRenderTarget(lightTexture,
                     RenderBufferLoadAction.DontCare,
                     RenderBufferStoreAction.Store,
                     RenderBufferLoadAction.DontCare,
@@ -390,7 +390,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     i,
                     cmd,
                     layerToRender,
-                    rtID,
+                    lightTexture,
                     pass.rendererData.lightCullResult.visibleLights
                 );
 
