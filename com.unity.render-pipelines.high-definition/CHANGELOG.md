@@ -33,6 +33,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for 'Pyramid' and 'Box' spot light shapes in path tracing.
 - Added high quality prefiltering option for Bloom.
 - Added support for camera relative ray tracing (and keeping non-camera relative ray tracing working)
+- Added a rough refraction option on planar reflections.
+- Added scalability settings for the planar reflection resolution.
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
@@ -134,6 +136,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed outlines in transitions between post-processed and plain regions in the graphics compositor (case 1278775).
 - Fix decal being applied twice with LOD Crossfade.
 - Fixed camera stacking for AOVs in the graphics compositor (case 1273223).
+- Disable quad overdraw on ps4.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
