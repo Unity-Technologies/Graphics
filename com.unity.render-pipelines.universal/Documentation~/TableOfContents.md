@@ -59,6 +59,7 @@
 
 * [Shaders and Materials](shaders-in-universalrp.md)
   * [Shading Models](shading-model.md)
+  * [Complex Lit](shader-complex-lit.md)
   * [Lit](lit-shader.md)
   * [Simple Lit](simple-lit-shader.md)
   * [Baked Lit](baked-lit-shader.md)
