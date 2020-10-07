@@ -7,6 +7,7 @@ using UnityEditor.ShaderGraph.Drawing.Colors;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Serialization;
+using UnityEngine.Assertions;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -831,6 +832,28 @@ namespace UnityEditor.ShaderGraph
                 if (!supressWarnings)
                     Debug.LogWarningFormat("Removing Invalid MaterialSlot: {0}", invalidSlot);
                 RemoveSlot(invalidSlot);
+            }
+        }
+
+        public void SetSlotOrder(List<int> desiredOrderSlotIds)
+        {
+            int writeIndex = 0;
+            for (int orderIndex = 0; orderIndex < desiredOrderSlotIds.Count; orderIndex++)
+            {
+                var id = desiredOrderSlotIds[orderIndex];
+                var matchIndex = m_Slots.FindIndex(s => s.value.id == id);
+                if (matchIndex < 0)
+                {
+                    // no matching slot with that id.. skip it
+                }
+                else if (writeIndex != orderIndex)
+                {
+                    // swap the matching slot into position
+                    var slot = m_Slots[matchIndex];
+                    m_Slots[matchIndex] = m_Slots[writeIndex];
+                    m_Slots[writeIndex] = slot;
+                    writeIndex++;
+                }
             }
         }
 
