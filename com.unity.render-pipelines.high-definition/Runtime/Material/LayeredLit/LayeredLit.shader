@@ -529,7 +529,7 @@ Shader "HDRP/LayeredLit"
             Name "SceneSelectionPass"
             Tags{ "LightMode" = "SceneSelectionPass" }
 
-            Cull Off
+            Cull[_CullMode]
 
             HLSLPROGRAM
 

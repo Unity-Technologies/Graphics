@@ -222,7 +222,7 @@ Shader "HDRP/AxF"
             Name "SceneSelectionPass"
             Tags { "LightMode" = "SceneSelectionPass" }
 
-            Cull Off
+            Cull[_CullMode]
 
             HLSLPROGRAM
 
