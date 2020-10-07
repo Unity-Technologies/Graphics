@@ -39,21 +39,21 @@ struct LightList
 
 bool IsRectAreaLightActive(LightData lightData, float3 position, float3 normal)
 {
-    float3 lightVec = position - lightData.positionRWS;
+    float3 lightToPosition = position - lightData.positionRWS;
 
 #ifndef USE_LIGHT_CLUSTER
     // Check light range first
-    if (Length2(lightVec) > Sq(lightData.range))
+    if (Length2(lightToPosition) > Sq(lightData.range))
         return false;
 #endif
 
     // Check that the shading position is in front of the light
-    float lightCos = dot(lightVec, lightData.forward);
+    float lightCos = dot(lightToPosition, lightData.forward);
     if (lightCos < 0.0)
         return false;
 
     // Check that at least part of the light is above the tangent plane
-   float lightTangentDist = dot(normal, lightVec);
+   float lightTangentDist = dot(normal, lightToPosition);
    if (4.0 * lightTangentDist * abs(lightTangentDist) > Sq(lightData.size.x) + Sq(lightData.size.y))
         return false;
 
@@ -62,16 +62,16 @@ bool IsRectAreaLightActive(LightData lightData, float3 position, float3 normal)
 
 bool IsPointLightActive(LightData lightData, float3 position, float3 normal)
 {
-    float3 lightVec = position - lightData.positionRWS;
+    float3 lightToPosition = position - lightData.positionRWS;
 
 #ifndef USE_LIGHT_CLUSTER
     // Check light range first
-    if (Length2(lightVec) > Sq(lightData.range))
+    if (Length2(lightToPosition) > Sq(lightData.range))
         return false;
 #endif
 
     // Check that at least part of the light is above the tangent plane
-    float lightTangentDist = dot(normal, lightVec);
+    float lightTangentDist = dot(normal, lightToPosition);
     if (lightTangentDist * abs(lightTangentDist) > lightData.size.x)
         return false;
 
@@ -80,7 +80,7 @@ bool IsPointLightActive(LightData lightData, float3 position, float3 normal)
         return true;
 
     // Check that we are on the right side of the light plane
-    float z = dot(lightVec, lightData.forward);
+    float z = dot(lightToPosition, lightData.forward);
     if (z < 0.0)
         return false;
 
@@ -90,18 +90,18 @@ bool IsPointLightActive(LightData lightData, float3 position, float3 normal)
         // then check whether we are still within the dilated cone angle
         float sinTheta2 = 1.0 - Sq(lightData.angleOffset / lightData.angleScale);
         float3 lightRadiusOffset = sqrt(lightData.size.x / sinTheta2) * lightData.forward;
-        float lightCos = dot(normalize(lightVec + lightRadiusOffset), lightData.forward);
+        float lightCos = dot(normalize(lightToPosition + lightRadiusOffset), lightData.forward);
 
         return lightCos * lightData.angleScale + lightData.angleOffset > 0.0;
     }
 
     // Our light type is either BOX or PYRAMID
-    float x = abs(dot(lightVec, lightData.right));
-    float y = abs(dot(lightVec, lightData.up));
+    float x = abs(dot(lightToPosition, lightData.right));
+    float y = abs(dot(lightToPosition, lightData.up));
 
     return (lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX) ?
-        x < 1 && y < 1 : // BOX
-        x < z && y < z;  // PYRAMID
+        x < 1.0 && y < 1.0 : // BOX
+        x < z   && y < z;    // PYRAMID
 }
 
 bool IsDistantLightActive(DirectionalLightData lightData, float3 normal)
@@ -148,11 +148,7 @@ if (withLocal)
         const LightData lightData = _LightDatasRT[i];
 #endif
 
-        if (IsMatchingLightLayer(lightData.lightLayers, lightLayers)
-#ifndef _SURFACE_TYPE_TRANSPARENT
-            && IsPointLightActive(lightData, position, normal)
-#endif
-            )
+        if (IsMatchingLightLayer(lightData.lightLayers, lightLayers) && IsPointLightActive(lightData, position, normal))
             list.localIndex[list.localPointCount++] = i;
     }
 
@@ -165,11 +161,7 @@ if (withLocal)
         const LightData lightData = _LightDatasRT[i];
 #endif
 
-        if (IsMatchingLightLayer(lightData.lightLayers, lightLayers)
-#ifndef _SURFACE_TYPE_TRANSPARENT
-            && IsRectAreaLightActive(lightData, position, normal)
-#endif
-            )
+        if (IsMatchingLightLayer(lightData.lightLayers, lightLayers) && IsRectAreaLightActive(lightData, position, normal))
             list.localIndex[list.localCount++] = i;
     }
 }
@@ -181,11 +173,7 @@ if (withDistant)
 {
     for (i = 0; i < _DirectionalLightCount && list.distantCount < MAX_DISTANT_LIGHT_COUNT; i++)
     {
-        if (IsMatchingLightLayer(_DirectionalLightDatas[i].lightLayers, lightLayers)
-#ifndef _SURFACE_TYPE_TRANSPARENT
-            && IsDistantLightActive(_DirectionalLightDatas[i], normal)
-#endif
-            )
+        if (IsMatchingLightLayer(_DirectionalLightDatas[i].lightLayers, lightLayers) && IsDistantLightActive(_DirectionalLightDatas[i], normal))
             list.distantIndex[list.distantCount++] = i;
     }
 }
@@ -417,8 +405,8 @@ bool SampleLights(LightList lightList,
 
         dist = FLT_INF;
 
-    if (isVolume)
-        value *= lightData.volumetricLightDimmer;
+        if (isVolume)
+            value *= lightData.volumetricLightDimmer;
 
 #ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
         ApplyFogAttenuation(position, outgoingDir, value);
@@ -515,11 +503,11 @@ bool SolvePoly2(float a, float b, float c, out float x1, out float x2)
     return true;
 }
 
-bool GetSphereInterval(float3 lightToPos, float radius, float3 rayDirection, out float tMin, out float tMax)
+bool GetSphereInterval(float3 lightToRayOrigin, float radius, float3 rayDirection, out float tMin, out float tMax)
 {
     // We consider Direction to be normalized => a = 1
-    float b = 2.0 * dot(rayDirection, lightToPos);
-    float c = Length2(lightToPos) - Sq(radius);
+    float b = 2.0 * dot(rayDirection, lightToRayOrigin);
+    float c = Length2(lightToRayOrigin) - Sq(radius);
 
     float t1, t2;
     if (!SolvePoly2(1.0, b, c, t1, t2))
@@ -536,13 +524,13 @@ bool GetRectAreaLightInterval(LightData lightData, float3 rayOrigin, float3 rayD
     if (lightData.volumetricLightDimmer < 0.001)
         return false;
 
-    float3 lightVec = rayOrigin - GetAbsolutePositionWS(lightData.positionRWS);
+    float3 lightToRayOrigin = rayOrigin - lightData.positionRWS;
 
-    if (!GetSphereInterval(lightVec, lightData.range, rayDirection, tMin, tMax))
+    if (!GetSphereInterval(lightToRayOrigin, lightData.range, rayDirection, tMin, tMax))
         return false;
 
     float LdotD = dot(lightData.forward, rayDirection);
-    float t = -dot(lightData.forward, lightVec) / LdotD;
+    float t = -dot(lightData.forward, lightToRayOrigin) / LdotD;
     if (LdotD > 0.0)
         tMin = max(tMin, t);
     else
@@ -551,39 +539,20 @@ bool GetRectAreaLightInterval(LightData lightData, float3 rayOrigin, float3 rayD
     return tMin < tMax;
 }
 
-bool GetPointLightInterval(LightData lightData, float3 rayOrigin, float3 rayDirection, out float tMin, out float tMax)
+void Sort(inout float x, inout float y)
 {
-    if (lightData.volumetricLightDimmer < 0.001)
-        return false;
+    if (x > y)
+    {
+        float tmp = x;
+        x = y;
+        y = tmp;
+    }
+}
 
-    float3 lightVec = rayOrigin - GetAbsolutePositionWS(lightData.positionRWS);
-    
-    if (!GetSphereInterval(lightVec, lightData.range, rayDirection, tMin, tMax))
-        return false;
-
-    // This is just a point light (no spot cone angle)
-    if (lightData.lightType == GPULIGHTTYPE_POINT)
-        return true;
-
-    // Intersect our ray with the spot light's cone
-    float LdotD = dot(lightData.forward, rayDirection);
-    float cosTheta2 = Sq(lightData.angleOffset / lightData.angleScale);
-
-    // Offset light origin to account for light radius
-    lightVec += sqrt(lightData.size.x / (1.0 - cosTheta2)) * lightData.forward;
-    float LdotV = dot(lightData.forward, lightVec);
-
-    float a = Sq(LdotD) - cosTheta2;
-    float b = 2.0 * (LdotD * LdotV - dot(rayDirection, lightVec) * cosTheta2);
-    float c = Sq(LdotV) - Length2(lightVec) * cosTheta2;
-
-    float t1, t2;
-    if (!SolvePoly2(a, b, c, t1, t2))
-        return false;
-
-    // Check validity of the intersections (we want them with the front cone only)
-    bool t1Valid = dot(lightVec + t1 * rayDirection, lightData.forward) > 0.0;
-    bool t2Valid = dot(lightVec + t2 * rayDirection, lightData.forward) > 0.0;
+void GetFrontInterval(float oz, float dz, float t1, float t2, inout float tMin, inout float tMax)
+{
+    bool t1Valid = oz + t1 * dz > 0.0;
+    bool t2Valid = oz + t2 * dz > 0.0;
 
     if (t1Valid)
     {
@@ -599,15 +568,100 @@ bool GetPointLightInterval(LightData lightData, float3 rayOrigin, float3 rayDire
     }
     else
     {
-        if (t2Valid)
+        tMin = t2Valid ? max(t2, tMin) : tMax;
+    }
+}
+
+bool GetPointLightInterval(LightData lightData, float3 rayOrigin, float3 rayDirection, out float tMin, out float tMax)
+{
+    if (lightData.volumetricLightDimmer < 0.001)
+        return false;
+
+    float3 lightToRayOrigin = rayOrigin - lightData.positionRWS;
+    
+    if (!GetSphereInterval(lightToRayOrigin, lightData.range, rayDirection, tMin, tMax))
+        return false;
+
+    // This is just a point light (no spot cone angle)
+    if (lightData.lightType == GPULIGHTTYPE_POINT)
+        return true;
+
+    // We are dealing with either a cone, a pyramid or a box
+    float3 localOrigin = float3(dot(lightToRayOrigin, lightData.right),
+                                dot(lightToRayOrigin, lightData.up),
+                                dot(lightToRayOrigin, lightData.forward));
+    float3 localDirection = float3(dot(rayDirection, lightData.right),
+                                   dot(rayDirection, lightData.up),
+                                   dot(rayDirection, lightData.forward));
+
+    if (lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX)
+    {
+        // Compute intersections with planes x=-1 and x=1
+        float tx1 = (-1.0 - localOrigin.x) / localDirection.x;
+        float tx2 = (1.0 - localOrigin.x) / localDirection.x;
+        Sort(tx1, tx2);
+
+        // Compute intersections with planes y=-1 and y=1
+        float ty1 = (-1.0 - localOrigin.y) / localDirection.y;
+        float ty2 = (1.0 - localOrigin.y) / localDirection.y;
+        Sort(ty1, ty2);
+
+        // Compute intersection with plane z=0
+        float tz = -localOrigin.z / localDirection.z;
+
+        float t1 = max(tx1, ty1);
+        float t2 = min(tx2, ty2);
+
+        // Check validity of the intersections (we want them only in front of the light)
+        bool t1Valid = localOrigin.z + t1 * localDirection.z > 0.0;
+        bool t2Valid = localOrigin.z + t2 * localDirection.z > 0.0;
+
+        tMin = t1Valid ? max(t1, tMin) : tz;
+        tMax = t2Valid ? min(t2, tMax) : tz;
+    }
+    else if (lightData.lightType == GPULIGHTTYPE_PROJECTOR_PYRAMID)
+    {
+        // Compute intersections with planes x=-z and x=z
+        float tx1 = -(localOrigin.x - localOrigin.z) / (localDirection.x - localDirection.z);
+        float tx2 = -(localOrigin.x + localOrigin.z) / (localDirection.x + localDirection.z);
+        Sort(tx1, tx2);
+
+        // Check validity of the intersections (we want them only in front of the light)
+        GetFrontInterval(localOrigin.z, localDirection.z, tx1, tx2, tMin, tMax);
+
+        if (tMin < tMax)
         {
-            tMin = max(t2, tMin);
+            // Compute intersections with planes y=-1 and y=1
+            float ty1 = -(localOrigin.y - localOrigin.z) / (localDirection.y - localDirection.z);
+            float ty2 = -(localOrigin.y + localOrigin.z) / (localDirection.y + localDirection.z);
+            Sort(ty1, ty2);
+
+            // Check validity of the intersections (we want them only in front of the light)
+            GetFrontInterval(localOrigin.z, localDirection.z, ty1, ty2, tMin, tMax);
         }
-        else
-        {
-            tMin = 0.0;
-            tMax = 0.0;
-        }
+    }
+    else // lightData.lightType == GPULIGHTTYPE_SPOT
+    {
+        float cosTheta2 = Sq(lightData.angleOffset / lightData.angleScale);
+
+        // Offset light origin to account for light radius
+        localOrigin.z += sqrt(lightData.size.x / (1.0 - cosTheta2));
+        
+        // Account for non-normalized local basis
+        float3 normalizedLocalOrigin = float3(localOrigin.x / Length2(lightData.right),
+                                              localOrigin.y / Length2(lightData.up),
+                                              localOrigin.z);
+
+        float a = Sq(localDirection.z) - cosTheta2;
+        float b = 2.0 * (localOrigin.z * localDirection.z - dot(normalizedLocalOrigin, localDirection) * cosTheta2);
+        float c = Sq(localOrigin.z) - dot(normalizedLocalOrigin, localOrigin) * cosTheta2;
+
+        float t1, t2;
+        if (!SolvePoly2(a, b, c, t1, t2))
+            return false;
+
+        // Check validity of the intersections (we want them only in front of the light)
+        GetFrontInterval(localOrigin.z, localDirection.z, t1, t2, tMin, tMax);
     }
 
     return tMin < tMax;

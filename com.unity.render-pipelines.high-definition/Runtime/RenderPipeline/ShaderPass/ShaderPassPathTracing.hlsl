@@ -89,7 +89,12 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     if (CreateMaterialData(pathIntersection, builtinData, bsdfData, shadingPosition, inputSample.z, mtlData))
     {
         // Create the list of active lights
-        LightList lightList = CreateLightList(shadingPosition, mtlData.bsdfData.geomNormalWS, builtinData.renderingLayers);
+    #ifdef _SURFACE_TYPE_TRANSPARENT
+        float3 lightNormal = 0.0;
+    #else
+        float3 lightNormal = mtlData.bsdfData.geomNormalWS;
+    #endif
+        LightList lightList = CreateLightList(shadingPosition, lightNormal, builtinData.renderingLayers);
 
         // Bunch of variables common to material and light sampling
         float pdf;
