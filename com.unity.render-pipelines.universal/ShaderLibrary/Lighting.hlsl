@@ -1060,12 +1060,14 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
     {
         return debugColor;
     }
+    #endif
+
     // To ensure backward compatibility we have to avoid using shadowMask input, as it is not present in older shaders
-#if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
+    #if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
     half4 shadowMask = inputData.shadowMask;
-#elif !defined (LIGHTMAP_ON)
+    #elif !defined (LIGHTMAP_ON)
     half4 shadowMask = unity_ProbesOcclusion;
-#else
+    #else
     half4 shadowMask = half4(1, 1, 1, 1);
     #endif
 
@@ -1089,7 +1091,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
 
     if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_MAIN_LIGHT))
     {
-    half3 attenuatedLightColor = mainLight.color * (mainLight.distanceAttenuation * mainLight.shadowAttenuation);
+        half3 attenuatedLightColor = mainLight.color * (mainLight.distanceAttenuation * mainLight.shadowAttenuation);
 
         diffuseColor += LightingLambert(attenuatedLightColor, mainLight.direction, inputData.normalWS);
         specularColor += LightingSpecular(attenuatedLightColor, mainLight.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), surfaceData.smoothness);
@@ -1110,14 +1112,14 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
             specularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), surfaceData.smoothness);
     	}
     }
-#endif
+    #endif
 
     #if defined(_ADDITIONAL_LIGHTS_VERTEX)
     if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_VERTEX_LIGHTING))
     {
-    diffuseColor += inputData.vertexLighting;
+        diffuseColor += inputData.vertexLighting;
     }
-#endif
+    #endif
 
     half3 finalColor = diffuseColor * surfaceData.albedo;
 
@@ -1126,9 +1128,9 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
         finalColor += surfaceData.emission;
     }
 
-#if defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
+    #if defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
     finalColor += specularColor;
-#endif
+    #endif
 
     return half4(finalColor, surfaceData.alpha);
 }
