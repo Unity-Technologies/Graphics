@@ -92,17 +92,21 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
     internal static class LightTextureManager
     {
-        private static int[] s_NameIDs;
-        private static bool[] s_RTAllocated;
-        private static int[] s_Keys;
+        private struct TextureInfo
+        {
+            public int nameID;
+            public int key;
+            public bool allocated;
+        }
 
+        private static TextureInfo[] s_AllTextureInfo;
         private static RenderTextureDescriptor s_Desc;
         private static long s_MemoryBudget;
         private static int s_TextureCount;
 
         public static void Init(ref RenderTextureDescriptor desc, long memoryBudget)
         {
-            if (s_RTAllocated != null && s_MemoryBudget == memoryBudget && s_Desc.width == desc.width && s_Desc.height == desc.height)
+            if (s_AllTextureInfo != null && s_MemoryBudget == memoryBudget && s_Desc.width == desc.width && s_Desc.height == desc.height)
                 return;
 
             s_Desc = desc;
@@ -113,48 +117,54 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var maxTextureCount = Mathf.Max((int)(memoryBudget / Profiler.GetRuntimeMemorySizeLong(dummyTexture)), 4);
             RenderTexture.ReleaseTemporary(dummyTexture);
 
-            s_RTAllocated = new bool[maxTextureCount];
-            s_Keys = new int[maxTextureCount];
-            s_NameIDs = new int[maxTextureCount];
+            s_AllTextureInfo = new TextureInfo[maxTextureCount];
+            for (var i = 0; i < s_AllTextureInfo.Length; ++i)
+            {
+                ref var textureInfo = ref s_AllTextureInfo[i];
 
-            for (var i = 0; i < s_NameIDs.Length; ++i)
-                s_NameIDs[i] = Shader.PropertyToID("_LightTexture" + i);
+                textureInfo.nameID = Shader.PropertyToID("_LightTexture" + i);
+                textureInfo.key = -1;
+                textureInfo.allocated = false;
+            }
         }
 
         public static bool HasBudgetFor(uint textureCount)
         {
-            return s_Keys.Length - s_TextureCount >= textureCount;
+            return s_AllTextureInfo.Length - s_TextureCount >= textureCount;
         }
 
         public static void ResetKeys()
         {
-            for (var i = 0; i < s_Keys.Length; ++i)
-                s_Keys[i] = -1;
+            for (var i = 0; i < s_AllTextureInfo.Length; ++i)
+            {
+                ref var textureInfo = ref s_AllTextureInfo[i];
+                textureInfo.key = -1;
+            }
 
             s_TextureCount = 0;
         }
 
         public static RenderTargetIdentifier GetLightTexture(CommandBuffer cmd, int key)
         {
-            for (var i = 0; i < s_Keys.Length; ++i)
+            for (var i = 0; i < s_AllTextureInfo.Length; ++i)
             {
-                ref var curKey = ref s_Keys[i];
+                ref var textureInfo = ref s_AllTextureInfo[i];
 
-                if (curKey == -1 || curKey == key)
+                if (textureInfo.key == -1 || textureInfo.key == key)
                 {
-                    if (curKey == -1)
+                    if (textureInfo.key == -1)
                     {
-                        curKey = key;
+                        textureInfo.key = key;
                         s_TextureCount++;
                     }
 
-                    if (!s_RTAllocated[i])
+                    if (!textureInfo.allocated)
                     {
-                        cmd.GetTemporaryRT(s_NameIDs[i], s_Desc, FilterMode.Bilinear);
-                        s_RTAllocated[i] = true;
+                        cmd.GetTemporaryRT(textureInfo.nameID, s_Desc, FilterMode.Bilinear);
+                        textureInfo.allocated = true;
                     }
 
-                    return s_NameIDs[i];
+                    return textureInfo.nameID;
                 }
             }
 
@@ -163,13 +173,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public static void ReleaseLightTextures(CommandBuffer cmd)
         {
-            for (var i = 0; i < s_RTAllocated.Length; ++i)
+            for (var i = 0; i < s_AllTextureInfo.Length; ++i)
             {
-                if (!s_RTAllocated[i])
+                ref var textureInfo = ref s_AllTextureInfo[i];
+
+                if (!textureInfo.allocated)
                     continue;
 
-                cmd.ReleaseTemporaryRT(s_NameIDs[i]);
-                s_RTAllocated[i] = false;
+                cmd.ReleaseTemporaryRT(textureInfo.nameID);
+                textureInfo.allocated = false;
             }
         }
     }
