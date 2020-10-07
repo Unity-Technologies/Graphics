@@ -22,6 +22,7 @@ HDRP_Hybrid_Linux_Vulkan_playmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
 HDRP_Hybrid_Linux_Vulkan_Standalone_trunk:
     name: HDRP_Hybrid on Linux_Vulkan_Standalone on version trunk
     agent:
@@ -41,6 +42,7 @@ HDRP_Hybrid_Linux_Vulkan_Standalone_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
 HDRP_Hybrid_Linux_Vulkan_playmode_2020.2:
     name: HDRP_Hybrid on Linux_Vulkan_playmode on version 2020.2
     agent:
@@ -60,6 +62,7 @@ HDRP_Hybrid_Linux_Vulkan_playmode_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
 HDRP_Hybrid_Linux_Vulkan_Standalone_2020.2:
     name: HDRP_Hybrid on Linux_Vulkan_Standalone on version 2020.2
     agent:
@@ -79,6 +82,7 @@ HDRP_Hybrid_Linux_Vulkan_Standalone_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
 HDRP_Hybrid_Linux_Vulkan_playmode_CUSTOM-REVISION:
     name: HDRP_Hybrid on Linux_Vulkan_playmode on version CUSTOM-REVISION
     agent:
@@ -99,6 +103,7 @@ HDRP_Hybrid_Linux_Vulkan_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
@@ -122,6 +127,7 @@ HDRP_Hybrid_Linux_Vulkan_Standalone_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always

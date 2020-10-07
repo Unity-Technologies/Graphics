@@ -160,7 +160,17 @@ namespace UnityEngine.Rendering
             var state = m_DebugActionStates[actionIndex];
 
 // Disable all input events if we're using the new input system
-#if ENABLE_LEGACY_INPUT_MANAGER
+#if USE_INPUT_SYSTEM
+            if (state.runningAction == false)
+            {
+                if (desc.buttonAction != null)
+                {
+                    var value = desc.buttonAction.ReadValue<float>();
+                    if (!Mathf.Approximately(value, 0))
+                        state.TriggerWithButton(desc.buttonAction, value);
+                }
+            }
+#elif ENABLE_LEGACY_INPUT_MANAGER
             //bool canSampleAction = (state.actionTriggered == false) || (desc.repeatMode == DebugActionRepeatMode.Delay && state.timer > desc.repeatDelay);
             if (state.runningAction == false)
             {
@@ -213,16 +223,7 @@ namespace UnityEngine.Rendering
                     }
                 }
             }
-#elif USE_INPUT_SYSTEM
-            if (state.runningAction == false)
-            {
-                if (desc.buttonAction != null)
-                {
-                    var value = desc.buttonAction.ReadValue<float>();
-                    if (!Mathf.Approximately(value, 0))
-                        state.TriggerWithButton(desc.buttonAction, value);
-                }
-            }
+
 #endif
         }
 

@@ -136,6 +136,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed outlines in transitions between post-processed and plain regions in the graphics compositor (case 1278775).
 - Fix decal being applied twice with LOD Crossfade.
 - Fixed camera stacking for AOVs in the graphics compositor (case 1273223).
+- Fixed backface selection on some shader not ignore correctly.
 - Disable quad overdraw on ps4.
 - Fixed error when resizing the graphics compositor's output and when re-adding a compositor in the scene
 
