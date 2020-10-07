@@ -137,6 +137,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix decal being applied twice with LOD Crossfade.
 - Fixed camera stacking for AOVs in the graphics compositor (case 1273223).
 - Disable quad overdraw on ps4.
+- Fixed error when resizing the graphics compositor's output and when re-adding a compositor in the scene
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
