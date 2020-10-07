@@ -19,6 +19,7 @@ Universal_Hybrid_Linux_Vulkan_Standalone_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
       -  path: .yamato/universal_hybrid-linux-vulkan.yml#Build_Universal_Hybrid_Linux_Vulkan_Player_trunk
          rerun: on-new-revision
@@ -42,6 +43,7 @@ Build_Universal_Hybrid_Linux_Vulkan_Player_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalHybridTest/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -64,6 +66,7 @@ Universal_Hybrid_Linux_Vulkan_playmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalHybridTest/Logs/*.log"
 Universal_Hybrid_Linux_Vulkan_Standalone_2020.2:
     name: Universal_Hybrid on Linux_Vulkan_Standalone on version 2020.2
     agent:
@@ -80,6 +83,7 @@ Universal_Hybrid_Linux_Vulkan_Standalone_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
       -  path: .yamato/universal_hybrid-linux-vulkan.yml#Build_Universal_Hybrid_Linux_Vulkan_Player_2020.2
          rerun: on-new-revision
@@ -103,6 +107,7 @@ Build_Universal_Hybrid_Linux_Vulkan_Player_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalHybridTest/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -125,6 +130,7 @@ Universal_Hybrid_Linux_Vulkan_playmode_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalHybridTest/Logs/*.log"
 Universal_Hybrid_Linux_Vulkan_Standalone_CUSTOM-REVISION:
     name: Universal_Hybrid on Linux_Vulkan_Standalone on version CUSTOM-REVISION
     agent:
@@ -142,6 +148,7 @@ Universal_Hybrid_Linux_Vulkan_Standalone_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
@@ -168,6 +175,7 @@ Build_Universal_Hybrid_Linux_Vulkan_Player_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalHybridTest/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -194,6 +202,7 @@ Universal_Hybrid_Linux_Vulkan_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always

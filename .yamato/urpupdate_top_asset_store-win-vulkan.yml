@@ -24,6 +24,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/Top-URP-Assets/Logs/*.log"
 URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_trunk:
     name: URPUpdate_Top_Asset_Store on Win_Vulkan_editmode on version trunk
     agent:
@@ -45,6 +46,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/Top-URP-Assets/Logs/*.log"
 URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_2020.2:
     name: URPUpdate_Top_Asset_Store on Win_Vulkan_playmode on version 2020.2
     agent:
@@ -66,6 +68,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/Top-URP-Assets/Logs/*.log"
 URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_2020.2:
     name: URPUpdate_Top_Asset_Store on Win_Vulkan_editmode on version 2020.2
     agent:
@@ -87,6 +90,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/Top-URP-Assets/Logs/*.log"
 URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_CUSTOM-REVISION:
     name: URPUpdate_Top_Asset_Store on Win_Vulkan_playmode on version CUSTOM-REVISION
     agent:
@@ -109,6 +113,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/Top-URP-Assets/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
@@ -134,6 +139,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/Top-URP-Assets/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
