@@ -73,9 +73,7 @@ RW_TEXTURE3D(float4, _VBufferLighting);
 RW_TEXTURE3D(float4, _VBufferFeedback);
 TEXTURE3D(_VBufferHistory);
 TEXTURE3D(_VBufferDensity);                     // RGB = scattering, A = extinction
-
-
-TEXTURE2D_X(_InputTexture); //TMP TEST MAKE PROPER WHEN IT WORKS.              
+TEXTURE2D_X(_MaxZMaskTexture);
 
 //--------------------------------------------------------------------------------------------------
 // Implementation
@@ -92,7 +90,6 @@ struct JitteredRay
     float  geomDist;
 
     float maxDist;
-    float gradient;
 };
 
 struct VoxelLighting
@@ -677,7 +674,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // Compute the optical depth up to the end of the interval.
         opticalDepth += 0.5 * blendValue.a;
 
-        if (t0*0.99f > ray.maxDist)
+        if (t0 * 0.99 > ray.maxDist)
         {
             break;
         }
@@ -765,7 +762,6 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     ray.geomDist = FLT_INF;
     ray.maxDist = FLT_INF;
-    ray.gradient = -1;
 #if USE_DEPTH_BUFFER
     float deviceDepth = LoadCameraDepth(pixelCoord);
 
@@ -779,11 +775,8 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
 
         // This should really be using a max sampler here. This is a bit overdilating given that it is already dilated.
         // Better to be safer though.
-        float4 d = GATHER_RED_TEXTURE2D_X(_InputTexture, s_point_clamp_sampler, UV) * rcp(dot(ray.jitterDirWS, F));
-      //  float4 g = GATHER_GREEN_TEXTURE2D_X(_InputTexture, s_point_clamp_sampler, UV);
-
+        float4 d = GATHER_RED_TEXTURE2D_X(_MaxZMaskTexture, s_point_clamp_sampler, UV) * rcp(dot(ray.jitterDirWS, F));
         ray.maxDist = max(Max3(d.x, d.y, d.z), d.w);
-     //   ray.gradient = max(Max3(g.x, g.y, g.z), g.w);
     }
 #endif
 
