@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added high quality prefiltering option for Bloom.
 - Added support for camera relative ray tracing (and keeping non-camera relative ray tracing working)
 - Added a rough refraction option on planar reflections.
+- Added scalability settings for the planar reflection resolution.
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
