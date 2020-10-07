@@ -35,7 +35,7 @@ class Package_TestJob():
         
         if package.get('hascodependencies', None) is not None:
             commands.append(platform["copycmd"])
-        commands.append(f'upm-ci package test -u {platform["editorpath"]} --package-path {package["packagename"]} --extra-utr-arg="--compilation-errors-as-warnings"')
+        commands.append(f'upm-ci package test -u {platform["editorpath"]} --package-path {package["packagename"]}')
 
 
         # construct job

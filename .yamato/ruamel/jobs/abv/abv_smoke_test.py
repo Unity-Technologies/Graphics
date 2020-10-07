@@ -39,5 +39,7 @@ class ABV_SmokeTestJob():
         job.add_artifacts_test_results()
 
         if not editor['editor_pinning']:
-            job.add_dependencies([f'{editor_priming_filepath()}#{editor_job_id(editor["name"], "windows") }'])
+            job.add_dependencies([{
+                    'path' : f'{editor_priming_filepath()}#{editor_job_id(editor["name"], "windows")}',
+                    'rerun' : editor["rerun_strategy"]}])
         return job

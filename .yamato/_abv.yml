@@ -21,7 +21,8 @@ smoke_test_Standalone_2020.1:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:2020.1:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.1:windows
+         rerun: on-new-revision
 smoke_test_playmode_2020.1:
     name: SRP Smoke Test - playmode_2020.1
     agent:
@@ -40,7 +41,8 @@ smoke_test_playmode_2020.1:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:2020.1:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.1:windows
+         rerun: on-new-revision
 smoke_test_editmode_2020.1:
     name: SRP Smoke Test - editmode_2020.1
     agent:
@@ -59,7 +61,8 @@ smoke_test_editmode_2020.1:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:2020.1:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.1:windows
+         rerun: on-new-revision
 all_smoke_tests_2020.1:
     name: All Smoke Tests - 2020.1
     dependencies:
@@ -142,7 +145,8 @@ smoke_test_Standalone_fast-2020.1:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:fast-2020.1:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:fast-2020.1:windows
+         rerun: on-new-revision
 smoke_test_playmode_fast-2020.1:
     name: SRP Smoke Test - playmode_fast-2020.1
     agent:
@@ -161,7 +165,8 @@ smoke_test_playmode_fast-2020.1:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:fast-2020.1:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:fast-2020.1:windows
+         rerun: on-new-revision
 smoke_test_editmode_fast-2020.1:
     name: SRP Smoke Test - editmode_fast-2020.1
     agent:
@@ -180,7 +185,8 @@ smoke_test_editmode_fast-2020.1:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:fast-2020.1:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:fast-2020.1:windows
+         rerun: on-new-revision
 all_smoke_tests_fast-2020.1:
     name: All Smoke Tests - fast-2020.1
     dependencies:
@@ -247,7 +253,8 @@ smoke_test_Standalone_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
 smoke_test_playmode_CUSTOM-REVISION:
     name: SRP Smoke Test - playmode_CUSTOM-REVISION
     agent:
@@ -267,7 +274,8 @@ smoke_test_playmode_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
 smoke_test_editmode_CUSTOM-REVISION:
     name: SRP Smoke Test - editmode_CUSTOM-REVISION
     agent:
@@ -287,7 +295,8 @@ smoke_test_editmode_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
 all_smoke_tests_CUSTOM-REVISION:
     name: All Smoke Tests - CUSTOM-REVISION
     dependencies:
