@@ -8,6 +8,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     {
         public int firstLayerID;
         public int firstLayerOrder;
+		public int endLayerValue;
         public SortingLayerRange layerRange;
         public LightStats lightStats;
 
@@ -78,6 +79,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 layerBatch.firstLayerID = layerToRender;
                 layerBatch.firstLayerOrder = i;
+				layerBatch.endLayerValue = endLayerValue;
                 layerBatch.layerRange = sortingLayerRange;
                 layerBatch.lightStats = lightStats;
 

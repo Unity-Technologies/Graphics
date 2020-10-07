@@ -193,7 +193,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        public static void RenderLightVolumes(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture, List<Light2D> lights)
+        public static void RenderLightVolumes(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, int endLayerValue, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture, List<Light2D> lights)
         {
             for (var i = 0; i < lights.Count; i++)
             {
@@ -205,8 +205,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 if (light.volumeOpacity <= 0.0f)
                     continue;
 
-                var topMostLayer = light.GetTopMostLitLayer();
-                if (layerToRender == topMostLayer) // this implies the layer is correct
+                var topMostLayerValue = light.GetTopMostLitLayer();
+                if (endLayerValue == topMostLayerValue) // this implies the layer is correct
                 {
                     var lightVolumeMaterial = pass.rendererData.GetLightMaterial(light, true);
                     var lightMesh = light.lightMesh;
