@@ -11,8 +11,12 @@ test_platforms:
     extra_utr_flags_build:
       - --extra-editor-arg="-executemethod Editor.Setup"
       - --extra-editor-arg="-testCategory Performance"
+      - --extra-editor-arg="-testCategory URP"
       - --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
       - --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal"
+      - --extra-editor-arg="-packageundertestrev=%GIT_REVISION%"
+      - --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%"
+      - --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
       - --extra-editor-arg="-stripenginecode-" 
       - --extra-editor-arg="-managedstrippinglevel=Low"
       - --extra-editor-arg="-allowdebugging-" 
