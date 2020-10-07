@@ -15,6 +15,11 @@ def create_editor_yml(metafile):
     yml = {}
     for platform in metafile["platforms"]:
         for editor in metafile['editors']:
+            # only create editor priming jobs for editor configs which dont use editor_pinning:
+            # creating them causes no harm, but we just may end up with priming jobs with exactly the same content but different id, causing confusion of what's the difference
+            if editor['editor_pinning']: 
+                continue
+
             job = Editor_PrimingJob(platform, editor, metafile["editor_priming_agent"])
             yml[job.job_id] = job.yml
         
