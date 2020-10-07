@@ -6,6 +6,10 @@ test_platforms:
     timeout:
       OSX_Metal: 2400
   - type: playmode
+  - type: playmode
+    name: playmode_XR
+    extra_utr_flags:
+      - --extra-editor-arg="-xr-tests"
 #  - type: editmode
 platforms:
   - name: Win
@@ -13,20 +17,20 @@ platforms:
       - DX11
 #      - DX12
       - Vulkan
-  - name: OSX 
+  - name: OSX
     apis:
       - Metal
       - OpenGLCore
   - name: Linux
-    apis: 
+    apis:
       - Vulkan
       - OpenGLCore
 #  - name: Android
-#    apis: 
+#    apis:
 #      - Vulkan
 #      - OpenGLES3
 #  - name: iPhone
-#    apis: 
+#    apis:
 #      - Metal
 all:
   dependencies:
@@ -35,3 +39,4 @@ all:
       test_platforms:
         - Standalone
         - playmode
+        - playmode_XR
