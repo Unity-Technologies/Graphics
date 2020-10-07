@@ -106,8 +106,8 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, b
     utr_args.append(f'--timeout={get_timeout(test_platform, "Android", build=True)}')
 
 
-    if api["name"].lower() =='vulkan':
-        utr_args.extend(['--extra-editor-arg="-executemethod"', f'--extra-editor-arg="SetupProject.ApplySettings"','--extra-editor-arg="vulkan"'])
+    # if api["name"].lower() =='vulkan':
+    #     utr_args.extend(['--extra-editor-arg="-executemethod"', f'--extra-editor-arg="SetupProject.ApplySettings"','--extra-editor-arg="vulkan"'])
 
     base = [  
         f'curl -s {UTR_INSTALL_URL}.bat --output utr.bat',
