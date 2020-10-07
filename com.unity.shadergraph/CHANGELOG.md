@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Optimized ShaderSubGraph import dependencies to minimize unnecessary reimports when using CustomFunctionNode
 - Changed UI names from `Vector1` to `Float`
 - Renamed `Float` precision to `Single`
+- Cleaned up the UI to add/remove Targets
 
 ### Fixed
 - Fixed a bug where ShaderGraph subgraph nodes would not update their slot names or order
@@ -36,6 +37,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - When ShaderGraph detects no active SRP, it will still continue to render the master preview, but it will use the error shader [1264642]
 - VirtualTexture is no longer allowed as a SubGraph output (it is not supported by current system) [1254483]
 - ShaderGraph Custom Function Node will now correctly convert function and slot names to valid HLSL identifiers [1258832]
+- Fixed an issue where ShaderGraph Custom Function Node would reorder slots when you modified them [1280106]
+- Fixed Undo handling when adding or removing Targets from a ShaderGraph [1257028]
 
 ## [10.0.0] - 2019-06-10
 ### Added
