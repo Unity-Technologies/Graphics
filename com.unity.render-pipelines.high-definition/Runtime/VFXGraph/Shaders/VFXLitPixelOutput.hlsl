@@ -129,14 +129,15 @@ float4 VFXGetPixelOutputForwardShaderGraph(SurfaceData surfaceData, BuiltinData 
 #else
 
 
-void VFXSetupBuiltin(inout BuiltinData builtin,SurfaceData surface,float3 emissiveColor, VFX_VARYING_PS_INPUTS i)
+void VFXSetupBuiltin(inout BuiltinData builtin, SurfaceData surface, VFX_VARYING_PS_INPUTS i)
 {
     uint2 tileIndex = uint2(0,0);
     float3 posRWS = VFXGetPositionRWS(i);
     float4 posSS = i.VFX_VARYING_POSCS;
     PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS, tileIndex);
+    float3 emissiveColorBackup = builtin.emissiveColor;
     InitBuiltinData(posInput, builtin.opacity, surface.normalWS, -surface.normalWS, (float4)0, (float4)0, builtin);
-    builtin.emissiveColor = emissiveColor;
+    builtin.emissiveColor = emissiveColorBackup;
     PostInitBuiltinData(GetWorldSpaceNormalizeViewDir(posInput.positionWS), posInput,surface, builtin);
 }
 
