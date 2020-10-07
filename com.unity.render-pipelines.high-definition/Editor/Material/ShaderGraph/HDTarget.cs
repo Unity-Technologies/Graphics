@@ -932,8 +932,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static IncludeCollection CorePregraph = new IncludeCollection
         {
-            { kShaderVariables, IncludeLocation.Pregraph },
-            { kFragInputs, IncludeLocation.Pregraph },
             { kDebugDisplay, IncludeLocation.Pregraph },            
             { kMaterial, IncludeLocation.Pregraph },
         };
