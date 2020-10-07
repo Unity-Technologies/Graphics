@@ -23,7 +23,7 @@ All_Universal_trunk:
       -  path: .yamato/all-universal_hybrid.yml#All_Universal_Hybrid_trunk
          rerun: on-new-revision
 All_Universal_fast-2020.2:
-    name: All Universal CI - 2020.2
+    name: All Universal CI - fast-2020.2
     dependencies:
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_Standalone_fast-2020.2
          rerun: on-new-revision

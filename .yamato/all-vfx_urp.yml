@@ -11,7 +11,7 @@ All_VFX_URP_trunk:
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_trunk
          rerun: on-new-revision
 All_VFX_URP_fast-2020.2:
-    name: All VFX_URP CI - 2020.2
+    name: All VFX_URP CI - fast-2020.2
     dependencies:
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_Standalone_fast-2020.2
          rerun: on-new-revision

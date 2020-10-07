@@ -117,6 +117,89 @@ trunk_verification_trunk:
          rerun: on-new-revision
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_trunk
          rerun: on-new-revision
+smoke_test_playmode_fast-2020.2:
+    name: SRP Smoke Test - playmode_fast-2020.2
+    agent:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor --wait --published-only
+      -  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+    dependencies:
+      -  .yamato/_editor_priming.yml#editor:priming:fast-2020.2:windows
+smoke_test_editmode_fast-2020.2:
+    name: SRP Smoke Test - editmode_fast-2020.2
+    agent:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor --wait --published-only
+      -  cd TestProjects/SRP_SmokeTest && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+    dependencies:
+      -  .yamato/_editor_priming.yml#editor:priming:fast-2020.2:windows
+all_smoke_tests_fast-2020.2:
+    name: All Smoke Tests - fast-2020.2
+    dependencies:
+      -  path: .yamato/_abv.yml#smoke_test_playmode_fast-2020.2
+         rerun: on-new-revision
+      -  path: .yamato/_abv.yml#smoke_test_editmode_fast-2020.2
+         rerun: on-new-revision
+all_project_ci_fast-2020.2:
+    name: _ABV for SRP repository - fast-2020.2
+    dependencies:
+      -  path: .yamato/_projectcontext.yml#all_package_ci_project_fast-2020.2
+         rerun: on-new-revision
+      -  path: .yamato/all-universal.yml#All_Universal_fast-2020.2
+         rerun: on-new-revision
+      -  path: .yamato/all-shadergraph.yml#All_ShaderGraph_fast-2020.2
+         rerun: on-new-revision
+      -  path: .yamato/all-hdrp.yml#All_HDRP_fast-2020.2
+         rerun: on-new-revision
+      -  path: .yamato/all-vfx_hdrp.yml#All_VFX_HDRP_fast-2020.2
+         rerun: on-new-revision
+      -  path: .yamato/all-vfx_urp.yml#All_VFX_URP_fast-2020.2
+         rerun: on-new-revision
+    triggers:
+        expression: pull_request.target eq "master" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*", ".github/**/*", "Tools/**/*"]
+trunk_verification_fast-2020.2:
+    name: Trunk verification - fast-2020.2
+    dependencies:
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_fast-2020.2
+         rerun: on-new-revision
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_fast-2020.2
+         rerun: on-new-revision
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_fast-2020.2
+         rerun: on-new-revision
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_fast-2020.2
+         rerun: on-new-revision
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_fast-2020.2
+         rerun: on-new-revision
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_fast-2020.2
+         rerun: on-new-revision
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_fast-2020.2
+         rerun: on-new-revision
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_fast-2020.2
+         rerun: on-new-revision
+      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_fast-2020.2
+         rerun: on-new-revision
 smoke_test_playmode_2020.2:
     name: SRP Smoke Test - playmode_2020.2
     agent:
@@ -162,23 +245,21 @@ all_smoke_tests_2020.2:
          rerun: on-new-revision
       -  path: .yamato/_abv.yml#smoke_test_editmode_2020.2
          rerun: on-new-revision
-all_project_ci_fast-2020.2:
-    name: _ABV for SRP repository - fast-2020.2
+all_project_ci_2020.2:
+    name: _ABV for SRP repository - 2020.2
     dependencies:
-      -  path: .yamato/_projectcontext.yml#all_package_ci_project_fast-2020.2
+      -  path: .yamato/_projectcontext.yml#all_package_ci_project_2020.2
          rerun: on-new-revision
-      -  path: .yamato/all-universal.yml#All_Universal_fast-2020.2
+      -  path: .yamato/all-universal.yml#All_Universal_2020.2
          rerun: on-new-revision
-      -  path: .yamato/all-shadergraph.yml#All_ShaderGraph_fast-2020.2
+      -  path: .yamato/all-shadergraph.yml#All_ShaderGraph_2020.2
          rerun: on-new-revision
-      -  path: .yamato/all-hdrp.yml#All_HDRP_fast-2020.2
+      -  path: .yamato/all-hdrp.yml#All_HDRP_2020.2
          rerun: on-new-revision
-      -  path: .yamato/all-vfx_hdrp.yml#All_VFX_HDRP_fast-2020.2
+      -  path: .yamato/all-vfx_hdrp.yml#All_VFX_HDRP_2020.2
          rerun: on-new-revision
-      -  path: .yamato/all-vfx_urp.yml#All_VFX_URP_fast-2020.2
+      -  path: .yamato/all-vfx_urp.yml#All_VFX_URP_2020.2
          rerun: on-new-revision
-    triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*", ".github/**/*", "Tools/**/*"]
 all_project_ci_nightly_2020.2:
     name: _Nightly ABV against 2020.2
     dependencies:
@@ -236,21 +317,6 @@ trunk_verification_2020.2:
       -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_2020.2
          rerun: on-new-revision
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_2020.2
-         rerun: on-new-revision
-all_project_ci_2020.2:
-    name: _ABV for SRP repository - 2020.2
-    dependencies:
-      -  path: .yamato/_projectcontext.yml#all_package_ci_project_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/all-universal.yml#All_Universal_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/all-shadergraph.yml#All_ShaderGraph_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/all-hdrp.yml#All_HDRP_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/all-vfx_hdrp.yml#All_VFX_HDRP_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/all-vfx_urp.yml#All_VFX_URP_2020.2
          rerun: on-new-revision
 smoke_test_playmode_CUSTOM-REVISION:
     name: SRP Smoke Test - playmode_CUSTOM-REVISION

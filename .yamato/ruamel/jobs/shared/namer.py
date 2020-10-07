@@ -1,8 +1,5 @@
 
 parent_dir = '.yamato'
-def _track_name(editor_track, fast):
-    return f'fast-{editor_track}' if fast else editor_track
-
 
 # editor specific 
 def editor_priming_filepath():
@@ -11,9 +8,8 @@ def editor_priming_filepath():
 def editor_pinning_filepath():
     return f'{parent_dir}/_editor_pinning.yml'.lower()
 
-def editor_job_id(editor_version, platform_os, fast):
-    return f'editor:priming:{_track_name(editor_version, fast)}:{platform_os}'
-
+def editor_job_id(editor_name, platform_os):
+    return f'editor:priming:{editor_name}:{platform_os}'
 
 def editor_job_id_test_min_editor(platform_os):
     return f'editor:priming:test_min_editor:{platform_os}'
@@ -34,11 +30,11 @@ def editor_job_id_merge_all(abv):
 def packages_filepath():
     return f'{parent_dir}/_packages.yml'.lower()
 
-def package_job_id_test(package_id, platform_os, editor_version, fast):
-    return f'test_{ package_id }_{ platform_os }_{_track_name(editor_version, fast)}'
+def package_job_id_test(package_id, platform_os, editor_name):
+    return f'test_{ package_id }_{ platform_os }_{editor_name}'
 
-def package_job_id_test_dependencies(package_id, platform_os, editor_version, fast):
-    return f'test_{ package_id }_{ platform_os }_{_track_name(editor_version, fast)}_dependencies'
+def package_job_id_test_dependencies(package_id, platform_os, editor_name):
+    return f'test_{ package_id }_{ platform_os }_{editor_name}_dependencies'
 
 def package_job_id_pack(package_id):
     return f'pack_{package_id}'
@@ -55,8 +51,8 @@ def package_job_id_publish_all():
 def package_job_id_publish_all_tag():
     return f'publish_all_tag'
 
-def package_job_id_test_all(editor_version, fast):
-    return f'all_package_ci_{_track_name(editor_version, fast)}'
+def package_job_id_test_all(editor_name):
+    return f'all_package_ci_{editor_name}'
 
 def projectcontext_filepath():
     return f'{parent_dir}/_projectcontext.yml'.lower()
@@ -64,8 +60,8 @@ def projectcontext_filepath():
 def projectcontext_job_id_pack():
     return f'pack_all_project'
 
-def projectcontext_job_id_test(platform_os, editor_version, fast):
-    return f'test_all_project_{ platform_os }_{_track_name(editor_version, fast)}'
+def projectcontext_job_id_test(platform_os, editor_name):
+    return f'test_all_project_{ platform_os }_{editor_name}'
 
 def projectcontext_job_id_test_min_editor(platform_os):
     return f'test_all_project_{ platform_os }_min_editor'
@@ -82,8 +78,8 @@ def projectcontext_job_id_publish_all():
 def projectcontext_job_id_publish_all_tag():
     return f'publish_all_project_tag'
 
-def projectcontext_job_id_test_all(editor_version, fast):
-    return f'all_package_ci_project_{_track_name(editor_version, fast)}'
+def projectcontext_job_id_test_all(editor_name):
+    return f'all_package_ci_project_{editor_name}'
 
 def pb_projectcontext_job_id_promote(package_name):
     return f'promote_{package_name}_project'
@@ -98,17 +94,17 @@ def pb_projectcontext_job_id_promote_all_preview():
 def templates_filepath():
     return f'{parent_dir}/_templates.yml'.lower()
 
-def template_job_id_test(template_id, platform_os, editor_version):
-    return f'test_{ template_id }_{ platform_os }_{editor_version}'
+def template_job_id_test(template_id, platform_os, editor_name):
+    return f'test_{ template_id }_{ platform_os }_{editor_name}'
 
-def template_job_id_test_dependencies(template_id, platform_os, editor_version):
-    return f'test_{ template_id }_{ platform_os }_{editor_version}_dependencies'
+def template_job_id_test_dependencies(template_id, platform_os, editor_name):
+    return f'test_{ template_id }_{ platform_os }_{editor_name}_dependencies'
 
 def template_job_id_pack(template_id):
     return f'pack_{template_id}'
 
-def template_job_id_test_all(editor_version):
-    return f'all_template_ci_{editor_version}'
+def template_job_id_test_all(editor_name):
+    return f'all_template_ci_{editor_name}'
 
 # project specific
 def project_filepath_specific(project_name, platform_name, api_name):
@@ -119,34 +115,34 @@ def project_filepath_all(project_name):
     # return f'{parent_dir}/{project_name}/all-{project_name}.yml'.lower()
     return f'{parent_dir}/all-{project_name}.yml'.lower()
 
-def project_job_id_test(project_name, platform_name, api_name, test_platform_name, editor_version, fast):
-    return f'{project_name}_{platform_name}_{api_name}_{test_platform_name}_{_track_name(editor_version, fast)}'.replace('__','_')
+def project_job_id_test(project_name, platform_name, api_name, test_platform_name, editor_name):
+    return f'{project_name}_{platform_name}_{api_name}_{test_platform_name}_{editor_name}'.replace('__','_')
 
-def project_job_id_build(project_name, platform_name, api_name, editor_version, fast):
-    return f'Build_{project_name}_{platform_name}_{api_name}_Player_{_track_name(editor_version, fast)}'.replace('__','_')
+def project_job_id_build(project_name, platform_name, api_name, editor_name):
+    return f'Build_{project_name}_{platform_name}_{api_name}_Player_{editor_name}'.replace('__','_')
 
-def project_job_id_all(project_name, editor_version, fast):
-    return f'All_{project_name}_{ _track_name(editor_version, fast)}'
+def project_job_id_all(project_name, editor_name):
+    return f'All_{project_name}_{ editor_name}'
 
 
 # abv specific
 def abv_filepath():
     return f'{parent_dir}/_abv.yml'.lower()
 
-def abv_job_id_all_project_ci(editor_version, fast):
-    return f'all_project_ci_{_track_name(editor_version, fast)}'
+def abv_job_id_all_project_ci(editor_name):
+    return f'all_project_ci_{editor_name}'
 
-def abv_job_id_all_project_ci_nightly(editor_version):
-    return f'all_project_ci_nightly_{editor_version}'
+def abv_job_id_all_project_ci_nightly(editor_name):
+    return f'all_project_ci_nightly_{editor_name}'
 
-def abv_job_id_smoke_test(editor_version, test_platform_name):
-    return f'smoke_test_{test_platform_name}_{editor_version}'
+def abv_job_id_smoke_test(editor_name, test_platform_name):
+    return f'smoke_test_{test_platform_name}_{editor_name}'
 
-def abv_job_id_all_smoke_tests(editor_version):
-    return f'all_smoke_tests_{editor_version}'
+def abv_job_id_all_smoke_tests(editor_name):
+    return f'all_smoke_tests_{editor_name}'
 
-def abv_job_id_trunk_verification(editor_version):
-    return f'trunk_verification_{editor_version}'
+def abv_job_id_trunk_verification(editor_name):
+    return f'trunk_verification_{editor_name}'
 
 
 # preview publish specific

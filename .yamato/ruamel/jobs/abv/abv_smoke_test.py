@@ -6,7 +6,7 @@ from ..shared.yml_job import YMLJob
 class ABV_SmokeTestJob():
     
     def __init__(self, editor, test_platform, smoke_test):
-        self.job_id = abv_job_id_smoke_test(editor["track"], test_platform["name"])
+        self.job_id = abv_job_id_smoke_test(editor["name"], test_platform["name"])
         self.yml = self.get_job_definition(editor, test_platform, smoke_test).get_yml()
 
 
@@ -31,7 +31,7 @@ class ABV_SmokeTestJob():
 
         # construct job
         job = YMLJob()
-        job.set_name(f'SRP Smoke Test - {test_platform["name"]}_{editor["track"]}')
+        job.set_name(f'SRP Smoke Test - {test_platform["name"]}_{editor["name"]}')
         job.set_agent(agent if test_platform["name"] == 'editmode' else agent_gpu)
         job.add_var_upm_registry()
         job.add_var_custom_revision(editor["track"])
@@ -39,5 +39,5 @@ class ABV_SmokeTestJob():
         job.add_artifacts_test_results()
 
         if not editor['editor_pinning']:
-            job.add_dependencies([f'{editor_priming_filepath()}#{editor_job_id(editor["track"], "windows",fast=False) }'])
+            job.add_dependencies([f'{editor_priming_filepath()}#{editor_job_id(editor["name"], "windows") }'])
         return job

@@ -11,7 +11,7 @@ All_Universal_Hybrid_trunk:
       -  path: .yamato/universal_hybrid-osx-metal.yml#Universal_Hybrid_OSX_Metal_playmode_trunk
          rerun: on-new-revision
 All_Universal_Hybrid_fast-2020.2:
-    name: All Universal_Hybrid CI - 2020.2
+    name: All Universal_Hybrid CI - fast-2020.2
     dependencies:
       -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_playmode_fast-2020.2
          rerun: on-new-revision

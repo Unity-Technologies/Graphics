@@ -1,13 +1,12 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..shared.namer import *
-from ..shared.namer import _track_name
 from ..shared.constants import PATH_UNITY_REVISION, get_editor_revision, NPM_UPMCI_INSTALL_URL, get_unity_downloader_cli_cmd
 from ..shared.yml_job import YMLJob
 
 class Project_TestJob():
     
     def __init__(self, platform, editor):
-        self.job_id = projectcontext_job_id_test(platform["os"],editor["track"],editor.get("fast"))
+        self.job_id = projectcontext_job_id_test(platform["os"],editor["name"])
         self.yml = self.get_job_definition(platform, editor).get_yml()
 
     
@@ -16,7 +15,7 @@ class Project_TestJob():
         # define dependencies
         dependencies = [f'{projectcontext_filepath()}#{projectcontext_job_id_pack()}']
         if not editor['editor_pinning']:
-            dependencies.extend([f'{editor_priming_filepath()}#{editor_job_id(editor["track"], platform["os"],editor.get("fast")) }'])
+            dependencies.extend([f'{editor_priming_filepath()}#{editor_job_id(editor["name"], platform["os"]) }'])
                 
         # define commands
         commands = [
@@ -28,7 +27,7 @@ class Project_TestJob():
 
         # construct job
         job = YMLJob()
-        job.set_name(f'Test all packages [project context] {platform["name"]} {_track_name(editor["track"],editor.get("fast"))}')
+        job.set_name(f'Test all packages [project context] {platform["name"]} {editor["name"]}')
         job.set_agent(platform['agent_package'])
         job.add_dependencies(dependencies)
         job.add_commands(commands)

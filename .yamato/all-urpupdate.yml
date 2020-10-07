@@ -13,7 +13,7 @@ All_URPUpdate_trunk:
       -  path: .yamato/all-urpupdate_top_asset_store.yml#All_URPUpdate_Top_Asset_Store_trunk
          rerun: on-new-revision
 All_URPUpdate_fast-2020.2:
-    name: All URPUpdate CI - 2020.2
+    name: All URPUpdate CI - fast-2020.2
     dependencies:
       -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_editmode_fast-2020.2
          rerun: on-new-revision

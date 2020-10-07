@@ -11,7 +11,7 @@ All_Universal_Stereo_trunk:
       -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_editmode_trunk
          rerun: on-new-revision
 All_Universal_Stereo_fast-2020.2:
-    name: All Universal_Stereo CI - 2020.2
+    name: All Universal_Stereo CI - fast-2020.2
     dependencies:
       -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_Standalone_fast-2020.2
          rerun: on-new-revision
