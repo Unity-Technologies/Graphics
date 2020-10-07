@@ -121,7 +121,7 @@ HDRP_OSX_Metal_playmode_2020.2:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only'
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
                  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/HDRP_Tests && ~/Graphics/TestProjects/HDRP_Tests/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/HDRP_Tests --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_Tests/test-results --reruncount=2"
@@ -133,6 +133,9 @@ HDRP_OSX_Metal_playmode_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.2:macos
+         rerun: on-new-revision
 HDRP_OSX_Metal_playmode_XR_2020.2:
     name: HDRP on OSX_Metal_playmode_XR on version 2020.2
     agent:
@@ -147,7 +150,7 @@ HDRP_OSX_Metal_playmode_XR_2020.2:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only'
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
                  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/HDRP_Tests && ~/Graphics/TestProjects/HDRP_Tests/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/HDRP_Tests --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_Tests/test-results --reruncount=2 --extra-editor-arg="-xr-tests""
@@ -159,6 +162,9 @@ HDRP_OSX_Metal_playmode_XR_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.2:macos
+         rerun: on-new-revision
 HDRP_OSX_Metal_playmode_NonRenderGraph_2020.2:
     name: HDRP on OSX_Metal_playmode_NonRenderGraph on version 2020.2
     agent:
@@ -173,7 +179,7 @@ HDRP_OSX_Metal_playmode_NonRenderGraph_2020.2:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only'
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
                  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/HDRP_Tests && ~/Graphics/TestProjects/HDRP_Tests/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/HDRP_Tests --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_Tests/test-results --reruncount=2 --extra-editor-arg="-non-rendergraph-tests""
@@ -185,6 +191,9 @@ HDRP_OSX_Metal_playmode_NonRenderGraph_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.2:macos
+         rerun: on-new-revision
 HDRP_OSX_Metal_Standalone_2020.2:
     name: HDRP on OSX_Metal_Standalone on version 2020.2
     agent:
@@ -199,7 +208,7 @@ HDRP_OSX_Metal_Standalone_2020.2:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only'
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
                  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/HDRP_RuntimeTests && ~/Graphics/TestProjects/HDRP_RuntimeTests/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_RuntimeTests/test-results --testproject=/Users/bokken/Graphics/TestProjects/HDRP_RuntimeTests --editor-location=/Users/bokken/.Editor --reruncount=2 --timeout=2400"
@@ -211,6 +220,9 @@ HDRP_OSX_Metal_Standalone_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.2:macos
+         rerun: on-new-revision
 HDRP_OSX_Metal_playmode_CUSTOM-REVISION:
     name: HDRP on OSX_Metal_playmode on version CUSTOM-REVISION
     agent:

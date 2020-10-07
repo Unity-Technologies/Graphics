@@ -54,12 +54,15 @@ Universal_Linux_OpenGLCore_playmode_2020.2:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-glcore"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.2:linux
+         rerun: on-new-revision
 Universal_Linux_OpenGLCore_editmode_2020.2:
     name: Universal on Linux_OpenGLCore_editmode on version 2020.2
     agent:
@@ -73,12 +76,15 @@ Universal_Linux_OpenGLCore_editmode_2020.2:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-glcore"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.2:linux
+         rerun: on-new-revision
 Universal_Linux_OpenGLCore_playmode_CUSTOM-REVISION:
     name: Universal on Linux_OpenGLCore_playmode on version CUSTOM-REVISION
     agent:

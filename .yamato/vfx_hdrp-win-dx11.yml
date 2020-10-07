@@ -109,6 +109,8 @@ VFX_HDRP_Win_DX11_Standalone_2020.2:
             paths:
               -  "**/test-results/**"
     dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.2:windows
+         rerun: on-new-revision
       -  path: .yamato/vfx_hdrp-win-dx11.yml#Build_VFX_HDRP_Win_DX11_Player_2020.2
          rerun: on-new-revision
     skip_checkout: true
@@ -123,7 +125,7 @@ Build_VFX_HDRP_Win_DX11_Player_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_HDRP/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/VisualEffectGraph_HDRP && unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/VisualEffectGraph_HDRP && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/VisualEffectGraph_HDRP && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
     artifacts:
         logs:
@@ -132,6 +134,9 @@ Build_VFX_HDRP_Win_DX11_Player_2020.2:
         players:
             paths:
               -  "players/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.2:windows
+         rerun: on-new-revision
 VFX_HDRP_Win_DX11_playmode_2020.2:
     name: VFX_HDRP on Win_DX11_playmode on version 2020.2
     agent:
@@ -143,12 +148,15 @@ VFX_HDRP_Win_DX11_playmode_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_HDRP/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/VisualEffectGraph_HDRP && unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/VisualEffectGraph_HDRP && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/VisualEffectGraph_HDRP && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.2:windows
+         rerun: on-new-revision
 VFX_HDRP_Win_DX11_playmode_XR_2020.2:
     name: VFX_HDRP on Win_DX11_playmode_XR on version 2020.2
     agent:
@@ -160,12 +168,15 @@ VFX_HDRP_Win_DX11_playmode_XR_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_HDRP/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/VisualEffectGraph_HDRP && unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/VisualEffectGraph_HDRP && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/VisualEffectGraph_HDRP && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-xr-tests" --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.2:windows
+         rerun: on-new-revision
 VFX_HDRP_Win_DX11_editmode_2020.2:
     name: VFX_HDRP on Win_DX11_editmode on version 2020.2
     agent:
@@ -177,12 +188,15 @@ VFX_HDRP_Win_DX11_editmode_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_HDRP/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/VisualEffectGraph_HDRP && unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/VisualEffectGraph_HDRP && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/VisualEffectGraph_HDRP && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.2:windows
+         rerun: on-new-revision
 VFX_HDRP_Win_DX11_Standalone_CUSTOM-REVISION:
     name: VFX_HDRP on Win_DX11_Standalone on version CUSTOM-REVISION
     agent:

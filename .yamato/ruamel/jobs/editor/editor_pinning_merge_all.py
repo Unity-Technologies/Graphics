@@ -17,7 +17,7 @@ class Editor_PinningMergeAllJob():
         
         dependencies = []
         for editor in editors:
-            if str(editor['track']).lower()=='custom-revision':
+            if not editor['editor_pinning']:
                 continue
 
             dependencies.append(f'{editor_pinning_filepath()}#{editor_job_id_merge_revisions(editor["track"], abv)}')

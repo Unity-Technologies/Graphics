@@ -60,12 +60,15 @@ URPUpdate_Win_Vulkan_playmode_2020.2:
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/URP-Update-Testing/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/URP-Update-Testing/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/URP-Update-Testing/Packages/com.unity.shadergraph" /Y
-      -  cd TestProjects/URP-Update-testing/URP-Update-Testing && unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/URP-Update-testing/URP-Update-Testing && unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/URP-Update-testing/URP-Update-Testing && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.2:windows
+         rerun: on-new-revision
 URPUpdate_Win_Vulkan_editmode_2020.2:
     name: URPUpdate on Win_Vulkan_editmode on version 2020.2
     agent:
@@ -81,12 +84,15 @@ URPUpdate_Win_Vulkan_editmode_2020.2:
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/URP-Update-Testing/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/URP-Update-Testing/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/URP-Update-Testing/Packages/com.unity.shadergraph" /Y
-      -  cd TestProjects/URP-Update-testing/URP-Update-Testing && unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/URP-Update-testing/URP-Update-Testing && unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/URP-Update-testing/URP-Update-Testing && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.2:windows
+         rerun: on-new-revision
 URPUpdate_Win_Vulkan_playmode_CUSTOM-REVISION:
     name: URPUpdate on Win_Vulkan_playmode on version CUSTOM-REVISION
     agent:

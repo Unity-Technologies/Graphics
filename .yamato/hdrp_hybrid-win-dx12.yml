@@ -87,12 +87,15 @@ HDRP_Hybrid_Win_DX12_playmode_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --compilation-errors-as-warnings --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.2:windows
+         rerun: on-new-revision
 HDRP_Hybrid_Win_DX12_playmode_XR_2020.2:
     name: HDRP_Hybrid on Win_DX12_playmode_XR on version 2020.2
     agent:
@@ -104,12 +107,15 @@ HDRP_Hybrid_Win_DX12_playmode_XR_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-xr-tests" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.2:windows
+         rerun: on-new-revision
 HDRP_Hybrid_Win_DX12_Standalone_2020.2:
     name: HDRP_Hybrid on Win_DX12_Standalone on version 2020.2
     agent:
@@ -126,6 +132,8 @@ HDRP_Hybrid_Win_DX12_Standalone_2020.2:
             paths:
               -  "**/test-results/**"
     dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.2:windows
+         rerun: on-new-revision
       -  path: .yamato/hdrp_hybrid-win-dx12.yml#Build_HDRP_Hybrid_Win_DX12_Player_2020.2
          rerun: on-new-revision
     skip_checkout: true
@@ -140,7 +148,7 @@ Build_HDRP_Hybrid_Win_DX12_Player_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --compilation-errors-as-warnings --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
     artifacts:
         logs:
@@ -149,6 +157,9 @@ Build_HDRP_Hybrid_Win_DX12_Player_2020.2:
         players:
             paths:
               -  "players/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.2:windows
+         rerun: on-new-revision
 HDRP_Hybrid_Win_DX12_playmode_CUSTOM-REVISION:
     name: HDRP_Hybrid on Win_DX12_playmode on version CUSTOM-REVISION
     agent:

@@ -4,11 +4,13 @@ target_editor: trunk # specifies the target editor used for some package/preview
 editors: # applied for all yml files
   - track: trunk
     rerun_strategy: on-new-revision
+    editor_pinning: True
   - track: 2020.2
     rerun_strategy: on-new-revision
+    editor_pinning: False
   - track: CUSTOM-REVISION
     rerun_strategy: always
-    cmd: -u $CUSTOM_REVISION
+    editor_pinning: False
 platforms:
   Win:
     name: Win
