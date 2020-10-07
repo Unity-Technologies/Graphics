@@ -639,7 +639,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                                 data.depthTexture,
                                                 data.densityBuffer,
                                                 data.lightingBuffer,
-                                                                                                data.lightingBuffer, // TODO_FCC FIXUP
+                                                data.depthTexture, // TODO_FCC FIXUP
                                                 data.parameters.enableReprojection ? data.historyBuffer  : (RTHandle)null,
                                                 data.parameters.enableReprojection ? data.feedbackBuffer : (RTHandle)null,
                                                 data.bigTileLightListBuffer,

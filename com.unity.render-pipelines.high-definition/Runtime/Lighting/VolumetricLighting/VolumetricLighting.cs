@@ -412,65 +412,103 @@ namespace UnityEngine.Rendering.HighDefinition
 
         }
 
+        struct GenerateMaxZParameters
+        {
+            public ComputeShader generateMaxZCS;
+            public int maxZKernel;
+            public int maxZDownsampleKernel;
+            public int dilateMaxZKernel;
+
+            public Vector2Int intermediateMaskSize;
+            public Vector2Int finalMaskSize;
+            public Vector2Int minDepthMipOffset;
+        }
+
+
+        GenerateMaxZParameters PrepareGenerateMaxZParameters(HDCamera hdCamera, HDUtils.PackedMipChainInfo depthMipInfo)
+        {
+            var parameters = new GenerateMaxZParameters();
+            parameters.generateMaxZCS = defaultResources.shaders.maxZCS;
+            parameters.maxZKernel = parameters.generateMaxZCS.FindKernel("ComputeMaxZ");
+            parameters.maxZDownsampleKernel = parameters.generateMaxZCS.FindKernel("ComputeFinalMask");
+            parameters.dilateMaxZKernel = parameters.generateMaxZCS.FindKernel("DilateMask");
+
+            parameters.intermediateMaskSize.x = HDUtils.DivRoundUp(hdCamera.actualWidth, 8);
+            parameters.intermediateMaskSize.y = HDUtils.DivRoundUp(hdCamera.actualHeight, 8);
+
+            parameters.finalMaskSize.x = parameters.intermediateMaskSize.x / 2;
+            parameters.finalMaskSize.y = parameters.intermediateMaskSize.y / 2;
+
+            parameters.minDepthMipOffset.x = depthMipInfo.mipLevelOffsets[4].x;
+            parameters.minDepthMipOffset.y = depthMipInfo.mipLevelOffsets[4].y;
+
+            return parameters;
+        }
+
+        static void GenerateMaxZ(in GenerateMaxZParameters parameters, RTHandle maxZ8x, RTHandle maxZ, RTHandle dilatedMaxZ, CommandBuffer cmd)
+        {
+            // --------------------------------------------------------------
+            // Downsample 8x8 with max operator
+
+            var cs = parameters.generateMaxZCS;
+            var kernel = parameters.maxZKernel;
+
+            int maskW = parameters.intermediateMaskSize.x;
+            int maskH = parameters.intermediateMaskSize.y;
+
+            int dispatchX = maskW;
+            int dispatchY = maskH;
+
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, maxZ8x);
+
+            cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, 1);
+
+            // --------------------------------------------------------------
+            // Downsample to 16x16 and compute gradient if required
+
+            kernel = parameters.maxZDownsampleKernel;
+
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, maxZ8x);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, maxZ);
+
+            Vector4 srcLimitAndDepthOffset = new Vector4(
+                maskW,
+                maskH,
+                parameters.minDepthMipOffset.x,
+                parameters.minDepthMipOffset.y
+                );
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._SrcOffsetAndLimit, srcLimitAndDepthOffset);
+
+            int finalMaskW = maskW / 2;
+            int finalMaskH = maskH / 2;
+
+            dispatchX = HDUtils.DivRoundUp(finalMaskW, 8);
+            dispatchY = HDUtils.DivRoundUp(finalMaskH, 8);
+
+            cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, 1);
+
+            // --------------------------------------------------------------
+            // Dilate max Z and gradient.
+            kernel = parameters.dilateMaxZKernel;
+
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, maxZ);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, dilatedMaxZ);
+
+            srcLimitAndDepthOffset.x = finalMaskW;
+            srcLimitAndDepthOffset.y = finalMaskH;
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._SrcOffsetAndLimit, srcLimitAndDepthOffset);
+
+            cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, 1);
+
+        }
+
         internal void GenerateMaxZ(CommandBuffer cmd, HDCamera camera, HDUtils.PackedMipChainInfo depthMipInfo)
         {
 
             // TODO: MOVE TO RG WHEN WORKING
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingBuildCluster)))
             {
-
-                // --------------------------------------------------------------
-                // Downsample 8x8 with max operator
-
-                var cs = defaultResources.shaders.maxZCS;
-                var kernel = cs.FindKernel("ComputeMaxZ");
-
-                int maskW = HDUtils.DivRoundUp(camera.actualWidth, 8);
-                int maskH = HDUtils.DivRoundUp(camera.actualHeight, 8);
-
-                int dispatchX = maskW;
-                int dispatchY = maskH;
-
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_MaxZMask8x);
-
-                cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, 1);
-
-                // --------------------------------------------------------------
-                // Downsample to 16x16 and compute gradient if required
-
-                kernel = cs.FindKernel("ComputeFinalMask");
-
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, m_MaxZMask8x);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_MaxZMask);
-
-                Vector4 srcLimitAndDepthOffset = new Vector4(
-                    maskW,
-                    maskH,
-                    depthMipInfo.mipLevelOffsets[4].x,
-                    depthMipInfo.mipLevelOffsets[4].y
-                    );
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._SrcOffsetAndLimit, srcLimitAndDepthOffset);
-
-                int finalMaskW = maskW / 2;
-                int finalMaskH = maskH / 2;
-
-                dispatchX = HDUtils.DivRoundUp(finalMaskW, 8);
-                dispatchY = HDUtils.DivRoundUp(finalMaskH, 8);
-
-                cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, 1);
-
-                // --------------------------------------------------------------
-                // Dilate max Z and gradient.
-                kernel = cs.FindKernel("DilateMask");
-
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, m_MaxZMask);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_DilatedMaxZMask);
-
-                srcLimitAndDepthOffset.x = finalMaskW;
-                srcLimitAndDepthOffset.y = finalMaskH;
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._SrcOffsetAndLimit, srcLimitAndDepthOffset);
-
-                cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, 1);
+                GenerateMaxZ(PrepareGenerateMaxZParameters(camera, depthMipInfo), m_MaxZMask8x, m_MaxZMask, m_DilatedMaxZMask, cmd);
             }
 
         }
@@ -1032,8 +1070,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                             RTHandle                        depthTexture,
                                             RTHandle                        densityBuffer,
                                             RTHandle                        lightingBuffer,
-                                            RTHandle maxZTexture,
-                                            RTHandle historyRT,
+                                            RTHandle                        maxZTexture,
+                                            RTHandle                        historyRT,
                                             RTHandle                        feedbackRT,
                                             ComputeBuffer                   bigTileLightList,
                                             CommandBuffer                   cmd)
