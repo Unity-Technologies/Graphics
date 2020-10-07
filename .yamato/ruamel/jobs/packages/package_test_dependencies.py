@@ -23,7 +23,7 @@ class Package_TestDependenciesJob():
         commands =  [
                 f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
                 f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
-                f'unity-downloader-cli -u { get_unity_downloader_cli_cmd(editor, platform["os"]) } -c editor --wait --published-only']
+                f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } -c editor --wait --published-only']
         if package.get('hascodependencies', None) is not None:
             if platform["os"].lower() == 'windows':
                 commands.append(f'mkdir upm-ci~\\packages')
