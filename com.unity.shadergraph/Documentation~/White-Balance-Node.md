@@ -9,8 +9,8 @@ Adjusts the temperature and tint of input **In** by the amount of inputs **Tempe
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
 | In      | Input | Vector 3 | None | Input value |
-| Temperature      | Input | Vector 1 | None | Temperature offset value |
-| Tint      | Input | Vector 1 | None | Tint offset value |
+| Temperature      | Input | Float    | None | Temperature offset value |
+| Tint      | Input | Float    | None | Tint offset value |
 | Out | Output      |    Vector 3 | None | Output value |
 
 ## Generated Code Example

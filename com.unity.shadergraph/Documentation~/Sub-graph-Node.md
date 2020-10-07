@@ -4,7 +4,7 @@
 
 Provides a reference to a [Sub Graph Asset](Sub-graph-Asset.md). All ports on the reference node are defined by the properties and outputs defined in the [Sub Graph Asset](Sub-graph-Asset.md). This is useful for sharing functionality between graphs or duplicating the same functionality within a graph.
 
-The preview used for a Sub Graph Node is determined by the first port of that [Sub Graph](Sub-graph.md) Output Node. Valid [Data Types](Data-Types.md) for the first port are `Vector 1`, `Vector 2`, `Vector 3`, `Vector 4`, `Matrix2`, `Matrix3`, `Matrix4`, and `Boolean`. Any other data type will produce an error in the preview shader and the [Sub Graph](Sub-graph.md) will become invalid. 
+The preview used for a Sub Graph Node is determined by the first port of that [Sub Graph](Sub-graph.md) Output Node. Valid [Data Types](Data-Types.md) for the first port are `Float`, `Vector 2`, `Vector 3`, `Vector 4`, `Matrix2`, `Matrix3`, `Matrix4`, and `Boolean`. Any other data type will produce an error in the preview shader and the [Sub Graph](Sub-graph.md) will become invalid. 
 
 ## Sub Graph Nodes and Shader Stages
 

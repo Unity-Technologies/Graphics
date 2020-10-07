@@ -529,7 +529,7 @@ namespace UnityEditor.VFX
             return combine;
         }
 
-        static public VFXExpression BuildRandom(VFXSeedMode seedMode, bool constant, VFXExpression seed = null)
+        static public VFXExpression BuildRandom(VFXSeedMode seedMode, bool constant, RandId randId, VFXExpression seed = null)
         {
             if (seedMode == VFXSeedMode.PerParticleStrip || constant)
             {
@@ -537,7 +537,7 @@ namespace UnityEditor.VFX
                     throw new ArgumentNullException("seed");
                 return FixedRandom(seed, seedMode);
             }
-            return new VFXExpressionRandom(seedMode == VFXSeedMode.PerParticle);
+            return new VFXExpressionRandom(seedMode == VFXSeedMode.PerParticle, randId);
         }
 
         static public VFXExpression FixedRandom(uint hash, VFXSeedMode mode)
@@ -651,5 +651,20 @@ namespace UnityEditor.VFX
             var theta = new VFXExpressionATan2(components[1], components[0]);
             return theta;
         }
+
+        static public VFXExpression Max3(VFXExpression x, VFXExpression y, VFXExpression z)
+        {
+            return new VFXExpressionMax( new VFXExpressionMax(x, y), z);
+        }
+
+        static public VFXExpression Max3(VFXExpression vector3)
+        {
+            var x = new VFXExpressionExtractComponent(vector3, 0);
+            var y = new VFXExpressionExtractComponent(vector3, 1);
+            var z = new VFXExpressionExtractComponent(vector3, 2);
+            return Max3(x, y, z);
+        }
     }
+
+
 }
