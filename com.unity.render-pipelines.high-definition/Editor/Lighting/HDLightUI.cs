@@ -1021,6 +1021,15 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.PropertyField(serialized.shadowUpdateMode, s_Styles.shadowUpdateMode);
 
+                if(serialized.shadowUpdateMode.intValue > 0 && serialized.type != HDLightType.Directional)
+                {
+#if MIXED_CACHED_SHADOW
+                    EditorGUILayout.PropertyField(serialized.shadowAlwaysDrawDynamic, s_Styles.shadowAlwaysDrawDynamic);
+#endif
+                    EditorGUILayout.PropertyField(serialized.shadowUpdateUponTransformChange, s_Styles.shadowUpdateOnLightTransformChange);
+
+                }
+
                 HDLightType lightType = serialized.type;
 
                 using (var change = new EditorGUI.ChangeCheckScope())
