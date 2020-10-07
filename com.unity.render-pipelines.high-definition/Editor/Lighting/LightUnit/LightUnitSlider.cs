@@ -433,6 +433,7 @@ namespace UnityEditor.Rendering.HighDefinition
         private SerializedHDLight m_Light;
         private Editor m_Editor;
         private LightUnit m_Unit;
+        private bool m_SpotReflectorEnabled;
 
         // Note: these should be in sync with LightUnit
         private static string[] k_UnitNames =
@@ -449,21 +450,19 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Unit = unit;
             m_Light = light;
             m_Editor = owner;
+
+            // Cache the spot reflector state as we will need to revert back to it after treating the slider as point light.
+            m_SpotReflectorEnabled = light.enableSpotReflector.boolValue;
         }
 
         public override void Draw(Rect rect, SerializedProperty value)
         {
-            var enableSpotReflector = m_Light.enableSpotReflector.boolValue;
-            m_Light.enableSpotReflector.boolValue = false;
-
             // Convert the incoming unit value into Lumen as the punctual slider is always in these terms (internally)
             value.floatValue = UnitToLumen(value.floatValue);
 
             base.Draw(rect, value);
 
             value.floatValue = LumenToUnit(value.floatValue);
-
-            m_Light.enableSpotReflector.boolValue = enableSpotReflector;
         }
 
         protected override GUIContent GetLightUnitTooltip(string baseTooltip, float value, string unit)
@@ -480,6 +479,10 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_Unit == LightUnit.Lumen)
                 return value;
 
+            // Punctual slider currently does not have any regard for spot shape/reflector.
+            // Conversions need to happen as if light is a point, and this is the only setting that influences that.
+            m_Light.enableSpotReflector.boolValue = false;
+
             return HDLightUI.ConvertLightIntensity(m_Unit, LightUnit.Lumen, m_Light, m_Editor, value);
         }
 
@@ -488,17 +491,15 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_Unit == LightUnit.Lumen)
                 return value;
 
-            // if (m_Light.type == HDLightType.Spot &&
-            //     m_Unit != LightUnit.Lumen &&
-            //     m_Light.enableSpotReflector.boolValue)
-            // {
-            //     // Note: When reflector is flagged, the util conversion for Lumen -> Candela will actually force re-use
-            //     // the serialized intensity, which is not what we want in this case. Because of this, we re-use the formulation
-            //     // in HDAdditionalLightData to correctly compute the intensity for spot reflector.
-            //     return ConvertLightIntensitySpotAngleLumenToUnit(value);
-            // }
+            // Once again temporarily disable reflector in case we called this for tooltip or context menu preset.
+            m_Light.enableSpotReflector.boolValue = false;
 
-            return HDLightUI.ConvertLightIntensity(LightUnit.Lumen, m_Unit, m_Light, m_Editor, value);
+            value = HDLightUI.ConvertLightIntensity(LightUnit.Lumen, m_Unit, m_Light, m_Editor, value);
+
+            // Restore the state of spot reflector on the light.
+            m_Light.enableSpotReflector.boolValue = m_SpotReflectorEnabled;
+
+            return value;
         }
 
         protected override void SetValueToPreset(SerializedProperty value, LightUnitSliderUIRange preset)
@@ -512,34 +513,6 @@ namespace UnityEditor.Rendering.HighDefinition
             value.floatValue = LumenToUnit(newValue);
 
             m_SerializedObject?.ApplyModifiedProperties();
-        }
-
-        // This code is re-used from HDAdditionalLightData
-        float ConvertLightIntensitySpotAngleLumenToUnit(float value)
-        {
-            var spotLightShape = m_Light.spotLightShape.GetEnumValue<SpotLightShape>();
-            var spotAngle = m_Light.settings.spotAngle.floatValue;
-            var aspectRatio = m_Light.aspectRatio.floatValue;
-
-            // If reflector is enabled all the lighting from the sphere is focus inside the solid angle of current shape
-            if (spotLightShape == SpotLightShape.Cone)
-            {
-                value = LightUtils.ConvertSpotLightLumenToCandela(value, spotAngle * Mathf.Deg2Rad, true);
-            }
-            else if (spotLightShape == SpotLightShape.Pyramid)
-            {
-                float angleA, angleB;
-                LightUtils.CalculateAnglesForPyramid(aspectRatio, spotAngle * Mathf.Deg2Rad, out angleA, out angleB);
-
-                value = LightUtils.ConvertFrustrumLightLumenToCandela(value, angleA, angleB);
-            }
-            else // Box shape, fallback to punctual light.
-            {
-                value = LightUtils.ConvertPointLightLumenToCandela(value);
-            }
-
-            // Units so far are in Candela now, last step is to get it in terms of the actual unit.
-            return HDLightUI.ConvertLightIntensity(LightUnit.Candela, m_Unit, m_Light, m_Editor, value);
         }
     }
 
