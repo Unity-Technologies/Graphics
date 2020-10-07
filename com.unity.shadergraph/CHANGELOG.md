@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue in ShaderGraph with integer-mode Vector1 properties throwing errors when the value is changed [1264930]
 - Fixed a bug where ShaderGraph would not load graphs using Procedural VT nodes when the nodes were the project had them disabled [1271598]
 - Fixed an issue where the ProceduralVT node was not updating any connected SampleVT nodes when the number of layers was changed [1274288]
+- Fixed an issue with how unknown nodes were treated during validation
 - Fixed an issue where ShaderGraph shaders did not reimport automatically when some of the included files changed [1269634]
 - Fixed an issue where building a context menu on a dragging block node would leave it floating and undo/redo would result in a soft-lock
 - Fixed an issue where ShaderGraph was logging error when edited in play mode [1274148].
