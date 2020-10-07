@@ -9,6 +9,15 @@ test_platforms:
       Android: 1800
       Win: 2000
   - type: playmode
+  - type: playmode
+    name: playmode_cache
+    extra_utr_flags:
+    - --extra-editor-arg="-adb2"
+    - --extra-editor-arg="-enableCacheServer"
+    - --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com"
+    - --extra-editor-arg="-cacheServerNamespacePrefix SRP"
+    - --extra-editor-arg="-cacheServerEnableDownload true"
+    - --extra-editor-arg="-cacheServerEnableUpload true"
   - type: editmode
   - type: playmode
     name: playmode_XR
@@ -42,13 +51,13 @@ all:
       test_platforms:
         - Standalone
         - editmode
-        - playmode
+        - playmode_cache
         - playmode_XR
     - platform: OSX
       api: Metal
       test_platforms:
         # - Standalone
-        - playmode
+        - playmode_cache
     - platform: OSX
       api: OpenGLCore
       test_platforms:
