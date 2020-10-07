@@ -542,6 +542,18 @@ half3 SampleSHPixel(half3 L2Term, half3 normalWS)
     return SampleSH(normalWS);
 }
 
+#if defined(UNITY_DOTS_INSTANCING_ENABLED)
+#define LIGHTMAP_NAME unity_Lightmaps
+#define LIGHTMAP_INDIRECTION_NAME unity_LightmapsInd
+#define LIGHTMAP_SAMPLER_NAME samplerunity_Lightmaps
+#define LIGHTMAP_SAMPLE_EXTRA_ARGS lightmapUV, unity_LightmapIndex.x
+#else
+#define LIGHTMAP_NAME unity_Lightmap
+#define LIGHTMAP_INDIRECTION_NAME unity_LightmapInd
+#define LIGHTMAP_SAMPLER_NAME samplerunity_Lightmap
+#define LIGHTMAP_SAMPLE_EXTRA_ARGS lightmapUV
+#endif
+
 // Sample baked lightmap. Non-Direction and Directional if available.
 // Realtime GI is not supported.
 half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
@@ -559,12 +571,12 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
     // the compiler will optimize the transform away.
     half4 transformCoords = half4(1, 1, 0, 0);
 
-#ifdef DIRLIGHTMAP_COMBINED
-    return SampleDirectionalLightmap(TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap),
-        TEXTURE2D_ARGS(unity_LightmapInd, samplerunity_Lightmap),
-        lightmapUV, transformCoords, normalWS, encodedLightmap, decodeInstructions);
+#if defined(LIGHTMAP_ON) && defined(DIRLIGHTMAP_COMBINED)
+    return SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME),
+        TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_INDIRECTION_NAME, LIGHTMAP_SAMPLER_NAME),
+        LIGHTMAP_SAMPLE_EXTRA_ARGS, transformCoords, normalWS, encodedLightmap, decodeInstructions);
 #elif defined(LIGHTMAP_ON)
-    return SampleSingleLightmap(TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap), lightmapUV, transformCoords, encodedLightmap, decodeInstructions);
+    return SampleSingleLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME), LIGHTMAP_SAMPLE_EXTRA_ARGS, transformCoords, encodedLightmap, decodeInstructions);
 #else
     return half3(0.0, 0.0, 0.0);
 #endif
@@ -573,22 +585,7 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
 // We either sample GI from baked lightmap or from probes.
 // If lightmap: sampleData.xy = lightmapUV
 // If probe: sampleData.xyz = L2 SH terms
-#ifdef UNITY_DOTS_SHADER
-    half3 HackSampleSH(half3 normalWS)
-    {
-        // Hack SH so that is is valid for hybrid V1
-        real4 SHCoefficients[7];
-        SHCoefficients[0] = float4(-0.02611f, -0.11903f, -0.02472f, 0.55319f);
-        SHCoefficients[1] = float4(-0.04123, 0.0369, -0.03903, 0.62641);
-        SHCoefficients[2] = float4(-0.06967, 0.23016, -0.06596, 0.81901);
-        SHCoefficients[3] = float4(-0.02041, -0.01933, 0.07292, 0.05023);
-        SHCoefficients[4] = float4(-0.03278, -0.03104, 0.0992, 0.07219);
-        SHCoefficients[5] = float4(-0.05806, -0.05496, 0.10764, 0.09859);
-        SHCoefficients[6] = float4(0.07564, 0.10311, 0.11301, 1.00);
-        return max(half3(0, 0, 0), SampleSH9(SHCoefficients, normalWS));
-    }
-    #define SAMPLE_GI(lmName, shName, normalWSName) HackSampleSH(normalWSName);
-#elif defined(LIGHTMAP_ON)
+#if defined(LIGHTMAP_ON)
     #define SAMPLE_GI(lmName, shName, normalWSName) SampleLightmap(lmName, normalWSName)
 #else
     #define SAMPLE_GI(lmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
@@ -600,10 +597,11 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness,
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
     half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
 
-#if !defined(UNITY_USE_NATIVE_HDR)
-    half3 irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
-#else
+//TODO:DOTS - we need to port probes to live in c# so we can manage this manually.
+#if defined(UNITY_USE_NATIVE_HDR) || defined(UNITY_DOTS_INSTANCING_ENABLED)
     half3 irradiance = encodedIrradiance.rgb;
+#else
+    half3 irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
 #endif
 
     return irradiance * occlusion;
@@ -933,9 +931,9 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
 {
     #if defined(_SPECULARHIGHLIGHTS_OFF)
     bool specularHighlightsOff = true;
-    #else
+#else
     bool specularHighlightsOff = false;
-    #endif
+#endif
     // NOTE: can modify alpha
     BRDFData brdfData = CreateBRDFData(surfaceData);
 
@@ -950,17 +948,26 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
 
     // Clear-coat calculation...
     BRDFData brdfDataClearCoat = (BRDFData)0;
-    #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
+#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
     // base brdfData is modified here, rely on the compiler to eliminate dead computation by InitializeBRDFData()
     InitializeBRDFDataClearCoat(surfaceData.clearCoatMask, surfaceData.clearCoatSmoothness, brdfData, brdfDataClearCoat);
-    #endif
+#endif
 
-    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
+    // To ensure backward compatibility we have to avoid using shadowMask input, as it is not present in older shaders
+#if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
+    half4 shadowMask = inputData.shadowMask;
+#elif !defined (LIGHTMAP_ON)
+    half4 shadowMask = unity_ProbesOcclusion;
+#else
+    half4 shadowMask = half4(1, 1, 1, 1);
+#endif
+
+    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, shadowMask);
 
     #if defined(_SCREEN_SPACE_OCCLUSION)
-    AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(inputData.normalizedScreenSpaceUV);
-    mainLight.color *= aoFactor.directAmbientOcclusion;
-    surfaceData.occlusion = min(surfaceData.occlusion, aoFactor.indirectAmbientOcclusion);
+        AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(inputData.normalizedScreenSpaceUV);
+        mainLight.color *= aoFactor.directAmbientOcclusion;
+        surfaceData.occlusion = min(surfaceData.occlusion, aoFactor.indirectAmbientOcclusion);
     #endif
 
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI);
@@ -970,46 +977,45 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_GI))
     {
         color += GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
-                                    inputData.bakedGI, surfaceData.occlusion,
-                                    inputData.normalWS, inputData.viewDirectionWS);
+                                     inputData.bakedGI, surfaceData.occlusion,
+                                     inputData.normalWS, inputData.viewDirectionWS);
     }
 
     if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_MAIN_LIGHT))
     {
-        color += LightingPhysicallyBased(brdfData, brdfDataClearCoat,
-                                         mainLight,
-                                         inputData.normalWS, inputData.viewDirectionWS,
-                                         surfaceData.clearCoatMask, specularHighlightsOff);
+    color += LightingPhysicallyBased(brdfData, brdfDataClearCoat,
+                                     mainLight,
+                                     inputData.normalWS, inputData.viewDirectionWS,
+                                     surfaceData.clearCoatMask, specularHighlightsOff);
     }
 
     #if defined(_ADDITIONAL_LIGHTS)
     if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_ADDITIONAL_LIGHTS))
     {
-        uint pixelLightCount = GetAdditionalLightsCount();
-        for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
-        {
-	        Light light = GetAdditionalLight(lightIndex, inputData.positionWS, inputData.shadowMask);
-
-            #if defined(_SCREEN_SPACE_OCCLUSION)
+	    uint pixelLightCount = GetAdditionalLightsCount();
+    	for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
+    	{
+        	Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowMask);
+        	#if defined(_SCREEN_SPACE_OCCLUSION)
             light.color *= aoFactor.directAmbientOcclusion;
-            #endif
+        	#endif
             color += LightingPhysicallyBased(brdfData, brdfDataClearCoat, light,
-                                             inputData.normalWS, inputData.viewDirectionWS,
-                                             surfaceData.clearCoatMask, specularHighlightsOff);
-        }
+                                         inputData.normalWS, inputData.viewDirectionWS,
+                                         surfaceData.clearCoatMask, specularHighlightsOff);
+    	}
     }
-    #endif
+#endif
 
     #if defined(_ADDITIONAL_LIGHTS_VERTEX)
     if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_VERTEX_LIGHTING))
     {
-        color += inputData.vertexLighting * brdfData.diffuse;
+    color += inputData.vertexLighting * brdfData.diffuse;
     }
-    #endif
+#endif
 
     if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_EMISSION))
     {
-        color += surfaceData.emission;
+    color += surfaceData.emission;
     }
 
     return half4(color, surfaceData.alpha);
@@ -1054,14 +1060,21 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
     {
         return debugColor;
     }
+    // To ensure backward compatibility we have to avoid using shadowMask input, as it is not present in older shaders
+#if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
+    half4 shadowMask = inputData.shadowMask;
+#elif !defined (LIGHTMAP_ON)
+    half4 shadowMask = unity_ProbesOcclusion;
+#else
+    half4 shadowMask = half4(1, 1, 1, 1);
     #endif
 
-    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
+    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, shadowMask);
 
     #if defined(_SCREEN_SPACE_OCCLUSION)
-    AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(inputData.normalizedScreenSpaceUV);
-    mainLight.color *= aoFactor.directAmbientOcclusion;
-    inputData.bakedGI *= aoFactor.indirectAmbientOcclusion;
+        AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(inputData.normalizedScreenSpaceUV);
+        mainLight.color *= aoFactor.directAmbientOcclusion;
+        inputData.bakedGI *= aoFactor.indirectAmbientOcclusion;
     #endif
 
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI);
@@ -1076,7 +1089,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
 
     if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_MAIN_LIGHT))
     {
-        half3 attenuatedLightColor = mainLight.color * (mainLight.distanceAttenuation * mainLight.shadowAttenuation);
+    half3 attenuatedLightColor = mainLight.color * (mainLight.distanceAttenuation * mainLight.shadowAttenuation);
 
         diffuseColor += LightingLambert(attenuatedLightColor, mainLight.direction, inputData.normalWS);
         specularColor += LightingSpecular(attenuatedLightColor, mainLight.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), surfaceData.smoothness);
@@ -1085,27 +1098,26 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
     #if defined(_ADDITIONAL_LIGHTS)
     if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_ADDITIONAL_LIGHTS))
     {
-        uint pixelLightCount = GetAdditionalLightsCount();
-        for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
-        {
-	        Light light = GetAdditionalLight(lightIndex, inputData.positionWS, inputData.shadowMask);
-
-            #if defined(_SCREEN_SPACE_OCCLUSION)
+	    uint pixelLightCount = GetAdditionalLightsCount();
+    	for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
+    	{
+        	Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowMask);
+        	#if defined(_SCREEN_SPACE_OCCLUSION)
             light.color *= aoFactor.directAmbientOcclusion;
-            #endif
-            half3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
-            diffuseColor += LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
+        	#endif
+        	half3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
+        	diffuseColor += LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
             specularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), surfaceData.smoothness);
-        }
+    	}
     }
-    #endif
+#endif
 
     #if defined(_ADDITIONAL_LIGHTS_VERTEX)
     if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_VERTEX_LIGHTING))
     {
-        diffuseColor += inputData.vertexLighting;
+    diffuseColor += inputData.vertexLighting;
     }
-    #endif
+#endif
 
     half3 finalColor = diffuseColor * surfaceData.albedo;
 
@@ -1114,9 +1126,9 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
         finalColor += surfaceData.emission;
     }
 
-    #if defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
+#if defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
     finalColor += specularColor;
-    #endif
+#endif
 
     return half4(finalColor, surfaceData.alpha);
 }

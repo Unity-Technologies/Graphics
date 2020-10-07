@@ -5,15 +5,13 @@
 
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-#pragma kernel KMain          MAIN=KMain    
+#pragma kernel KMain          MAIN=KMain
 #pragma kernel KDownsample    MAIN=KDownsample  DOWNSAMPLE
 
 
 TEXTURE2D_X(_InputTexture);
 
 RW_TEXTURE2D_X(float3, _OutputTexture);
-
-SAMPLER(sampler_LinearClamp);
 
 CBUFFER_START(cb0)
     float4 _TexelSize;       // xy: size, zw: texel size
@@ -113,10 +111,10 @@ void MAIN(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, ui
 #if DOWNSAMPLE
     float2 offset = float2(threadUL);
     float2 maxCoord = 1.0 - 0.5f *_TexelSize.zw;
-    float3 p00 = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear((offset                    + 0.5) * _TexelSize.zw, _TexelSize.zw), 0.0).xyz;
-    float3 p10 = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear((offset + float2(1.0, 0.0) + 0.5) * _TexelSize.zw, _TexelSize.zw), 0.0).xyz;
-    float3 p01 = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear((offset + float2(0.0, 1.0) + 0.5) * _TexelSize.zw, _TexelSize.zw), 0.0).xyz;
-    float3 p11 = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear((offset + float2(1.0, 1.0) + 0.5) * _TexelSize.zw, _TexelSize.zw), 0.0).xyz;
+    float3 p00 = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((offset                    + 0.5) * _TexelSize.zw, _TexelSize.zw), 0.0).xyz;
+    float3 p10 = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((offset + float2(1.0, 0.0) + 0.5) * _TexelSize.zw, _TexelSize.zw), 0.0).xyz;
+    float3 p01 = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((offset + float2(0.0, 1.0) + 0.5) * _TexelSize.zw, _TexelSize.zw), 0.0).xyz;
+    float3 p11 = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((offset + float2(1.0, 1.0) + 0.5) * _TexelSize.zw, _TexelSize.zw), 0.0).xyz;
 #else
     uint2 uthreadUL = uint2(max(0, threadUL));
     uint2 size = uint2(_TexelSize.xy) - 1u;

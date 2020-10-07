@@ -67,7 +67,7 @@ namespace UnityEngine.Rendering.Universal
             get
             {
                 bool isMobile = Application.isMobilePlatform;
-                if (isMobile && SystemInfo.graphicsShaderLevel < 45)
+                if (isMobile && (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 || (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 && Graphics.minOpenGLESVersion <= OpenGLESVersion.OpenGLES30)))
                     return k_MaxVisibleAdditionalLightsMobileShaderLevelLessThan45;
 
                 // GLES can be selected as platform on Windows (not a mobile platform) but uniform buffer size so we must use a low light count.
