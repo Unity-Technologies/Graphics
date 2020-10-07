@@ -33,6 +33,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for 'Pyramid' and 'Box' spot light shapes in path tracing.
 - Added high quality prefiltering option for Bloom.
 - Added support for camera relative ray tracing (and keeping non-camera relative ray tracing working)
+- Added a rough refraction option on planar reflections.
+- Added scalability settings for the planar reflection resolution.
 - Added new algorithm for SSR with temporal accumulation
 
 ### Fixed

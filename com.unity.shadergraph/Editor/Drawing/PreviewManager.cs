@@ -16,16 +16,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     delegate void OnPrimaryMasterChanged();
 
-    static class ListSliceUtility
-    {
-        // Ideally, we should build a non-yield return, struct version of Slice
-        public static IEnumerable<T> Slice<T>(this List<T> list, int start, int end)
-        {
-            for (int i = start; i < end; i++)
-                yield return list[i];
-        }
-    }
-
     class PreviewManager : IDisposable
     {
         GraphData m_Graph;
