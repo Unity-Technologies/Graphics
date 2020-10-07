@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     class LightUnitSlider
     {
-        private SerializedObject m_SerializedObject;
+        protected SerializedObject m_SerializedObject;
 
         static class SliderConfig
         {
@@ -499,6 +499,19 @@ namespace UnityEditor.Rendering.HighDefinition
             // }
 
             return HDLightUI.ConvertLightIntensity(LightUnit.Lumen, m_Unit, m_Light, m_Editor, value);
+        }
+
+        protected override void SetValueToPreset(SerializedProperty value, LightUnitSliderUIRange preset)
+        {
+            m_SerializedObject?.Update();
+
+            // Set the value to the average of the preset range.
+            var newValue = 0.5f * (preset.value.x + preset.value.y);
+
+            // Convert to the actual unit.
+            value.floatValue = LumenToUnit(newValue);
+
+            m_SerializedObject?.ApplyModifiedProperties();
         }
 
         // This code is re-used from HDAdditionalLightData
