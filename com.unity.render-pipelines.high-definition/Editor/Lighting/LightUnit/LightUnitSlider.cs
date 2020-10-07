@@ -463,6 +463,10 @@ namespace UnityEditor.Rendering.HighDefinition
             base.Draw(rect, value);
 
             value.floatValue = LumenToUnit(value.floatValue);
+
+            // Must apply properties here to ensure proper undo/redo functionality.
+            // The reason this is likely necessary is due to how we handle the internal unit conversion into lumen.
+            m_Light.Apply();
         }
 
         protected override GUIContent GetLightUnitTooltip(string baseTooltip, float value, string unit)
@@ -504,7 +508,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected override void SetValueToPreset(SerializedProperty value, LightUnitSliderUIRange preset)
         {
-            m_SerializedObject?.Update();
+            m_Light?.Update();
 
             // Set the value to the average of the preset range.
             var newValue = 0.5f * (preset.value.x + preset.value.y);
@@ -512,7 +516,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Convert to the actual unit.
             value.floatValue = LumenToUnit(newValue);
 
-            m_SerializedObject?.ApplyModifiedProperties();
+            m_Light?.Apply();
         }
     }
 
