@@ -32,11 +32,6 @@ namespace UnityEngine.Rendering.Universal
             private static Dictionary<int, ProfilingSampler> s_HashSamplerCache = new Dictionary<int, ProfilingSampler>();
             public static readonly ProfilingSampler unknownSampler = new ProfilingSampler("Unknown");
 
-            public static void Clear()
-            {
-                s_HashSamplerCache.Clear();
-            }
-
             // Specialization for camera loop to avoid allocations.
             public static ProfilingSampler TryGetOrAddCameraSampler(Camera camera)
             {
@@ -49,7 +44,7 @@ namespace UnityEngine.Rendering.Universal
                     if (!exists)
                     {
                         // NOTE: camera.name allocates!
-                        ps = new ProfilingSampler( nameof(UniversalRenderPipeline.RenderSingleCamera) + ": " + camera.name);
+                        ps = new ProfilingSampler( $"{nameof(UniversalRenderPipeline)}.{nameof(RenderSingleCamera)}: {camera.name}");
                         s_HashSamplerCache.Add(cameraId, ps);
                     }
                     return ps;
