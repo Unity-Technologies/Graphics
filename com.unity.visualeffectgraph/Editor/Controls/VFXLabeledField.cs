@@ -9,12 +9,14 @@ namespace UnityEditor.VFX.UI
     class VFXFieldMouseDragger<T>
     {
         Action m_OnDragFinished;
-        public VFXFieldMouseDragger(IValueField<T> drivenField, Action onDragFinished = null)
+        Action m_OnDragStarted;
+        public VFXFieldMouseDragger(IValueField<T> drivenField, Action onDragFinished = null, Action onDragStarted = null)
         {
             m_DrivenField = drivenField;
             m_DragElement = null;
             m_DragHotZone = new Rect(0, 0, -1, -1);
             m_OnDragFinished = onDragFinished;
+            m_OnDragStarted = onDragStarted;
             dragging = false;
         }
 
@@ -64,6 +66,8 @@ namespace UnityEditor.VFX.UI
 
                 dragging = true;
                 startValue = m_DrivenField.value;
+                if(m_OnDragStarted != null)
+                    m_OnDragStarted();
 
                 EditorGUIUtility.SetWantsMouseJumping(1);
             }
@@ -163,25 +167,25 @@ namespace UnityEditor.VFX.UI
                 m_Label.styleSheets.Add(VFXView.LoadStyleSheet("VFXLabeledField"));
                 if (typeof(U) == typeof(float))
                 {
-                    var dragger = new VFXFieldMouseDragger<float>((IValueField<float>)m_Control, DragValueFinished);
+                    var dragger = new VFXFieldMouseDragger<float>((IValueField<float>)m_Control, DragValueFinished, DragValueStarted);
                     dragger.SetDragZone(m_Label);
                     m_Label.AddToClassList("cursor-slide-arrow");
                 }
                 else if (typeof(U) == typeof(double))
                 {
-                    var dragger = new VFXFieldMouseDragger<double>((IValueField<double>)m_Control, DragValueFinished);
+                    var dragger = new VFXFieldMouseDragger<double>((IValueField<double>)m_Control, DragValueFinished, DragValueStarted);
                     dragger.SetDragZone(m_Label);
                     m_Label.AddToClassList("cursor-slide-arrow");
                 }
                 else if (typeof(U) == typeof(long))
                 {
-                    var dragger = new VFXFieldMouseDragger<long>((IValueField<long>)m_Control, DragValueFinished);
+                    var dragger = new VFXFieldMouseDragger<long>((IValueField<long>)m_Control, DragValueFinished, DragValueStarted);
                     dragger.SetDragZone(m_Label);
                     m_Label.AddToClassList("cursor-slide-arrow");
                 }
                 else if (typeof(U) == typeof(int))
                 {
-                    var dragger = new VFXFieldMouseDragger<int>((IValueField<int>)m_Control, DragValueFinished);
+                    var dragger = new VFXFieldMouseDragger<int>((IValueField<int>)m_Control, DragValueFinished, DragValueStarted);
                     dragger.SetDragZone(m_Label);
                     m_Label.AddToClassList("cursor-slide-arrow");
                 }
@@ -201,7 +205,14 @@ namespace UnityEditor.VFX.UI
                 onValueDragFinished(this);
         }
 
+        void DragValueStarted()
+        {
+            if (onValueDragStarted != null)
+                onValueDragStarted(this);
+        }
+
         public Action<VFXLabeledField<T, U>> onValueDragFinished;
+        public Action<VFXLabeledField<T, U>> onValueDragStarted;
 
         void CreateControl()
         {

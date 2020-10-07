@@ -281,12 +281,18 @@ namespace UnityEditor.ShaderGraph
         {
             //.shader files are not cool with " in the middle of a property name (eg.  Vector1_81B203C2("fo"o"o", Float) = 0)
             name = name.Replace("\"", "_");
+
+            return DeduplicateName(existingNames, duplicateFormat, name);
+        }
+
+        internal static string DeduplicateName(IEnumerable<string> existingNames, string duplicateFormat, string name)
+        {
             if (!existingNames.Contains(name))
                 return name;
 
             string escapedDuplicateFormat = Regex.Escape(duplicateFormat);
 
-            // Escaped format will escape string interpolation, so the escape caracters must be removed for these.
+            // Escaped format will escape string interpolation, so the escape characters must be removed for these.
             escapedDuplicateFormat = escapedDuplicateFormat.Replace(@"\{0}", @"{0}");
             escapedDuplicateFormat = escapedDuplicateFormat.Replace(@"\{1}", @"{1}");
 

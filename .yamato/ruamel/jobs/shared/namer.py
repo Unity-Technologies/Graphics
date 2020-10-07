@@ -17,17 +17,14 @@ def editor_job_id_test_min_editor(platform_os):
 def editor_job_id_update():
     return 'editor-pinning-update'
 
-def editor_job_id_update_ABV():
-    return 'editor-pinning-update-abv'
-
 def editor_job_id_target_to_ci():
     return 'editor-pinning-target-to-ci'
 
-def editor_job_id_merge_revisions():
-    return 'editor-pinning-merge-revisions'
+def editor_job_id_merge_revisions(editor_track, abv):
+    return f'editor-pinning-merge-revisions-{editor_track}-abv' if abv else f'editor-pinning-merge-revisions-{editor_track}' 
 
-def editor_job_id_merge_revisions_ABV():
-    return 'editor-pinning-merge-revisions-abv'
+def editor_job_id_merge_all(abv):
+    return f'editor-pinning-merge-all-abv' if abv else f'editor-pinning-merge-all'
 
 # package specific
 def packages_filepath():
