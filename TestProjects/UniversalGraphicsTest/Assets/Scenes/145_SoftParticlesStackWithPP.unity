@@ -19693,7 +19693,7 @@ Camera:
     x: 0
     y: 0
     width: 1
-    height: 1.77
+    height: 1
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 40
@@ -19778,9 +19778,14 @@ MonoBehaviour:
     TargetWidth: 512
     TargetHeight: 512
     PerPixelCorrectnessThreshold: 0.001
+    PerPixelGammaThreshold: 0.003921569
+    PerPixelAlphaThreshold: 0.003921569
     AverageCorrectnessThreshold: 0.005
+    IncorrectPixelsThreshold: 0.0000038146973
     UseHDR: 0
     UseBackBuffer: 0
     ImageResolution: 0
+    ActiveImageTests: 1
+    ActivePixelTests: 7
   WaitFrames: 0
   XRCompatible: 1
