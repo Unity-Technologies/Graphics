@@ -131,6 +131,7 @@ platforms:
         exclude_test_platforms:
         - editmode
         - playmode
+        - playmode_cache
         - playmode_XR
     components:
       - editor
