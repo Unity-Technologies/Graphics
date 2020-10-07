@@ -82,12 +82,12 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static GUIContent generalLightColor = EditorGUIUtility.TrTextContent("Color", "Specify the light color");
             public static GUIContent generalLightIntensity = EditorGUIUtility.TrTextContent("Intensity", "Specify the light color's intensity");
             public static GUIContent generalUseNormalMap = EditorGUIUtility.TrTextContent("Use Normal Map", "Specify whether the light considers normal maps");
-            public static GUIContent generalVolumeIntensity = EditorGUIUtility.TrTextContent("Volume Intensity", "Specify the light's volumetric light volume intensity");
+            public static GUIContent generalVolumeIntensity = EditorGUIUtility.TrTextContent("Intensity", "Specify the light's volumetric light volume intensity");
             public static GUIContent generalBlendStyle = EditorGUIUtility.TrTextContent("Blend Style", "Specify the blend style");
             public static GUIContent generalLightOverlapOperation = EditorGUIUtility.TrTextContent("Overlap Operation", "blending used when this light overlaps others");
             public static GUIContent generalLightOrder = EditorGUIUtility.TrTextContent("Light Order", "The relative order in which lights of the same blend style get rendered.");
-            public static GUIContent generalShadowIntensity = EditorGUIUtility.TrTextContent("Shadow Intensity", "Controls the shadow's darkness.");
-            public static GUIContent generalShadowVolumeIntensity = EditorGUIUtility.TrTextContent("Shadow Volume Intensity", "Controls the shadow volume's darkness.");
+            public static GUIContent generalShadowIntensity = EditorGUIUtility.TrTextContent("Strength", "Controls the shadow's darkness.");
+            public static GUIContent generalShadowVolumeIntensity = EditorGUIUtility.TrTextContent("Shadow Strength", "Controls the shadow volume's darkness.");
             public static GUIContent generalSortingLayerPrefixLabel = EditorGUIUtility.TrTextContent("Target Sorting Layers", "Apply this light to the specified sorting layers.");
             public static GUIContent generalLightNoLightEnabled = EditorGUIUtility.TrTextContentWithIcon("No valid blend styles are enabled.", MessageType.Error);
             public static GUIContent generalNormalMapZDistance = EditorGUIUtility.TrTextContent("Normal Map Distance", "Specify the Z Distance of the light");
@@ -119,9 +119,12 @@ namespace UnityEditor.Experimental.Rendering.Universal
         SerializedProperty m_LightIntensity;
         SerializedProperty m_UseNormalMap;
         SerializedProperty m_ShadowIntensity;
+        SerializedProperty m_ShadowIntensityEnabled;
         SerializedProperty m_ShadowVolumeIntensity;
+        SerializedProperty m_ShadowVolumeIntensityEnabled;
         SerializedProperty m_ApplyToSortingLayers;
         SerializedProperty m_VolumetricIntensity;
+        SerializedProperty m_VolumetricIntensityEnabled;
         SerializedProperty m_BlendStyleIndex;
         SerializedProperty m_FalloffIntensity;
         SerializedProperty m_NormalMapZDistance;
@@ -187,9 +190,12 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_LightIntensity = serializedObject.FindProperty("m_Intensity");
             m_UseNormalMap = serializedObject.FindProperty("m_UseNormalMap");
             m_ShadowIntensity = serializedObject.FindProperty("m_ShadowIntensity");
+            m_ShadowIntensityEnabled = serializedObject.FindProperty("m_ShadowIntensityEnabled");
             m_ShadowVolumeIntensity = serializedObject.FindProperty("m_ShadowVolumeIntensity");
+            m_ShadowVolumeIntensityEnabled = serializedObject.FindProperty("m_ShadowVolumeIntensityEnabled");
             m_ApplyToSortingLayers = serializedObject.FindProperty("m_ApplyToSortingLayers");
             m_VolumetricIntensity = serializedObject.FindProperty("m_LightVolumeIntensity");
+            m_VolumetricIntensityEnabled = serializedObject.FindProperty("m_LightVolumeIntensityEnabled");
             m_BlendStyleIndex = serializedObject.FindProperty("m_BlendStyleIndex");
             m_FalloffIntensity = serializedObject.FindProperty("m_FalloffIntensity");
             m_NormalMapZDistance = serializedObject.FindProperty("m_NormalMapDistance");
@@ -282,7 +288,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             if (m_ShadowsSettingsFoldout.value)
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.Slider(m_ShadowIntensity, 0, 1, Styles.generalShadowIntensity);
+                DrawToggleProperty(Styles.generalShadowIntensity, m_ShadowIntensityEnabled, m_ShadowIntensity);
                 EditorGUI.indentLevel--;
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
@@ -294,10 +300,14 @@ namespace UnityEditor.Experimental.Rendering.Universal
             if (m_VolumetricSettingsFoldout.value)
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.Slider(m_VolumetricIntensity, 0, 1, Styles.generalVolumeIntensity);
+                //EditorGUILayout.PropertyField(m_VolumetricIntensity, Styles.generalVolumeIntensity);
 
-                EditorGUI.BeginDisabledGroup(m_VolumetricIntensity.floatValue <= 0);
-                EditorGUILayout.Slider(m_ShadowVolumeIntensity, 0, 1, Styles.generalShadowVolumeIntensity);
+                DrawToggleProperty(new GUIContent("Intensity"), m_VolumetricIntensityEnabled, m_VolumetricIntensity);
+                if (m_VolumetricIntensity.floatValue < 0)
+                    m_VolumetricIntensity.floatValue = 0;
+
+                EditorGUI.BeginDisabledGroup(!m_VolumetricIntensityEnabled.boolValue);
+                DrawToggleProperty(Styles.generalShadowVolumeIntensity, m_ShadowVolumeIntensityEnabled, m_ShadowVolumeIntensity);
                 EditorGUI.EndDisabledGroup();
                 EditorGUI.indentLevel--;
             }
@@ -333,14 +343,16 @@ namespace UnityEditor.Experimental.Rendering.Universal
             DrawNormalMapGroup();
         }
 
-        void DrawPropertiesHorizontal(SerializedProperty property1, GUIContent content1, SerializedProperty property2, GUIContent content2)
+        void DrawPropertiesHorizontal(GUIContent label, SerializedProperty property1, GUIContent content1, SerializedProperty property2, GUIContent content2)
         {
             GUIStyle style = GUI.skin.box;
 
             float savedLabelWidth = EditorGUIUtility.labelWidth;
+            int savedIndentLevel = EditorGUI.indentLevel;
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.PrefixLabel("Radius");
+            EditorGUILayout.PrefixLabel(label);
             EditorGUILayout.BeginHorizontal();
+            EditorGUI.indentLevel = 0;
             EditorGUIUtility.labelWidth = style.CalcSize(content1).x;
             EditorGUILayout.PropertyField(property1, content1);
             EditorGUIUtility.labelWidth = style.CalcSize(content2).x;
@@ -348,9 +360,30 @@ namespace UnityEditor.Experimental.Rendering.Universal
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.EndHorizontal();
             EditorGUIUtility.labelWidth = savedLabelWidth;
+            EditorGUI.indentLevel = savedIndentLevel;
         }
 
+        void DrawToggleProperty(GUIContent label, SerializedProperty boolProperty, SerializedProperty property)
+        {
+            GUIStyle style = GUI.skin.box;
 
+            float savedLabelWidth = EditorGUIUtility.labelWidth;
+            int savedIndentLevel = EditorGUI.indentLevel;
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.PrefixLabel(label);
+            EditorGUILayout.BeginHorizontal();
+            EditorGUI.indentLevel = 0;
+            EditorGUILayout.PropertyField(boolProperty, GUIContent.none, GUILayout.MaxWidth(20));
+
+            EditorGUI.BeginDisabledGroup(!boolProperty.boolValue);
+            EditorGUILayout.PropertyField(property, GUIContent.none);
+            EditorGUI.EndDisabledGroup();
+
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndHorizontal();
+            EditorGUIUtility.labelWidth = savedLabelWidth;
+            EditorGUI.indentLevel = savedIndentLevel;
+        }
 
         public void DrawInnerAndOuterSpotAngle(SerializedProperty minProperty, SerializedProperty maxProperty, GUIContent label)
         {
@@ -415,7 +448,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         void DrawSpotLight(SerializedObject serializedObject)
         {
-            DrawPropertiesHorizontal(m_PointInnerRadius, Styles.pointLightInner, m_PointOuterRadius, Styles.pointLightOuter);
+            DrawPropertiesHorizontal(Styles.pointLightRadius, m_PointInnerRadius, Styles.pointLightInner, m_PointOuterRadius, Styles.pointLightOuter);
             DrawInnerAndOuterSpotAngle(m_PointInnerAngle, m_PointOuterAngle, Styles.InnerOuterSpotAngle);
             EditorGUILayout.Slider(m_FalloffIntensity, 0, 1, Styles.generalFalloffIntensity);
 

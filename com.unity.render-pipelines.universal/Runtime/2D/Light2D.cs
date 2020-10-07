@@ -64,7 +64,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
 
         [FormerlySerializedAs("m_LightVolumeOpacity")]
-        [SerializeField] float m_LightVolumeIntensity = 0.0f;
+        [SerializeField] float m_LightVolumeIntensity = 1.0f;
+        [SerializeField] bool  m_LightVolumeIntensityEnabled = false;
         [SerializeField] int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
 
         [SerializeField] Sprite m_LightCookieSprite = null;
@@ -85,10 +86,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [FormerlySerializedAs("m_PointLightQuality")]
         [SerializeField] NormalMapQuality m_NormalMapQuality = NormalMapQuality.Disabled;
 
+
+        [SerializeField] bool m_ShadowIntensityEnabled = false;
         [Range(0, 1)]
-        [SerializeField] float m_ShadowIntensity = 0.0f;
+        [SerializeField] float m_ShadowIntensity = 1.0f;
+
+        [SerializeField] bool m_ShadowVolumeIntensityEnabled = false;
         [Range(0, 1)]
         [SerializeField] float m_ShadowVolumeIntensity = 0.0f;
+        
+
 
         // Transients
         int m_PreviousLightCookieSprite;
