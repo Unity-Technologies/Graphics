@@ -596,13 +596,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle          dilatedMaxZBuffer;
         }
 
-        TextureHandle GenerateMaxZPass(RenderGraph renderGraph, HDCamera hdCamera, HDUtils.PackedMipChainInfo depthMipInfo)
+        TextureHandle GenerateMaxZPass(RenderGraph renderGraph, HDCamera hdCamera, HDUtils.PackedMipChainInfo depthMipInfo, int frameIndex)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
                 using (var builder = renderGraph.AddRenderPass<GenerateMaxZMaskPassData>("Generate Max Z Mask for Volumetric", out var passData))
                 {
-                    passData.parameters = PrepareGenerateMaxZParameters(hdCamera, depthMipInfo);
+                    passData.parameters = PrepareGenerateMaxZParameters(hdCamera, depthMipInfo, frameIndex);
                     passData.maxZ8xBuffer = builder.ReadTexture(renderGraph.ImportTexture(m_MaxZMask8x));
                     passData.maxZ8xBuffer = builder.WriteTexture(passData.maxZ8xBuffer);
                     passData.maxZBuffer = builder.ReadTexture(renderGraph.ImportTexture(m_MaxZMask));

@@ -428,6 +428,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VolumeData                        = Shader.PropertyToID("_VolumeData");
         public static readonly int _VolumeMaskAtlas                   = Shader.PropertyToID("_VolumeMaskAtlas");
 
+        public static readonly int _MaxZMaskTexture                   = Shader.PropertyToID("_MaxZMaskTexture");
+        public static readonly int _DilationWidth                     = Shader.PropertyToID("_DilationWidth");
+
         public static readonly int _GroundIrradianceTexture           = Shader.PropertyToID("_GroundIrradianceTexture");
         public static readonly int _GroundIrradianceTable             = Shader.PropertyToID("_GroundIrradianceTable");
         public static readonly int _GroundIrradianceTableOrder        = Shader.PropertyToID("_GroundIrradianceTableOrder");

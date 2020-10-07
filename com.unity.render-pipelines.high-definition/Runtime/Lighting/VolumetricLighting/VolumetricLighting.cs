@@ -422,10 +422,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector2Int intermediateMaskSize;
             public Vector2Int finalMaskSize;
             public Vector2Int minDepthMipOffset;
+
+            public float dilationWidth;
         }
 
 
-        GenerateMaxZParameters PrepareGenerateMaxZParameters(HDCamera hdCamera, HDUtils.PackedMipChainInfo depthMipInfo)
+        GenerateMaxZParameters PrepareGenerateMaxZParameters(HDCamera hdCamera, HDUtils.PackedMipChainInfo depthMipInfo, int frameIndex)
         {
             var parameters = new GenerateMaxZParameters();
             parameters.generateMaxZCS = defaultResources.shaders.maxZCS;
@@ -441,6 +443,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.minDepthMipOffset.x = depthMipInfo.mipLevelOffsets[4].x;
             parameters.minDepthMipOffset.y = depthMipInfo.mipLevelOffsets[4].y;
+
+            var currIdx = frameIndex & 1;
+            var currentParams = hdCamera.vBufferParams[currIdx];
+
+            float ratio = (float)currentParams.viewportSize.x / (float)hdCamera.actualWidth;
+            parameters.dilationWidth = ratio < 0.1f ? 2 :
+                                       ratio < 0.5f ? 1 : 0;
 
             return parameters;
         }
@@ -478,6 +487,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.minDepthMipOffset.y
                 );
             cmd.SetComputeVectorParam(cs, HDShaderIDs._SrcOffsetAndLimit, srcLimitAndDepthOffset);
+            cmd.SetComputeFloatParam(cs, HDShaderIDs._DilationWidth, parameters.dilationWidth);
 
             int finalMaskW = maskW / 2;
             int finalMaskH = maskH / 2;
@@ -502,15 +512,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         }
 
-        internal void GenerateMaxZ(CommandBuffer cmd, HDCamera camera, HDUtils.PackedMipChainInfo depthMipInfo)
+        internal void GenerateMaxZ(CommandBuffer cmd, HDCamera camera, HDUtils.PackedMipChainInfo depthMipInfo, int frameIndex)
         {
-
-            // TODO: MOVE TO RG WHEN WORKING
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingBuildCluster)))
-            {
-                GenerateMaxZ(PrepareGenerateMaxZParameters(camera, depthMipInfo), m_MaxZMask8x, m_MaxZMask, m_DilatedMaxZMask, cmd);
-            }
-
+            GenerateMaxZ(PrepareGenerateMaxZParameters(camera, depthMipInfo, frameIndex), m_MaxZMask8x, m_MaxZMask, m_DilatedMaxZMask, cmd);
         }
 
         static internal void CreateVolumetricHistoryBuffers(HDCamera hdCamera, int bufferCount)
@@ -665,9 +669,8 @@ namespace UnityEngine.Rendering.HighDefinition
             int maskH = HDUtils.DivRoundUp(hdCamera.actualHeight, 16);
 
             ResizeMask(ref m_MaxZMask8x, "Max Z Mask 8x", maskW * 2, maskH * 2, GraphicsFormat.R32_SFloat);
-            // TMP FORMAT, CHECK FOR R16G16
-            ResizeMask(ref m_MaxZMask, "Max Z Mask", maskW, maskH, GraphicsFormat.R32G32_SFloat);
-            ResizeMask(ref m_DilatedMaxZMask, "Dilated Max Z Mask", maskW, maskH, GraphicsFormat.R32G32_SFloat);
+            ResizeMask(ref m_MaxZMask, "Max Z Mask", maskW, maskH, GraphicsFormat.R32_SFloat);
+            ResizeMask(ref m_DilatedMaxZMask, "Dilated Max Z Mask", maskW, maskH, GraphicsFormat.R32_SFloat);
 
             // TODO RENDERGRAPH: For now those texture are not handled by render graph.
             // When they are we won't have the m_DensityBuffer handy for getting the current size in UpdateShaderVariablesGlobalVolumetrics
@@ -1079,8 +1082,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (parameters.tiledLighting)
                 cmd.SetComputeBufferParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs.g_vBigTileLightList, bigTileLightList);
 
-            // tmp
-            cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs._InputTexture, maxZTexture);  // Read
+            cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs._MaxZMaskTexture, maxZTexture);  // Read
 
             cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs._CameraDepthTexture, depthTexture);  // Read
             cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs._VBufferDensity,  densityBuffer);  // Read

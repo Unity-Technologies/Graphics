@@ -29,7 +29,8 @@
 
 // ---------------------------------
 CBUFFER_START(cb)
-float4 _SrcOffsetAndLimit; 
+float4 _SrcOffsetAndLimit;
+float  _DilationWidth; 
 CBUFFER_END
 
 #define _SrcLimit _SrcOffsetAndLimit.xy
@@ -166,7 +167,7 @@ OUT_MASK_FORMAT DilateValue(OUT_MASK_FORMAT currMax, OUT_MASK_FORMAT currSample)
 [numthreads(8, 8, 1)]
 void DilateMask(uint3 dispatchThreadId : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 {
-    int dilationWidth = 2;
+    int dilationWidth = _DilationWidth;
 
     OUT_MASK_FORMAT dilatedMaxVals = -1;
     for (int i = -dilationWidth; i <= dilationWidth; ++i)
