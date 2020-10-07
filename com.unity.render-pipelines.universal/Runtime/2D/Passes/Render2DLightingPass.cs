@@ -114,7 +114,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                     using (new ProfilingScope(cmd, m_ProfilingDrawLightTextures))
                     {
-                        this.RenderLights(renderingData, cmd, layerBatch.firstLayerID, layerBatch);
+                        this.RenderLights(renderingData, cmd, layerBatch.startLayerID, layerBatch);
                     }
                 }
             }
@@ -168,7 +168,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             var sampleName = "Render 2D Light Volumes";
                             cmd.BeginSample(sampleName);
 
-                            this.RenderLightVolumes(renderingData, cmd, layerBatch.firstLayerID, layerBatch.endLayerValue, colorAttachment, depthAttachment, m_Renderer2DData.lightCullResult.visibleLights);
+                            this.RenderLightVolumes(renderingData, cmd, layerBatch.startLayerID, layerBatch.endLayerValue, colorAttachment, depthAttachment, m_Renderer2DData.lightCullResult.visibleLights);
 
                             cmd.EndSample(sampleName);
                         }

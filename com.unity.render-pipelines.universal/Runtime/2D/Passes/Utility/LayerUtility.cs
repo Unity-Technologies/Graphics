@@ -6,15 +6,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
 {
     internal struct LayerBatch
     {
-        public int firstLayerID;
-        public int firstLayerOrder;
+        public int startLayerID;
+        public int startLayerValue;
 		public int endLayerValue;
         public SortingLayerRange layerRange;
         public LightStats lightStats;
 
         public int GetLightTextureKey(int blendStyleIndex)
         {
-            return firstLayerOrder * 4 + blendStyleIndex;
+            return startLayerValue * 4 + blendStyleIndex;
         }
     }
 
@@ -77,8 +77,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 // renderer within this range share the same set of lights so they should be rendered together
                 var sortingLayerRange = new SortingLayerRange(lowerBound, upperBound);
 
-                layerBatch.firstLayerID = layerToRender;
-                layerBatch.firstLayerOrder = i;
+                layerBatch.startLayerID = layerToRender;
+                layerBatch.startLayerValue = startLayerValue;
 				layerBatch.endLayerValue = endLayerValue;
                 layerBatch.layerRange = sortingLayerRange;
                 layerBatch.lightStats = lightStats;
