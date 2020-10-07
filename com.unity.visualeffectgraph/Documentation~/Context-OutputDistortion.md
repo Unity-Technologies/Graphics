@@ -8,7 +8,7 @@ Menu Path : **Context > Output [Strip/Particle] Distortion [Quad/Mesh]**
 
 ![](F:/Graphics/com.unity.visualeffectgraph/Documentation~/Images/Context-OutputDistortion.png)
 
-Below is a list of settings and properties specific to the Distortion Context. For information about the generic output settings this Context shares with all other Contexts, see [Global Output Settings and Properties](Context-OutputGlobalSettings.md).
+Below is a list of settings and properties specific to the Distortion Context. For information about the generic output settings this Context shares with all other Contexts, see [Global Output Settings and Properties](Context-OutputSharedSettings.md).
 
 ## Context settings
 
