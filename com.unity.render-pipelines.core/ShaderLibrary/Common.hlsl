@@ -1276,47 +1276,47 @@ float SharpenAlpha(float alpha, float alphaClipTreshold)
 // These clamping function to max of floating point 16 bit are use to prevent INF in code in case of extreme value
 TEMPLATE_1_REAL(ClampToFloat16Max, value, return min(value, HALF_MAX))
 
-uint IndexFromCoordinate(uint4 coord, uint3 size)
+uint IndexFromCoordinate(uint4 coord, uint3 dimensions)
 {
     return coord.x
-         + coord.y * (size.x)
-         + coord.z * (size.x * size.y)
-         + coord.w * (size.x * size.y * size.z);
+         + coord.y * (dimensions.x)
+         + coord.z * (dimensions.x * dimensions.y)
+         + coord.w * (dimensions.x * dimensions.y * dimensions.z);
 }
 
-uint IndexFromCoordinate(uint3 coord, uint2 size)
+uint IndexFromCoordinate(uint3 coord, uint2 dimensions)
 {
-    return IndexFromCoordinate(uint4(coord, 0), uint3(size, 1));
+    return IndexFromCoordinate(uint4(coord, 0), uint3(dimensions, 1));
 }
 
-uint IndexFromCoordinate(uint2 coord, uint size)
+uint IndexFromCoordinate(uint2 coord, uint dimensions)
 {
-    return IndexFromCoordinate(uint4(coord, 0, 0), uint3(size, 1, 1));
+    return IndexFromCoordinate(uint4(coord, 0, 0), uint3(dimensions, 1, 1));
 }
 
-uint4 CoordinateFromIndex(uint index, uint3 size)
+uint4 CoordinateFromIndex(uint index, uint3 dimensions)
 {
-    uint cube   = (index                             ) / (size.x * size.y * size.z);
-    uint plane  = (index % (size.x * size.y * size.z)) / (size.x * size.y);
-    uint row    = (index % (size.x * size.y)         ) / (size.x);
-    uint column = (index % (size.x));
+    uint cube   = (index                                               ) / (dimensions.x * dimensions.y * dimensions.z);
+    uint plane  = (index % (dimensions.x * dimensions.y * dimensions.z)) / (dimensions.x * dimensions.y);
+    uint row    = (index % (dimensions.x * dimensions.y)               ) / (dimensions.x);
+    uint column = (index % (dimensions.x));
 
     return uint4(column, row, plane, cube);
 }
 
-uint3 CoordinateFromIndex(uint index, uint2 size)
+uint3 CoordinateFromIndex(uint index, uint2 dimensions)
 {
-    uint plane  = (index                    ) / (size.x * size.y);
-    uint row    = (index % (size.x * size.y)) / (size.x);
-    uint column = (index % (size.x));
+    uint plane  = (index                                ) / (dimensions.x * dimensions.y);
+    uint row    = (index % (dimensions.x * dimensions.y)) / (dimensions.x);
+    uint column = (index % (dimensions.x));
 
     return uint3(column, row, plane);
 }
 
-uint2 CoordinateFromIndex(uint index, uint size)
+uint2 CoordinateFromIndex(uint index, uint dimensions)
 {
-    uint row    = index / size.x;
-    uint column = index % size.x;
+    uint row    = index / dimensions.x;
+    uint column = index % dimensions.x;
 
     return uint2(column, row);
 }

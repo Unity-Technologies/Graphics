@@ -1,0 +1,83 @@
+#pragma enable_d3d11_debug_symbols
+#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+// Generates large screen tiles in a fast, conservative manner
+#pragma kernel BinCoarseXY   PASS = BIN_COARSE_XY
+// Removes certain entities from the coarse buffer at a large cost
+#pragma kernel PruneCoarseXY PASS = PRUNE_COARSE_XY
+// Generates small screen tiles in an accurate manner
+#pragma kernel BinFineXY     PASS = BIN_FINE_XY
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesGlobal.hlsl"
+
+/* ------------------------------ Inputs ------------------------------------ */
+
+#if (PASS == BIN_COARSE_XY)
+    // 1x list for all entites (sorted by category, we concatenate lists of all views).
+    RWStructuredBuffer<float4> _xyBoundsBuffer : register(u0); // {x_min, y_min, x_max, y_max}
+#endif
+
+/* ------------------------------ Outputs ----------------------------------- */
+
+#if (PASS == BIN_COARSE_XY)
+    // 1x list for all entites (sorted by category, we concatenate lists of all views).
+    // The size of the buffer can be computed as follows:
+    // DIV_ROUND_UP(RES_X, COARSE_TILE_SIZE) * DIV_ROUND_UP(RES_Y, COARSE_TILE_SIZE) *
+    // BOUNDEDENTITYCATEGORY_COUNT * EYE_COUNT * (COARSE_TILE_ENTITY_LIMIT * 2 bytes per entry).
+    // For example (1080p): 30 * 17 * 5 * 1 * (64 * 2) = 318.75 KiB.
+    RWStructuredBuffer<uint> _CoarseTileBuffer : register(u0); // List of 1-based indices
+#endif
+
+/* ------------------------------ Utilities --------------------------------- */
+
+// Repackage to work around ridiculous constant buffer limitations of HLSL.
+static uint s_BoundedEntityCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT]  = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityCountPerCategory;
+static uint s_BoundedEntityOffsetPerCategory[BOUNDEDENTITYCATEGORY_COUNT] = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityOffsetPerCategory;
+
+uint ComputeEntityBoundsBufferOffset(uint entityIndex, uint eye)
+{
+    return IndexFromCoordinate(uint2(entityIndex, eye), _BoundedEntityCount);
+}
+
+uint GenerateCoarseTileBufferOffset(uint tile, uint category, uint eye)
+{
+    return IndexFromCoordinate(uint3(tile, category, eye),
+                               uint2(ZBIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT));
+}
+
+/* ------------------------------ Implementation ---------------------------- */
+
+#define THREADS_PER_GROUP (64)
+
+[numthreads(THREADS_PER_GROUP, 1, 1)]
+void BinCoarseXY(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+{
+    // TODO: it may be worth processing a single bin on multiple threads.
+    const uint2 t    = threadID.xy; // 8x8 block for locality (reduce divergence)
+    const uint  g    = groupID.x;
+    const uint  eye  = groupID.y;
+    const uint  bin  = IndexFromCoordinate(uint2(t, g), THREADS_PER_GROUP);
+
+    // TODO: copy=paste BigTile Code.
+}
+
+[numthreads(THREADS_PER_GROUP, 1, 1)]
+void PruneCoarseXY(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
+{
+    const uint t   = threadID;
+    const uint g   = groupID.x;
+    const uint eye = groupID.y;
+    const uint bin = t + g * THREADS_PER_GROUP;
+}
+
+[numthreads(THREADS_PER_GROUP, 1, 1)]
+void BinFineXY(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
+{
+    const uint t   = threadID;
+    const uint g   = groupID.x;
+    const uint eye = groupID.y;
+    const uint bin = t + g * THREADS_PER_GROUP;
+}
