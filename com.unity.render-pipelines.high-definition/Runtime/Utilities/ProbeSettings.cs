@@ -44,6 +44,8 @@ namespace UnityEngine.Rendering.HighDefinition
         lightingFadeDistance = 1 << 15,
         /// <summary>resolution.</summary>
         resolution = 1 << 16,
+        /// <summary>Rough reflections.</summary>
+        roughReflections = 1 << 17,
     }
 
     /// <summary>
@@ -237,6 +239,7 @@ namespace UnityEngine.Rendering.HighDefinition
             proxySettings = ProxySettings.NewDefault(),
             frustum = Frustum.NewDefault(),
             resolution = PlanarReflectionAtlasResolution.PlanarReflectionResolution512,
+            roughReflections = true,
         };
 
         /// <summary>The way the frustum is handled by the probe.</summary>
@@ -261,6 +264,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Probe camera settings.</summary>
         [Serialization.FormerlySerializedAs("camera")]
         public CameraSettings cameraSettings;
+
+        /// <summary>Defines if the planar reflection should support rough reflections.</summary>
+        public bool roughReflections;
 
         /// <summary>
         /// Compute a hash of the settings.
