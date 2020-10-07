@@ -453,12 +453,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void Draw(Rect rect, SerializedProperty value)
         {
+            var enableSpotReflector = m_Light.enableSpotReflector.boolValue;
+            m_Light.enableSpotReflector.boolValue = false;
+
             // Convert the incoming unit value into Lumen as the punctual slider is always in these terms (internally)
             value.floatValue = UnitToLumen(value.floatValue);
 
             base.Draw(rect, value);
 
             value.floatValue = LumenToUnit(value.floatValue);
+
+            m_Light.enableSpotReflector.boolValue = enableSpotReflector;
         }
 
         protected override GUIContent GetLightUnitTooltip(string baseTooltip, float value, string unit)
@@ -483,15 +488,15 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_Unit == LightUnit.Lumen)
                 return value;
 
-            if (m_Light.type == HDLightType.Spot &&
-                m_Unit != LightUnit.Lumen &&
-                m_Light.enableSpotReflector.boolValue)
-            {
-                // Note: When reflector is flagged, the util conversion for Lumen -> Candela will actually force re-use
-                // the serialized intensity, which is not what we want in this case. Because of this, we re-use the formulation
-                // in HDAdditionalLightData to correctly compute the intensity for spot reflector.
-                return ConvertLightIntensitySpotAngleLumenToUnit(value);
-            }
+            // if (m_Light.type == HDLightType.Spot &&
+            //     m_Unit != LightUnit.Lumen &&
+            //     m_Light.enableSpotReflector.boolValue)
+            // {
+            //     // Note: When reflector is flagged, the util conversion for Lumen -> Candela will actually force re-use
+            //     // the serialized intensity, which is not what we want in this case. Because of this, we re-use the formulation
+            //     // in HDAdditionalLightData to correctly compute the intensity for spot reflector.
+            //     return ConvertLightIntensitySpotAngleLumenToUnit(value);
+            // }
 
             return HDLightUI.ConvertLightIntensity(LightUnit.Lumen, m_Unit, m_Light, m_Editor, value);
         }
