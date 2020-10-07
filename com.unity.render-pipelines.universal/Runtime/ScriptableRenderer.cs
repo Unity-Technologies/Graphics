@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using Unity.Collections;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -19,7 +18,7 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="ScriptableRendererFeature"/>
     /// <seealso cref="ScriptableRenderPass"/>
     /// </summary>
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public abstract class ScriptableRenderer : IDisposable
+    public abstract partial class ScriptableRenderer : IDisposable
     {
         /// <summary>
         /// Configures the supported features for this renderer. When creating custom renderers
@@ -200,21 +199,59 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector(ShaderPropertyId.timeParameters, timeParametersVector);
         }
 
+        /// <summary>
+        /// Returns the camera color target for this renderer.
+        /// It's only valid to call cameraColorTarget in the scope of <c>ScriptableRenderPass</c>.
+        /// <seealso cref="ScriptableRenderPass"/>.
+        /// </summary>
         public RenderTargetIdentifier cameraColorTarget
         {
-            get => m_CameraColorTarget;
+            get
+            {
+                if (!m_IsPipelineExecuting)
+                {
+                    Debug.LogWarning("You can only call cameraColorTarget inside the scope of a ScriptableRenderPass. Otherwise the pipeline camera target texture might have not been created or might have already been disposed.");
+                    // TODO: Ideally we should return an error texture (BuiltinRenderTextureType.None?)
+                    // but this might break some existing content, so we return the pipeline texture in the hope it gives a "soft" upgrade to users.
+                }
+
+                return m_CameraColorTarget;
+            }
         }
 
-        public RenderTargetIdentifier cameraDepth
+        /// <summary>
+        /// Returns the camera depth target for this renderer.
+        /// It's only valid to call cameraDepthTarget in the scope of <c>ScriptableRenderPass</c>.
+        /// <seealso cref="ScriptableRenderPass"/>.
+        /// </summary>
+        public RenderTargetIdentifier cameraDepthTarget
         {
-            get => m_CameraDepthTarget;
+            get
+            {
+                if (!m_IsPipelineExecuting)
+                {
+                    Debug.LogWarning("You can only call cameraColorTarget inside the scope of a ScriptableRenderPass. Otherwise the pipeline camera target texture might have not been created or might have already been disposed.");
+                    // TODO: Ideally we should return an error texture (BuiltinRenderTextureType.None?)
+                    // but this might break some existing content, so we return the pipeline texture in the hope it gives a "soft" upgrade to users.
+                }
+
+                return m_CameraDepthTarget;
+            }
         }
 
+        /// <summary>
+        /// Returns a list of renderer features added to this renderer.
+        /// <seealso cref="ScriptableRendererFeature"/>
+        /// </summary>
         protected List<ScriptableRendererFeature> rendererFeatures
         {
             get => m_RendererFeatures;
         }
 
+        /// <summary>
+        /// Returns a list of render passes schedules to be executed by this renderer.
+        /// <seealso cref="ScriptableRenderPass"/>
+        /// </summary>
         protected List<ScriptableRenderPass> activeRenderPassQueue
         {
             get => m_ActiveRenderPassQueue;
@@ -256,6 +293,10 @@ namespace UnityEngine.Rendering.Universal
 
         bool m_FirstTimeCameraColorTargetIsBound = true; // flag used to track when m_CameraColorTarget should be cleared (if necessary), as well as other special actions only performed the first time m_CameraColorTarget is bound as a render target
         bool m_FirstTimeCameraDepthTargetIsBound = true; // flag used to track when m_CameraDepthTarget should be cleared (if necessary), the first time m_CameraDepthTarget is bound as a render target
+
+        // The pipeline can only guarantee the camera target texture are valid when the pipeline is executing.
+        // Trying to access the camera target before or after might be that the pipeline texture have already been disposed. 
+        bool m_IsPipelineExecuting = false;
 
         const string k_SetCameraRenderStateTag = "Set Camera Data";
         const string k_SetRenderTarget = "Set RenderTarget";
@@ -383,6 +424,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData">Current render state information.</param>
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            m_IsPipelineExecuting = true;
             ref CameraData cameraData = ref renderingData.cameraData;
             Camera camera = cameraData.camera;
 
@@ -537,6 +579,32 @@ namespace UnityEngine.Rendering.Universal
                 return ClearFlag.Depth;
 
             return ClearFlag.All;
+        }
+
+        /// <summary>
+        /// Calls <c>AddRenderPasses</c> for each feature added to this renderer.
+        /// <seealso cref="ScriptableRendererFeature.AddRenderPasses(ScriptableRenderer, ref RenderingData)"/>
+        /// </summary>
+        /// <param name="renderingData"></param>
+        protected void AddRenderPasses(ref RenderingData renderingData)
+        {
+            // Add render passes from custom renderer features
+            for (int i = 0; i < rendererFeatures.Count; ++i)
+            {
+                if (!rendererFeatures[i].isActive)
+                {
+                    continue;
+                }
+                rendererFeatures[i].AddRenderPasses(this, ref renderingData);
+            }
+
+            // Remove any null render pass that might have been added by user by mistake
+            int count = activeRenderPassQueue.Count;
+            for (int i = count - 1; i >= 0; i--)
+            {
+                if (activeRenderPassQueue[i] == null)
+                    activeRenderPassQueue.RemoveAt(i);
+            }
         }
 
         void ClearRenderingState(CommandBuffer cmd)
@@ -946,6 +1014,9 @@ namespace UnityEngine.Rendering.Universal
                         m_ActiveRenderPassQueue[i].OnFinishCameraStackRendering(cmd);
 
                     FinishRendering(cmd);
+
+                    // We finished camera stacking and released all intermediate pipeline textures.
+                    m_IsPipelineExecuting = false;
                 }
             }
 
