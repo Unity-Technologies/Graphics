@@ -11,7 +11,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static readonly GUIContent transparencySortMode = EditorGUIUtility.TrTextContent("Transparency Sort Mode", "Default sorting mode used for transparent objects");
             public static readonly GUIContent transparencySortAxis = EditorGUIUtility.TrTextContent("Transparency Sort Axis", "Axis used for custom axis sorting mode");
             public static readonly GUIContent hdrEmulationScale = EditorGUIUtility.TrTextContent("HDR Emulation Scale", "Describes the scaling used by lighting to remap dynamic range between LDR and HDR");
-            public static readonly GUIContent lightRenderTextureScale = EditorGUIUtility.TrTextContent("Light Render Texture Scale", "The resolution of the lighting buffers relative to the screen resolution. 1.0 means full screen size.");
+            public static readonly GUIContent lightRTScale = EditorGUIUtility.TrTextContent("Light RT Scale", "The resolution of intermediate light render textures, in relation to the screen resolution. 1.0 means full-screen size.");
+            public static readonly GUIContent lightRTMemoryBudget = EditorGUIUtility.TrTextContent("Light RT Memory Budget", "How much memory in MB intermediate light render textures can take. Higher value usually leads to better performance on mobile hardware.");
             public static readonly GUIContent lightBlendStyles = EditorGUIUtility.TrTextContent("Light Blend Styles", "A Light Blend Style is a collection of properties that describe a particular way of applying lighting.");
             public static readonly GUIContent defaultMaterialType = EditorGUIUtility.TrTextContent("Default Material Type", "Material to use when adding new objects to a scene");
             public static readonly GUIContent defaultCustomMaterial = EditorGUIUtility.TrTextContent("Default Custom Material", "Material to use when adding new objects to a scene");
@@ -24,8 +25,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static readonly GUIContent blendFactorAdditive = EditorGUIUtility.TrTextContent("Additive");
             public static readonly GUIContent useDepthStencilBuffer = EditorGUIUtility.TrTextContent("Use Depth/Stencil Buffer", "Uncheck this when you are certain you don't use any feature that requires the depth/stencil buffer (e.g. Sprite Mask). Not using the depth/stencil buffer may improve performance, especially on mobile platforms.");
             public static readonly GUIContent postProcessData = EditorGUIUtility.TrTextContent("Post-processing Data", "Resources (textures, shaders, etc.) required by post-processing effects.");
-
-            public static readonly GUIContent batchSize = EditorGUIUtility.TrTextContent("Pre-render Layer", "Number of layer batches to pre-render light textures upfront. More layers will reduce context switch at the cost of memory");
         }
 
         struct LightBlendStyleProps
@@ -47,7 +46,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         SerializedProperty m_PostProcessData;
         SerializedProperty m_DefaultMaterialType;
         SerializedProperty m_DefaultCustomMaterial;
-        SerializedProperty m_BatchSize;
+        SerializedProperty m_LightRenderTextureMemoryBudget;
 
         Analytics.Renderer2DAnalytics m_Analytics = Analytics.Renderer2DAnalytics.instance;
         Renderer2DData m_Renderer2DData;
@@ -76,7 +75,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_HDREmulationScale = serializedObject.FindProperty("m_HDREmulationScale");
             m_LightRenderTextureScale = serializedObject.FindProperty("m_LightRenderTextureScale");
             m_LightBlendStyles = serializedObject.FindProperty("m_LightBlendStyles");
-            m_BatchSize = serializedObject.FindProperty("m_BatchSize");
+            m_LightRenderTextureMemoryBudget = serializedObject.FindProperty("m_LightRenderTextureMemoryBudget");
 
             int numBlendStyles = m_LightBlendStyles.arraySize;
             m_LightBlendStylePropsArray = new LightBlendStyleProps[numBlendStyles];
@@ -124,7 +123,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
             if (EditorGUI.EndChangeCheck() && m_HDREmulationScale.floatValue < 1.0f)
                 m_HDREmulationScale.floatValue = 1.0f;
 
-            EditorGUILayout.PropertyField(m_LightRenderTextureScale, Styles.lightRenderTextureScale);
+            EditorGUILayout.PropertyField(m_LightRenderTextureScale, Styles.lightRTScale);
+            EditorGUILayout.PropertyField(m_LightRenderTextureMemoryBudget, Styles.lightRTMemoryBudget);
 
             EditorGUILayout.LabelField(Styles.lightBlendStyles);
             EditorGUI.indentLevel++;
@@ -184,8 +184,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             EditorGUILayout.PropertyField(m_DefaultMaterialType, Styles.defaultMaterialType);
             if(m_DefaultMaterialType.intValue == (int)Renderer2DData.Renderer2DDefaultMaterialType.Custom)
                 EditorGUILayout.PropertyField(m_DefaultCustomMaterial, Styles.defaultCustomMaterial);
-
-            EditorGUILayout.PropertyField(m_BatchSize, Styles.batchSize);
 
             m_WasModified |= serializedObject.hasModifiedProperties;
             serializedObject.ApplyModifiedProperties();

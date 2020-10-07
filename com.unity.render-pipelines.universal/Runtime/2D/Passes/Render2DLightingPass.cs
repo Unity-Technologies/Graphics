@@ -214,7 +214,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 this.SetShapeLightShaderGlobals(cmd);
 
                 var desc = this.GetBlendStyleRenderTextureDesc(renderingData);
-                LightTextureManager.Initialize(ref desc, m_Renderer2DData.batchSize * 1024 * 1024);
+                LightTextureManager.Initialize(ref desc, m_Renderer2DData.lightRenderTextureMemoryBudget * 1024 * 1024);
 
                 var layerBatches = LayerUtility.CalculateBatches(m_Renderer2DData.lightCullResult);
                 var batchCount = layerBatches.Count;

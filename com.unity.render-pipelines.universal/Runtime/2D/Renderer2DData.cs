@@ -43,7 +43,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         bool m_UseDepthStencilBuffer = true;
 
         [SerializeField]
-        int m_BatchSize = 4;
+        int m_LightRenderTextureMemoryBudget = 10;
 
         [SerializeField, Reload("Shaders/2D/Light2D-Shape.shader")]
         Shader m_ShapeLightShader = null;
@@ -84,7 +84,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal PostProcessData postProcessData => m_PostProcessData;
         internal TransparencySortMode transparencySortMode => m_TransparencySortMode;
         internal Vector3 transparencySortAxis => m_TransparencySortAxis;
-        internal int batchSize => m_BatchSize;
+        internal int lightRenderTextureMemoryBudget => m_LightRenderTextureMemoryBudget;
 
         protected override ScriptableRenderer Create()
         {
