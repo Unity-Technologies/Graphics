@@ -53,8 +53,6 @@ namespace UnityEngine.Rendering.Universal
 
             public static class Pipeline
             {
-                // NOTE: field names start with lowercase to avoid shadowing method names.
-
                 // TODO: Would be better to add Profiling name hooks into RenderPipeline.cs, requires changes outside of Universal.
                 public static readonly ProfilingSampler beginFrameRendering  = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(BeginFrameRendering)}");
                 public static readonly ProfilingSampler endFrameRendering    = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(EndFrameRendering)}");

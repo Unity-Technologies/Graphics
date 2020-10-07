@@ -23,7 +23,6 @@ namespace UnityEngine.Rendering.Universal
     {
         private static class Profiling
         {
-            // NOTE: field names start with lowercase to avoid shadowing method names.
             private const string k_Name = nameof(ScriptableRenderer);
             public static readonly ProfilingSampler setPerCameraShaderVariables = new ProfilingSampler($"{k_Name}.{nameof(SetPerCameraShaderVariables)}");
             public static readonly ProfilingSampler sortRenderPasses            = new ProfilingSampler($"Sort Render Passes");
