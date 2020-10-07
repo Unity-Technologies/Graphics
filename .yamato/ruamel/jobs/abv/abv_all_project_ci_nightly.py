@@ -16,7 +16,7 @@ class ABV_AllProjectCiNightlyJob():
         # define dependencies
         dependencies = [
             {
-                'path': f'{abv_filepath()}#{abv_job_id_all_project_ci(editor["track"])}',
+                'path': f'{abv_filepath()}#{abv_job_id_all_project_ci(editor["track"], editor.get("fast"))}',
                 'rerun': editor["rerun_strategy"]},
             # Todo: re-add template tests to the nightly once the publishing issue with upm-ci template test is fixed:
             # "(There has never been a full release of this package. The major must be 0 or 1.)"
@@ -34,7 +34,7 @@ class ABV_AllProjectCiNightlyJob():
         for dep in extra_dependencies:
             if dep.get("all"):
                 dependencies.append({
-                    'path': f'{project_filepath_all(dep["project"])}#{project_job_id_all(dep["project"], editor["track"])}',
+                    'path': f'{project_filepath_all(dep["project"])}#{project_job_id_all(dep["project"], editor["track"], editor["track"], editor.get("fast"))}',
                     'rerun': editor["rerun_strategy"]})
             else:
                 for tp in dep["test_platforms"]:

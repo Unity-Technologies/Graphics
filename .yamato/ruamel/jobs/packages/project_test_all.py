@@ -1,5 +1,5 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
-from ..shared.namer import projectcontext_filepath, projectcontext_job_id_test_all, projectcontext_job_id_test, projectcontext_job_id_test_min_editor
+from ..shared.namer import projectcontext_filepath, projectcontext_job_id_test_all, projectcontext_job_id_test, projectcontext_job_id_test_min_editor,_track_name
 from ..shared.yml_job import YMLJob
 from ..shared.constants import NPM_UPMCI_INSTALL_URL
 
@@ -7,7 +7,7 @@ from ..shared.constants import NPM_UPMCI_INSTALL_URL
 class Project_AllPackageCiJob():
     
     def __init__(self, packages, agent, platforms, target_branch, editor):
-        self.job_id = projectcontext_job_id_test_all(editor["track"])
+        self.job_id = projectcontext_job_id_test_all(editor["track"],editor.get("fast"))
         self.yml = self.get_job_definition(packages, agent, platforms, target_branch, editor).get_yml()
 
 
@@ -16,14 +16,14 @@ class Project_AllPackageCiJob():
         # define dependencies
         dependencies = []
         for platform in platforms:
-            dependencies.append(f'{projectcontext_filepath()}#{projectcontext_job_id_test(platform["os"],editor["track"])}')
+            dependencies.append(f'{projectcontext_filepath()}#{projectcontext_job_id_test(platform["os"],editor["track"],editor.get("fast"))}')
             if str(editor["track"]).lower() == "trunk":
                 dependencies.append(f'{projectcontext_filepath()}#{projectcontext_job_id_test_min_editor(platform["os"])}')
                 #dependencies.append(f'{packages_filepath()}#{package_job_id_test_dependencies(package["id"],platform["os"],editor["track"])}')
         
         # construct job
         job = YMLJob()
-        job.set_name(f'Pack and test all packages - { editor["track"] } [project context]')
+        job.set_name(f'Pack and test all packages - { _track_name(editor["track"], editor.get("fast")) } [project context]')
         job.set_agent(agent)
         job.add_dependencies(dependencies)
         job.add_var_custom_revision(editor["track"])

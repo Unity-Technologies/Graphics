@@ -1,6 +1,6 @@
 abv: # specify the editor versions for which to create the expression trigger for all_project_ci job
   trigger_editors:
-    - 2020.2
+    - fast-2020.2
   projects:
     - name: Universal
     - name: ShaderGraph

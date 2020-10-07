@@ -16,7 +16,7 @@ class Project_PublishJob():
         # define dependencies
         dependencies = [f'{projectcontext_filepath()}#{projectcontext_job_id_pack()}']
         for editor_track in editor_tracks:
-            dependencies.extend([f'{projectcontext_filepath()}#{projectcontext_job_id_test(platform["os"], editor_track)}' for platform in platforms])
+            dependencies.extend([f'{projectcontext_filepath()}#{projectcontext_job_id_test(platform["os"], editor_track, fast=False)}' for platform in platforms])
         
         # construct job
         job = YMLJob()

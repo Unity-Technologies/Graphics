@@ -162,20 +162,20 @@ all_smoke_tests_2020.2:
          rerun: on-new-revision
       -  path: .yamato/_abv.yml#smoke_test_editmode_2020.2
          rerun: on-new-revision
-all_project_ci_2020.2:
-    name: _ABV for SRP repository - 2020.2
+all_project_ci_fast-2020.2:
+    name: _ABV for SRP repository - fast-2020.2
     dependencies:
-      -  path: .yamato/_projectcontext.yml#all_package_ci_project_2020.2
+      -  path: .yamato/_projectcontext.yml#all_package_ci_project_fast-2020.2
          rerun: on-new-revision
-      -  path: .yamato/all-universal.yml#All_Universal_2020.2
+      -  path: .yamato/all-universal.yml#All_Universal_fast-2020.2
          rerun: on-new-revision
-      -  path: .yamato/all-shadergraph.yml#All_ShaderGraph_2020.2
+      -  path: .yamato/all-shadergraph.yml#All_ShaderGraph_fast-2020.2
          rerun: on-new-revision
-      -  path: .yamato/all-hdrp.yml#All_HDRP_2020.2
+      -  path: .yamato/all-hdrp.yml#All_HDRP_fast-2020.2
          rerun: on-new-revision
-      -  path: .yamato/all-vfx_hdrp.yml#All_VFX_HDRP_2020.2
+      -  path: .yamato/all-vfx_hdrp.yml#All_VFX_HDRP_fast-2020.2
          rerun: on-new-revision
-      -  path: .yamato/all-vfx_urp.yml#All_VFX_URP_2020.2
+      -  path: .yamato/all-vfx_urp.yml#All_VFX_URP_fast-2020.2
          rerun: on-new-revision
     triggers:
         expression: pull_request.target eq "master" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*", ".github/**/*", "Tools/**/*"]
@@ -236,6 +236,21 @@ trunk_verification_2020.2:
       -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_2020.2
          rerun: on-new-revision
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_2020.2
+         rerun: on-new-revision
+all_project_ci_2020.2:
+    name: _ABV for SRP repository - 2020.2
+    dependencies:
+      -  path: .yamato/_projectcontext.yml#all_package_ci_project_2020.2
+         rerun: on-new-revision
+      -  path: .yamato/all-universal.yml#All_Universal_2020.2
+         rerun: on-new-revision
+      -  path: .yamato/all-shadergraph.yml#All_ShaderGraph_2020.2
+         rerun: on-new-revision
+      -  path: .yamato/all-hdrp.yml#All_HDRP_2020.2
+         rerun: on-new-revision
+      -  path: .yamato/all-vfx_hdrp.yml#All_VFX_HDRP_2020.2
+         rerun: on-new-revision
+      -  path: .yamato/all-vfx_urp.yml#All_VFX_URP_2020.2
          rerun: on-new-revision
 smoke_test_playmode_CUSTOM-REVISION:
     name: SRP Smoke Test - playmode_CUSTOM-REVISION

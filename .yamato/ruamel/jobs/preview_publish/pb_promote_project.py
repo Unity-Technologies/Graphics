@@ -23,7 +23,7 @@ class PreviewPublish_ProjectContext_PromoteJob():
             dependencies.append(f'{projectcontext_filepath()}#{projectcontext_job_id_publish(package["name"])}')
             
         for platform in platforms:
-            dependencies.append(f'{projectcontext_filepath()}#{projectcontext_job_id_test(platform["os"], target_editor)}')
+            dependencies.append(f'{projectcontext_filepath()}#{projectcontext_job_id_test(platform["os"], target_editor, fast=False)}')
         
         # construct job
         job = YMLJob()

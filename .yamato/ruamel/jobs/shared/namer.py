@@ -34,11 +34,11 @@ def editor_job_id_merge_all(abv):
 def packages_filepath():
     return f'{parent_dir}/_packages.yml'.lower()
 
-def package_job_id_test(package_id, platform_os, editor_version):
-    return f'test_{ package_id }_{ platform_os }_{editor_version}'
+def package_job_id_test(package_id, platform_os, editor_version, fast):
+    return f'test_{ package_id }_{ platform_os }_{_track_name(editor_version, fast)}'
 
-def package_job_id_test_dependencies(package_id, platform_os, editor_version):
-    return f'test_{ package_id }_{ platform_os }_{editor_version}_dependencies'
+def package_job_id_test_dependencies(package_id, platform_os, editor_version, fast):
+    return f'test_{ package_id }_{ platform_os }_{_track_name(editor_version, fast)}_dependencies'
 
 def package_job_id_pack(package_id):
     return f'pack_{package_id}'
@@ -55,8 +55,8 @@ def package_job_id_publish_all():
 def package_job_id_publish_all_tag():
     return f'publish_all_tag'
 
-def package_job_id_test_all(editor_version):
-    return f'all_package_ci_{editor_version}'
+def package_job_id_test_all(editor_version, fast):
+    return f'all_package_ci_{_track_name(editor_version, fast)}'
 
 def projectcontext_filepath():
     return f'{parent_dir}/_projectcontext.yml'.lower()
@@ -64,8 +64,8 @@ def projectcontext_filepath():
 def projectcontext_job_id_pack():
     return f'pack_all_project'
 
-def projectcontext_job_id_test(platform_os, editor_version):
-    return f'test_all_project_{ platform_os }_{editor_version}'
+def projectcontext_job_id_test(platform_os, editor_version, fast):
+    return f'test_all_project_{ platform_os }_{_track_name(editor_version, fast)}'
 
 def projectcontext_job_id_test_min_editor(platform_os):
     return f'test_all_project_{ platform_os }_min_editor'
@@ -82,8 +82,8 @@ def projectcontext_job_id_publish_all():
 def projectcontext_job_id_publish_all_tag():
     return f'publish_all_project_tag'
 
-def projectcontext_job_id_test_all(editor_version):
-    return f'all_package_ci_project_{editor_version}'
+def projectcontext_job_id_test_all(editor_version, fast):
+    return f'all_package_ci_project_{_track_name(editor_version, fast)}'
 
 def pb_projectcontext_job_id_promote(package_name):
     return f'promote_{package_name}_project'
@@ -133,8 +133,8 @@ def project_job_id_all(project_name, editor_version, fast):
 def abv_filepath():
     return f'{parent_dir}/_abv.yml'.lower()
 
-def abv_job_id_all_project_ci(editor_version):
-    return f'all_project_ci_{editor_version}'
+def abv_job_id_all_project_ci(editor_version, fast):
+    return f'all_project_ci_{_track_name(editor_version, fast)}'
 
 def abv_job_id_all_project_ci_nightly(editor_version):
     return f'all_project_ci_nightly_{editor_version}'

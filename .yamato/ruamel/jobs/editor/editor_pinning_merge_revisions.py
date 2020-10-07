@@ -38,7 +38,7 @@ class Editor_PinningMergeRevisionsJob():
         if abv: 
             job.set_name(f'Merge [{editor["track"]}] revisions to {target_branch} [ABV]')
             job.allow_failure()
-            job.add_dependencies([f'{abv_filepath()}#{abv_job_id_all_project_ci(editor["track"])}'])
+            job.add_dependencies([f'{abv_filepath()}#{abv_job_id_all_project_ci(editor["track"], fast=False)}'])
         else:
             job.set_name(f'Merge [{editor["track"]}] revisions to {target_branch} [no ABV]')
         
