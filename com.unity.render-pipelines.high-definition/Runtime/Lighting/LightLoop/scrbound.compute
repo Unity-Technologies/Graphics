@@ -15,7 +15,7 @@ StructuredBuffer<FiniteLightBound> _EntityBoundsBuffer : register(t0);
 /* ------------------------------ Outputs ----------------------------------- */
 
 // 1x list for all entites (sorted by category, we concatenate lists of all views).
-RWStructuredBuffer<float4> _xyBoundsBuffer : register(u0); // {x_min, y_min, x_max, y_max}
+RWStructuredBuffer<float4> _xyBoundsBuffer : register(u0); // {x_min, x_max, y_min, y_max}
 RWStructuredBuffer<float2> _wBoundsBuffer  : register(u1); // {w_min, w_max}
 
 /* ------------------------------ Utilities --------------------------------- */
@@ -92,7 +92,7 @@ float4x4 PerspectiveProjection4x4(float a, float g, float n, float f)
                       0, 0, 1, 0);
 }
 
-uint ComputeEntityBoundsBufferOffset(uint entityIndex, uint eye)
+uint ComputeEntityBoundsBufferIndex(uint entityIndex, uint eye)
 {
     return IndexFromCoordinate(uint2(entityIndex, eye), _BoundedEntityCount);
 }
@@ -430,8 +430,12 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     const uint baseVertexOffset      = intraGroupEntityIndex * NUM_VERTS;
     const uint clampedEntityIndex    = min(globalEntityIndex, _BoundedEntityCount - 1); // Stay within bounds
 
-    const uint             bufferOffset = ComputeEntityBoundsBufferOffset(clampedEntityIndex, _BoundedEntityCount);
-    const FiniteLightBound cullData     = _EntityBoundsBuffer[bufferOffset];
+    // Helper threads may perform the same computation on valid data,
+    // but do not store the results of the computation to memory.
+    const bool isHelperThread = globalEntityIndex != clampedEntityIndex;
+
+    const uint             bufferIndex = ComputeEntityBoundsBufferIndex(clampedEntityIndex, _BoundedEntityCount);
+    const FiniteLightBound cullData    = _EntityBoundsBuffer[bufferIndex];
 
     const float4x4 projMat    = g_mProjectionArr[eye];
     const float4x4 invProjMat = g_mInvProjectionArr[eye];
@@ -725,10 +729,10 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     ndcAaBbMaxPt.w = asfloat(gs_NdcAaBbMaxPtW[intraGroupEntityIndex]);
 #endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
 
-    if ((globalEntityIndex < (uint)_BoundedEntityCount) && (t % THREADS_PER_ENTITY == 0)) // Avoid bank conflicts
+    if (!isHelperThread && (t % THREADS_PER_ENTITY == 0)) // Avoid bank conflicts
     {
 
-        _xyBoundsBuffer[bufferOffset] = float4(ndcAaBbMinPt.xy, ndcAaBbMaxPt.xy);
-        _wBoundsBuffer[bufferOffset]  = float2(ndcAaBbMinPt.w,  ndcAaBbMaxPt.w);
+        _xyBoundsBuffer[bufferIndex] = float4(ndcAaBbMinPt.x, ndcAaBbMaxPt.x, ndcAaBbMinPt.y, ndcAaBbMaxPt.y);
+        _wBoundsBuffer[bufferIndex]  = float2(ndcAaBbMinPt.w, ndcAaBbMaxPt.w);
     }
 }

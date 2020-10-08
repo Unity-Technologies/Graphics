@@ -771,7 +771,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // The bounds and light volumes are view-dependent, and AABB is additionally projection dependent.
-                xyBoundsBuffer = new ComputeBuffer(maxBoundedEntityCount * viewCount, 4 * sizeof(float)); // {x_min, y_min, x_max, y_max}
+                xyBoundsBuffer = new ComputeBuffer(maxBoundedEntityCount * viewCount, 4 * sizeof(float)); // {x_min, x_max, y_min, y_max}
                 wBoundsBuffer  = new ComputeBuffer(maxBoundedEntityCount * viewCount, 2 * sizeof(float)); // {w_min, w_max}
                 zBinBuffer     = new ComputeBuffer(TiledLightingConstants.s_ZBinCount * (int)BoundedEntityCategory.Count * viewCount, sizeof(uint));  // {start << 16 | count}
 
@@ -3589,9 +3589,38 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 int groupCount = HDUtils.DivRoundUp(TiledLightingConstants.s_ZBinCount, threadsPerGroup);
 
-                cmd.DispatchCompute(shader, kernel, groupCount, parameters.viewCount, (int)BoundedEntityCategory.Count);
+                cmd.DispatchCompute(shader, kernel, groupCount, (int)BoundedEntityCategory.Count, parameters.viewCount);
             }
         }
+
+        static void PerformXYBinning(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, CommandBuffer cmd)
+        {
+            // If (boundedEntityCount == 0), we still perform a dispatch that will initialize bins as empty.
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PerformZBinning)))
+            {
+                var shader = parameters.zBinShader;
+                int kernel;
+
+                kernel = 0; // BinCoarseXY
+
+                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._wBoundsBuffer, resources.wBoundsBuffer);
+                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._zBinBuffer,    resources.zBinBuffer);
+
+                ConstantBuffer.Push(cmd, parameters.lightListCB, shader, HDShaderIDs._ShaderVariablesLightList);
+
+                int threadsPerGroup = 64; // Shader: THREADS_PER_GROUP  (64)
+
+                int groupCount = HDUtils.DivRoundUp(TiledLightingConstants.s_ZBinCount, threadsPerGroup);
+
+                // cmd.DispatchCompute(shader, kernel, groupCount, (int)BoundedEntityCategory.Count, parameters.viewCount);
+
+                kernel = 1; // PruneCoarseXY
+
+                // ...
+
+                kernel = 2; // BinFineXY
+
+                // ...
             }
         }
 
@@ -4048,6 +4077,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Both Z-binning and XY-binning can be executed concurrently.
                 // This should improve GPU utilization.
                 PerformZBinning(parameters, resources, cmd);
+                PerformXYBinning(parameters, resources, cmd);
 
                 // BigTilePrepass(parameters, resources, cmd);
                 // BuildPerTileLightList(parameters, resources, ref tileFlagsWritten, cmd);

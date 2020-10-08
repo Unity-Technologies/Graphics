@@ -17,7 +17,7 @@
 
 #if (PASS == BIN_COARSE_XY)
     // 1x list for all entites (sorted by category, we concatenate lists of all views).
-    RWStructuredBuffer<float4> _xyBoundsBuffer : register(u0); // {x_min, y_min, x_max, y_max}
+    RWStructuredBuffer<float4> _xyBoundsBuffer : register(u0); // {x_min, x_max, y_min, y_max}
 #endif
 
 /* ------------------------------ Outputs ----------------------------------- */
@@ -28,56 +28,146 @@
     // DIV_ROUND_UP(RES_X, COARSE_TILE_SIZE) * DIV_ROUND_UP(RES_Y, COARSE_TILE_SIZE) *
     // BOUNDEDENTITYCATEGORY_COUNT * EYE_COUNT * (COARSE_TILE_ENTITY_LIMIT * 2 bytes per entry).
     // For example (1080p): 30 * 17 * 5 * 1 * (64 * 2) = 318.75 KiB.
-    RWStructuredBuffer<uint> _CoarseTileBuffer : register(u0); // List of 1-based indices
+    RWStructuredBuffer<uint> _CoarseTileBuffer : register(u0); // List of 16-bit indices
 #endif
 
 /* ------------------------------ Utilities --------------------------------- */
+
+// The HLSL preprocessor does not support the '%' operator.
+#define REMAINDER(a, n) ((a) - (n) * ((a) / (n)))
 
 // Repackage to work around ridiculous constant buffer limitations of HLSL.
 static uint s_BoundedEntityCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT]  = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityCountPerCategory;
 static uint s_BoundedEntityOffsetPerCategory[BOUNDEDENTITYCATEGORY_COUNT] = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityOffsetPerCategory;
 
-uint ComputeEntityBoundsBufferOffset(uint entityIndex, uint eye)
+uint ComputeEntityBoundsBufferIndex(uint entityIndex, uint eye)
 {
     return IndexFromCoordinate(uint2(entityIndex, eye), _BoundedEntityCount);
 }
 
-uint GenerateCoarseTileBufferOffset(uint tile, uint category, uint eye)
+uint ComputeCoarseTileBufferIndex(uint2 tileCoord, uint tileRowSize, uint category, uint eye)
 {
-    return IndexFromCoordinate(uint3(tile, category, eye),
-                               uint2(ZBIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT));
+    uint stride = COARSE_TILE_ENTITY_LIMIT / 2; // We use 'uint' buffer rather than a 'uint16_t[n]'
+    return stride * IndexFromCoordinate(uint4(tileCoord, category, eye),
+                                        uint3(tileRowSize, ZBIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT));
+}
+
+// The intervals must be defined s.t.
+// the 'x' component holds the lower bound and
+// the 'y' component holds the upper bound.
+bool IntervalsOverlap(float2 i1, float2 i2)
+{
+    float l = max(i1.x, i2.x); // Lower bound of the intersection interval
+    float u = min(i1.y, i2.y); // Upper bound of the intersection interval
+
+    return l <= u;             // Is the interval non-empty?
 }
 
 /* ------------------------------ Implementation ---------------------------- */
 
-#define THREADS_PER_GROUP (64)
+#if (REMAINDER(COARSE_TILE_ENTITY_LIMIT, 2) != 0)
+    #error "COARSE_TILE_ENTITY_LIMIT must be an integer multiple of 2."
+#endif
+
+#define GROUP_SIZE        (8)
+#define THREADS_PER_GROUP (GROUP_SIZE * GROUP_SIZE)
 
 [numthreads(THREADS_PER_GROUP, 1, 1)]
 void BinCoarseXY(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 {
-    // TODO: it may be worth processing a single bin on multiple threads.
-    const uint2 t    = threadID.xy; // 8x8 block for locality (reduce divergence)
-    const uint  g    = groupID.x;
-    const uint  eye  = groupID.y;
-    const uint  bin  = IndexFromCoordinate(uint2(t, g), THREADS_PER_GROUP);
+    const uint2 t   = threadID.xy; // 8x8 block for locality (reduce divergence)
+    const uint  g   = groupID.x;
+    const uint  eye = groupID.y;
+    const uint  cat = groupID.z;
 
-    // TODO: copy=paste BigTile Code.
+    const uint2 groupCount = uint2(DIV_ROUND_UP(_ScreenSize.x, GROUP_SIZE * COARSE_TILE_SIZE),
+                                   DIV_ROUND_UP(_ScreenSize.y, GROUP_SIZE * COARSE_TILE_SIZE));
+
+    const uint2 coarseTileBufferDimensions = 0;
+
+    const uint2 groupCoord       = CoordinateFromIndex(g, groupCount.x);
+    const uint2 tileCoord        = groupCoord * GROUP_SIZE + t;
+    const uint2 clampedTileCoord = min(clampedTileCoord, coarseTileBufferDimensions - 1); // Stay within bounds
+
+    // Helper threads may perform the same computation on valid data,
+    // but do not store the results of the computation to memory.
+    const bool isHelperThread = any(tileCoord != clampedTileCoord);
+
+    if (isHelperThread) return; // Avoid adding too many checks or branches below
+
+    // Entities are sorted by category.
+    const uint entityIndex = s_BoundedEntityOffsetPerCategory[cat];
+    const uint entityCount = s_BoundedEntityCountPerCategory[cat];
+
+    if (entityCount > 0) // Avoid wasted work
+    {
+        // Compute 2-D the AABB of the tile.
+        const uint2  tileAaBbMinPtSS  = clampedTileCoord * COARSE_TILE_SIZE;
+        const uint2  tileAaBbMaxPtSS  = tileAaBbMinPtSS  + COARSE_TILE_SIZE;        // (clampedTileCoord + 1) * COARSE_TILE_SIZE
+        const float2 tileAaBbMinPtNDC =          tileAaBbMinPtSS * _ScreenSize.zw;  // Divide
+        const float2 tileAaBbMaxPtNDC = saturate(tileAaBbMaxPtSS * _ScreenSize.zw); // Divide and clamp to the edge
+        const float3 tileBoundsX      = float2(tileAaBbMinPtNDC.x, tileAaBbMaxPtNDC.x);
+        const float3 tileBoundsY      = float2(tileAaBbMinPtNDC.y, tileAaBbMaxPtNDC.y);
+
+        const uint inputStart  = ComputeEntityBoundsBufferIndex(entityIndex, _BoundedEntityCount);
+        const uint outputStart = ComputeCoarseTileBufferIndex(clampedTileCoord, coarseTileBufferDimensions.x, cat, eye);
+
+        // Define inputs and outputs.
+        uint i = 0, j = 0;
+        uint indexPair = 0;
+
+        // The algorithm is O(n * m) where 'n' is the entity count and 'm' is tile count.
+        // Therefore, it will be slow if 'n' is large.
+        // We should consider a sorting-based algorithm, which could be closer to O((n + m) * log(n)).
+        // TODO: unroll.
+        while ((i < entityCount) && (j < COARSE_TILE_ENTITY_LIMIT))
+        {
+            float2 entityBoundsX = _xyBoundsBuffer[inputStart + i].xy;
+            float2 entityBoundsY = _xyBoundsBuffer[inputStart + i].zw;
+
+            if (IntervalsOverlap(entityBoundsX, tileBoundsX) &&
+                IntervalsOverlap(entityBoundsY, tileBoundsY))
+            {
+                // We store intra-category indices.
+                // 2x 16-bit indices per uint.
+                indexPair |= i << (16 * (j & 1)); // Order: first Lo, then Hi bits
+
+                if ((j & 1) != 0) // Is the pair complete & ready to be stored?
+                {
+                    _CoarseTileBuffer[outputStart + (j / 2)] = indexPair;
+
+                    indexPair = 0; // In order to use bitwise OR above
+                }
+
+                j++;
+            }
+
+            i++;
+        }
+
+        if (j < COARSE_TILE_ENTITY_LIMIT)
+        {
+            // Add a terminator.
+            indexPair |= UINT16_MAX << (16 * (j & 1)); // Order: first Lo, then Hi bits
+
+            _CoarseTileBuffer[outputStart + (j / 2)] = indexPair;
+        }
+    }
+    else
+    {
+        // We do not clear the buffer, so we must add a terminator.
+        _CoarseTileBuffer[outputStart] = UINT16_MAX;
+    }
 }
 
 [numthreads(THREADS_PER_GROUP, 1, 1)]
 void PruneCoarseXY(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 {
-    const uint t   = threadID;
-    const uint g   = groupID.x;
-    const uint eye = groupID.y;
-    const uint bin = t + g * THREADS_PER_GROUP;
+
 }
 
 [numthreads(THREADS_PER_GROUP, 1, 1)]
 void BinFineXY(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 {
-    const uint t   = threadID;
-    const uint g   = groupID.x;
-    const uint eye = groupID.y;
-    const uint bin = t + g * THREADS_PER_GROUP;
+
 }

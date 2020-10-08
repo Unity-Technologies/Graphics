@@ -30,12 +30,12 @@ RWStructuredBuffer<uint> _zBinBuffer : register(u0); // {start << 16 | end}
 static uint s_BoundedEntityCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT]  = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityCountPerCategory;
 static uint s_BoundedEntityOffsetPerCategory[BOUNDEDENTITYCATEGORY_COUNT] = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityOffsetPerCategory;
 
-uint ComputeEntityBoundsBufferOffset(uint entityIndex, uint eye)
+uint ComputeEntityBoundsBufferIndex(uint entityIndex, uint eye)
 {
     return IndexFromCoordinate(uint2(entityIndex, eye), _BoundedEntityCount);
 }
 
-uint GenerateZBinBufferOffset(uint bin, uint category, uint eye)
+uint ComputeZBinBufferIndex(uint bin, uint category, uint eye)
 {
     return IndexFromCoordinate(uint3(bin, category, eye),
                                uint2(ZBIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT));
@@ -63,8 +63,8 @@ float2 ComputeZBinLinearDepthBounds(uint bin, float4 encodingParams)
 // the 'y' component holds the upper bound.
 bool IntervalsOverlap(float2 i1, float2 i2)
 {
-    float l = max(i1.x, i2.x); // Lower bound of intersection interval
-    float u = min(i1.y, i2.y); // Upper bound of intersection interval
+    float l = max(i1.x, i2.x); // Lower bound of the intersection interval
+    float u = min(i1.y, i2.y); // Upper bound of the intersection interval
 
     return l <= u;             // Is the interval non-empty?
 }
@@ -73,48 +73,50 @@ bool IntervalsOverlap(float2 i1, float2 i2)
 
 #define THREADS_PER_GROUP (64)
 
+#if (REMAINDER(ZBIN_COUNT, THREADS_PER_GROUP) != 0)
+    #error "ZBIN_COUNT must be an integer multiple of THREADS_PER_GROUP."
+#endif
+
 [numthreads(THREADS_PER_GROUP, 1, 1)]
 void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 {
     const uint t   = threadID;
     const uint g   = groupID.x;
-    const uint eye = groupID.y;
-    const uint cat = groupID.z;
+    const uint cat = groupID.y;
+    const uint eye = groupID.z;
     const uint bin = IndexFromCoordinate(uint2(t, g), THREADS_PER_GROUP);
 
     // Entities are sorted by category.
     const uint entityIndex = s_BoundedEntityOffsetPerCategory[cat];
     const uint entityCount = s_BoundedEntityCountPerCategory[cat];
 
-#if (REMAINDER(ZBIN_COUNT, THREADS_PER_GROUP) != 0)
-    #error "ZBIN_COUNT must be an integer multiple of THREADS_PER_GROUP."
-#endif
-    const float2 wBounds = ComputeZBinLinearDepthBounds(bin, _ZBinBufferEncodingParams);
-
     uint first = (1 << 16), last = 0;
 
-    uint inputOffset = ComputeEntityBoundsBufferOffset(entityIndex, _BoundedEntityCount);
-
-    // The algorithm is O(n * m) where 'n' is the entity count and 'm' is bin count.
-    // Therefore, it will be slow if 'n' is large.
-    // We should consider a sorting-based algorithm, which could be closer to O((n + m) * log(n)).
-    // TODO: unroll.
-    for (uint i = 0; i < entityCount; i++, inputOffset++)
+    if (entityCount > 0) // Avoid wasted work
     {
-        float2 wMinMax = _wBoundsBuffer[inputOffset];
+        const float2 binBoundsW = ComputeZBinLinearDepthBounds(bin, _ZBinBufferEncodingParams);
+        const uint   inputStart = ComputeEntityBoundsBufferIndex(entityIndex, _BoundedEntityCount);
 
-        // TODO: flatten.
-        if (IntervalsOverlap(wBounds, wMinMax))
+        // The algorithm is O(n * m) where 'n' is the entity count and 'm' is bin count.
+        // Therefore, it will be slow if 'n' is large.
+        // We should consider a sorting-based algorithm, which could be closer to O((n + m) * log(n)).
+        // TODO: unroll.
+        for (uint i = 0; i < entityCount; i++)
         {
-            // We store intra-category indices.
-            first = min(i, first);
-            last  = max(i, last);
+            float2 entityBoundsW = _wBoundsBuffer[inputStart + i];
+
+            // TODO: flatten.
+            if (IntervalsOverlap(entityBoundsW, binBoundsW))
+            {
+                // We store intra-category indices.
+                first = min(i, first);
+                last  = max(i, last);
+            }
         }
     }
 
-    // The compiler should be able to move most of the calculation outside the loop.
-    uint outputOffset = GenerateZBinBufferOffset(bin, cat, eye);
-    uint outputRange  = (first > last) ? 0 : (first << 16) | (last + 1);
+    uint outputIndex = ComputeZBinBufferIndex(bin, cat, eye);
+    uint outputRange = (first > last) ? 0 : (first << 16) | (last + 1);
 
-    _zBinBuffer[outputOffset] = outputRange;
+    _zBinBuffer[outputIndex] = outputRange;
 }
