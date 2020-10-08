@@ -137,7 +137,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed outlines in transitions between post-processed and plain regions in the graphics compositor (case 1278775).
 - Fix decal being applied twice with LOD Crossfade.
 - Fixed camera stacking for AOVs in the graphics compositor (case 1273223).
+- Fixed backface selection on some shader not ignore correctly.
 - Disable quad overdraw on ps4.
+- Fixed error when resizing the graphics compositor's output and when re-adding a compositor in the scene
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
@@ -169,6 +171,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improve performance of GPU light AABB generation
 - Removed the max clamp value for the RTR, RTAO and RTGI's ray length (case 1279849).
 - Meshes assigned with a decal material are not visible anymore in ray-tracing or path-tracing.
+- Removed BLEND shader keywords.
 
 ## [10.0.0] - 2019-06-10
 

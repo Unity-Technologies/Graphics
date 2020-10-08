@@ -134,7 +134,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         [SerializeField] Camera m_LayerCamera;
 
         // Returns true if this layer is using a camera that was cloned internally for drawing
-        bool isUsingACameraClone => !m_LayerCamera.Equals(m_Camera);
+        internal bool isUsingACameraClone => !m_LayerCamera.Equals(m_Camera);
 
         // The input alpha will be mapped between the min and max range when blending between the post-processed and plain image regions. This way the user can controls how steep is the transition.
         [SerializeField] float m_AlphaMin = 0.0f;   
@@ -266,7 +266,11 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             if (m_OutputTarget != OutputTarget.CameraStack && m_RenderTarget == null)
             {
-                m_RenderTarget = new RenderTexture(pixelWidth, pixelHeight, 24, (GraphicsFormat)m_ColorBufferFormat);
+                // If we don't have a valid camera (zero width or height) avoid creating the RT
+                if (pixelWidth > 0 && pixelHeight > 0)
+                {
+                    m_RenderTarget = new RenderTexture(pixelWidth, pixelHeight, 24, (GraphicsFormat)m_ColorBufferFormat);
+                }
             }
 
             // check and fix RT handle
