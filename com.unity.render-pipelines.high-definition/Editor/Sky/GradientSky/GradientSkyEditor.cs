@@ -12,6 +12,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_Top;
         SerializedDataParameter m_GradientMultiplier;
 
+        public override string documentationURL => Documentation.GetPageLink("Override-Gradient-Sky");
+
         public override void OnEnable()
         {
             base.OnEnable();

@@ -14,6 +14,8 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
         SerializedDataParameter m_RayLength;
         SerializedDataParameter m_MinSmoothness;
 
+        public override string documentationURL => Documentation.GetPageLink("Ray-Tracing-Recursive-Rendering");
+
         public override void OnEnable()
         {
             var o = new PropertyFetcher<RecursiveRendering>(serializedObject);

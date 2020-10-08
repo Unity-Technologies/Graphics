@@ -18,6 +18,8 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
         SerializedDataParameter m_MaxDepth;
         SerializedDataParameter m_MaxIntensity;
 
+        public override string documentationURL => Documentation.GetPageLink("Ray-Tracing-Path-Tracing");
+
         public override void OnEnable()
         {
             var o = new PropertyFetcher<PathTracing>(serializedObject);

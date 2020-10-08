@@ -14,12 +14,14 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_MaxVelocityInPixels;
         SerializedDataParameter m_MinVelInPixels;
 
-        //  Advanced properties 
+        //  Advanced properties
         SerializedDataParameter m_CameraRotClamp;
         SerializedDataParameter m_DepthCmpScale;
         SerializedDataParameter m_CameraMotionBlur;
 
         public override bool hasAdvancedMode => true;
+
+        public override string documentationURL => Documentation.GetPageLink("Post-Processing-Motion-Blur");
 
         public override void OnEnable()
         {

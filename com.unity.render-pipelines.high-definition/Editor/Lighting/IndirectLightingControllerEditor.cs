@@ -16,6 +16,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         SerializedDataParameter m_ReflectionProbeIntensityMultiplier;
 
+        public override string documentationURL => Documentation.GetPageLink("Override-Indirect-Lighting-Controller");
+
         public override void OnEnable()
         {
             var o = new PropertyFetcher<IndirectLightingController>(serializedObject);

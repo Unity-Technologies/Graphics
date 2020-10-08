@@ -18,10 +18,12 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_BlueOutBlueIn;
         SerializedProperty m_SelectedChannel;
 
+        public override string documentationURL => Documentation.GetPageLink("Post-Processing-Channel-Mixer");
+
         public override void OnEnable()
         {
             var o = new PropertyFetcher<ChannelMixer>(serializedObject);
-            
+
             m_RedOutRedIn      = Unpack(o.Find(x => x.redOutRedIn));
             m_RedOutGreenIn    = Unpack(o.Find(x => x.redOutGreenIn));
             m_RedOutBlueIn     = Unpack(o.Find(x => x.redOutBlueIn));

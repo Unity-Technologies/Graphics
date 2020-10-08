@@ -19,6 +19,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_Bias;
         SerializedDataParameter m_Thickness;
 
+        public override string documentationURL => Documentation.GetPageLink("Override-Contact-Shadows");
+
         public override void OnEnable()
         {
             base.OnEnable();

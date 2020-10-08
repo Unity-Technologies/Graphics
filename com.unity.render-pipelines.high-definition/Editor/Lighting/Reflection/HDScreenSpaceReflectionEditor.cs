@@ -37,6 +37,9 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_SampleCount;
         SerializedDataParameter m_BounceCount;
 
+        public override string documentationURL =>
+            Documentation.GetPageLink(m_RayTracing.value.boolValue ? "Ray-Traced-Reflections" : "Override-Screen-Space-Reflection");
+
         public override void OnEnable()
         {
             base.OnEnable();

@@ -20,6 +20,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static GUIContent m_DiffusionProfileLabel = new GUIContent("Diffusion Profile List", "Diffusion Profile List from current HDRenderPipeline Asset");
 
+        public override string documentationURL => Documentation.GetPageLink("Override-Diffusion-Profile");
+
         public override void OnEnable()
         {
             var o = new PropertyFetcher<DiffusionProfileOverride>(serializedObject);

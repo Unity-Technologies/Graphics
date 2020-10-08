@@ -52,6 +52,8 @@ namespace UnityEditor.Rendering.HighDefinition
             new GUIContent("Lum Vs Sat")
         };
 
+        public override string documentationURL => Documentation.GetPageLink("Post-Processing-Color-Curves");
+
         public override void OnEnable()
         {
             var o = new PropertyFetcher<ColorCurves>(serializedObject);

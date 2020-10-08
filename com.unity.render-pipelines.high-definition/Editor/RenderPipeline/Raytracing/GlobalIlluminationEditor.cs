@@ -39,6 +39,11 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_DenoiserRadius;
         SerializedDataParameter m_SecondDenoiserPass;
 
+        public override string documentationURL =>
+            // Note: Currently, even thought there is Raster & Raytrace mode for this volume, there seems to only be
+            // documentation for the raytraced mode. We must update this when there are docs for raster mode.
+            Documentation.GetPageLink("Ray-Traced-Global-Illumination");
+
         public override void OnEnable()
         {
             base.OnEnable();
@@ -102,7 +107,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             PropertyField(m_Enable);
-            
+
             // If ray tracing is supported display the content of the volume component
             if (HDRenderPipeline.pipelineSupportsRayTracing)
             {

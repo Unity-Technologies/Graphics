@@ -12,6 +12,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_Response;
         SerializedDataParameter m_Texture;
 
+        public override string documentationURL => Documentation.GetPageLink("Post-Processing-Film-Grain");
+
         public override void OnEnable()
         {
             var o = new PropertyFetcher<FilmGrain>(serializedObject);

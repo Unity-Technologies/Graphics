@@ -17,6 +17,8 @@ namespace UnityEditor.Rendering.HighDefinition
         private enum Unit { Metric, Percent }
         EditorPrefBoolFlags<Unit> m_State;
 
+        public override string documentationURL => Documentation.GetPageLink("Override-Shadows");
+
         public HDShadowSettingsEditor()
         {
             string Key = string.Format("{0}:{1}:UI_State", "HDRP", typeof(HDShadowSettingsEditor).Name);

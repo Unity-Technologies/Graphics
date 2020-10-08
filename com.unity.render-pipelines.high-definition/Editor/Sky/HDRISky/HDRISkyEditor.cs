@@ -43,6 +43,8 @@ namespace UnityEditor.Rendering.HighDefinition
         Texture2D m_ReadBackTexture;
         public override bool hasAdvancedMode => true;
 
+        public override string documentationURL => Documentation.GetPageLink("Override-HDRI-Sky");
+
         public override void OnEnable()
         {
             base.OnEnable();

@@ -8,6 +8,8 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         protected SerializedDataParameter m_ScreenFadeDistance;
 
+        public override string documentationURL => Documentation.GetPageLink("Override-Screen-Space-Refraction");
+
         public override void OnEnable()
         {
             var o = new PropertyFetcher<ScreenSpaceRefraction>(serializedObject);

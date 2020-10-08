@@ -19,6 +19,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_LutTexture;
         SerializedDataParameter m_LutContribution;
 
+        public override string documentationURL => Documentation.GetPageLink("Post-Processing-Tonemapping");
+
         // Curve drawing utilities
         readonly HableCurve m_HableCurve = new HableCurve();
         Rect m_CurveRect;
@@ -28,7 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnEnable()
         {
             var o = new PropertyFetcher<Tonemapping>(serializedObject);
-            
+
             m_Mode             = Unpack(o.Find(x => x.mode));
             m_ToeStrength      = Unpack(o.Find(x => x.toeStrength));
             m_ToeLength        = Unpack(o.Find(x => x.toeLength));

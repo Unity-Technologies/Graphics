@@ -14,6 +14,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_SkyType;
         SerializedDataParameter m_SkyAmbientMode;
 
+        public override string documentationURL => Documentation.GetPageLink("Override-Visual-Environment");
+
         static List<GUIContent> m_SkyClassNames = null;
         static List<int> m_SkyUniqueIDs = null;
 
