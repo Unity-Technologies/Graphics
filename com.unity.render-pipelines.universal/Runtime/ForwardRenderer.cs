@@ -217,8 +217,8 @@ namespace UnityEngine.Rendering.Universal
         {
             // always dispose unmanaged resources
             m_PostProcessPass?.Cleanup();
-            m_FinalPostProcessPass.Cleanup();
-            m_ColorGradingLutPass.Cleanup();
+            m_FinalPostProcessPass?.Cleanup();
+            m_ColorGradingLutPass?.Cleanup();
 
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_CopyDepthMaterial);
