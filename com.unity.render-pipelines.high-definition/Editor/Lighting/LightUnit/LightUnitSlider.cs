@@ -146,9 +146,7 @@ namespace UnityEditor.Rendering.HighDefinition
         void DoIcon(Rect rect, GUIContent icon, SerializedProperty value, float range)
         {
             // Draw the context menu feedback before the icon
-            var menuRect = rect;
-            menuRect.width += 5;
-            GUI.Box(menuRect, GUIContent.none, SliderStyles.k_IconButton);
+            GUI.Box(rect, GUIContent.none, SliderStyles.k_IconButton);
 
             var oldColor = GUI.color;
             GUI.color = Color.clear;
