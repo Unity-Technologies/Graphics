@@ -36,6 +36,7 @@
     * [Output Decal](Context-OutputForwardDecal.md)
     * [Output Line](Context-OutputLine.md)
     * [Output Point](Context-OutputPoint.md)
+    * [Output Primitive](Context-OutputPrimitive.md)
     * [Spawn](Context-Spawn.md)
     * [Update Particle](Context-Update.md)
     * Block
