@@ -3046,6 +3046,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.bloomPrefilterCS.EnableKeyword("HIGH_QUALITY");
             else
                 parameters.bloomPrefilterCS.EnableKeyword("LOW_QUALITY");
+            if (m_EnableAlpha)
+                parameters.bloomPrefilterCS.EnableKeyword("ENABLE_ALPHA");
 
             parameters.bloomBlurCS = m_Resources.shaders.bloomBlurCS;
             parameters.bloomBlurKernel = parameters.bloomBlurCS.FindKernel("KMain");

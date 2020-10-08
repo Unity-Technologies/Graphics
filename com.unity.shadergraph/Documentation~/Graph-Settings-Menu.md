@@ -11,7 +11,6 @@ The **Graph Settings** tab on the **[Graph Inspector](Internal-Inspector.md)** l
 | Menu Item | Description |
 |:----------|:------------|
 | Precision | A [Precision Type](Precision-Types.md) drop-down menu that lets you set the precision for the entire graph. |
-| Targets | A drop-down menu that lists the available [Targets](Graph-Target.md) you can select for the graph. By default, **Nothing** and **Everything** are always available. |
-| Reorder data | A reorderable list that contains the Targets you've selected. Lets you change the order in which the final data appears in the generated shader file.|
+| Active Targets | A list that contains the Targets you've selected. Entries can be added or removed using the Add (+) and Remove (-) buttons. |
 
 Target-specific settings appear below the standard setting options. The displayed Target-specific settings change according to which Targets you select.

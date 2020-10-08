@@ -29,13 +29,13 @@ The following table describes the input ports on a Decal Master Node, including 
 | --------------------- | -------- | -------- | ------------------------------------------------------------ |
 | **Position**          | Vector 3 | Vertex   | Set the object space position of the Material per vertex.    |
 | **BaseColor**         | Vector 3 | Fragment | Set the color of the Material. To assign an image, connect a sampled Texture2D to this Master Node. |
-| **BaseColor Opacity** | Vector 1 | Fragment | Set the Material's opacity. 0 is fully transparent, and 1 is fully opaque. |
+| **BaseColor Opacity** | Float    | Fragment | Set the Material's opacity. 0 is fully transparent, and 1 is fully opaque. |
 | **Normal**            | Vector 3 | Fragment | Set the Material's normal value. The normals you assign should be in Tangent Space. |
-| **Normal Opacity**    | Vector 1 | Fragment | Set the blend factor for the Material’s normals. A decal modifies the normals of the Material the decal projects onto. A value of 0 means that the decal does not affect the normals of the surface it projects onto. A value of 1 means that the decal fully overrides the normals of the surface. |
-| **Metallic**          | Vector 1 | Fragment | Define how metallic the Material's appearance is (that is, how shiny it looks, and how much its appearance is based on the colours of the environment around it). 0 is completely non-metallic, and 1 is the maximum level of metallic appearance that Unity can achieve via this setting. |
-| **Ambient Occlusion** | Vector 1 | Fragment | A multiplier for the intensity of diffuse global illumination. Set this to 0 to remove all global illumination. |
-| **Smoothness**        | Vector 1 | Fragment | Set the appearance of the primary specular highlight. Every light ray that hits a smooth surface bounces off at predictable and consistent angles. For a perfectly smooth surface that reflects light like a mirror, set this to a value of 1. For a rougher surface, set this to a lower value. |
-| **MAOS Opacity**      | Vector 1 | Fragment | Set the opacity of the **Metallic**, **Ambient Occlusion** and **Smoothness** values. |
+| **Normal Opacity**    | Float    | Fragment | Set the blend factor for the Material’s normals. A decal modifies the normals of the Material the decal projects onto. A value of 0 means that the decal does not affect the normals of the surface it projects onto. A value of 1 means that the decal fully overrides the normals of the surface. |
+| **Metallic**          | Float    | Fragment | Define how metallic the Material's appearance is (that is, how shiny it looks, and how much its appearance is based on the colors of the environment around it). 0 is completely non-metallic, and 1 is the maximum level of metallic appearance that Unity can achieve via this setting. |
+| **Ambient Occlusion** | Float    | Fragment | A multiplier for the intensity of diffuse global illumination. Set this to 0 to remove all global illumination. |
+| **Smoothness**        | Float    | Fragment | Set the appearance of the primary specular highlight. Every light ray that hits a smooth surface bounces off at predictable and consistent angles. For a perfectly smooth surface that reflects light like a mirror, set this to a value of 1. For a rougher surface, set this to a lower value. |
+| **MAOS Opacity**      | Float    | Fragment | Set the opacity of the **Metallic**, **Ambient Occlusion** and **Smoothness** values. |
 | **Emission**          | Vector 3 | Fragment | Set the Material's emission color value. The RGB values you assign should be between 0-255. The Intensity value should be within the range -10 and 10. <br/>**Emission** only works on an Opaque Decal Shader. |
 
 <a name="SettingsMenu"></a>

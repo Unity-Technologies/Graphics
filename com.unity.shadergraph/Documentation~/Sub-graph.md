@@ -15,7 +15,7 @@ For information about the components of a Sub Graph, see [Sub Graph Asset](Sub-g
 
 The Output Node defines the output ports of a [Sub Graph Node](Sub-graph-Node.md) when you reference the Sub Graph from inside another graph. To add and remove ports, use the [Custom Port Menu](Custom-Port-Menu) in the **Node Settings** tab of the [Graph Inspector](Internal-Inspector.md) by clicking on the Sub Graph Output node.
 
-The preview used for Sub Graphs is determined by the first port of the Output Node. Valid [Data Types](Data-Types.md) for the first port are `Vector 1`, `Vector 2`, `Vector 3`, `Vector 4`, `Matrix2`, `Matrix3`, `Matrix4`, and `Boolean`. Any other data type will produce an error in the preview shader and the Sub Graph will become invalid.
+The preview used for Sub Graphs is determined by the first port of the Output Node. Valid [Data Types](Data-Types.md) for the first port are `Float`, `Vector 2`, `Vector 3`, `Vector 4`, `Matrix2`, `Matrix3`, `Matrix4`, and `Boolean`. Any other data type will produce an error in the preview shader and the Sub Graph will become invalid.
 
 ## Sub Graphs and shader stages
 If a Node within a Sub Graph specifies a shader stage (for example, like how the [Sample Texture 2D Node](Sample-Texture-2D-Node.md) specifies the **fragment** shader stage), the Editor locks the entire Sub Graph to that stage. You cannot connect any Nodes that specify a different shader stage to the Sub Graph Output Node, and the Editor locks any Sub Graph Nodes that reference the graph to that shader stage.

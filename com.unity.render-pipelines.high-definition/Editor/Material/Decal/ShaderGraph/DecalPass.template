@@ -82,11 +82,11 @@ Pass
     // --------------------------------------------------
     // Build Surface Data
 
-    void GetSurfaceData(FragInputs fragInputs, float3 V, PositionInputs posInput, out DecalSurfaceData surfaceData)
+    void GetSurfaceData(FragInputs fragInputs, float3 V, PositionInputs posInput, float angleFadeFactor, out DecalSurfaceData surfaceData)
     {
         #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
             float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
-            float fadeFactor = clamp(normalToWorld[0][3], 0.0f, 1.0f);
+            float fadeFactor = clamp(normalToWorld[0][3], 0.0f, 1.0f) * angleFadeFactor;
             float2 scale = float2(normalToWorld[3][0], normalToWorld[3][1]);
             float2 offset = float2(normalToWorld[3][2], normalToWorld[3][3]);
             fragInputs.texCoord0.xy = fragInputs.texCoord0.xy * scale + offset;

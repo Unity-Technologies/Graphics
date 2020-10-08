@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         public enum UIColorBufferFormat
         {
             R11G11B10 = GraphicsFormat.B10G11R11_UFloatPack32,
-            R16G16B16A16 = GraphicsFormat.R16G16B16A16_UNorm,
+            R16G16B16A16 = GraphicsFormat.R16G16B16A16_SFloat,
             R32G32B32A32 = GraphicsFormat.R32G32B32A32_SFloat
         };
 
@@ -134,7 +134,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         [SerializeField] Camera m_LayerCamera;
 
         // Returns true if this layer is using a camera that was cloned internally for drawing
-        bool isUsingACameraClone => !m_LayerCamera.Equals(m_Camera);
+        internal bool isUsingACameraClone => !m_LayerCamera.Equals(m_Camera);
 
         // The input alpha will be mapped between the min and max range when blending between the post-processed and plain image regions. This way the user can controls how steep is the transition.
         [SerializeField] float m_AlphaMin = 0.0f;   
@@ -264,9 +264,21 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             m_ClearsBackGround = false;
             m_LayerPositionInStack = 0; // will be set in SetupLayerCamera
 
+            // Migrate any formats that we don't support anymore (like R16G16B16A16_UNORM)
+            if (m_ColorBufferFormat != UIColorBufferFormat.R11G11B10 &&
+                m_ColorBufferFormat != UIColorBufferFormat.R16G16B16A16 &&
+                m_ColorBufferFormat != UIColorBufferFormat.R32G32B32A32)
+            {
+                m_ColorBufferFormat = UIColorBufferFormat.R16G16B16A16;
+            }
+
             if (m_OutputTarget != OutputTarget.CameraStack && m_RenderTarget == null)
             {
-                m_RenderTarget = new RenderTexture(pixelWidth, pixelHeight, 24, (GraphicsFormat)m_ColorBufferFormat);
+                // If we don't have a valid camera (zero width or height) avoid creating the RT
+                if (pixelWidth > 0 && pixelHeight > 0)
+                {
+                    m_RenderTarget = new RenderTexture(pixelWidth, pixelHeight, 24, (GraphicsFormat)m_ColorBufferFormat);
+                }
             }
 
             // check and fix RT handle
