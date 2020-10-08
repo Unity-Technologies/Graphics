@@ -48,6 +48,12 @@ Pass
 
     $splice(HybridV1InjectedBuiltinProperties)
 
+    // -- Properties used by SceneSelectionPass
+    #ifdef SCENESELECTIONPASS
+    int _ObjectId;
+    int _PassValue;
+    #endif
+
     // Includes
     $splice(PreGraphIncludes)
 

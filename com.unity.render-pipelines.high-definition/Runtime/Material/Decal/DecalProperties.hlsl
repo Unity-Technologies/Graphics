@@ -28,4 +28,9 @@ float _Smoothness;
 float _AO;
 float _Metallic;
 
+#ifdef SCENESELECTIONPASS
+    int _ObjectId;
+    int _PassValue;
+#endif
+
 #endif

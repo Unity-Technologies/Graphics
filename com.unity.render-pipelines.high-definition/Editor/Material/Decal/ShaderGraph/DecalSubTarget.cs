@@ -197,11 +197,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 #region SubShaders
         static class SubShaders
         {
+            // Relies on the order shader passes are declared in DecalSystem.cs
             public static SubShaderDescriptor Decal = new SubShaderDescriptor()
             {
                 generatesPreview = true,
                 passes = new PassCollection
                 {
+                    { DecalPasses.SceneSelection, new FieldCondition(DecalDefault, true) },
                     { DecalPasses.DBufferProjector, new FieldCondition(DecalDefault, true) },
                     { DecalPasses.DecalProjectorForwardEmissive, new FieldCondition(AffectsEmission, true) },
                     { DecalPasses.DBufferMesh, new FieldCondition(DecalDefault, true) },
@@ -215,8 +217,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         #region Passes
         public static class DecalPasses
         {
-            // CAUTION: c# code relies on the order in which the passes are declared, any change will need to be reflected in Decalsystem.cs - s_MaterialDecalNames array
-            // and DecalSet.InitializeMaterialValues()
+            // CAUTION: c# code relies on the order in which the passes are declared, any change will need to be reflected in Decalsystem.cs - enum MaterialDecalPass
+
+            public static PassDescriptor SceneSelection = new PassDescriptor()
+            {
+                // Definition
+                displayName = "SceneSelectionPass",
+                referenceName = "SHADERPASS_DEPTH_ONLY",
+                lightMode = "SceneSelectionPass",
+                useInPreview = false,
+
+                // Collections
+                renderStates = CoreRenderStates.SceneSelection,
+                pragmas = DecalPragmas.Instanced,
+                defines = DecalDefines.SceneSelection,
+                includes = DecalIncludes.SceneSelection,
+            };
+
             public static PassDescriptor DBufferProjector = new PassDescriptor()
             {
                 // Definition
@@ -504,12 +521,22 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     definition = KeywordDefinition.ShaderFeature,
                     scope = KeywordScope.Global,
                 };
+
+                public static KeywordDescriptor SceneSelection = new KeywordDescriptor()
+                {
+                    displayName = "Scene selection pass",
+                    referenceName = "SCENESELECTIONPASS",
+                    type = KeywordType.Boolean,
+                    definition = KeywordDefinition.Predefined,
+                    scope = KeywordScope.Global,
+                };
             }
 
             public static KeywordCollection Albedo = new KeywordCollection { { Descriptors.AffectsAlbedo, new FieldCondition(AffectsAlbedo, true) } };
             public static KeywordCollection Normal = new KeywordCollection { { Descriptors.AffectsNormal, new FieldCondition(AffectsNormal, true) } };
             public static KeywordCollection Maskmap = new KeywordCollection { { Descriptors.AffectsMaskmap, new FieldCondition(AffectsMaskMap, true) } };
             public static DefineCollection Emission = new DefineCollection { { Descriptors.AffectsEmission, 1 } };
+            public static DefineCollection SceneSelection = new DefineCollection { { Descriptors.SceneSelection, 1 } };
 
             public static KeywordCollection Decals = new KeywordCollection { { Descriptors.Decals } };
         }
@@ -529,6 +556,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { kPacking, IncludeLocation.Pregraph },
                 { kColor, IncludeLocation.Pregraph },
                 { kFunctions, IncludeLocation.Pregraph },
+                { CoreIncludes.MinimalCorePregraph },
+                { kDecal, IncludeLocation.Pregraph },
+                { kPassDecal, IncludeLocation.Postgraph },
+            };
+
+            public static IncludeCollection SceneSelection = new IncludeCollection
+            {
                 { CoreIncludes.MinimalCorePregraph },
                 { kDecal, IncludeLocation.Pregraph },
                 { kPassDecal, IncludeLocation.Postgraph },

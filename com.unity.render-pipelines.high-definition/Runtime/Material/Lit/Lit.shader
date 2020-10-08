@@ -388,7 +388,7 @@ Shader "HDRP/Lit"
             ENDHLSL
         }
 
-        // Caution: The outline selection in the editor use the vertex shader/hull/domain shader of the first pass declare. So it should not bethe  meta pass.
+        // Caution: The outline selection in the editor use the vertex shader/hull/domain shader of the first pass declare. So it should not be the meta pass.
         Pass
         {
             Name "GBuffer"
