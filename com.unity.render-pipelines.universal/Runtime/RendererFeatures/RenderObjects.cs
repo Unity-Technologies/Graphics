@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal.Internal;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Experimental.Rendering.Universal
@@ -60,29 +61,53 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public RenderObjectsSettings settings = new RenderObjectsSettings();
 
-        RenderObjectsPass renderObjectsPass;
+        RenderObjectsPass m_RenderObjectsPass;
+        RenderObjectsPass m_DepthOnlyPass;
 
         public override void Create()
         {
             FilterSettings filter = settings.filterSettings;
-            renderObjectsPass = new RenderObjectsPass(settings.passTag, settings.Event, filter.PassNames,
+            m_RenderObjectsPass = new RenderObjectsPass(settings.passTag, settings.Event, filter.PassNames,
                 filter.RenderQueueType, filter.LayerMask, settings.cameraSettings);
 
-            renderObjectsPass.overrideMaterial = settings.overrideMaterial;
-            renderObjectsPass.overrideMaterialPassIndex = settings.overrideMaterialPassIndex;
+            m_RenderObjectsPass.overrideMaterial = settings.overrideMaterial;
+            m_RenderObjectsPass.overrideMaterialPassIndex = settings.overrideMaterialPassIndex;
 
             if (settings.overrideDepthState)
-                renderObjectsPass.SetDetphState(settings.enableWrite, settings.depthCompareFunction);
+                m_RenderObjectsPass.SetDetphState(settings.enableWrite, settings.depthCompareFunction);
 
             if (settings.stencilSettings.overrideStencilState)
-                renderObjectsPass.SetStencilState(settings.stencilSettings.stencilReference,
+                m_RenderObjectsPass.SetStencilState(settings.stencilSettings.stencilReference,
                     settings.stencilSettings.stencilCompareFunction, settings.stencilSettings.passOperation,
                     settings.stencilSettings.failOperation, settings.stencilSettings.zFailOperation);
+
+            if (settings.filterSettings.RenderQueueType == RenderQueueType.Opaque &&
+                (settings.Event == RenderPassEvent.BeforeRenderingOpaques || settings.Event == RenderPassEvent.AfterRenderingOpaques))
+            {
+                var prepassEvent = RenderPassEvent.BeforeRenderingPrepasses + 10;
+                m_DepthOnlyPass = new RenderObjectsPass(settings.passTag, prepassEvent, filter.PassNames,
+                    filter.RenderQueueType, filter.LayerMask, settings.cameraSettings)
+                {
+                    onlyIfDepthPrepass = true
+                };
+
+                if (settings.overrideDepthState)
+                    m_DepthOnlyPass.SetDetphState(settings.enableWrite, settings.depthCompareFunction);
+
+                if (settings.stencilSettings.overrideStencilState)
+                    m_DepthOnlyPass.SetStencilState(settings.stencilSettings.stencilReference,
+                        settings.stencilSettings.stencilCompareFunction, settings.stencilSettings.passOperation,
+                        settings.stencilSettings.failOperation, settings.stencilSettings.zFailOperation);
+            }
         }
 
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
-            renderer.EnqueuePass(renderObjectsPass);
+            renderer.EnqueuePass(m_RenderObjectsPass);
+            if (m_DepthOnlyPass != null)
+            {
+                renderer.EnqueuePass(m_DepthOnlyPass);
+            }
         }
     }
 }
