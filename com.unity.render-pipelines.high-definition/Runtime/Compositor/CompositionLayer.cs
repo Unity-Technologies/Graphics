@@ -275,9 +275,9 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             if (m_OutputTarget != OutputTarget.CameraStack && m_RenderTarget == null)
             {
                 // If we don't have a valid camera (zero width or height) avoid creating the RT
-                if (pixelWidth > 0 && pixelHeight > 0)
+                if (compositor.outputCamera.pixelWidth > 0 && compositor.outputCamera.pixelHeight > 0)
                 {
-                    m_RenderTarget = new RenderTexture(pixelWidth, pixelHeight, 24, (GraphicsFormat)m_ColorBufferFormat);
+                    m_RenderTarget = new RenderTexture(compositor.outputCamera.pixelWidth, compositor.outputCamera.pixelHeight, 24, (GraphicsFormat)m_ColorBufferFormat);
                 }
             }
 
@@ -399,16 +399,24 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         public void DestroyRT()
         {
             // We should destroy the layer camera only if it was cloned
-            if (m_LayerCamera != null && isUsingACameraClone)
+            if (m_LayerCamera != null)
             {
-                var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
-                if (cameraData)
+                if (isUsingACameraClone)
                 {
-                    CoreUtils.Destroy(cameraData);
+                    var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
+                    if (cameraData)
+                    {
+                        CoreUtils.Destroy(cameraData);
+                    }
+                    m_LayerCamera.targetTexture = null;
+                    CoreUtils.Destroy(m_LayerCamera);
+                    m_LayerCamera = null;
                 }
-                m_LayerCamera.targetTexture = null;
-                CoreUtils.Destroy(m_LayerCamera);
-                m_LayerCamera = null;
+                else
+                {
+                    m_LayerCamera.targetTexture = null;
+                    m_LayerCamera = null;
+                }
             }
 
             if (m_RTHandle != null)
