@@ -149,14 +149,18 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             var newLayer = new CompositorLayer();
             newLayer.m_LayerName = layerName;
             newLayer.m_Type = type;
-            newLayer.m_OverrideCullingMask = true;
-            newLayer.m_CullingMask = 0; //LayerMask.GetMask("None");
             newLayer.m_Camera = CompositionManager.GetSceceCamera();
+            newLayer.m_CullingMask = newLayer.m_Camera? newLayer.m_Camera.cullingMask : 0; //LayerMask.GetMask("None");
             newLayer.m_OutputTarget = CompositorLayer.OutputTarget.CameraStack;
             newLayer.m_ClearDepth = true;
 
             if (newLayer.m_Type == LayerType.Image || newLayer.m_Type == LayerType.Video)
             {
+                // Image and movie layers do not render any 3D objects 
+                newLayer.m_OverrideCullingMask = true;
+                newLayer.m_CullingMask = 0;
+
+                // By default image and movie layers should not get any post-processing
                 newLayer.m_OverrideVolumeMask = true;
                 newLayer.m_VolumeMask = 0;
                 newLayer.m_ClearAlpha = false;
