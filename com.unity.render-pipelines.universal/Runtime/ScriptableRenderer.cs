@@ -240,12 +240,6 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public DebugMaterialIndex debugMaterialIndex { get; set; }
-        public LightingDebugMode lightingDebugMode { get; set; }
-        public VertexAttributeDebugMode attributeDebugIndex { get; set; }
-        public DebugLightingFeature debugLightingFeatureMask { get; set; }
-        public DebugMipInfo debugMipInfo { get; set; }
-
         /// <summary>
         /// Returns a list of renderer features added to this renderer.
         /// <seealso cref="ScriptableRendererFeature"/>
@@ -665,11 +659,6 @@ namespace UnityEngine.Rendering.Universal
             for (int currIndex = blockRanges[blockIndex]; currIndex < endIndex; ++currIndex)
             {
                 var renderPass = m_ActiveRenderPassQueue[currIndex];
-                renderPass.debugMaterialIndex = debugMaterialIndex;
-                renderPass.lightingDebugMode = lightingDebugMode;
-                renderPass.attributeDebugIndex = attributeDebugIndex;
-                renderPass.debugLightingFeatureMask = debugLightingFeatureMask;
-                renderPass.mipInfoMode = debugMipInfo;
                 ExecuteRenderPass(context, renderPass, ref renderingData);
             }
 

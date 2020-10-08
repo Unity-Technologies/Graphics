@@ -122,14 +122,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                var sceneOverrideMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
-                bool isMaterialDebugActive = lightingDebugMode != LightingDebugMode.None ||
-                                             debugMaterialIndex != DebugMaterialIndex.None ||
-                                             debugLightingFeatureMask != (int)DebugLightingFeature.None;
-                bool isSceneOverrideActive = sceneOverrideMode != SceneOverrides.None;
-                if (isMaterialDebugActive || isSceneOverrideActive)
+                if (DebugHandler.IsDebugMaterialActive || DebugHandler.IsSceneOverrideActive)
                 {
-                    if(lightingDebugMode == LightingDebugMode.ShadowCascades)
+                    if(DebugHandler.AreShadowCascadesActive)
                         // we disable cubemap reflections, too distracting (in TemplateLWRP for ex.)
                         cmd.EnableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
                     else
@@ -137,10 +132,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     context.ExecuteCommandBuffer(cmd);
                     cmd.Clear();
 
-                    bool overrideMaterial = isSceneOverrideActive;
-
-                    RenderObjectWithDebug(context, m_ShaderTagIdList, ref renderingData,
-                        m_FilteringSettings, sortingCriteria, overrideMaterial);
+                    RenderObjectWithDebug(context, m_ShaderTagIdList, ref renderingData, m_FilteringSettings,
+                        sortingCriteria, DebugHandler.IsSceneOverrideActive);
                 }
                 else
                 {

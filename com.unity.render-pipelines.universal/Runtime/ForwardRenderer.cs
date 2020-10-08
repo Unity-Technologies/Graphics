@@ -1,5 +1,6 @@
-using System.Diagnostics;
+
 using UnityEditor.Rendering;
+using UnityEditor.Rendering.Universal;
 using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
@@ -26,17 +27,7 @@ namespace UnityEngine.Rendering.Universal
         static readonly string k_CreateCameraTextures = "Create Camera Texture";
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_CreateCameraTextures);
 
-        int m_DebugMaterialIndexId;
-        int m_DebugLightingIndexId;
-        int m_DebugVertexAttributesIndexId;
-        int m_DebugLightingFeatureMask;
-        int m_DebugValidationIndexId;
-        int m_DebugAlbedoMinLuminance;
-        int m_DebugAlbedoMaxLuminance;
-        int m_DebugAlbedoSaturationTolerance;
-        int m_DebugAlbedoHueTolerance;
-        int m_DebugAlbedoCompareColor;
-        int m_DebugMipIndexId;
+        private readonly DebugHandler m_DebugHandler;
 
         // Rendering mode setup from UI.
         internal RenderingMode renderingMode { get { return m_RenderingMode;  } }
@@ -101,28 +92,13 @@ namespace UnityEngine.Rendering.Universal
         Material m_TileDeferredMaterial;
         Material m_StencilDeferredMaterial;
 
-        Texture2D m_NumberFontTexture;
-
         public ForwardRenderer(ForwardRendererData data) : base(data)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             UniversalRenderPipeline.m_XRSystem.InitializeXRSystemData(data.xrSystemData);
 #endif
 
-            m_DebugMaterialIndexId = Shader.PropertyToID("_DebugMaterialIndex");
-            m_DebugLightingIndexId = Shader.PropertyToID("_DebugLightingIndex");
-            m_DebugVertexAttributesIndexId = Shader.PropertyToID("_DebugAttributesIndex");
-            m_DebugLightingFeatureMask = Shader.PropertyToID("_DebugLightingFeatureMask");
-            m_DebugValidationIndexId = Shader.PropertyToID("_DebugValidationIndex");
-            m_DebugAlbedoMinLuminance = Shader.PropertyToID("_AlbedoMinLuminance");
-            m_DebugAlbedoMaxLuminance = Shader.PropertyToID("_AlbedoMaxLuminance");
-            m_DebugAlbedoSaturationTolerance = Shader.PropertyToID("_AlbedoSaturationTolerance");
-            m_DebugAlbedoHueTolerance = Shader.PropertyToID("_AlbedoHueTolerance");
-            m_DebugAlbedoCompareColor = Shader.PropertyToID("_AlbedoCompareColor");
-            m_DebugMipIndexId = Shader.PropertyToID("_DebugMipIndex");
-
-            m_NumberFontTexture = data.textures.NumberFont;
-            Material fullScreenDebugMaterial = CoreUtils.CreateEngineMaterial(data.shaders.fullScreenDebugPS);
+            m_DebugHandler = new DebugHandler(data.textures.NumberFont, data.shaders.fullScreenDebugPS);
 
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
@@ -175,7 +151,7 @@ namespace UnityEngine.Rendering.Universal
                 // - Legacy materials have unamed pass, which is implicitely renamed as SRPDefaultUnlit. In that case, they are considered forward-only too.
                 // TO declare a material with unnamed pass and UniversalForward/UniversalForwardOnly pass is an ERROR, as the material will be rendered twice.
                 StencilState forwardOnlyStencilState = DeferredLights.OverwriteStencil(m_DefaultStencilState, (int)StencilUsage.MaterialMask);
-                ShaderTagId[] forwardOnlyShaderTagIds = new ShaderTagId[] { new ShaderTagId("SRPDefaultUnlit"), new ShaderTagId("UniversalForwardOnly") };
+                ShaderTagId[] forwardOnlyShaderTagIds = { new ShaderTagId("SRPDefaultUnlit"), new ShaderTagId("UniversalForwardOnly") };
                 int forwardOnlyStencilRef = stencilData.stencilReference | (int)StencilUsage.MaterialUnlit;
                 m_RenderOpaqueForwardOnlyPass = new DrawObjectsPass("Render Opaques Forward Only", forwardOnlyShaderTagIds, true, RenderPassEvent.BeforeRenderingOpaques + 1, RenderQueueRange.opaque, data.opaqueLayerMask, forwardOnlyStencilState, forwardOnlyStencilRef);
                 m_GBufferCopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques + 2, m_CopyDepthMaterial);
@@ -202,11 +178,22 @@ namespace UnityEngine.Rendering.Universal
             m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRendering + 1, data.postProcessData, m_BlitMaterial);
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
-            m_DebugPass = new DebugPass(RenderPassEvent.AfterRendering + 2, fullScreenDebugMaterial);
+            m_DebugPass =  m_DebugHandler.CreatePass(RenderPassEvent.AfterRendering + 2);
 
 #if UNITY_EDITOR
             m_SceneViewDepthCopyPass = new SceneViewDepthCopyPass(RenderPassEvent.AfterRendering + 9, m_CopyDepthMaterial);
 #endif
+
+            // Hook in the debug-render where appropriate...
+            m_RenderOpaqueForwardPass.DebugHandler = m_DebugHandler;
+            if(m_RenderOpaqueForwardOnlyPass != null)
+            {
+                m_RenderOpaqueForwardOnlyPass.DebugHandler = m_DebugHandler;
+            }
+            if(m_RenderTransparentForwardPass != null)
+            {
+                m_RenderTransparentForwardPass.DebugHandler = m_DebugHandler;
+            }
 
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
             // Samples (MSAA) depend on camera and pipeline
@@ -265,7 +252,7 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            SetupDebugRendering(context);
+            m_DebugHandler.Setup(context);
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             bool needTransparencyPass = !UniversalRenderPipeline.asset.useAdaptivePerformance || !AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipTransparentObjects;
@@ -287,9 +274,8 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // Special path for depth only offscreen cameras. Only write opaques + transparents.
-            SceneOverrides sceneOverride = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
             bool isOffscreenDepthTexture = cameraData.targetTexture != null && cameraData.targetTexture.format == RenderTextureFormat.Depth;
-            bool sceneOverrideEnabled = sceneOverride != SceneOverrides.None;
+            bool sceneOverrideEnabled = m_DebugHandler.TryGetSceneOverride(out SceneOverrides sceneOverride);
             if (isOffscreenDepthTexture || sceneOverrideEnabled)
             {
                 m_ActiveCameraColorAttachment = RenderTargetHandle.CameraTarget;
@@ -597,8 +583,7 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_PostProcessPass);
             }
 
-            var fullScreenDebugMode = DebugDisplaySettings.Instance.renderingSettings.fullScreenDebugMode;
-            if (fullScreenDebugMode != FullScreenDebugMode.None )
+            if (m_DebugHandler.TryGetFullscreenDebugMode(out FullScreenDebugMode fullScreenDebugMode))
             {
                 RenderTargetIdentifier debugBuffer;
                 float screenWidth = camera.pixelWidth;
@@ -628,7 +613,7 @@ namespace UnityEngine.Rendering.Universal
                         break;
                 }
 
-                m_DebugPass.Setup(cameraTargetDescriptor, debugBuffer, (int)fullScreenDebugMode,
+                m_DebugPass.Setup(cameraTargetDescriptor, debugBuffer, fullScreenDebugMode,
                     renderingData.cameraData.camera.nearClipPlane, renderingData.cameraData.camera.farClipPlane, false, pixelRect);
                 EnqueuePass(m_DebugPass);
             }
@@ -869,34 +854,6 @@ namespace UnityEngine.Rendering.Universal
             //bool msaaDepthResolve = msaaEnabledForCamera && SystemInfo.supportsMultisampledTextures != 0;
             bool msaaDepthResolve = false;
             return supportsDepthCopy || msaaDepthResolve;
-        }
-
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        void SetupDebugRendering(ScriptableRenderContext context)
-        {
-            debugMaterialIndex = DebugDisplaySettings.Instance.materialSettings.DebugMaterialIndexData;
-            lightingDebugMode = DebugDisplaySettings.Instance.Lighting.m_LightingDebugMode;
-            attributeDebugIndex = DebugDisplaySettings.Instance.materialSettings.VertexAttributeDebugIndexData;
-            debugLightingFeatureMask = DebugDisplaySettings.Instance.Lighting.m_DebugLightingFeatureMask;
-            debugMipInfo = DebugDisplaySettings.Instance.renderingSettings.mipInfoDebugMode;
-
-            var cmd = CommandBufferPool.Get("");
-            cmd.SetGlobalFloat(m_DebugMaterialIndexId, (int)debugMaterialIndex);
-            cmd.SetGlobalFloat(m_DebugLightingIndexId, (int)lightingDebugMode);
-			cmd.SetGlobalFloat(m_DebugVertexAttributesIndexId, (int)attributeDebugIndex);
-            cmd.SetGlobalInt(m_DebugLightingFeatureMask, (int)debugLightingFeatureMask);
-            cmd.SetGlobalInt(m_DebugMipIndexId, (int)debugMipInfo);
-            cmd.SetGlobalInt(m_DebugValidationIndexId, (int)DebugDisplaySettings.Instance.Validation.validationMode);
-
-            cmd.SetGlobalFloat(m_DebugAlbedoMinLuminance, DebugDisplaySettings.Instance.Validation.AlbedoMinLuminance);
-            cmd.SetGlobalFloat(m_DebugAlbedoMaxLuminance, DebugDisplaySettings.Instance.Validation.AlbedoMaxLuminance);
-            cmd.SetGlobalFloat(m_DebugAlbedoSaturationTolerance, DebugDisplaySettings.Instance.Validation.AlbedoSaturationTolerance);
-            cmd.SetGlobalFloat(m_DebugAlbedoHueTolerance, DebugDisplaySettings.Instance.Validation.AlbedoHueTolerance);
-            cmd.SetGlobalColor(m_DebugAlbedoCompareColor, DebugDisplaySettings.Instance.Validation.AlbedoCompareColor.linear);
-
-            cmd.SetGlobalTexture("_DebugNumberTexture", m_NumberFontTexture);
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
     }
 }

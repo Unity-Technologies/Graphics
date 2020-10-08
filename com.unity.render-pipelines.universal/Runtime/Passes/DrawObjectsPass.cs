@@ -92,26 +92,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
                 #endif
 
-                var sceneOverrideMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
-                var validationMode = DebugDisplaySettings.Instance.Validation.validationMode;
-                var attributeDebugIndex = DebugDisplaySettings.Instance.materialSettings.VertexAttributeDebugIndexData;
-                bool isMaterialDebugActive = lightingDebugMode != LightingDebugMode.None ||
-                                             debugMaterialIndex != DebugMaterialIndex.None ||
-                                             debugLightingFeatureMask != (int)DebugLightingFeature.None ||
-                                             validationMode == DebugValidationMode.ValidateAlbedo ||
-											 attributeDebugIndex != VertexAttributeDebugMode.None ||
-                                             mipInfoMode != DebugMipInfo.None;
-                bool isSceneOverrideActive = sceneOverrideMode != SceneOverrides.None;
-                if (isMaterialDebugActive || isSceneOverrideActive)
+                if (DebugHandler.IsDebugMaterialActive || DebugHandler.IsSceneOverrideActive)
                 {
-                    if(lightingDebugMode == LightingDebugMode.ShadowCascades)
+                    if(DebugHandler.AreShadowCascadesActive)
                         // we disable cubemap reflections, too distracting (in TemplateLWRP for ex.)
                         cmd.EnableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
                     else
                         cmd.DisableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
                     context.ExecuteCommandBuffer(cmd);
                     cmd.Clear();
-                    bool overrideMaterial = isSceneOverrideActive || attributeDebugIndex != VertexAttributeDebugMode.None;
+                    bool overrideMaterial = DebugHandler.IsSceneOverrideActive || DebugHandler.IsVertexAttributeOverrideActive;
 
                     RenderObjectWithDebug(context, m_ShaderTagIdList, ref renderingData, filterSettings, sortFlags, overrideMaterial);
                 }

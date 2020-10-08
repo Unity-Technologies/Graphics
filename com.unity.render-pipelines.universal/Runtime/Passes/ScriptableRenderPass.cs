@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEditor.Rendering;
+using UnityEditor.Rendering.Universal;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
@@ -49,11 +50,6 @@ namespace UnityEngine.Rendering.Universal
     [MovedFrom("UnityEngine.Rendering.LWRP")] public abstract partial class ScriptableRenderPass
     {
         public RenderPassEvent renderPassEvent { get; set; }
-        public DebugMaterialIndex debugMaterialIndex { get; set; }
-        public LightingDebugMode lightingDebugMode { get; set; }
-        public VertexAttributeDebugMode attributeDebugIndex { get; set; }
-        public DebugLightingFeature debugLightingFeatureMask { get; set; }
-        public DebugMipInfo mipInfoMode { get; set; }
 
         public RenderTargetIdentifier[] colorAttachments
         {
@@ -113,6 +109,8 @@ namespace UnityEngine.Rendering.Universal
                 return s_ReplacementMaterial;
             }
         }
+
+        public DebugHandler DebugHandler { get; set; }
 
         public ScriptableRenderPass()
         {
