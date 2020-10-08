@@ -121,19 +121,29 @@ namespace UnityEngine.Rendering.Universal
             CameraCaptureBridge.enabled = false;
         }
 
+#if UNITY_2021_1_OR_NEWER
         protected override void Render(ScriptableRenderContext renderContext,  Camera[] cameras)
         {
             Render(renderContext, new List<Camera>(cameras));
         }
+#endif
 
+#if UNITY_2021_1_OR_NEWER
         protected override void Render(ScriptableRenderContext renderContext, List<Camera> cameras)
+#else
+        protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
+#endif
         {
 #if UNITY_2020_2_OR_NEWER
             // C#8 feature, only in >= 2020.2
             using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.UniversalRenderTotal));
 #endif
 
+#if UNITY_2021_1_OR_NEWER
             BeginContextRendering(renderContext, cameras);
+#else
+            BeginFrameRendering(renderContext, cameras);
+#endif
 
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
@@ -142,8 +152,14 @@ namespace UnityEngine.Rendering.Universal
             // Update XR MSAA level per frame.
             XRSystem.UpdateMSAALevel(asset.msaaSampleCount);
 #endif
+
+
             SortCameras(cameras);
+#if UNITY_2021_1_OR_NEWER
             for (int i = 0; i < cameras.Count; ++i)
+#else
+            for (int i = 0; i < cameras.Length; ++i)
+#endif
             {
                 var camera = cameras[i];
                 if (IsGameCamera(camera))
@@ -163,8 +179,11 @@ namespace UnityEngine.Rendering.Universal
                     EndCameraRendering(renderContext, camera);
                 }
             }
-
+#if UNITY_2021_1_OR_NEWER
             EndContextRendering(renderContext, cameras);
+#else
+            EndFrameRendering(renderContext, cameras);
+#endif
         }
 
         /// <summary>
@@ -364,7 +383,7 @@ namespace UnityEngine.Rendering.Universal
                     m_XRSystem.UpdateCameraData(ref baseCameraData, baseCameraData.xr);
                 }
 #endif
-                
+
                 BeginCameraRendering(context, baseCamera);
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
                 //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.

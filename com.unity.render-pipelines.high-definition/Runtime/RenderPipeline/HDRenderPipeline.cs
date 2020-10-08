@@ -1566,24 +1566,34 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+#if UNITY_2021_1_OR_NEWER
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
             Render(renderContext, new List<Camera>(cameras));
         }
+#endif
 
         /// <summary>
         /// RenderPipeline Render implementation.
         /// </summary>
         /// <param name="renderContext">Current ScriptableRenderContext.</param>
         /// <param name="cameras">List of cameras to render.</param>
+#if UNITY_2021_1_OR_NEWER
         protected override void Render(ScriptableRenderContext renderContext, List<Camera> cameras)
+#else
+        protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
+#endif
         {
 #if UNITY_EDITOR
             if (!m_ResourcesInitialized)
                 return;
 #endif
 
+#if UNITY_2021_1_OR_NEWER
             if (!m_ValidAPI || cameras.Count == 0)
+#else
+            if (!m_ValidAPI || cameras.Length == 0)
+#endif
                 return;
 
             GetOrCreateDefaultVolume();
@@ -1592,7 +1602,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // This function should be called once every render (once for all camera)
             LightLoopNewRender();
 
+#if UNITY_2021_1_OR_NEWER
             BeginContextRendering(renderContext, cameras);
+#else
+            BeginFrameRendering(renderContext, cameras);
+
+#endif
 
             // Check if we can speed up FrameSettings process by skiping history
             // or go in detail if debug is activated. Done once for all renderer.
@@ -2306,7 +2321,13 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_EnableRenderGraph)
                 m_RenderGraph.EndFrame();
             m_XRSystem.ReleaseFrame();
-            UnityEngine.Rendering.RenderPipeline.EndContextRendering(renderContext, cameras);
+
+#if UNITY_2021_1_OR_NEWER
+            EndContextRendering(renderContext, cameras);
+#else
+            EndFrameRendering(renderContext, cameras);
+#endif
+
         }
 
 
@@ -2430,7 +2451,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (DebugManager.instance.displayRuntimeUI
 #if UNITY_EDITOR
                     || DebugManager.instance.displayEditorUI
-    #endif
+#endif
                 )
                 m_CurrentDebugDisplaySettings.UpdateAveragedProfilerTimings();
 
