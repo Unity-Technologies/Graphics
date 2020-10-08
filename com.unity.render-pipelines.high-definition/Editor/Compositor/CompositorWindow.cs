@@ -190,12 +190,17 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             GraphData.onSaveGraph -= MarkShaderAsDirty;
 
             Undo.undoRedoPerformed -= UndoCallback;
-            s_SelectionIndex = m_Editor.selectionIndex;
+            s_SelectionIndex = m_Editor ? m_Editor.selectionIndex : -1;
         }
 
         void UndoCallback()
         {
             // Undo-redo might change the layer order, so we need to redraw the compositor UI and also refresh the layer setup
+            if (!m_Editor)
+            {
+                return;
+            }
+
             m_Editor.CacheSerializedObjects();
             m_RequiresRedraw = true;
             s_SelectionIndex = m_Editor.selectionIndex;

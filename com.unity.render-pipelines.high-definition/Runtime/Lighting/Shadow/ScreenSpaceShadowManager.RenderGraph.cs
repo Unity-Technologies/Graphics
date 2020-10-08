@@ -156,9 +156,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderLightScreenSpaceShadows(renderGraph, hdCamera, prepassOutput, depthBuffer, normalBuffer, motionVectorsBuffer, rayCountTexture, screenSpaceShadowTexture);
                 }
 
-                // We render the debug view
-                // TODO: The texture is currently unused, make usage of it
-                EvaluateShadowDebugView(renderGraph, hdCamera, screenSpaceShadowTexture);
+                // We render the debug view, if the texture is not used, it is not evaluated anyway
+                TextureHandle screenSpaceShadowDebug = EvaluateShadowDebugView(renderGraph, hdCamera, screenSpaceShadowTexture);
+                PushFullScreenDebugTexture(m_RenderGraph, screenSpaceShadowDebug, FullScreenDebugMode.ScreenSpaceShadows);
 
                 return screenSpaceShadowTexture;
             }

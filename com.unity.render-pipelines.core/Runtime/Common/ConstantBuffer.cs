@@ -160,7 +160,6 @@ namespace UnityEngine.Rendering
             public void UpdateData(CommandBuffer cmd, in CBType data)
             {
                 m_Data[0] = data;
-                cmd.SetBufferData(m_GPUConstantBuffer, m_Data);
 #if UNITY_2021_1_OR_NEWER
                 cmd.SetBufferData(m_GPUConstantBuffer, m_Data);
 #else
