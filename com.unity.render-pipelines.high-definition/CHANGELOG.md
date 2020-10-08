@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a rough refraction option on planar reflections.
 - Added scalability settings for the planar reflection resolution.
 - Added tests for AOV stacking and UI rendering in the graphics compositor.
+- Added a help button on the volume component toolbar for documentation.
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
