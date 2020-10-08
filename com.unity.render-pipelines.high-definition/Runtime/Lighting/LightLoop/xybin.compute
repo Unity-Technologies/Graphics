@@ -17,7 +17,7 @@
 
 #if (PASS == BIN_COARSE_XY)
     // 1x list for all entites (sorted by category, we concatenate lists of all views).
-    RWStructuredBuffer<float4> _xyBoundsBuffer : register(u0); // {x_min, x_max, y_min, y_max}
+    StructuredBuffer<float4> _xyBoundsBuffer : register(t0); // {x_min, x_max, y_min, y_max}
 #endif
 
 /* ------------------------------ Outputs ----------------------------------- */
@@ -77,12 +77,12 @@ void BinCoarseXY(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 {
     const uint2 t   = threadID.xy; // 8x8 block for locality (reduce divergence)
     const uint  g   = groupID.x;
-    const uint  eye = groupID.y;
-    const uint  cat = groupID.z;
+    const uint  cat = groupID.y;
+    const uint  eye = groupID.z;
 
     const uint2 groupCoord       = CoordinateFromIndex(g, _BinCoarseXYDispatchGroupCountX);
     const uint2 tileCoord        = groupCoord * GROUP_SIZE + t;
-    const uint2 clampedTileCoord = min(clampedTileCoord, (uint2)_CoarseTileBufferDimensions - 1); // Stay within bounds
+    const uint2 clampedTileCoord = min(tileCoord, (uint2)_CoarseTileBufferDimensions - 1); // Stay within bounds
 
     // Helper threads may perform the same computation on valid data,
     // but do not store the results of the computation to memory.

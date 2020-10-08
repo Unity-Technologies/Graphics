@@ -97,6 +97,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _xyBoundsBuffer = Shader.PropertyToID("_xyBoundsBuffer");
         public static readonly int _wBoundsBuffer = Shader.PropertyToID("_wBoundsBuffer");
         public static readonly int _zBinBuffer = Shader.PropertyToID("_zBinBuffer");
+        public static readonly int _CoarseTileBuffer = Shader.PropertyToID("_CoarseTileBuffer");
+        public static readonly int _FineTileBuffer = Shader.PropertyToID("_FineTileBuffer");
         public static readonly int _LightVolumeData = Shader.PropertyToID("_LightVolumeData");
         public static readonly int _EntityBoundsBuffer = Shader.PropertyToID("_EntityBoundsBuffer");
         public static readonly int g_vLightList = Shader.PropertyToID("g_vLightList");
