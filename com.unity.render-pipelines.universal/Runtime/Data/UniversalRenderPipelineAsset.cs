@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_SupportsTerrainHoles = true;
 
         // Quality settings
-        [SerializeField] bool m_SupportsHDR = false;
+        [SerializeField] bool m_SupportsHDR = true;
         [SerializeField] MsaaQuality m_MSAA = MsaaQuality.Disabled;
         [SerializeField] float m_RenderScale = 1.0f;
         // TODO: Shader Quality Tiers

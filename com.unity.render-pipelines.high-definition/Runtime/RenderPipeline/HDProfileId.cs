@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ScreenSpaceShadows,
         ScreenSpaceShadowsDebug,
         BuildLightList,
+        GenerateLightAABBs,
         ContactShadows,
         BlitToFinalRTDevBuildOnly,
         Distortion,
@@ -115,6 +116,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // RT Cluster
         RaytracingBuildCluster,
         RaytracingCullLights,
+        RaytracingDebugCluster,
         // RTR
         RaytracingReflectionDirectionGeneration,
         RaytracingReflectionEvaluation,
@@ -157,11 +159,15 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderShadowMaps,
         RenderMomentShadowMaps,
         RenderPunctualShadowMaps,
+        RenderCachedPunctualShadowMaps,
         RenderDirectionalShadowMaps,
         RenderAreaShadowMaps,
+        RenderCachedAreaShadowMaps,
         RenderEVSMShadowMaps,
         RenderEVSMShadowMapsBlur,
         RenderEVSMShadowMapsCopyToAtlas,
+        BlitPunctualMixedCachedShadowMaps,
+        BlitAreaMixedCachedShadowMaps,
 
         // Profile sampler for tile pass
         LightLoopPushGlobalParameters,
@@ -189,7 +195,6 @@ namespace UnityEngine.Rendering.HighDefinition
         UpsampleLowResTransparent,
 
         // Post-processing
-        GuardBandClear,
         AlphaCopy,
         StopNaNs,
         FixedExposure,

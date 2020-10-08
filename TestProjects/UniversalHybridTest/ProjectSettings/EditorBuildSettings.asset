@@ -32,4 +32,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/SampleScenes/TestSkinnedMeshes.unity
     guid: 89a2c7e6bbb468049a7fc3504d2d302e
+  - enabled: 1
+    path: Assets/SampleScenes/TestLightmaps.unity
+    guid: d0a3bd29f260c7e47b5fe138fa9e23f9
   m_configObjects: {}

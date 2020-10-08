@@ -16,16 +16,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     delegate void OnPrimaryMasterChanged();
 
-    static class ListSliceUtility
-    {
-        // Ideally, we should build a non-yield return, struct version of Slice
-        public static IEnumerable<T> Slice<T>(this List<T> list, int start, int end)
-        {
-            for (int i = start; i < end; i++)
-                yield return list[i];
-        }
-    }
-
     class PreviewManager : IDisposable
     {
         GraphData m_Graph;
@@ -666,8 +656,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             using (var previewsToCompile = PooledHashSet<PreviewRenderData>.Get())
             {
                 // master node compile is first in the priority list, as it takes longer than the other previews
-                if ((m_PreviewsCompiling.Count + previewsToCompile.Count < m_MaxPreviewsCompiling) &&
-                    ((Shader.globalRenderPipeline != null) && (Shader.globalRenderPipeline.Length > 0)))    // master node requires an SRP
+                if (m_PreviewsCompiling.Count + previewsToCompile.Count < m_MaxPreviewsCompiling)
                 {
                     if (m_PreviewsNeedsRecompile.Contains(m_MasterRenderData) &&
                         !m_PreviewsCompiling.Contains(m_MasterRenderData))
