@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix [Case 1114281](https://fogbugz.unity3d.com/f/cases/1114281/)
 - Fix [Case 1268354](https://fogbugz.unity3d.com/f/cases/1268354/)
 - Forbid creation of context in VisualEffectSubgraphBlock through edge dropping. No context should be allowed.
+- Fix [Case 1281861](https://issuetracker.unity3d.com/product/unity/issues/guid/1281861/)
 
 ## [8.2.0] - 2020-07-08
 
