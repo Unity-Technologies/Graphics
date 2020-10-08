@@ -76,8 +76,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
         private List<SerializedObject> m_properties = new List<SerializedObject>();
 
         static Func<int, bool> filterRenderPassEvent = x =>
-            // Return all events higher or equal than before rendering opaques
-            x >= (int) RenderPassEvent.BeforeRenderingOpaques &&
+            // Return all events higher or equal than before rendering prepasses
+            x >= (int) RenderPassEvent.BeforeRenderingPrepasses &&
             // filter obsolete events
             typeof(RenderPassEvent).GetField(Enum.GetName(typeof(RenderPassEvent), x))?.GetCustomAttribute(typeof(ObsoleteAttribute)) == null;
 
