@@ -139,6 +139,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed backface selection on some shader not ignore correctly.
 - Disable quad overdraw on ps4.
 - Fixed error when resizing the graphics compositor's output and when re-adding a compositor in the scene
+- Fixed wrong error message when fixing DXR resources from Wizard.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
