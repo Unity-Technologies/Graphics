@@ -123,6 +123,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Use SystemInfo to check if multiview is supported instead of being platform hardcoded
 - Default attachment setup behaviour for ScriptableRenderPasses that execute before rendering opaques is now set use current the active render target setup. This improves performance in some situations.
 - Combine XR occlusion meshes into one when using single-pass (multiview or instancing) to reduce draw calls and state changes.
+- Universal built-in shaders now use local material keywords. This reduced the amount of global keywords used by the pipeline resulting in more space for global user keywords.
+- Universal now compiles different sets of vertex and fragment shader variants for platforms that support it. This reduces the amount of shader variants compiled and included in the build.
 
 ### Fixed
 - Fixed an issue that caused WebGL to render blank screen when Depth texture was enabled [case 1240228](https://issuetracker.unity3d.com/issues/webgl-urp-scene-is-rendered-black-in-webgl-build-when-depth-texture-is-enabled)
@@ -286,7 +288,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where depth and depth/normal of grass isn't rendered to depth texture.
 - Fixed an issue that impacted MSAA performance on iOS/Metal [case 1219054](https://issuetracker.unity3d.com/issues/urp-ios-msaa-has-a-bigger-negative-impact-on-performance-when-using-urp-compared-to-built-in-rp)
 - Fixed an issue that caused a warning to be thrown about temporary render texture not found when user calls ConfigureTarget(0). [case 1220871](https://issuetracker.unity3d.com/issues/urp-scriptable-render-passes-which-dont-require-a-bound-render-target-triggers-render-target-warning)
-
+- Fixed performance issues in the C# shader stripper.
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
