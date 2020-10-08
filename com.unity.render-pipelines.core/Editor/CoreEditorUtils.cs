@@ -483,7 +483,12 @@ namespace UnityEditor.Rendering
             if (hasMoreOptions != null)
             {
                 moreOptionsRect = backgroundRect;
+
                 moreOptionsRect.x += moreOptionsRect.width - 16 - 1 - 16 - 5;
+
+                if (!string.IsNullOrEmpty(documentationURL))
+                    moreOptionsRect.x -= 16 + 7;
+
                 moreOptionsRect.height = 15;
                 moreOptionsRect.width = 16;
             }
@@ -530,12 +535,8 @@ namespace UnityEditor.Rendering
             if (!String.IsNullOrEmpty(documentationURL))
             {
                 var documentationRect = menuRect;
-
                 documentationRect.x -= 16 + 5;
                 documentationRect.y -= 1;
-
-                if (hasMoreOptions != null)
-                    documentationRect.x -= 16 + 5;
 
                 var documentationTooltip = $"Open Reference for {title.text}.";
                 var documentationIcon = new GUIContent(EditorGUIUtility.TrIconContent("_Help").image, documentationTooltip);

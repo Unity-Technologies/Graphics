@@ -121,7 +121,7 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>
-        /// Override this property to offer a link to documentation for this volume.
+        /// Override this property to show a link to documentation on the editor toolbar.
         /// </summary>
         public virtual string documentationURL => null;
 
