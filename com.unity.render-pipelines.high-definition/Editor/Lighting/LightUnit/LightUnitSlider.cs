@@ -510,6 +510,11 @@ namespace UnityEditor.Rendering.HighDefinition
         protected float ValueToSlider(float x) => Mathf.Log((x - m_ExponentialConstraints.x) / m_ExponentialConstraints.y) / m_ExponentialConstraints.z;
         protected float SliderToValue(float x) => m_ExponentialConstraints.x + m_ExponentialConstraints.y * Mathf.Exp(m_ExponentialConstraints.z * x);
 
+        protected override float GetPositionOnSlider(float value, Vector2 valueRange)
+        {
+            return ValueToSlider(value);
+        }
+
         static Texture2D GetKelvinGradientTexture(LightEditor.Settings settings)
         {
             if (s_KelvinGradientTexture == null)
