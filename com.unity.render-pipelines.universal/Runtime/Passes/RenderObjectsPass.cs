@@ -122,7 +122,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                if (DebugHandler.IsDebugMaterialActive || DebugHandler.IsSceneOverrideActive)
+                if((DebugHandler != null) &&
+                   (DebugHandler.IsDebugMaterialActive || DebugHandler.IsSceneOverrideActive))
                 {
                     if(DebugHandler.AreShadowCascadesActive)
                         // we disable cubemap reflections, too distracting (in TemplateLWRP for ex.)
