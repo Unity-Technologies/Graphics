@@ -66,6 +66,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField, Reload("Shaders/2D/Shadow2DRemoveSelf.shader")]
         Shader m_RemoveSelfShadowShader = null;
 
+        [SerializeField, Reload("Shaders/Utils/FallbackError.shader")]
+        Shader m_FallbackErrorShader;
+
         [SerializeField, Reload("Runtime/Data/PostProcessData.asset")]
         PostProcessData m_PostProcessData = null;
 
