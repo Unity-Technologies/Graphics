@@ -65,7 +65,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         [FormerlySerializedAs("m_LightVolumeOpacity")]
         [SerializeField] float m_LightVolumeIntensity = 1.0f;
-        [SerializeField] bool  m_LightVolumeIntensityEnabled = false;
+        [SerializeField] bool m_LightVolumeIntensityEnabled = false;
         [SerializeField] int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
 
         [SerializeField] Sprite m_LightCookieSprite = null;
@@ -94,7 +94,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] bool m_ShadowVolumeIntensityEnabled = false;
         [Range(0, 1)]
         [SerializeField] float m_ShadowVolumeIntensity = 0.0f;
-        
+
 
 
         // Transients
@@ -137,9 +137,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public float shadowIntensity { get => m_ShadowIntensity; set => m_ShadowIntensity = Mathf.Clamp01(value); }
 
         /// <summary>
+        /// Specifies that the shadows are enabled
+        /// </summary>
+        public bool shadowsEnabled { get => m_ShadowIntensityEnabled; set => m_ShadowIntensityEnabled = value; }
+
+        /// <summary>
         /// Specifies the darkness of the shadow
         /// </summary>
         public float shadowVolumeIntensity { get => m_ShadowVolumeIntensity; set => m_ShadowVolumeIntensity = Mathf.Clamp01(value); }
+
+        /// <summary>
+        /// Specifies that the volumetric shadows are enabled
+        /// </summary>
+        public bool volumetricShadowsEnabled { get => m_ShadowVolumeIntensityEnabled; set => m_ShadowVolumeIntensityEnabled = value; }
 
         /// <summary>
         /// The lights current color
@@ -158,6 +168,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [Obsolete]
         public float volumeOpacity => m_LightVolumeIntensity;
         public float volumeIntensity => m_LightVolumeIntensity;
+
+        public bool volumeIntensityEnabled { get => m_LightVolumeIntensityEnabled; set => m_LightVolumeIntensityEnabled = value;}
         public Sprite lightCookieSprite => m_LightCookieSprite;
         public float falloffIntensity => m_FalloffIntensity;
         public bool useNormalMap => m_UseNormalMap;

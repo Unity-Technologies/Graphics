@@ -58,8 +58,7 @@ Shader "Hidden/Light2d-Point-Volumetric"
             TEXTURE2D(_NormalMap);
             SAMPLER(sampler_NormalMap);
 
-            half4   _LightColor;
-            half    _VolumeIntensity;
+            half4   _VolumeColor;
             float4   _LightPosition;
             float4x4 _LightInvMatrix;
             float4x4 _LightNoRotInvMatrix;
@@ -125,14 +124,14 @@ Shader "Hidden/Light2d-Point-Volumetric"
 
 #if USE_POINT_LIGHT_COOKIES
                 half4 cookieColor = SAMPLE_TEXTURE2D(_PointLightCookieTex, sampler_PointLightCookieTex, input.lookupUV);
-                half4 lightColor = cookieColor * _LightColor * attenuation;
+                half4 lightColor = cookieColor * _VolumeColor * attenuation;
 #else
-                half4 lightColor = _LightColor * attenuation;
+                half4 lightColor = _VolumeColor * attenuation;
 #endif
 
                 APPLY_SHADOWS(input, lightColor, _ShadowVolumeIntensity);
 
-                return _VolumeIntensity * lightColor * _InverseHDREmulationScale;
+                return lightColor * _InverseHDREmulationScale;
             }
             ENDHLSL
         }

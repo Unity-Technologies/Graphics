@@ -300,9 +300,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
             if (m_VolumetricSettingsFoldout.value)
             {
                 EditorGUI.indentLevel++;
-                //EditorGUILayout.PropertyField(m_VolumetricIntensity, Styles.generalVolumeIntensity);
 
-                DrawToggleProperty(new GUIContent("Intensity"), m_VolumetricIntensityEnabled, m_VolumetricIntensity);
+                DrawToggleProperty(Styles.generalVolumeIntensity, m_VolumetricIntensityEnabled, m_VolumetricIntensity);
                 if (m_VolumetricIntensity.floatValue < 0)
                     m_VolumetricIntensity.floatValue = 0;
 
@@ -365,9 +364,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         void DrawToggleProperty(GUIContent label, SerializedProperty boolProperty, SerializedProperty property)
         {
-            GUIStyle style = GUI.skin.box;
-
-            float savedLabelWidth = EditorGUIUtility.labelWidth;
             int savedIndentLevel = EditorGUI.indentLevel;
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PrefixLabel(label);
@@ -381,7 +377,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.EndHorizontal();
-            EditorGUIUtility.labelWidth = savedLabelWidth;
             EditorGUI.indentLevel = savedIndentLevel;
         }
 
@@ -444,6 +439,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         void DrawGlobalLight(SerializedObject serializedObject)
         {
             m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.generalSortingLayerPrefixLabel, AnalyticsTrackChanges);
+            DrawBlendingGroup();
         }
 
         void DrawSpotLight(SerializedObject serializedObject)

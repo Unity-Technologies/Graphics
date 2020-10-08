@@ -53,7 +53,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private static readonly int k_FalloffDistanceID = Shader.PropertyToID("_FalloffDistance");
         private static readonly int k_FalloffOffsetID = Shader.PropertyToID("_FalloffOffset");
         private static readonly int k_LightColorID = Shader.PropertyToID("_LightColor");
-        private static readonly int k_VolumeIntensityID = Shader.PropertyToID("_VolumeIntensity");
+        private static readonly int k_VolumeColorID = Shader.PropertyToID("_VolumeColor");
         private static readonly int k_CookieTexID = Shader.PropertyToID("_CookieTex");
         private static readonly int k_FalloffLookupID = Shader.PropertyToID("_FalloffLookup");
         private static readonly int k_LightPositionID = Shader.PropertyToID("_LightPosition");
@@ -161,7 +161,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     if (lightMesh == null)
                         continue;
 
-                    ShadowRendering.RenderShadows(pass, renderingData, cmd, layerToRender, light, light.shadowIntensity, renderTexture, renderTexture);
+                    ShadowRendering.RenderShadows(pass, renderingData, cmd, layerToRender, light, ShadowRendering.k_ShadowIntensityID, light.shadowsEnabled ? light.shadowIntensity : 0, renderTexture, renderTexture);
 
                     if (!renderedAnyLight && rtNeedsClear)
                     {
@@ -177,7 +177,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     cmd.SetGlobalFloat(k_FalloffDistanceID, light.shapeLightFalloffSize);
                     cmd.SetGlobalVector(k_FalloffOffsetID, light.shapeLightFalloffOffset);
                     cmd.SetGlobalColor(k_LightColorID, light.intensity * light.color);
-                    cmd.SetGlobalFloat(k_VolumeIntensityID, light.volumeIntensity);
+                    cmd.SetGlobalColor(k_VolumeColorID, light.volumeIntensity * light.color);
 
                     if (light.useNormalMap || light.lightType == Light2D.LightType.Point)
                         SetPointLightShaderGlobals(cmd, light);
@@ -216,7 +216,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     var topMostLayer = light.GetTopMostLitLayer();
                     if (layerToRender == topMostLayer)
                     {
-                        if (light != null && light.lightType != Light2D.LightType.Global && light.volumeIntensity > 0.0f && light.blendStyleIndex == blendStyleIndex && light.IsLitLayer(layerToRender))
+                        if (light != null && light.lightType != Light2D.LightType.Global && light.volumeIntensity > 0 && light.volumeIntensityEnabled && light.blendStyleIndex == blendStyleIndex && light.IsLitLayer(layerToRender))
                         {
                             var lightVolumeMaterial = pass.rendererData.GetLightMaterial(light, true);
                             if (lightVolumeMaterial != null)
@@ -224,7 +224,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                                 var lightMesh = light.lightMesh;
                                 if (lightMesh != null)
                                 {
-                                    ShadowRendering.RenderShadows(pass, renderingData, cmd, layerToRender, light, light.shadowVolumeIntensity, renderTexture, depthTexture);
+                                    ShadowRendering.RenderShadows(pass, renderingData, cmd, layerToRender, light, ShadowRendering.k_ShadowVolumeIntensityID, light.volumetricShadowsEnabled ? light.shadowVolumeIntensity : 0, renderTexture, depthTexture);
 
                                     if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                                         cmd.SetGlobalTexture(k_CookieTexID, light.lightCookieSprite.texture);
@@ -233,7 +233,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                                     cmd.SetGlobalFloat(k_FalloffDistanceID, light.shapeLightFalloffSize);
                                     cmd.SetGlobalVector(k_FalloffOffsetID, light.shapeLightFalloffOffset);
                                     cmd.SetGlobalColor(k_LightColorID, light.intensity * light.color);
-                                    cmd.SetGlobalFloat(k_VolumeIntensityID, light.volumeIntensity);
+                                    cmd.SetGlobalColor(k_VolumeColorID, light.volumeIntensity * light.color);
 
                                     // Is this needed
                                     if (light.useNormalMap || light.lightType == Light2D.LightType.Point)
