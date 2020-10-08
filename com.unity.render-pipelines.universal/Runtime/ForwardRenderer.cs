@@ -361,6 +361,26 @@ namespace UnityEngine.Rendering.Universal
                 ConfigureCameraTarget(activeColorRenderTargetId, activeDepthRenderTargetId);
             }
 
+            int count = activeRenderPassQueue.Count;
+
+            if (!requiresDepthPrepass)
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    var pass = activeRenderPassQueue[i];
+                    if (pass != null && pass.onlyIfDepthPrepass)
+                    {
+                        activeRenderPassQueue[i] = null;
+                    }
+                }
+            }
+
+            for (int i = count - 1; i >= 0; i--)
+            {
+                if(activeRenderPassQueue[i] == null)
+                    activeRenderPassQueue.RemoveAt(i);
+            }
+
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 
             if (mainLightShadows)

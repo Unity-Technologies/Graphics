@@ -84,6 +84,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool overrideCameraTarget { get; set; }
         internal bool isBlitRenderPass { get; set; }
+        internal bool onlyIfDepthPrepass { get; set; }
 
         RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget};
         RenderTargetIdentifier m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
