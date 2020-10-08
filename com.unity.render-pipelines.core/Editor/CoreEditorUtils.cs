@@ -535,9 +535,13 @@ namespace UnityEditor.Rendering
                 documentationRect.y -= 1;
 
                 if (hasMoreOptions != null)
-                    documentationRect.x -= 16 + 8;
+                    documentationRect.x -= 16 + 10;
 
-                if (GUI.Button(documentationRect, GUIContent.none, EditorStyles.miniButton))
+                var documentationTooltip = $"Open Reference for {title.text}.";
+                var documentationIcon = new GUIContent(EditorGUIUtility.TrIconContent("_Help").image, documentationTooltip);
+                var documentationStyle = new GUIStyle("IconButton");
+
+                if (GUI.Button(documentationRect, documentationIcon, documentationStyle))
                     System.Diagnostics.Process.Start(documentationURL);
             }
 
