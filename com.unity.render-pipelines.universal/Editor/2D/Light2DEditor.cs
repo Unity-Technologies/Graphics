@@ -106,6 +106,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static GUIContent shapeLightParametricRadius = EditorGUIUtility.TrTextContent("Radius", "Adjust the size of the object");
             public static GUIContent shapeLightParametricSides = EditorGUIUtility.TrTextContent("Sides", "Adjust the shapes number of sides");
 
+            public static GUIContent deprecatedParametricLightWarning = EditorGUIUtility.TrTextContentWithIcon("Parametic Lights have been deprecated. To continue, upgrade all of your Parametric Lights to Freeform Lights to enjoy similar light functionalities.", MessageType.Warning);
+            public static GUIContent deprecatedParametricLightInstructions = EditorGUIUtility.TrTextContent("Alternatively, you may choose to upgrade later from the menu. Edit > Render Pipeline > Universal Render Pipeline > Upgrade Scene to Parametric Lights");
+
             public static GUIContent renderPipelineUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("Universal scriptable renderpipeline asset must be assigned in Graphics Settings or Quality Settings.", MessageType.Warning);
             public static GUIContent asset2DUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("2D renderer data must be assigned to your universal render pipeline asset or camera.", MessageType.Warning);
         }
@@ -428,11 +431,68 @@ namespace UnityEditor.Experimental.Rendering.Universal
             EditorGUI.EndProperty();
         }
 
-
         void DrawGlobalLight(SerializedObject serializedObject)
         {
             m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.generalSortingLayerPrefixLabel, AnalyticsTrackChanges);
             DrawBlendingGroup();
+        }
+
+        void DrawParametricDeprecated(SerializedObject serializedObject)
+        {
+            EditorGUILayout.HelpBox(Styles.deprecatedParametricLightWarning);
+            EditorGUILayout.Space();
+            if(GUILayout.Button(new GUIContent("Upgrade All Parametric Lights")))
+            {
+                Renderer2DUpgrader.UpgradeParametricLight((Light2D)serializedObject.targetObject);
+            }
+            EditorGUILayout.Space();
+            GUILayout.Button(new GUIContent("Upgrade Project Parametric Light"));
+            EditorGUILayout.Space();
+            GUILayout.Button(new GUIContent("Upgrade Scene Parametric Lights"));
+            EditorGUILayout.Space();
+            EditorGUILayout.HelpBox(Styles.deprecatedParametricLightInstructions);  
+        }
+
+        bool DrawLightCommon()
+        {
+            UniversalRenderPipelineAsset asset = UniversalRenderPipeline.asset;
+
+            if (asset != null)
+            {
+                if (!Light2DEditorUtility.IsUsing2DRenderer())
+                {
+                    EditorGUILayout.HelpBox(Styles.asset2DUnassignedWarning);
+                    return false;
+                }
+            }
+            else
+            {
+                EditorGUILayout.HelpBox(Styles.renderPipelineUnassignedWarning);
+                return false;
+            }
+            EditorGUILayout.Space();
+
+            var meshChanged = false;
+            Rect lightTypeRect = EditorGUILayout.GetControlRect();
+            EditorGUI.BeginProperty(lightTypeRect, GUIContent.none, m_LightType);
+            EditorGUI.BeginChangeCheck();
+            int newLightType = EditorGUI.Popup(lightTypeRect, Styles.generalLightType, m_LightType.intValue - 1, Styles.lightTypeOptions);  // -1 is a bit hacky its to support compatibiltiy. We need something better.
+            if (EditorGUI.EndChangeCheck())
+            {
+                m_LightType.intValue = newLightType + 1; // -1 is a bit hacky its to support compatibiltiy. We need something better.
+                meshChanged = true;
+            }
+            EditorGUI.EndProperty();
+
+            // Color and intensity
+            EditorGUILayout.PropertyField(m_LightColor, Styles.generalLightColor);
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(m_LightIntensity, Styles.generalLightIntensity);
+            if (EditorGUI.EndChangeCheck())
+                m_LightIntensity.floatValue = Mathf.Max(m_LightIntensity.floatValue, 0);
+
+            return meshChanged;
+
         }
 
         void DrawSpotLight(SerializedObject serializedObject)
@@ -673,50 +733,18 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         public override void OnInspectorGUI()
         {
-            UniversalRenderPipelineAsset asset = UniversalRenderPipeline.asset;
-
-            if (asset != null)
-            {
-                if (!Light2DEditorUtility.IsUsing2DRenderer())
-                {
-                    EditorGUILayout.HelpBox(Styles.asset2DUnassignedWarning);
-                    return;
-                }
-            }
-            else
-            {
-                EditorGUILayout.HelpBox(Styles.renderPipelineUnassignedWarning);
-                return;
-            }
-
-            EditorGUILayout.Space();
+            var meshChanged = false;
 
             serializedObject.Update();
 
-            var meshChanged = false;
-            Rect lightTypeRect = EditorGUILayout.GetControlRect();
-            EditorGUI.BeginProperty(lightTypeRect, GUIContent.none, m_LightType);
-            EditorGUI.BeginChangeCheck();
-            int newLightType = EditorGUI.Popup(lightTypeRect, Styles.generalLightType, m_LightType.intValue - 1, Styles.lightTypeOptions);  // -1 is a bit hacky its to support compatibiltiy. We need something better.
-            if (EditorGUI.EndChangeCheck())
-            {
-                m_LightType.intValue = newLightType + 1; // -1 is a bit hacky its to support compatibiltiy. We need something better.
-                meshChanged = true;
-            }
-            EditorGUI.EndProperty();
-
-            // Color and intensity
-            EditorGUILayout.PropertyField(m_LightColor, Styles.generalLightColor);
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(m_LightIntensity, Styles.generalLightIntensity);
-            if (EditorGUI.EndChangeCheck())
-                m_LightIntensity.floatValue = Mathf.Max(m_LightIntensity.floatValue, 0);
-
+            if(m_LightType.intValue != (int)Light2D.DeprecatedLightType.Parametric)
+                meshChanged = DrawLightCommon();    
 
             switch (m_LightType.intValue)
             {
                 case (int)Light2D.LightType.Point:
                     {
+
                         DrawSpotLight(serializedObject);
                     }
                     break;
@@ -732,14 +760,16 @@ namespace UnityEditor.Experimental.Rendering.Universal
                     break;
                 case (int)Light2D.LightType.Global:
                     {
+
                         DrawGlobalLight(serializedObject);
                     }
                     break;
+                case (int)Light2D.DeprecatedLightType.Parametric:
+                    {
+                        DrawParametricDeprecated(serializedObject);
+                    }
+                    break;
             }
-
-
-
-
 
             //if (m_LightType.intValue != (int)Light2D.LightType.Global)
             //    EditorGUILayout.PropertyField(m_OverlapOperation, Styles.generalLightOverlapOperation);
@@ -750,8 +780,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             //    EditorGUILayout.HelpBox(Styles.generalLightNoLightEnabled);
             //else
             //    EditorGUILayout.IntPopup(m_BlendStyleIndex, m_BlendStyleNames, m_BlendStyleIndices, Styles.generalBlendStyle);
-
-
 
             AnalyticsTrackChanges(serializedObject);
             if (serializedObject.ApplyModifiedProperties())

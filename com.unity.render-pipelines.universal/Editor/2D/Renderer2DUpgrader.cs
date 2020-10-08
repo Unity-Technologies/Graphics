@@ -26,6 +26,50 @@ namespace UnityEditor.Experimental.Rendering.Universal
             }
         }
 
+
+        public static void UpgradeParametricLight(Light2D light)
+        {
+            if(light.lightType == (Light2D.LightType)Light2D.DeprecatedLightType.Parametric)
+            {
+                light.lightType = Light2D.LightType.Freeform;
+
+                float radius = light.shapeLightParametricRadius;
+                float angle = light.shapeLightParametricAngleOffset;
+                int   sides = light.shapeLightParametricSides;
+
+                var angleOffset = Mathf.PI / 2.0f + Mathf.Deg2Rad * angle;
+                if (sides < 3)
+                {
+                    radius = 0.70710678118654752440084436210485f * radius;
+                    sides = 4;
+                }
+
+                if (sides == 4)
+                {
+                    angleOffset = Mathf.PI / 4.0f + Mathf.Deg2Rad * angle;
+                }
+
+
+                var radiansPerSide = 2 * Mathf.PI / sides;
+                var min = new Vector3(float.MaxValue, float.MaxValue, 0);
+                var max = new Vector3(float.MinValue, float.MinValue, 0);
+
+
+                Vector3[] shapePath = new Vector3[sides];
+                for (var i = 0; i < sides; i++)
+                {
+                    var endAngle = (i + 1) * radiansPerSide;
+                    var extrudeDir = new Vector3(Mathf.Cos(endAngle + angleOffset), Mathf.Sin(endAngle + angleOffset), 0);
+                    var endPoint = radius * extrudeDir;
+
+                    shapePath[i] = endPoint;
+                }
+
+                light.shapePath = shapePath;
+                light.UpdateMesh();
+            }
+        }
+
         static void UpgradeGameObject(GameObject go)
         {
             Renderer[] spriteRenderers = go.GetComponentsInChildren<Renderer>(true);

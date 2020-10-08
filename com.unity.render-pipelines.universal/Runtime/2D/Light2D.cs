@@ -29,7 +29,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         /// </summary>
         public enum LightType
         {
-            //Parametric = 0,
+            Parametric = 0,
             Freeform = 1,
             Sprite = 2,
             Point = 3,

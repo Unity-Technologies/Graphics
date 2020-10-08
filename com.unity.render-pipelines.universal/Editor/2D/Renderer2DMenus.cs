@@ -103,7 +103,12 @@ namespace UnityEditor.Experimental.Rendering.Universal
             return Light2DEditorUtility.IsUsing2DRenderer();
         }
 
-        [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)", false, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Deprecated Parametric Light", false, k_MenuPriority)]
+        static void CreateDeprecatedParametricLight2D(MenuCommand menuCommand)
+        {
+            CreateLight(menuCommand, (Light2D.LightType)0, FreeformPathPresets.CreateSquare());
+        }
+
         [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)/Square", false, k_MenuPriority)]
         static void CreateSquareFreeformLight2D(MenuCommand menuCommand)
         {
