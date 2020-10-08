@@ -29,24 +29,25 @@ namespace UnityEngine.Rendering.Universal
         private DebugDisplaySettingsRendering RenderingSettings => m_DebugDisplaySettings.renderingSettings;
         private DebugDisplaySettingsValidation ValidationSettings => m_DebugDisplaySettings.Validation;
 
+        public bool IsSceneOverrideActive => RenderingSettings.sceneOverrides != SceneOverrides.None;
+        public bool IsVertexAttributeOverrideActive => MaterialSettings.VertexAttributeDebugIndexData != VertexAttributeDebugMode.None;
+        public bool IsLightingDebugActive => LightingSettings.m_LightingDebugMode != LightingDebugMode.None;
+        public bool IsLightingFeatureActive => LightingSettings.m_DebugLightingFeatureMask != DebugLightingFeature.None;
+        public bool IsMaterialOverrideActive => MaterialSettings.DebugMaterialIndexData != DebugMaterialIndex.None;
+        public bool AreShadowCascadesActive => LightingSettings.m_LightingDebugMode == LightingDebugMode.ShadowCascades;
+        public bool IsMipInfoDebugActive => RenderingSettings.mipInfoDebugMode != DebugMipInfo.None;
+
         public bool IsDebugMaterialActive
         {
             get
             {
-                bool isMaterialDebugActive = LightingSettings.m_LightingDebugMode != LightingDebugMode.None ||
-                                             MaterialSettings.DebugMaterialIndexData != DebugMaterialIndex.None ||
-                                             LightingSettings.m_DebugLightingFeatureMask != DebugLightingFeature.None ||
-                                             ValidationSettings.validationMode == DebugValidationMode.ValidateAlbedo ||
-                                             IsVertexAttributeOverrideActive ||
-                                             RenderingSettings.mipInfoDebugMode != DebugMipInfo.None;
+                bool isMaterialDebugActive = IsLightingDebugActive || IsMaterialOverrideActive || IsLightingFeatureActive ||
+                                             IsVertexAttributeOverrideActive || IsMipInfoDebugActive ||
+                                             ValidationSettings.validationMode == DebugValidationMode.ValidateAlbedo;
 
                 return isMaterialDebugActive;
             }
         }
-
-        public bool IsSceneOverrideActive => RenderingSettings.sceneOverrides != SceneOverrides.None;
-        public bool IsVertexAttributeOverrideActive => MaterialSettings.VertexAttributeDebugIndexData != VertexAttributeDebugMode.None;
-        public bool AreShadowCascadesActive => LightingSettings.m_LightingDebugMode == LightingDebugMode.ShadowCascades;
 
         public DebugHandler(Texture2D numberFontTexture, Shader fullScreenDebugPS)
         {
