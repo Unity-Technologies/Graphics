@@ -241,9 +241,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal ShadowResult RenderShadows(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullResults)
+        internal ShadowResult RenderShadows(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullResults, ref ShadowResult result)
         {
-            var result = m_ShadowManager.RenderShadows(m_RenderGraph, m_ShaderVariablesGlobalCB, hdCamera, cullResults);
+            m_ShadowManager.RenderShadows(m_RenderGraph, m_ShaderVariablesGlobalCB, hdCamera, cullResults, ref result);
             // Need to restore global camera parameters.
             PushGlobalCameraParams(renderGraph, hdCamera);
             return result;

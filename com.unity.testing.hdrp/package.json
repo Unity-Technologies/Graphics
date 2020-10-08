@@ -7,7 +7,7 @@
 	"description": "Common assets library for HDRP test projects.",
 	"keywords": ["qa", "test", "testing", "tests", "graphics", "HDRP"],
 	"dependencies": {
-	"com.unity.testframework.graphics": "7.2.1-preview",
+	"com.unity.testframework.graphics": "7.5.0-preview",
 	"com.unity.render-pipelines.high-definition": "file:./com.unity.render-pipelines.high-definition"
 	}
 }

@@ -88,12 +88,10 @@ void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, u
 
     // Compute the position input structure
     PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
-
     // Convert this to a world space position
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
-
+    const float3 positionWS = posInput.positionWS;
     // Compute the view vector on the surface
-    float3 viewWS = normalize(_WorldSpaceCameraPos - positionWS);
+    const float3 viewWS = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
     // Fetch the data of the area light
     LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
@@ -130,7 +128,7 @@ void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, u
         misInput.viewWS = viewWS;
         misInput.positionWS = positionWS;
         misInput.rectDimension = lightData.size.xy;
-        misInput.rectWSPos = GetAbsolutePositionWS(lightData.positionRWS);
+        misInput.rectWSPos = lightData.positionRWS;
         misInput.noiseValue = noiseValue;
 
         // Setup and check the spherical rectangle
@@ -308,10 +306,9 @@ void RaytracingAreaShadowNewSample(uint3 dispatchThreadId : SV_DispatchThreadID,
     PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
 
     // Convert this to a world space position
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
-
+    const float3 positionWS = posInput.positionWS;
     // Compute the view vector on the surface
-    float3 viewWS = normalize(_WorldSpaceCameraPos - positionWS);
+    const float3 viewWS = GetWorldSpaceNormalizeViewDir(positionWS);
 
     // Fetch the data of the area light
     LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
@@ -361,7 +358,7 @@ void RaytracingAreaShadowNewSample(uint3 dispatchThreadId : SV_DispatchThreadID,
         misInput.viewWS = viewWS;
         misInput.positionWS = positionWS;
         misInput.rectDimension = lightData.size.xy;
-        misInput.rectWSPos = GetAbsolutePositionWS(lightData.positionRWS);
+        misInput.rectWSPos = lightData.positionRWS;
         misInput.brdfProb = _AnalyticProbBuffer[COORD_TEXTURE2D_X(currentCoord)].y;
         misInput.noiseValue = noiseValue;
 
@@ -494,7 +491,7 @@ void RaytracingDirectionalShadowSample(uint3 dispatchThreadId : SV_DispatchThrea
     DecodeFromNormalBuffer(currentCoord, normalData);
 
     // Convert this to a world space position
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
+    float3 positionWS = posInput.positionWS;
 
     // Fetch the data of the area light
     DirectionalLightData lightData = _DirectionalLightDatas[_DirectionalShadowIndex];
@@ -542,15 +539,11 @@ void RaytracingPointShadowSample(uint3 dispatchThreadId : SV_DispatchThreadID, u
     NormalData normalData;
     DecodeFromNormalBuffer(currentCoord, normalData);
 
-    // Convert this to a world space position
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
-
     // Fetch the data of the area light
     LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
-    float3 lightpositionWS = GetAbsolutePositionWS(lightData.positionRWS);
 
     // If the point is inside the sphere, it will be visible
-    float3 dir = (lightpositionWS - positionWS);
+    float3 dir = (lightData.positionRWS - posInput.positionWS);
     float dist2 = dot(dir, dir);
     if (dist2 < _RaytracingLightRadius * _RaytracingLightRadius)
     {
@@ -570,16 +563,15 @@ void RaytracingPointShadowSample(uint3 dispatchThreadId : SV_DispatchThreadID, u
     float samplePDF = 1.0;
     if (_RaytracingLightRadius > 0.001)
     {
-        SampleSphericalSphere(lightpositionWS, _RaytracingLightRadius, noiseValue.x, noiseValue.y,
-        positionWS, normalData.normalWS, lightPosition, samplePDF);
+        SampleSphericalSphere(lightData.positionRWS, _RaytracingLightRadius, noiseValue.x, noiseValue.y, posInput.positionWS, normalData.normalWS, lightPosition, samplePDF);
     }
     else
     {
-        lightPosition = lightpositionWS;
+        lightPosition = lightData.positionRWS;
     }
 
     // Compute the ray length and ray direction
-    float3 rayDirection = lightPosition - positionWS;
+    float3 rayDirection = lightPosition - posInput.positionWS;
     float rayLength = length(rayDirection);
     rayDirection = rayDirection / rayLength;
 
@@ -617,15 +609,11 @@ void RaytracingSpotShadowSample(uint3 dispatchThreadId : SV_DispatchThreadID, ui
     NormalData normalData;
     DecodeFromNormalBuffer(currentCoord, normalData);
 
-    // Convert this to a world space position
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
-
     // Fetch the data of the area light
     LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
-    float3 lightpositionWS = GetAbsolutePositionWS(lightData.positionRWS);
 
     // If the point is inside the sphere, it will be visible
-    float3 dir = (lightpositionWS - positionWS);
+    float3 dir = (lightData.positionRWS - posInput.positionWS);
     float dist2 = dot(dir, dir);
     if (dist2 < _RaytracingLightRadius * _RaytracingLightRadius)
     {
@@ -646,18 +634,18 @@ void RaytracingSpotShadowSample(uint3 dispatchThreadId : SV_DispatchThreadID, ui
     float samplePDF = 1.0;
     if (_RaytracingLightRadius > 0.001)
     {
-        SampleSphericalCone(lightpositionWS, _RaytracingLightRadius, lightData.forward, 
+        SampleSphericalCone(lightData.positionRWS, _RaytracingLightRadius, lightData.forward, 
             _RaytracingSpotAngle,
             noiseValue.x, noiseValue.y,
-        positionWS, normalData.normalWS, lightPosition, samplePDF);
+            posInput.positionWS, normalData.normalWS, lightPosition, samplePDF);
     }
     else
     {
-        lightPosition = GetAbsolutePositionWS(lightData.positionRWS);
+        lightPosition = lightData.positionRWS;
     }
 
     // Compute the ray length and ray direction
-    float3 rayDirection = lightPosition - positionWS;
+    float3 rayDirection = lightPosition - posInput.positionWS;
     float rayLength = length(rayDirection);
     rayDirection = rayDirection / rayLength;
 
