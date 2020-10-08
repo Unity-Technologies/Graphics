@@ -520,7 +520,7 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle RenderContactShadows(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, in BuildGPULightListOutput lightLists, int firstMipOffsetY)
         {
             if (!WillRenderContactShadow())
-                return renderGraph.defaultResources.clearTextureXR;
+                return renderGraph.defaultResources.blackUIntTextureXR;
 
             TextureHandle result;
             using (var builder = renderGraph.AddRenderPass<RenderContactShadowPassData>("Contact Shadows", out var passData))
