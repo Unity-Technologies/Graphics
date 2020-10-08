@@ -729,9 +729,14 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     ndcAaBbMaxPt.w = asfloat(gs_NdcAaBbMaxPtW[intraGroupEntityIndex]);
 #endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
 
+    // Reminder: Z-binning uses n=0.1 as the near plane.
+    // Therefore, we must make sure the entities behind the near plane
+    // are assigned to the first bin.
+    ndcAaBbMinPt.w = max(ndcAaBbMinPt.w, 0.1);
+    ndcAaBbMaxPt.w = max(ndcAaBbMaxPt.w, 0.1);
+
     if (!isHelperThread && (t % THREADS_PER_ENTITY == 0)) // Avoid bank conflicts
     {
-
         _xyBoundsBuffer[bufferIndex] = float4(ndcAaBbMinPt.x, ndcAaBbMaxPt.x, ndcAaBbMinPt.y, ndcAaBbMaxPt.y);
         _wBoundsBuffer[bufferIndex]  = float2(ndcAaBbMinPt.w, ndcAaBbMaxPt.w);
     }
