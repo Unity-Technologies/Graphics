@@ -271,7 +271,7 @@ Shader "HDRP/TerrainLit"
             Name "SceneSelectionPass"
             Tags { "LightMode" = "SceneSelectionPass" }
 
-            Cull[_CullMode]
+            Cull Off
 
             HLSLPROGRAM
 
