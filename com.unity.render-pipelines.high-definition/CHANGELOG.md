@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for camera relative ray tracing (and keeping non-camera relative ray tracing working)
 - Added a rough refraction option on planar reflections.
 - Added scalability settings for the planar reflection resolution.
+- Added tests for AOV stacking and UI rendering in the graphics compositor.
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
@@ -139,6 +140,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed backface selection on some shader not ignore correctly.
 - Disable quad overdraw on ps4.
 - Fixed error when resizing the graphics compositor's output and when re-adding a compositor in the scene
+- Fixed issues with bloom, alpha and HDR layers in the compositor (case 1272621).
+- Fixed alpha not having TAA applied to it.
+- Fix issue with alpha output in forward.
+- Fix compilation issue on Vulkan for shaders using high quality shadows in XR mode.
 - Fixed wrong error message when fixing DXR resources from Wizard.
 
 ### Changed
