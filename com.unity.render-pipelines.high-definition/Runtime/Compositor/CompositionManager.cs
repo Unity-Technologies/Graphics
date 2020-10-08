@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     // also change the layers
                     foreach(var layer in m_InputLayers)
                     {
-                        if (layer.camera)
+                        if (layer.camera && layer.isUsingACameraClone)
                         {
                             layer.camera.enabled = value;
                         }
@@ -351,10 +351,25 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         public void DeleteLayerRTs()
         {
+            int numRTReferences = 0;
+
             // delete the layer from last to first, in order to release first the camera and then the associated RT
             for (int i = m_InputLayers.Count - 1; i >= 0; --i)
             {
-                m_InputLayers[i].DestroyRT();
+                // Since some layers are not useing cloned cameras, we have to count the number of references in a RT and only delete if it is zero   
+                if (numRTReferences == 0)
+                {
+                    m_InputLayers[i].DestroyRT();
+                }
+
+                if (m_InputLayers[i].outputTarget == CompositorLayer.OutputTarget.CompositorLayer)
+                {
+                    numRTReferences = 0;
+                }
+                else
+                {
+                    numRTReferences += (m_InputLayers[i].camera != null) ? 1 : 0;
+                }
             }
         }
 
@@ -522,11 +537,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         void OnDestroy()
         {
-            // We need to destroy the layers from last to first, to avoid releasing a RT that is used by a camera
-            for (int i = m_InputLayers.Count - 1; i >= 0; --i)
-            {
-                m_InputLayers[i].Destroy();
-            }
+            DeleteLayerRTs();
 
             if (m_CompositorGameObject != null)
             {
@@ -797,6 +808,32 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             CommandBufferPool.Release(cmd);
         }
 
+        /// <summary>
+        /// Helper function that indicates if a camera is shared between multiple layers
+        /// </summary>
+        /// <param name="camera">The input camera</param>
+        /// <returns>Returns true if this camera is used to render in more than one layer</returns>
+        internal bool IsThisCameraShared(Camera camera)
+        {
+            if (camera == null)
+            {
+                return false;
+            }
+
+            int count = 0;
+            foreach (var layer in m_InputLayers)
+            {
+                
+                if (layer.outputTarget == CompositorLayer.OutputTarget.CameraStack &&
+                    camera.Equals(layer.sourceCamera))
+                {
+                    count++;
+                }
+            }
+            // If we found the camera in more than one layer then it is shared between layers
+            return count > 1;
+        }
+
         static public Camera GetSceceCamera()
         {
             if (Camera.main != null)
@@ -816,6 +853,63 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         static public CompositionManager GetInstance() =>
             s_CompositorInstance ?? (s_CompositorInstance = GameObject.FindObjectOfType(typeof(CompositionManager), true) as CompositionManager);
+
+        static public Vector4 GetAlphaScaleAndBiasForCamera(HDCamera hdCamera)
+        {
+            AdditionalCompositorData compositorData = null;
+            hdCamera.camera.TryGetComponent<AdditionalCompositorData>(out compositorData);
+
+            if (compositorData)
+            {
+                float alphaMin = compositorData.alphaMin;
+                float alphaMax = compositorData.alphaMax;
+
+                if (alphaMax == alphaMin)
+                    alphaMax += 0.0001f; // Mathf.Epsilon is too small and in this case it creates precission issues 
+
+                float alphaScale = 1.0f / (alphaMax - alphaMin);
+                float alphaBias = -alphaMin * alphaScale;
+
+                return new Vector4(alphaScale, alphaBias, 0.0f, 0.0f);
+            }
+
+            // No compositor-specific data for this camera/layer, just return the default/neutral scale and bias
+            return new Vector4(1.0f, 0.0f, 0.0f, 0.0f);
+        }
+
+        /// <summary>
+        /// For stacked cameras, returns the color buffer that will be used to draw on top
+        /// </summary>
+        /// <param name="hdCamera">The input camera</param>
+        /// <returns> The color buffer that will be used to draw on top, or null if not a stacked camera </returns>
+        static internal Texture GetClearTextureForStackedCamera(HDCamera hdCamera)
+        {
+            AdditionalCompositorData compositorData = null;
+            hdCamera.camera.TryGetComponent<AdditionalCompositorData>(out compositorData);
+
+            if (compositorData)
+            {
+                return compositorData.clearColorTexture;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// For stacked cameras, returns the depth buffer that will be used to draw on top
+        /// </summary>
+        /// <param name="hdCamera">The input camera</param>
+        /// <returns> The depth buffer that will be used to draw on top, or null if not a stacked camera </returns>
+        static internal RenderTexture GetClearDepthForStackedCamera(HDCamera hdCamera)
+        {
+            AdditionalCompositorData compositorData = null;
+            hdCamera.camera.TryGetComponent<AdditionalCompositorData>(out compositorData);
+
+            if (compositorData)
+            {
+                return compositorData.clearDepthTexture;
+            }
+            return null;
+        }
 
     }
 }

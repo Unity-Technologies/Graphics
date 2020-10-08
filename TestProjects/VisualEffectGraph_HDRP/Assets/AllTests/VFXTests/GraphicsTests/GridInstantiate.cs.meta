@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<< HEAD:TestProjects/VisualEffectGraph_HDRP/Assets/AllTests/VFXTests/GraphicsTests/GridInstantiate.cs.meta
 guid: 023ed356f8a714243a88f6e16a15096e
+=======
+guid: 229ee3c7ff682f844850aace97f126a8
+>>>>>>> master:TestProjects/ShaderGraph/Assets/CommonAssets/Editor/DependencyTests.cs.meta
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2

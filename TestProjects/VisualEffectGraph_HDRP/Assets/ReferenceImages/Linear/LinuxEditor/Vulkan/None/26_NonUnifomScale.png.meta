@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<< HEAD:TestProjects/VisualEffectGraph_HDRP/Assets/ReferenceImages/Linear/LinuxEditor/Vulkan/None/26_NonUnifomScale.png.meta
 guid: 68e959564e71d414b9038f7bc0e21c4a
+=======
+guid: 146da4d4741547a478dfd90e841e8c6a
+>>>>>>> master:TestProjects/VisualEffectGraph_HDRP/Assets/ReferenceImages/Linear/LinuxEditor/Vulkan/None/27_SampleSDF.png.meta
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}

@@ -24,6 +24,7 @@ URPUpdate_BoatAttack_Win_Vulkan_playmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/BoatAttack-19-4/Logs/*.log"
 URPUpdate_BoatAttack_Win_Vulkan_editmode_trunk:
     name: URPUpdate_BoatAttack on Win_Vulkan_editmode on version trunk
     agent:
@@ -45,6 +46,7 @@ URPUpdate_BoatAttack_Win_Vulkan_editmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/BoatAttack-19-4/Logs/*.log"
 URPUpdate_BoatAttack_Win_Vulkan_playmode_2020.2:
     name: URPUpdate_BoatAttack on Win_Vulkan_playmode on version 2020.2
     agent:
@@ -60,12 +62,13 @@ URPUpdate_BoatAttack_Win_Vulkan_playmode_2020.2:
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.shadergraph" /Y
-      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && unity-downloader-cli -u 93d432f0d085a8671a6c8a331ec8bdccb5c076ef -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/BoatAttack-19-4/Logs/*.log"
 URPUpdate_BoatAttack_Win_Vulkan_editmode_2020.2:
     name: URPUpdate_BoatAttack on Win_Vulkan_editmode on version 2020.2
     agent:
@@ -81,12 +84,13 @@ URPUpdate_BoatAttack_Win_Vulkan_editmode_2020.2:
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.shadergraph" /Y
-      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && unity-downloader-cli -u 93d432f0d085a8671a6c8a331ec8bdccb5c076ef -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/BoatAttack-19-4/Logs/*.log"
 URPUpdate_BoatAttack_Win_Vulkan_playmode_CUSTOM-REVISION:
     name: URPUpdate_BoatAttack on Win_Vulkan_playmode on version CUSTOM-REVISION
     agent:
@@ -109,6 +113,7 @@ URPUpdate_BoatAttack_Win_Vulkan_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/BoatAttack-19-4/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
@@ -134,6 +139,7 @@ URPUpdate_BoatAttack_Win_Vulkan_editmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/BoatAttack-19-4/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
