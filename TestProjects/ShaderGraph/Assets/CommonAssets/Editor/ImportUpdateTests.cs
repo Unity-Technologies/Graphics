@@ -61,7 +61,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 var subGraph2 = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(localFilePath);
                 var serialized2 = EditorJsonUtility.ToJson(subGraph2);
 
-                Assert.AreEqual(serialized, serialized2, "Importing the subgraph {localFilePath} twice resulted in different subgraph assets.");
+                Assert.AreEqual(serialized, serialized2, $"Importing the subgraph {localFilePath} twice resulted in different subgraph assets.");
             }
             else
             {
@@ -78,7 +78,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 var generator2 = new Generator(graphData2, graphData2.outputNode, GenerationMode.ForReals, fileNameNoExtension, null);
                 string shader2 = generator2.generatedShader;
 
-                Assert.AreEqual(shader, shader2, "Importing the graph {localFilePath} twice resulted in different generated shaders.");
+                Assert.AreEqual(shader, shader2, $"Importing the graph {localFilePath} twice resulted in different generated shaders.");
             }
         }
 
