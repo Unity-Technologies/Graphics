@@ -78,17 +78,22 @@ namespace UnityEngine.Rendering.Universal
             m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
 #if ENABLE_VR && ENABLE_XR_MODULE
-            m_XROcclusionMeshPass = new XROcclusionMeshPass(RenderPassEvent.BeforeRenderingPrepasses);
+            m_XROcclusionMeshPass = new XROcclusionMeshPass(RenderPassEvent.BeforeRenderingOpaques);
 #endif
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_DepthNormalPrepass = new DepthNormalOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrepasses, data.postProcessData);
-            m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
+            m_RenderOpaqueForwardPass = new DrawObjectsPass(URPProfileId.DrawOpaqueObjects, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_BlitMaterial);
-            m_TransparentSettingsPass = new TransparentSettingsPass(RenderPassEvent.BeforeRenderingTransparents, data.shadowTransparentReceive);
-            m_RenderTransparentForwardPass = new DrawObjectsPass("Render Transparents", false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
+#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
+            if (!UniversalRenderPipeline.asset.useAdaptivePerformance || AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipTransparentObjects == false)
+#endif
+            {
+                m_TransparentSettingsPass = new TransparentSettingsPass(RenderPassEvent.BeforeRenderingTransparents, data.shadowTransparentReceive);
+                m_RenderTransparentForwardPass = new DrawObjectsPass(URPProfileId.DrawTransparentObjects, false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
+            }
             m_OnRenderObjectCallbackPass = new InvokeOnRenderObjectCallbackPass(RenderPassEvent.BeforeRenderingPostProcessing);
             m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
             m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRendering + 1, data.postProcessData, m_BlitMaterial);
@@ -130,6 +135,9 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
+            bool needTransparencyPass = !UniversalRenderPipeline.asset.useAdaptivePerformance || !AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipTransparentObjects;
+#endif
             Camera camera = renderingData.cameraData.camera;
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
@@ -142,6 +150,10 @@ namespace UnityEngine.Rendering.Universal
                 AddRenderPasses(ref renderingData);
                 EnqueuePass(m_RenderOpaqueForwardPass);
                 EnqueuePass(m_DrawSkyboxPass);
+#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
+                if (!needTransparencyPass)
+                    return;
+#endif
                 EnqueuePass(m_RenderTransparentForwardPass);
                 return;
             }
@@ -263,13 +275,6 @@ namespace UnityEngine.Rendering.Universal
             if (additionalLightShadows)
                 EnqueuePass(m_AdditionalLightsShadowCasterPass);
 
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.hasValidOcclusionMesh)
-            {
-                m_XROcclusionMeshPass.Setup(m_ActiveCameraDepthAttachment);
-                EnqueuePass(m_XROcclusionMeshPass);
-            }
-#endif
             if (requiresDepthPrepass)
             {
                 if (renderPassInputs.requiresNormalsTexture)
@@ -290,10 +295,16 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_ColorGradingLutPass);
             }
 
-            EnqueuePass(m_RenderOpaqueForwardPass);
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.hasValidOcclusionMesh)
+                EnqueuePass(m_XROcclusionMeshPass);
+#endif
 
+            EnqueuePass(m_RenderOpaqueForwardPass);
+            Skybox cameraSkybox;
+            cameraData.camera.TryGetComponent<Skybox>(out cameraSkybox);
             bool isOverlayCamera = cameraData.renderType == CameraRenderType.Overlay;
-            if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null && !isOverlayCamera)
+            if (camera.clearFlags == CameraClearFlags.Skybox && (RenderSettings.skybox != null || cameraSkybox?.material != null) && !isOverlayCamera)
                 EnqueuePass(m_DrawSkyboxPass);
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
@@ -311,13 +322,17 @@ namespace UnityEngine.Rendering.Universal
                 m_CopyColorPass.Setup(m_ActiveCameraColorAttachment.Identifier(), m_OpaqueColor, downsamplingMethod);
                 EnqueuePass(m_CopyColorPass);
             }
-
-            if (transparentsNeedSettingsPass)
+#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
+            if (needTransparencyPass)
+#endif
             {
-                EnqueuePass(m_TransparentSettingsPass);
-            }
+                if (transparentsNeedSettingsPass)
+                {
+                    EnqueuePass(m_TransparentSettingsPass);
+                }
 
-            EnqueuePass(m_RenderTransparentForwardPass);
+                EnqueuePass(m_RenderTransparentForwardPass);
+            }
             EnqueuePass(m_OnRenderObjectCallbackPass);
 
             bool lastCameraInTheStack = cameraData.resolveFinalTarget;
