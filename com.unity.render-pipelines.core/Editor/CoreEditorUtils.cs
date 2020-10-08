@@ -531,11 +531,11 @@ namespace UnityEditor.Rendering
             {
                 var documentationRect = menuRect;
 
-                documentationRect.x -= 16;
+                documentationRect.x -= 16 + 5;
                 documentationRect.y -= 1;
 
                 if (hasMoreOptions != null)
-                    documentationRect.x -= 16 + 10;
+                    documentationRect.x -= 16 + 5;
 
                 var documentationTooltip = $"Open Reference for {title.text}.";
                 var documentationIcon = new GUIContent(EditorGUIUtility.TrIconContent("_Help").image, documentationTooltip);
