@@ -13,6 +13,6 @@ Below is a list of settings and properties specific to the Output Particle Forwa
 
 ## Context properties
 
-| Input        | Type       | Description                            |
-| ------------ | ---------- | -------------------------------------- |
-| Main Texture | Texture 2D | The decal texture to use per particle. |
+| Input            | Type       | Description                            |
+| ---------------- | ---------- | -------------------------------------- |
+| **Main Texture** | Texture 2D | The decal texture to use per particle. |
