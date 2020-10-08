@@ -35,7 +35,7 @@ Build_Universal_iPhone_Metal_Player_il2cpp_2_Linear_trunk:
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
@@ -75,7 +75,7 @@ Build_Universal_iPhone_Metal_Player_il2cpp_2_gamma_trunk:
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
@@ -96,7 +96,7 @@ Universal_iPhone_Metal_editmode_il2cpp_2_Linear_trunk:
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
@@ -114,7 +114,7 @@ Universal_iPhone_Metal_editmode_il2cpp_2_gamma_trunk:
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
@@ -187,7 +187,7 @@ Build_Universal_iPhone_Metal_Player_il2cpp_4_Linear_trunk:
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
@@ -227,7 +227,7 @@ Build_Universal_iPhone_Metal_Player_il2cpp_4_gamma_trunk:
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
@@ -248,7 +248,7 @@ Universal_iPhone_Metal_editmode_il2cpp_4_Linear_trunk:
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
@@ -266,7 +266,7 @@ Universal_iPhone_Metal_editmode_il2cpp_4_gamma_trunk:
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
@@ -339,7 +339,7 @@ Build_Universal_iPhone_Metal_Player_mono_Linear_trunk:
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
@@ -379,7 +379,7 @@ Build_Universal_iPhone_Metal_Player_mono_gamma_trunk:
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
@@ -400,7 +400,7 @@ Universal_iPhone_Metal_editmode_mono_Linear_trunk:
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
@@ -418,7 +418,7 @@ Universal_iPhone_Metal_editmode_mono_gamma_trunk:
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
@@ -495,7 +495,7 @@ Build_Universal_iPhone_Metal_Player_il2cpp_2_Linear_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
@@ -542,7 +542,7 @@ Build_Universal_iPhone_Metal_Player_il2cpp_2_gamma_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
@@ -567,7 +567,7 @@ Universal_iPhone_Metal_editmode_il2cpp_2_Linear_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
@@ -589,7 +589,7 @@ Universal_iPhone_Metal_editmode_il2cpp_2_gamma_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
@@ -677,7 +677,7 @@ Build_Universal_iPhone_Metal_Player_il2cpp_4_Linear_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
@@ -724,7 +724,7 @@ Build_Universal_iPhone_Metal_Player_il2cpp_4_gamma_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
@@ -749,7 +749,7 @@ Universal_iPhone_Metal_editmode_il2cpp_4_Linear_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
@@ -771,7 +771,7 @@ Universal_iPhone_Metal_editmode_il2cpp_4_gamma_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
@@ -859,7 +859,7 @@ Build_Universal_iPhone_Metal_Player_mono_Linear_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
@@ -906,7 +906,7 @@ Build_Universal_iPhone_Metal_Player_mono_gamma_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
@@ -931,7 +931,7 @@ Universal_iPhone_Metal_editmode_mono_Linear_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
@@ -953,7 +953,7 @@ Universal_iPhone_Metal_editmode_mono_gamma_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:

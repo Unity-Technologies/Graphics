@@ -87,7 +87,7 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, build_c
 def cmd_standalone_build(project_folder, platform, api, test_platform, editor, build_config, color_space):
     scripting_backend = build_config["scripting_backend"]
     api_level = build_config["api_level"]
-    utr_args = utr_standalone_build_flags("Windows64", scripting_backend=f'{scripting_backend}', api_level=f'{api_level}', color_space=f'{color_space}')
+    utr_args = utr_standalone_build_flags("Windows64", graphics_api=api["name"], scripting_backend=f'{scripting_backend}', api_level=f'{api_level}', color_space=f'{color_space}')
     utr_args.extend(test_platform["extra_utr_flags_build"])
     utr_args.extend(platform["extra_utr_flags_build"])
     utr_args.append(f'--timeout={get_timeout(test_platform, "Win", build=True)}')

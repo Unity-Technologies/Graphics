@@ -10,7 +10,6 @@ test_platforms:
       - --performance-project-id=BoatAttack
     extra_utr_flags_build:
       - --extra-editor-arg="-executemethod Editor.Setup"
-      - --extra-editor-arg="-testCategory Performance"
       - --extra-editor-arg="-testCategory URP"
       - --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
       - --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal"

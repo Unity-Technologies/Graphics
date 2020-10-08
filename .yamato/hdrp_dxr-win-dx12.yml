@@ -35,7 +35,7 @@ Build_HDRP_DXR_Win_DX12_Player_il2cpp_2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
+      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D12" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
     artifacts:
         logs:
             paths:
@@ -75,7 +75,7 @@ Build_HDRP_DXR_Win_DX12_Player_il2cpp_2_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
+      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D12" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
     artifacts:
         logs:
             paths:
@@ -223,7 +223,7 @@ Build_HDRP_DXR_Win_DX12_Player_il2cpp_4_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
+      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D12" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
     artifacts:
         logs:
             paths:
@@ -263,7 +263,7 @@ Build_HDRP_DXR_Win_DX12_Player_il2cpp_4_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
+      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D12" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
     artifacts:
         logs:
             paths:
@@ -411,7 +411,7 @@ Build_HDRP_DXR_Win_DX12_Player_mono_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
+      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D12" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
     artifacts:
         logs:
             paths:
@@ -451,7 +451,7 @@ Build_HDRP_DXR_Win_DX12_Player_mono_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
+      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D12" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
     artifacts:
         logs:
             paths:
@@ -603,7 +603,7 @@ Build_HDRP_DXR_Win_DX12_Player_il2cpp_2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
+      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D12" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
     artifacts:
         logs:
             paths:
@@ -650,7 +650,7 @@ Build_HDRP_DXR_Win_DX12_Player_il2cpp_2_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
+      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D12" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
     artifacts:
         logs:
             paths:
@@ -829,7 +829,7 @@ Build_HDRP_DXR_Win_DX12_Player_il2cpp_4_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
+      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D12" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
     artifacts:
         logs:
             paths:
@@ -876,7 +876,7 @@ Build_HDRP_DXR_Win_DX12_Player_il2cpp_4_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
+      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D12" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
     artifacts:
         logs:
             paths:
@@ -1055,7 +1055,7 @@ Build_HDRP_DXR_Win_DX12_Player_mono_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
+      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D12" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
     artifacts:
         logs:
             paths:
@@ -1102,7 +1102,7 @@ Build_HDRP_DXR_Win_DX12_Player_mono_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
+      -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D12" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
     artifacts:
         logs:
             paths:

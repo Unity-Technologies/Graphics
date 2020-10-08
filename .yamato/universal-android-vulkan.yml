@@ -43,7 +43,7 @@ Build_Universal_Android_Vulkan_Player_il2cpp_2_Linear_trunk:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
     artifacts:
         logs:
             paths:
@@ -91,7 +91,7 @@ Build_Universal_Android_Vulkan_Player_il2cpp_2_gamma_trunk:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
     artifacts:
         logs:
             paths:
@@ -331,7 +331,7 @@ Build_Universal_Android_Vulkan_Player_il2cpp_4_Linear_trunk:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
     artifacts:
         logs:
             paths:
@@ -379,7 +379,7 @@ Build_Universal_Android_Vulkan_Player_il2cpp_4_gamma_trunk:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
     artifacts:
         logs:
             paths:
@@ -619,7 +619,7 @@ Build_Universal_Android_Vulkan_Player_mono_Linear_trunk:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
     artifacts:
         logs:
             paths:
@@ -667,7 +667,7 @@ Build_Universal_Android_Vulkan_Player_mono_gamma_trunk:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
     artifacts:
         logs:
             paths:
@@ -911,7 +911,7 @@ Build_Universal_Android_Vulkan_Player_il2cpp_2_Linear_CUSTOM-REVISION:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
     artifacts:
         logs:
             paths:
@@ -966,7 +966,7 @@ Build_Universal_Android_Vulkan_Player_il2cpp_2_gamma_CUSTOM-REVISION:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
     artifacts:
         logs:
             paths:
@@ -1245,7 +1245,7 @@ Build_Universal_Android_Vulkan_Player_il2cpp_4_Linear_CUSTOM-REVISION:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
     artifacts:
         logs:
             paths:
@@ -1300,7 +1300,7 @@ Build_Universal_Android_Vulkan_Player_il2cpp_4_gamma_CUSTOM-REVISION:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
     artifacts:
         logs:
             paths:
@@ -1579,7 +1579,7 @@ Build_Universal_Android_Vulkan_Player_mono_Linear_CUSTOM-REVISION:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
     artifacts:
         logs:
             paths:
@@ -1634,7 +1634,7 @@ Build_Universal_Android_Vulkan_Player_mono_gamma_CUSTOM-REVISION:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
     artifacts:
         logs:
             paths:
