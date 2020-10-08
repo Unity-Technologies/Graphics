@@ -32,8 +32,9 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_2_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -93,8 +94,9 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_2_gamma_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -135,8 +137,9 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_2_Line
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -174,8 +177,9 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_2_gamm
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -232,8 +236,9 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_4_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -293,8 +298,9 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_4_gamma_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -335,8 +341,9 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_4_Line
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -374,8 +381,9 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_4_gamm
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -432,8 +440,9 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_2_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -493,8 +502,9 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_2_gamma_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -535,8 +545,9 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_2_Linear
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -574,8 +585,9 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_2_gamma_
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -632,8 +644,9 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_4_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -693,8 +706,9 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_4_gamma_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -735,8 +749,9 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_4_Linear
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -774,8 +789,9 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_4_gamma_
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -836,8 +852,9 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_2_Linear_CUSTOM-REVI
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -904,8 +921,9 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_2_gamma_CUSTOM-REVIS
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -950,8 +968,9 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_2_Line
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -993,8 +1012,9 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_2_gamm
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -1058,8 +1078,9 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_4_Linear_CUSTOM-REVI
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -1126,8 +1147,9 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_4_gamma_CUSTOM-REVIS
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -1172,8 +1194,9 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_4_Line
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -1215,8 +1238,9 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_4_gamm
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -1280,8 +1304,9 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_2_Linear_CUSTOM-REVISI
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -1348,8 +1373,9 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_2_gamma_CUSTOM-REVISIO
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -1394,8 +1420,9 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_2_Linear
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -1437,8 +1464,9 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_2_gamma_
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -1502,8 +1530,9 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_4_Linear_CUSTOM-REVISI
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -1570,8 +1599,9 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_4_gamma_CUSTOM-REVISIO
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -1616,8 +1646,9 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_4_Linear
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
@@ -1659,8 +1690,9 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_4_gamma_
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
