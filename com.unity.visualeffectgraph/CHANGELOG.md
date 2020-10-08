@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Output Event Handler Samples
 - Added ExposedProperty custom Property Drawer
 - Error display within the graph.
+- Warning in renderer inspector using Light Probe Proxy Volume when this feature isn't available.
 
 ### Fixed
 - Mesh Sampling incorrect with some GPU (use ByteAddressBuffer instead of Buffer<float>)
@@ -36,6 +37,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix  https://issuetracker.unity3d.com/issues/ux-cant-drag-a-noodle-out-of-trigger-blocks
 - Fix [Case 1114281](https://fogbugz.unity3d.com/f/cases/1114281/)
 - Fix shadows not being rendered to some cascades with directional lights [Case 1229972](https://issuetracker.unity3d.com/issues/output-inconsistencies-with-vfx-shadow-casting-and-shadow-cascades)
+- Filters out renderer priority on SRP which doesn't support this feature.
+- Fallback to builtIn rendering layer if srpAsset.renderingLayerMaskNames returns null.
+- Fix missing prepass in URP [Case 1169487](https://issuetracker.unity3d.com/product/unity/issues/guid/1169487/)
+- Fix SubPixelAA block while rendering directly in backbuffer.
 
 ## [10.0.0] - 2019-06-10
 ### Added
