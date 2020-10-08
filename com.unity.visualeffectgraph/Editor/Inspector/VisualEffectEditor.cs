@@ -161,7 +161,7 @@ namespace UnityEditor.VFX
             }
             EditorGUILayout.BeginHorizontal();
 
-            var height = 16f;
+            var height = 18f;
             if (EditorGUIUtility.currentViewWidth < 333f && GenerateMultipleField(ref parameter, valueProperty))
             {
                 height *= 2.0f;
