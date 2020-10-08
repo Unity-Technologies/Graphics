@@ -369,7 +369,7 @@ Shader "HDRP/LitTessellation"
             Name "SceneSelectionPass"
             Tags { "LightMode" = "SceneSelectionPass" }
 
-            Cull Off
+            Cull[_CullMode]
 
             HLSLPROGRAM
 
