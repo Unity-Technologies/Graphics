@@ -58,5 +58,15 @@ namespace UnityEditor.ShaderGraph
         {
             return space.ToNeededCoordinateSpace();
         }
+
+        public override void OnAfterMultiDeserialize(string json)
+        {
+            base.OnAfterMultiDeserialize(json);
+            //required update
+            if(sgVersion < 1)
+            {
+                ChangeVersion(1);
+            }
+        }
     }
 }
