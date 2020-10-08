@@ -35,6 +35,7 @@
     * [Output Distortion](Context-OutputDistortion.md)
     * [Output Decal](Context-OutputForwardDecal.md)
     * [Output Line](Context-OutputLine.md)
+    * [Output Point](Context-OutputPoint.md)
     * [Spawn](Context-Spawn.md)
     * [Update Particle](Context-Update.md)
     * Block
