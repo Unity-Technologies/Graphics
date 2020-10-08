@@ -121,6 +121,11 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>
+        /// Override this property to offer a link to documentation for this volume.
+        /// </summary>
+        public virtual string documentationURL => null;
+
+        /// <summary>
         /// A reference to the parent editor in the Inspector.
         /// </summary>
         protected Editor m_Inspector;

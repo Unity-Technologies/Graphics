@@ -229,6 +229,7 @@ namespace UnityEditor.Rendering
                             title,
                             editor.baseProperty,
                             editor.activeProperty,
+                            editor.documentationURL,
                             pos => OnContextClick(pos, editor.target, id),
                             editor.hasAdvancedMode ? () => editor.isInAdvancedMode : (Func<bool>)null,
                             () => editor.isInAdvancedMode ^= true
@@ -471,7 +472,7 @@ namespace UnityEditor.Rendering
             }
             m_SerializedObject.ApplyModifiedProperties();
         }
-        
+
 
         static bool CanPaste(VolumeComponent targetComponent)
         {
