@@ -15,6 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 public static readonly GUIContent renderPipelineRayTracingResourcesContent = EditorGUIUtility.TrTextContent("Render Pipeline Ray Tracing Resources", "Set of resources that need to be loaded when using ray tracing");
                 public static readonly GUIContent renderPipelineEditorResourcesContent = EditorGUIUtility.TrTextContent("Render Pipeline Editor Resources", "Set of resources that need to be loaded for working in editor");
                 public static readonly GUIContent shaderVariantLogLevel = EditorGUIUtility.TrTextContent("Shader Variant Log Level", "Controls the level logging in of shader variants information is outputted when a build is performed. Information appears in the Unity Console when the build finishes.");
+                public static readonly GUIContent lensAttenuationModeContent = EditorGUIUtility.TrTextContent("Lens Attenuation Mode", "Set the attenuation mode of the lens that is used to compute exposure. With imperfect lens some energy is lost when converting from EV100 to the exposure multiplier.");
             }
 
             public static readonly GUIContent generalSectionTitle = EditorGUIUtility.TrTextContent("General");
@@ -56,6 +57,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent maxRadiusQuality = EditorGUIUtility.TrTextContent("Max Radius");
             public static readonly GUIContent sampleCountQuality = EditorGUIUtility.TrTextContent("Sample Count");
             public static readonly GUIContent resolutionQuality = EditorGUIUtility.TrTextContent("Resolution");
+            public static readonly GUIContent highQualityPrefiltering = EditorGUIUtility.TrTextContent("High Quality Filtering");
             public static readonly GUIContent highQualityFiltering = EditorGUIUtility.TrTextContent("High Quality Filtering");
             public static readonly GUIContent dofPhysicallyBased = EditorGUIUtility.TrTextContent("Physically Based");
             public static readonly GUIContent maxSamplesQuality = EditorGUIUtility.TrTextContent("Max Samples");
@@ -114,6 +116,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent decalLayerName7 = EditorGUIUtility.TrTextContent("Decal Layer Name 7", "The display name for Decal Layer 7. This is purely cosmetic, and can be used to articulate intended use of Decal Layer 7");
             public static readonly GUIContent supportMotionVectorContent = EditorGUIUtility.TrTextContent("Motion Vectors", "When enabled, HDRP allocates memory for processing motion vectors which it uses for Motion Blur, TAA, and temporal re-projection of various effect like SSR.");
             public static readonly GUIContent supportRuntimeDebugDisplayContent = EditorGUIUtility.TrTextContent("Runtime Debug Display", "When disabled, HDRP removes all debug display Shader variants when you build for the Unity Player. This decreases build time.");
+            public static readonly GUIContent supportRuntimeAOVAPIContent = EditorGUIUtility.TrTextContent("Runtime AOV API", "When disabled, HDRP removes all AOV API Shader variants when you build for the Unity Player. This decreases build time.");            
             public static readonly GUIContent supportDitheringCrossFadeContent = EditorGUIUtility.TrTextContent("Dithering Cross-fade", "When disabled, HDRP removes all dithering cross fade Shader variants when you build for the Unity Player. This decreases build time.");
             public static readonly GUIContent supportTerrainHoleContent = EditorGUIUtility.TrTextContent("Terrain Hole", "When disabled, HDRP removes all Terrain hole Shader variants when you build for the Unity Player. This decreases build time.");
             public static readonly GUIContent supportDistortion = EditorGUIUtility.TrTextContent("Distortion", "When disabled, HDRP removes all distortion Shader variants when you build for the Unity Player. This decreases build time.");
@@ -153,6 +156,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent compressProbeCacheContent = EditorGUIUtility.TrTextContent("Compress Reflection Probe Cache", "When enabled, HDRP compresses the Reflection Probe cache to save disk space.");
             public static readonly GUIContent cubemapSizeContent = EditorGUIUtility.TrTextContent("Reflection Cubemap Size", "Specifies the maximum resolution of the individual Reflection Probe cube maps.");
             public static readonly GUIContent probeCacheSizeContent = EditorGUIUtility.TrTextContent("Probe Cache Size", "Sets the maximum size of the Probe Cache.");
+            public static readonly GUIContent reflectionProbeFormatContent = EditorGUIUtility.TrTextContent("Reflection and Planar Probes Format", "Color format used for reflection and planar probes. Keep in mind that probes are not pre-exposed when selecting the format.");
 
             public static readonly GUIContent compressPlanarProbeCacheContent = EditorGUIUtility.TrTextContent("Compress Planar Reflection Probe Cache", "When enabled, HDRP compresses the Planar Reflection Probe cache to save disk space.");
             public static readonly GUIContent planarTextureSizeContent = EditorGUIUtility.TrTextContent("Planar Reflection Texture Size", "Specifies the maximum resolution of Planar Reflection Textures.");

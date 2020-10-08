@@ -87,6 +87,7 @@
                 builtinData.opacity = opacity;
                 builtinData.emissiveColor = float3(0, 1, 0);
                 surfaceData.color = color;
+                surfaceData.normalWS = 0.0;
             }
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl"

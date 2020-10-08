@@ -60,6 +60,12 @@
 #define INVALID_SCREEN_SPACE_SHADOW (255)
 #define SCREEN_SPACE_SHADOW_INDEX_MASK (255)
 
+//
+// UnityEngine.Rendering.HighDefinition.ClusterDebugMode:  static fields
+//
+#define CLUSTERDEBUGMODE_VISUALIZE_OPAQUE (0)
+#define CLUSTERDEBUGMODE_VISUALIZE_SLICE (1)
+
 // Generated from UnityEngine.Rendering.HighDefinition.SFiniteLightBound
 // PackingRules = Exact
 struct SFiniteLightBound
@@ -68,7 +74,7 @@ struct SFiniteLightBound
     float3 boxAxisY;
     float3 boxAxisZ;
     float3 center;
-    float2 scaleXY;
+    float scaleXY;
     float radius;
 };
 

@@ -101,7 +101,8 @@ namespace UnityEngine.Rendering.HighDefinition
             decalLayerName7 = "Decal Layer 7",
             msaaSampleCount = MSAASamples.None,
             supportMotionVectors = true,
-            supportRuntimeDebugDisplay = true,
+            supportRuntimeDebugDisplay = false,
+            supportRuntimeAOVAPI = false,
             supportDitheringCrossFade = true,
             supportTerrainHole = false,
 
@@ -114,6 +115,7 @@ namespace UnityEngine.Rendering.HighDefinition
             xrSettings = GlobalXRSettings.NewDefault(),
             postProcessQualitySettings = GlobalPostProcessingQualitySettings.NewDefault(),
             lightingQualitySettings = GlobalLightingQualitySettings.NewDefault(),
+            lightSettings = LightSettings.NewDefault(),
 
             supportRayTracing = false,
             supportedRayTracingMode = SupportedRayTracingMode.Both,
@@ -139,6 +141,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             /// <summary>Enable contact shadows.</summary>
             public BoolScalableSetting useContactShadow;
+
+            internal static LightSettings NewDefault() => new LightSettings()
+            {
+                useContactShadow = new BoolScalableSetting(new[] { false, false, true }, ScalableSettingSchemaId.With3Levels)
+            };
+
         }
 
         // Lighting
@@ -227,6 +235,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportMotionVectors;
         /// <summary>Support runtime debug display.</summary>
         public bool supportRuntimeDebugDisplay;
+        /// <summary>Support runtime AOV API.</summary>
+        public bool supportRuntimeAOVAPI;
         /// <summary>Support dithered cross-fade.</summary>
         public bool supportDitheringCrossFade;
         /// <summary>Support terrain holes.</summary>

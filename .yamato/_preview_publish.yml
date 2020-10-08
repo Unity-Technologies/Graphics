@@ -31,8 +31,6 @@ auto-version:
                              else
                                  echo "Did not find any dependency to bump. Will not commit and push anything."
                              fi
-    triggers:
-        expression: push.branch eq "master" AND NOT push.changes.all match ["*template*/**/*.json"]
     artifacts:
         packages:
             paths:
