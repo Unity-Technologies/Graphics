@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [11.0.x] - 202x-xx-xx
 ### Added
 - Added real-time Point Light Shadows.
+- Added support for custom additional (=punctual) light shadow resolutions.
 
 ## [10.1.0] - 2019-08-04
 ### Added
