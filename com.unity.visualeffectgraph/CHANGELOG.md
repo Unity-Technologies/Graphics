@@ -45,6 +45,7 @@ The version number for this package has increased due to a version update of a r
 - Random Per-Component on Set Attribute in Spawn Context [Case 1279294](https://issuetracker.unity3d.com/product/unity/issues/guid/1279294/)
 - Fix corrupted UI in nodes due to corrupted point cache files [Case 1232867](https://fogbugz.unity3d.com/f/cases/1232867/)
 - Fix InvalidCastException when using byte properties in point cache files [Case 1276623](https://fogbugz.unity3d.com/f/cases/1276623/)
+- Forbid creation of context in VisualEffectSubgraphBlock through edge dropping. No context should be allowed.
 - Fix shadows not being rendered to some cascades with directional lights [Case 1229972](https://issuetracker.unity3d.com/issues/output-inconsistencies-with-vfx-shadow-casting-and-shadow-cascades)
 - Fix [Case 1114281](https://fogbugz.unity3d.com/f/cases/1114281/)
 - Fix [Case 1268354](https://fogbugz.unity3d.com/f/cases/1268354/)
