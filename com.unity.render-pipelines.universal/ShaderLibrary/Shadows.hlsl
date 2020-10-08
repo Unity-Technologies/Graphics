@@ -356,7 +356,11 @@ float4 GetShadowCoord(VertexPositionInputs vertexInput)
 
 float3 ApplyShadowBias(float3 positionWS, float3 normalWS, float3 lightDirection)
 {
-    float invNdotL = 1.0 - saturate(dot(lightDirection, normalWS));
+    float NdotL = dot(lightDirection, normalWS);
+
+    normalWS *= sign(NdotL);
+
+    float invNdotL = 1.0 - saturate(NdotL);
     float scale = invNdotL * _ShadowBias.y;
 
     // normal bias is negative since we want to apply an inset normal offset
