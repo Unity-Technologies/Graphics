@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<< HEAD:TestProjects/VisualEffectGraph_HDRP/Assets/AllTests/VFXTests/GraphicsTests/CircularMask.png.meta
 guid: 7688fd79cc87a7e4eaddc9290c20330d
+=======
+guid: 0e537362c732ea144826f8717d95167f
+>>>>>>> master:TestProjects/HDRP_Tests/Assets/ReferenceImages/Linear/WindowsEditor/Direct3D11/None/2220_SmoothPlanarReflection.png.meta
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}

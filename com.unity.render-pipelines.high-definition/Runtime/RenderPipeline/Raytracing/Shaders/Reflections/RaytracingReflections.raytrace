@@ -78,11 +78,8 @@ void RayGenIntegration()
     // Convert this to a world space position
     PositionInputs posInput = GetPositionInput(currentCoord, 1.0/LaunchDim.xy, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
     float distanceToCamera = length(posInput.positionWS);
-
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
-
     // Compute the incident vector on the surfaces
-    float3 viewWS = normalize(_WorldSpaceCameraPos - positionWS);
+    const float3 viewWS = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
     // Decode the world space normal
     NormalData normalData;
@@ -137,7 +134,7 @@ void RayGenIntegration()
 
         // Create the ray descriptor for this pixel
         RayDesc rayDescriptor;
-        rayDescriptor.Origin = positionWS + normalData.normalWS * _RaytracingRayBias;
+        rayDescriptor.Origin = posInput.positionWS + normalData.normalWS * _RaytracingRayBias;
         rayDescriptor.Direction = sampleDir;
         rayDescriptor.TMin = 0.0;
         rayDescriptor.TMax = _RaytracingRayMaxLength;
@@ -207,10 +204,10 @@ void RayGenIntegrationTransparent()
     PositionInputs posInput = GetPositionInput(currentCoord, 1.0/LaunchDim.xy, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
     float distanceToCamera = length(posInput.positionWS);
 
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
+    float3 positionWS = posInput.positionWS;
 
     // Compute the incident vector on the surfaces
-    float3 viewWS = normalize(_WorldSpaceCameraPos - positionWS);
+    const float3 viewWS = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
     // Decode the world space normal
     NormalData normalData;
