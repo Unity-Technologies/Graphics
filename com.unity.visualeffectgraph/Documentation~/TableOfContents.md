@@ -33,6 +33,7 @@
     * [Initialize Particle](Context-Initialize.md)
     * [Output Mesh](Context-OutputMesh.md)
     * [Output Distortion](Context-OutputDistortion.md)
+    * [Output Decal](Context-OutputForwardDecal.md)
     * [Spawn](Context-Spawn.md)
     * [Update Particle](Context-Update.md)
     * Block
