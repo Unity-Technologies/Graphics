@@ -229,7 +229,7 @@ namespace UnityEditor.Rendering
                             title,
                             editor.baseProperty,
                             editor.activeProperty,
-                            editor.documentationURL,
+                            GetDocumentationURL(editor),
                             pos => OnContextClick(pos, editor.target, id),
                             editor.hasAdvancedMode ? () => editor.isInAdvancedMode : (Func<bool>)null,
                             () => editor.isInAdvancedMode ^= true
@@ -259,6 +259,21 @@ namespace UnityEditor.Rendering
                     }
                 }
             }
+        }
+
+        string GetDocumentationURL(VolumeComponentEditor editor)
+        {
+            // First check to see if there was URL provided in the attribute (useful for components that do not have custom editor).
+            var attrs = editor.target.GetType().GetCustomAttributes(false);
+            foreach (var attr in attrs)
+            {
+                var attrDocumentation = attr as VolumeComponentDocumentation;
+                if (attrDocumentation != null)
+                    return attrDocumentation.documentationURL;
+            }
+
+            // Otherwise, return the one stored in the editor (will be null by default).
+            return editor.documentationURL;
         }
 
         void OnContextClick(Vector2 position, VolumeComponent targetComponent, int id)

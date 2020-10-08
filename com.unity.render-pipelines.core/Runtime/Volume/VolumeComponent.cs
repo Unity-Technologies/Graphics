@@ -31,6 +31,25 @@ namespace UnityEngine.Rendering
     }
 
     /// <summary>
+    /// This attribute allows you to add a button to the editor that links to the documentation.
+    /// Useful for <see cref="VolumeComponent"/> that do not implement a custom <see cref="VolumeComponentEditor"/>.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    public sealed class VolumeComponentDocumentation : Attribute
+    {
+        public readonly string documentationURL;
+
+        /// <summary>
+        /// Creates a new <seealso cref="VolumeComponentDocumentation"/> instance.
+        /// </summary>
+        /// <param name="menu">The full URL to the documentation.</param>
+        public VolumeComponentDocumentation(string documentationURL)
+        {
+            this.documentationURL = documentationURL;
+        }
+    }
+
+    /// <summary>
     /// An attribute set on deprecated volume components.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
@@ -45,7 +64,7 @@ namespace UnityEngine.Rendering
     /// <example>
     /// <code>
     /// using UnityEngine.Rendering;
-    /// 
+    ///
     /// [Serializable, VolumeComponentMenu("Custom/Example Component")]
     /// public class ExampleComponent : VolumeComponent
     /// {
@@ -130,15 +149,15 @@ namespace UnityEngine.Rendering
         /// public virtual void Override(VolumeComponent state, float interpFactor)
         /// {
         ///     int count = parameters.Count;
-        /// 
+        ///
         ///     for (int i = 0; i &lt; count; i++)
         ///     {
         ///         var stateParam = state.parameters[i];
         ///         var toParam = parameters[i];
-        /// 
+        ///
         ///         // Keep track of the override state for debugging purpose
         ///         stateParam.overrideState = toParam.overrideState;
-        /// 
+        ///
         ///         if (toParam.overrideState)
         ///             stateParam.Interp(stateParam, toParam, interpFactor);
         ///     }
@@ -212,7 +231,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Unity calls this method before the object is destroyed. 
+        /// Unity calls this method before the object is destroyed.
         /// </summary>
         protected virtual void OnDestroy() => Release();
 
