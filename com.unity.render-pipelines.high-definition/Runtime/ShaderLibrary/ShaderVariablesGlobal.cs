@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public const int RenderingLightLayersMaskShift  = 0;
         public const int RenderingDecalLayersMask       = 0x0000FF00;
         public const int RenderingDecalLayersMaskShift  = 8;
-        public const int DefaultRenderingLayerMask      = 0x0101;       
+        public const int DefaultRenderingLayerMask      = 0x0101;
 
         // TODO: put commonly used vars together (below), and then sort them by the frequency of use (descending).
         // Note: a matrix is 4 * 4 * 4 = 64 bytes (1x cache line), so no need to sort those.
@@ -204,7 +204,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [HLSLArray(((int)BoundedEntityCategory.Count + 3) / 4, typeof(ShaderGenUInt4))]
         public fixed uint _BoundedEntityOffsetPerCategory[(((int)BoundedEntityCategory.Count + 3) / 4) * 4];
 
-        public Vector4  _ZBinBufferEncodingParams;
+        public Vector4 _ZBinBufferEncodingParams;
+
+        public Vector2Int _CoarseTileBufferDimensions;
+        public Vector2Int _FineTileBufferDimensions;
 
         public uint     _NumTileFtplX;
         public uint     _NumTileFtplY;

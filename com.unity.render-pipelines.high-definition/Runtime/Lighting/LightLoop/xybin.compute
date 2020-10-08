@@ -80,14 +80,9 @@ void BinCoarseXY(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
     const uint  eye = groupID.y;
     const uint  cat = groupID.z;
 
-    const uint2 groupCount = uint2(DIV_ROUND_UP(_ScreenSize.x, GROUP_SIZE * COARSE_TILE_SIZE),
-                                   DIV_ROUND_UP(_ScreenSize.y, GROUP_SIZE * COARSE_TILE_SIZE));
-
-    const uint2 coarseTileBufferDimensions = 0;
-
-    const uint2 groupCoord       = CoordinateFromIndex(g, groupCount.x);
+    const uint2 groupCoord       = CoordinateFromIndex(g, _BinCoarseXYDispatchGroupCountX);
     const uint2 tileCoord        = groupCoord * GROUP_SIZE + t;
-    const uint2 clampedTileCoord = min(clampedTileCoord, coarseTileBufferDimensions - 1); // Stay within bounds
+    const uint2 clampedTileCoord = min(clampedTileCoord, (uint2)_CoarseTileBufferDimensions - 1); // Stay within bounds
 
     // Helper threads may perform the same computation on valid data,
     // but do not store the results of the computation to memory.
@@ -106,11 +101,11 @@ void BinCoarseXY(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
         const uint2  tileAaBbMaxPtSS  = tileAaBbMinPtSS  + COARSE_TILE_SIZE;        // (clampedTileCoord + 1) * COARSE_TILE_SIZE
         const float2 tileAaBbMinPtNDC =          tileAaBbMinPtSS * _ScreenSize.zw;  // Divide
         const float2 tileAaBbMaxPtNDC = saturate(tileAaBbMaxPtSS * _ScreenSize.zw); // Divide and clamp to the edge
-        const float3 tileBoundsX      = float2(tileAaBbMinPtNDC.x, tileAaBbMaxPtNDC.x);
-        const float3 tileBoundsY      = float2(tileAaBbMinPtNDC.y, tileAaBbMaxPtNDC.y);
+        const float2 tileBoundsX      = float2(tileAaBbMinPtNDC.x, tileAaBbMaxPtNDC.x);
+        const float2 tileBoundsY      = float2(tileAaBbMinPtNDC.y, tileAaBbMaxPtNDC.y);
 
         const uint inputStart  = ComputeEntityBoundsBufferIndex(entityIndex, _BoundedEntityCount);
-        const uint outputStart = ComputeCoarseTileBufferIndex(clampedTileCoord, coarseTileBufferDimensions.x, cat, eye);
+        const uint outputStart = ComputeCoarseTileBufferIndex(clampedTileCoord, (uint)_CoarseTileBufferDimensions.x, cat, eye);
 
         // Define inputs and outputs.
         uint i = 0, j = 0;
@@ -155,6 +150,8 @@ void BinCoarseXY(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
     }
     else
     {
+        const uint outputStart = ComputeCoarseTileBufferIndex(clampedTileCoord, (uint)_CoarseTileBufferDimensions.x, cat, eye);
+
         // We do not clear the buffer, so we must add a terminator.
         _CoarseTileBuffer[outputStart] = UINT16_MAX;
     }

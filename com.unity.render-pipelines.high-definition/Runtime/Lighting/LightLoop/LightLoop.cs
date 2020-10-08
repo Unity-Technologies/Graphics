@@ -532,7 +532,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public uint         _DensityVolumeIndexShift;
         public uint         _ProbeVolumeIndexShift;
-        public uint         _Pad0_SVLL;
+        public uint         _BinCoarseXYDispatchGroupCountX;
         public uint         _Pad1_SVLL;
     }
 
@@ -1036,6 +1036,22 @@ namespace UnityEngine.Rendering.HighDefinition
             float w = 1 / y;
 
             return new Vector4(x, y, z, w);
+        }
+
+        static Vector2Int GetCoarseTileBufferDimensions(HDCamera hdCamera)
+        {
+            int w = HDUtils.DivRoundUp((int)hdCamera.screenSize.x, TiledLightingConstants.s_CoarseTileSize); 
+            int h = HDUtils.DivRoundUp((int)hdCamera.screenSize.y, TiledLightingConstants.s_CoarseTileSize);
+
+            return new Vector2Int(w, h);
+        }
+
+        static Vector2Int GetFineTileBufferDimensions(HDCamera hdCamera)
+        {
+            int w = HDUtils.DivRoundUp((int)hdCamera.screenSize.x, TiledLightingConstants.s_FineTileSize); 
+            int h = HDUtils.DivRoundUp((int)hdCamera.screenSize.y, TiledLightingConstants.s_FineTileSize);
+
+            return new Vector2Int(w, h);
         }
 
         static int GetNumTileBigTileX(HDCamera hdCamera)
@@ -3875,8 +3891,12 @@ namespace UnityEngine.Rendering.HighDefinition
             var decalDatasCount = Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen);
 
             int boundedEntityCount = m_BoundedEntityCollection.GetTotalEntityCount();
+            int coarseTileBufferWidth  = HDUtils.DivRoundUp((int)hdCamera.screenSize.x, TiledLightingConstants.s_CoarseTileSize);
+            int coarseTileBufferHeight = HDUtils.DivRoundUp((int)hdCamera.screenSize.y, TiledLightingConstants.s_CoarseTileSize);
+            int binCoarseXYDispatchGroupSize = 8; // GROUP_SIZE in the shader
 
             cb._BoundedEntityCount = (uint)boundedEntityCount;
+            cb._BinCoarseXYDispatchGroupCountX = (uint)HDUtils.DivRoundUp(coarseTileBufferWidth, binCoarseXYDispatchGroupSize);
             cb.g_screenSize = hdCamera.screenSize; // TODO remove and use global one.
             cb.g_viDimensions = new Vector2Int((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y);
             cb.g_isOrthographic = camera.orthographic ? 1u : 0u;
@@ -4178,7 +4198,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._BoundedEntityOffsetPerCategory[i] = cb._BoundedEntityOffsetPerCategory[i - 1] + cb._BoundedEntityCountPerCategory[i - 1];
             }
 
-            cb._ZBinBufferEncodingParams = GetZBinBufferEncodingParams(hdCamera);
+            cb._ZBinBufferEncodingParams   = GetZBinBufferEncodingParams(hdCamera);
+            cb._CoarseTileBufferDimensions = GetCoarseTileBufferDimensions(hdCamera);
+            cb._FineTileBufferDimensions   = GetFineTileBufferDimensions(hdCamera);
 
             // Old stuff below...
             cb._NumTileFtplX = (uint)GetNumTileFtplX(hdCamera);
