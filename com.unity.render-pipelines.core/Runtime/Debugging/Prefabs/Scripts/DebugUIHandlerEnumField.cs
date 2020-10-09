@@ -31,9 +31,8 @@ namespace UnityEngine.Rendering.UI
         /// <returns>State of the widget.</returns>
         public override bool OnSelection(bool fromNext, DebugUIHandlerWidget previous)
         {
-            // TODO: Put these back once we update the prefab to have buttons in it...
-            // nextButtonText.color = colorSelected;
-            // previousButtonText.color = colorSelected;
+            nextButtonText.color = colorSelected;
+            previousButtonText.color = colorSelected;
             nameLabel.color = colorSelected;
             valueLabel.color = colorSelected;
             return true;
@@ -44,9 +43,8 @@ namespace UnityEngine.Rendering.UI
         /// </summary>
         public override void OnDeselection()
         {
-            // TODO: Put these back once we update the prefab to have buttons in it...
-            // nextButtonText.color = colorDefault;
-            // previousButtonText.color = colorDefault;
+            nextButtonText.color = colorDefault;
+            previousButtonText.color = colorDefault;
             nameLabel.color = colorDefault;
             valueLabel.color = colorDefault;
         }
