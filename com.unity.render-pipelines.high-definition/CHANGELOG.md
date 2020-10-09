@@ -147,7 +147,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed wrong error message when fixing DXR resources from Wizard.
 - Fixed compilation error of quad overdraw with double sided materials
 - Fixed screen corruption on xbox when using TAA and Motion Blur with rendergraph. 
-- Fixed compilation issue on RT shadow denoising when using rendergraph.
+- Fixed UX issue in the graphics compositor related to clear depth and the defaults for new layers, add better tooltips and fix minor bugs (case 1283904)
+- Fixed scene visibility not working for custom pass volumes.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
