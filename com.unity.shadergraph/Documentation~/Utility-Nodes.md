@@ -24,6 +24,3 @@
 |![Image](images/NotNodeThumb.png)|![Image](images/OrNodeThumb.png)|
 |Returns the opposite of input In. If In is true the output will be false, otherwise it will be true.|Returns true if either of the inputs A and B are true.|
 
-## Mesh Deformation
-| [Compute Deformation Node](Compute-Deformation-Node) | [Linear Blend Skinning Node](Linear-Blend-Skinning-Node) |
-|:-------------|:------|

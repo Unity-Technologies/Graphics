@@ -98,6 +98,9 @@
             * [Matrix 3x3](Matrix-3x3-Node)  
             * [Matrix 4x4](Matrix-4x4-Node)  
             * [Transformation Matrix](Transformation-Matrix-Node)  
+        * Mesh Deformation
+          * [Compute Deformation](Compute-Deformation-Node)    
+          * [Linear Blend Skinning](Linear-Blend-Skinning-Node)
         * PBR 
             * [Dielectric Specular](Dielectric-Specular-Node)  
             * [Metal Reflectance](Metal-Reflectance-Node)
@@ -227,9 +230,6 @@
             * [Or](Or-Node)
         * High Definition Render Pipeline
             * [Emission](Emission-Node.md)
-        * Mesh Deformation
-          * [Compute Deformation](Compute-Deformation-Node)    
-          * [Linear Blend Skinning](Linear-Blend-Skinning-Node)
         * [Custom Function](Custom-Function-Node)
         * [Keyword](Keyword-Node)
         * [Preview](Preview-Node)
