@@ -256,19 +256,6 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     {
                         m_LayerCamera.tag = "Untagged";
                     }
-
-                    // Remove the compositor copy (if exists) from the cloned camera. This will happen if the compositor script was attached to the camera we are cloning 
-                    var compositionManager = m_LayerCamera.GetComponent<CompositionManager>();
-                    if (compositionManager != null)
-                    {
-                        CoreUtils.Destroy(compositionManager);
-                    }
-
-                    var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
-                    if (cameraData == null)
-                    {
-                        m_LayerCamera.gameObject.AddComponent(typeof(HDAdditionalCameraData));
-                    }
                 }
             }
             m_ClearsBackGround = false;
