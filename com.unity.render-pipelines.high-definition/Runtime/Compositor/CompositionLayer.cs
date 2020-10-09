@@ -652,6 +652,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 }
                 else
                 {
+                    // First layer on the stack always clears depth
                     m_ClearDepth = true;
                 }
             }
