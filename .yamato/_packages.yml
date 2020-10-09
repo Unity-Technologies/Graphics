@@ -2490,6 +2490,10 @@ all_package_ci_CUSTOM-REVISION:
       -  upm-ci package izon -d
 publish_all:
     name: Publish all packages [package context][manual]
+    agent:
+        type: Unity::VM
+        image: package-ci/ubuntu:stable
+        flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#publish_core
       -  .yamato/_packages.yml#publish_lwrp
