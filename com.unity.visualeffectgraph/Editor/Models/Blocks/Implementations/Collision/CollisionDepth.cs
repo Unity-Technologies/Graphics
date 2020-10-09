@@ -30,6 +30,13 @@ namespace UnityEditor.VFX.Block
 
         protected override bool allowInvertedCollision { get { return false; } }
 
+        protected override sealed void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            if (UnityEngine.Rendering.RenderPipelineManager.currentPipeline == null || !UnityEngine.Rendering.RenderPipelineManager.currentPipeline.ToString().Contains("HDRenderPipeline"))
+                manager.RegisterError("CollisionDepthUnavailableWithoutHDRP", VFXErrorType.Warning, "Only high definition render pipeline supports depth collision.");
+        }
+
+
         public override IEnumerable<VFXAttributeInfo> attributes
         {
             get

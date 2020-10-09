@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Output Event Handler Samples
 - Added ExposedProperty custom Property Drawer
 - Error display within the graph.
+- Warning using Depth Collision on unsupported scriptable render pipeline.
 
 ### Fixed
 - Mesh Sampling incorrect with some GPU (use ByteAddressBuffer instead of Buffer<float>)
@@ -39,8 +40,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix [Case 1114281](https://fogbugz.unity3d.com/f/cases/1114281/)
 - Fix shadows not being rendered to some cascades with directional lights [Case 1229972](https://issuetracker.unity3d.com/issues/output-inconsistencies-with-vfx-shadow-casting-and-shadow-cascades)
 - Fix [Case 1268354](https://fogbugz.unity3d.com/f/cases/1268354/)
-
-### Fixed
 - Fix VFX Graph window invalidating existing Undo.undoRedoPerformed delegates.
 - Fix shadergraph changes not reflected in VisualEffectGraph [Case 1278469](https://fogbugz.unity3d.com/f/cases/resolve/1278469/)
 
