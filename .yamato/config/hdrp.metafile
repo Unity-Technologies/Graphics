@@ -89,7 +89,7 @@ all:
       test_platforms:
         - playmode_cache
         - playmode_XR
-        - Standalone
+        - Standalone_cache
     - platform: Win
       api: Vulkan
       test_platforms:
