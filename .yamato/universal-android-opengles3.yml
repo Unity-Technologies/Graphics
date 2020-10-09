@@ -43,7 +43,7 @@ Build_Universal_Android_OpenGLES3_Player_il2cpp_2_Linear_trunk:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
     artifacts:
         logs:
             paths:
@@ -91,7 +91,7 @@ Build_Universal_Android_OpenGLES3_Player_il2cpp_2_gamma_trunk:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
     artifacts:
         logs:
             paths:
@@ -117,7 +117,7 @@ Universal_Android_OpenGLES3_playmode_il2cpp_2_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -141,7 +141,7 @@ Universal_Android_OpenGLES3_playmode_il2cpp_2_gamma_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -165,7 +165,7 @@ Universal_Android_OpenGLES3_editmode_il2cpp_2_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
+                 utr --suite=editor --platform=editmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -189,7 +189,7 @@ Universal_Android_OpenGLES3_editmode_il2cpp_2_gamma_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
+                 utr --suite=editor --platform=editmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -213,7 +213,7 @@ Universal_Android_OpenGLES3_playmode_perf_build_il2cpp_2_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --platform=Android
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --platform=Android
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -237,7 +237,7 @@ Universal_Android_OpenGLES3_playmode_perf_build_il2cpp_2_gamma_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --platform=Android
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --platform=Android
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -261,7 +261,7 @@ Universal_Android_OpenGLES3_playmode_XR_il2cpp_2_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests"
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -285,7 +285,7 @@ Universal_Android_OpenGLES3_playmode_XR_il2cpp_2_gamma_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests"
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -331,7 +331,7 @@ Build_Universal_Android_OpenGLES3_Player_il2cpp_4_Linear_trunk:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
     artifacts:
         logs:
             paths:
@@ -379,7 +379,7 @@ Build_Universal_Android_OpenGLES3_Player_il2cpp_4_gamma_trunk:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
     artifacts:
         logs:
             paths:
@@ -405,7 +405,7 @@ Universal_Android_OpenGLES3_playmode_il2cpp_4_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -429,7 +429,7 @@ Universal_Android_OpenGLES3_playmode_il2cpp_4_gamma_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -453,7 +453,7 @@ Universal_Android_OpenGLES3_editmode_il2cpp_4_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"
+                 utr --suite=editor --platform=editmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -477,7 +477,7 @@ Universal_Android_OpenGLES3_editmode_il2cpp_4_gamma_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"
+                 utr --suite=editor --platform=editmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -501,7 +501,7 @@ Universal_Android_OpenGLES3_playmode_perf_build_il2cpp_4_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --platform=Android
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --platform=Android
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -525,7 +525,7 @@ Universal_Android_OpenGLES3_playmode_perf_build_il2cpp_4_gamma_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --platform=Android
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --platform=Android
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -549,7 +549,7 @@ Universal_Android_OpenGLES3_playmode_XR_il2cpp_4_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests"
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -573,7 +573,7 @@ Universal_Android_OpenGLES3_playmode_XR_il2cpp_4_gamma_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests"
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -619,7 +619,7 @@ Build_Universal_Android_OpenGLES3_Player_mono_Linear_trunk:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
     artifacts:
         logs:
             paths:
@@ -667,7 +667,7 @@ Build_Universal_Android_OpenGLES3_Player_mono_gamma_trunk:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
     artifacts:
         logs:
             paths:
@@ -693,7 +693,7 @@ Universal_Android_OpenGLES3_playmode_mono_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -717,7 +717,7 @@ Universal_Android_OpenGLES3_playmode_mono_gamma_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -741,7 +741,7 @@ Universal_Android_OpenGLES3_editmode_mono_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
+                 utr --suite=editor --platform=editmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -765,7 +765,7 @@ Universal_Android_OpenGLES3_editmode_mono_gamma_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
+                 utr --suite=editor --platform=editmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -789,7 +789,7 @@ Universal_Android_OpenGLES3_playmode_perf_build_mono_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --platform=Android
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --platform=Android
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -813,7 +813,7 @@ Universal_Android_OpenGLES3_playmode_perf_build_mono_gamma_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --platform=Android
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --platform=Android
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -837,7 +837,7 @@ Universal_Android_OpenGLES3_playmode_XR_mono_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests"
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -861,7 +861,7 @@ Universal_Android_OpenGLES3_playmode_XR_mono_gamma_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests"
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -911,7 +911,7 @@ Build_Universal_Android_OpenGLES3_Player_il2cpp_2_Linear_CUSTOM-REVISION:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
     artifacts:
         logs:
             paths:
@@ -966,7 +966,7 @@ Build_Universal_Android_OpenGLES3_Player_il2cpp_2_gamma_CUSTOM-REVISION:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
     artifacts:
         logs:
             paths:
@@ -996,7 +996,7 @@ Universal_Android_OpenGLES3_playmode_il2cpp_2_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1024,7 +1024,7 @@ Universal_Android_OpenGLES3_playmode_il2cpp_2_gamma_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1052,7 +1052,7 @@ Universal_Android_OpenGLES3_editmode_il2cpp_2_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
+                 utr --suite=editor --platform=editmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1080,7 +1080,7 @@ Universal_Android_OpenGLES3_editmode_il2cpp_2_gamma_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
+                 utr --suite=editor --platform=editmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1108,7 +1108,7 @@ Universal_Android_OpenGLES3_playmode_perf_build_il2cpp_2_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --platform=Android
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --platform=Android
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1136,7 +1136,7 @@ Universal_Android_OpenGLES3_playmode_perf_build_il2cpp_2_gamma_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --platform=Android
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --platform=Android
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1164,7 +1164,7 @@ Universal_Android_OpenGLES3_playmode_XR_il2cpp_2_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests"
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1192,7 +1192,7 @@ Universal_Android_OpenGLES3_playmode_XR_il2cpp_2_gamma_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests"
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1245,7 +1245,7 @@ Build_Universal_Android_OpenGLES3_Player_il2cpp_4_Linear_CUSTOM-REVISION:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
     artifacts:
         logs:
             paths:
@@ -1300,7 +1300,7 @@ Build_Universal_Android_OpenGLES3_Player_il2cpp_4_gamma_CUSTOM-REVISION:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
     artifacts:
         logs:
             paths:
@@ -1330,7 +1330,7 @@ Universal_Android_OpenGLES3_playmode_il2cpp_4_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1358,7 +1358,7 @@ Universal_Android_OpenGLES3_playmode_il2cpp_4_gamma_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1386,7 +1386,7 @@ Universal_Android_OpenGLES3_editmode_il2cpp_4_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"
+                 utr --suite=editor --platform=editmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1414,7 +1414,7 @@ Universal_Android_OpenGLES3_editmode_il2cpp_4_gamma_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"
+                 utr --suite=editor --platform=editmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1442,7 +1442,7 @@ Universal_Android_OpenGLES3_playmode_perf_build_il2cpp_4_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --platform=Android
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --platform=Android
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1470,7 +1470,7 @@ Universal_Android_OpenGLES3_playmode_perf_build_il2cpp_4_gamma_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --platform=Android
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --platform=Android
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1498,7 +1498,7 @@ Universal_Android_OpenGLES3_playmode_XR_il2cpp_4_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests"
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1526,7 +1526,7 @@ Universal_Android_OpenGLES3_playmode_XR_il2cpp_4_gamma_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests"
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1579,7 +1579,7 @@ Build_Universal_Android_OpenGLES3_Player_mono_Linear_CUSTOM-REVISION:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
     artifacts:
         logs:
             paths:
@@ -1634,7 +1634,7 @@ Build_Universal_Android_OpenGLES3_Player_mono_gamma_CUSTOM-REVISION:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-androidtargetarchitecture=ARM64" --timeout=1800
     artifacts:
         logs:
             paths:
@@ -1664,7 +1664,7 @@ Universal_Android_OpenGLES3_playmode_mono_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1692,7 +1692,7 @@ Universal_Android_OpenGLES3_playmode_mono_gamma_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1720,7 +1720,7 @@ Universal_Android_OpenGLES3_editmode_mono_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
+                 utr --suite=editor --platform=editmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1748,7 +1748,7 @@ Universal_Android_OpenGLES3_editmode_mono_gamma_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
+                 utr --suite=editor --platform=editmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1776,7 +1776,7 @@ Universal_Android_OpenGLES3_playmode_perf_build_mono_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --platform=Android
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --platform=Android
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1804,7 +1804,7 @@ Universal_Android_OpenGLES3_playmode_perf_build_mono_gamma_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --platform=Android
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --platform=Android
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1832,7 +1832,7 @@ Universal_Android_OpenGLES3_playmode_XR_mono_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests"
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1860,7 +1860,7 @@ Universal_Android_OpenGLES3_playmode_XR_mono_gamma_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests"
+                 utr --suite=playmode --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:

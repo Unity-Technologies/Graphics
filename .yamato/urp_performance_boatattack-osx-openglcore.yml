@@ -16,7 +16,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_il2cpp_2_
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -34,7 +34,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_il2cpp_2_
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -52,7 +52,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_il2cpp_2_Li
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -70,7 +70,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_il2cpp_2_ga
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -88,7 +88,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_il2cpp_4_
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -106,7 +106,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_il2cpp_4_
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -124,7 +124,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_il2cpp_4_Li
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -142,7 +142,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_il2cpp_4_ga
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -160,7 +160,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_mono_2_Li
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -178,7 +178,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_mono_2_ga
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -196,7 +196,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_mono_2_Line
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -214,7 +214,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_mono_2_gamm
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -232,7 +232,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_mono_4_Li
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -250,7 +250,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_mono_4_ga
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -268,7 +268,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_mono_4_Line
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -286,7 +286,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_mono_4_gamm
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -305,7 +305,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_il2cpp_2_
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -327,7 +327,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_il2cpp_2_
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -349,7 +349,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_il2cpp_2_Li
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -371,7 +371,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_il2cpp_2_ga
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -393,7 +393,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_il2cpp_4_
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -415,7 +415,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_il2cpp_4_
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -437,7 +437,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_il2cpp_4_Li
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -459,7 +459,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_il2cpp_4_ga
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -481,7 +481,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_mono_2_Li
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -503,7 +503,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_mono_2_ga
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -525,7 +525,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_mono_2_Line
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -547,7 +547,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_mono_2_gamm
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -569,7 +569,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_mono_4_Li
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -591,7 +591,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_mono_4_ga
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -613,7 +613,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_mono_4_Line
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -635,7 +635,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_mono_4_gamm
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:

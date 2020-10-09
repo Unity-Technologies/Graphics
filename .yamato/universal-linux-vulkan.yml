@@ -17,7 +17,7 @@ Universal_Linux_Vulkan_Standalone_il2cpp_2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
             paths:
@@ -36,7 +36,7 @@ Universal_Linux_Vulkan_Standalone_il2cpp_2_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
             paths:
@@ -55,7 +55,7 @@ Universal_Linux_Vulkan_playmode_il2cpp_2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -74,7 +74,7 @@ Universal_Linux_Vulkan_playmode_il2cpp_2_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -93,7 +93,7 @@ Universal_Linux_Vulkan_editmode_il2cpp_2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -112,7 +112,7 @@ Universal_Linux_Vulkan_editmode_il2cpp_2_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -131,7 +131,7 @@ Universal_Linux_Vulkan_playmode_perf_build_il2cpp_2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -150,7 +150,7 @@ Universal_Linux_Vulkan_playmode_perf_build_il2cpp_2_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -169,7 +169,7 @@ Universal_Linux_Vulkan_Standalone_il2cpp_4_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
             paths:
@@ -188,7 +188,7 @@ Universal_Linux_Vulkan_Standalone_il2cpp_4_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
             paths:
@@ -207,7 +207,7 @@ Universal_Linux_Vulkan_playmode_il2cpp_4_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -226,7 +226,7 @@ Universal_Linux_Vulkan_playmode_il2cpp_4_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -245,7 +245,7 @@ Universal_Linux_Vulkan_editmode_il2cpp_4_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -264,7 +264,7 @@ Universal_Linux_Vulkan_editmode_il2cpp_4_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -283,7 +283,7 @@ Universal_Linux_Vulkan_playmode_perf_build_il2cpp_4_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -302,7 +302,7 @@ Universal_Linux_Vulkan_playmode_perf_build_il2cpp_4_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -321,7 +321,7 @@ Universal_Linux_Vulkan_Standalone_mono_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
             paths:
@@ -340,7 +340,7 @@ Universal_Linux_Vulkan_Standalone_mono_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
             paths:
@@ -359,7 +359,7 @@ Universal_Linux_Vulkan_playmode_mono_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -378,7 +378,7 @@ Universal_Linux_Vulkan_playmode_mono_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -397,7 +397,7 @@ Universal_Linux_Vulkan_editmode_mono_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -416,7 +416,7 @@ Universal_Linux_Vulkan_editmode_mono_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -435,7 +435,7 @@ Universal_Linux_Vulkan_playmode_perf_build_mono_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -454,7 +454,7 @@ Universal_Linux_Vulkan_playmode_perf_build_mono_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -474,7 +474,7 @@ Universal_Linux_Vulkan_Standalone_il2cpp_2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
             paths:
@@ -497,7 +497,7 @@ Universal_Linux_Vulkan_Standalone_il2cpp_2_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
             paths:
@@ -520,7 +520,7 @@ Universal_Linux_Vulkan_playmode_il2cpp_2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -543,7 +543,7 @@ Universal_Linux_Vulkan_playmode_il2cpp_2_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -566,7 +566,7 @@ Universal_Linux_Vulkan_editmode_il2cpp_2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -589,7 +589,7 @@ Universal_Linux_Vulkan_editmode_il2cpp_2_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -612,7 +612,7 @@ Universal_Linux_Vulkan_playmode_perf_build_il2cpp_2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -635,7 +635,7 @@ Universal_Linux_Vulkan_playmode_perf_build_il2cpp_2_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -658,7 +658,7 @@ Universal_Linux_Vulkan_Standalone_il2cpp_4_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
             paths:
@@ -681,7 +681,7 @@ Universal_Linux_Vulkan_Standalone_il2cpp_4_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
             paths:
@@ -704,7 +704,7 @@ Universal_Linux_Vulkan_playmode_il2cpp_4_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -727,7 +727,7 @@ Universal_Linux_Vulkan_playmode_il2cpp_4_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -750,7 +750,7 @@ Universal_Linux_Vulkan_editmode_il2cpp_4_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -773,7 +773,7 @@ Universal_Linux_Vulkan_editmode_il2cpp_4_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -796,7 +796,7 @@ Universal_Linux_Vulkan_playmode_perf_build_il2cpp_4_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -819,7 +819,7 @@ Universal_Linux_Vulkan_playmode_perf_build_il2cpp_4_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -842,7 +842,7 @@ Universal_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
             paths:
@@ -865,7 +865,7 @@ Universal_Linux_Vulkan_Standalone_mono_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
             paths:
@@ -888,7 +888,7 @@ Universal_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -911,7 +911,7 @@ Universal_Linux_Vulkan_playmode_mono_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -934,7 +934,7 @@ Universal_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -957,7 +957,7 @@ Universal_Linux_Vulkan_editmode_mono_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -980,7 +980,7 @@ Universal_Linux_Vulkan_playmode_perf_build_mono_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -1003,7 +1003,7 @@ Universal_Linux_Vulkan_playmode_perf_build_mono_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:

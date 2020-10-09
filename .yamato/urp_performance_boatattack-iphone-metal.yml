@@ -57,7 +57,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_2_Linear_trunk:
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
     artifacts:
         logs:
             paths:
@@ -119,7 +119,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_2_gamma_trunk:
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
     artifacts:
         logs:
             paths:
@@ -162,7 +162,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_2_Line
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -202,7 +202,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_2_gamm
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -261,7 +261,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_4_Linear_trunk:
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
     artifacts:
         logs:
             paths:
@@ -323,7 +323,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_4_gamma_trunk:
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
     artifacts:
         logs:
             paths:
@@ -366,7 +366,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_4_Line
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -406,7 +406,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_4_gamm
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -465,7 +465,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_2_Linear_trunk:
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
     artifacts:
         logs:
             paths:
@@ -527,7 +527,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_2_gamma_trunk:
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
     artifacts:
         logs:
             paths:
@@ -570,7 +570,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_2_Linear
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -610,7 +610,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_2_gamma_
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -669,7 +669,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_4_Linear_trunk:
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
     artifacts:
         logs:
             paths:
@@ -731,7 +731,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_4_gamma_trunk:
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
     artifacts:
         logs:
             paths:
@@ -774,7 +774,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_4_Linear
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -814,7 +814,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_4_gamma_
       -  unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -877,7 +877,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_2_Linear_CUSTOM-REVI
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
     artifacts:
         logs:
             paths:
@@ -946,7 +946,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_2_gamma_CUSTOM-REVIS
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
     artifacts:
         logs:
             paths:
@@ -993,7 +993,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_2_Line
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -1037,7 +1037,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_2_gamm
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -1103,7 +1103,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_4_Linear_CUSTOM-REVI
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
     artifacts:
         logs:
             paths:
@@ -1172,7 +1172,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_4_gamma_CUSTOM-REVIS
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
     artifacts:
         logs:
             paths:
@@ -1219,7 +1219,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_4_Line
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -1263,7 +1263,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_4_gamm
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -1329,7 +1329,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_2_Linear_CUSTOM-REVISI
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
     artifacts:
         logs:
             paths:
@@ -1398,7 +1398,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_2_gamma_CUSTOM-REVISIO
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
     artifacts:
         logs:
             paths:
@@ -1445,7 +1445,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_2_Linear
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -1489,7 +1489,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_2_gamma_
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -1555,7 +1555,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_4_Linear_CUSTOM-REVISI
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
     artifacts:
         logs:
             paths:
@@ -1624,7 +1624,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_mono_4_gamma_CUSTOM-REVISIO
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
     artifacts:
         logs:
             paths:
@@ -1671,7 +1671,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_4_Linear
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -1715,7 +1715,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_4_gamma_
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
