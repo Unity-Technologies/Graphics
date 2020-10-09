@@ -21,24 +21,6 @@ HDRP_Win_DX12_playmode_il2cpp_2_Linear_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_Win_DX12_playmode_il2cpp_2_gamma_trunk:
-    name: HDRP on Win_DX12_playmode_il2cpp_2_gamma on version trunk
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-force-d3d12"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
 HDRP_Win_DX12_playmode_XR_il2cpp_2_Linear_trunk:
     name: HDRP on Win_DX12_playmode_XR_il2cpp_2_Linear on version trunk
     agent:
@@ -53,24 +35,6 @@ HDRP_Win_DX12_playmode_XR_il2cpp_2_Linear_trunk:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests" --extra-editor-arg="-force-d3d12"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-HDRP_Win_DX12_playmode_XR_il2cpp_2_gamma_trunk:
-    name: HDRP on Win_DX12_playmode_XR_il2cpp_2_gamma on version trunk
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests" --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
@@ -93,43 +57,8 @@ HDRP_Win_DX12_playmode_RenderGraph_il2cpp_2_Linear_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_Win_DX12_playmode_RenderGraph_il2cpp_2_gamma_trunk:
-    name: HDRP on Win_DX12_playmode_RenderGraph_il2cpp_2_gamma on version trunk
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-rendergraph-tests" --extra-editor-arg="-force-d3d12"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
 HDRP_Win_DX12_editmode_il2cpp_2_Linear_trunk:
     name: HDRP on Win_DX12_editmode_il2cpp_2_Linear on version trunk
-    agent:
-        type: Unity::VM
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-HDRP_Win_DX12_editmode_il2cpp_2_gamma_trunk:
-    name: HDRP on Win_DX12_editmode_il2cpp_2_gamma on version trunk
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
@@ -185,46 +114,6 @@ Build_HDRP_Win_DX12_Player_il2cpp_2_Linear_trunk:
         players:
             paths:
               -  "players/**"
-HDRP_Win_DX12_Standalone_il2cpp_2_gamma_trunk:
-    name: HDRP on Win_DX12_Standalone_il2cpp_2_gamma on version trunk
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
-      -  cd TestProjects/HDRP_RuntimeTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --timeout=1200
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/hdrp-win-dx12.yml#Build_HDRP_Win_DX12_Player_il2cpp_2_gamma_trunk
-         rerun: on-new-revision
-Build_HDRP_Win_DX12_Player_il2cpp_2_gamma_trunk:
-    name: Build HDRP on Win_DX12_il2cpp_2_gamma_Player on version trunk
-    agent:
-        type: Unity::VM
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_RuntimeTests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_RuntimeTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D12" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-        players:
-            paths:
-              -  "players/**"
 HDRP_Win_DX12_playmode_il2cpp_4_Linear_trunk:
     name: HDRP on Win_DX12_playmode_il2cpp_4_Linear on version trunk
     agent:
@@ -239,24 +128,6 @@ HDRP_Win_DX12_playmode_il2cpp_4_Linear_trunk:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-HDRP_Win_DX12_playmode_il2cpp_4_gamma_trunk:
-    name: HDRP on Win_DX12_playmode_il2cpp_4_gamma on version trunk
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
@@ -279,24 +150,6 @@ HDRP_Win_DX12_playmode_XR_il2cpp_4_Linear_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_Win_DX12_playmode_XR_il2cpp_4_gamma_trunk:
-    name: HDRP on Win_DX12_playmode_XR_il2cpp_4_gamma on version trunk
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests" --extra-editor-arg="-force-d3d12"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
 HDRP_Win_DX12_playmode_RenderGraph_il2cpp_4_Linear_trunk:
     name: HDRP on Win_DX12_playmode_RenderGraph_il2cpp_4_Linear on version trunk
     agent:
@@ -315,43 +168,8 @@ HDRP_Win_DX12_playmode_RenderGraph_il2cpp_4_Linear_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_Win_DX12_playmode_RenderGraph_il2cpp_4_gamma_trunk:
-    name: HDRP on Win_DX12_playmode_RenderGraph_il2cpp_4_gamma on version trunk
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-rendergraph-tests" --extra-editor-arg="-force-d3d12"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
 HDRP_Win_DX12_editmode_il2cpp_4_Linear_trunk:
     name: HDRP on Win_DX12_editmode_il2cpp_4_Linear on version trunk
-    agent:
-        type: Unity::VM
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-HDRP_Win_DX12_editmode_il2cpp_4_gamma_trunk:
-    name: HDRP on Win_DX12_editmode_il2cpp_4_gamma on version trunk
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
@@ -407,46 +225,6 @@ Build_HDRP_Win_DX12_Player_il2cpp_4_Linear_trunk:
         players:
             paths:
               -  "players/**"
-HDRP_Win_DX12_Standalone_il2cpp_4_gamma_trunk:
-    name: HDRP on Win_DX12_Standalone_il2cpp_4_gamma on version trunk
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
-      -  cd TestProjects/HDRP_RuntimeTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --timeout=1200
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/hdrp-win-dx12.yml#Build_HDRP_Win_DX12_Player_il2cpp_4_gamma_trunk
-         rerun: on-new-revision
-Build_HDRP_Win_DX12_Player_il2cpp_4_gamma_trunk:
-    name: Build HDRP on Win_DX12_il2cpp_4_gamma_Player on version trunk
-    agent:
-        type: Unity::VM
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_RuntimeTests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_RuntimeTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D12" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-        players:
-            paths:
-              -  "players/**"
 HDRP_Win_DX12_playmode_mono_Linear_trunk:
     name: HDRP on Win_DX12_playmode_mono_Linear on version trunk
     agent:
@@ -461,24 +239,6 @@ HDRP_Win_DX12_playmode_mono_Linear_trunk:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-HDRP_Win_DX12_playmode_mono_gamma_trunk:
-    name: HDRP on Win_DX12_playmode_mono_gamma on version trunk
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
@@ -501,24 +261,6 @@ HDRP_Win_DX12_playmode_XR_mono_Linear_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_Win_DX12_playmode_XR_mono_gamma_trunk:
-    name: HDRP on Win_DX12_playmode_XR_mono_gamma on version trunk
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests" --extra-editor-arg="-force-d3d12"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
 HDRP_Win_DX12_playmode_RenderGraph_mono_Linear_trunk:
     name: HDRP on Win_DX12_playmode_RenderGraph_mono_Linear on version trunk
     agent:
@@ -537,43 +279,8 @@ HDRP_Win_DX12_playmode_RenderGraph_mono_Linear_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_Win_DX12_playmode_RenderGraph_mono_gamma_trunk:
-    name: HDRP on Win_DX12_playmode_RenderGraph_mono_gamma on version trunk
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-rendergraph-tests" --extra-editor-arg="-force-d3d12"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
 HDRP_Win_DX12_editmode_mono_Linear_trunk:
     name: HDRP on Win_DX12_editmode_mono_Linear on version trunk
-    agent:
-        type: Unity::VM
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-HDRP_Win_DX12_editmode_mono_gamma_trunk:
-    name: HDRP on Win_DX12_editmode_mono_gamma on version trunk
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
@@ -629,46 +336,6 @@ Build_HDRP_Win_DX12_Player_mono_Linear_trunk:
         players:
             paths:
               -  "players/**"
-HDRP_Win_DX12_Standalone_mono_gamma_trunk:
-    name: HDRP on Win_DX12_Standalone_mono_gamma on version trunk
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
-      -  cd TestProjects/HDRP_RuntimeTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --timeout=1200
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/hdrp-win-dx12.yml#Build_HDRP_Win_DX12_Player_mono_gamma_trunk
-         rerun: on-new-revision
-Build_HDRP_Win_DX12_Player_mono_gamma_trunk:
-    name: Build HDRP on Win_DX12_mono_gamma_Player on version trunk
-    agent:
-        type: Unity::VM
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_RuntimeTests && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_RuntimeTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D12" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-        players:
-            paths:
-              -  "players/**"
 HDRP_Win_DX12_playmode_il2cpp_2_Linear_CUSTOM-REVISION:
     name: HDRP on Win_DX12_playmode_il2cpp_2_Linear on version CUSTOM-REVISION
     agent:
@@ -684,28 +351,6 @@ HDRP_Win_DX12_playmode_il2cpp_2_Linear_CUSTOM-REVISION:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
-HDRP_Win_DX12_playmode_il2cpp_2_gamma_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_playmode_il2cpp_2_gamma on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
@@ -735,28 +380,6 @@ HDRP_Win_DX12_playmode_XR_il2cpp_2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-HDRP_Win_DX12_playmode_XR_il2cpp_2_gamma_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_playmode_XR_il2cpp_2_gamma on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests" --extra-editor-arg="-force-d3d12"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
 HDRP_Win_DX12_playmode_RenderGraph_il2cpp_2_Linear_CUSTOM-REVISION:
     name: HDRP on Win_DX12_playmode_RenderGraph_il2cpp_2_Linear on version CUSTOM-REVISION
     agent:
@@ -779,51 +402,8 @@ HDRP_Win_DX12_playmode_RenderGraph_il2cpp_2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-HDRP_Win_DX12_playmode_RenderGraph_il2cpp_2_gamma_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_playmode_RenderGraph_il2cpp_2_gamma on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-rendergraph-tests" --extra-editor-arg="-force-d3d12"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
 HDRP_Win_DX12_editmode_il2cpp_2_Linear_CUSTOM-REVISION:
     name: HDRP on Win_DX12_editmode_il2cpp_2_Linear on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
-HDRP_Win_DX12_editmode_il2cpp_2_gamma_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_editmode_il2cpp_2_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
@@ -890,53 +470,6 @@ Build_HDRP_Win_DX12_Player_il2cpp_2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-HDRP_Win_DX12_Standalone_il2cpp_2_gamma_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_Standalone_il2cpp_2_gamma on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
-      -  cd TestProjects/HDRP_RuntimeTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --timeout=1200
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
-      -  path: .yamato/hdrp-win-dx12.yml#Build_HDRP_Win_DX12_Player_il2cpp_2_gamma_CUSTOM-REVISION
-         rerun: always
-Build_HDRP_Win_DX12_Player_il2cpp_2_gamma_CUSTOM-REVISION:
-    name: Build HDRP on Win_DX12_il2cpp_2_gamma_Player on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_RuntimeTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_RuntimeTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D12" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-        players:
-            paths:
-              -  "players/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
 HDRP_Win_DX12_playmode_il2cpp_4_Linear_CUSTOM-REVISION:
     name: HDRP on Win_DX12_playmode_il2cpp_4_Linear on version CUSTOM-REVISION
     agent:
@@ -952,28 +485,6 @@ HDRP_Win_DX12_playmode_il2cpp_4_Linear_CUSTOM-REVISION:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
-HDRP_Win_DX12_playmode_il2cpp_4_gamma_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_playmode_il2cpp_4_gamma on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
@@ -1003,28 +514,6 @@ HDRP_Win_DX12_playmode_XR_il2cpp_4_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-HDRP_Win_DX12_playmode_XR_il2cpp_4_gamma_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_playmode_XR_il2cpp_4_gamma on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests" --extra-editor-arg="-force-d3d12"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
 HDRP_Win_DX12_playmode_RenderGraph_il2cpp_4_Linear_CUSTOM-REVISION:
     name: HDRP on Win_DX12_playmode_RenderGraph_il2cpp_4_Linear on version CUSTOM-REVISION
     agent:
@@ -1047,51 +536,8 @@ HDRP_Win_DX12_playmode_RenderGraph_il2cpp_4_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-HDRP_Win_DX12_playmode_RenderGraph_il2cpp_4_gamma_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_playmode_RenderGraph_il2cpp_4_gamma on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-rendergraph-tests" --extra-editor-arg="-force-d3d12"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
 HDRP_Win_DX12_editmode_il2cpp_4_Linear_CUSTOM-REVISION:
     name: HDRP on Win_DX12_editmode_il2cpp_4_Linear on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
-HDRP_Win_DX12_editmode_il2cpp_4_gamma_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_editmode_il2cpp_4_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
@@ -1158,53 +604,6 @@ Build_HDRP_Win_DX12_Player_il2cpp_4_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-HDRP_Win_DX12_Standalone_il2cpp_4_gamma_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_Standalone_il2cpp_4_gamma on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
-      -  cd TestProjects/HDRP_RuntimeTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --timeout=1200
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
-      -  path: .yamato/hdrp-win-dx12.yml#Build_HDRP_Win_DX12_Player_il2cpp_4_gamma_CUSTOM-REVISION
-         rerun: always
-Build_HDRP_Win_DX12_Player_il2cpp_4_gamma_CUSTOM-REVISION:
-    name: Build HDRP on Win_DX12_il2cpp_4_gamma_Player on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_RuntimeTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_RuntimeTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D12" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=gamma" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-        players:
-            paths:
-              -  "players/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
 HDRP_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION:
     name: HDRP on Win_DX12_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -1220,28 +619,6 @@ HDRP_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
-HDRP_Win_DX12_playmode_mono_gamma_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_playmode_mono_gamma on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
@@ -1271,28 +648,6 @@ HDRP_Win_DX12_playmode_XR_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-HDRP_Win_DX12_playmode_XR_mono_gamma_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_playmode_XR_mono_gamma on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-xr-tests" --extra-editor-arg="-force-d3d12"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
 HDRP_Win_DX12_playmode_RenderGraph_mono_Linear_CUSTOM-REVISION:
     name: HDRP on Win_DX12_playmode_RenderGraph_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -1315,51 +670,8 @@ HDRP_Win_DX12_playmode_RenderGraph_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-HDRP_Win_DX12_playmode_RenderGraph_mono_gamma_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_playmode_RenderGraph_mono_gamma on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-rendergraph-tests" --extra-editor-arg="-force-d3d12"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
 HDRP_Win_DX12_editmode_mono_Linear_CUSTOM-REVISION:
     name: HDRP on Win_DX12_editmode_mono_Linear on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
-HDRP_Win_DX12_editmode_mono_gamma_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_editmode_mono_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
@@ -1416,53 +728,6 @@ Build_HDRP_Win_DX12_Player_mono_Linear_CUSTOM-REVISION:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_RuntimeTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_RuntimeTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D12" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-        players:
-            paths:
-              -  "players/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
-HDRP_Win_DX12_Standalone_mono_gamma_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_Standalone_mono_gamma on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
-      -  cd TestProjects/HDRP_RuntimeTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --timeout=1200
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
-      -  path: .yamato/hdrp-win-dx12.yml#Build_HDRP_Win_DX12_Player_mono_gamma_CUSTOM-REVISION
-         rerun: always
-Build_HDRP_Win_DX12_Player_mono_gamma_CUSTOM-REVISION:
-    name: Build HDRP on Win_DX12_mono_gamma_Player on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_RuntimeTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_RuntimeTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D12" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=gamma" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
     artifacts:
         logs:
             paths:

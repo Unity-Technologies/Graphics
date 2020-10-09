@@ -29,7 +29,7 @@ build_configs:
   api_level: NET_2_0
 color_spaces:
   - Linear
-  - gamma
+#  - gamma
 platforms:
   - name: Win
     apis:
