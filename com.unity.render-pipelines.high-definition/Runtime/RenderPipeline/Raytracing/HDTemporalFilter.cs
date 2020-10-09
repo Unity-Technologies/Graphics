@@ -384,6 +384,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(tfaParams.temporalFilterCS, tfaParams.temporalAccSingleKernel, HDShaderIDs._DepthTexture, tfaResources.depthStencilBuffer);
                 cmd.SetComputeTextureParam(tfaParams.temporalFilterCS, tfaParams.temporalAccSingleKernel, HDShaderIDs._ValidationBuffer, tfaResources.validationBuffer);
                 cmd.SetComputeTextureParam(tfaParams.temporalFilterCS, tfaParams.temporalAccSingleKernel, HDShaderIDs._VelocityBuffer, tfaResources.velocityBuffer);
+                cmd.SetComputeTextureParam(tfaParams.temporalFilterCS, tfaParams.temporalAccSingleKernel, HDShaderIDs._CameraMotionVectorsTexture, tfaResources.motionVectorBuffer);
 
                 // Bind the constant inputs
                 cmd.SetComputeIntParam(tfaParams.temporalFilterCS, HDShaderIDs._DenoisingHistorySlice, tfaParams.sliceIndex);
