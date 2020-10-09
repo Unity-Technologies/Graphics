@@ -2498,3 +2498,6 @@ publish_all:
       -  .yamato/_packages.yml#publish_universal
       -  .yamato/_packages.yml#publish_vfx
       -  .yamato/_packages.yml#publish_config
+    commands:
+      -  git tag v$(cd com.unity.render-pipelines.core && node -e "console.log(require('./package.json').version)")
+      -  git push origin --tags

@@ -410,7 +410,9 @@ all_package_ci_project_2020.1:
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#test_all_project_windows_2020.1
+      -  .yamato/_projectcontext.yml#test_all_project_windows_min_editor
       -  .yamato/_projectcontext.yml#test_all_project_macos_2020.1
+      -  .yamato/_projectcontext.yml#test_all_project_macos_min_editor
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
@@ -423,7 +425,9 @@ all_package_ci_project_fast-2020.1:
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#test_all_project_windows_fast-2020.1
+      -  .yamato/_projectcontext.yml#test_all_project_windows_min_editor
       -  .yamato/_projectcontext.yml#test_all_project_macos_fast-2020.1
+      -  .yamato/_projectcontext.yml#test_all_project_macos_min_editor
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
@@ -436,7 +440,9 @@ all_package_ci_project_CUSTOM-REVISION:
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#test_all_project_windows_CUSTOM-REVISION
+      -  .yamato/_projectcontext.yml#test_all_project_windows_min_editor
       -  .yamato/_projectcontext.yml#test_all_project_macos_CUSTOM-REVISION
+      -  .yamato/_projectcontext.yml#test_all_project_macos_min_editor
     variables:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
@@ -453,3 +459,6 @@ publish_all_project:
       -  .yamato/_projectcontext.yml#publish_universal_project
       -  .yamato/_projectcontext.yml#publish_vfx_project
       -  .yamato/_projectcontext.yml#publish_config_project
+    commands:
+      -  git tag v$(cd com.unity.render-pipelines.core && node -e "console.log(require('./package.json').version)")
+      -  git push origin --tags
