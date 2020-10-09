@@ -149,6 +149,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed screen corruption on xbox when using TAA and Motion Blur with rendergraph. 
 - Fixed UX issue in the graphics compositor related to clear depth and the defaults for new layers, add better tooltips and fix minor bugs (case 1283904)
 - Fixed scene visibility not working for custom pass volumes.
+- Fix TAA flickering on the very edge of screen. 
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
