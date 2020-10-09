@@ -33,22 +33,22 @@ public class GradientFogRendererFeature : ScriptableRendererFeature
 
         public void Setup(RenderTargetIdentifier cameraColorTarget)
         {
-            source = cameraColorTarget;
-            //GradientFogVolume volume = VolumeManager.instance.stack.GetComponent<GradientFogVolume>();
-            /*
+            //source = cameraColorTarget;
+            GradientFogVolume volume = VolumeManager.instance.stack.GetComponent<GradientFogVolume>();
+            
             fogMaterial.SetFloat("_StartDist", volume.nearDistance.value);
             fogMaterial.SetFloat("_EndDist", volume.farDistance.value);
             fogMaterial.SetColor("_NearCol", volume.nearColor.value);
             fogMaterial.SetColor("_MidCol", volume.midColor.value);
             fogMaterial.SetColor("_FarCol", volume.farColor.value);
-            */
             
+            /*
             fogMaterial.SetFloat("_StartDist", settings.startDistance);
             fogMaterial.SetFloat("_EndDist", settings.endDistance);
             fogMaterial.SetColor("_NearCol", settings.nearColor);
             fogMaterial.SetColor("_MidCol", settings.midColor);
             fogMaterial.SetColor("_FarCol", settings.farColor);
-
+            */
         }
         
         // This method is called before executing the render pass.
@@ -106,7 +106,7 @@ public class GradientFogRendererFeature : ScriptableRendererFeature
     // This method is called when setting up the renderer once per-camera.
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        var src = renderer.cameraColorTarget;
+        var src = "null";//renderer.cameraColorTarget;
         m_GradientFogPass.Setup(src);
         renderer.EnqueuePass(m_GradientFogPass);
     }
