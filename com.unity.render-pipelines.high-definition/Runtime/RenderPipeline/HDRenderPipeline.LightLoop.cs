@@ -241,9 +241,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal ShadowResult RenderShadows(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullResults)
+        internal ShadowResult RenderShadows(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullResults, ref ShadowResult result)
         {
-            var result = m_ShadowManager.RenderShadows(m_RenderGraph, m_ShaderVariablesGlobalCB, hdCamera, cullResults);
+            m_ShadowManager.RenderShadows(m_RenderGraph, m_ShaderVariablesGlobalCB, hdCamera, cullResults, ref result);
             // Need to restore global camera parameters.
             PushGlobalCameraParams(renderGraph, hdCamera);
             return result;
@@ -428,7 +428,13 @@ namespace UnityEngine.Rendering.HighDefinition
             else
             {
                 if (transparent)
-                    BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, ref prepassOutput);
+                {
+                    // NOTE: Currently we profiled that generating the HTile for SSR and using it is not worth it the optimization.
+                    // However if the generated HTile will be used for something else but SSR, this should be made NOT resolve only and
+                    // re-enabled in the shader.
+                    BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, resolveOnly: true, ref prepassOutput);
+
+                }
 
                 using (var builder = renderGraph.AddRenderPass<RenderSSRPassData>("Render SSR", out var passData))
                 {
@@ -503,7 +509,7 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle RenderContactShadows(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, in BuildGPULightListOutput lightLists, int firstMipOffsetY)
         {
             if (!WillRenderContactShadow())
-                return renderGraph.defaultResources.clearTextureXR;
+                return renderGraph.defaultResources.blackUIntTextureXR;
 
             TextureHandle result;
             using (var builder = renderGraph.AddRenderPass<RenderContactShadowPassData>("Contact Shadows", out var passData))

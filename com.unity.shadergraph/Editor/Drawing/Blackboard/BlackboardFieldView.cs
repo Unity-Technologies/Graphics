@@ -88,7 +88,16 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void InspectorUpdateTrigger()
         {
-            m_inspectorUpdateTrigger();
+            if (m_inspectorUpdateTrigger != null)
+                m_inspectorUpdateTrigger();
+        }
+
+        private void UpdateTypeText()
+        {
+            if(shaderInput is AbstractShaderProperty asp)
+            {
+                typeText = asp.GetPropertyTypeString();
+            }
         }
 
         public BlackboardFieldView(GraphData graph, ShaderInput input, BlackBoardCallback updateBlackboardView,
@@ -98,6 +107,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Graph = graph;
             m_Input = input;
             this.BlackBoardUpdateTrigger = updateBlackboardView;
+            ShaderGraphPreferences.onAllowDeprecatedChanged += UpdateTypeText;
+        }
+
+        ~BlackboardFieldView()
+        {
+            ShaderGraphPreferences.onAllowDeprecatedChanged -= UpdateTypeText;
         }
 
         public object GetObjectToInspect()
