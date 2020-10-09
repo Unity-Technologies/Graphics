@@ -481,6 +481,7 @@ namespace UnityEditor
                     material.SetInt("_DstBlend", (int) UnityEngine.Rendering.BlendMode.Zero);
                     material.SetInt("_ZWrite", 1);
                     material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                    material.DisableKeyword("_ALPHAMODULATE_ON");
                     material.DisableKeyword("_PRESERVE_SPECULAR");
                     material.SetShaderPassEnabled("ShadowCaster", true);
                 }

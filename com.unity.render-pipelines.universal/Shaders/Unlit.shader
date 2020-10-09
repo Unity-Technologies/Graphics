@@ -140,6 +140,7 @@ Shader "Universal Render Pipeline/Unlit"
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitForwardPass.hlsl"
+            ENDHLSL
         }
         Pass
         {
