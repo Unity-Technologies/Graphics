@@ -25,7 +25,7 @@ test_platforms:
       - --performance-project-id=BoatAttack
 platforms:
   - name: Win
-    extra_utr_flags:
+    extra_utr_flags_build:
       - --extra-editor-arg="-stripenginecode-" 
       - --extra-editor-arg="-managedstrippinglevel=Low"
       - --extra-editor-arg="-allowdebugging-" 

@@ -13,7 +13,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_il2cpp_2_Linear
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --timeout=1200
     artifacts:
         logs:
             paths:
@@ -54,7 +54,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_il2cpp_2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
     artifacts:
         logs:
             paths:
@@ -72,7 +72,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_il2cpp_2_gamma_
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack --timeout=1200
     artifacts:
         logs:
             paths:
@@ -113,7 +113,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_il2cpp_2_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
     artifacts:
         logs:
             paths:
@@ -154,7 +154,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_il2cpp_2_Linear_t
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -192,7 +192,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_il2cpp_2_gamma_tr
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -207,7 +207,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_il2cpp_4_Linear
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --timeout=1200
     artifacts:
         logs:
             paths:
@@ -248,7 +248,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_il2cpp_4_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
     artifacts:
         logs:
             paths:
@@ -266,7 +266,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_il2cpp_4_gamma_
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack --timeout=1200
     artifacts:
         logs:
             paths:
@@ -307,7 +307,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_il2cpp_4_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
     artifacts:
         logs:
             paths:
@@ -348,7 +348,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_il2cpp_4_Linear_t
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -386,7 +386,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_il2cpp_4_gamma_tr
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -401,7 +401,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_2_Linear_t
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --timeout=1200
     artifacts:
         logs:
             paths:
@@ -442,7 +442,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
     artifacts:
         logs:
             paths:
@@ -460,7 +460,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_2_gamma_tr
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack --timeout=1200
     artifacts:
         logs:
             paths:
@@ -501,7 +501,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_2_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
     artifacts:
         logs:
             paths:
@@ -542,7 +542,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_mono_2_Linear_tru
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -580,7 +580,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_mono_2_gamma_trun
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -595,7 +595,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_4_Linear_t
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --timeout=1200
     artifacts:
         logs:
             paths:
@@ -636,7 +636,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_4_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
     artifacts:
         logs:
             paths:
@@ -654,7 +654,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_4_gamma_tr
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack --timeout=1200
     artifacts:
         logs:
             paths:
@@ -695,7 +695,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_4_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
     artifacts:
         logs:
             paths:
@@ -736,7 +736,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_mono_4_Linear_tru
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -774,7 +774,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_mono_4_gamma_trun
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -790,7 +790,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_il2cpp_2_Linear
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --timeout=1200
     artifacts:
         logs:
             paths:
@@ -834,7 +834,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_il2cpp_2_Linear_CUSTOM-REVISION
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
     artifacts:
         logs:
             paths:
@@ -856,7 +856,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_il2cpp_2_gamma_
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack --timeout=1200
     artifacts:
         logs:
             paths:
@@ -900,7 +900,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_il2cpp_2_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
     artifacts:
         logs:
             paths:
@@ -945,7 +945,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_il2cpp_2_Linear_C
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -987,7 +987,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_il2cpp_2_gamma_CU
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -1006,7 +1006,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_il2cpp_4_Linear
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --timeout=1200
     artifacts:
         logs:
             paths:
@@ -1050,7 +1050,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_il2cpp_4_Linear_CUSTOM-REVISION
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
     artifacts:
         logs:
             paths:
@@ -1072,7 +1072,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_il2cpp_4_gamma_
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack --timeout=1200
     artifacts:
         logs:
             paths:
@@ -1116,7 +1116,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_il2cpp_4_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
     artifacts:
         logs:
             paths:
@@ -1161,7 +1161,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_il2cpp_4_Linear_C
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -1203,7 +1203,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_il2cpp_4_gamma_CU
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -1222,7 +1222,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_2_Linear_C
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --timeout=1200
     artifacts:
         logs:
             paths:
@@ -1266,7 +1266,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
     artifacts:
         logs:
             paths:
@@ -1288,7 +1288,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_2_gamma_CU
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack --timeout=1200
     artifacts:
         logs:
             paths:
@@ -1332,7 +1332,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_2_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
     artifacts:
         logs:
             paths:
@@ -1377,7 +1377,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_mono_2_Linear_CUS
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -1419,7 +1419,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_mono_2_gamma_CUST
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -1438,7 +1438,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_4_Linear_C
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --report-performance-data --performance-project-id=BoatAttack --timeout=1200
     artifacts:
         logs:
             paths:
@@ -1482,7 +1482,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_4_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
     artifacts:
         logs:
             paths:
@@ -1504,7 +1504,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_4_gamma_CU
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --report-performance-data --performance-project-id=BoatAttack --timeout=1200
     artifacts:
         logs:
             paths:
@@ -1548,7 +1548,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_4_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory URP" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --timeout=1200
     artifacts:
         logs:
             paths:
@@ -1593,7 +1593,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_mono_4_Linear_CUS
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -1635,7 +1635,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_mono_4_gamma_CUST
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/BoatAttack && utr --suite=editor --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
