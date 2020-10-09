@@ -44,6 +44,11 @@
     margin-right:0;
 }
 
+VFXContextUI #output .VFXDataAnchor.port #connector
+{
+    width:12px;
+}
+
 
 .superCollapsed .VFXDataAnchor.port #connector
 {

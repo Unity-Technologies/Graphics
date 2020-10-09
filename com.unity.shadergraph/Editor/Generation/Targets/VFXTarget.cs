@@ -1,3 +1,4 @@
+#if VFX_GRAPH_10_0_0_OR_NEWER
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -50,7 +51,7 @@ namespace UnityEditor.ShaderGraph
 
         public override bool IsNodeAllowedByTarget(Type nodeType)
         {
-            return true;
+            return base.IsNodeAllowedByTarget(nodeType);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -144,3 +145,4 @@ namespace UnityEditor.ShaderGraph
         }
     }
 }
+#endif

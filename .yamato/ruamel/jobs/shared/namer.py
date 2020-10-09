@@ -2,11 +2,29 @@
 parent_dir = '.yamato'
 
 # editor specific 
-def editor_filepath():
-    return f'{parent_dir}/_editor.yml'.lower()
+def editor_priming_filepath():
+    return f'{parent_dir}/_editor_priming.yml'.lower()
+
+def editor_pinning_filepath():
+    return f'{parent_dir}/_editor_pinning.yml'.lower()
 
 def editor_job_id(editor_version, platform_os):
     return f'editor:priming:{editor_version}:{platform_os}'
+
+def editor_job_id_test_min_editor(platform_os):
+    return f'editor:priming:test_min_editor:{platform_os}'
+
+def editor_job_id_update():
+    return 'editor-pinning-update'
+
+def editor_job_id_target_to_ci():
+    return 'editor-pinning-target-to-ci'
+
+def editor_job_id_merge_revisions(editor_track, abv):
+    return f'editor-pinning-merge-revisions-{editor_track}-abv' if abv else f'editor-pinning-merge-revisions-{editor_track}' 
+
+def editor_job_id_merge_all(abv):
+    return f'editor-pinning-merge-all-abv' if abv else f'editor-pinning-merge-all'
 
 # package specific
 def packages_filepath():
@@ -44,6 +62,9 @@ def projectcontext_job_id_pack():
 
 def projectcontext_job_id_test(platform_os, editor_version):
     return f'test_all_project_{ platform_os }_{editor_version}'
+
+def projectcontext_job_id_test_min_editor(platform_os):
+    return f'test_all_project_{ platform_os }_min_editor'
 
 def projectcontext_job_id_publish(package_id):
     return f'publish_{package_id}_project'
@@ -113,12 +134,6 @@ def abv_job_id_all_project_ci(editor_version):
 
 def abv_job_id_all_project_ci_nightly(editor_version):
     return f'all_project_ci_nightly_{editor_version}'
-
-def abv_job_id_smoke_test(editor_version, test_platform_name):
-    return f'smoke_test_{test_platform_name}_{editor_version}'
-
-def abv_job_id_all_smoke_tests(editor_version):
-    return f'all_smoke_tests_{editor_version}'
 
 def abv_job_id_trunk_verification(editor_version):
     return f'trunk_verification_{editor_version}'

@@ -97,7 +97,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Clamp to avoid too large atlases
                 cookieAtlasSize = Mathf.Clamp(cookieAtlasSize, (int)CookieAtlasResolution.CookieResolution256, (int)CookieAtlasResolution.CookieResolution8192);
-                planarSize = Mathf.Clamp(planarSize, (int)PlanarReflectionAtlasResolution.PlanarReflectionResolution256, (int)PlanarReflectionAtlasResolution.PlanarReflectionResolution8192);
+                planarSize = Mathf.Clamp(planarSize, (int)PlanarReflectionAtlasResolution.Resolution256, (int)PlanarReflectionAtlasResolution.Resolution8192);
 
                 lightLoopSettings.cookieAtlasSize = (CookieAtlasResolution)cookieAtlasSize;
                 lightLoopSettings.planarReflectionAtlasSize = (PlanarReflectionAtlasResolution)planarSize;

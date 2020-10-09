@@ -19,23 +19,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector3 emissive;
             [SurfaceDataAttributes("AOSBlend", true)]
             public Vector2 MAOSBlend; // Metal opacity and Ambient occlusion opacity
-            [SurfaceDataAttributes("HTileMask")]
-            public uint HTileMask;
-
         };
 
         [GenerateHLSL(PackingRules.Exact)]
         public enum DBufferMaterial
         {
             Count = 4
-        };
-
-        [GenerateHLSL(PackingRules.Exact)]
-        public enum DBufferHTileBit
-        {
-            Diffuse = 1,
-            Normal = 2,
-            Mask = 4
         };
 
         //-----------------------------------------------------------------------------
@@ -71,7 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 maskScaleBias;
         public Vector4 baseColor;
         public Vector4 remappingAOS;
-        public Vector4 scalingMAB; // metalness, alpha basemap, blue mask map
+        public Vector4 scalingMBAndAngle; // x metalness, y blue mask map, zw angle fade scale and bias for angle in radian
         public Vector3 blendParams; // x normal blend source, y mask blend source, z mask blend mode
         public uint decalLayerMask;
     };
