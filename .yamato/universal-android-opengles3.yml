@@ -31,7 +31,7 @@ Universal_Android_OpenGLES3_Standalone_trunk:
          rerun: on-new-revision
     skip_checkout: true
 Build_Universal_Android_OpenGLES3_Standalone_Player_trunk:
-    name: Build Universal on Android_OpenGLES3_standalone_build_Player on version trunk
+    name: Build Universal on Android_OpenGLES3_Standalone_build_Player on version trunk
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -82,9 +82,9 @@ Universal_Android_OpenGLES3_Standalone_cache_trunk:
          rerun: on-new-revision
     skip_checkout: true
 Build_Universal_Android_OpenGLES3_Standalone_cache_Player_trunk:
-    name: Build Universal on Android_OpenGLES3_standalone_build_Player on version trunk
+    name: Build Universal on Android_OpenGLES3_Standalone_cache_build_Player on version trunk
     agent:
-        type: Unity::VM
+        type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -158,7 +158,7 @@ Universal_Android_OpenGLES3_Standalone_2020.2:
          rerun: on-new-revision
     skip_checkout: true
 Build_Universal_Android_OpenGLES3_Standalone_Player_2020.2:
-    name: Build Universal on Android_OpenGLES3_standalone_build_Player on version 2020.2
+    name: Build Universal on Android_OpenGLES3_Standalone_build_Player on version 2020.2
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -209,9 +209,9 @@ Universal_Android_OpenGLES3_Standalone_cache_2020.2:
          rerun: on-new-revision
     skip_checkout: true
 Build_Universal_Android_OpenGLES3_Standalone_cache_Player_2020.2:
-    name: Build Universal on Android_OpenGLES3_standalone_build_Player on version 2020.2
+    name: Build Universal on Android_OpenGLES3_Standalone_cache_build_Player on version 2020.2
     agent:
-        type: Unity::VM
+        type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -288,7 +288,7 @@ Universal_Android_OpenGLES3_Standalone_CUSTOM-REVISION:
          rerun: always
     skip_checkout: true
 Build_Universal_Android_OpenGLES3_Standalone_Player_CUSTOM-REVISION:
-    name: Build Universal on Android_OpenGLES3_standalone_build_Player on version CUSTOM-REVISION
+    name: Build Universal on Android_OpenGLES3_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -346,9 +346,9 @@ Universal_Android_OpenGLES3_Standalone_cache_CUSTOM-REVISION:
          rerun: always
     skip_checkout: true
 Build_Universal_Android_OpenGLES3_Standalone_cache_Player_CUSTOM-REVISION:
-    name: Build Universal on Android_OpenGLES3_standalone_build_Player on version CUSTOM-REVISION
+    name: Build Universal on Android_OpenGLES3_Standalone_cache_build_Player on version CUSTOM-REVISION
     agent:
-        type: Unity::VM
+        type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:

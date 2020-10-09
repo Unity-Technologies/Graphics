@@ -25,7 +25,7 @@ VFX_HDRP_Linux_Vulkan_Standalone_trunk:
          rerun: on-new-revision
     skip_checkout: true
 Build_VFX_HDRP_Linux_Vulkan_Standalone_Player_trunk:
-    name: Build VFX_HDRP on Linux_Vulkan_standalone_build_Player on version trunk
+    name: Build VFX_HDRP on Linux_Vulkan_Standalone_build_Player on version trunk
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
@@ -109,7 +109,7 @@ VFX_HDRP_Linux_Vulkan_Standalone_2020.2:
          rerun: on-new-revision
     skip_checkout: true
 Build_VFX_HDRP_Linux_Vulkan_Standalone_Player_2020.2:
-    name: Build VFX_HDRP on Linux_Vulkan_standalone_build_Player on version 2020.2
+    name: Build VFX_HDRP on Linux_Vulkan_Standalone_build_Player on version 2020.2
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
@@ -196,7 +196,7 @@ VFX_HDRP_Linux_Vulkan_Standalone_CUSTOM-REVISION:
          rerun: always
     skip_checkout: true
 Build_VFX_HDRP_Linux_Vulkan_Standalone_Player_CUSTOM-REVISION:
-    name: Build VFX_HDRP on Linux_Vulkan_standalone_build_Player on version CUSTOM-REVISION
+    name: Build VFX_HDRP on Linux_Vulkan_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
