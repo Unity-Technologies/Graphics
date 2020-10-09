@@ -56,7 +56,25 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override sealed string name { get { return customBehavior == null ? "null" : ObjectNames.NicifyVariableName((customBehavior).Name); } }
+        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            if (customBehavior == null
+                && !object.ReferenceEquals(m_customType, null)
+                && !string.IsNullOrEmpty(m_customType.text))
+            {
+                manager.RegisterError("CustomSpawnerIDNotFound", VFXErrorType.Error, "Can't found assembly : " + m_customType.text);
+            }
+        }
+
+        public override sealed string name
+        {
+            get
+            {
+                if (customBehavior != null)
+                    return ObjectNames.NicifyVariableName(customBehavior.Name);
+                return "null";
+            }
+        }
         public override sealed Type customBehavior { get { return (Type)m_customType; } }
         public override sealed VFXTaskType spawnerType { get { return VFXTaskType.CustomCallbackSpawner; } }
     }
