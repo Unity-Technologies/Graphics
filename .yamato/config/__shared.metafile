@@ -52,6 +52,7 @@ platforms:
       - name: OpenGLCore
         exclude_test_platforms:
           - Standalone
+          - Standalone_cache
     components:
       - editor
       - il2cpp
@@ -79,6 +80,7 @@ platforms:
         cmd: -force-glcore
         exclude_test_platforms:
           - Standalone
+          - Standalone_cache
           - playmode_XR
       - name: Vulkan
         cmd: -force-vulkan

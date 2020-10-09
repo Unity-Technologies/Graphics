@@ -56,11 +56,11 @@ HDRP_Hybrid_Win_DX11_Standalone_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
-      -  path: .yamato/hdrp_hybrid-win-dx11.yml#Build_HDRP_Hybrid_Win_DX11_Player_trunk
+      -  path: .yamato/hdrp_hybrid-win-dx11.yml#Build_HDRP_Hybrid_Win_DX11_Standalone_Player_trunk
          rerun: on-new-revision
     skip_checkout: true
-Build_HDRP_Hybrid_Win_DX11_Player_trunk:
-    name: Build HDRP_Hybrid on Win_DX11_Player on version trunk
+Build_HDRP_Hybrid_Win_DX11_Standalone_Player_trunk:
+    name: Build HDRP_Hybrid on Win_DX11_standalone_build_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -133,11 +133,11 @@ HDRP_Hybrid_Win_DX11_Standalone_2020.2:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
-      -  path: .yamato/hdrp_hybrid-win-dx11.yml#Build_HDRP_Hybrid_Win_DX11_Player_2020.2
+      -  path: .yamato/hdrp_hybrid-win-dx11.yml#Build_HDRP_Hybrid_Win_DX11_Standalone_Player_2020.2
          rerun: on-new-revision
     skip_checkout: true
-Build_HDRP_Hybrid_Win_DX11_Player_2020.2:
-    name: Build HDRP_Hybrid on Win_DX11_Player on version 2020.2
+Build_HDRP_Hybrid_Win_DX11_Standalone_Player_2020.2:
+    name: Build HDRP_Hybrid on Win_DX11_standalone_build_Player on version 2020.2
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -221,11 +221,11 @@ HDRP_Hybrid_Win_DX11_Standalone_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/hdrp_hybrid-win-dx11.yml#Build_HDRP_Hybrid_Win_DX11_Player_CUSTOM-REVISION
+      -  path: .yamato/hdrp_hybrid-win-dx11.yml#Build_HDRP_Hybrid_Win_DX11_Standalone_Player_CUSTOM-REVISION
          rerun: always
     skip_checkout: true
-Build_HDRP_Hybrid_Win_DX11_Player_CUSTOM-REVISION:
-    name: Build HDRP_Hybrid on Win_DX11_Player on version CUSTOM-REVISION
+Build_HDRP_Hybrid_Win_DX11_Standalone_Player_CUSTOM-REVISION:
+    name: Build HDRP_Hybrid on Win_DX11_standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable

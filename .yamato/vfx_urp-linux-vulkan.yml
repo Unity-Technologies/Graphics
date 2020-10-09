@@ -21,11 +21,11 @@ VFX_URP_Linux_Vulkan_Standalone_trunk:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
-      -  path: .yamato/vfx_urp-linux-vulkan.yml#Build_VFX_URP_Linux_Vulkan_Player_trunk
+      -  path: .yamato/vfx_urp-linux-vulkan.yml#Build_VFX_URP_Linux_Vulkan_Standalone_Player_trunk
          rerun: on-new-revision
     skip_checkout: true
-Build_VFX_URP_Linux_Vulkan_Player_trunk:
-    name: Build VFX_URP on Linux_Vulkan_Player on version trunk
+Build_VFX_URP_Linux_Vulkan_Standalone_Player_trunk:
+    name: Build VFX_URP on Linux_Vulkan_standalone_build_Player on version trunk
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
@@ -85,11 +85,11 @@ VFX_URP_Linux_Vulkan_Standalone_2020.2:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
-      -  path: .yamato/vfx_urp-linux-vulkan.yml#Build_VFX_URP_Linux_Vulkan_Player_2020.2
+      -  path: .yamato/vfx_urp-linux-vulkan.yml#Build_VFX_URP_Linux_Vulkan_Standalone_Player_2020.2
          rerun: on-new-revision
     skip_checkout: true
-Build_VFX_URP_Linux_Vulkan_Player_2020.2:
-    name: Build VFX_URP on Linux_Vulkan_Player on version 2020.2
+Build_VFX_URP_Linux_Vulkan_Standalone_Player_2020.2:
+    name: Build VFX_URP on Linux_Vulkan_standalone_build_Player on version 2020.2
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
@@ -152,11 +152,11 @@ VFX_URP_Linux_Vulkan_Standalone_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
-      -  path: .yamato/vfx_urp-linux-vulkan.yml#Build_VFX_URP_Linux_Vulkan_Player_CUSTOM-REVISION
+      -  path: .yamato/vfx_urp-linux-vulkan.yml#Build_VFX_URP_Linux_Vulkan_Standalone_Player_CUSTOM-REVISION
          rerun: always
     skip_checkout: true
-Build_VFX_URP_Linux_Vulkan_Player_CUSTOM-REVISION:
-    name: Build VFX_URP on Linux_Vulkan_Player on version CUSTOM-REVISION
+Build_VFX_URP_Linux_Vulkan_Standalone_Player_CUSTOM-REVISION:
+    name: Build VFX_URP on Linux_Vulkan_standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable

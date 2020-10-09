@@ -118,8 +118,8 @@ def project_filepath_all(project_name):
 def project_job_id_test(project_name, platform_name, api_name, test_platform_name, editor_version):
     return f'{project_name}_{platform_name}_{api_name}_{test_platform_name}_{editor_version}'.replace('__','_')
 
-def project_job_id_build(project_name, platform_name, api_name, editor_version):
-    return f'Build_{project_name}_{platform_name}_{api_name}_Player_{editor_version}'.replace('__','_')
+def project_job_id_build(project_name, platform_name, api_name, test_platform_name, editor_version):
+    return f'Build_{project_name}_{platform_name}_{api_name}_{test_platform_name}_Player_{editor_version}'.replace('__','_')
 
 def project_job_id_all(project_name, editor_version):
     return f'All_{project_name}_{ editor_version}'

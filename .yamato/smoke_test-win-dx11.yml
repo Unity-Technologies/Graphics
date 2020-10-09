@@ -56,11 +56,11 @@ Smoke_Test_Win_DX11_Standalone_trunk:
               -  "**/test-results/**"
               -  "TestProjects/SRP_SmokeTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/smoke_test-win-dx11.yml#Build_Smoke_Test_Win_DX11_Player_trunk
+      -  path: .yamato/smoke_test-win-dx11.yml#Build_Smoke_Test_Win_DX11_Standalone_Player_trunk
          rerun: on-new-revision
     skip_checkout: true
-Build_Smoke_Test_Win_DX11_Player_trunk:
-    name: Build Smoke_Test on Win_DX11_Player on version trunk
+Build_Smoke_Test_Win_DX11_Standalone_Player_trunk:
+    name: Build Smoke_Test on Win_DX11_standalone_build_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -133,11 +133,11 @@ Smoke_Test_Win_DX11_Standalone_2020.2:
               -  "**/test-results/**"
               -  "TestProjects/SRP_SmokeTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/smoke_test-win-dx11.yml#Build_Smoke_Test_Win_DX11_Player_2020.2
+      -  path: .yamato/smoke_test-win-dx11.yml#Build_Smoke_Test_Win_DX11_Standalone_Player_2020.2
          rerun: on-new-revision
     skip_checkout: true
-Build_Smoke_Test_Win_DX11_Player_2020.2:
-    name: Build Smoke_Test on Win_DX11_Player on version 2020.2
+Build_Smoke_Test_Win_DX11_Standalone_Player_2020.2:
+    name: Build Smoke_Test on Win_DX11_standalone_build_Player on version 2020.2
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -221,11 +221,11 @@ Smoke_Test_Win_DX11_Standalone_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/smoke_test-win-dx11.yml#Build_Smoke_Test_Win_DX11_Player_CUSTOM-REVISION
+      -  path: .yamato/smoke_test-win-dx11.yml#Build_Smoke_Test_Win_DX11_Standalone_Player_CUSTOM-REVISION
          rerun: always
     skip_checkout: true
-Build_Smoke_Test_Win_DX11_Player_CUSTOM-REVISION:
-    name: Build Smoke_Test on Win_DX11_Player on version CUSTOM-REVISION
+Build_Smoke_Test_Win_DX11_Standalone_Player_CUSTOM-REVISION:
+    name: Build Smoke_Test on Win_DX11_standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable

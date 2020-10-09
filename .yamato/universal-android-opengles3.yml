@@ -27,11 +27,11 @@ Universal_Android_OpenGLES3_Standalone_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/universal-android-opengles3.yml#Build_Universal_Android_OpenGLES3_Player_trunk
+      -  path: .yamato/universal-android-opengles3.yml#Build_Universal_Android_OpenGLES3_Standalone_Player_trunk
          rerun: on-new-revision
     skip_checkout: true
-Build_Universal_Android_OpenGLES3_Player_trunk:
-    name: Build Universal on Android_OpenGLES3_Player on version trunk
+Build_Universal_Android_OpenGLES3_Standalone_Player_trunk:
+    name: Build Universal on Android_OpenGLES3_standalone_build_Player on version trunk
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -45,7 +45,7 @@ Build_Universal_Android_OpenGLES3_Player_trunk:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --scripting-backend=il2cpp --timeout=1200
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=il2cpp --timeout=1800
     artifacts:
         logs:
             paths:
@@ -78,9 +78,33 @@ Universal_Android_OpenGLES3_Standalone_cache_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/universal-android-opengles3.yml#Build_Universal_Android_OpenGLES3_Player_trunk
+      -  path: .yamato/universal-android-opengles3.yml#Build_Universal_Android_OpenGLES3_Standalone_cache_Player_trunk
          rerun: on-new-revision
     skip_checkout: true
+Build_Universal_Android_OpenGLES3_Standalone_cache_Player_trunk:
+    name: Build Universal on Android_OpenGLES3_standalone_build_Player on version trunk
+    agent:
+        type: Unity::VM
+        image: mobile/android-execution-r19:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
+      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
+      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --scripting-backend=il2cpp --timeout=1200
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
+        players:
+            paths:
+              -  "players/**"
 Universal_Android_OpenGLES3_playmode_cache_trunk:
     name: Universal on Android_OpenGLES3_playmode_cache on version trunk
     agent:
@@ -130,11 +154,11 @@ Universal_Android_OpenGLES3_Standalone_2020.2:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/universal-android-opengles3.yml#Build_Universal_Android_OpenGLES3_Player_2020.2
+      -  path: .yamato/universal-android-opengles3.yml#Build_Universal_Android_OpenGLES3_Standalone_Player_2020.2
          rerun: on-new-revision
     skip_checkout: true
-Build_Universal_Android_OpenGLES3_Player_2020.2:
-    name: Build Universal on Android_OpenGLES3_Player on version 2020.2
+Build_Universal_Android_OpenGLES3_Standalone_Player_2020.2:
+    name: Build Universal on Android_OpenGLES3_standalone_build_Player on version 2020.2
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -148,7 +172,7 @@ Build_Universal_Android_OpenGLES3_Player_2020.2:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --scripting-backend=il2cpp --timeout=1200
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=il2cpp --timeout=1800
     artifacts:
         logs:
             paths:
@@ -181,9 +205,33 @@ Universal_Android_OpenGLES3_Standalone_cache_2020.2:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/universal-android-opengles3.yml#Build_Universal_Android_OpenGLES3_Player_2020.2
+      -  path: .yamato/universal-android-opengles3.yml#Build_Universal_Android_OpenGLES3_Standalone_cache_Player_2020.2
          rerun: on-new-revision
     skip_checkout: true
+Build_Universal_Android_OpenGLES3_Standalone_cache_Player_2020.2:
+    name: Build Universal on Android_OpenGLES3_standalone_build_Player on version 2020.2
+    agent:
+        type: Unity::VM
+        image: mobile/android-execution-r19:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
+      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
+      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --scripting-backend=il2cpp --timeout=1200
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
+        players:
+            paths:
+              -  "players/**"
 Universal_Android_OpenGLES3_playmode_cache_2020.2:
     name: Universal on Android_OpenGLES3_playmode_cache on version 2020.2
     agent:
@@ -236,11 +284,11 @@ Universal_Android_OpenGLES3_Standalone_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-      -  path: .yamato/universal-android-opengles3.yml#Build_Universal_Android_OpenGLES3_Player_CUSTOM-REVISION
+      -  path: .yamato/universal-android-opengles3.yml#Build_Universal_Android_OpenGLES3_Standalone_Player_CUSTOM-REVISION
          rerun: always
     skip_checkout: true
-Build_Universal_Android_OpenGLES3_Player_CUSTOM-REVISION:
-    name: Build Universal on Android_OpenGLES3_Player on version CUSTOM-REVISION
+Build_Universal_Android_OpenGLES3_Standalone_Player_CUSTOM-REVISION:
+    name: Build Universal on Android_OpenGLES3_standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -255,7 +303,7 @@ Build_Universal_Android_OpenGLES3_Player_CUSTOM-REVISION:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --scripting-backend=il2cpp --timeout=1200
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=il2cpp --timeout=1800
     artifacts:
         logs:
             paths:
@@ -294,9 +342,37 @@ Universal_Android_OpenGLES3_Standalone_cache_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-      -  path: .yamato/universal-android-opengles3.yml#Build_Universal_Android_OpenGLES3_Player_CUSTOM-REVISION
+      -  path: .yamato/universal-android-opengles3.yml#Build_Universal_Android_OpenGLES3_Standalone_cache_Player_CUSTOM-REVISION
          rerun: always
     skip_checkout: true
+Build_Universal_Android_OpenGLES3_Standalone_cache_Player_CUSTOM-REVISION:
+    name: Build Universal on Android_OpenGLES3_standalone_build_Player on version CUSTOM-REVISION
+    agent:
+        type: Unity::VM
+        image: mobile/android-execution-r19:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: custom_revision_not_set
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
+      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
+      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --scripting-backend=il2cpp --timeout=1200
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
+        players:
+            paths:
+              -  "players/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
+         rerun: always
 Universal_Android_OpenGLES3_playmode_cache_CUSTOM-REVISION:
     name: Universal on Android_OpenGLES3_playmode_cache on version CUSTOM-REVISION
     agent:
