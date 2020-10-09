@@ -27,8 +27,6 @@ namespace UnityEngine.Rendering.Universal
         static readonly string k_CreateCameraTextures = "Create Camera Texture";
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_CreateCameraTextures);
 
-        private readonly DebugHandler m_DebugHandler;
-
         // Rendering mode setup from UI.
         internal RenderingMode renderingMode { get { return m_RenderingMode;  } }
         // Actual rendering mode, which may be different (ex: wireframe rendering, harware not capable of deferred rendering).
@@ -97,8 +95,6 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             UniversalRenderPipeline.m_XRSystem.InitializeXRSystemData(data.xrSystemData);
 #endif
-
-            m_DebugHandler = new DebugHandler(data.textures.NumberFont, data.shaders.fullScreenDebugPS);
 
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
@@ -178,21 +174,21 @@ namespace UnityEngine.Rendering.Universal
             m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRendering + 1, data.postProcessData, m_BlitMaterial);
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
-            m_DebugPass =  m_DebugHandler.CreatePass(RenderPassEvent.AfterRendering + 2);
+            m_DebugPass =  DebugHandler.CreatePass(RenderPassEvent.AfterRendering + 2);
 
 #if UNITY_EDITOR
             m_SceneViewDepthCopyPass = new SceneViewDepthCopyPass(RenderPassEvent.AfterRendering + 9, m_CopyDepthMaterial);
 #endif
 
             // Hook in the debug-render where appropriate...
-            m_RenderOpaqueForwardPass.DebugHandler = m_DebugHandler;
+            m_RenderOpaqueForwardPass.DebugHandler = DebugHandler;
             if(m_RenderOpaqueForwardOnlyPass != null)
             {
-                m_RenderOpaqueForwardOnlyPass.DebugHandler = m_DebugHandler;
+                m_RenderOpaqueForwardOnlyPass.DebugHandler = DebugHandler;
             }
             if(m_RenderTransparentForwardPass != null)
             {
-                m_RenderTransparentForwardPass.DebugHandler = m_DebugHandler;
+                m_RenderTransparentForwardPass.DebugHandler = DebugHandler;
             }
 
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
@@ -251,7 +247,7 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            m_DebugHandler.Setup(context);
+            DebugHandler.Setup(context);
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             bool needTransparencyPass = !UniversalRenderPipeline.asset.useAdaptivePerformance || !AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipTransparentObjects;
@@ -387,7 +383,7 @@ namespace UnityEngine.Rendering.Universal
 
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 
-            if(m_DebugHandler.IsSceneOverrideActive)
+            if(DebugHandler.IsSceneOverrideActive)
             {
                 mainLightShadows = false;
                 additionalLightShadows = false;
@@ -432,11 +428,12 @@ namespace UnityEngine.Rendering.Universal
                 EnqueueDeferred(ref renderingData, requiresDepthPrepass, mainLightShadows, additionalLightShadows);
             else
                 EnqueuePass(m_RenderOpaqueForwardPass);
-            Skybox cameraSkybox;
-            cameraData.camera.TryGetComponent<Skybox>(out cameraSkybox);
-            bool isOverlayCamera = cameraData.renderType == CameraRenderType.Overlay;
-            if (camera.clearFlags == CameraClearFlags.Skybox && (RenderSettings.skybox != null || cameraSkybox?.material != null) && !isOverlayCamera)
-                EnqueuePass(m_DrawSkyboxPass);
+
+            if(camera.clearFlags == CameraClearFlags.Skybox && cameraData.renderType != CameraRenderType.Overlay)
+            {
+                if(RenderSettings.skybox != null || (camera.TryGetComponent(out Skybox cameraSkybox) && cameraSkybox.material != null))
+                    EnqueuePass(m_DrawSkyboxPass);
+            }
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer.
             // If deferred rendering path was selected, it has already made a copy.
@@ -543,7 +540,7 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_PostProcessPass);
             }
 
-            if (m_DebugHandler.TryGetFullscreenDebugMode(out FullScreenDebugMode fullScreenDebugMode))
+            if (DebugHandler.TryGetFullscreenDebugMode(out FullScreenDebugMode fullScreenDebugMode))
             {
                 RenderTargetIdentifier debugBuffer;
                 float screenWidth = camera.pixelWidth;

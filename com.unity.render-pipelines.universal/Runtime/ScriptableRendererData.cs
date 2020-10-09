@@ -19,6 +19,17 @@ namespace UnityEngine.Rendering.Universal
     {
         internal bool isInvalidated { get; set; }
 
+        #region Debugging
+        [SerializeField, Reload("Textures/numberFont.png")]
+        public Texture2D NumberFont;
+
+        [SerializeField, Reload("Shaders/Utils/FullScreenDebug.shader")]
+        public Shader fullScreenDebugPS;
+
+        [SerializeField, Reload("Shaders/DebugReplacement.shader")]
+        public Shader debugReplacementPS;
+        #endregion
+
         /// <summary>
         /// Creates the instance of the ScriptableRenderer.
         /// </summary>

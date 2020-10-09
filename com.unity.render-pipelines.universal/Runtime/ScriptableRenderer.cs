@@ -41,6 +41,8 @@ namespace UnityEngine.Rendering.Universal
             public bool msaa { get; set; } = true;
         }
 
+        protected DebugHandler DebugHandler { get; }
+
         /// <summary>
         /// The renderer we are currently rendering with, for low-level render control only.
         /// <c>current</c> is null outside rendering scope.
@@ -297,7 +299,7 @@ namespace UnityEngine.Rendering.Universal
         private bool m_FirstCameraRenderPassExecuted = false;
 
         // The pipeline can only guarantee the camera target texture are valid when the pipeline is executing.
-        // Trying to access the camera target before or after might be that the pipeline texture have already been disposed. 
+        // Trying to access the camera target before or after might be that the pipeline texture have already been disposed.
         bool m_IsPipelineExecuting = false;
 
         const string k_SetCameraRenderStateTag = "Set Camera Data";
@@ -339,6 +341,8 @@ namespace UnityEngine.Rendering.Universal
 
         public ScriptableRenderer(ScriptableRendererData data)
         {
+            DebugHandler = new DebugHandler(data.NumberFont, data.fullScreenDebugPS);
+
             foreach (var feature in data.rendererFeatures)
             {
                 if (feature == null)
@@ -854,13 +858,23 @@ namespace UnityEngine.Rendering.Universal
                 else
                     finalClearFlag |= (renderPass.clearFlag & ClearFlag.Depth);
 
-                if(!m_FirstCameraRenderPassExecuted)
+                if(!m_FirstCameraRenderPassExecuted &&
+                   (DebugHandler != null && DebugHandler.TryGetSceneOverride(out SceneOverrides sceneOverride)))
                 {
-                    bool overdrawDebugMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides == SceneOverrides.Overdraw;
-                    if (overdrawDebugMode)
+                    switch(sceneOverride)
                     {
-                        finalClearColor = Color.black;
-                        finalClearFlag = ClearFlag.All;
+                        case SceneOverrides.Overdraw:
+                            finalClearColor = Color.black;
+                            finalClearFlag = ClearFlag.All;
+                            break;
+
+                        case SceneOverrides.Wireframe:
+                            finalClearColor = new Color(0.1f, 0.1f, 0.1f, 1.0f);
+                            finalClearFlag = ClearFlag.All;
+                            break;
+
+                        default:
+                            break;
                     }
 
                     m_FirstCameraRenderPassExecuted = true;

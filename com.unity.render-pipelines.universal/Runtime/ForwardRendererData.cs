@@ -37,12 +37,6 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Utils/Blit.shader")]
             public Shader blitPS;
 
-            [SerializeField, Reload("Shaders/Utils/FullScreenDebug.shader")]
-            public Shader fullScreenDebugPS;
-
-            [SerializeField, Reload("Shaders/DebugReplacement.shader")]
-            public Shader debugReplacementPS;
-
             [SerializeField, Reload("Shaders/Utils/CopyDepth.shader")]
             public Shader copyDepthPS;
 
@@ -69,15 +63,6 @@ namespace UnityEngine.Rendering.Universal
         }
 
         public ShaderResources shaders = null;
-
-        [Serializable, ReloadGroup]
-        public sealed class TextureResources
-        {
-            [SerializeField, Reload("Textures/numberFont.png")]
-            public Texture2D NumberFont;
-        }
-
-        public TextureResources textures = null;
 
         [Reload("Runtime/Data/PostProcessData.asset")]
         public PostProcessData postProcessData = null;
