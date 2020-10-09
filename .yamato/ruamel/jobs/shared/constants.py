@@ -20,8 +20,9 @@ DEFAULT_TIMEOUT = 1200
 def get_editor_revision(editor, platform_os):
     if str(editor['track']).lower()=='custom-revision':
         return VAR_CUSTOM_REVISION
-    elif str(editor['track']).lower()=='trunk':
-        return editor["revisions"][f"{editor['track']}_latest_internal"][platform_os]["revision"]
+    # TODO: Restore as soon as unity-downloader-cli is fixed on Windows (ETA ~10/10/2020)
+    # elif str(editor['track']).lower()=='trunk':
+    #     return editor["revisions"][f"{editor['track']}_latest_internal"][platform_os]["revision"]
     else:
         return editor["revisions"][f"{editor['track']}_staging"][platform_os]["revision"]
 

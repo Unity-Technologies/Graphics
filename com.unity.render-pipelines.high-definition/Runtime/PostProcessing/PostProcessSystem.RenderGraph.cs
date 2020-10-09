@@ -855,7 +855,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.destination = builder.WriteTexture(dest); ;
 
                     passData.casParametersBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(2, sizeof(uint) * 4) { name = "Cas Parameters" });
-                    passData.casParametersBuffer = builder.ReadComputeBuffer(builder.WriteComputeBuffer(passData.casParametersBuffer));
 
                     builder.SetRenderFunc(
                     (CASData data, RenderGraphContext ctx) =>
