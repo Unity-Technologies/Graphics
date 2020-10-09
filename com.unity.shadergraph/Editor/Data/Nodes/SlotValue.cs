@@ -48,6 +48,11 @@ namespace UnityEditor.ShaderGraph
 
     static class SlotValueHelper
     {
+        public static bool AllowedAsSubgraphOutput(this ConcreteSlotValueType type)
+        {
+            return type != ConcreteSlotValueType.VirtualTexture;
+        }
+
         public static int GetChannelCount(this ConcreteSlotValueType type)
         {
             switch (type)

@@ -10,7 +10,7 @@ Rotates value of input **UV** around a reference point defined by input **Center
 |:------------ |:-------------|:-----|:---|:---|
 | UV      | Input | Vector 2 | UV | Input UV value |
 | Center      | Input | Vector 2 | None | Center point to rotate around |
-| Rotation      | Input | Vector 1 | None | Amount of rotation to apply |
+| Rotation      | Input | Float    | None | Amount of rotation to apply |
 | Out | Output      |    Vector 2 | None | Output UV value |
 
 ## Controls

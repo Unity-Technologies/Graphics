@@ -19,7 +19,7 @@ The High Definition Render Pipeline does **not** support this Node.
 |:------------ |:-------------|:-----|:---|:---|
 | View Dir      | Input | Vector 3 | View Direction (object space) | Mesh's view direction |
 | Normal | Input      |    Vector 3 | Normal (object space) | Mesh's normal vector |
-| LOD | Input      |    Vector 1 | None | Level of detail for sampling |
+| LOD | Input      |    Float    | None | Level of detail for sampling |
 | Out | Output      |    Vector 3 | None | Output color value |
 
 ## Generated Code Example

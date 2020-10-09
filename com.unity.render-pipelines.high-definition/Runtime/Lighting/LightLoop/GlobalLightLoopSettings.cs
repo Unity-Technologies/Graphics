@@ -46,23 +46,23 @@ namespace UnityEngine.Rendering.HighDefinition
     public enum PlanarReflectionAtlasResolution
     {
         /// <summary>Size 64</summary>
-        PlanarReflectionResolution64 = 64,
+        Resolution64 = 64,
         /// <summary>Size 128</summary>
-        PlanarReflectionResolution128 = 128,
+        Resolution128 = 128,
         /// <summary>Size 256</summary>
-        PlanarReflectionResolution256 = 256,
+        Resolution256 = 256,
         /// <summary>Size 512</summary>
-        PlanarReflectionResolution512 = 512,
+        Resolution512 = 512,
         /// <summary>Size 1024</summary>
-        PlanarReflectionResolution1024 = 1024,
+        Resolution1024 = 1024,
         /// <summary>Size 2048</summary>
-        PlanarReflectionResolution2048 = 2048,
+        Resolution2048 = 2048,
         /// <summary>Size 4096</summary>
-        PlanarReflectionResolution4096 = 4096,
+        Resolution4096 = 4096,
         /// <summary>Size 8192</summary>
-        PlanarReflectionResolution8192 = 8192,
+        Resolution8192 = 8192,
         /// <summary>Size 16384</summary>
-        PlanarReflectionResolution16384 = 16384
+        Resolution16384 = 16384
     }
 
     /// <summary>
@@ -133,7 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cookieTexArraySize = 1,
 #pragma warning restore 618
 
-            planarReflectionAtlasSize = PlanarReflectionAtlasResolution.PlanarReflectionResolution1024,
+            planarReflectionAtlasSize = PlanarReflectionAtlasResolution.Resolution1024,
             reflectionProbeCacheSize = 64,
             reflectionCubemapSize = CubeReflectionResolution.CubeReflectionResolution256,
             reflectionProbeFormat = ReflectionAndPlanarProbeFormat.R11G11B10,
