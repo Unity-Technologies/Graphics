@@ -1142,7 +1142,7 @@ namespace UnityEditor.VFX
                 m_RendererEditor.OnInspectorGUI();
         }
 
-        private class RendererEditor
+        internal class RendererEditor
         {
             const string kRendererProbesFoldoutStatePreferenceName = "VFX.VisualEffectEditor.Foldout.Renderer.Probes";
             const string kRendererAdditionnalSettingsFoldoutStatePreferenceName = "VFX.VisualEffectEditor.Foldout.Renderer.AdditionnalSettings";
@@ -1176,7 +1176,7 @@ namespace UnityEditor.VFX
                 m_ProbeAnchor = m_SerializedRenderers.FindProperty("m_ProbeAnchor");
             }
 
-            private static string[] s_DefaultRenderingLayerNames = GetDefaultRenderingLayerNames();
+            public static readonly string[] s_DefaultRenderingLayerNames = GetDefaultRenderingLayerNames();
             private static string[] GetDefaultRenderingLayerNames()
             {
                 //Find UnityEditor.RendererEditorBase.defaultRenderingLayerNames by reflection to avoid any breakage due to an API change
