@@ -147,7 +147,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed wrong error message when fixing DXR resources from Wizard.
 - Fixed compilation error of quad overdraw with double sided materials
 - Fixed screen corruption on xbox when using TAA and Motion Blur with rendergraph. 
-- Fixed transient resource issue with Contrast Adaptive Sharpening in rendergraph mode.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
