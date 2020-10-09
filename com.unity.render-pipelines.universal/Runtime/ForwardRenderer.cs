@@ -249,7 +249,6 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_StencilDeferredMaterial);
         }
 
-        /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             m_DebugHandler.Setup(context);
@@ -261,74 +260,21 @@ namespace UnityEngine.Rendering.Universal
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 
-            for (int i = 0; i < rendererFeatures.Count; ++i)
-            {
-                rendererFeatures[i].AddRenderPasses(this, ref renderingData);
-            }
-
-            int count = activeRenderPassQueue.Count;
-            for (int i = count - 1; i >= 0; i--)
-            {
-                if(activeRenderPassQueue[i] == null)
-                    activeRenderPassQueue.RemoveAt(i);
-            }
-
             // Special path for depth only offscreen cameras. Only write opaques + transparents.
             bool isOffscreenDepthTexture = cameraData.targetTexture != null && cameraData.targetTexture.format == RenderTextureFormat.Depth;
-            bool sceneOverrideEnabled = m_DebugHandler.TryGetSceneOverride(out SceneOverrides sceneOverride);
-            if (isOffscreenDepthTexture || sceneOverrideEnabled)
+            if (isOffscreenDepthTexture)
             {
-                m_ActiveCameraColorAttachment = RenderTargetHandle.CameraTarget;
-                m_ActiveCameraDepthAttachment = RenderTargetHandle.CameraTarget;
-
-                if (sceneOverrideEnabled)
-                {
-                    m_ActiveCameraColorAttachment = m_CameraColorAttachment;
-
-                    if(sceneOverride == SceneOverrides.Overdraw)
-                    {
-                        m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
-                    }
-
-                    CreateCameraRenderTarget(context, ref cameraTargetDescriptor);
-                    ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), BuiltinRenderTextureType.CameraTarget);
-                }
-
-                if (renderingData.cameraData.isSceneViewCamera)
-                {
-                    m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
-                    EnqueuePass(m_DepthPrepass);
-                }
-
+                ConfigureCameraTarget(BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
+                AddRenderPasses(ref renderingData);
                 EnqueuePass(m_RenderOpaqueForwardPass);
 
-                if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null)
-                {
-	                // TODO: Do we need to inject transparents and skybox when rendering depth only camera? They don't write to depth.
-                    EnqueuePass(m_DrawSkyboxPass);
-                }
-
-#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
+                // TODO: Do we need to inject transparents and skybox when rendering depth only camera? They don't write to depth.
+                EnqueuePass(m_DrawSkyboxPass);
+                #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
                 if (!needTransparencyPass)
                     return;
-#endif
-
+                #endif
                 EnqueuePass(m_RenderTransparentForwardPass);
-
-                if (m_CameraColorAttachment != RenderTargetHandle.CameraTarget)
-                {
-                    m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
-                    EnqueuePass(m_FinalBlitPass);
-                }
-
-#if UNITY_EDITOR
-                if (renderingData.cameraData.isSceneViewCamera)
-                {
-                    m_SceneViewDepthCopyPass.Setup(m_DepthTexture);
-                    EnqueuePass(m_SceneViewDepthCopyPass);
-                }
-#endif
-
                 return;
             }
 
@@ -420,6 +366,9 @@ namespace UnityEngine.Rendering.Universal
                 m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
             }
 
+            bool copyDepthPass = !requiresDepthPrepass && renderingData.cameraData.requiresDepthTexture && createDepthTexture && this.actualRenderingMode != RenderingMode.Deferred;
+            bool copyColorPass = renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture;
+
             // Assign camera targets (color and depth)
             {
                 var activeColorRenderTargetId = m_ActiveCameraColorAttachment.Identifier();
@@ -437,6 +386,16 @@ namespace UnityEngine.Rendering.Universal
             }
 
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
+
+            if(m_DebugHandler.IsSceneOverrideActive)
+            {
+                mainLightShadows = false;
+                additionalLightShadows = false;
+                requiresDepthPrepass = false;
+                generateColorGradingLUT = false;
+                copyColorPass = false;
+                copyDepthPass = false;
+            }
 
             if (mainLightShadows)
                 EnqueuePass(m_MainLightShadowCasterPass);
@@ -481,13 +440,13 @@ namespace UnityEngine.Rendering.Universal
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer.
             // If deferred rendering path was selected, it has already made a copy.
-            if (!requiresDepthPrepass && renderingData.cameraData.requiresDepthTexture && createDepthTexture && this.actualRenderingMode != RenderingMode.Deferred)
+            if (copyDepthPass)
             {
                 m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
                 EnqueuePass(m_CopyDepthPass);
             }
 
-            if (renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture)
+            if (copyColorPass)
             {
                 // TODO: Downsampling method should be store in the renderer instead of in the asset.
                 // We need to migrate this data to renderer. For now, we query the method in the active asset.
@@ -495,6 +454,7 @@ namespace UnityEngine.Rendering.Universal
                 m_CopyColorPass.Setup(m_ActiveCameraColorAttachment.Identifier(), m_OpaqueColor, downsamplingMethod);
                 EnqueuePass(m_CopyColorPass);
             }
+
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             if (needTransparencyPass)
 #endif
