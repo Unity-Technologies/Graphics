@@ -29,6 +29,7 @@ HDRP_OSX_Metal_playmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
 HDRP_OSX_Metal_playmode_cache_trunk:
     name: HDRP on OSX_Metal_playmode_cache on version trunk
     agent:
@@ -55,6 +56,7 @@ HDRP_OSX_Metal_playmode_cache_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
 HDRP_OSX_Metal_playmode_XR_trunk:
     name: HDRP on OSX_Metal_playmode_XR on version trunk
     agent:
@@ -81,6 +83,7 @@ HDRP_OSX_Metal_playmode_XR_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
 HDRP_OSX_Metal_playmode_NonRenderGraph_trunk:
     name: HDRP on OSX_Metal_playmode_NonRenderGraph on version trunk
     agent:
@@ -107,6 +110,7 @@ HDRP_OSX_Metal_playmode_NonRenderGraph_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
 HDRP_OSX_Metal_Standalone_trunk:
     name: HDRP on OSX_Metal_Standalone on version trunk
     agent:
@@ -133,6 +137,7 @@ HDRP_OSX_Metal_Standalone_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
 HDRP_OSX_Metal_Standalone_cache_trunk:
     name: HDRP on OSX_Metal_Standalone_cache on version trunk
     agent:
@@ -159,6 +164,7 @@ HDRP_OSX_Metal_Standalone_cache_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
 HDRP_OSX_Metal_playmode_2020.2:
     name: HDRP on OSX_Metal_playmode on version 2020.2
     agent:
@@ -185,6 +191,7 @@ HDRP_OSX_Metal_playmode_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
 HDRP_OSX_Metal_playmode_cache_2020.2:
     name: HDRP on OSX_Metal_playmode_cache on version 2020.2
     agent:
@@ -211,6 +218,7 @@ HDRP_OSX_Metal_playmode_cache_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
 HDRP_OSX_Metal_playmode_XR_2020.2:
     name: HDRP on OSX_Metal_playmode_XR on version 2020.2
     agent:
@@ -237,6 +245,7 @@ HDRP_OSX_Metal_playmode_XR_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
 HDRP_OSX_Metal_playmode_NonRenderGraph_2020.2:
     name: HDRP on OSX_Metal_playmode_NonRenderGraph on version 2020.2
     agent:
@@ -263,6 +272,7 @@ HDRP_OSX_Metal_playmode_NonRenderGraph_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
 HDRP_OSX_Metal_Standalone_2020.2:
     name: HDRP on OSX_Metal_Standalone on version 2020.2
     agent:
@@ -289,6 +299,7 @@ HDRP_OSX_Metal_Standalone_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
 HDRP_OSX_Metal_Standalone_cache_2020.2:
     name: HDRP on OSX_Metal_Standalone_cache on version 2020.2
     agent:
@@ -315,6 +326,7 @@ HDRP_OSX_Metal_Standalone_cache_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
 HDRP_OSX_Metal_playmode_CUSTOM-REVISION:
     name: HDRP on OSX_Metal_playmode on version CUSTOM-REVISION
     agent:
@@ -342,6 +354,7 @@ HDRP_OSX_Metal_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
@@ -372,6 +385,7 @@ HDRP_OSX_Metal_playmode_cache_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
@@ -402,6 +416,7 @@ HDRP_OSX_Metal_playmode_XR_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
@@ -432,6 +447,7 @@ HDRP_OSX_Metal_playmode_NonRenderGraph_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
@@ -462,6 +478,7 @@ HDRP_OSX_Metal_Standalone_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
@@ -492,6 +509,7 @@ HDRP_OSX_Metal_Standalone_cache_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always

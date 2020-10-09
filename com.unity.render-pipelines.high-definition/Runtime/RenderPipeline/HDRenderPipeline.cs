@@ -736,7 +736,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CameraSssDiffuseLightingBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite: true, useDynamicScale: true, name: "CameraSSSDiffuseLighting");
 
             m_DistortionBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: Builtin.GetDistortionBufferFormat(), useDynamicScale: true, name: "Distortion");
-
             m_ContactShadowBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_UInt, enableRandomWrite: true, useDynamicScale: true, name: "ContactShadowsBuffer");
 
             if (m_Asset.currentPlatformRenderPipelineSettings.lowresTransparentSettings.enabled)
@@ -818,7 +817,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RTHandles.Release(m_DistortionBuffer);
             RTHandles.Release(m_ContactShadowBuffer);
-
+            
             RTHandles.Release(m_LowResTransparentBuffer);
 
             // RTHandles.Release(m_SsrDebugTexture);
@@ -2553,7 +2552,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         => BuildGPULightListProbeVolumesCommon(a.hdCamera, c);
                 }
             }
-
             // This is always false in forward and if it is true, is equivalent of saying we have a partial depth prepass.
             bool shouldRenderMotionVectorAfterGBuffer = RenderDepthPrepass(cullingResults, hdCamera, renderContext, cmd);
             if (!shouldRenderMotionVectorAfterGBuffer)
@@ -2742,7 +2740,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     void AsyncSSAODispatch(CommandBuffer c, HDGPUAsyncTaskParams a)
                         => m_AmbientOcclusionSystem.Dispatch(c, a.hdCamera, depthTexture, normalBuffer, motionVectors, a.frameCount);
                 }
-
+                    
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderShadowMaps)))
                 {
                     // This call overwrites camera properties passed to the shader system.

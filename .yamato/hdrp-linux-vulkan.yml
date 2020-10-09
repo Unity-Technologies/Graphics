@@ -22,6 +22,7 @@ HDRP_Linux_Vulkan_playmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
 HDRP_Linux_Vulkan_playmode_cache_trunk:
     name: HDRP on Linux_Vulkan_playmode_cache on version trunk
     agent:
@@ -41,6 +42,7 @@ HDRP_Linux_Vulkan_playmode_cache_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
 HDRP_Linux_Vulkan_playmode_NonRenderGraph_trunk:
     name: HDRP on Linux_Vulkan_playmode_NonRenderGraph on version trunk
     agent:
@@ -60,6 +62,7 @@ HDRP_Linux_Vulkan_playmode_NonRenderGraph_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
 HDRP_Linux_Vulkan_editmode_trunk:
     name: HDRP on Linux_Vulkan_editmode on version trunk
     agent:
@@ -79,6 +82,7 @@ HDRP_Linux_Vulkan_editmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
 HDRP_Linux_Vulkan_Standalone_trunk:
     name: HDRP on Linux_Vulkan_Standalone on version trunk
     agent:
@@ -88,16 +92,41 @@ HDRP_Linux_Vulkan_Standalone_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_RuntimeTests/utr
+      -  chmod +x TestProjects/HDRP_RuntimeTests/utr
+      -  cd TestProjects/HDRP_RuntimeTests && ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --reruncount=2 --timeout=1200
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
+    dependencies:
+      -  path: .yamato/hdrp-linux-vulkan.yml#Build_HDRP_Linux_Vulkan_Player_trunk
+         rerun: on-new-revision
+    skip_checkout: true
+Build_HDRP_Linux_Vulkan_Player_trunk:
+    name: Build HDRP on Linux_Vulkan_Player on version trunk
+    agent:
+        type: Unity::VM
+        image: cds-ops/ubuntu-18.04-base:stable
+        flavor: b1.xlarge
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
       -  sudo -H pip install --upgrade pip
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_RuntimeTests/utr
       -  chmod +x TestProjects/HDRP_RuntimeTests/utr
       -  cd TestProjects/HDRP_RuntimeTests && sudo unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_RuntimeTests && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --reruncount=2 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/HDRP_RuntimeTests && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
+        players:
+            paths:
+              -  "players/**"
 HDRP_Linux_Vulkan_Standalone_cache_trunk:
     name: HDRP on Linux_Vulkan_Standalone_cache on version trunk
     agent:
@@ -107,16 +136,18 @@ HDRP_Linux_Vulkan_Standalone_cache_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  sudo -H pip install --upgrade pip
-      -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_RuntimeTests/utr
       -  chmod +x TestProjects/HDRP_RuntimeTests/utr
-      -  cd TestProjects/HDRP_RuntimeTests && sudo unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_RuntimeTests && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --reruncount=2 --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/HDRP_RuntimeTests && ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --reruncount=2 --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
+    dependencies:
+      -  path: .yamato/hdrp-linux-vulkan.yml#Build_HDRP_Linux_Vulkan_Player_trunk
+         rerun: on-new-revision
+    skip_checkout: true
 HDRP_Linux_Vulkan_playmode_2020.2:
     name: HDRP on Linux_Vulkan_playmode on version 2020.2
     agent:
@@ -136,6 +167,7 @@ HDRP_Linux_Vulkan_playmode_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
 HDRP_Linux_Vulkan_playmode_cache_2020.2:
     name: HDRP on Linux_Vulkan_playmode_cache on version 2020.2
     agent:
@@ -155,6 +187,7 @@ HDRP_Linux_Vulkan_playmode_cache_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
 HDRP_Linux_Vulkan_playmode_NonRenderGraph_2020.2:
     name: HDRP on Linux_Vulkan_playmode_NonRenderGraph on version 2020.2
     agent:
@@ -174,6 +207,7 @@ HDRP_Linux_Vulkan_playmode_NonRenderGraph_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
 HDRP_Linux_Vulkan_editmode_2020.2:
     name: HDRP on Linux_Vulkan_editmode on version 2020.2
     agent:
@@ -193,6 +227,7 @@ HDRP_Linux_Vulkan_editmode_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
 HDRP_Linux_Vulkan_Standalone_2020.2:
     name: HDRP on Linux_Vulkan_Standalone on version 2020.2
     agent:
@@ -202,16 +237,41 @@ HDRP_Linux_Vulkan_Standalone_2020.2:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_RuntimeTests/utr
+      -  chmod +x TestProjects/HDRP_RuntimeTests/utr
+      -  cd TestProjects/HDRP_RuntimeTests && ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --reruncount=2 --timeout=1200
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
+    dependencies:
+      -  path: .yamato/hdrp-linux-vulkan.yml#Build_HDRP_Linux_Vulkan_Player_2020.2
+         rerun: on-new-revision
+    skip_checkout: true
+Build_HDRP_Linux_Vulkan_Player_2020.2:
+    name: Build HDRP on Linux_Vulkan_Player on version 2020.2
+    agent:
+        type: Unity::VM
+        image: cds-ops/ubuntu-18.04-base:stable
+        flavor: b1.xlarge
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
       -  sudo -H pip install --upgrade pip
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_RuntimeTests/utr
       -  chmod +x TestProjects/HDRP_RuntimeTests/utr
       -  cd TestProjects/HDRP_RuntimeTests && sudo unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_RuntimeTests && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --reruncount=2 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/HDRP_RuntimeTests && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
+        players:
+            paths:
+              -  "players/**"
 HDRP_Linux_Vulkan_Standalone_cache_2020.2:
     name: HDRP on Linux_Vulkan_Standalone_cache on version 2020.2
     agent:
@@ -221,16 +281,18 @@ HDRP_Linux_Vulkan_Standalone_cache_2020.2:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  sudo -H pip install --upgrade pip
-      -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_RuntimeTests/utr
       -  chmod +x TestProjects/HDRP_RuntimeTests/utr
-      -  cd TestProjects/HDRP_RuntimeTests && sudo unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_RuntimeTests && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --reruncount=2 --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/HDRP_RuntimeTests && ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --reruncount=2 --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
+    dependencies:
+      -  path: .yamato/hdrp-linux-vulkan.yml#Build_HDRP_Linux_Vulkan_Player_2020.2
+         rerun: on-new-revision
+    skip_checkout: true
 HDRP_Linux_Vulkan_playmode_CUSTOM-REVISION:
     name: HDRP on Linux_Vulkan_playmode on version CUSTOM-REVISION
     agent:
@@ -251,6 +313,7 @@ HDRP_Linux_Vulkan_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
@@ -274,6 +337,7 @@ HDRP_Linux_Vulkan_playmode_cache_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
@@ -297,6 +361,7 @@ HDRP_Linux_Vulkan_playmode_NonRenderGraph_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
@@ -320,6 +385,7 @@ HDRP_Linux_Vulkan_editmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
@@ -333,16 +399,44 @@ HDRP_Linux_Vulkan_Standalone_CUSTOM-REVISION:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_RuntimeTests/utr
+      -  chmod +x TestProjects/HDRP_RuntimeTests/utr
+      -  cd TestProjects/HDRP_RuntimeTests && ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --reruncount=2 --timeout=1200
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
+         rerun: always
+      -  path: .yamato/hdrp-linux-vulkan.yml#Build_HDRP_Linux_Vulkan_Player_CUSTOM-REVISION
+         rerun: always
+    skip_checkout: true
+Build_HDRP_Linux_Vulkan_Player_CUSTOM-REVISION:
+    name: Build HDRP on Linux_Vulkan_Player on version CUSTOM-REVISION
+    agent:
+        type: Unity::VM
+        image: cds-ops/ubuntu-18.04-base:stable
+        flavor: b1.xlarge
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: custom_revision_not_set
+    commands:
       -  sudo -H pip install --upgrade pip
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_RuntimeTests/utr
       -  chmod +x TestProjects/HDRP_RuntimeTests/utr
       -  cd TestProjects/HDRP_RuntimeTests && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_RuntimeTests && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --reruncount=2 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/HDRP_RuntimeTests && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
+        players:
+            paths:
+              -  "players/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
@@ -356,16 +450,17 @@ HDRP_Linux_Vulkan_Standalone_cache_CUSTOM-REVISION:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
-      -  sudo -H pip install --upgrade pip
-      -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_RuntimeTests/utr
       -  chmod +x TestProjects/HDRP_RuntimeTests/utr
-      -  cd TestProjects/HDRP_RuntimeTests && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_RuntimeTests && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --reruncount=2 --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/HDRP_RuntimeTests && ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --reruncount=2 --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
+      -  path: .yamato/hdrp-linux-vulkan.yml#Build_HDRP_Linux_Vulkan_Player_CUSTOM-REVISION
+         rerun: always
+    skip_checkout: true

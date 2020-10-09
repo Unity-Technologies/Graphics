@@ -16,6 +16,7 @@ Universal_OSX_OpenGLCore_Standalone_cache_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/universal-osx-openglcore.yml#Build_Universal_OSX_OpenGLCore_Player_trunk
          rerun: on-new-revision
@@ -33,6 +34,7 @@ Build_Universal_OSX_OpenGLCore_Player_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -54,6 +56,7 @@ Universal_OSX_OpenGLCore_playmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
 Universal_OSX_OpenGLCore_playmode_cache_trunk:
     name: Universal on OSX_OpenGLCore_playmode_cache on version trunk
     agent:
@@ -72,6 +75,7 @@ Universal_OSX_OpenGLCore_playmode_cache_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
 Universal_OSX_OpenGLCore_editmode_trunk:
     name: Universal on OSX_OpenGLCore_editmode on version trunk
     agent:
@@ -90,6 +94,7 @@ Universal_OSX_OpenGLCore_editmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
 Universal_OSX_OpenGLCore_playmode_XR_trunk:
     name: Universal on OSX_OpenGLCore_playmode_XR on version trunk
     agent:
@@ -108,6 +113,7 @@ Universal_OSX_OpenGLCore_playmode_XR_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
 Universal_OSX_OpenGLCore_Standalone_cache_2020.2:
     name: Universal on OSX_OpenGLCore_Standalone_cache on version 2020.2
     agent:
@@ -121,6 +127,7 @@ Universal_OSX_OpenGLCore_Standalone_cache_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/universal-osx-openglcore.yml#Build_Universal_OSX_OpenGLCore_Player_2020.2
          rerun: on-new-revision
@@ -138,6 +145,7 @@ Build_Universal_OSX_OpenGLCore_Player_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -159,6 +167,7 @@ Universal_OSX_OpenGLCore_playmode_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
 Universal_OSX_OpenGLCore_playmode_cache_2020.2:
     name: Universal on OSX_OpenGLCore_playmode_cache on version 2020.2
     agent:
@@ -177,6 +186,7 @@ Universal_OSX_OpenGLCore_playmode_cache_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
 Universal_OSX_OpenGLCore_editmode_2020.2:
     name: Universal on OSX_OpenGLCore_editmode on version 2020.2
     agent:
@@ -195,6 +205,7 @@ Universal_OSX_OpenGLCore_editmode_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
 Universal_OSX_OpenGLCore_playmode_XR_2020.2:
     name: Universal on OSX_OpenGLCore_playmode_XR on version 2020.2
     agent:
@@ -213,6 +224,7 @@ Universal_OSX_OpenGLCore_playmode_XR_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
 Universal_OSX_OpenGLCore_Standalone_cache_CUSTOM-REVISION:
     name: Universal on OSX_OpenGLCore_Standalone_cache on version CUSTOM-REVISION
     agent:
@@ -227,6 +239,7 @@ Universal_OSX_OpenGLCore_Standalone_cache_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
@@ -247,6 +260,7 @@ Build_Universal_OSX_OpenGLCore_Player_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -272,6 +286,7 @@ Universal_OSX_OpenGLCore_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
@@ -294,6 +309,7 @@ Universal_OSX_OpenGLCore_playmode_cache_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
@@ -316,6 +332,7 @@ Universal_OSX_OpenGLCore_editmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
@@ -338,6 +355,7 @@ Universal_OSX_OpenGLCore_playmode_XR_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always

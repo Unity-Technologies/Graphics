@@ -29,6 +29,7 @@ ShaderGraph_OSX_Metal_Standalone_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
 ShaderGraph_OSX_Metal_playmode_trunk:
     name: ShaderGraph on OSX_Metal_playmode on version trunk
     agent:
@@ -55,6 +56,7 @@ ShaderGraph_OSX_Metal_playmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
 ShaderGraph_OSX_Metal_Standalone_2020.2:
     name: ShaderGraph on OSX_Metal_Standalone on version 2020.2
     agent:
@@ -81,6 +83,7 @@ ShaderGraph_OSX_Metal_Standalone_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
 ShaderGraph_OSX_Metal_playmode_2020.2:
     name: ShaderGraph on OSX_Metal_playmode on version 2020.2
     agent:
@@ -107,6 +110,7 @@ ShaderGraph_OSX_Metal_playmode_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
 ShaderGraph_OSX_Metal_Standalone_CUSTOM-REVISION:
     name: ShaderGraph on OSX_Metal_Standalone on version CUSTOM-REVISION
     agent:
@@ -134,6 +138,7 @@ ShaderGraph_OSX_Metal_Standalone_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
@@ -164,6 +169,7 @@ ShaderGraph_OSX_Metal_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always

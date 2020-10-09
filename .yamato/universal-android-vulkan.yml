@@ -25,6 +25,7 @@ Universal_Android_Vulkan_Standalone_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/universal-android-vulkan.yml#Build_Universal_Android_Vulkan_Player_trunk
          rerun: on-new-revision
@@ -49,6 +50,7 @@ Build_Universal_Android_Vulkan_Player_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -124,6 +126,7 @@ Universal_Android_Vulkan_Standalone_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/universal-android-vulkan.yml#Build_Universal_Android_Vulkan_Player_2020.2
          rerun: on-new-revision
@@ -148,6 +151,7 @@ Build_Universal_Android_Vulkan_Player_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -224,6 +228,7 @@ Universal_Android_Vulkan_Standalone_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
@@ -251,6 +256,7 @@ Build_Universal_Android_Vulkan_Player_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
         players:
             paths:
               -  "players/**"

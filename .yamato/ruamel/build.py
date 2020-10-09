@@ -93,8 +93,7 @@ if __name__== "__main__":
     yml_dump_files(create_projectcontext_ymls(package_metafile))
 
     # create abv
-    print(f'Running: ABV')
-    abv_metafile = get_metafile(os.path.join(config_dir,'_abv.metafile'), unfold_agents_root_keys=['smoke_test'], unfold_test_platforms_root_keys=['smoke_test'])
+    abv_metafile = get_metafile(os.path.join(config_dir,'_abv.metafile'))
     yml_dump_files(create_abv_ymls(abv_metafile))
 
     # create preview publish

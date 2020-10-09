@@ -18,6 +18,7 @@ VFX_URP_Win_DX11_Standalone_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/vfx_urp-win-dx11.yml#Build_VFX_URP_Win_DX11_Player_trunk
          rerun: on-new-revision
@@ -39,6 +40,7 @@ Build_VFX_URP_Win_DX11_Player_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -59,6 +61,7 @@ VFX_URP_Win_DX11_playmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
 VFX_URP_Win_DX11_Standalone_2020.2:
     name: VFX_URP on Win_DX11_Standalone on version 2020.2
     agent:
@@ -74,6 +77,7 @@ VFX_URP_Win_DX11_Standalone_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/vfx_urp-win-dx11.yml#Build_VFX_URP_Win_DX11_Player_2020.2
          rerun: on-new-revision
@@ -95,6 +99,7 @@ Build_VFX_URP_Win_DX11_Player_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -115,6 +120,7 @@ VFX_URP_Win_DX11_playmode_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
 VFX_URP_Win_DX11_Standalone_CUSTOM-REVISION:
     name: VFX_URP on Win_DX11_Standalone on version CUSTOM-REVISION
     agent:
@@ -131,6 +137,7 @@ VFX_URP_Win_DX11_Standalone_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
@@ -155,6 +162,7 @@ Build_VFX_URP_Win_DX11_Player_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -179,6 +187,7 @@ VFX_URP_Win_DX11_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always

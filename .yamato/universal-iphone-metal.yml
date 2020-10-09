@@ -14,11 +14,12 @@ Universal_iPhone_Metal_Standalone_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --reruncount=2
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --reruncount=2 --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/universal-iphone-metal.yml#Build_Universal_iPhone_Metal_Player_trunk
          rerun: on-new-revision
@@ -36,11 +37,12 @@ Build_Universal_iPhone_Metal_Player_trunk:
       -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -55,11 +57,12 @@ Universal_iPhone_Metal_Standalone_cache_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --reruncount=2 --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true"
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --reruncount=2 --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/universal-iphone-metal.yml#Build_Universal_iPhone_Metal_Player_trunk
          rerun: on-new-revision
@@ -75,11 +78,12 @@ Universal_iPhone_Metal_Standalone_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --reruncount=2
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --reruncount=2 --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/universal-iphone-metal.yml#Build_Universal_iPhone_Metal_Player_2020.2
          rerun: on-new-revision
@@ -97,11 +101,12 @@ Build_Universal_iPhone_Metal_Player_2020.2:
       -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -116,11 +121,12 @@ Universal_iPhone_Metal_Standalone_cache_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --reruncount=2 --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true"
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --reruncount=2 --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/universal-iphone-metal.yml#Build_Universal_iPhone_Metal_Player_2020.2
          rerun: on-new-revision
@@ -137,11 +143,12 @@ Universal_iPhone_Metal_Standalone_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --reruncount=2
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --reruncount=2 --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
@@ -162,11 +169,12 @@ Build_Universal_iPhone_Metal_Player_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -185,11 +193,12 @@ Universal_iPhone_Metal_Standalone_cache_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --reruncount=2 --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true"
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --reruncount=2 --extra-editor-arg="-adb2" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
