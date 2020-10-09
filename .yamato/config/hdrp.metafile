@@ -25,6 +25,22 @@ test_platforms:
   - type: Standalone
     timeout:
       OSX_Metal: 2400
+  - type: Standalone
+    name: Standalone_cache
+    extra_utr_flags:
+    - --extra-editor-arg="-adb2"
+    - --extra-editor-arg="-enableCacheServer"
+    - --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com"
+    - --extra-editor-arg="-cacheServerNamespacePrefix SRP"
+    - --extra-editor-arg="-cacheServerEnableDownload true"
+    - --extra-editor-arg="-cacheServerEnableUpload true"
+    extra_utr_flags_build:
+    - --extra-editor-arg="-adb2"
+    - --extra-editor-arg="-enableCacheServer"
+    - --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com"
+    - --extra-editor-arg="-cacheServerNamespacePrefix SRP"
+    - --extra-editor-arg="-cacheServerEnableDownload true"
+    - --extra-editor-arg="-cacheServerEnableUpload true"
 platforms:
   - name: Win
     apis:
@@ -68,7 +84,7 @@ all:
         - playmode_cache
         - playmode_XR
         - playmode_NonRenderGraph
-        - Standalone
+        - Standalone_cache
     - platform: Win
       api: DX12
       test_platforms:
@@ -80,7 +96,7 @@ all:
       test_platforms:
         - playmode_cache
         - playmode_XR
-        - Standalone
+        - Standalone_cache
     - platform: OSX
       api: Metal
       test_platforms:
@@ -91,7 +107,7 @@ all:
       test_platforms:
         - editmode
         - playmode_cache
-        - Standalone
+        - Standalone_cache
     - project: HDRP_DXR
       platform: Win
       api: DX12

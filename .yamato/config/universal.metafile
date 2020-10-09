@@ -8,6 +8,22 @@ test_platforms:
     timeout_build:
       Android: 1800
       Win: 2000
+  - type: Standalone
+    name: Standalone_cache
+    extra_utr_flags:
+    - --extra-editor-arg="-adb2"
+    - --extra-editor-arg="-enableCacheServer"
+    - --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com"
+    - --extra-editor-arg="-cacheServerNamespacePrefix SRP"
+    - --extra-editor-arg="-cacheServerEnableDownload true"
+    - --extra-editor-arg="-cacheServerEnableUpload true"
+    extra_utr_flags_build:
+    - --extra-editor-arg="-adb2"
+    - --extra-editor-arg="-enableCacheServer"
+    - --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com"
+    - --extra-editor-arg="-cacheServerNamespacePrefix SRP"
+    - --extra-editor-arg="-cacheServerEnableDownload true"
+    - --extra-editor-arg="-cacheServerEnableUpload true"
   - type: playmode
   - type: playmode
     name: playmode_cache
@@ -49,14 +65,14 @@ all:
     - platform: Win
       api: DX11
       test_platforms:
-        - Standalone
+        - Standalone_cache
         - editmode
         - playmode_cache
         - playmode_XR
     - platform: OSX
       api: Metal
       test_platforms:
-        # - Standalone
+        # - Standalone_cache
         - playmode_cache
     - platform: OSX
       api: OpenGLCore
