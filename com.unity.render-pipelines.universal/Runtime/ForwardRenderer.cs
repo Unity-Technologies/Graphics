@@ -369,6 +369,20 @@ namespace UnityEngine.Rendering.Universal
             bool copyDepthPass = !requiresDepthPrepass && renderingData.cameraData.requiresDepthTexture && createDepthTexture && this.actualRenderingMode != RenderingMode.Deferred;
             bool copyColorPass = renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture;
 
+            if(DebugHandler.IsSceneOverrideActive)
+            {
+                mainLightShadows = false;
+                additionalLightShadows = false;
+
+                if(!isSceneViewCamera)
+                {
+                    requiresDepthPrepass = false;
+                    generateColorGradingLUT = false;
+                    copyColorPass = false;
+                    copyDepthPass = false;
+                }
+            }
+
             // Assign camera targets (color and depth)
             {
                 var activeColorRenderTargetId = m_ActiveCameraColorAttachment.Identifier();
@@ -386,16 +400,6 @@ namespace UnityEngine.Rendering.Universal
             }
 
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
-
-            if(DebugHandler.IsSceneOverrideActive)
-            {
-                mainLightShadows = false;
-                additionalLightShadows = false;
-                requiresDepthPrepass = false;
-                generateColorGradingLUT = false;
-                copyColorPass = false;
-                copyDepthPass = false;
-            }
 
             if (mainLightShadows)
                 EnqueuePass(m_MainLightShadowCasterPass);

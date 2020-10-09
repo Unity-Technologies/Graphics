@@ -296,7 +296,6 @@ namespace UnityEngine.Rendering.Universal
 
         bool m_FirstTimeCameraColorTargetIsBound = true; // flag used to track when m_CameraColorTarget should be cleared (if necessary), as well as other special actions only performed the first time m_CameraColorTarget is bound as a render target
         bool m_FirstTimeCameraDepthTargetIsBound = true; // flag used to track when m_CameraDepthTarget should be cleared (if necessary), the first time m_CameraDepthTarget is bound as a render target
-        private bool m_FirstCameraRenderPassExecuted = false;
 
         // The pipeline can only guarantee the camera target texture are valid when the pipeline is executing.
         // Trying to access the camera target before or after might be that the pipeline texture have already been disposed.
@@ -558,7 +557,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="cameraClearFlags">Camera clear flags.</param>
         /// <returns>A clear flag that tells if color and/or depth should be cleared.</returns>
-        protected static ClearFlag GetCameraClearFlag(ref CameraData cameraData)
+        protected ClearFlag GetCameraClearFlag(ref CameraData cameraData)
         {
             var cameraClearFlags = cameraData.camera.clearFlags;
 
@@ -587,7 +586,8 @@ namespace UnityEngine.Rendering.Universal
                 return (cameraData.clearDepth) ? ClearFlag.Depth : ClearFlag.None;
 
             // Always clear on first render pass in mobile as it's same perf of DontCare and avoid tile clearing issues.
-            if (Application.isMobilePlatform)
+            if (Application.isMobilePlatform ||
+                (DebugHandler != null && DebugHandler.IsReplacementMaterialNeeded))
                 return ClearFlag.All;
 
             if ((cameraClearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null) ||
@@ -648,7 +648,6 @@ namespace UnityEngine.Rendering.Universal
 
             m_FirstTimeCameraColorTargetIsBound = cameraType == CameraRenderType.Base;
             m_FirstTimeCameraDepthTargetIsBound = true;
-            m_FirstCameraRenderPassExecuted = false;
 
             m_ActiveRenderPassQueue.Clear();
 
@@ -858,26 +857,22 @@ namespace UnityEngine.Rendering.Universal
                 else
                     finalClearFlag |= (renderPass.clearFlag & ClearFlag.Depth);
 
-                if(!m_FirstCameraRenderPassExecuted &&
-                   (DebugHandler != null && DebugHandler.TryGetSceneOverride(out SceneOverrides sceneOverride)))
+                if(DebugHandler != null && DebugHandler.TryGetSceneOverride(out SceneOverrides sceneOverride))
                 {
                     switch(sceneOverride)
                     {
                         case SceneOverrides.Overdraw:
                             finalClearColor = Color.black;
-                            finalClearFlag = ClearFlag.All;
                             break;
 
                         case SceneOverrides.Wireframe:
-                            finalClearColor = new Color(0.1f, 0.1f, 0.1f, 1.0f);
-                            finalClearFlag = ClearFlag.All;
+                        case SceneOverrides.SolidWireframe:
+                            finalClearColor = new Color(1.0f / 16, 1.0f / 16, 1.0f / 16, 1.0f);
                             break;
 
                         default:
                             break;
                     }
-
-                    m_FirstCameraRenderPassExecuted = true;
                 }
 
                 // Only setup render target if current render pass attachments are different from the active ones
