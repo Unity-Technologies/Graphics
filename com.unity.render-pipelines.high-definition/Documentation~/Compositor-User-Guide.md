@@ -50,6 +50,6 @@ The Render Schedule is a re-orderable list of Composition Layers and Sub-layers.
 This section shows every exposed property that is not an input Composition Layer (for example, a Float to control the brightness of the final composition or a Color to tint a Texture2D). In this section, the window allows you to edit each property value outside of the Composition Graph. It is good practice to expose properties from the graph to the Graphics Compositor window, instead of hard-coding their values. This helps you to share composition profiles between Projects because those you do not need to open the Composition Graph to edit any values.
 
 ## Composition of screen-space UI
-The Graphics Compositor can be used to compose screen-space canvas (UI) elements. However, in this case the camera sub-layer that draws the UI:
-- should have a unique camera assigned to it. The camera should not be used in any other layer
-- should not override any camera state (antialising, culling mask, volume mask, etc). These properties can still be changed in the source camera that is used for the sub layer.
+You can use the Graphics Compositor to compose screen-space canvas (UI) elements. However, in this case, the camera sub-layer that draws the UI:
+- Should have a unique camera assigned to it. You should not use this camera in any other sub-layer.
+- Should not override any camera state (antialiasing, culling mask, volume mask, etc). You can change these properties in the source camera that the sub-layer uses.
