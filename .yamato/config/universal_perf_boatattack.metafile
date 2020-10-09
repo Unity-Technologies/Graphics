@@ -16,13 +16,13 @@ test_platforms:
       - --extra-editor-arg="-packageundertestrev=%GIT_REVISION%"
       - --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%"
       - --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
-  - type: editmode
-    name: performance_editmode_build
-    is_performance: True
-    extra_utr_flags:
-      - --testfilter=Build
-      - --report-performance-data
-      - --performance-project-id=BoatAttack
+#  - type: editmode
+#    name: performance_editmode_build
+#    is_performance: True
+#    extra_utr_flags:
+#      - --testfilter=Build
+#      - --report-performance-data
+#      - --performance-project-id=BoatAttack
 platforms:
   - name: Win
     extra_utr_flags_build:
@@ -31,18 +31,18 @@ platforms:
       - --extra-editor-arg="-allowdebugging-" 
     apis:
       - DX11
-      - Vulkan
-  - name: OSX
-    apis:
-      - Metal
-      - OpenGLCore
+#      - Vulkan
+#  - name: OSX
+#    apis:
+#      - Metal
+#      - OpenGLCore
   - name: Android
     apis: 
       - Vulkan
       - OpenGLES3
-  - name: iPhone
-    apis: 
-      - Metal
+#  - name: iPhone
+#    apis: 
+#      - Metal
 build_configs:
 - name: il2cpp_2
   scripting_backend: il2cpp
@@ -67,32 +67,32 @@ all:
       color_space: Linear
       test_platforms:
         - performance_playmode_runtime
-        - performance_editmode_build
-    - platform: OSX
-      api: Metal
-      build_config: il2cpp_4
-      color_space: Linear
-      test_platforms:
-        #- performance_playmode_runtime
-        - performance_editmode_build
+#        - performance_editmode_build
+#    - platform: OSX
+#      api: Metal
+#      build_config: il2cpp_4
+#      color_space: Linear
+#      test_platforms:
+#        #- performance_playmode_runtime
+#        - performance_editmode_build
     - platform: Android
       api: OpenGLES3
       build_config: il2cpp_4
       color_space: Linear
       test_platforms:
         - performance_playmode_runtime
-        - performance_editmode_build
+#        - performance_editmode_build
     - platform: Android
       api: Vulkan
       build_config: il2cpp_4
       color_space: Linear
       test_platforms:
         - performance_playmode_runtime
-        - performance_editmode_build
-    - platform: iPhone
-      api: Metal
-      build_config: il2cpp_4
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        - performance_editmode_build
+#        - performance_editmode_build
+#    - platform: iPhone
+#      api: Metal
+#      build_config: il2cpp_4
+#      color_space: Linear
+#      test_platforms:
+#        - performance_playmode_runtime
+#        - performance_editmode_build
