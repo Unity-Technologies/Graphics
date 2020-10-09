@@ -211,20 +211,23 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal void UpdateMesh()
         {
-            switch (m_LightType)
+            if (m_Mesh != null)
             {
-                case LightType.Freeform:
-                    m_LocalBounds = LightUtility.GenerateShapeMesh(m_Mesh, m_ShapePath, m_ShapeLightFalloffSize);
-                    break;
-                case (LightType)DeprecatedLightType.Parametric:
-                    m_LocalBounds = LightUtility.GenerateParametricMesh(m_Mesh, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
-                    break;
-                case LightType.Sprite:
-                    m_LocalBounds = LightUtility.GenerateSpriteMesh(m_Mesh, m_LightCookieSprite);
-                    break;
-                case LightType.Point:
-                    m_LocalBounds = LightUtility.GenerateParametricMesh(m_Mesh, 1.412135f, 0, 0, 4);
-                    break;
+                switch (m_LightType)
+                {
+                    case LightType.Freeform:
+                        m_LocalBounds = LightUtility.GenerateShapeMesh(m_Mesh, m_ShapePath, m_ShapeLightFalloffSize);
+                        break;
+                    case (LightType)DeprecatedLightType.Parametric:
+                        m_LocalBounds = LightUtility.GenerateParametricMesh(m_Mesh, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
+                        break;
+                    case LightType.Sprite:
+                        m_LocalBounds = LightUtility.GenerateSpriteMesh(m_Mesh, m_LightCookieSprite);
+                        break;
+                    case LightType.Point:
+                        m_LocalBounds = LightUtility.GenerateParametricMesh(m_Mesh, 1.412135f, 0, 0, 4);
+                        break;
+                }
             }
         }
 

@@ -443,12 +443,19 @@ namespace UnityEditor.Experimental.Rendering.Universal
             EditorGUILayout.Space();
             if(GUILayout.Button(new GUIContent("Upgrade All Parametric Lights")))
             {
-                Renderer2DUpgrader.UpgradeParametricLight((Light2D)serializedObject.targetObject);
+                Renderer2DUpgrader.UpgradeAllParametricLights();
+
             }
             EditorGUILayout.Space();
-            GUILayout.Button(new GUIContent("Upgrade Project Parametric Light"));
+            if(GUILayout.Button(new GUIContent("Upgrade Project Parametric Light")))
+            {
+                Renderer2DUpgrader.UpgradeParametricLightsInProject();
+            }
             EditorGUILayout.Space();
-            GUILayout.Button(new GUIContent("Upgrade Scene Parametric Lights"));
+            if(GUILayout.Button(new GUIContent("Upgrade Scene Parametric Lights")))
+            {
+                Renderer2DUpgrader.UpgradeParametricLightsInScene();
+            }
             EditorGUILayout.Space();
             EditorGUILayout.HelpBox(Styles.deprecatedParametricLightInstructions);  
         }
