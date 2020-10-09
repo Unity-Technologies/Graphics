@@ -62,6 +62,7 @@ Shader "Universal Render Pipeline/Unlit"
         }
         Pass
         {
+            Name "DepthOnly"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
@@ -144,6 +145,7 @@ Shader "Universal Render Pipeline/Unlit"
         }
         Pass
         {
+            Name "DepthOnly"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On

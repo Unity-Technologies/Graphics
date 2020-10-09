@@ -13,8 +13,9 @@ class ABV_AllProjectCiJob():
     
         # define dependencies
         dependencies = [{
-            'path': f'{projectcontext_filepath()}#{projectcontext_job_id_test_all(editor["track"])}',
-            'rerun': editor["rerun_strategy"]}]
+                'path': f'{projectcontext_filepath()}#{projectcontext_job_id_test_all(editor["track"])}',
+                'rerun': editor["rerun_strategy"]
+            }]
 
         for project in projects:
             dependencies.append({

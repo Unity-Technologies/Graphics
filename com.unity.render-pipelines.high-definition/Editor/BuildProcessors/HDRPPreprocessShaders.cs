@@ -57,7 +57,13 @@ namespace UnityEditor.Rendering.HighDefinition
             if (isRayTracingPrepass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
                 return true;
 
-            // Debug Display shader are currently are longest shader to compile, so we allow users to disable it at runtime.
+            // If requested by the render pipeline settings, or if we are in a release build,
+			// don't compile fullscreen debug display variant
+            bool isFullScreenDebugPass = snippet.passName == "FullScreenDebug";
+			if (isFullScreenDebugPass && (!Debug.isDebugBuild || !hdrpAsset.currentPlatformRenderPipelineSettings.supportRuntimeDebugDisplay))
+                return true;
+			
+            // Debug Display shader is currently the longest shader to compile, so we allow users to disable it at runtime.
             // We also don't want it in release build.
             // However our AOV API rely on several debug display shader. In case AOV API is requested at runtime (like for the Graphics Compositor)
             // we allow user to make explicit request for it and it bypass other request

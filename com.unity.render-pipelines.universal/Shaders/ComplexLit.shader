@@ -64,6 +64,10 @@ Shader "Universal Render Pipeline/Complex Lit"
         _ReceiveShadows("Receive Shadows", Float) = 1.0
         // Editmode props
         [HideInInspector] _QueueOffset("Queue offset", Float) = 0.0
+
+        [HideInInspector][NoScaleOffset]unity_Lightmaps("unity_Lightmaps", 2DArray) = "" {}
+        [HideInInspector][NoScaleOffset]unity_LightmapsInd("unity_LightmapsInd", 2DArray) = "" {}
+        [HideInInspector][NoScaleOffset]unity_ShadowMasks("unity_ShadowMasks", 2DArray) = "" {}
     }
 
     SubShader
