@@ -172,7 +172,7 @@ namespace UnityEditor.Rendering.Universal
 
             m_RendererDataProp = serializedObject.FindProperty("m_RendererDataList");
             m_DefaultRendererProp = serializedObject.FindProperty("m_DefaultRendererIndex");
-            m_RendererDataList = new ReorderableList(serializedObject, m_RendererDataProp, false, true, true, true);
+            m_RendererDataList = new ReorderableList(serializedObject, m_RendererDataProp, true, true, true, true);
 
             DrawRendererListLayout(m_RendererDataList, m_RendererDataProp);
 
@@ -488,19 +488,19 @@ namespace UnityEditor.Rendering.Universal
             list.drawHeaderCallback = (Rect rect) =>
             {
                 EditorGUI.LabelField(rect, Styles.rendererHeaderText);
-                list.index = list.count - 1;
             };
 
             list.onCanRemoveCallback = li => { return li.count > 1; };
 
             list.onRemoveCallback = li =>
             {
-                if (li.serializedProperty.arraySize - 1 != m_DefaultRendererProp.intValue)
+                // Checking so that the user is not deleting  the default renderer
+                if (li.index != m_DefaultRendererProp.intValue)
                 {
-                    if(li.serializedProperty.GetArrayElementAtIndex(li.serializedProperty.arraySize - 1).objectReferenceValue != null)
-                        li.serializedProperty.DeleteArrayElementAtIndex(li.serializedProperty.arraySize - 1);
-                    li.serializedProperty.arraySize--;
-                    li.index = li.count - 1;
+                    li.serializedProperty.DeleteArrayElementAtIndex(li.index);
+                    UpdateDefaultRendererValue(li.index);
+
+                    prop.DeleteArrayElementAtIndex(li.index);
                 }
                 else
                 {
@@ -509,6 +509,47 @@ namespace UnityEditor.Rendering.Universal
                 }
                 EditorUtility.SetDirty(target);
             };
+
+            list.onReorderCallbackWithDetails += (reorderableList, index, newIndex) =>
+            {
+                // Need to update the default renderer index
+                UpdateDefaultRendererValue(index, newIndex);
+            };
+        }
+
+        void UpdateDefaultRendererValue(int index)
+        {
+            // If the index that is being removed is lower than the default renderer value,
+            // the default prop value needs to be one lower.
+            if (index < m_DefaultRendererProp.intValue)
+            {
+                m_DefaultRendererProp.intValue--;
+            }
+        }
+
+        void UpdateDefaultRendererValue(int prevIndex, int newIndex)
+        {
+            // If we are moving the index that is the same as the default renderer we need to update that
+            if (prevIndex == m_DefaultRendererProp.intValue)
+            {
+                m_DefaultRendererProp.intValue = newIndex;
+            }
+            // If newIndex is the same as default
+            // then we need to know if newIndex is above or below the default index
+            else if (newIndex == m_DefaultRendererProp.intValue)
+            {
+                m_DefaultRendererProp.intValue += prevIndex > newIndex ? 1 : -1;
+            }
+            // If the old index is lower than default renderer and
+            // the new index is higher then we need to move the default renderer index one lower
+            else if (prevIndex < m_DefaultRendererProp.intValue && newIndex > m_DefaultRendererProp.intValue)
+            {
+                m_DefaultRendererProp.intValue--;
+            }
+            else if (newIndex < m_DefaultRendererProp.intValue && prevIndex > m_DefaultRendererProp.intValue)
+            {
+                m_DefaultRendererProp.intValue++;
+            }
         }
 
         bool ValidateRendererGraphicsAPIs(UniversalRenderPipelineAsset pipelineAsset, out string unsupportedGraphicsApisMessage)
