@@ -276,11 +276,15 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_BlendingSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_BlendingSettingsFoldout.value, Styles.blendingSettingsFoldout);
             if (m_BlendingSettingsFoldout.value)
             {
-                EditorGUI.indentLevel++;
-                EditorGUILayout.IntPopup(m_BlendStyleIndex, m_BlendStyleNames, m_BlendStyleIndices, Styles.generalBlendStyle);
+                //EditorGUI.indentLevel++;
+                if (!m_AnyBlendStyleEnabled)
+                    EditorGUILayout.HelpBox(Styles.generalLightNoLightEnabled);
+                else
+                    EditorGUILayout.IntPopup(m_BlendStyleIndex, m_BlendStyleNames, m_BlendStyleIndices, Styles.generalBlendStyle);
+
                 EditorGUILayout.PropertyField(m_LightOrder, Styles.generalLightOrder);
                 EditorGUILayout.PropertyField(m_OverlapOperation, Styles.generalLightOverlapOperation);
-                EditorGUI.indentLevel--;
+                //EditorGUI.indentLevel--;
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
@@ -290,9 +294,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_ShadowsSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_ShadowsSettingsFoldout.value, Styles.shadowsSettingsFoldout);
             if (m_ShadowsSettingsFoldout.value)
             {
-                EditorGUI.indentLevel++;
+                //EditorGUI.indentLevel++;
                 DrawToggleProperty(Styles.generalShadowIntensity, m_ShadowIntensityEnabled, m_ShadowIntensity);
-                EditorGUI.indentLevel--;
+                //EditorGUI.indentLevel--;
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
@@ -302,7 +306,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_VolumetricSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_VolumetricSettingsFoldout.value, Styles.volumetricSettingsFoldout);
             if (m_VolumetricSettingsFoldout.value)
             {
-                EditorGUI.indentLevel++;
+                //EditorGUI.indentLevel++;
 
                 DrawToggleProperty(Styles.generalVolumeIntensity, m_VolumetricIntensityEnabled, m_VolumetricIntensity);
                 if (m_VolumetricIntensity.floatValue < 0)
@@ -311,7 +315,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 EditorGUI.BeginDisabledGroup(!m_VolumetricIntensityEnabled.boolValue);
                 DrawToggleProperty(Styles.generalShadowVolumeIntensity, m_ShadowVolumeIntensityEnabled, m_ShadowVolumeIntensity);
                 EditorGUI.EndDisabledGroup();
-                EditorGUI.indentLevel--;
+                //EditorGUI.indentLevel--;
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
@@ -321,7 +325,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_NormalMapsSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_NormalMapsSettingsFoldout.value, Styles.normalMapsSettingsFoldout);
             if (m_NormalMapsSettingsFoldout.value)
             {
-                EditorGUI.indentLevel++;
+                //EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_NormalMapQuality, Styles.generalNormalMapLightQuality);
 
                 EditorGUI.BeginDisabledGroup(m_NormalMapQuality.intValue == (int)Light2D.NormalMapQuality.Disabled);
@@ -331,7 +335,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                     m_NormalMapZDistance.floatValue = Mathf.Max(0.0f, m_NormalMapZDistance.floatValue);
 
                 EditorGUI.EndDisabledGroup();
-                EditorGUI.indentLevel--;
+                //EditorGUI.indentLevel--;
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
@@ -368,19 +372,22 @@ namespace UnityEditor.Experimental.Rendering.Universal
         void DrawToggleProperty(GUIContent label, SerializedProperty boolProperty, SerializedProperty property)
         {
             int savedIndentLevel = EditorGUI.indentLevel;
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.PrefixLabel(label);
-            EditorGUILayout.BeginHorizontal();
-            EditorGUI.indentLevel = 0;
-            EditorGUILayout.PropertyField(boolProperty, GUIContent.none, GUILayout.MaxWidth(20));
+            float savedLabelWidth = EditorGUIUtility.labelWidth;
+            const int kCheckboxWidth = 20;
 
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.PropertyField(boolProperty, GUIContent.none, GUILayout.MaxWidth(kCheckboxWidth));
+
+            EditorGUIUtility.labelWidth = EditorGUIUtility.labelWidth - kCheckboxWidth;
             EditorGUI.BeginDisabledGroup(!boolProperty.boolValue);
-            EditorGUILayout.PropertyField(property, GUIContent.none);
+            EditorGUILayout.PropertyField(property, label);
             EditorGUI.EndDisabledGroup();
+            
+            EditorGUILayout.EndHorizontal();
 
-            EditorGUILayout.EndHorizontal();
-            EditorGUILayout.EndHorizontal();
             EditorGUI.indentLevel = savedIndentLevel;
+
+            EditorGUIUtility.labelWidth = savedLabelWidth;
         }
 
         public void DrawInnerAndOuterSpotAngle(SerializedProperty minProperty, SerializedProperty maxProperty, GUIContent label)
@@ -784,16 +791,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
                     }
                     break;
             }
-
-            //if (m_LightType.intValue != (int)Light2D.LightType.Global)
-            //    EditorGUILayout.PropertyField(m_OverlapOperation, Styles.generalLightOverlapOperation);
-
-            //EditorGUILayout.PropertyField(m_LightOrder, Styles.generalLightOrder);
-
-            //if (!m_AnyBlendStyleEnabled)
-            //    EditorGUILayout.HelpBox(Styles.generalLightNoLightEnabled);
-            //else
-            //    EditorGUILayout.IntPopup(m_BlendStyleIndex, m_BlendStyleNames, m_BlendStyleIndices, Styles.generalBlendStyle);
 
             AnalyticsTrackChanges(serializedObject);
             if (serializedObject.ApplyModifiedProperties())
