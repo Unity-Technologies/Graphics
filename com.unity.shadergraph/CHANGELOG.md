@@ -52,6 +52,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issues with ShaderGraph detection and handling of deleted graph files
 - Fixed an issue where the ShaderGraph was corrupting the translation cache
 - Fixed an issue where ShaderGraph would not prompt the user to save unsaved changes after an assembly reload
+- Fixed an issue with Position Node not automatically upgrading
 
 ## [10.0.0] - 2019-06-10
 ### Added
