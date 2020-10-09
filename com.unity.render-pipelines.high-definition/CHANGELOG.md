@@ -179,6 +179,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed the max clamp value for the RTR, RTAO and RTGI's ray length (case 1279849).
 - Meshes assigned with a decal material are not visible anymore in ray-tracing or path-tracing.
 - Removed BLEND shader keywords.
+- Remove a rendergraph debug option to clear resources on release from UI.
 
 ## [10.0.0] - 2019-06-10
 
