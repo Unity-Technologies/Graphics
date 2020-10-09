@@ -1045,6 +1045,8 @@ namespace UnityEngine.Rendering.HighDefinition
             float n = 0.1f;
             float f = hdCamera.camera.farClipPlane; // Assume XR uses the same far plane for all views
 
+            f = Mathf.Max(f, 0.11f); // Avoid degenerate configurations
+
             float x = n;
             float z = 1 / x;
             float y = Log2f(f * z);
@@ -2589,7 +2591,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // See https://zero-radiance.github.io/post/z-buffer/
             const float n = 0.1f;
 
-            f = Math.Max(n, f);
+            f = Mathf.Max(f, 0.11f); // Avoid degenerate configurations
 
             float x = Mathf.Max(1, w * (1/n));
             float z = Log2f(x) / Log2f(f * (1/n));

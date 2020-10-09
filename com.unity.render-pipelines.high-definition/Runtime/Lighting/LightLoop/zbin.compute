@@ -54,8 +54,18 @@ float2 ComputeZBinLinearDepthBounds(uint bin, float4 encodingParams)
     float2 bBounds = float2(bin, bin + 1);
     float2 zBounds = saturate(bBounds * rcp(ZBIN_COUNT));
 
-    return float2(DecodeLogarithmicDepth(zBounds.x, encodingParams),
-                  DecodeLogarithmicDepth(zBounds.y, encodingParams));
+    float2 wBounds = float2(DecodeLogarithmicDepth(zBounds.x, encodingParams),
+                            DecodeLogarithmicDepth(zBounds.y, encodingParams));
+
+    // Reminder: Z-binning uses n=0.1 as the near plane.
+    // In case the actual near plane is closer (or is oblique),
+    // we must extend the first bin to include the lights
+    // that are very close to the camera.
+    // Note that this will not cause the lights behind the near plane
+    // to be included, since they have invalid AABBs.
+    wBounds.x = (bin == 0) ? 0 : wBounds.x;
+
+    return wBounds;
 }
 
 // The intervals must be defined s.t.
