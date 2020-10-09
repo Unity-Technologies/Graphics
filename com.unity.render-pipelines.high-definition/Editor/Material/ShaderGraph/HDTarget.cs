@@ -681,6 +681,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Pragma.Vertex("Vert") },
             { Pragma.Fragment("Frag") },
             { Pragma.OnlyRenderers(PragmaRenderers.GetHighEndPlatformArray()) },
+            { new PragmaDescriptor() { value = "enable_d3d11_debug_symbols"} }, // TODO: Remove it
         };
 
         public static PragmaCollection InstancedRenderingLayer = new PragmaCollection
