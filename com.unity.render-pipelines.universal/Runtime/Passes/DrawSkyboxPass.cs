@@ -57,14 +57,16 @@ namespace UnityEngine.Rendering.Universal
             else
 #endif
             {
-	            var sceneOverrideMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
-    	        if (sceneOverrideMode == SceneOverrides.Overdraw)
+                if(DebugHandler != null && DebugHandler.TryGetReplacementMaterial(out Material replacementMaterial))
         	    {
             	    Material skyboxMaterial = RenderSettings.skybox;
+
                 	RenderSettings.skybox = replacementMaterial;
+
 	                context.Submit();
     	            context.DrawSkybox(renderingData.cameraData.camera);
         	        context.Submit();
+
             	    RenderSettings.skybox = skyboxMaterial;
 	            }
     	        else

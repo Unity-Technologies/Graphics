@@ -190,6 +190,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_RenderTransparentForwardPass.DebugHandler = DebugHandler;
             }
+            if(m_DrawSkyboxPass != null)
+            {
+                m_DrawSkyboxPass.DebugHandler = DebugHandler;
+            }
 
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
             // Samples (MSAA) depend on camera and pipeline
