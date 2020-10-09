@@ -139,7 +139,16 @@ namespace UnityEditor.ShaderGraph
             {
                 foreach (var sgNode in subGraphNodes)
                 {
-                    if ((sgNode.asset.assetGuid == overwriteGUID) || sgNode.asset.descendents.Contains(overwriteGUID))
+                    var asset = sgNode?.asset;
+                    if (asset == null)
+                    {
+                        // cannot read the asset; might be recursive but we can't tell... should we return "maybe"?
+                        // I think to be minimally intrusive to the user we can assume "No" in this case,
+                        // even though this may miss recursions in extraordinary cases.
+                        // it's more important to allow the user to save their files than to catch 100% of recursions
+                        continue;
+                    }
+                    else if ((asset.assetGuid == overwriteGUID) || asset.descendents.Contains(overwriteGUID))
                     {
                         if (context != null)
                         {

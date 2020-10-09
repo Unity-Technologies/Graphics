@@ -144,6 +144,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed alpha not having TAA applied to it.
 - Fix issue with alpha output in forward.
 - Fix compilation issue on Vulkan for shaders using high quality shadows in XR mode.
+- Fixed wrong error message when fixing DXR resources from Wizard.
+- Fixed compilation error of quad overdraw with double sided materials
 - Fixed screen corruption on xbox when using TAA and Motion Blur with rendergraph. 
 
 ### Changed
