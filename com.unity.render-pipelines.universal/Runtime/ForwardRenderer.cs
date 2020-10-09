@@ -1,4 +1,5 @@
 using UnityEngine.Rendering.Universal.Internal;
+using System.Reflection;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -20,9 +21,13 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public sealed class ForwardRenderer : ScriptableRenderer
     {
-        static readonly int k_DepthStencilBufferBits = 32;
-        static readonly string k_CreateCameraTextures = "Create Camera Texture";
-        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_CreateCameraTextures);
+        const int k_DepthStencilBufferBits = 32;
+
+        private static class Profiling
+        {
+            private const string k_Name = nameof(ForwardRenderer);
+            public static readonly ProfilingSampler createCameraRenderTarget = new ProfilingSampler($"{k_Name}.{nameof(CreateCameraRenderTarget)}");
+        }
 
         // Rendering mode setup from UI.
         internal RenderingMode renderingMode { get { return m_RenderingMode;  } }
@@ -656,7 +661,7 @@ namespace UnityEngine.Rendering.Universal
         void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor, bool createColor, bool createDepth)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            using (new ProfilingScope(cmd, Profiling.createCameraRenderTarget))
             {
                 int msaaSamples = descriptor.msaaSamples;
                 if (createColor)
