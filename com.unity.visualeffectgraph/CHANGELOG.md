@@ -32,6 +32,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Forbid creation of context in VisualEffectSubgraphBlock through edge dropping. No context should be allowed.
 - Fix [Case 1281861](https://issuetracker.unity3d.com/product/unity/issues/guid/1281861/)
 - Unexpected exception while installing samples inside an URP project [Case 1280065](https://issuetracker.unity3d.com/product/unity/issues/guid/1280065/)
+- Fix [Case 1219072](https://issuetracker.unity3d.com/product/unity/issues/guid/1219072/)
+- Fix [Case 1211372](https://issuetracker.unity3d.com/product/unity/issues/guid/1211372/)
+- Fix [Case 1262961](https://issuetracker.unity3d.com/product/unity/issues/guid/1262961/)
+- Fix [Case 1199540](https://issuetracker.unity3d.com/product/unity/issues/guid/1199540/)
 
 ## [8.2.0] - 2020-07-08
 
