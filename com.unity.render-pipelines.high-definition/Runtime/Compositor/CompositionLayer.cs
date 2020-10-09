@@ -76,6 +76,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         [SerializeField] bool m_OverrideVolumeMask = false;
         [SerializeField] LayerMask m_VolumeMask;
 
+        public bool hasLayerOverrides => m_OverrideAntialiasing || m_OverrideCullingMask || m_OverrideVolumeMask || m_OverrideClearMode;
+
         [SerializeField] int m_LayerPositionInStack = 0;
 
         // Layer filters
@@ -228,9 +230,13 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             // Create a new camera if necessary or use the one specified by the user
             if (m_LayerCamera == null && m_OutputTarget == OutputTarget.CameraStack)
             {
-                if (!compositor.IsThisCameraShared(m_Camera))
+                // We do not clone the camera if :
+                // - it has no layer overrides
+                // - is not shared between layers
+                // - is not used in an mage/video layer (in this case the camera is not exposed at all, so it makes sense to let the compositor manage it)
+                bool isImageOrVideo = (m_Type == LayerType.Image || m_Type == LayerType.Video);
+                if (!isImageOrVideo && !hasLayerOverrides && !compositor.IsThisCameraShared(m_Camera))
                 {
-                    // The camera is not shared, so it is safe to use it directly in the layer (no need to clone it)
                     m_LayerCamera = m_Camera;
                 }
                 else
@@ -281,7 +287,10 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 // If we don't have a valid camera (zero width or height) avoid creating the RT
                 if (compositor.outputCamera.pixelWidth > 0 && compositor.outputCamera.pixelHeight > 0)
                 {
-                    m_RenderTarget = new RenderTexture(compositor.outputCamera.pixelWidth, compositor.outputCamera.pixelHeight, 24, (GraphicsFormat)m_ColorBufferFormat);
+                    float resScale = EnumToScale(m_ResolutionScale);
+                    int scaledWidth = (int)(resScale * compositor.outputCamera.pixelWidth);
+                    int scaledHeight = (int)(resScale * compositor.outputCamera.pixelHeight);
+                    m_RenderTarget = new RenderTexture(scaledWidth, scaledHeight, 24, (GraphicsFormat)m_ColorBufferFormat);
                 }
             }
 
