@@ -167,6 +167,7 @@ namespace UnityEditor.VFX
             var graph = resource.GetOrCreateGraph();
             HashSet<ScriptableObject> dependencies = new HashSet<ScriptableObject>();
             graph.CollectDependencies(dependencies);
+            dependencies.RemoveWhere(o => o == null); //script is missing should be removed from the list before copy.
 
             var duplicated = VFXMemorySerializer.DuplicateObjects(dependencies.ToArray());
             m_SubChildren = duplicated.OfType<VFXModel>().Where(t => t is VFXContext || t is VFXOperator || t is VFXParameter).ToArray();

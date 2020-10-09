@@ -50,6 +50,7 @@ The version number for this package has increased due to a version update of a r
 - Fix [Case 1114281](https://fogbugz.unity3d.com/f/cases/1114281/)
 - Fix [Case 1268354](https://fogbugz.unity3d.com/f/cases/1268354/)
 - Fix [Case 1281861](https://issuetracker.unity3d.com/product/unity/issues/guid/1281861/)
+- Unexpected exception while installing samples inside an URP project [Case 1280065](https://issuetracker.unity3d.com/product/unity/issues/guid/1280065/)
 
 ## [7.4.1] - 2020-06-03
 
