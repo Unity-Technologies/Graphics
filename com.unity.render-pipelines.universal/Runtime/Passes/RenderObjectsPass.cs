@@ -134,7 +134,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     cmd.Clear();
 
                     RenderObjectWithDebug(context, m_ShaderTagIdList, ref renderingData, m_FilteringSettings,
-                        sortingCriteria, DebugHandler.IsSceneOverrideActive);
+                        sortingCriteria);
                 }
                 else
                 {

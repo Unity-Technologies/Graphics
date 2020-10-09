@@ -9,6 +9,7 @@ namespace UnityEngine.Rendering.Universal
     {
         private readonly Material m_FullScreenDebugMaterial;
         private readonly Texture2D m_NumberFontTexture;
+        private readonly Material m_ReplacementMaterial;
 
         private readonly int m_DebugMaterialIndexId;
         private readonly int m_DebugLightingIndexId;
@@ -37,6 +38,8 @@ namespace UnityEngine.Rendering.Universal
         public bool AreShadowCascadesActive => LightingSettings.m_LightingDebugMode == LightingDebugMode.ShadowCascades;
         public bool IsMipInfoDebugActive => RenderingSettings.mipInfoDebugMode != DebugMipInfo.None;
 
+        public bool IsReplacementMaterialNeeded => IsSceneOverrideActive || IsVertexAttributeOverrideActive;
+
         public bool IsDebugMaterialActive
         {
             get
@@ -51,6 +54,8 @@ namespace UnityEngine.Rendering.Universal
 
         public DebugHandler(Texture2D numberFontTexture, Shader fullScreenDebugPS)
         {
+            m_ReplacementMaterial = new Material(Shader.Find("Hidden/Universal Render Pipeline/Debug/Replacement"));
+
             m_DebugDisplaySettings = DebugDisplaySettings.Instance;
 
             m_NumberFontTexture = numberFontTexture;
@@ -72,6 +77,20 @@ namespace UnityEngine.Rendering.Universal
         internal DebugPass CreatePass(RenderPassEvent evt)
         {
             return new DebugPass(evt, m_FullScreenDebugMaterial);
+        }
+
+        public bool TryGetReplacementMaterial(out Material replacementMaterial)
+        {
+            if(IsReplacementMaterialNeeded)
+            {
+                replacementMaterial = m_ReplacementMaterial;
+                return true;
+            }
+            else
+            {
+                replacementMaterial = default;
+                return false;
+            }
         }
 
         public bool TryGetSceneOverride(out SceneOverrides sceneOverride)

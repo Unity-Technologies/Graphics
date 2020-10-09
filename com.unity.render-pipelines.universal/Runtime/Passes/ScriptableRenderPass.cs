@@ -96,20 +96,6 @@ namespace UnityEngine.Rendering.Universal
 
         private static readonly ShaderTagId s_DebugMaterialShaderTagId = new ShaderTagId("DebugMaterial");
 
-        private static Material s_ReplacementMaterial;
-        protected static Material replacementMaterial
-        {
-            get
-            {
-                if(s_ReplacementMaterial == null)
-                {
-                    s_ReplacementMaterial = new Material(Shader.Find("Hidden/Universal Render Pipeline/Debug/Replacement"));
-                }
-
-                return s_ReplacementMaterial;
-            }
-        }
-
         public DebugHandler DebugHandler { get; set; }
 
         public ScriptableRenderPass()
@@ -335,56 +321,58 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        protected void RenderObjectWithDebug(ScriptableRenderContext context, List<ShaderTagId> shaderTagIds, ref RenderingData renderingData,
-            FilteringSettings filterSettings, SortingCriteria sortingCriteria, bool overrideMaterial)
+        protected void RenderObjectWithDebug(ScriptableRenderContext context, List<ShaderTagId> shaderTagIds,
+            ref RenderingData renderingData, FilteringSettings filterSettings, SortingCriteria sortingCriteria)
         {
+            bool overrideMaterial = DebugHandler.TryGetReplacementMaterial(out Material replacementMaterial);
             DrawingSettings debugSettings = overrideMaterial
                 ? CreateDrawingSettings(shaderTagIds, ref renderingData, sortingCriteria)
                 : CreateDrawingSettings(s_DebugMaterialShaderTagId, ref renderingData, sortingCriteria);
 
             if (overrideMaterial)
             {
-                var sceneOverrideMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
+                RenderStateBlock wireframeRasterState = new RenderStateBlock();
                 bool wireframe = false;
 
                 debugSettings.overrideMaterial = replacementMaterial;
 
-                switch (sceneOverrideMode)
+                if(DebugHandler.TryGetSceneOverride(out SceneOverrides sceneOverride))
                 {
-                    case SceneOverrides.Overdraw:
-                        debugSettings.overrideMaterialPassIndex = 0;
-                        break;
+                    switch (sceneOverride)
+                    {
+                        case SceneOverrides.Overdraw:
+                            debugSettings.overrideMaterialPassIndex = 0;
+                            break;
 
-                    case SceneOverrides.Wireframe:
-                    case SceneOverrides.SolidWireframe:
-                        debugSettings.overrideMaterialPassIndex = 1;
-                        wireframe = true;
-                        break;
+                        case SceneOverrides.Wireframe:
+                            debugSettings.overrideMaterialPassIndex = 1;
+                            wireframe = true;
+                            break;
+
+                        case SceneOverrides.SolidWireframe:
+                            debugSettings.overrideMaterialPassIndex = 1;
+                            wireframe = true;
+
+                            replacementMaterial.SetColor("_DebugColor", Color.white);
+                            context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
+
+                            wireframeRasterState.rasterState = new RasterState(CullMode.Back, -1, -1, true);
+                            wireframeRasterState.mask = RenderStateMask.Raster;
+                            break;
+                    }
                 }
-
-                if (DebugDisplaySettings.Instance.materialSettings.VertexAttributeDebugIndexData != VertexAttributeDebugMode.None)
+                else if(DebugHandler.IsVertexAttributeOverrideActive)
                 {
                     debugSettings.overrideMaterialPassIndex = 2;
                 }
 
-                if (wireframe)
+                if(wireframe)
                 {
-                    RenderStateBlock rsBlock = new RenderStateBlock();
-
-                    if (sceneOverrideMode == SceneOverrides.SolidWireframe)
-                    {
-                        replacementMaterial.SetColor("_DebugColor", Color.white);
-                        context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
-
-                        rsBlock.rasterState = new RasterState(CullMode.Back, -1, -1, true);
-                        rsBlock.mask = RenderStateMask.Raster;
-                    }
-
                     context.Submit();
                     GL.wireframe = true;
-                    replacementMaterial.SetColor("_DebugColor", Color.black);
 
-                    context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings, ref rsBlock);
+                    replacementMaterial.SetColor("_DebugColor", Color.black);
+                    context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings, ref wireframeRasterState);
                     context.Submit();
                     GL.wireframe = false;
                 }

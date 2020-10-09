@@ -102,9 +102,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                         cmd.DisableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
                     context.ExecuteCommandBuffer(cmd);
                     cmd.Clear();
-                    bool overrideMaterial = DebugHandler.IsSceneOverrideActive || DebugHandler.IsVertexAttributeOverrideActive;
 
-                    RenderObjectWithDebug(context, m_ShaderTagIdList, ref renderingData, filterSettings, sortFlags, overrideMaterial);
+                    RenderObjectWithDebug(context, m_ShaderTagIdList, ref renderingData, filterSettings, sortFlags);
                 }
                 else
                 {
