@@ -7,6 +7,7 @@ using UnityEditor.ShaderGraph.Drawing.Colors;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Serialization;
+using UnityEngine.Assertions;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -18,9 +19,6 @@ namespace UnityEditor.ShaderGraph
 
         [SerializeField]
         private string m_Name;
-
-        [SerializeField]
-        private int m_NodeVersion;
 
         [SerializeField]
         private DrawState m_DrawState;
@@ -311,8 +309,6 @@ namespace UnityEditor.ShaderGraph
         protected AbstractMaterialNode()
         {
             m_DrawState.expanded = true;
-            m_NodeVersion = GetCompiledNodeVersion();
-            version = 0;
         }
 
         public void GetInputSlots<T>(List<T> foundSlots) where T : MaterialSlot
@@ -677,10 +673,6 @@ namespace UnityEditor.ShaderGraph
             owner?.ClearErrorsForNode(this);
             EvaluateConcretePrecision();
             EvaluateDynamicMaterialSlots();
-            if(!hasError)
-            {
-                ++version;
-            }
         }
 
         public virtual void ValidateNode()
@@ -688,7 +680,6 @@ namespace UnityEditor.ShaderGraph
 
         }
 
-        public int version { get; set; }
         public virtual bool canCutNode => true;
         public virtual bool canCopyNode => true;
 
@@ -834,6 +825,28 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public void SetSlotOrder(List<int> desiredOrderSlotIds)
+        {
+            int writeIndex = 0;
+            for (int orderIndex = 0; orderIndex < desiredOrderSlotIds.Count; orderIndex++)
+            {
+                var id = desiredOrderSlotIds[orderIndex];
+                var matchIndex = m_Slots.FindIndex(s => s.value.id == id);
+                if (matchIndex < 0)
+                {
+                    // no matching slot with that id.. skip it
+                }
+                else if (writeIndex != orderIndex)
+                {
+                    // swap the matching slot into position
+                    var slot = m_Slots[matchIndex];
+                    m_Slots[matchIndex] = m_Slots[writeIndex];
+                    m_Slots[writeIndex] = slot;
+                    writeIndex++;
+                }
+            }
+        }
+
         public SlotReference GetSlotReference(int slotId)
         {
             var slot = FindSlot<MaterialSlot>(slotId);
@@ -877,19 +890,6 @@ namespace UnityEditor.ShaderGraph
             return this.GetInputSlots<MaterialSlot>().Where(x => !owner.GetEdges(GetSlotReference(x.id)).Any());
         }
 
-        public override void OnAfterMultiDeserialize(string json)
-        {
-            if (m_NodeVersion != GetCompiledNodeVersion())
-            {
-                UpgradeNodeWithVersion(m_NodeVersion, GetCompiledNodeVersion());
-                m_NodeVersion = GetCompiledNodeVersion();
-            }
-
-
-
-            // UpdateNodeAfterDeserialization();
-        }
-
         public void SetupSlots()
         {
             foreach (var s in m_Slots.SelectValue())
@@ -897,11 +897,6 @@ namespace UnityEditor.ShaderGraph
         }
 
         public virtual void UpdateNodeAfterDeserialization()
-        {}
-
-        public virtual int GetCompiledNodeVersion() => 0;
-
-        public virtual void UpgradeNodeWithVersion(int from, int to)
         {}
 
         public bool IsSlotConnected(int slotId)

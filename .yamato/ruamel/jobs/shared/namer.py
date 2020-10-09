@@ -135,12 +135,6 @@ def abv_job_id_all_project_ci(editor_name):
 def abv_job_id_all_project_ci_nightly(editor_name):
     return f'all_project_ci_nightly_{editor_name}'
 
-def abv_job_id_smoke_test(editor_name, test_platform_name):
-    return f'smoke_test_{test_platform_name}_{editor_name}'
-
-def abv_job_id_all_smoke_tests(editor_name):
-    return f'all_smoke_tests_{editor_name}'
-
 def abv_job_id_trunk_verification(editor_name):
     return f'trunk_verification_{editor_name}'
 

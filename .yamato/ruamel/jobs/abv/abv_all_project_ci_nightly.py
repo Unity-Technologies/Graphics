@@ -24,11 +24,6 @@ class ABV_AllProjectCiNightlyJob():
             # }
         ]
 
-        for test_platform in test_platforms: # TODO replace with all_smoke_tests if rerun strategy can override lower level ones
-            dependencies.append({
-                'path': f'{abv_filepath()}#{abv_job_id_smoke_test(editor["name"],test_platform["name"])}',
-                'rerun': editor["rerun_strategy"]})
-
         for dep in extra_dependencies:
             if dep.get("all"):
                 dependencies.append({
