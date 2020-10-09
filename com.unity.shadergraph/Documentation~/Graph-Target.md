@@ -8,4 +8,4 @@ Targets hold information such as the required generation format, and variables t
 
 Target Settings are specific to each Target, and can vary between assets depending on which Targets you've selected. Be aware that Universal Render Pipeline (URP) Target Settings and High Definition Render Pipeline (HDRP) Target Settings might change in future versions. 
 
-Typically, each Target you select generates a valid subshader from the graph. For example, a Shader Graph Asset with both URP and HDRP Targets will generate two subshaders.
+Typically, each Target you select generates a valid subshader from the graph. For example, a Shader Graph Asset with both URP and HDRP Targets will generate two subshaders. When using a graph that targets multiple render pipelines, if the active render pipeline is changed a reimport of the Shader Graph asset is required. This will update the material inspector for any materials using your graph. 
