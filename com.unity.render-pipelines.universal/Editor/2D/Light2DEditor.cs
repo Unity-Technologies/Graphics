@@ -83,13 +83,10 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static GUIContent generalLightIntensity = EditorGUIUtility.TrTextContent("Intensity", "Specify the light color's intensity");
             public static GUIContent generalUseNormalMap = EditorGUIUtility.TrTextContent("Use Normal Map", "Specify whether the light considers normal maps");
             public static GUIContent generalVolumeIntensity = EditorGUIUtility.TrTextContent("Intensity", "Specify the light's volumetric light volume intensity");
-            public static GUIContent generalVolumeIntensityEnabled = EditorGUIUtility.TrTextContent("Volumetric", "Enable volumetric lighting.");
             public static GUIContent generalBlendStyle = EditorGUIUtility.TrTextContent("Blend Style", "Specify the blend style");
             public static GUIContent generalLightOverlapOperation = EditorGUIUtility.TrTextContent("Overlap Operation", "blending used when this light overlaps others");
             public static GUIContent generalLightOrder = EditorGUIUtility.TrTextContent("Light Order", "The relative order in which lights of the same blend style get rendered.");
-            public static GUIContent generalShadowIntensityEnabled = EditorGUIUtility.TrTextContent("Shadows", "Toggles shadows.");
             public static GUIContent generalShadowIntensity = EditorGUIUtility.TrTextContent("Strength", "Controls the shadow's darkness.");
-            public static GUIContent generalShadowVolumeIntensityEnabled = EditorGUIUtility.TrTextContent("Shadows Volumetric", "Toggles volumetric shadows.");
             public static GUIContent generalShadowVolumeIntensity = EditorGUIUtility.TrTextContent("Shadow Strength", "Controls the shadow volume's darkness.");
             public static GUIContent generalSortingLayerPrefixLabel = EditorGUIUtility.TrTextContent("Target Sorting Layers", "Apply this light to the specified sorting layers.");
             public static GUIContent generalLightNoLightEnabled = EditorGUIUtility.TrTextContentWithIcon("No valid blend styles are enabled.", MessageType.Error);
@@ -294,8 +291,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             if (m_ShadowsSettingsFoldout.value)
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(m_ShadowIntensityEnabled, Styles.generalShadowIntensityEnabled);
-                EditorGUILayout.PropertyField(m_ShadowIntensity, Styles.generalShadowIntensity);
+                DrawToggleProperty(Styles.generalShadowIntensity, m_ShadowIntensityEnabled, m_ShadowIntensity);
                 EditorGUI.indentLevel--;
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
@@ -308,19 +304,12 @@ namespace UnityEditor.Experimental.Rendering.Universal
             {
                 EditorGUI.indentLevel++;
 
-                EditorGUILayout.PropertyField(m_VolumetricIntensityEnabled, Styles.generalVolumeIntensityEnabled);
-
-                EditorGUI.BeginDisabledGroup(!m_VolumetricIntensityEnabled.boolValue);
-
-                EditorGUILayout.PropertyField(m_VolumetricIntensity, Styles.generalVolumeIntensity);
+                DrawToggleProperty(Styles.generalVolumeIntensity, m_VolumetricIntensityEnabled, m_VolumetricIntensity);
                 if (m_VolumetricIntensity.floatValue < 0)
                     m_VolumetricIntensity.floatValue = 0;
 
-
-                EditorGUILayout.PropertyField(m_ShadowVolumeIntensityEnabled, Styles.generalShadowVolumeIntensityEnabled);
-                EditorGUI.BeginDisabledGroup(m_ShadowVolumeIntensityEnabled.boolValue);
-                EditorGUILayout.PropertyField(m_ShadowVolumeIntensity, Styles.generalShadowVolumeIntensity);
-                EditorGUI.EndDisabledGroup();
+                EditorGUI.BeginDisabledGroup(!m_VolumetricIntensityEnabled.boolValue);
+                DrawToggleProperty(Styles.generalShadowVolumeIntensity, m_ShadowVolumeIntensityEnabled, m_ShadowVolumeIntensity);
                 EditorGUI.EndDisabledGroup();
                 EditorGUI.indentLevel--;
             }
@@ -373,6 +362,24 @@ namespace UnityEditor.Experimental.Rendering.Universal
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.EndHorizontal();
             EditorGUIUtility.labelWidth = savedLabelWidth;
+            EditorGUI.indentLevel = savedIndentLevel;
+        }
+
+        void DrawToggleProperty(GUIContent label, SerializedProperty boolProperty, SerializedProperty property)
+        {
+            int savedIndentLevel = EditorGUI.indentLevel;
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.PrefixLabel(label);
+            EditorGUILayout.BeginHorizontal();
+            EditorGUI.indentLevel = 0;
+            EditorGUILayout.PropertyField(boolProperty, GUIContent.none, GUILayout.MaxWidth(20));
+
+            EditorGUI.BeginDisabledGroup(!boolProperty.boolValue);
+            EditorGUILayout.PropertyField(property, GUIContent.none);
+            EditorGUI.EndDisabledGroup();
+
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndHorizontal();
             EditorGUI.indentLevel = savedIndentLevel;
         }
 
