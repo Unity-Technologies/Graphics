@@ -90,12 +90,12 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     const uint entityIndex = s_BoundedEntityOffsetPerCategory[cat];
     const uint entityCount = s_BoundedEntityCountPerCategory[cat];
 
-    uint first = (1 << 16), last = 0;
+    uint first = UINT16_MAX, last = 0;
 
     if (entityCount > 0) // Avoid wasted work
     {
         const float2 binBoundsW = ComputeZBinLinearDepthBounds(bin, _ZBinBufferEncodingParams);
-        const uint   inputStart = ComputeEntityBoundsBufferIndex(entityIndex, _BoundedEntityCount);
+        const uint   inputStart = ComputeEntityBoundsBufferIndex(entityIndex, eye);
 
         // The algorithm is O(n * m) where 'n' is the entity count and 'm' is bin count.
         // Therefore, it will be slow if 'n' is large.

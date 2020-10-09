@@ -45,11 +45,13 @@ uint ComputeEntityBoundsBufferIndex(uint entityIndex, uint eye)
     return IndexFromCoordinate(uint2(entityIndex, eye), _BoundedEntityCount);
 }
 
-uint ComputeCoarseTileBufferIndex(uint2 tileCoord, uint tileRowSize, uint category, uint eye)
+uint ComputeCoarseTileBufferIndex(uint2 tileCoord, uint category, uint eye)
 {
-    uint stride = COARSE_TILE_ENTITY_LIMIT / 2; // We use 'uint' buffer rather than a 'uint16_t[n]'
+    uint rowSize = _CoarseTileBufferDimensions.x;
+    uint stride  = COARSE_TILE_ENTITY_LIMIT / 2; // We use 'uint' buffer rather than a 'uint16_t[n]'
+
     return stride * IndexFromCoordinate(uint4(tileCoord, category, eye),
-                                        uint3(tileRowSize, ZBIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT));
+                                        uint3(rowSize, ZBIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT));
 }
 
 // The intervals must be defined s.t.
@@ -69,10 +71,9 @@ bool IntervalsOverlap(float2 i1, float2 i2)
     #error "COARSE_TILE_ENTITY_LIMIT must be an integer multiple of 2."
 #endif
 
-#define GROUP_SIZE        (8)
-#define THREADS_PER_GROUP (GROUP_SIZE * GROUP_SIZE)
+#define GROUP_SIZE (8)
 
-[numthreads(THREADS_PER_GROUP, 1, 1)]
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
 void BinCoarseXY(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 {
     const uint2 t   = threadID.xy; // 8x8 block for locality (reduce divergence)
@@ -104,8 +105,8 @@ void BinCoarseXY(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
         const float2 tileBoundsX      = float2(tileAaBbMinPtNDC.x, tileAaBbMaxPtNDC.x);
         const float2 tileBoundsY      = float2(tileAaBbMinPtNDC.y, tileAaBbMaxPtNDC.y);
 
-        const uint inputStart  = ComputeEntityBoundsBufferIndex(entityIndex, _BoundedEntityCount);
-        const uint outputStart = ComputeCoarseTileBufferIndex(clampedTileCoord, (uint)_CoarseTileBufferDimensions.x, cat, eye);
+        const uint inputStart  = ComputeEntityBoundsBufferIndex(entityIndex, eye);
+        const uint outputStart = ComputeCoarseTileBufferIndex(clampedTileCoord, cat, eye);
 
         // Define inputs and outputs.
         uint i = 0, j = 0;
@@ -150,20 +151,20 @@ void BinCoarseXY(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
     }
     else
     {
-        const uint outputStart = ComputeCoarseTileBufferIndex(clampedTileCoord, (uint)_CoarseTileBufferDimensions.x, cat, eye);
+        const uint outputStart = ComputeCoarseTileBufferIndex(clampedTileCoord, cat, eye);
 
         // We do not clear the buffer, so we must add a terminator.
         _CoarseTileBuffer[outputStart] = UINT16_MAX;
     }
 }
 
-[numthreads(THREADS_PER_GROUP, 1, 1)]
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
 void PruneCoarseXY(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 {
 
 }
 
-[numthreads(THREADS_PER_GROUP, 1, 1)]
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
 void BinFineXY(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 {
 

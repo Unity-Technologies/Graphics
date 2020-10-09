@@ -423,10 +423,10 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 {
     const uint t   = threadID;
     const uint g   = groupID.x;
-    const uint eye = groupID.y;
+    const uint eye = groupID.z;
 
     const uint intraGroupEntityIndex = t / THREADS_PER_ENTITY;
-    const uint globalEntityIndex     = g * ENTITIES_PER_GROUP + intraGroupEntityIndex;
+    const uint globalEntityIndex     = IndexFromCoordinate(uint2(intraGroupEntityIndex, g), ENTITIES_PER_GROUP);
     const uint baseVertexOffset      = intraGroupEntityIndex * NUM_VERTS;
     const uint clampedEntityIndex    = min(globalEntityIndex, _BoundedEntityCount - 1); // Stay within bounds
 
@@ -434,7 +434,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     // but do not store the results of the computation to memory.
     const bool isHelperThread = globalEntityIndex != clampedEntityIndex;
 
-    const uint             bufferIndex = ComputeEntityBoundsBufferIndex(clampedEntityIndex, _BoundedEntityCount);
+    const uint             bufferIndex = ComputeEntityBoundsBufferIndex(clampedEntityIndex, eye);
     const FiniteLightBound cullData    = _EntityBoundsBuffer[bufferIndex];
 
     const float4x4 projMat    = g_mProjectionArr[eye];
