@@ -108,8 +108,8 @@ if __name__== "__main__":
     yml_dump_files(create_template_ymls(template_metafile))
 
     # create yml jobs for each specified project
-    #for project_metafile in glob.glob(os.path.join(config_dir,'*universal*.metafile')):
-    for project_metafile in glob.glob(os.path.join(config_dir,'[!_]*.metafile')):
+    for project_metafile in glob.glob(os.path.join(config_dir,'*universal.metafile')):
+    #for project_metafile in glob.glob(os.path.join(config_dir,'[!_]*.metafile')):
         print(f'Running: {project_metafile}')   
         project_metafile = get_metafile(project_metafile)
         yml_dump_files(create_project_ymls(project_metafile))

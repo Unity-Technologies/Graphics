@@ -62,6 +62,16 @@ def _unfold_individual_agents(metafile, shared, root_keys=[]):
     return metafile
 
 
+def _join_utr_flags(metafile, shared):
+    for test_platform in metafile["test_platforms"]:
+        shared_tp = [tp for tp in shared["test_platforms"] if tp["type"].lower() == test_platform["type"].lower()][0]
+        test_platform["extra_utr_flags"].extend(shared_tp["extra_utr_flags"])
+        if test_platform["type"].lower()=="standalone":
+            test_platform["extra_utr_flags_build"].extend(shared_tp["extra_utr_flags_build"])
+    return metafile
+
+
+
 def _unfold_test_platforms(metafile, shared, root_keys=[]):
     '''Retrieves test platform details from shared metafile, corresponding to the specific metafile. 
     Returns the new 'test_platforms' section.'''
@@ -87,4 +97,5 @@ def _unfold_test_platforms(metafile, shared, root_keys=[]):
     for root_key in root_keys:
         metafile[root_key] = replace_test_platforms(metafile[root_key])
     
+    metafile = _join_utr_flags(metafile, shared)
     return metafile

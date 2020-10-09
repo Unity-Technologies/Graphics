@@ -1,5 +1,5 @@
 from ...shared.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS, PATH_PLAYERS, UNITY_DOWNLOADER_CLI_URL, UTR_INSTALL_URL,get_unity_downloader_cli_cmd, get_timeout
-from ...shared.utr_utils import utr_editmode_flags, utr_playmode_flags, utr_standalone_split_flags, utr_standalone_build_flags
+from ...shared.utr_utils import utr_editmode_flags, utr_playmode_flags, utr_standalone_split_flags, utr_standalone_build_flags, extract_flags
 
 def _cmd_base(project_folder, platform, utr_flags, editor):
     return [
@@ -18,10 +18,8 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, build_con
     else:
         utr_args = utr_editmode_flags()
 
-    utr_args.extend(test_platform["extra_utr_flags"])
-    utr_args.extend(platform["extra_utr_flags"])
-    if api["name"] != "":
-        utr_args.append(f'--extra-editor-arg="{api["cmd"]}"')
+    flags = extract_flags(test_platform["extra_utr_flags"], platform["name"], api["name"])
+    utr_args.extend(flags)
 
     base = _cmd_base(project_folder, platform, utr_args, editor)
 
@@ -39,13 +37,13 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, build_con
 
 
 def cmd_playmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
+
     scripting_backend = build_config["scripting_backend"]
     api_level = build_config["api_level"]
     utr_args = utr_playmode_flags(scripting_backend=f'{scripting_backend}', api_level=f'{api_level}', color_space=f'{color_space}')
-    utr_args.extend(test_platform["extra_utr_flags"])
-    utr_args.extend(platform["extra_utr_flags"])
-    if api["name"] != "":
-        utr_args.append(f'--extra-editor-arg="{api["cmd"]}"')
+    
+    flags = extract_flags(test_platform["extra_utr_flags"], platform["name"], api["name"])
+    utr_args.extend(flags)
 
     base = _cmd_base(project_folder, platform, utr_args, editor)
 
@@ -65,9 +63,8 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, build_c
     scripting_backend = build_config["scripting_backend"]
     api_level = build_config["api_level"]
     utr_args = utr_standalone_split_flags("Windows64", scripting_backend=f'{scripting_backend}', api_level=f'{api_level}', color_space=f'{color_space}')
-    utr_args.extend(test_platform["extra_utr_flags"])
-    utr_args.extend(platform["extra_utr_flags"])
-    utr_args.append(f'--timeout={get_timeout(test_platform, "Win")}')
+    flags = extract_flags(test_platform["extra_utr_flags"], platform["name"], api["name"])
+    utr_args.extend(flags)
 
     base = [f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}/{project_folder}/utr.bat']
     if project_folder.lower() == 'UniversalGraphicsTest'.lower():
@@ -86,13 +83,9 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, b
     scripting_backend = build_config["scripting_backend"]
     api_level = build_config["api_level"]
     utr_args = utr_standalone_build_flags("Windows64", scripting_backend=f'{scripting_backend}', api_level=f'{api_level}', color_space=f'{color_space}')
-    utr_args.extend(test_platform["extra_utr_flags_build"])
-    utr_args.extend(platform["extra_utr_flags_build"])
-    utr_args.append(f'--timeout={get_timeout(test_platform, "Win", build=True)}')
+    flags = extract_flags(test_platform["extra_utr_flags_build"], platform["name"], api["name"])
+    utr_args.extend(flags)
 
-    if not test_platform['is_performance']:
-        utr_args.extend(['--extra-editor-arg="-executemethod"'])
-        utr_args.extend([f'--extra-editor-arg="CustomBuild.BuildWindows{api["name"]}Linear"'])
     
     base = _cmd_base(project_folder, platform, utr_args, editor)
     
