@@ -41,10 +41,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix shadows not being rendered to some cascades with directional lights [Case 1229972](https://issuetracker.unity3d.com/issues/output-inconsistencies-with-vfx-shadow-casting-and-shadow-cascades)
 - Fix [Case 1268354](https://fogbugz.unity3d.com/f/cases/1268354/)
 - Fix [Case 1281861](https://issuetracker.unity3d.com/product/unity/issues/guid/1281861/)
-
-### Fixed
 - Fix VFX Graph window invalidating existing Undo.undoRedoPerformed delegates.
 - Fix shadergraph changes not reflected in VisualEffectGraph [Case 1278469](https://fogbugz.unity3d.com/f/cases/resolve/1278469/)
+- Unexpected exception while installing samples inside an URP project [Case 1280065](https://issuetracker.unity3d.com/product/unity/issues/guid/1280065/)
 
 ## [10.0.0] - 2019-06-10
 ### Added
