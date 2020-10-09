@@ -76,6 +76,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         [SerializeField] bool m_OverrideVolumeMask = false;
         [SerializeField] LayerMask m_VolumeMask;
 
+        public bool isOverridingCameraState => m_OverrideVolumeMask || m_OverrideCullingMask || m_OverrideClearMode || m_OverrideAntialiasing;
+
         [SerializeField] int m_LayerPositionInStack = 0;
 
         // Layer filters
@@ -228,7 +230,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             // Create a new camera if necessary or use the one specified by the user
             if (m_LayerCamera == null && m_OutputTarget == OutputTarget.CameraStack)
             {
-                if (!compositor.IsThisCameraShared(m_Camera))
+                bool imageOrVideo = (m_Type == LayerType.Image || m_Type == LayerType.Video); 
+                if (!imageOrVideo && !isOverridingCameraState && !compositor.IsThisCameraShared(m_Camera))
                 {
                     // The camera is not shared, so it is safe to use it directly in the layer (no need to clone it)
                     m_LayerCamera = m_Camera;
