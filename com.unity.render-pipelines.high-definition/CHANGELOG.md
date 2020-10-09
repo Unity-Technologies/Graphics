@@ -145,6 +145,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix issue with alpha output in forward.
 - Fix compilation issue on Vulkan for shaders using high quality shadows in XR mode.
 - Fixed wrong error message when fixing DXR resources from Wizard.
+- Fixed UX issue in the graphics compositor related to clear depth and the defaults for new layers, add better tooltips and fix minor bugs (case 1283904)
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
