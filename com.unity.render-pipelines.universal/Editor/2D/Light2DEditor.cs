@@ -7,6 +7,8 @@ using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.Rendering.Universal;
 using UnityEditor.AnimatedValues;
 using UnityEditor.Rendering.Universal;
+using UnityEditor.Rendering;
+
 
 namespace UnityEditor.Experimental.Rendering.Universal
 {
@@ -273,10 +275,10 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         void DrawBlendingGroup()
         {
-            m_BlendingSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_BlendingSettingsFoldout.value, Styles.blendingSettingsFoldout);
+            m_BlendingSettingsFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.blendingSettingsFoldout, m_BlendingSettingsFoldout.value);
             if (m_BlendingSettingsFoldout.value)
             {
-                //EditorGUI.indentLevel++;
+                EditorGUI.indentLevel++;
                 if (!m_AnyBlendStyleEnabled)
                     EditorGUILayout.HelpBox(Styles.generalLightNoLightEnabled);
                 else
@@ -284,29 +286,27 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
                 EditorGUILayout.PropertyField(m_LightOrder, Styles.generalLightOrder);
                 EditorGUILayout.PropertyField(m_OverlapOperation, Styles.generalLightOverlapOperation);
-                //EditorGUI.indentLevel--;
+                EditorGUI.indentLevel--;
             }
-            EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
         void DrawShadowsGroup()
         {
-            m_ShadowsSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_ShadowsSettingsFoldout.value, Styles.shadowsSettingsFoldout);
+            m_ShadowsSettingsFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.shadowsSettingsFoldout, m_ShadowsSettingsFoldout.value);
             if (m_ShadowsSettingsFoldout.value)
             {
-                //EditorGUI.indentLevel++;
+                EditorGUI.indentLevel++;
                 DrawToggleProperty(Styles.generalShadowIntensity, m_ShadowIntensityEnabled, m_ShadowIntensity);
-                //EditorGUI.indentLevel--;
+                EditorGUI.indentLevel--;
             }
-            EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
         void DrawVolumetricGroup()
         {
-            m_VolumetricSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_VolumetricSettingsFoldout.value, Styles.volumetricSettingsFoldout);
+            m_VolumetricSettingsFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.volumetricSettingsFoldout, m_VolumetricSettingsFoldout.value);
             if (m_VolumetricSettingsFoldout.value)
             {
-                //EditorGUI.indentLevel++;
+                EditorGUI.indentLevel++;
 
                 DrawToggleProperty(Styles.generalVolumeIntensity, m_VolumetricIntensityEnabled, m_VolumetricIntensity);
                 if (m_VolumetricIntensity.floatValue < 0)
@@ -315,17 +315,16 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 EditorGUI.BeginDisabledGroup(!m_VolumetricIntensityEnabled.boolValue);
                 DrawToggleProperty(Styles.generalShadowVolumeIntensity, m_ShadowVolumeIntensityEnabled, m_ShadowVolumeIntensity);
                 EditorGUI.EndDisabledGroup();
-                //EditorGUI.indentLevel--;
+                EditorGUI.indentLevel--;
             }
-            EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
         void DrawNormalMapGroup()
         {
-            m_NormalMapsSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_NormalMapsSettingsFoldout.value, Styles.normalMapsSettingsFoldout);
+            m_NormalMapsSettingsFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.normalMapsSettingsFoldout, m_NormalMapsSettingsFoldout.value);
             if (m_NormalMapsSettingsFoldout.value)
             {
-                //EditorGUI.indentLevel++;
+                EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_NormalMapQuality, Styles.generalNormalMapLightQuality);
 
                 EditorGUI.BeginDisabledGroup(m_NormalMapQuality.intValue == (int)Light2D.NormalMapQuality.Disabled);
@@ -335,9 +334,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
                     m_NormalMapZDistance.floatValue = Mathf.Max(0.0f, m_NormalMapZDistance.floatValue);
 
                 EditorGUI.EndDisabledGroup();
-                //EditorGUI.indentLevel--;
+                EditorGUI.indentLevel--;
             }
-            EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
 
