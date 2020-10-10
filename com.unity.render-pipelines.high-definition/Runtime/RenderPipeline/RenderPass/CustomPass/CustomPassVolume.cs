@@ -49,8 +49,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <value>The fade value that should be applied to the custom pass effect</value>
         public float fadeValue { get; private set; }
 
+#if UNITY_EDITOR
         [System.NonSerialized]
-        bool visible;
+        bool visible = true;
+#endif
 
         // The current active custom pass volume is simply the smallest overlapping volume with the trigger transform
         static HashSet<CustomPassVolume>    m_ActivePassVolumes = new HashSet<CustomPassVolume>();
@@ -102,9 +104,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool IsVisible(HDCamera hdCamera)
         {
+#if UNITY_EDITOR
             // Scene visibility
             if (hdCamera.camera.cameraType == CameraType.SceneView && !visible)
                 return false;
+#endif
 
             // We never execute volume if the layer is not within the culling layers of the camera
             if ((hdCamera.volumeLayerMask & (1 << gameObject.layer)) == 0)
