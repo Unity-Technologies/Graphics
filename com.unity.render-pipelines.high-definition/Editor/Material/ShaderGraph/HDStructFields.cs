@@ -98,7 +98,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 subscriptOptions : StructFieldOptions.Optional);
             public static FieldDescriptor color = new FieldDescriptor(FragInputs.name, "color", "", ShaderValueType.Float4,
                 subscriptOptions : StructFieldOptions.Optional);
-            public static FieldDescriptor primitiveID = new FieldDescriptor(FragInputs.name, "primitiveID", "", ShaderValueType.UInt,
+            public static FieldDescriptor primitiveID = new FieldDescriptor(FragInputs.name, "primitiveID", "", ShaderValueType.Uint,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor IsFrontFace = new FieldDescriptor(FragInputs.name, "isFrontFace", "", ShaderValueType.Boolean,
                 subscriptOptions : StructFieldOptions.Optional);
