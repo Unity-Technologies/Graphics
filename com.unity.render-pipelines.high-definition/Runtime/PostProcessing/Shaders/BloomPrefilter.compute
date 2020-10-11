@@ -2,16 +2,18 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/BloomCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
 
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
 #pragma kernel KMain
 
 #pragma multi_compile LOW_QUALITY HIGH_QUALITY
+#pragma multi_compile _ ENABLE_ALPHA
 
 TEXTURE2D_X(_InputTexture);
 
-RW_TEXTURE2D_X(float3, _OutputTexture);
+RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 
 CBUFFER_START(cb0)
     float4 _TexelSize;
@@ -20,11 +22,16 @@ CBUFFER_END
 
 float3 BilinearSample(float2 uv, float2 offset, out float weight)
 {
-    float3 c = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_linear_clamp_sampler, ClampAndScaleUVForBilinear(uv + offset * _ScreenSize.zw), 0.0).xyz;
-    c = QuadraticThreshold(c, _BloomThreshold.x, _BloomThreshold.yzw);
+    CTYPE c = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_linear_clamp_sampler, ClampAndScaleUVForBilinear(uv + offset * _ScreenSize.zw), 0.0).CTYPE_SWIZZLE;
+#ifdef ENABLE_ALPHA
+    // When alpha is enabled, regions with zero alpha should not generate any bloom / glow. Therefore we pre-multipy the color with the alpha channel here and the rest  
+    // of the computations remain float3. Still, when bloom is applied to the final image, bloom will still be spread on regions with zero alpha (see UberPost.compute)
+    c.xyz *= c.w;
+#endif
+    c.xyz = QuadraticThreshold(c.xyz, _BloomThreshold.x, _BloomThreshold.yzw);
 
-    weight = 1.0 / (Luminance(c) + 1.0);
-    return c;
+    weight = 1.0 / (Luminance(c.xyz) + 1.0);
+    return c.xyz;
 }
 
 float3 PartialAverage(float3 c0, float3 c1, float3 c2, float3 c3, float w0, float w1, float w2, float w3)
@@ -98,5 +105,9 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     // Guard bands
     output *= all(dispatchThreadId.xy <= uint2(_TexelSize.xy));
 
+#ifdef ENABLE_ALPHA
+    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = float4(output,1);
+#else
     _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = output;
+#endif
 }

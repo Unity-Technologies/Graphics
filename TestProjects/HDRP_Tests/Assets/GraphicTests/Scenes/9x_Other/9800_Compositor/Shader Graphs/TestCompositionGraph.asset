@@ -2,7 +2,7 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 8
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
@@ -18,18 +18,34 @@ MonoBehaviour:
     value: {x: 0, y: 0, z: 0, w: 0}
     rangeLimits: {x: 0, y: 0}
     flags: 4
+    canBeUsedAsRT: 0
   - propertyName: Layer1
     propertyType: 4
     value: {x: 0, y: 0, z: 0, w: 0}
     rangeLimits: {x: 0, y: 0}
     flags: 4
+    canBeUsedAsRT: 0
   - propertyName: Logo
     propertyType: 4
     value: {x: 0, y: 0, z: 0, w: 0}
     rangeLimits: {x: 0, y: 0}
     flags: 4
+    canBeUsedAsRT: 0
   - propertyName: GreenScreen
     propertyType: 4
     value: {x: 0, y: 0, z: 0, w: 0}
     rangeLimits: {x: 0, y: 0}
     flags: 4
+    canBeUsedAsRT: 0
+  - propertyName: AOVStack
+    propertyType: 4
+    value: {x: 0, y: 0, z: 0, w: 0}
+    rangeLimits: {x: 0, y: 0}
+    flags: 4
+    canBeUsedAsRT: 1
+  - propertyName: UILayer
+    propertyType: 4
+    value: {x: 0, y: 0, z: 0, w: 0}
+    rangeLimits: {x: 0, y: 0}
+    flags: 4
+    canBeUsedAsRT: 1
