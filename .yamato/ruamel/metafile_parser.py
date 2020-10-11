@@ -16,7 +16,7 @@ def _get_editors(metafile, shared, latest_editor_versions):
     '''Retrieves the editors from shared metafile, if not overriden by 'override_editors' in metafile.'''
     editors = shared['editors']
     for editor in editors:
-        if str(editor['track']).lower() != 'CUSTOM-REVISION'.lower():
+        if editor["editor_pinning"]:
             editor['revisions'] = {}
             revisions = [{k:v} for k,v in latest_editor_versions[editor['track']]['editor_versions'].items() if str(editor['track']) in k] # get all revisions for this track
             for rev in revisions:
