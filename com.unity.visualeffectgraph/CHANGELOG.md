@@ -49,7 +49,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix VFX Graph window invalidating existing Undo.undoRedoPerformed delegates.
 - Fix shadergraph changes not reflected in VisualEffectGraph [Case 1278469](https://fogbugz.unity3d.com/f/cases/resolve/1278469/)
 - Unexpected exception while installing samples inside an URP project [Case 1280065](https://issuetracker.unity3d.com/product/unity/issues/guid/1280065/)
-- Addressing for mirror and clamp modes in sequential operators and blocks
+- Addressing for mirror and clamp modes in sequential operators and blocks.
+- Incorrect volume spawning for Sphere & Circle with thickness absolute.
 
 ## [10.0.0] - 2019-06-10
 ### Added
