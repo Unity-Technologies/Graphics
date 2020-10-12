@@ -16,12 +16,13 @@ ShaderGraph_Linux_OpenGLCore_playmode_trunk:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
-      -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli -u eff81b68729d5bf0cf8ed734dd9bdd07b253b643 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-glcore"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
 ShaderGraph_Linux_OpenGLCore_editmode_trunk:
     name: ShaderGraph on Linux_OpenGLCore_editmode on version trunk
     agent:
@@ -35,12 +36,13 @@ ShaderGraph_Linux_OpenGLCore_editmode_trunk:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
-      -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli -u eff81b68729d5bf0cf8ed734dd9bdd07b253b643 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-glcore"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
 ShaderGraph_Linux_OpenGLCore_playmode_2020.2:
     name: ShaderGraph on Linux_OpenGLCore_playmode on version 2020.2
     agent:
@@ -54,12 +56,13 @@ ShaderGraph_Linux_OpenGLCore_playmode_2020.2:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
-      -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli -u e2067236bd5c1b9c43925d2e39e6338adcc40a5a -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-glcore"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
 ShaderGraph_Linux_OpenGLCore_editmode_2020.2:
     name: ShaderGraph on Linux_OpenGLCore_editmode on version 2020.2
     agent:
@@ -73,12 +76,13 @@ ShaderGraph_Linux_OpenGLCore_editmode_2020.2:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
-      -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli -u e2067236bd5c1b9c43925d2e39e6338adcc40a5a -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-glcore"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
 ShaderGraph_Linux_OpenGLCore_playmode_CUSTOM-REVISION:
     name: ShaderGraph on Linux_OpenGLCore_playmode on version CUSTOM-REVISION
     agent:
@@ -99,6 +103,7 @@ ShaderGraph_Linux_OpenGLCore_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
@@ -122,6 +127,7 @@ ShaderGraph_Linux_OpenGLCore_editmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always

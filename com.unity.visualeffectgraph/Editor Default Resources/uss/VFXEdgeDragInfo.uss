@@ -1,0 +1,24 @@
+VFXEdgeDragInfo
+{
+    position:Absolute;
+    max-height:200px;
+    border-color:#881f1f;
+    border-radius:8px;
+    background-color:#282828;
+
+    border-top-width:2px;
+    border-bottom-width:2px;
+    border-left-width:2px;
+    border-right-width:2px;
+    
+    padding-left:8px;
+    padding-right:8px;
+    padding-top:8px;
+    padding-bottom:8px;
+}
+
+VFXEdgeDragInfo #title
+{
+    font-size:11px;
+    color:#BBB;
+}

@@ -2,7 +2,9 @@
 
 The Universal Render Pipeline (URP) renders Scenes using the:
 
-- Forward renderer
+- Renderer. URP contains the following Renderers:
+    - [Forward Renderer](urp-forward-renderer.md).
+    - [2D Renderer](Setup.md#2d-renderer-setup).
 - [Shading models](shading-model.md) for shaders shipped with URP
 - Camera
 - [UniversalRP Asset](universalrp-asset.md)
@@ -25,7 +27,14 @@ The URP renderer executes a Camera loop for each Camera, which performs the foll
 
 For more information about each step, see [Camera loop](#Steps-in-the-camera-loop).
 
-UniversalRP provides callbacks that you can use to execute code at the beginning and end of the rendering loop, as well at the beginning and end of each Camera loop. 
+In the [RenderPipelineManager](https://docs.unity3d.com/ScriptReference/Rendering.RenderPipelineManager.html) class, URP provides events that you can use to execute code before and after rendering a frame, and before and after rendering each Camera loop. The events are:
+
+* [beginCameraRendering](https://docs.unity3d.com/ScriptReference/Rendering.RenderPipelineManager-beginCameraRendering.html)
+* [beginFrameRendering](https://docs.unity3d.com/ScriptReference/Rendering.RenderPipelineManager-beginFrameRendering.html)
+* [endCameraRendering](https://docs.unity3d.com/ScriptReference/Rendering.RenderPipelineManager-endCameraRendering.html)
+* [endFrameRendering](https://docs.unity3d.com/ScriptReference/Rendering.RenderPipelineManager-endFrameRendering.html)
+
+For the example of how to use the beginCameraRendering event, see the page [Using the beginCameraRendering event](using-begincamerarendering.md). 
 
 ## Camera loop 
 
