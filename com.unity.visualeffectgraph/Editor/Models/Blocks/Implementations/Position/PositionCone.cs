@@ -37,16 +37,20 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                foreach (var p in GetExpressionsFromSlots(this).Where(e => e.name != "Thickness"))
+                var allSlots = GetExpressionsFromSlots(this);
+                foreach (var p in allSlots.Where(e => e.name != "Thickness"))
                     yield return p;
 
-                yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, 0, 1), "volumeFactor");
 
                 VFXExpression radius0 = inputSlots[0][1].GetExpression();
                 VFXExpression radius1 = inputSlots[0][2].GetExpression();
                 VFXExpression height = inputSlots[0][3].GetExpression();
                 VFXExpression tanSlope = (radius1 - radius0) / height;
                 VFXExpression slope = new VFXExpressionATan(tanSlope);
+
+                var thickness = allSlots.Where(o => o.name == nameof(ThicknessProperties.Thickness)).FirstOrDefault();
+                yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, radius0, thickness.exp), "volumeFactor");
+
                 yield return new VFXNamedExpression(new VFXExpressionCombine(new VFXExpression[] { new VFXExpressionSin(slope), new VFXExpressionCos(slope) }), "sincosSlope");
             }
         }

@@ -84,11 +84,16 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                foreach (var p in GetExpressionsFromSlots(this).Where(e => e.name != "Thickness"))
+                var allSlot = GetExpressionsFromSlots(this);
+                foreach (var p in allSlot.Where(e => e.name != "Thickness"))
                     yield return p;
 
                 if (supportsVolumeSpawning)
-                    yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, 0, 1), "volumeFactor");
+                {
+                    var thickness = allSlot.FirstOrDefault(o => o.name == "Thickness").exp;
+                    var radius = base.parameters.FirstOrDefault(o => o.name.EndsWith("radius")).exp;
+                    yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, radius, thickness), "volumeFactor");
+                }
             }
         }
 
@@ -134,7 +139,7 @@ namespace UnityEditor.VFX.Block
 
         protected virtual float thicknessDimensions { get { return 3.0f; } }
 
-        protected VFXExpression CalculateVolumeFactor(PositionMode positionMode, int radiusIndex, int thicknessIndex)
+        protected VFXExpression CalculateVolumeFactor(PositionMode positionMode, VFXExpression radius, VFXExpression thickness)
         {
             VFXExpression factor = VFXValue.Constant(0.0f);
 
@@ -149,10 +154,8 @@ namespace UnityEditor.VFX.Block
                 case PositionMode.ThicknessAbsolute:
                 case PositionMode.ThicknessRelative:
                 {
-                    var thickness = inputSlots[thicknessIndex].GetExpression();
                     if (positionMode == PositionMode.ThicknessAbsolute)
                     {
-                        var radius = inputSlots[radiusIndex][1].GetExpression();
                         thickness = thickness / radius;
                     }
 
