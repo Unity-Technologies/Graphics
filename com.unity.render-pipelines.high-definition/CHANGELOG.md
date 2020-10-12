@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - VFX : Debug material view were rendering pink for albedo. (case 1290752)
 - Fixed NaNs happening when upscaling ray tracing reflections in performance mode (case 1294076).
 - Fixed LayeredLit shader compilation issue with metal shader and raytracing
+- Fixed nan in reflection probe when volumetric fog filtering is enabled, causing the whole probe to be invalid.
 
 ### Changed
 - Removed XRSystemTests. The GC verification is now done during playmode tests (case 1285012).
