@@ -187,6 +187,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed BLEND shader keywords.
 - Remove a rendergraph debug option to clear resources on release from UI.
 - added SV_PrimitiveID in the VaryingMesh structure for fulldebugscreenpass as well as primitiveID in FragInputs
+- Migrated the fabric & hair shadergraph samples directly into the renderpipeline resources.
 
 ## [10.0.0] - 2019-06-10
 
