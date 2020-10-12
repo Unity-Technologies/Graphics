@@ -22,6 +22,8 @@ namespace UnityEditor.ShaderGraph
         public const int OutputSlotId = 0;
         private const string kOutputSlotName = "Out";
 
+        public override int latestVersion => 1;
+
         public ColorNode()
         {
             name = "Color";
@@ -93,12 +95,38 @@ namespace UnityEditor.ShaderGraph
             if (generationMode.IsPreview())
                 return;
 
-            sb.AppendLine(@"$precision4 {0} = IsGammaSpace() ? $precision4({1}, {2}, {3}, {4}) : $precision4(SRGBToLinear($precision3({1}, {2}, {3})), {4});"
-                , GetVariableNameForNode()
-                , NodeUtils.FloatToShaderValue(color.color.r)
-                , NodeUtils.FloatToShaderValue(color.color.g)
-                , NodeUtils.FloatToShaderValue(color.color.b)
-                , NodeUtils.FloatToShaderValue(color.color.a));
+            switch (sgVersion)
+            {
+                case 0:
+                    sb.AppendLine(@"$precision4 {0} = IsGammaSpace() ? $precision4({1}, {2}, {3}, {4}) : $precision4(SRGBToLinear($precision3({1}, {2}, {3})), {4});"
+                        , GetVariableNameForNode()
+                        , NodeUtils.FloatToShaderValue(color.color.r)
+                        , NodeUtils.FloatToShaderValue(color.color.g)
+                        , NodeUtils.FloatToShaderValue(color.color.b)
+                        , NodeUtils.FloatToShaderValue(color.color.a));
+                    break;
+                case 1:
+                    //HDR color picker assumes Linear space, regular color picker assumes SRGB. Handle both cases
+                    if(color.mode == ColorMode.Default)
+                    {
+                        sb.AppendLine(@"$precision4 {0} = IsGammaSpace() ? $precision4({1}, {2}, {3}, {4}) : $precision4(SRGBToLinear($precision3({1}, {2}, {3})), {4});"
+                            , GetVariableNameForNode()
+                            , NodeUtils.FloatToShaderValue(color.color.r)
+                            , NodeUtils.FloatToShaderValue(color.color.g)
+                            , NodeUtils.FloatToShaderValue(color.color.b)
+                            , NodeUtils.FloatToShaderValue(color.color.a));
+                    }
+                    else
+                    {
+                        sb.AppendLine(@"$precision4 {0} = IsGammaSpace() ? LinearToSRGB($precision4({1}, {2}, {3}, {4})) : $precision4({1}, {2}, {3}, {4});"
+                            , GetVariableNameForNode()
+                            , NodeUtils.FloatToShaderValue(color.color.r)
+                            , NodeUtils.FloatToShaderValue(color.color.g)
+                            , NodeUtils.FloatToShaderValue(color.color.b)
+                            , NodeUtils.FloatToShaderValue(color.color.a));
+                    }
+                    break;
+            }
         }
 
         public override string GetVariableNameForSlot(int slotId)
@@ -108,16 +136,38 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
-            properties.Add(new PreviewProperty(PropertyType.Color)
+            UnityEngine.Color propColor = color.color;
+            if (color.mode == ColorMode.Default)
+            {
+                if (PlayerSettings.colorSpace == ColorSpace.Linear)
+                    propColor = propColor.linear;
+            }
+            if (color.mode == ColorMode.HDR)
+            {
+                switch (sgVersion)
+                {
+                    case 0:
+                        if(PlayerSettings.colorSpace == ColorSpace.Linear)
+                            propColor = propColor.linear;
+                        break;
+                    case 1:
+                        if (PlayerSettings.colorSpace == ColorSpace.Gamma)
+                            propColor = propColor.gamma;
+                        break;
+                }
+            }
+
+            // we use Vector4 type to avoid all of the automatic color conversions of PropertyType.Color
+            properties.Add(new PreviewProperty(PropertyType.Vector4)
             {
                 name = GetVariableNameForNode(),
-                colorValue = PlayerSettings.colorSpace == ColorSpace.Linear ? color.color.linear : color.color
+                vector4Value = propColor
             });
         }
 
         public AbstractShaderProperty AsShaderProperty()
         {
-            return new ColorShaderProperty { value = color.color, colorMode = color.mode };
+            return new ColorShaderProperty() { value = color.color, colorMode = color.mode };
         }
 
         public int outputSlotId { get { return OutputSlotId; } }

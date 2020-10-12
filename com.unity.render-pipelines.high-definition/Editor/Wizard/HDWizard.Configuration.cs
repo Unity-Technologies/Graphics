@@ -638,8 +638,14 @@ namespace UnityEditor.Rendering.HighDefinition
             HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources
                 = AssetDatabase.LoadAssetAtPath<HDRenderPipelineRayTracingResources>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRayTracingResources.asset");
             ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath());
-            if (!SystemInfo.supportsRayTracing)
+            // IMPORTANT: We display the error only if we are D3D12 as the supportsRayTracing always return false in any other device even if OS/HW supports DXR.
+            // The D3D12 is a separate check in the wizard, so it is fine not to display an error in case we are not D3D12. 
+            if (!SystemInfo.supportsRayTracing && IsDXRDirect3D12Correct()) 
                 Debug.LogError("Your hardware and/or OS don't support DXR!");
+            if (!HDProjectSettings.wizardNeedRestartAfterChangingToDX12 && PlayerSettings.GetGraphicsAPIs(CalculateSelectedBuildTarget()).FirstOrDefault() != GraphicsDeviceType.Direct3D12)
+            {
+                Debug.LogWarning("DXR is supported only with DX12");
+            }
         }
 
         bool IsDXRScreenSpaceShadowCorrect()
