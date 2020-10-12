@@ -18,19 +18,16 @@ namespace UnityEditor.Rendering.HighDefinition
         }
         public class Styles
         {
-            public const string header = "Surface Inputs";
+            public const string header = "Advanced Surface Inputs";
 
-            public static GUIContent    mappingModeText = new GUIContent("Mapping Mode");
-            public static GUIContent    planarSpaceText = new GUIContent("Planar Space");
-
-            public static GUIContent    materialTilingOffsetText = new GUIContent("Main Tiling & Offset");
+            public static GUIContent    mapsTilingOffsetText = new GUIContent("Tiling and Offset for Map", "XY scales, ZW offsets");
             /////////////////////////////////////////////////////////////////////////////////////////////////
             // SVBRDF Parameters
             public static GUIContent    diffuseColorMapText = new GUIContent("Diffuse Color");
             public static GUIContent    specularColorMapText = new GUIContent("Specular Color");
-            public static GUIContent    specularLobeMapText = new GUIContent("Specular Lobe");
-            public static GUIContent    specularLobeMapScaleText = new GUIContent("Specular Lobe Scale");
-            public static GUIContent    fresnelMapText = new GUIContent("Fresnel");
+            public static GUIContent    specularLobeMapText = new GUIContent("Specular Lobe", "Represents the lobe roughnesses");
+            public static GUIContent    specularLobeMapScaleText = new GUIContent("Specular Lobe Scale", "Multiplying scale for specular lobe");
+            public static GUIContent    fresnelMapText = new GUIContent("Fresnel", "Fresnel0 map");
             public static GUIContent    normalMapText = new GUIContent("Normal");
 
             // Alpha
@@ -44,23 +41,23 @@ namespace UnityEditor.Rendering.HighDefinition
 
             /////////////////////////////////////////////////////////////////////////////////////////////////
             // Car Paint Parameters
-            public static GUIContent    BRDFColorMapText = new GUIContent("BRDF Color");
-            public static GUIContent    BRDFColorMapScaleText = new GUIContent("BRDF Color Scale");
-            public static GUIContent    BRDFColorMapUVScaleText = new GUIContent("BRDF Color Map UV scale restriction");
+            public static GUIContent    BRDFColorMapText = new GUIContent("BRDF Color", "Angle varying measured color modulation table");
+            public static GUIContent    BRDFColorMapScaleText = new GUIContent("BRDF Color Scale", "Multiplying factor for color fetched from BRDFColor table");
+            public static GUIContent    BRDFColorMapUVScaleText = new GUIContent("BRDF Color Map UV scale restriction", "Restrict valid domain of BRDFColor table");
 
-            public static GUIContent    BTFFlakesMapText = new GUIContent("BTF Flake Color Texture2DArray");
-            public static GUIContent    BTFFlakesMapScaleText = new GUIContent("BTF Flakes Scale");
-            public static GUIContent    FlakesTilingText = new GUIContent("Flakes Tiling");
+            public static GUIContent    BTFFlakesMapText = new GUIContent("BTF Flakes Texture2DArray", "Flake slices distributed in angular space");
+            public static GUIContent    BTFFlakesMapScaleText = new GUIContent("BTF Flakes Scale", "Multiplying factor for the flake intensity");
+            public static GUIContent    BTFFlakesTilingText = new GUIContent("BTF Flakes Tiling and Offset", "X,Y scales for tiling control, Z,W for offsets");
 
-            public static GUIContent    thetaFI_sliceLUTMapText = new GUIContent("ThetaFI Slice LUT");
+            public static GUIContent    thetaFI_sliceLUTMapText = new GUIContent("ThetaFI Slice LUT", "First angular dimension indirection for flake slice number");
 
             public static GUIContent    CarPaintIORText = new GUIContent("Clearcoat IOR");
 
             public static GUIContent    CarPaintCTDiffuseText = new GUIContent("Diffuse coeff");
             public static GUIContent    CarPaintLobeCountText = new GUIContent("CT Lobes count");
-            public static GUIContent    CarPaintCTF0sText = new GUIContent("CT Lobes F0s");
-            public static GUIContent    CarPaintCTCoeffsText = new GUIContent("CT Lobes coeffs");
-            public static GUIContent    CarPaintCTSpreadsText = new GUIContent("CT Lobes spreads");
+            public static GUIContent    CarPaintCTF0sText = new GUIContent("CT Lobes F0s", "Fresnel0 values of 3 lobes stored in x, y and z");
+            public static GUIContent    CarPaintCTCoeffsText = new GUIContent("CT Lobes coeffs", "Weight multipliers for 3 lobes stored in x, y and z");
+            public static GUIContent    CarPaintCTSpreadsText = new GUIContent("CT Lobes spreads", "Roughnesses for 3 lobes stored in x, y and z");
 
             /////////////////////////////////////////////////////////////////////////////////////////////////
             // Generic
@@ -68,6 +65,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Clearcoat
             public static GUIContent    clearcoatColorMapText = new GUIContent("Clearcoat Color");
             public static GUIContent    clearcoatNormalMapText = new GUIContent("Clearcoat Normal");
+            public static GUIContent    clearcoatNormalMapTilingText = new GUIContent("Clearcoat Normal Tiling and Offset");
             public static GUIContent    clearcoatIORMapText = new GUIContent("Clearcoat IOR");
 
         }
@@ -114,21 +112,10 @@ namespace UnityEditor.Rendering.HighDefinition
             SCHLICK,            // Schlick's Approximation (1994)
         }
         static readonly string[]    SvbrdfFresnelVariantNames = Enum.GetNames(typeof(SvbrdfFresnelVariant));
-        static readonly string[]    MappingModeNames = Enum.GetNames(typeof(AxFMappingMode));
 
         /////////////////////////////////////////////////////////////////////////////////////////////////
         // Generic Parameters
 
-        static string               m_MappingModeText = "_MappingMode";
-        MaterialProperty  m_MappingMode = null;
-
-        static string               m_MappingMaskText = "_MappingMask";
-        MaterialProperty  m_MappingMask = null;
-
-        static string               m_PlanarSpaceText = "_PlanarSpace";
-        MaterialProperty  m_PlanarSpace = null;
-
-        MaterialProperty  m_MaterialTilingOffset = null;
         MaterialProperty  m_DiffuseColorMapST = null;
         MaterialProperty  m_SpecularColorMapST = null;
         MaterialProperty  m_NormalMapST = null;
@@ -143,7 +130,6 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty  m_CarPaint2_BTFFlakeMapST = null;
 
         static string               tilingOffsetPropNameSuffix = "_SO";
-        static string               m_MaterialTilingOffsetText = "_Material_SO";
 
         static string               m_AxF_BRDFTypeText = "_AxF_BRDFType";
         MaterialProperty  m_AxF_BRDFType = null;
@@ -248,12 +234,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void LoadMaterialProperties()
         {
-            m_MappingMode = FindProperty(m_MappingModeText);
-            m_MappingMask = FindProperty(m_MappingMaskText);
-            m_PlanarSpace = FindProperty(m_PlanarSpaceText);
-
-            m_MaterialTilingOffset = FindProperty(m_MaterialTilingOffsetText);
-    
             m_DiffuseColorMapST = FindProperty(m_DiffuseColorMapText + tilingOffsetPropNameSuffix);
             m_SpecularColorMapST = FindProperty(m_SpecularColorMapText + tilingOffsetPropNameSuffix);
             m_NormalMapST = FindProperty(m_NormalMapText + tilingOffsetPropNameSuffix);
@@ -360,30 +340,17 @@ namespace UnityEditor.Rendering.HighDefinition
             honorMinRoughness      = (flags & (uint)AxF.FeatureFlags.AxfHonorMinRoughness) != 0;
         }
 
+        public static void DrawRightJustifiedHeader(string header)
+        {
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.Label("", GUILayout.Width(EditorGUIUtility.labelWidth-5));
+            GUILayout.Label(header, EditorStyles.boldLabel);
+            //EditorGUILayout.LabelField(header, EditorStyles.boldLabel);
+            EditorGUILayout.EndHorizontal();
+        }
+
         void DrawAxfSurfaceOptionsGUI()
         {
-            //materialEditor.ShaderProperty(m_MappingMode, Styles.mappingModeText);
-            EditorGUI.BeginChangeCheck();
-            float val = EditorGUILayout.Popup(Styles.mappingModeText, (int)m_MappingMode.floatValue, MappingModeNames);
-            if (EditorGUI.EndChangeCheck())
-            {
-                Material material = materialEditor.target as Material;
-                Undo.RecordObject(material, "Change Mapping Mode");
-                m_MappingMode.floatValue = val;
-            }
-
-            AxFMappingMode mappingMode = (AxFMappingMode)m_MappingMode.floatValue;
-            m_MappingMask.vectorValue = AxFGUI.AxFMappingModeToMask(mappingMode);
-
-            if (mappingMode >= AxFMappingMode.PlanarXY)
-            {
-                ++EditorGUI.indentLevel;
-                materialEditor.ShaderProperty(m_PlanarSpace, Styles.planarSpaceText);
-                --EditorGUI.indentLevel;
-            }
-
-            materialEditor.ShaderProperty(m_MaterialTilingOffset, Styles.materialTilingOffsetText);
-
             AxfBrdfType AxF_BRDFType = (AxfBrdfType)m_AxF_BRDFType.floatValue;
             AxF_BRDFType = (AxfBrdfType)EditorGUILayout.Popup("BRDF Type", (int)AxF_BRDFType, AxfBrdfTypeNames);
             m_AxF_BRDFType.floatValue = (float)AxF_BRDFType;
@@ -413,7 +380,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     SvbrdfSpecularVariantBlinn blinnVariant = (SvbrdfSpecularVariantBlinn)((BRDFVariants >> 4) & 0x3);
 
                     // Expand as user-friendly UI
-//                     EditorGUILayout.LabelField( "Flags", EditorStyles.boldLabel );
                     EditorGUILayout.LabelField("BRDF Variants", EditorStyles.boldLabel);
 
                     diffuseType = (SvbrdfDiffuseType)EditorGUILayout.Popup("Diffuse Type", (int)diffuseType, SvbrdfDiffuseTypeNames);
@@ -429,11 +395,20 @@ namespace UnityEditor.Rendering.HighDefinition
                         blinnVariant = (SvbrdfSpecularVariantBlinn)EditorGUILayout.Popup("Blinn Variant", (int)blinnVariant, SvbrdfSpecularVariantBlinnNames);
                     }
 
+                    EditorGUILayout.Space();
+                    EditorGUILayout.LabelField("Parameters and Maps", EditorStyles.boldLabel);
+
                     // Regular maps
+                    DrawRightJustifiedHeader(Styles.mapsTilingOffsetText.text);
+
                     materialEditor.TexturePropertySingleLine(Styles.diffuseColorMapText, m_DiffuseColorMap, m_DiffuseColorMapST);
                     materialEditor.TexturePropertySingleLine(Styles.specularColorMapText, m_SpecularColorMap, m_SpecularColorMapST);
                     materialEditor.TexturePropertySingleLine(Styles.specularLobeMapText, m_SpecularLobeMap, m_SpecularLobeMapST);
                     m_SpecularLobeMapScale.floatValue = EditorGUILayout.FloatField(Styles.specularLobeMapScaleText, m_SpecularLobeMapScale.floatValue);
+
+                    EditorGUILayout.Space();
+                    DrawRightJustifiedHeader(Styles.mapsTilingOffsetText.text);
+
                     materialEditor.TexturePropertySingleLine(Styles.fresnelMapText, m_FresnelMap, m_FresnelMapST);
                     materialEditor.TexturePropertySingleLine(Styles.normalMapText, m_NormalMap, m_NormalMapST);
 
@@ -447,6 +422,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (useHeightMap)
                     {
                         ++EditorGUI.indentLevel;
+                        DrawRightJustifiedHeader(Styles.mapsTilingOffsetText.text);
                         materialEditor.TexturePropertySingleLine(Styles.heightMapText, m_HeightMap, m_HeightMapST);
                         materialEditor.ShaderProperty(m_SVBRDF_HeightMapMaxMM, "Max Displacement (mm)");
                         --EditorGUI.indentLevel;
@@ -457,6 +433,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (anisotropy)
                     {
                         ++EditorGUI.indentLevel;
+                        DrawRightJustifiedHeader(Styles.mapsTilingOffsetText.text);
                         materialEditor.TexturePropertySingleLine(Styles.anisoRotationMapText, m_AnisoRotationMap, m_AnisoRotationMapST);
                         --EditorGUI.indentLevel;
                     }
@@ -466,11 +443,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (clearcoat)
                     {
                         ++EditorGUI.indentLevel;
+                        DrawRightJustifiedHeader(Styles.mapsTilingOffsetText.text);
                         materialEditor.TexturePropertySingleLine(Styles.clearcoatColorMapText, m_ClearcoatColorMap, m_ClearcoatColorMapST);
                         materialEditor.TexturePropertySingleLine(Styles.clearcoatNormalMapText, m_ClearcoatNormalMap, m_ClearcoatNormalMapST);
                         clearcoatRefraction = EditorGUILayout.Toggle("Enable Refraction", clearcoatRefraction);
                         // The IOR map is always required for the coat F0, while in the CAR_PAINT model, the IOR
                         // is given by a scalar value.
+                        DrawRightJustifiedHeader(Styles.mapsTilingOffsetText.text);
                         materialEditor.TexturePropertySingleLine(Styles.clearcoatIORMapText, m_ClearcoatIORMap, m_ClearcoatIORMapST);
                         --EditorGUI.indentLevel;
                     }
@@ -496,8 +475,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.Space();
                     ++EditorGUI.indentLevel;
 
-                    useHeightMap = false;
-
                     // Expand as user-friendly UI
 
                     // Regular maps
@@ -512,9 +489,11 @@ namespace UnityEditor.Rendering.HighDefinition
                         --EditorGUI.indentLevel;
                     }
 
-
-                    //materialEditor.TexturePropertySingleLine(Styles.BTFFlakesMapText, m_CarPaint2_BTFFlakeMap, m_CarPaint2_BTFFlakeMapST);
+                    DrawRightJustifiedHeader(Styles.BTFFlakesTilingText.text);
                     materialEditor.TexturePropertySingleLine(Styles.BTFFlakesMapText, m_CarPaint2_BTFFlakeMap, m_CarPaint2_BTFFlakeMapST);
+                    //materialEditor.TexturePropertySingleLine(Styles.BTFFlakesMapText, m_CarPaint2_BTFFlakeMap);
+                    //m_CarPaint2_BTFFlakeMapST.vectorValue = EditorGUILayout.Vector4Field(Styles.BTFFlakesTilingText, m_CarPaint2_BTFFlakeMapST.vectorValue);
+
                     //EditorGUILayout.LabelField( "Texture Dimension = " + m_CarPaint_BTFFlakesMap_sRGB.textureDimension );
                     //EditorGUILayout.LabelField( "Texture Format = " + m_CarPaint_BTFFlakesMap_sRGB.textureValue. );
                     m_CarPaint2_BTFFlakeMapScale.floatValue = EditorGUILayout.FloatField(Styles.BTFFlakesMapScaleText, m_CarPaint2_BTFFlakeMapScale.floatValue);
@@ -530,19 +509,25 @@ namespace UnityEditor.Rendering.HighDefinition
                     m_CarPaint2_CTF0s.vectorValue = EditorGUILayout.Vector3Field(Styles.CarPaintCTF0sText, m_CarPaint2_CTF0s.vectorValue);
                     m_CarPaint2_CTCoeffs.vectorValue = EditorGUILayout.Vector3Field(Styles.CarPaintCTCoeffsText, m_CarPaint2_CTCoeffs.vectorValue);
                     m_CarPaint2_CTSpreads.vectorValue = EditorGUILayout.Vector3Field(Styles.CarPaintCTSpreadsText, m_CarPaint2_CTSpreads.vectorValue);
-                    materialEditor.ShaderProperty(m_SVBRDF_HeightMapMaxMM, "Max Displacement (mm)");
+
+                    if (useHeightMap)
+                    {
+                        materialEditor.ShaderProperty(m_SVBRDF_HeightMapMaxMM, "Max Displacement (mm)");
+                    }
 
                     // Clearcoat
                     clearcoat = EditorGUILayout.Toggle("Enable Clearcoat", clearcoat);
                     if (clearcoat)
                     {
                         ++EditorGUI.indentLevel;
-//                        materialEditor.TexturePropertySingleLine( Styles.clearcoatColorMapText, m_ClearcoatColorMap );
-                        //materialEditor.TexturePropertySingleLine(Styles.clearcoatNormalMapText, m_ClearcoatNormalMap);
-                        materialEditor.TexturePropertySingleLine(Styles.clearcoatNormalMapText, m_ClearcoatNormalMap, m_ClearcoatNormalMapST);
-                        //materialEditor.TexturePropertySingleLine(Styles.clearcoatNormalMapText, m_ClearcoatNormalMap, m_ClearcoatNormalMapST);
+                        //materialEditor.TexturePropertySingleLine( Styles.clearcoatColorMapText, m_ClearcoatColorMap );
 
-//                        materialEditor.TexturePropertySingleLine( Styles.clearcoatIORMapText, m_ClearcoatIORMap );
+                        DrawRightJustifiedHeader(Styles.clearcoatNormalMapTilingText.text);
+                        materialEditor.TexturePropertySingleLine(Styles.clearcoatNormalMapText, m_ClearcoatNormalMap, m_ClearcoatNormalMapST);
+                        //materialEditor.TexturePropertySingleLine(Styles.clearcoatNormalMapText, m_ClearcoatNormalMap);
+                        //m_ClearcoatNormalMapST.vectorValue = EditorGUILayout.Vector4Field(Styles.clearcoatNormalMapTilingText, m_ClearcoatNormalMapST.vectorValue);
+
+                        //materialEditor.TexturePropertySingleLine( Styles.clearcoatIORMapText, m_ClearcoatIORMap );
                         m_CarPaint2_ClearcoatIOR.floatValue = EditorGUILayout.FloatField(Styles.CarPaintIORText, m_CarPaint2_ClearcoatIOR.floatValue);
                         --EditorGUI.indentLevel;
                         clearcoatRefraction = EditorGUILayout.Toggle("Enable Refraction", clearcoatRefraction);

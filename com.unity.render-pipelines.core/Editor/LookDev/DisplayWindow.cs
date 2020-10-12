@@ -239,7 +239,7 @@ namespace UnityEditor.Rendering.LookDev
             // in case the window where open when last editor session finished.
             // (Else it will open at start and has nothing to display).
             if (!LookDev.open)
-                LookDev.Open();
+                LookDev.Initialize(this);
 
             titleContent = Style.k_WindowTitleAndIcon;
 
@@ -625,6 +625,19 @@ namespace UnityEditor.Rendering.LookDev
             }
         }
 
+        void Update()
+        {
+            // [case 1245086] Guard in case the SRP asset is set to null (or to a not supported SRP) when the lookdev window is already open
+            // Note: After an editor reload, we might get a null OnUpdateRequestedInternal and null SRP for a couple of frames, hence the check.
+            if (!LookDev.supported && OnUpdateRequestedInternal != null)
+            {
+                // Print an error and close the Lookdev window (to avoid spamming the console)
+                Debug.LogError($"LookDev is not supported by this Scriptable Render Pipeline: "
+                    + (RenderPipelineManager.currentPipeline == null ? "No SRP in use" : RenderPipelineManager.currentPipeline.ToString()));
+                LookDev.Close();
+            }
+        }
+
         void OnGUI()
         {
             //Stylesheet
@@ -688,17 +701,6 @@ namespace UnityEditor.Rendering.LookDev
                     rootVisualElement.styleSheets.Add(styleSheet);
                 if (!EditorGUIUtility.isProSkin && !rootVisualElement.styleSheets.Contains(styleSheetLight))
                     rootVisualElement.styleSheets.Add(styleSheetLight);
-            }
-
-            // [case 1245086] Guard in case the SRP asset is set to null (or to a not supported SRP) when the lookdev window is already open
-            // Note: After an editor reload, we might get a null OnUpdateRequestedInternal and null SRP for a couple of frames, hence the check.
-            if (!LookDev.supported && OnUpdateRequestedInternal !=null)
-            {
-                // Print an error and close the Lookdev window (to avoid spamming the console)
-                Debug.LogError($"LookDev is not supported by this Scriptable Render Pipeline: "
-                    + (RenderPipelineManager.currentPipeline == null ? "No SRP in use" : RenderPipelineManager.currentPipeline.ToString()));
-                LookDev.Close();
-                return;
             }
 
             OnUpdateRequestedInternal?.Invoke();
