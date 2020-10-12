@@ -1417,6 +1417,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 });
             }
 
+            list.Add(new DebugUI.BoolField { displayName = "Display Density Volume Atlas", getter = () => data.lightingDebugSettings.displayDensityVolumeAtlas, setter = value => data.lightingDebugSettings.displayDensityVolumeAtlas = value, onValueChanged = RefreshLightingDebug});
+            if (data.lightingDebugSettings.displayDensityVolumeAtlas)
+            {
+                list.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.UIntField { displayName = "Slice", getter = () => data.lightingDebugSettings.densityVolumeAtlasSlice, setter = value => data.lightingDebugSettings.densityVolumeAtlasSlice = value, min = () => 0, max = () => (uint)DensityVolumeManager.manager.volumeAtlas.GetAtlas().volumeDepth},
+                    }
+                });
+            }
+
             list.Add(new DebugUI.FloatField { displayName = "Debug Overlay Screen Ratio", getter = () => data.debugOverlayRatio, setter = v => data.debugOverlayRatio = v, min = () => 0.1f, max = () => 1f});
 
             m_DebugLightingItems = list.ToArray();

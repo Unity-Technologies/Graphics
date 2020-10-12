@@ -644,7 +644,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int                          viewCount;
             public bool                         tiledLighting;
 
-            public Texture3D                    volumeAtlas;
+            public Texture                      volumeAtlas;
 
             public ShaderVariablesVolumetric    volumetricCB;
             public ShaderVariablesLightList     lightListCB;

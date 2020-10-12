@@ -5,95 +5,66 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     class DensityVolumeManager
     {
-        static private DensityVolumeManager _instance = null;
-
         public static readonly GraphicsFormat densityVolumeAtlasFormat = GraphicsFormat.R8G8B8A8_UNorm;
 
+        static DensityVolumeManager m_Manager;
         public static DensityVolumeManager manager
         {
             get
             {
-                if (_instance == null)
-                {
-                    _instance = new DensityVolumeManager();
-                }
-                return _instance;
+                if (m_Manager == null)
+                    m_Manager = new DensityVolumeManager();
+                return m_Manager;
             }
         }
 
         public Texture3DAtlas volumeAtlas = null;
-        private bool atlasNeedsRefresh = false;
 
-        //TODO: hardcoded size....:-(
-        public static int volumeTextureSize = 32;
+        List<DensityVolume> m_Volumes = null;
 
-        private DensityVolumeManager()
+        DensityVolumeManager()
         {
-            volumes = new List<DensityVolume>();
-
-            volumeAtlas = new Texture3DAtlas(TextureFormat.Alpha8, volumeTextureSize);
-
-            volumeAtlas.OnAtlasUpdated += AtlasUpdated;
+            var settings = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.lightLoopSettings;
+            m_Volumes = new List<DensityVolume>();
+            volumeAtlas = new Texture3DAtlas(densityVolumeAtlasFormat, (int)settings.maxDensityVolumeSize, settings.maxDensityVolumesOnScreen);
         }
 
-        private List<DensityVolume> volumes = null;
 
         public void RegisterVolume(DensityVolume volume)
         {
-            volumes.Add(volume);
-
-            volume.OnTextureUpdated += TriggerVolumeAtlasRefresh;
+            m_Volumes.Add(volume);
 
             if (volume.parameters.volumeMask != null)
-            {
                 volumeAtlas.AddTexture(volume.parameters.volumeMask);
-            }
         }
 
         public void DeRegisterVolume(DensityVolume volume)
         {
-            if (volumes.Contains(volume))
-            {
-                volumes.Remove(volume);
-            }
-
-            volume.OnTextureUpdated -= TriggerVolumeAtlasRefresh;
+            if (m_Volumes.Contains(volume))
+                m_Volumes.Remove(volume);
 
             if (volume.parameters.volumeMask != null)
-            {
                 volumeAtlas.RemoveTexture(volume.parameters.volumeMask);
-            }
-
-            //Upon removal we have to refresh the texture list.
-            TriggerVolumeAtlasRefresh();
         }
 
-        public bool ContainsVolume(DensityVolume volume) => volumes.Contains(volume);
+        public bool ContainsVolume(DensityVolume volume) => m_Volumes.Contains(volume);
 
         public List<DensityVolume> PrepareDensityVolumeData(CommandBuffer cmd, HDCamera currentCam, float time)
         {
             //Update volumes
             bool animate = currentCam.animateMaterials;
-            foreach (DensityVolume volume in volumes)
-            {
+            foreach (DensityVolume volume in m_Volumes)
                 volume.PrepareParameters(animate, time);
-            }
 
-            if (atlasNeedsRefresh)
-            {
-                atlasNeedsRefresh = false;
-                VolumeAtlasRefresh();
-            }
+            volumeAtlas.Update(cmd);
 
-            volumeAtlas.GenerateAtlas(cmd);
-
-            return volumes;
+            return m_Volumes;
         }
 
         private void VolumeAtlasRefresh()
         {
             volumeAtlas.ClearTextures();
-            foreach (DensityVolume volume in volumes)
+            foreach (DensityVolume volume in m_Volumes)
             {
                 if (volume.parameters.volumeMask != null)
                 {
@@ -102,17 +73,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void TriggerVolumeAtlasRefresh()
-        {
-            atlasNeedsRefresh = true;
-        }
-
-        private void AtlasUpdated()
-        {
-            foreach (DensityVolume volume in volumes)
-            {
-                volume.parameters.textureIndex = volumeAtlas.GetTextureIndex(volume.parameters.volumeMask);
-            }
-        }
+        // TODO: we'll need to remove texture index
+        // private void AtlasUpdated()
+        // {
+        //     foreach (DensityVolume volume in volumes)
+        //     {
+        //         volume.parameters.textureIndex = volumeAtlas.GetTextureIndex(volume.parameters.volumeMask);
+        //     }
+        // }
     }
 }
