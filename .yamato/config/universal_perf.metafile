@@ -6,21 +6,21 @@ test_platforms:
     name: performance_playmode
     is_performance: True
     extra_utr_flags:
-      - --report-performance-data
-      - --performance-project-id=URP_Performance
+      - [all]: --report-performance-data
+      - [all]: --performance-project-id=URP_Performance
     extra_utr_flags_build:
-      - --extra-editor-arg="Editor.Setup" 
-      - --extra-editor-arg="-stripenginecode-" 
-      - --extra-editor-arg="-managedstrippinglevel=Low"
-      - --extra-editor-arg="-allowdebugging-" 
-      - --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      - [all]: --extra-editor-arg="Editor.Setup" 
+      - [all]: --extra-editor-arg="-stripenginecode-" 
+      - [all]: --extra-editor-arg="-managedstrippinglevel=Low"
+      - [all]: --extra-editor-arg="-allowdebugging-" 
+      - [all]: --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
   - type: editmode
     name: performance_editmode_build
     is_performance: True
     extra_utr_flags:
-      - --report-performance-data
-      - --performance-project-id=URP_Performance
-      - --testfilter=Build
+      - [all]: --report-performance-data
+      - [all]: --performance-project-id=URP_Performance
+      - [all]: --testfilter=Build
 build_configs:
 - name: il2cpp_2
   scripting_backend: il2cpp
@@ -38,27 +38,25 @@ platforms:
   - name: Win
     apis:
       - name: DX11
-        cmd: -force-d3d11
       - name: Vulkan
-        cmd: -force-vulkan
-  - name: OSX
-    apis:
-      - name: Metal
-        exclude_test_platforms:
-          - playmode_XR
-      - name: OpenGLCore
-        exclude_test_platforms:
-          - playmode_XR
-          - Standalone
-  - name: Android
-    apis: 
-      - name: Vulkan
-      - name: OpenGLES3
-  - name: iPhone
-    apis: 
-      - name: Metal
-        exclude_test_platforms:
-          - playmode_XR
+#  - name: OSX
+#    apis:
+#      - name: Metal
+#        exclude_test_platforms:
+#          - playmode_XR
+#      - name: OpenGLCore
+#        exclude_test_platforms:
+#          - playmode_XR
+#          - Standalone
+#  - name: Android
+#    apis: 
+#      - name: Vulkan
+#      - name: OpenGLES3
+#  - name: iPhone
+#    apis: 
+#      - name: Metal
+#        exclude_test_platforms:
+#          - playmode_XR
 all:
   dependencies:
     - platform: Win

@@ -26,8 +26,8 @@ platforms:
   - name: Win
     apis:
       - name: DX11
-#      - name: DX12
-#      - name: Vulkan
+      - name: DX12
+      - name: Vulkan
 #  - name: OSX
 #    apis:
 #      - name: Metal
