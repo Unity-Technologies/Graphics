@@ -1,6 +1,6 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..shared.namer import *
-from ..shared.constants import VAR_UPM_REGISTRY, PATH_UNITY_REVISION, UNITY_DOWNLOADER_CLI_URL
+from ..shared.constants import VAR_UPM_REGISTRY, PATH_UNITY_REVISION, UNITY_DOWNLOADER_CLI_URL, VAR_CUSTOM_REVISION
 from ..shared.yml_job import YMLJob
 
 class Editor_PrimingMinEditorJob():

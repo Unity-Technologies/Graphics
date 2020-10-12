@@ -261,8 +261,8 @@ test_all_project_windows_2019.4:
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.4:windows
       -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_editor_priming.yml#editor:priming:2019.4:windows
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -279,8 +279,8 @@ test_all_project_macos_2019.4:
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:2019.4:macos
       -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_editor_priming.yml#editor:priming:2019.4:macos
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -297,8 +297,8 @@ test_all_project_windows_fast-2019.4:
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.4:windows
       -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_editor_priming.yml#editor:priming:fast-2019.4:windows
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -315,8 +315,8 @@ test_all_project_macos_fast-2019.4:
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-2019.4:macos
       -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_editor_priming.yml#editor:priming:fast-2019.4:macos
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -333,8 +333,8 @@ test_all_project_windows_CUSTOM-REVISION:
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
       -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -344,6 +344,8 @@ test_all_project_windows_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
 test_all_project_macos_CUSTOM-REVISION:
     name: Test all packages [project context] OSX CUSTOM-REVISION
     agent:
@@ -351,8 +353,8 @@ test_all_project_macos_CUSTOM-REVISION:
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
       -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -362,6 +364,8 @@ test_all_project_macos_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
 test_all_project_windows_min_editor:
     name: Test minimum editor version - all packages [project context] Win
     agent:
@@ -370,7 +374,7 @@ test_all_project_windows_min_editor:
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
-      -  .yamato/_editor.yml#editor:priming:test_min_editor:windows
+      -  .yamato/_editor_priming.yml#editor:priming:test_min_editor:windows
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -388,7 +392,7 @@ test_all_project_macos_min_editor:
         flavor: m1.mac
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
-      -  .yamato/_editor.yml#editor:priming:test_min_editor:macos
+      -  .yamato/_editor_priming.yml#editor:priming:test_min_editor:macos
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -428,8 +432,6 @@ all_package_ci_project_fast-2019.4:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
       -  upm-ci package izon -d
-    triggers:
-        expression: pull_request.target eq "7.x.x/release" AND NOT pull_request.draft AND pull_request.push.changes.any match ["**/Documentation*/**/*"]
 all_package_ci_project_CUSTOM-REVISION:
     name: Pack and test all packages - CUSTOM-REVISION [project context]
     agent:
@@ -441,12 +443,14 @@ all_package_ci_project_CUSTOM-REVISION:
       -  .yamato/_projectcontext.yml#test_all_project_windows_min_editor
       -  .yamato/_projectcontext.yml#test_all_project_macos_CUSTOM-REVISION
       -  .yamato/_projectcontext.yml#test_all_project_macos_min_editor
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
       -  upm-ci package izon -d
-publish_all_project:
-    name: Publish all packages [project context]
+publish_all_project_tag:
+    name: Publish all packages [project context][manual][tag]
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
