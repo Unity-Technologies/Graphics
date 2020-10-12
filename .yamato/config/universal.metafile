@@ -44,7 +44,6 @@ all:
       test_platforms:
         - Standalone
         - playmode 
-        - playmode_XR
     - platform: OSX
       api: OpenGLCore
       test_platforms:
