@@ -104,7 +104,7 @@ namespace UnityEngine.Rendering.HighDefinition
             albedo.b = Mathf.Clamp01(albedo.b);
             albedo.a = 1.0f;
 
-            meanFreePath = Mathf.Clamp(meanFreePath, 1.0f, float.MaxValue);
+            meanFreePath = Mathf.Clamp(meanFreePath, 0.05f, float.MaxValue);
 
             anisotropy = Mathf.Clamp(anisotropy, -1.0f, 1.0f);
 
@@ -202,12 +202,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
             // Handle scene visibility
-            UnityEditor.SceneVisibilityManager.visibilityChanged += UpdateDecalVisibility;
+            UnityEditor.SceneVisibilityManager.visibilityChanged += UpdateDensityVolumeVisibility;
 #endif
         }
 
 #if UNITY_EDITOR
-        void UpdateDecalVisibility()
+        void UpdateDensityVolumeVisibility()
         {
             if (UnityEditor.SceneVisibilityManager.instance.IsHidden(gameObject))
             {
@@ -227,7 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DensityVolumeManager.manager.DeRegisterVolume(this);
 
 #if UNITY_EDITOR
-            UnityEditor.SceneVisibilityManager.visibilityChanged -= UpdateDecalVisibility;
+            UnityEditor.SceneVisibilityManager.visibilityChanged -= UpdateDensityVolumeVisibility;
 #endif
         }
 

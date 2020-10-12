@@ -1,10 +1,13 @@
 using System.Collections.Generic;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     class DensityVolumeManager
     {
         static private DensityVolumeManager _instance = null;
+
+        public static readonly GraphicsFormat densityVolumeAtlasFormat = GraphicsFormat.R8G8B8A8_UNorm;
 
         public static DensityVolumeManager manager
         {

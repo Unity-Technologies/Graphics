@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -115,6 +116,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public Texture3D GetAtlas()
         {
             return m_atlas;
+        }
+
+        public static long GetApproxCacheSizeInByte(int elementSize, int elementCount, GraphicsFormat format)
+        {
+            int formatInBytes = HDUtils.GetFormatSizeInBytes(format);
+            long elementSizeInBytes = elementSize * elementSize * elementSize * formatInBytes;
+
+            return elementSizeInBytes * elementCount;
         }
     }
 }
