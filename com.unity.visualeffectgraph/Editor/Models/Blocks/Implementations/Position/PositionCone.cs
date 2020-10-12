@@ -47,7 +47,13 @@ namespace UnityEditor.VFX.Block
                 }
 
                 if (spawnMode == SpawnMode.Custom)
-                    properties = properties.Concat(PropertiesFromType("CustomProperties"));
+                {
+                    var customProperties = PropertiesFromType("CustomProperties");
+                    if (heightMode == HeightMode.Base)
+                        customProperties = customProperties.Where(o => o.property.name != "HeightSequencer");
+
+                    properties = properties.Concat(customProperties);
+                }
 
                 return properties;
             }
