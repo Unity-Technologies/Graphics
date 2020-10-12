@@ -4,14 +4,14 @@ from ..shared.yml_job import YMLJob
 
 class ABV_AllProjectCiNightlyJob():
     
-    def __init__(self, editor, projects, test_platforms, nightly_config, target_branch):
+    def __init__(self, editor, projects, nightly_config, target_branch):
         if editor["version"] not in nightly_config["allowed_editors"]:
             raise Exception(f'Tried to construct nightly with PR trigger for version {editor["version"]}')
         self.job_id = abv_job_id_all_project_ci_nightly(editor["version"])
-        self.yml = self.get_job_definition(editor, projects, test_platforms, nightly_config.get("extra_dependencies",[]), target_branch).get_yml()
+        self.yml = self.get_job_definition(editor, projects, nightly_config.get("extra_dependencies",[]), target_branch).get_yml()
 
     
-    def get_job_definition(self, editor, projects, test_platforms, extra_dependencies, target_branch): 
+    def get_job_definition(self, editor, projects, extra_dependencies, target_branch): 
 
         # define dependencies
         dependencies = [
@@ -25,12 +25,7 @@ class ABV_AllProjectCiNightlyJob():
             #     'rerun': editor["rerun_strategy"]
             # }
         ]
-
-        for test_platform in test_platforms: # TODO replace with all_smoke_tests if rerun strategy can override lower level ones
-            dependencies.append({
-                'path': f'{abv_filepath()}#{abv_job_id_smoke_test(editor["version"],test_platform["name"])}',
-                'rerun': editor["rerun_strategy"]})
-
+        
         for dep in extra_dependencies:
             if dep.get("all"):
                 dependencies.append({

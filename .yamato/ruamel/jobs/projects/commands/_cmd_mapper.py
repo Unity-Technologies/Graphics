@@ -1,4 +1,4 @@
-from . import win, osx_openglcore, osx_metal, linux, android,  linux_split, iphone
+from . import win, osx_openglcore, osx_metal, linux, android, iphone
 
 cmd_map = {
     'win' : {

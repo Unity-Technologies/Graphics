@@ -10,14 +10,14 @@ abv: # specify the editor versions for which to create the expression trigger fo
 nightly:
   allowed_editors: # specify the editor versions for which to create nightly jobs
     - 2019.4
-smoke_test: # specifications for smoke tests
-  folder: SRP_SmokeTest
-  agent: sdet_win_large # used for editmode
-  agent_gpu: sdet_win_large_gpu  # used for non-editmode
-  test_platforms:
-    - type: Standalone
-    - type: playmode
-    - type: editmode
+  extra_dependencies:
+    - project: Smoke_Test
+      platform: Win
+      api: DX11
+      test_platforms: 
+        - playmode
+        - editmode
+        - Standalone
 trunk_verification: # jobs to include in trunk verification job
   dependencies:
     - project: Universal
