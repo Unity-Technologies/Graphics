@@ -17,7 +17,6 @@ editors: # applied for all yml files
   - track: CUSTOM-REVISION
     name: CUSTOM-REVISION
     rerun_strategy: always
-    cmd: -u $CUSTOM_REVISION
     editor_pinning: False
     fast: False
 build_configs:
