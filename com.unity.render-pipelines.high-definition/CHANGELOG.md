@@ -152,6 +152,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with several override entries in the runtime debug menu. 
 - Fixed issue with rendergraph failing to execute every 30 minutes. 
 - Fixed Lit ShaderGraph surface option property block to only display transmission and energy conserving specular color options for their proper material mode (case 1257050)
+- Fixed nan in reflection probe when volumetric fog filtering is enabled, causing the whole probe to be invalid.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
