@@ -1,6 +1,6 @@
 # Volumes
 
-The Universal Render Pipeline (URP) uses a Volume framework. Each Volume can either be global or have local boundaries. They each contain Scene setting property values that URP interpolates between, depending on the position of the Camera, in order to calculate a final value. For example, you can use local Volumes to change environment settings, such as fog color and density, to alter the mood of different areas of your Scene. 
+The Universal Render Pipeline (URP) uses a Volume framework. Each Volume can either be global or have local boundaries. They each contain Scene setting property values that URP interpolates between, depending on the position of the Camera, in order to calculate a final value. You can use local Volumes to control post processing effects. 
 
 You can add a __Volume__ component to any GameObject, including a Camera, although it is good practice to create a dedicated GameObject for each Volume. The Volume component itself contains no actual data itself and instead references a [Volume Profile](VolumeProfile.md) which contains the values to interpolate between. The Volume Profile contains default values for every property and hides them by default. To view or alter these properties, you must add [Volume overrides](VolumeOverrides.md), which are structures containing overrides for the default values, to the Volume Profile.
 
@@ -8,7 +8,7 @@ Volumes also contain properties that control how they interact with other Volume
 
 At run time, URP looks at all of the enabled Volumes attached to active GameObjects in the Scene and determines each Volume’s contribution to the final Scene settings. URP uses the Camera position and the Volume properties described above to calculate this contribution. It then uses all Volumes with a non-zero contribution to calculate interpolated final values for every property in all Volume Components.
 
-Volumes can contain different combinations of Volume Components. For example, one Volume may hold a Procedural Sky Volume Component while other Volumes hold an Exponential Fog Volume Component.
+Volumes can contain different combinations of Volume Components.
 
 ## Properties
 
