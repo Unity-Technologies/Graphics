@@ -54,6 +54,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where ShaderGraph would not prompt the user to save unsaved changes after an assembly reload
 - Fixed an issue with Position Node not automatically upgrading
 - Fixed an issue where failing SubGraphs would block saving graph files using them (recursion check would throw exceptions) [1283425]
+- Fixed an issue with the Preview Manager not updating correctly when deleting an edge that was created with a node (dragging off an existing node slot)
 
 ## [10.0.0] - 2019-06-10
 ### Added
