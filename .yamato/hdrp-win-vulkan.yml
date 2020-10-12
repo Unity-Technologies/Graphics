@@ -93,7 +93,6 @@ Build_HDRP_Win_Vulkan_Player_2020.1:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
@@ -201,7 +200,6 @@ Build_HDRP_Win_Vulkan_Player_fast-2020.1:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
@@ -313,7 +311,6 @@ Build_HDRP_Win_Vulkan_Player_CUSTOM-REVISION:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set

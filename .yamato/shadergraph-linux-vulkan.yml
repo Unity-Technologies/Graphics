@@ -14,17 +14,42 @@ ShaderGraph_Linux_Vulkan_Standalone_2020.1:
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:2020.1:linux
          rerun: on-new-revision
+      -  path: .yamato/shadergraph-linux-vulkan.yml#Build_ShaderGraph_Linux_Vulkan_Player_2020.1
+         rerun: on-new-revision
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
+      -  chmod +x TestProjects/ShaderGraph/utr
+      -  cd TestProjects/ShaderGraph && ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --timeout=1200
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+    skip_checkout: true
+Build_ShaderGraph_Linux_Vulkan_Player_2020.1:
+    name: Build ShaderGraph on Linux_Vulkan_Player on version 2020.1
+    agent:
+        type: Unity::VM::GPU
+        image: cds-ops/ubuntu-18.04-base:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:2020.1:linux
+         rerun: on-new-revision
     commands:
       -  sudo -H pip install --upgrade pip
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
       -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+        players:
+            paths:
+              -  "players/**"
 ShaderGraph_Linux_Vulkan_playmode_2020.1:
     name: ShaderGraph on Linux_Vulkan_playmode on version 2020.1
     agent:
@@ -80,17 +105,42 @@ ShaderGraph_Linux_Vulkan_Standalone_fast-2020.1:
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-2020.1:linux
          rerun: on-new-revision
+      -  path: .yamato/shadergraph-linux-vulkan.yml#Build_ShaderGraph_Linux_Vulkan_Player_fast-2020.1
+         rerun: on-new-revision
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
+      -  chmod +x TestProjects/ShaderGraph/utr
+      -  cd TestProjects/ShaderGraph && ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --timeout=1200
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+    skip_checkout: true
+Build_ShaderGraph_Linux_Vulkan_Player_fast-2020.1:
+    name: Build ShaderGraph on Linux_Vulkan_Player on version fast-2020.1
+    agent:
+        type: Unity::VM::GPU
+        image: cds-ops/ubuntu-18.04-base:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:fast-2020.1:linux
+         rerun: on-new-revision
     commands:
       -  sudo -H pip install --upgrade pip
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
       -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+        players:
+            paths:
+              -  "players/**"
 ShaderGraph_Linux_Vulkan_playmode_fast-2020.1:
     name: ShaderGraph on Linux_Vulkan_playmode on version fast-2020.1
     agent:
@@ -147,17 +197,43 @@ ShaderGraph_Linux_Vulkan_Standalone_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
+      -  path: .yamato/shadergraph-linux-vulkan.yml#Build_ShaderGraph_Linux_Vulkan_Player_CUSTOM-REVISION
+         rerun: always
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
+      -  chmod +x TestProjects/ShaderGraph/utr
+      -  cd TestProjects/ShaderGraph && ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --timeout=1200
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+    skip_checkout: true
+Build_ShaderGraph_Linux_Vulkan_Player_CUSTOM-REVISION:
+    name: Build ShaderGraph on Linux_Vulkan_Player on version CUSTOM-REVISION
+    agent:
+        type: Unity::VM::GPU
+        image: cds-ops/ubuntu-18.04-base:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: custom_revision_not_set
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:linux
+         rerun: always
     commands:
       -  sudo -H pip install --upgrade pip
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
       -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+        players:
+            paths:
+              -  "players/**"
 ShaderGraph_Linux_Vulkan_playmode_CUSTOM-REVISION:
     name: ShaderGraph on Linux_Vulkan_playmode on version CUSTOM-REVISION
     agent:
