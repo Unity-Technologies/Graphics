@@ -151,6 +151,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed UX issue in the graphics compositor related to clear depth and the defaults for new layers, add better tooltips and fix minor bugs (case 1283904)
 - Fixed scene visibility not working for custom pass volumes.
 - Fixed issue with several override entries in the runtime debug menu. 
+- Fixed issue with rendergraph failing to execute every 30 minutes. 
+- Fixed Lit ShaderGraph surface option property block to only display transmission and energy conserving specular color options for their proper material mode (case 1257050)
+- Fixed nan in reflection probe when volumetric fog filtering is enabled, causing the whole probe to be invalid.
+- Fixed Debug Color pixel became grey
+- Fixed TAA flickering on the very edge of screen. 
 - Fixed profiling scope for quality RTGI.
 - Fixed the denoising and multi-sample not being used for smooth multibounce RTReflections.
 
