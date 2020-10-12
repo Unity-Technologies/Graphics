@@ -74,8 +74,6 @@ platforms:
     os: macos
     apis:
       - name: Metal
-        exclude_test_platforms:
-          - playmode_XR
       - name: OpenGLCore
         exclude_test_platforms:
           - playmode_XR

@@ -11,18 +11,6 @@ test_platforms:
       Win: 2000
   - type: playmode
   - type: editmode
-  - type: playmode
-    name: playmode_perf_build
-    extra_utr_flags:
-      - --scripting-backend=il2cpp
-      - --timeout=1200
-      - --performance-project-id=URP_Performance
-      - --testfilter=Build
-      - --suite=Editor
-  - type: playmode
-    name: playmode_XR
-    extra_utr_flags:
-      - --extra-editor-arg="-xr-tests" 
 platforms:
   - name: Win
     apis:
@@ -70,7 +58,6 @@ all:
         - Standalone
         - editmode
         - playmode
-        - playmode_XR
     - platform: OSX
       api: Metal
       build_config: mono_2
