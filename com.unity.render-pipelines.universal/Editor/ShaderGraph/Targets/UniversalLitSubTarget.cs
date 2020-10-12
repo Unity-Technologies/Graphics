@@ -280,7 +280,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         static class SubShaders
         {
             // Overloads to do inline PassDescriptor modifications
-            // NOTE: param order should match PassDescriptor field order for consistency
+            // NOTE: param order should match PassDescriptor struct field order for consistency
             #region PassVariant
             private static PassDescriptor PassVariant( in PassDescriptor source, PragmaCollection pragmas )
             {

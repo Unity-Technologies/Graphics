@@ -10,6 +10,17 @@
 #define _DETAIL
 #endif
 
+#define BLEND_DO_BRANCH 0
+
+#if BLEND_DO_BRANCH
+// NOTE: must match enum in BaseShaderGUI.cs
+#define _BLEND_MODE_OPAQUE -1
+#define _BLEND_MODE_ALPHA 0
+#define _BLEND_MODE_PREMULTIPLY 1
+#define _BLEND_MODE_ADDITIVE 2
+#define _BLEND_MODE_MULTIPLY 3
+#endif
+
 // NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
 CBUFFER_START(UnityPerMaterial)
 float4 _BaseMap_ST;
@@ -28,6 +39,9 @@ half _ClearCoatSmoothness;
 half _DetailAlbedoMapScale;
 half _DetailNormalMapScale;
 half _Surface;
+#if BLEND_DO_BRANCH
+half _Blend;
+#endif
 CBUFFER_END
 
 // NOTE: Do not ifdef the properties for dots instancing, but ifdef the actual usage.
@@ -49,6 +63,9 @@ UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float , _DetailAlbedoMapScale)
     UNITY_DOTS_INSTANCED_PROP(float , _DetailNormalMapScale)
     UNITY_DOTS_INSTANCED_PROP(float , _Surface)
+#if BLEND_DO_BRANCH
+    UNITY_DOTS_INSTANCED_PROP(float , _BlendMode)
+#endif
 UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
 #define _BaseColor              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4 , Metadata__BaseColor)
@@ -65,6 +82,9 @@ UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 #define _DetailAlbedoMapScale   UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__DetailAlbedoMapScale)
 #define _DetailNormalMapScale   UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__DetailNormalMapScale)
 #define _Surface                UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__Surface)
+#if BLEND_DO_BRANCH
+#define _BlendMode              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__BlendMode)
+#endif
 #endif
 
 TEXTURE2D(_ParallaxMap);        SAMPLER(sampler_ParallaxMap);

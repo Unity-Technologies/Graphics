@@ -141,6 +141,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #region SubShader
         static class SubShaders
         {
+            // Overloads to do inline PassDescriptor modifications
+            // NOTE: param order should match PassDescriptor struct field order for consistency
+            #region PassVariant
+            private static PassDescriptor PassVariant( in PassDescriptor source, PragmaCollection pragmas )
+            {
+                var result = source;
+                result.pragmas = pragmas;
+                return result;
+            }
+            #endregion
+
             public static SubShaderDescriptor Unlit = new SubShaderDescriptor()
             {
                 pipelineTag = UniversalTarget.kPipelineTag,
@@ -158,18 +169,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 get
                 {
-                    // TODO: does this actually even work???
-                    // PassDescriptor is a class (Reference) and we take a new reference of global static class UnlitPasses.Unlit.
-                    // And set one of it's collections (also class/reference) into second thing, while a PassCollection above
-                    // has reference to the passes, which we just modified?
-                    var unlit = UnlitPasses.Unlit;
-                    var shadowCaster = CorePasses.ShadowCaster;
-                    var depthOnly = CorePasses.DepthOnly;
-
-                    unlit.pragmas = CorePragmas.DOTSForward;
-                    shadowCaster.pragmas = CorePragmas.DOTSInstanced;
-                    depthOnly.pragmas = CorePragmas.DOTSInstanced;
-
                     return new SubShaderDescriptor()
                     {
                         pipelineTag = UniversalTarget.kPipelineTag,
@@ -177,9 +176,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                         generatesPreview = true,
                         passes = new PassCollection
                         {
-                            { unlit },
-                            { shadowCaster },
-                            { depthOnly },
+                            { PassVariant( UnlitPasses.Unlit, CorePragmas.DOTSForward )},
+                            { PassVariant( CorePasses.ShadowCaster , CorePragmas.DOTSInstanced )},
+                            { PassVariant( CorePasses.DepthOnly, CorePragmas.DOTSInstanced)},
                         },
                     };
                 }

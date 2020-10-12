@@ -1,3 +1,5 @@
+//#define BLEND_DO_BRANCH
+
 using System;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -15,6 +17,17 @@ namespace UnityEditor
             Transparent
         }
 
+        #if BLEND_DO_BRANCH
+        // NOTE: Must match LitInput.hlsl defines
+        public enum BlendMode
+        {
+            Alpha,   // Old school alpha-blending mode, fresnel does not affect amount of transparency
+            Premultiply, // Physically plausible transparency mode, implemented as alpha pre-multiply
+            Additive,
+            Multiply,
+        }
+        private const float s_BlendModeOpaque = -1.0f;
+        #else
         public enum BlendMode
         {
             Alpha,   // Old school alpha-blending mode, fresnel does not affect amount of transparency
@@ -22,6 +35,7 @@ namespace UnityEditor
             Additive,
             Multiply
         }
+        #endif
 
         public enum SmoothnessSource
         {
@@ -483,11 +497,22 @@ namespace UnityEditor
                     material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
                     material.DisableKeyword("_ALPHAMODULATE_ON");
                     material.DisableKeyword("_PRESERVE_SPECULAR");
+#if BLEND_DO_BRANCH
+                    material.SetFloat("_Blend", s_BlendModeOpaque);
+#endif
                     material.SetShaderPassEnabled("ShadowCaster", true);
                 }
                 else
                 {
                     BlendMode blendMode = (BlendMode) material.GetFloat("_Blend");
+
+                    #if BLEND_DO_BRANCH
+                    if (blendMode == (BlendMode) s_BlendModeOpaque)
+                    {
+                        blendMode = BlendMode.Alpha;
+                        material.SetFloat("_Blend", (float)blendMode);
+                    }
+                    #endif
 
                     bool preserveSpecular = (material.HasProperty("_PreserveSpecular") && material.GetFloat("_PreserveSpecular") > 0) && blendMode != BlendMode.Multiply;
                     bool offScreenAccumulateAlpha = false;    // TODO:

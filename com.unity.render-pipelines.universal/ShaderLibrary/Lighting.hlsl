@@ -300,22 +300,41 @@ inline void InitializeBRDFDataDirect(half3 diffuse, half3 specular, half reflect
     outBRDFData.normalizationTerm   = outBRDFData.roughness * 4.0h + 2.0h;
     outBRDFData.roughness2MinusOne  = outBRDFData.roughness2 - 1.0h;
 
-// Input is expected to be non-alpha-premultiplied while ROP is set to pre-multiplied blend.
-// We use input color for specular, but multiply the diffuse with alpha to complete the standard alpha blend equation.
-// In shader: Cs' = Cs * As, in ROP: Cs' + Cd(1-As);
-// i.e. we only alpha blend the diffuse part to background (transmittance).
-#if defined(_PRESERVE_SPECULAR)
-    #if defined(_ALPHAPREMULTIPLY_ON)
-        // NOTE: src diffuse has alpha multiplied.
-    #else
-    outBRDFData.diffuse *= alpha;
+#if BLEND_DO_BRANCH
+    // Input is expected to be non-alpha-premultiplied while ROP is set to pre-multiplied blend.
+    // We use input color for specular, but multiply the diffuse with alpha to complete the standard alpha blend equation.
+    // In shader: Cs' = Cs * As, in ROP: Cs' + Cd(1-As);
+    // i.e. we only alpha blend the diffuse part to background (transmittance).
+    #if defined(_PRESERVE_SPECULAR)
+        if(_Blend != _BLEND_MODE_PREMULTIPLY)
+        {
+            outBRDFData.diffuse *= alpha;
+        }
+        alpha = alpha * oneMinusReflectivity + reflectivity; // NOTE: alpha modified and propagated up.
     #endif
 
-    alpha = alpha * oneMinusReflectivity + reflectivity; // NOTE: alpha modified and propagated up.
-#endif
+    if( _Blend == _BLEND_MODE_MULTIPLY )
+    {
+        outBRDFData.diffuse = lerp(1, outBRDFData.diffuse, alpha);
+    }
+#else
+    // Input is expected to be non-alpha-premultiplied while ROP is set to pre-multiplied blend.
+    // We use input color for specular, but multiply the diffuse with alpha to complete the standard alpha blend equation.
+    // In shader: Cs' = Cs * As, in ROP: Cs' + Cd(1-As);
+    // i.e. we only alpha blend the diffuse part to background (transmittance).
+    #if defined(_PRESERVE_SPECULAR)
+        #if defined(_ALPHAPREMULTIPLY_ON)
+            // NOTE: src diffuse has alpha multiplied.
+        #else
+        outBRDFData.diffuse *= alpha;
+        #endif
 
-#if defined(_ALPHAMODULATE_ON)
-    outBRDFData.diffuse = lerp(1, outBRDFData.diffuse, alpha);
+        alpha = alpha * oneMinusReflectivity + reflectivity; // NOTE: alpha modified and propagated up.
+    #endif
+
+    #if defined(_ALPHAMODULATE_ON)
+        outBRDFData.diffuse = lerp(1, outBRDFData.diffuse, alpha);
+    #endif
 #endif
 }
 
@@ -331,11 +350,24 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
     half reflectivity = 1.0 - oneMinusReflectivity;
     half3 brdfDiffuse = albedo * oneMinusReflectivity;
     half3 specColor = albedo;
-    #if defined(_PRESERVE_SPECULAR) && defined(_ALPHAPREMULTIPLY_ON)
-    // Assume input (albedo/color) is in premultiplied format (multiplied by alpha)
-    // Divide by alpha to get the original albedo for specular color computation
-    specColor = saturate(specColor / (alpha + 0.001));
+
+    #if BLEND_DO_BRANCH
+        #if defined(_PRESERVE_SPECULAR)
+            if(_Blend == _BLEND_MODE_PREMULTIPLY)
+            {
+                // Assume input (albedo/color) is in premultiplied format (multiplied by alpha)
+                // Divide by alpha to get the original albedo for specular color computation
+                specColor = saturate(specColor / (alpha + 0.001));
+            }
+        #endif
+    #else
+        #if defined(_PRESERVE_SPECULAR) && defined(_ALPHAPREMULTIPLY_ON)
+            // Assume input (albedo/color) is in premultiplied format (multiplied by alpha)
+            // Divide by alpha to get the original albedo for specular color computation
+            specColor = saturate(specColor / (alpha + 0.001));
+        #endif
     #endif
+
     half3 brdfSpecular = lerp(kDieletricSpec.rgb, specColor, metallic);
 #endif
 

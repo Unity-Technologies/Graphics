@@ -47,7 +47,7 @@ Shader "Universal Render Pipeline/Lit"
 
         // Blending state
         [HideInInspector] _Surface("__surface", Float) = 0.0
-        [HideInInspector] _Blend("__blend", Float) = 0.0
+        [HideInInspector] _Blend("_Blend", Float) = 0.0
         [HideInInspector] _AlphaClip("__clip", Float) = 0.0
         [HideInInspector] _SrcBlend("__src", Float) = 1.0
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
