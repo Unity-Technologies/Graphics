@@ -542,7 +542,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Fields
                 structs = CoreStructCollections.Default,
-                requiredFields = LitRequiredFields.Forward,
+                requiredFields = LitRequiredFields.DebugMaterial,
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
@@ -650,6 +650,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 StructFields.Attributes.uv1,                            // needed for meta vertex position
                 StructFields.Attributes.uv2,                            //needed for meta vertex position
+            };
+
+            public static readonly FieldCollection DebugMaterial = new FieldCollection()
+            {
+                StructFields.Attributes.uv1, // needed for meta vertex position
+                StructFields.Varyings.positionWS,
+                StructFields.Varyings.normalWS,
+                StructFields.Varyings.tangentWS, // needed for vertex lighting
+                StructFields.Varyings.viewDirectionWS,
+                StructFields.Varyings.texCoord1,
+                UniversalStructFields.Varyings.lightmapUV,
+                UniversalStructFields.Varyings.sh,
+                UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
+                UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
             };
         }
 #endregion
