@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering.Universal
         protected enum SkySettingsUIElement
         {
             SkyIntensity = 1 << 0,
-            //Rotation = 1 << 1, // TODO
+            Rotation = 1 << 1,
             UpdateMode = 1 << 2,
             //IncludeSunInBaking = 1 << 3, // TODO
         }
@@ -27,6 +27,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedDataParameter m_SkyExposure;
         SerializedDataParameter m_SkyMultiplier;
         SerializedDataParameter m_DesiredLuxValue;
+        SerializedDataParameter m_SkyRotation;
         SerializedDataParameter m_EnvUpdateMode;
         SerializedDataParameter m_EnvUpdatePeriod;
 
@@ -38,6 +39,7 @@ namespace UnityEditor.Rendering.Universal
             m_SkyExposure = Unpack(o.Find(x => x.exposure));
             m_SkyMultiplier = Unpack(o.Find(x => x.multiplier));
             m_DesiredLuxValue = Unpack(o.Find(x => x.desiredLuxValue));
+            m_SkyRotation = Unpack(o.Find(x => x.rotation));
             m_EnvUpdateMode = Unpack(o.Find(x => x.updateMode));
             m_EnvUpdatePeriod = Unpack(o.Find(x => x.updatePeriod));
         }
@@ -79,7 +81,10 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.indentLevel--;
             }
 
-            // TODO Rotation
+            if ((m_CommonUIElementsMask & (uint)SkySettingsUIElement.UpdateMode) != 0)
+            {
+                PropertyField(m_SkyRotation);
+            }
 
             if ((m_CommonUIElementsMask & (uint)SkySettingsUIElement.UpdateMode) != 0)
             {

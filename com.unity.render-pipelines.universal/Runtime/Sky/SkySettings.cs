@@ -20,6 +20,9 @@ namespace UnityEngine.Rendering.Universal
     {
         // TODO Parameters
         // TODO Review tooltips
+        [Tooltip("Sets the rotation of the sky.")]
+        public ClampedFloatParameter rotation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
+
         [Tooltip("Specifies the intensity mode HDRP uses for the sky.")]
         public SkyIntensityParameter skyIntensityMode = new SkyIntensityParameter(SkyIntensityMode.Exposure);
         [Tooltip("Sets the exposure of the sky in EV.")]
@@ -32,9 +35,9 @@ namespace UnityEngine.Rendering.Universal
         public MinFloatParameter upperHemisphereLuxValue = new MinFloatParameter(1.0f, 0.0f);
 
         [Tooltip("Specifies when HDRP updates the environment lighting. When set to OnDemand, use HDRenderPipeline.RequestSkyEnvironmentUpdate() to request an update.")]
-        public EnvUpdateParameter updateMode = new EnvUpdateParameter(EnvironmentUpdateMode.OnChanged); // TODO Unused
+        public EnvUpdateParameter updateMode = new EnvUpdateParameter(EnvironmentUpdateMode.OnChanged);
         [Tooltip("Sets the period, in seconds, at which HDRP updates the environment ligting (0 means HDRP updates it every frame).")]
-        public MinFloatParameter updatePeriod = new MinFloatParameter(0.0f, 0.0f); // TODO Unused
+        public MinFloatParameter updatePeriod = new MinFloatParameter(0.0f, 0.0f);
 
         public override int GetHashCode()
         {
@@ -42,6 +45,7 @@ namespace UnityEngine.Rendering.Universal
 
             unchecked
             {
+                hash = hash * 23 + rotation.GetHashCode();
                 hash = hash * 23 + skyIntensityMode.GetHashCode();
                 hash = hash * 23 + exposure.GetHashCode();
                 hash = hash * 23 + multiplier.GetHashCode();
