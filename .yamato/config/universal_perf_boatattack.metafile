@@ -3,6 +3,8 @@ project:
   folder: BoatAttack
 test_platforms:
   - type: Standalone
+    timeout_build:
+      Android: 2000
     name: performance_playmode_runtime
     is_performance: True
     extra_utr_flags:
