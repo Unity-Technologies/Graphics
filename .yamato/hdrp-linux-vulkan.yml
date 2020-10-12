@@ -16,7 +16,7 @@ HDRP_Linux_Vulkan_playmode_trunk:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_Tests/utr
       -  chmod +x TestProjects/HDRP_Tests/utr
-      -  cd TestProjects/HDRP_Tests && sudo unity-downloader-cli -u eff81b68729d5bf0cf8ed734dd9bdd07b253b643 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_Tests && sudo unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
@@ -36,7 +36,7 @@ HDRP_Linux_Vulkan_playmode_NonRenderGraph_trunk:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_Tests/utr
       -  chmod +x TestProjects/HDRP_Tests/utr
-      -  cd TestProjects/HDRP_Tests && sudo unity-downloader-cli -u eff81b68729d5bf0cf8ed734dd9bdd07b253b643 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_Tests && sudo unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-non-rendergraph-tests" --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
@@ -56,7 +56,7 @@ HDRP_Linux_Vulkan_editmode_trunk:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_Tests/utr
       -  chmod +x TestProjects/HDRP_Tests/utr
-      -  cd TestProjects/HDRP_Tests && sudo unity-downloader-cli -u eff81b68729d5bf0cf8ed734dd9bdd07b253b643 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_Tests && sudo unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
@@ -97,7 +97,7 @@ Build_HDRP_Linux_Vulkan_Player_trunk:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_RuntimeTests/utr
       -  chmod +x TestProjects/HDRP_RuntimeTests/utr
-      -  cd TestProjects/HDRP_RuntimeTests && sudo unity-downloader-cli -u eff81b68729d5bf0cf8ed734dd9bdd07b253b643 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_RuntimeTests && sudo unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_RuntimeTests && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
