@@ -373,6 +373,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 hashCode = hashCode * 23 + (isShadowMap ? 1 : 0);
                 hashCode = hashCode * 23 + (bindTextureMS ? 1 : 0);
                 hashCode = hashCode * 23 + (useDynamicScale ? 1 : 0);
+#if UNITY_2020_2_OR_NEWER
+                hashCode = hashCode * 23 + (fastMemoryDesc.inFastMemory ? 1 : 0);
+#endif
             }
 
             return hashCode;
