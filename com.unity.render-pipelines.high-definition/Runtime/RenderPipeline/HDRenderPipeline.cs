@@ -1821,8 +1821,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (m_FrameCount > 1 && visibility > 0.0f)
                             probe.SetIsRendered(m_FrameCount);
 
-
-
                         if (!renderRequestIndicesWhereTheProbeIsVisible.TryGetValue(probe, out var visibleInIndices))
                         {
                             visibleInIndices = ListPool<(int index, float weight)>.Get();
@@ -4739,7 +4737,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hdCamera.isFirstFrame || hdCamera.cameraFrameCount <= 2)
                 cb._SsrAccumulationAmount = 1.0f;
             else
-                cb._SsrAccumulationAmount = Mathf.Pow(2, Mathf.Lerp(-0.0f, -6.0f, volumeSettings.accumulationFactor.value));
+                cb._SsrAccumulationAmount = Mathf.Pow(2, Mathf.Lerp(-0.0f, -7.0f, volumeSettings.accumulationFactor.value));
 
             parameters.offsetBufferData = depthPyramid.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
 
@@ -4747,7 +4745,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         static void RenderSSR(  in RenderSSRParameters  parameters,
-                                HDCamera                camera,
+                                HDCamera                hdCamera,
                                 BlueNoise               blueNoise,
                                 RTHandle                depthTexture,
                                 RTHandle                depthPyramid,
@@ -4765,8 +4763,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                 ScriptableRenderContext renderContext)
         {
             var cs = parameters.ssrCS;
-
             bool usePBRAlgo = parameters.usePBRAlgo;
+
+            hdCamera.AllocateScreenSpaceAccumulationHistoryBuffer(1.0f); // SSR is computed on fullscreen == 1.0f
 
             if (!usePBRAlgo)
             {
@@ -4886,8 +4885,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                hdCamera.AllocateScreenSpaceAccumulationHistoryBuffer(1.0f); // SSR is computed on fullscreen == 1.0f
-
                 RTHandle ssrAccumulation = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation);
                 RTHandle ssrAccumulationPrev = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation);
 
@@ -4933,8 +4930,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // However if the generated HTile will be used for something else but SSR, this should be made NOT resolve only and
                 // re-enabled in the shader.
                 BuildCoarseStencilAndResolveIfNeeded(hdCamera, cmd, resolveOnly: true);
-
-                hdCamera.AllocateScreenSpaceAccumulationHistoryBuffer(1.0f); // SSR is computed on fullscreen == 1.0f
 
                 RTHandle ssrAccumulation = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation);
                 RTHandle ssrAccumulationPrev = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation);

@@ -663,7 +663,7 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     color   = isPosFin ? color   : 0;
     opacity = isPosFin ? opacity : 0;
 
-    _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS0)] = float4(color, 1) * opacity;
+    _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS0)] = float4(color, 1.0f) * opacity;
 #else
     float3 color = 0.0f;
     float opacity = 0.0f;
@@ -700,7 +700,9 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
                 color   = isPosFin ? color   : 0;
                 opacity = isPosFin ? opacity : 0;
 
-                outputs += weight * float4(color, opacity);
+                weight *= opacity;
+
+                outputs += weight * float4(color, 1.0f);
                 wAll += weight;
             }
         }
@@ -759,7 +761,7 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
 
     float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, speed);
 
-    float4 result = lerp(previous, original, lerp(1.0f, coefExpAvg, saturate(_FrameCount - 2.0f)));
+    float4 result = lerp(previous, original, lerp(1.0f, coefExpAvg, saturate(_FrameCount - 1.0f)));
 
     _SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] = result;
     _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = result;

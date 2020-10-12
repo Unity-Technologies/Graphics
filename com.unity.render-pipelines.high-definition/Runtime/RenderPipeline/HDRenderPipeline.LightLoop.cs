@@ -443,8 +443,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     var colorPyramid = renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain));
 
-                    hdCamera.AllocateScreenSpaceAccumulationHistoryBuffer(1.0f); // SSR is computed on fullscreen == 1.0f
-
                     var ssrAccum = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation));
                     var ssrAccumPrev = renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation));
 
