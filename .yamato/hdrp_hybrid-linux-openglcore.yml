@@ -17,7 +17,7 @@ HDRP_Hybrid_Linux_OpenGLCore_playmode_mono_2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
       -  chmod +x TestProjects/HDRP_HybridTests/utr
       -  cd TestProjects/HDRP_HybridTests && sudo unity-downloader-cli -u 90b2443a8df13ecc935d91f85d723464f8a42028 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --extra-editor-arg="-force-glcore"
+      -  cd TestProjects/HDRP_HybridTests && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --extra-editor-arg="-force-glcore"
     artifacts:
         logs:
             paths:
@@ -37,7 +37,7 @@ HDRP_Hybrid_Linux_OpenGLCore_playmode_mono_2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
       -  chmod +x TestProjects/HDRP_HybridTests/utr
       -  cd TestProjects/HDRP_HybridTests && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --extra-editor-arg="-force-glcore"
+      -  cd TestProjects/HDRP_HybridTests && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --extra-editor-arg="-force-glcore"
     artifacts:
         logs:
             paths:

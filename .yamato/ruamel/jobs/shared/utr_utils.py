@@ -9,7 +9,7 @@ def utr_playmode_flags(suite='playmode', testproject='.', editor_location='.Edit
         f'--editor-location={editor_location}',
         f'--artifacts_path={artifacts_path}',
         f'--extra-editor-arg="-scriptingbackend={scripting_backend}"',
-        # f'--extra-editor-arg="-apicompatibilitylevel={api_level}"',
+        f'--extra-editor-arg="-apicompatibilitylevel={api_level}"',
         f'--extra-editor-arg="-colorspace={color_space}"'
         ]
     return [f for f in flags if f]
@@ -25,7 +25,7 @@ def utr_editmode_flags(suite='editor', platform='editmode', testproject='.', edi
         f'--editor-location={editor_location}',
         f'--artifacts_path={artifacts_path}',
         f'--extra-editor-arg="-scriptingbackend={scripting_backend}"',
-        # f'--extra-editor-arg="-apicompatibilitylevel={api_level}"',
+        f'--extra-editor-arg="-apicompatibilitylevel={api_level}"',
         f'--extra-editor-arg="-colorspace={color_space}"'
         ]
     return [f for f in flags if f]
@@ -41,7 +41,7 @@ def utr_standalone_not_split_flags(platform_spec, suite='playmode', platform='St
         f'--testproject={testproject}',
         f'--editor-location={editor_location}',
         f'--extra-editor-arg="-scriptingbackend={scripting_backend}"',
-        # f'--extra-editor-arg="-apicompatibilitylevel={api_level}"',
+        f'--extra-editor-arg="-apicompatibilitylevel={api_level}"',
         f'--extra-editor-arg="-colorspace={color_space}"'
         ]
     return [f for f in flags if f]
@@ -79,7 +79,7 @@ def utr_standalone_build_flags(platform_spec, suite='playmode', platform='Standa
         f'--player-save-path={player_save_path}' if player_save_path!=None else '',
         f'--build-only',
         f'--extra-editor-arg="-scriptingbackend={scripting_backend}"',
-        # f'--extra-editor-arg="-apicompatibilitylevel={api_level}"',
+        f'--extra-editor-arg="-apicompatibilitylevel={api_level}"',
         f'--extra-editor-arg="-colorspace={color_space}"'
         ]
     return [f for f in flags if f]
