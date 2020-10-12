@@ -53,6 +53,8 @@ all_project_ci_nightly_trunk:
          rerun: on-new-revision
       -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_2_Linear_trunk
          rerun: on-new-revision
+      -  path: .yamato/all-urp_performance_boatattack.yml#All_URP_Performance_BoatAttack_trunk
+         rerun: on-new-revision
     triggers:
         recurring:
           -  branch: master
@@ -129,6 +131,8 @@ all_project_ci_nightly_2020.2:
       -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_editmode_mono_2_Linear_2020.2
          rerun: on-new-revision
       -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_2_Linear_2020.2
+         rerun: on-new-revision
+      -  path: .yamato/all-urp_performance_boatattack.yml#All_URP_Performance_BoatAttack_2020.2
          rerun: on-new-revision
     triggers:
         recurring:

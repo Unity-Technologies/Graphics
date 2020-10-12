@@ -77,6 +77,8 @@ nightly:
       test_platforms:
         - editmode
         - playmode
+    - project: URP_Performance_BoatAttack
+      all: true
 trunk_verification: # jobs to include in trunk verification job
   dependencies:
     - project: Universal
