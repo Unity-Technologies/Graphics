@@ -38,13 +38,22 @@ InputData CreateInputData(Varyings input, half3 normalTS)
 
     #if defined(_DEBUG_SHADER)
     inputData.positionWS = input.positionWS;
-    inputData.normalWS = input.normalWS;
     inputData.viewDirectionWS = input.viewDirWS;
     #else
     inputData.positionWS = float3(0, 0, 0);
-    inputData.normalWS = half3(0, 0, 1);
     inputData.viewDirectionWS = half3(0, 0, 1);
     #endif
+
+    #if defined(_NORMALMAP)
+    float sgn = input.tangentWS.w;      // should be either +1 or -1
+    float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
+
+    inputData.tangentMatrixWS = half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
+    inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentMatrixWS);
+    #else
+    inputData.normalWS = input.normalWS;
+    #endif
+
     inputData.shadowCoord = float4(0, 0, 0, 0);
     inputData.fogCoord = input.uv0AndFogCoord.z;
     inputData.vertexLighting = half3(0, 0, 0);
@@ -57,14 +66,6 @@ InputData CreateInputData(Varyings input, half3 normalTS)
     inputData.lightmapUV = input.lightmapUV;
     #else
     inputData.vertexSH = input.vertexSH;
-    #endif
-
-    #if defined(_NORMALMAP)
-    float sgn = input.tangentWS.w;      // should be either +1 or -1
-    float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
-
-    inputData.tangentMatrixWS = half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
-    #else
     #endif
 
     #if defined(_DEBUG_SHADER)
