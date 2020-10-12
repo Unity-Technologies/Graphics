@@ -212,8 +212,21 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             if(property == null)
                 return;
 
-            switch(property)
+            if (property.sgVersion < property.latestVersion)
             {
+                var typeString = property.propertyType.ToString();
+                var help = HelpBoxRow.TryGetDeprecatedHelpBoxRow($"{typeString} Property", () => property.ChangeVersion(property.latestVersion));
+                if (help != null)
+                {
+                    propertySheet.Insert(0, help);
+                }
+            }
+
+            switch (property)
+            {
+            case IShaderPropertyDrawer propDrawer:	
+                propDrawer.HandlePropertyField(propertySheet, _preChangeValueCallback, _postChangeValueCallback);	
+                break;
             case Vector1ShaderProperty vector1Property:
                 HandleVector1ShaderProperty(propertySheet, vector1Property);
                 break;
@@ -368,7 +381,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     var integerPropertyDrawer = new IntegerPropertyDrawer();
                     // Default field
                     propertySheet.Add(integerPropertyDrawer.CreateGUI(
-                        newValue => this._changeValueCallback(newValue),
+                        newValue =>
+                        {
+                            this._preChangeValueCallback("Change property value");
+                            this._changeValueCallback((float)newValue);
+                            this._postChangeValueCallback();
+                        },
                         (int)vector1ShaderProperty.value,
                         "Default",
                         out var integerPropertyField));
@@ -480,6 +498,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     ColorMode.Default,
                     out var colorModeField));
             }
+
         }
 
         void HandleTexture2DProperty(PropertySheet propertySheet, Texture2DShaderProperty texture2DProperty)

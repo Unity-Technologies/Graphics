@@ -21,6 +21,7 @@
   * [Using Visual Effects with Timeline](Timeline.md)
   * [Property Binders](PropertyBinders.md)
   * [Event Binders](EventBinders.md)
+  * [Output Event Handlers](OutputEventHandlers.md)
 * Pipeline Tools
   * [ExposedProperty Helper](ExposedPropertyHelper.md)
   * [Vector Fields](VectorFields.md)
@@ -39,5 +40,6 @@
         * [Transform (Vector4)](Operator-Transform(Vector4).md)
     * Sampling
       * [Get Texture Dimensions](Operator-GetTextureDimensions.md)
+      * [Sample Signed Distance Field](Operator-SampleSDF.md)
 * Reference
   * [Standard Attributes](Reference-Attributes.md)

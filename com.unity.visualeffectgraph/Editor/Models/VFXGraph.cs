@@ -16,6 +16,7 @@ using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
+
     [InitializeOnLoad]
     class VFXGraphPreprocessor : AssetPostprocessor
     {
@@ -230,6 +231,10 @@ namespace UnityEditor.VFX
         // 3: Remove Masked from blendMode in Outputs and split feature to UseAlphaClipping
         // 4: TransformVector|Position|Direction & DistanceToSphere|Plane|Line have now spaceable outputs
         public static readonly int CurrentVersion = 4;
+
+
+
+        public readonly VFXErrorManager errorManager = new VFXErrorManager();
 
 
         public override void OnEnable()
@@ -465,11 +470,14 @@ namespace UnityEditor.VFX
                 UpdateSubAssets();
                 if (model == this)
                     VFXSubgraphContext.CallOnGraphChanged(this);
+
+                m_DependentDirty = true;
             }
 
             if (cause == VFXModel.InvalidationCause.kSettingChanged && model is VFXParameter)
             {
                 VFXSubgraphContext.CallOnGraphChanged(this);
+                m_DependentDirty = true;
             }
 
             if (cause != VFXModel.InvalidationCause.kExpressionInvalidated &&
@@ -764,6 +772,8 @@ namespace UnityEditor.VFX
             m_ExpressionValuesDirty = false;
         }
 
+        public static VFXCompileErrorReporter compileReporter = null;
+
         public void RecompileIfNeeded(bool preventRecompilation = false, bool preventDependencyRecompilation = false)
         {
             SanitizeGraph();
@@ -777,6 +787,7 @@ namespace UnityEditor.VFX
                     PrepareSubgraphs();
 
                     compiledData.Compile(m_CompilationMode, m_ForceShaderValidation);
+
                 }
                 else if (m_ExpressionValuesDirty && !m_ExpressionGraphDirty)
                 {
@@ -795,15 +806,12 @@ namespace UnityEditor.VFX
             }
             if (!preventDependencyRecompilation && m_DependentDirty)
             {
-                if (m_DependentDirty)
+                var obj = GetResource().visualEffectObject;
+                foreach (var graph in GetAllGraphs<VisualEffectAsset>())
                 {
-                    var obj = GetResource().visualEffectObject;
-                    foreach (var graph in GetAllGraphs<VisualEffectAsset>())
-                    {
-                        graph.SubgraphDirty(obj);
-                    }
-                    m_DependentDirty = false;
+                    graph.SubgraphDirty(obj);
                 }
+                m_DependentDirty = false;
             }
         }
 
@@ -877,5 +885,6 @@ namespace UnityEditor.VFX
         }
 
         private VisualEffectResource m_Owner;
+
     }
 }

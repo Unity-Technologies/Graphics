@@ -98,6 +98,9 @@ MonoBehaviour:
   m_Resolution:
     m_OverrideState: 0
     m_Value: 2
+  m_HighQualityPrefiltering:
+    m_OverrideState: 0
+    m_Value: 0
   m_HighQualityFiltering:
     m_OverrideState: 0
     m_Value: 1
@@ -399,7 +402,7 @@ MonoBehaviour:
     showAlpha: 0
     showEyeDropper: 1
   maxFogDistance:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 5000
     min: 0
   mipFogMaxMip:
@@ -416,13 +419,13 @@ MonoBehaviour:
     m_Value: 1000
     min: 0
   baseHeight:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 0
   maximumHeight:
     m_OverrideState: 1
-    m_Value: 200
+    m_Value: 500
   albedo:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: {r: 1, g: 1, b: 1, a: 1}
     hdr: 0
     showAlpha: 1
@@ -454,12 +457,12 @@ MonoBehaviour:
     min: 0
     max: 1
   screenResolutionPercentage:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 12.5
     min: 6.25
     max: 100
   volumeSliceCount:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 64
     min: 1
     max: 1024
@@ -501,6 +504,11 @@ MonoBehaviour:
     m_Value: 0.5
     min: 0.25
     max: 5
+  spatialBilateralAggressiveness:
+    m_OverrideState: 0
+    m_Value: 0.15
+    min: 0
+    max: 1
   temporalAccumulation:
     m_OverrideState: 0
     m_Value: 1
@@ -544,7 +552,6 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 0.5
     min: 0
-    max: 50
   m_SampleCount:
     m_OverrideState: 0
     m_Value: 4
@@ -784,7 +791,7 @@ MonoBehaviour:
   m_AdvancedMode: 0
   maxShadowDistance:
     m_OverrideState: 1
-    m_Value: 64
+    m_Value: 70
     min: 0
   directionalTransmissionMultiplier:
     m_OverrideState: 0

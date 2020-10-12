@@ -10,8 +10,8 @@ Creates a sphere mask originating from input **Center**. The sphere is calculate
 |:------------ |:-------------|:-----|:---|:---|
 | Coords      | Input | Dynamic Vector | None | Coordinate space input |
 | Center      | Input | Dynamic Vector | None | Coordinates of the sphere origin |
-| Radius      | Input | Vector 1 | None | Radius of the sphere |
-| Hardness      | Input | Vector 1 | None | Soften falloff of the sphere |
+| Radius      | Input | Float    | None | Radius of the sphere |
+| Hardness      | Input | Float    | None | Soften falloff of the sphere |
 | Out | Output      |    Dynamic Vector | None | Output mask value |
 
 ## Generated Code Example

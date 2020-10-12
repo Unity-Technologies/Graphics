@@ -3,11 +3,19 @@ project:
   folder: HDRP_Tests
   folder_standalone: HDRP_RuntimeTests
 test_platforms:
-  - playmode
-  - playmode_XR
-  - playmode_RenderGraph
-  - editmode
-  - Standalone
+  - type: playmode
+  - type: playmode
+    name: playmode_XR
+    extra_utr_flags:
+      - --extra-editor-arg="-xr-tests" 
+  - type: playmode
+    name: playmode_NonRenderGraph
+    extra_utr_flags:
+      - --extra-editor-arg="-non-rendergraph-tests"
+  - type: editmode
+  - type: Standalone
+    timeout:
+      OSX_Metal: 2400
 platforms:
   - name: Win
     apis:
@@ -15,7 +23,6 @@ platforms:
       - DX12
       - Vulkan
     overrides:
-      #copycmd: jnhuytfrdfghjkiuhytfrdfghjk
       agents_project:
         # default: package_ci_mac
         default:
@@ -36,7 +43,6 @@ platforms:
           type: Unity::VM
           image: graphics-foundation/win10-dxr:stable
           flavor: b1.xlarge
-          model: rtx2080
   - name: OSX
     apis:
       - Metal
@@ -51,7 +57,7 @@ all:
         - editmode
         - playmode
         - playmode_XR
-        - playmode_RenderGraph
+        - playmode_NonRenderGraph
         - Standalone
     - platform: Win
       api: DX12
@@ -68,7 +74,7 @@ all:
     - platform: OSX
       api: Metal
       test_platforms:
-        - Standalone
+        # - Standalone
         - playmode
     - platform: Linux
       api: Vulkan
@@ -82,6 +88,6 @@ all:
       test_platforms:
         - playmode
         - playmode_XR
-        - playmode_RenderGraph
+        - playmode_NonRenderGraph
     - project: HDRP_Hybrid
       all: true

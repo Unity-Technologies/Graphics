@@ -170,7 +170,8 @@ float3 SampleSDFDerivatives(VFXSampler3D s, float3 coords, float level = 0.0f)
 float GetDistanceFromSDF(VFXSampler3D s, float3 uvw, float3 extents, float level = 0.0f)
 {
     float3 projUVW = saturate(uvw);
-    float dist = SampleSDF(s, projUVW, level);
+    float scalingFactor = max(extents.x, max(extents.y, extents.z));
+    float dist = SampleSDF(s, projUVW, level) * scalingFactor;
     float3 absPos = abs(uvw - 0.5f);
     float outsideDist = max(absPos.x, max(absPos.y, absPos.z));
     if (outsideDist > 0.5f) // Check whether point is outside the box
@@ -351,7 +352,7 @@ uint4  FetchBuffer4(ByteAddressBuffer buffer, int offset) { return buffer.Load4(
 
 float4 SampleMeshReadFloat(ByteAddressBuffer vertices, uint offset, uint channelFormatAndDimension, uint maxRead)
 {
-    float4 r = (float4)0.0f;
+    float4 r = float4(0.0f, 0.0f, 0.0f, 0.0f);
     [branch]
     if (channelFormatAndDimension != -1)
     {
@@ -549,10 +550,22 @@ float HalfTexelOffset(float f)
     return (a * f) + b;
 }
 
-float4 SampleGradient(float v, float u)
+float SnapToTexel(float f)
 {
-    float2 uv = float2(HalfTexelOffset(saturate(u)), v);
+    const float kInvTextureWidth = 1.0f / 128.0f;
+    return f - fmod(f, kInvTextureWidth) + 0.5f * kInvTextureWidth;
+}
+
+float4 SampleGradient(float2 gradientData, float u)
+{
+    float2 uv = float2(HalfTexelOffset(saturate(u)), gradientData.x);
+	if (gradientData.y > 0.5f) uv.x = SnapToTexel(uv.x);
     return bakedTexture.SampleLevel(samplerbakedTexture, uv, 0);
+}
+
+float4 SampleGradient(float gradientData, float u)
+{
+	return SampleGradient(float2(gradientData, 0.0f), u);
 }
 
 float SampleCurve(float4 curveData, float u)
@@ -576,6 +589,13 @@ float SampleCurve(float4 curveData, float u)
 ///////////
 // Utils //
 ///////////
+float4x4 VFXCreateMatrixFromColumns(float4 i, float4 j, float4 k, float4 o)
+{
+    return float4x4(i.x, j.x, k.x, o.x,
+                    i.y, j.y, k.y, o.y,
+                    i.z, j.z, k.z, o.z,
+                    i.w, j.w, k.w, o.w);
+}
 
 // Invert 3D transformation matrix (not perspective). Adapted from graphics gems 2.
 // Inverts upper left by calculating its determinant and multiplying it to the symmetric

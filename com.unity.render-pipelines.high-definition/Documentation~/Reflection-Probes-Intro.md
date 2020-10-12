@@ -14,3 +14,5 @@ To create a **Reflection Probe** in the Unity Editor, select **GameObject > Ligh
 You can customize the behavior of a Reflection Probe in the Inspector. Both types of HDRP Reflection Probe are separate components, but share many of the same properties. For information on each Reflection Probe’s properties, see the [Reflection Probe](Reflection-Probe.md) and [Planar Reflection Probe](Planar-Reflection-Probe.md) documentation.
 
 To make sure HDRP does not apply post-processing effects twice, once in a Reflection Probe's capture and once in a Camera's capture of the reflection, HDRP does not apply post-processing to the Reflection Probe capture.
+
+For more information about how to use the reflection probe, see [Reflection Probe Usage](Reflection-Probe-Usage.md).

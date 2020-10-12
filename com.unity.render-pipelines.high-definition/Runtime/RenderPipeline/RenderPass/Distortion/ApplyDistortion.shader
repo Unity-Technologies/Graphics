@@ -11,6 +11,7 @@ Shader "Hidden/HDRP/ApplyDistortion"
         #pragma target 4.5
         #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
         #pragma editor_sync_compilation
+
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -59,13 +60,6 @@ Shader "Hidden/HDRP/ApplyDistortion"
             float distortionBlur;
             bool distortionIsSourceValid;
             DecodeDistortion(encodedDistortion, distortion, distortionBlur, distortionIsSourceValid);
-
-            // Reject the pixel if it is not in the distortion mask
-            if (!distortionIsSourceValid)
-            {
-                discard;
-                return 0;
-            }
 
             int2 distortedEncodedDistortionId = input.positionCS.xy + int2(distortion);
 
