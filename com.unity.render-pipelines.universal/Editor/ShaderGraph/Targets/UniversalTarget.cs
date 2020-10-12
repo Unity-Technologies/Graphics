@@ -6,8 +6,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph;
-using UnityEditor.Experimental.Rendering.Universal;
-using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.UIElements;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEditor.ShaderGraph.Legacy;
@@ -154,7 +153,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override bool IsNodeAllowedByTarget(Type nodeType)
         {
             SRPFilterAttribute srpFilter = NodeClassCache.GetAttributeOnNodeType<SRPFilterAttribute>(nodeType);
-            return srpFilter == null || srpFilter.srpTypes.Contains(typeof(UniversalRenderPipeline));
+            bool worksWithThisSrp = srpFilter == null || srpFilter.srpTypes.Contains(typeof(UniversalRenderPipeline));
+            return worksWithThisSrp && base.IsNodeAllowedByTarget(nodeType);
         }
         public override void Setup(ref TargetSetupContext context)
         {
@@ -198,6 +198,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             // SubTarget blocks
             m_ActiveSubTarget.value.GetActiveBlocks(ref context);
+        }
+
+        public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
+        {
+            base.CollectShaderProperties(collector, generationMode);
+
+            collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsArray);
+            collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsIndirectionArray);
+            collector.AddShaderProperty(LightmappingShaderProperties.kShadowMasksArray);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)

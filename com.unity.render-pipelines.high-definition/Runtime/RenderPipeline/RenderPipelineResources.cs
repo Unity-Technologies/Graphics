@@ -110,6 +110,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader copyDepthBufferPS;
             [Reload("Runtime/ShaderLibrary/Blit.shader")]
             public Shader blitPS;
+            [Reload("Runtime/ShaderLibrary/BlitColorAndDepth.shader")]
+            public Shader blitColorAndDepthPS;
 
             [Reload("Runtime/ShaderLibrary/DownsampleDepth.shader")]
             public Shader downsampleDepthPS;
@@ -191,6 +193,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader debugHDShadowMapPS;
             [Reload("Runtime/Lighting/Shadow/MomentShadows.compute")]
             public ComputeShader momentShadowsCS;
+            [Reload("Runtime/Lighting/Shadow/ShadowBlit.shader")]
+            public Shader shadowBlitPS;
 
             // Decal
             [Reload("Runtime/Material/Decal/DecalNormalBuffer.shader")]

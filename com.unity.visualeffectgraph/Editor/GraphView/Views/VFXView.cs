@@ -521,12 +521,12 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<DragPerformEvent>(OnDragPerform);
             RegisterCallback<ValidateCommandEvent>(ValidateCommand);
             RegisterCallback<ExecuteCommandEvent>(ExecuteCommand);
+            RegisterCallback<AttachToPanelEvent>(OnEnterPanel);
+            RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
 
             graphViewChanged = VFXGraphViewChanged;
 
             elementResized = VFXElementResized;
-
-            Undo.undoRedoPerformed = OnUndoPerformed;
 
             viewDataKey = "VFXView";
 
@@ -1402,13 +1402,19 @@ namespace UnityEditor.VFX.UI
             {
                 if (child is VFXSubgraphOperator ope)
                 {
-                    var graph = ope.subgraph.GetResource().GetOrCreateGraph();
-                    GetGraphsRecursively(graph, graphs);
+                    if (ope.subgraph != null)
+                    {
+                        var graph = ope.subgraph.GetResource().GetOrCreateGraph();
+                        GetGraphsRecursively(graph, graphs);
+                    }
                 }
                 else if (child is VFXSubgraphContext subCtx)
                 {
-                    var graph = subCtx.subgraph.GetResource().GetOrCreateGraph();
-                    GetGraphsRecursively(graph, graphs);
+                    if (subCtx.subgraph != null)
+                    {
+                        var graph = subCtx.subgraph.GetResource().GetOrCreateGraph();
+                        GetGraphsRecursively(graph, graphs);
+                    }
                 }
                 else if( child is VFXContext ctx)
                 {
@@ -1416,8 +1422,11 @@ namespace UnityEditor.VFX.UI
                     {
                         if( block is VFXSubgraphBlock subBlock)
                         {
-                            var graph = subBlock.subgraph.GetResource().GetOrCreateGraph();
-                            GetGraphsRecursively(graph, graphs);
+                            if( subBlock.subgraph!= null)
+                            {
+                                var graph = subBlock.subgraph.GetResource().GetOrCreateGraph();
+                                GetGraphsRecursively(graph, graphs);
+                            }
                         }
                     }
                 }
@@ -1995,6 +2004,16 @@ namespace UnityEditor.VFX.UI
             {
                 return canCopySelection && !selection.Any(t => t is Group);
             }
+        }
+
+        void OnEnterPanel(AttachToPanelEvent e)
+        {
+            Undo.undoRedoPerformed += OnUndoPerformed;
+        }
+
+        void OnLeavePanel(DetachFromPanelEvent e)
+        {
+            Undo.undoRedoPerformed -= OnUndoPerformed;
         }
 
         public void ValidateCommand(ValidateCommandEvent evt)

@@ -20,6 +20,7 @@ HDRP_Hybrid_Win_DX12_playmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
 HDRP_Hybrid_Win_DX12_playmode_XR_trunk:
     name: HDRP_Hybrid on Win_DX12_playmode_XR on version trunk
     agent:
@@ -37,6 +38,7 @@ HDRP_Hybrid_Win_DX12_playmode_XR_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
 HDRP_Hybrid_Win_DX12_Standalone_trunk:
     name: HDRP_Hybrid on Win_DX12_Standalone on version trunk
     agent:
@@ -52,6 +54,7 @@ HDRP_Hybrid_Win_DX12_Standalone_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
       -  path: .yamato/hdrp_hybrid-win-dx12.yml#Build_HDRP_Hybrid_Win_DX12_Player_trunk
          rerun: on-new-revision
@@ -73,6 +76,7 @@ Build_HDRP_Hybrid_Win_DX12_Player_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -87,12 +91,13 @@ HDRP_Hybrid_Win_DX12_playmode_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 93d432f0d085a8671a6c8a331ec8bdccb5c076ef -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --compilation-errors-as-warnings --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
 HDRP_Hybrid_Win_DX12_playmode_XR_2020.2:
     name: HDRP_Hybrid on Win_DX12_playmode_XR on version 2020.2
     agent:
@@ -104,12 +109,13 @@ HDRP_Hybrid_Win_DX12_playmode_XR_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 93d432f0d085a8671a6c8a331ec8bdccb5c076ef -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-xr-tests" --compilation-errors-as-warnings --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
 HDRP_Hybrid_Win_DX12_Standalone_2020.2:
     name: HDRP_Hybrid on Win_DX12_Standalone on version 2020.2
     agent:
@@ -125,6 +131,7 @@ HDRP_Hybrid_Win_DX12_Standalone_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
       -  path: .yamato/hdrp_hybrid-win-dx12.yml#Build_HDRP_Hybrid_Win_DX12_Player_2020.2
          rerun: on-new-revision
@@ -140,12 +147,13 @@ Build_HDRP_Hybrid_Win_DX12_Player_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 93d432f0d085a8671a6c8a331ec8bdccb5c076ef -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --compilation-errors-as-warnings --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -167,6 +175,7 @@ HDRP_Hybrid_Win_DX12_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
@@ -188,6 +197,7 @@ HDRP_Hybrid_Win_DX12_playmode_XR_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
@@ -207,6 +217,7 @@ HDRP_Hybrid_Win_DX12_Standalone_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
@@ -231,6 +242,7 @@ Build_HDRP_Hybrid_Win_DX12_Player_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
         players:
             paths:
               -  "players/**"
