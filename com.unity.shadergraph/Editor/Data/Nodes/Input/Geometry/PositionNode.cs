@@ -23,7 +23,6 @@ namespace UnityEditor.ShaderGraph
             name = "Position";
             precision = Precision.Single;
             UpdateNodeAfterDeserialization();
-            onBeforeVersionChange += UpgradeNodeWithVersion;
         }
 
 
@@ -36,20 +35,6 @@ namespace UnityEditor.ShaderGraph
                     SlotType.Output,
                     Vector3.zero));
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
-        }
-
-
-
-        public void UpgradeNodeWithVersion(int newVersion)
-        {
-//Switching automatically for World to AbsoluteWorld isn't equivalent on HDRP.
-#if _ENABLE_UPGRADE_FROM_WORLD_TO_ABSOLUTE_WORLD
-            if (sgVersion == 0 && newVersion > 0 && space == CoordinateSpace.World)
-            {
-                var names = validSpaces.Select(cs => cs.ToString().PascalToLabel()).ToArray();
-                spacePopup = new PopupList(names, (int)CoordinateSpace.AbsoluteWorld);
-            }
-#endif
         }
 
         public override string GetVariableNameForSlot(int slotId)
