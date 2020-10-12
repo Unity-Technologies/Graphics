@@ -1218,12 +1218,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Make new inputs from the copied graph
             foreach (ShaderInput input in copyGraph.inputs)
             {
-                ShaderInput copiedInput;
-
                 switch(input)
                 {
                     case AbstractShaderProperty property:
-                        copiedInput = DuplicateShaderInputs(input, graphView.graph, indicies[BlackboardProvider.k_PropertySectionIndex]);
+                        var copiedProperty = (AbstractShaderProperty) DuplicateShaderInputs(input, graphView.graph, indicies[BlackboardProvider.k_PropertySectionIndex]);
+                        graphView.graph.SanitizeGraphInputReferenceName(copiedProperty, input.referenceName);
 
                         // Increment for next within the same section
                         if (indicies[BlackboardProvider.k_PropertySectionIndex] >= 0)
@@ -1234,7 +1233,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         foreach (var node in dependentPropertyNodes)
                         {
                             node.owner = graphView.graph;
-                            node.property = property;
+                            node.property = copiedProperty;
                         }
                         break;
 
@@ -1243,7 +1242,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if ((input as ShaderKeyword).isBuiltIn && graphView.graph.keywords.Where(p => p.referenceName == input.referenceName).Any())
                             continue;
 
-                        copiedInput = DuplicateShaderInputs(input, graphView.graph, indicies[BlackboardProvider.k_KeywordSectionIndex]);
+                        var copiedKeyword = (ShaderKeyword)DuplicateShaderInputs(input, graphView.graph, indicies[BlackboardProvider.k_KeywordSectionIndex]);
+                        graphView.graph.SanitizeGraphInputReferenceName(copiedKeyword, input.referenceName);
 
                         // Increment for next within the same section
                         if (indicies[BlackboardProvider.k_KeywordSectionIndex] >= 0)
@@ -1254,7 +1254,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         foreach (var node in dependentKeywordNodes)
                         {
                             node.owner = graphView.graph;
-                            node.keyword = shaderKeyword;
+                            node.keyword = copiedKeyword;
                         }
 
                         // Pasting a new Keyword so need to test against variant limit

@@ -15,12 +15,13 @@ ShaderGraph_OSX_OpenGLCore_playmode_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/ShaderGraph && unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/ShaderGraph && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
 ShaderGraph_OSX_OpenGLCore_editmode_trunk:
     name: ShaderGraph on OSX_OpenGLCore_editmode on version trunk
     agent:
@@ -33,12 +34,13 @@ ShaderGraph_OSX_OpenGLCore_editmode_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/ShaderGraph && unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/ShaderGraph && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
 ShaderGraph_OSX_OpenGLCore_playmode_2020.2:
     name: ShaderGraph on OSX_OpenGLCore_playmode on version 2020.2
     agent:
@@ -51,12 +53,13 @@ ShaderGraph_OSX_OpenGLCore_playmode_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/ShaderGraph && unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/ShaderGraph && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
 ShaderGraph_OSX_OpenGLCore_editmode_2020.2:
     name: ShaderGraph on OSX_OpenGLCore_editmode on version 2020.2
     agent:
@@ -69,12 +72,13 @@ ShaderGraph_OSX_OpenGLCore_editmode_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/ShaderGraph && unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/ShaderGraph && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
 ShaderGraph_OSX_OpenGLCore_playmode_CUSTOM-REVISION:
     name: ShaderGraph on OSX_OpenGLCore_playmode on version CUSTOM-REVISION
     agent:
@@ -94,6 +98,7 @@ ShaderGraph_OSX_OpenGLCore_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
@@ -116,6 +121,7 @@ ShaderGraph_OSX_OpenGLCore_editmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always

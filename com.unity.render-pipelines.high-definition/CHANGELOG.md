@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [10.1.0] - 2019-08-04
+## [10.1.0] - 2020-10-12
 
 ### Added
 - Added an option to have only the metering mask displayed in the debug mode.
@@ -33,6 +33,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for 'Pyramid' and 'Box' spot light shapes in path tracing.
 - Added high quality prefiltering option for Bloom.
 - Added support for camera relative ray tracing (and keeping non-camera relative ray tracing working)
+- Added a rough refraction option on planar reflections.
+- Added scalability settings for the planar reflection resolution.
+- Added tests for AOV stacking and UI rendering in the graphics compositor.
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
@@ -134,6 +137,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed outlines in transitions between post-processed and plain regions in the graphics compositor (case 1278775).
 - Fix decal being applied twice with LOD Crossfade.
 - Fixed camera stacking for AOVs in the graphics compositor (case 1273223).
+- Fixed backface selection on some shader not ignore correctly.
+- Disable quad overdraw on ps4.
+- Fixed error when resizing the graphics compositor's output and when re-adding a compositor in the scene
+- Fixed issues with bloom, alpha and HDR layers in the compositor (case 1272621).
+- Fixed alpha not having TAA applied to it.
+- Fix issue with alpha output in forward.
+- Fix compilation issue on Vulkan for shaders using high quality shadows in XR mode.
+- Fixed wrong error message when fixing DXR resources from Wizard.
+- Fixed compilation error of quad overdraw with double sided materials
+- Fixed screen corruption on xbox when using TAA and Motion Blur with rendergraph. 
+- Fixed UX issue in the graphics compositor related to clear depth and the defaults for new layers, add better tooltips and fix minor bugs (case 1283904)
+- Fixed scene visibility not working for custom pass volumes.
+- Fixed issue with several override entries in the runtime debug menu. 
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
@@ -165,6 +181,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improve performance of GPU light AABB generation
 - Removed the max clamp value for the RTR, RTAO and RTGI's ray length (case 1279849).
 - Meshes assigned with a decal material are not visible anymore in ray-tracing or path-tracing.
+- Removed BLEND shader keywords.
+- Remove a rendergraph debug option to clear resources on release from UI.
+- added SV_PrimitiveID in the VaryingMesh structure for fulldebugscreenpass as well as primitiveID in FragInputs
 
 ## [10.0.0] - 2019-06-10
 
