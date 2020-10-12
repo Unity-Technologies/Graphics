@@ -36,7 +36,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a rough refraction option on planar reflections.
 - Added scalability settings for the planar reflection resolution.
 - Added tests for AOV stacking and UI rendering in the graphics compositor.
-- Added a new overridable function that defines the local frame to use for a given material.
+- Added a new ray tracing only function that samples the specular part of the materials.
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)

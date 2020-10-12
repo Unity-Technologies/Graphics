@@ -65,11 +65,7 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
         }
         else
         {
-            float roughness = PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness);
-            float NdotL, NdotH, VdotH;
-            float3x3 localToWorld;
-            GET_LOCAL_FRAME_MATERIAL(bsdfData, bsdfData.normalWS, localToWorld);
-            SampleGGXDir(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
+            sampleDir = SampleSpecularBRDF(bsdfData, surfaceData, sample, viewWS);
         }
 
         // Create the ray descriptor for this pixel

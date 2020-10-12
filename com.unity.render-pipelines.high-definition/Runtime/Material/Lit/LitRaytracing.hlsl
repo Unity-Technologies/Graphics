@@ -44,6 +44,23 @@ void OverrideRefractionData(SurfaceData surfaceData, float refractionDistance, f
 }
 #endif
 
+float3 SampleSpecularBRDF(BSDFData bsdfData, SurfaceData surfaceData, float2 sample, float3 viewWS)
+{
+    float roughness = PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness);
+    float3x3 localToWorld;
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
+    {
+        localToWorld = float3x3(bsdfData.tangentWS, bsdfData.bitangentWS, bsdfData.normalWS);
+    }
+    else
+    {
+        localToWorld = GetLocalFrame(bsdfData.normalWS);
+    }
+    float NdotL, NdotH, VdotH;
+    float3 sampleDir;
+    SampleGGXDir(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
+    return sampleDir;
+}
 #endif
 
 #if (SHADERPASS == SHADERPASS_RAYTRACING_GBUFFER)

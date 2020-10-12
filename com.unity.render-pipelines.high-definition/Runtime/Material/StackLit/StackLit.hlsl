@@ -222,19 +222,6 @@ float3 GetNormalForShadowBias(BSDFData bsdfData)
     return bsdfData.geomNormalWS;
 }
 
-// We want to override the material local frame given that we need to support the anisotropy case.
-#undef GET_LOCAL_FRAME_MATERIAL
-#define GET_LOCAL_FRAME_MATERIAL(bsdfDataP, normalWSP, localFrame) {\
-        if (HasFlag(bsdfDataP.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY))\
-        {\
-            localFrame = float3x3(bsdfDataP.tangentWS, bsdfDataP.bitangentWS, bsdfDataP.normalWS);\
-        }\
-        else\
-        {\
-            localFrame = GetLocalFrame(bsdfDataP.normalWS);\
-        }\
-    }
-
 float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
 {
     return bsdfData.ambientOcclusion;
