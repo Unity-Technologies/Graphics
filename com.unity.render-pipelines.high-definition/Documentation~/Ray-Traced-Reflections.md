@@ -88,4 +88,5 @@ When using quality mode, there are extra properties that you can use to customiz
 | **Bounce Count** | Controls the number of bounces that reflection rays can do. Increasing this value increases execution time exponentially. |
 
 ## Limitations
-Currently, ray-traced reflections do not support [decals](decal.md). This means that, when you use ray-traced reflection, decals do not appear in reflective surfaces.
+Currently, ray tracing in HDRP does not support [decals](decal.md). This means that, when you use ray-traced reflection, decals do not appear in reflective surfaces.
+
