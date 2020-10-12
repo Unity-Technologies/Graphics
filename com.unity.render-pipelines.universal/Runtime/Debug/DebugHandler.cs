@@ -61,8 +61,8 @@ namespace UnityEngine.Rendering.Universal
             m_DebugDisplaySettings = DebugDisplaySettings.Instance;
 
             m_NumberFontTexture = numberFontTexture;
-            m_FullScreenDebugMaterial = CoreUtils.CreateEngineMaterial(fullScreenDebugShader);
-            m_ReplacementMaterial = CoreUtils.CreateEngineMaterial(debugReplacementShader);
+            m_FullScreenDebugMaterial = (fullScreenDebugShader == null) ? null : CoreUtils.CreateEngineMaterial(fullScreenDebugShader);
+            m_ReplacementMaterial = (debugReplacementShader == null) ? null : CoreUtils.CreateEngineMaterial(debugReplacementShader);
 
             m_DebugMaterialIndexId = Shader.PropertyToID("_DebugMaterialIndex");
             m_DebugLightingIndexId = Shader.PropertyToID("_DebugLightingIndex");
