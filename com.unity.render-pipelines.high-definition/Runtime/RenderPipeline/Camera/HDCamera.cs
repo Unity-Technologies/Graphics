@@ -767,7 +767,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void AllocateScreenSpaceAccumulationHistoryBuffer(float scaleFactor)
         {
-            if (scaleFactor != m_ScreenSpaceAccumulationResolutionScale|| GetCurrentFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation) == null)
+            if (scaleFactor != m_ScreenSpaceAccumulationResolutionScale || GetCurrentFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation) == null)
             {
                 ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation);
 
