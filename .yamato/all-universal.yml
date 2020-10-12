@@ -22,6 +22,25 @@ All_Universal_trunk:
          rerun: on-new-revision
       -  path: .yamato/all-universal_hybrid.yml#All_Universal_Hybrid_trunk
          rerun: on-new-revision
+All_Universal_2020.2:
+    name: All Universal CI - 2020.2
+    dependencies:
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_Standalone_2020.2
+         rerun: on-new-revision
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_2020.2
+         rerun: on-new-revision
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_2020.2
+         rerun: on-new-revision
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_XR_2020.2
+         rerun: on-new-revision
+      -  path: .yamato/universal-osx-metal.yml#Universal_OSX_Metal_playmode_2020.2
+         rerun: on-new-revision
+      -  path: .yamato/universal-osx-openglcore.yml#Universal_OSX_OpenGLCore_editmode_2020.2
+         rerun: on-new-revision
+      -  path: .yamato/all-universal_stereo.yml#All_Universal_Stereo_2020.2
+         rerun: on-new-revision
+      -  path: .yamato/all-universal_hybrid.yml#All_Universal_Hybrid_2020.2
+         rerun: on-new-revision
 All_Universal_CUSTOM-REVISION:
     name: All Universal CI - CUSTOM-REVISION
     dependencies:

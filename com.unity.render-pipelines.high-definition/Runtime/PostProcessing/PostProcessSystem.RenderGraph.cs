@@ -30,12 +30,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputAlpha;
         }
 
-        class GuardBandPassData
-        {
-            public ClearWithGuardBandsParameters parameters;
-            public TextureHandle source;
-        }
-
         class StopNaNPassData
         {
             public StopNaNParameters parameters;
@@ -233,23 +227,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             return renderGraph.defaultResources.whiteTextureXR;
-        }
-
-        TextureHandle ClearWithGuardBands(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
-        {
-            using (var builder = renderGraph.AddRenderPass<GuardBandPassData>("Guard Band Clear", out var passData, ProfilingSampler.Get(HDProfileId.GuardBandClear)))
-            {
-                passData.source = builder.WriteTexture(source);
-                passData.parameters = PrepareClearWithGuardBandsParameters(hdCamera);
-
-                builder.SetRenderFunc(
-                (GuardBandPassData data, RenderGraphContext ctx) =>
-                {
-                    ClearWithGuardBands(data.parameters, ctx.cmd, data.source);
-                });
-
-                return passData.source;
-            }
         }
 
         TextureHandle StopNaNsPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
@@ -878,7 +855,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.destination = builder.WriteTexture(dest); ;
 
                     passData.casParametersBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(2, sizeof(uint) * 4) { name = "Cas Parameters" });
-                    passData.casParametersBuffer = builder.ReadComputeBuffer(builder.WriteComputeBuffer(passData.casParametersBuffer));
 
                     builder.SetRenderFunc(
                     (CASData data, RenderGraphContext ctx) =>
@@ -1016,9 +992,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_PostProcessEnabled)
             {
-
-                source = ClearWithGuardBands(renderGraph, hdCamera, source);
-
                 source = StopNaNsPass(renderGraph, hdCamera, source);
 
                 source = DynamicExposurePass(renderGraph, hdCamera, source);

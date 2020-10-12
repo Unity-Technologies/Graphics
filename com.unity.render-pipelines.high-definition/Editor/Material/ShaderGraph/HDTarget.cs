@@ -7,6 +7,7 @@ using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.UIElements;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.UIElements;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEditor.ShaderGraph.Legacy;
@@ -62,7 +63,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override bool IsNodeAllowedByTarget(Type nodeType)
         {
             SRPFilterAttribute srpFilter = NodeClassCache.GetAttributeOnNodeType<SRPFilterAttribute>(nodeType);
-            return srpFilter == null || srpFilter.srpTypes.Contains(typeof(HDRenderPipeline));
+            bool worksWithThisSrp = srpFilter == null || srpFilter.srpTypes.Contains(typeof(HDRenderPipeline));
+            return worksWithThisSrp && base.IsNodeAllowedByTarget(nodeType);
         }
 
         public HDTarget()
@@ -179,6 +181,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             // SubTarget
             m_ActiveSubTarget.value.CollectShaderProperties(collector, generationMode);
+
+            collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsArray);
+            collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsIndirectionArray);
+            collector.AddShaderProperty(LightmappingShaderProperties.kShadowMasksArray);
         }
 
         public override void ProcessPreviewMaterial(Material material)
@@ -401,6 +407,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(HDStructFields.FragInputs.texCoord2,                                 HDStructFields.VaryingsMeshToPS.texCoord2),
             new FieldDependency(HDStructFields.FragInputs.texCoord3,                                 HDStructFields.VaryingsMeshToPS.texCoord3),
             new FieldDependency(HDStructFields.FragInputs.color,                                     HDStructFields.VaryingsMeshToPS.color),
+            new FieldDependency(HDStructFields.FragInputs.primitiveID,                               HDStructFields.VaryingsMeshToPS.primitiveID),
             new FieldDependency(HDStructFields.FragInputs.IsFrontFace,                               HDStructFields.VaryingsMeshToPS.cullFace),
         };
 
@@ -806,6 +813,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreKeywordDescriptors.WriteNormalBuffer, 1 },
         };
 
+        public static DefineCollection DepthForwardOnlyUnlit = new DefineCollection
+        {
+            { CoreKeywordDescriptors.WriteNormalBuffer, 1, new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, true)},
+        };
+
         public static DefineCollection ShaderGraphRaytracingDefault = new DefineCollection
         {
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
@@ -845,7 +857,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     static class CoreIncludes
     {
         // CorePregraph
-        public const string kTextureStack = "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl";
         public const string kShaderVariables = "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl";
         public const string kFragInputs = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl";
         public const string kMaterial = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl";
@@ -923,9 +934,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static IncludeCollection CorePregraph = new IncludeCollection
         {
-            { kTextureStack, IncludeLocation.Pregraph },        // TODO: put this on a conditional
-            { kShaderVariables, IncludeLocation.Pregraph },
-            { kFragInputs, IncludeLocation.Pregraph },
             { kDebugDisplay, IncludeLocation.Pregraph },            
             { kMaterial, IncludeLocation.Pregraph },
         };
@@ -933,12 +941,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static IncludeCollection RaytracingCorePregraph = new IncludeCollection
         {
             // Pregraph includes
-            { CoreIncludes.kTextureStack, IncludeLocation.Pregraph },
-            { CoreIncludes.kFragInputs, IncludeLocation.Pregraph },
-
-            // Ray Tracing macros should be included before shader variables to guarantee that the macros are overriden
             { CoreIncludes.kRaytracingMacros, IncludeLocation.Pregraph },
-            { CoreIncludes.kShaderVariables, IncludeLocation.Pregraph },
             { CoreIncludes.kMaterial, IncludeLocation.Pregraph },
             { CoreIncludes.kShaderVariablesRaytracing, IncludeLocation.Pregraph },
             { CoreIncludes.kShaderVariablesRaytracingLightLoop, IncludeLocation.Pregraph },

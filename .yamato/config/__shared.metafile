@@ -3,23 +3,36 @@ target_branch_editor_ci: ci/editor-pinning # specifies the branch on which edito
 target_editor: trunk # specifies the target editor used for some package/preview publish jobs
 editors: # applied for all yml files
   - track: trunk
+    name: trunk
     rerun_strategy: on-new-revision
+    editor_pinning: True
+    nightly: True
+  - track: 2020.2
+    name: 2020.2
+    rerun_strategy: on-new-revision
+    editor_pinning: True
+    # fast: True
+    abv_pr: True
+    nightly: True
   - track: CUSTOM-REVISION
+    name: CUSTOM-REVISION
     rerun_strategy: always
     cmd: -u $CUSTOM_REVISION
+    editor_pinning: False
+    fast: False
 build_configs:
-- name: il2cpp_2
-  scripting_backend: il2cpp
-  api_level: NET_2_0
-- name: il2cpp_4
-  scripting_backend: il2cpp
-  api_level: NET_4_6
-- name: mono_2
-  scripting_backend: mono
-  api_level: NET_2_0
-- name: mono_4
-  scripting_backend: mono
-  api_level: NET_4_6
+  - name: il2cpp_2
+    scripting_backend: il2cpp
+    api_level: NET_2_0
+  - name: il2cpp_4
+    scripting_backend: il2cpp
+    api_level: NET_4_6
+  - name: mono_2
+    scripting_backend: mono
+    api_level: NET_2_0
+  - name: mono_4
+    scripting_backend: mono
+    api_level: NET_4_6
 color_spaces:
   - Linear
   - gamma
@@ -111,6 +124,10 @@ platforms:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
         flavor: b1.large
+      standalone_build:
+        type: Unity::VM
+        image: cds-ops/ubuntu-18.04-base:stable
+        flavor: b1.xlarge
   Android:
     name: Android
     os: android

@@ -113,7 +113,7 @@ namespace UnityEditor.VFX.Operator
                 if (m_Constant)
                     rand = VFXOperatorUtility.FixedRandom(inputExpression.Last(), m_Seed);
                 else
-                    rand = new VFXExpressionRandom(m_Seed == VFXSeedMode.PerParticle);
+                    rand = new VFXExpressionRandom(m_Seed == VFXSeedMode.PerParticle, new RandId(this));
             }
             else
             {
@@ -136,7 +136,7 @@ namespace UnityEditor.VFX.Operator
             var compare = new VFXExpression[m_EntryCount - 1];
             for (int i = 0; i < m_EntryCount - 1; i++)
             {
-                compare[i] = new VFXExpressionCondition(VFXCondition.GreaterOrEqual, prefixedProbablities[i], rand);
+                compare[i] = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.GreaterOrEqual, prefixedProbablities[i], rand);
             }
             ;
 
