@@ -340,7 +340,7 @@ namespace UnityEngine.Rendering.Universal
 
         public ScriptableRenderer(ScriptableRendererData data)
         {
-            DebugHandler = new DebugHandler(data.NumberFont, data.fullScreenDebugPS);
+            DebugHandler = new DebugHandler(data);
 
             foreach (var feature in data.rendererFeatures)
             {

@@ -52,14 +52,17 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public DebugHandler(Texture2D numberFontTexture, Shader fullScreenDebugPS)
+        public DebugHandler(ScriptableRendererData scriptableRendererData)
         {
-            m_ReplacementMaterial = new Material(Shader.Find("Hidden/Universal Render Pipeline/Debug/Replacement"));
+            Texture2D numberFontTexture = scriptableRendererData.NumberFont;
+            Shader fullScreenDebugShader = scriptableRendererData.fullScreenDebugPS;
+            Shader debugReplacementShader = scriptableRendererData.debugReplacementPS;
 
             m_DebugDisplaySettings = DebugDisplaySettings.Instance;
 
             m_NumberFontTexture = numberFontTexture;
-            m_FullScreenDebugMaterial = CoreUtils.CreateEngineMaterial(fullScreenDebugPS);
+            m_FullScreenDebugMaterial = CoreUtils.CreateEngineMaterial(fullScreenDebugShader);
+            m_ReplacementMaterial = CoreUtils.CreateEngineMaterial(debugReplacementShader);
 
             m_DebugMaterialIndexId = Shader.PropertyToID("_DebugMaterialIndex");
             m_DebugLightingIndexId = Shader.PropertyToID("_DebugLightingIndex");

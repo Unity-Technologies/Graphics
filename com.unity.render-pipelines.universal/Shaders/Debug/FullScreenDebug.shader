@@ -1,4 +1,4 @@
-Shader "Hidden/Lightweight Render Pipeline/FullScreenDebug"
+Shader "Hidden/Universal Render Pipeline/Debug/FullScreenDebug"
 {
     SubShader
     {

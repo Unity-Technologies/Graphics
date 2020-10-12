@@ -20,13 +20,13 @@ namespace UnityEngine.Rendering.Universal
         internal bool isInvalidated { get; set; }
 
         #region Debugging
-        [SerializeField, Reload("Textures/numberFont.png")]
+        [SerializeField, Reload("Textures/Debug/numberFont.png")]
         public Texture2D NumberFont;
 
-        [SerializeField, Reload("Shaders/Utils/FullScreenDebug.shader")]
+        [SerializeField, Reload("Shaders/Debug/FullScreenDebug.shader")]
         public Shader fullScreenDebugPS;
 
-        [SerializeField, Reload("Shaders/DebugReplacement.shader")]
+        [SerializeField, Reload("Shaders/Debug/DebugReplacement.shader")]
         public Shader debugReplacementPS;
         #endregion
 
