@@ -17,17 +17,14 @@ def editor_job_id_test_min_editor(platform_os):
 def editor_job_id_update():
     return 'editor-pinning-update'
 
-def editor_job_id_update_ABV():
-    return 'editor-pinning-update-abv'
-
 def editor_job_id_target_to_ci():
     return 'editor-pinning-target-to-ci'
 
-def editor_job_id_merge_revisions():
-    return 'editor-pinning-merge-revisions'
+def editor_job_id_merge_revisions(editor_track, abv):
+    return f'editor-pinning-merge-revisions-{editor_track}-abv' if abv else f'editor-pinning-merge-revisions-{editor_track}' 
 
-def editor_job_id_merge_revisions_ABV():
-    return 'editor-pinning-merge-revisions-abv'
+def editor_job_id_merge_all(abv):
+    return f'editor-pinning-merge-all-abv' if abv else f'editor-pinning-merge-all'
 
 # package specific
 def packages_filepath():
@@ -137,12 +134,6 @@ def abv_job_id_all_project_ci(editor_version):
 
 def abv_job_id_all_project_ci_nightly(editor_version):
     return f'all_project_ci_nightly_{editor_version}'
-
-def abv_job_id_smoke_test(editor_version, test_platform_name):
-    return f'smoke_test_{test_platform_name}_{editor_version}'
-
-def abv_job_id_all_smoke_tests(editor_version):
-    return f'all_smoke_tests_{editor_version}'
 
 def abv_job_id_trunk_verification(editor_version):
     return f'trunk_verification_{editor_version}'

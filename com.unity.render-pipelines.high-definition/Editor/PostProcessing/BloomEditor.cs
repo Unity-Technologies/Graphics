@@ -15,6 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_DirtIntensity;
 
         // Advanced settings
+        SerializedDataParameter m_HighQualityPrefiltering;
         SerializedDataParameter m_HighQualityFiltering;
         SerializedDataParameter m_Resolution;
         SerializedDataParameter m_Anamorphic;
@@ -34,6 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DirtTexture = Unpack(o.Find(x => x.dirtTexture));
             m_DirtIntensity = Unpack(o.Find(x => x.dirtIntensity));
 
+            m_HighQualityPrefiltering = Unpack(o.Find("m_HighQualityPrefiltering"));
             m_HighQualityFiltering = Unpack(o.Find("m_HighQualityFiltering"));
             m_Resolution = Unpack(o.Find("m_Resolution"));
             m_Anamorphic = Unpack(o.Find(x => x.anamorphic));
@@ -56,12 +58,12 @@ namespace UnityEditor.Rendering.HighDefinition
             if (isInAdvancedMode)
             {
                 EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
-
-                GUI.enabled = useCustomValue;
-                PropertyField(m_Resolution);
-                PropertyField(m_HighQualityFiltering);
-                GUI.enabled = true;
-
+                using (new EditorGUI.DisabledScope(!useCustomValue))
+                {
+                    PropertyField(m_Resolution);
+                    PropertyField(m_HighQualityPrefiltering);
+                    PropertyField(m_HighQualityFiltering);
+                }
                 PropertyField(m_Anamorphic);
             }
         }

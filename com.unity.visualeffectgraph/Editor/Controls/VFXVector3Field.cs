@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 
+using Action = System.Action;
+
 using FloatField = UnityEditor.VFX.UI.VFXLabeledField<UnityEditor.UIElements.FloatField, float>;
 namespace UnityEditor.VFX.UI
 {
@@ -45,6 +47,21 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        void ValueDragFinished()
+        {
+            if (onValueDragFinished != null)
+                onValueDragFinished();
+        }
+
+        void ValueDragStarted()
+        {
+            if (onValueDragStarted != null)
+                onValueDragStarted();
+        }
+
+        public Action onValueDragFinished;
+        public Action onValueDragStarted;
+
         void CreateTextField()
         {
             m_Fields = new FloatField[componentCount];
@@ -57,6 +74,10 @@ namespace UnityEditor.VFX.UI
                 m_Fields[i].control.AddToClassList("fieldContainer");
                 m_Fields[i].AddToClassList("fieldContainer");
                 m_Fields[i].RegisterCallback<ChangeEvent<float>, int>(OnValueChanged, i);
+
+
+                m_Fields[i].onValueDragFinished = t => ValueDragFinished();
+                m_Fields[i].onValueDragStarted = t => ValueDragStarted();
 
                 m_FieldParents[i] = new VisualElement {name = "FieldParent" };
                 m_FieldParents[i].Add(m_Fields[i]);
