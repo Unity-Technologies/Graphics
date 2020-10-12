@@ -19,7 +19,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_4_
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-androidtargetarchitecture=ARM64" --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --reruncount=2 --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-androidtargetarchitecture=ARM64" --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -90,7 +90,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_4_
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-androidtargetarchitecture=ARM64" --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --reruncount=2 --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-androidtargetarchitecture=ARM64" --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -162,7 +162,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_4_
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-androidtargetarchitecture=ARM64" --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --reruncount=2 --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-androidtargetarchitecture=ARM64" --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
