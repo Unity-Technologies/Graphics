@@ -36,18 +36,15 @@ namespace UnityEditor.VFX
                     foreach (var dist in radiusDirections)
                     {
                         EditorGUI.BeginChangeCheck();
-                        Vector3 sliderPos = dist * circle.radius;
-                        Vector3 result = Handles.Slider(sliderPos, dist, cpt < countVisible ? (handleSize * HandleUtility.GetHandleSize(sliderPos)) : 0, Handles.CubeHandleCap, 0);
+                        var sliderPos = dist * circle.radius;
+                        var result = Handles.Slider(sliderPos, dist, cpt++ < countVisible ? (handleSize * HandleUtility.GetHandleSize(sliderPos)) : 0.0f, Handles.CubeHandleCap, 0.0f);
 
-                        ++cpt;
                         if (EditorGUI.EndChangeCheck())
                         {
-                            circle.radius = (result - circle.center).magnitude;
-
+                            circle.radius = result.magnitude;
                             if (float.IsNaN(circle.radius))
-                            {
                                 circle.radius = 0;
-                            }
+
                             radiusProperty.SetValue(circle.radius);
                         }
                     }
