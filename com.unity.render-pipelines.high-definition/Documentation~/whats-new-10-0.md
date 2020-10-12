@@ -285,8 +285,7 @@ Ray tracing now supports VR. However, since ray tracing is resource intensive an
 
 ### Render Graph
 
-HDRP now internally uses a Render Graph system. This has no impact on features visible to the users but it should improve overall memory usage significantly. In the new HDRP template, the GPU memory usage decreased by 25%.
-In case of regression we have missed in our testing, the old code path can be re-enabled in the rendering debug window.
+HDRP now internally uses a Render Graph system. This has no impact on features available to you and it should improve overall memory usage significantly. In the new HDRP template, GPU memory usage decreased by 25%.
 
 ## Issues resolved
 
