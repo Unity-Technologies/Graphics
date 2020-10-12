@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [10.1.0] - 2019-08-04
+## [10.1.0] - 2020-10-12
 
 ### Added
 - Added an option to have only the metering mask displayed in the debug mode.
@@ -149,7 +149,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed screen corruption on xbox when using TAA and Motion Blur with rendergraph. 
 - Fixed UX issue in the graphics compositor related to clear depth and the defaults for new layers, add better tooltips and fix minor bugs (case 1283904)
 - Fixed scene visibility not working for custom pass volumes.
-- Fix TAA flickering on the very edge of screen. 
+- Fixed issue with several override entries in the runtime debug menu. 
+- Fixed issue with rendergraph failing to execute every 30 minutes. 
+- Fixed Lit ShaderGraph surface option property block to only display transmission and energy conserving specular color options for their proper material mode (case 1257050)
+- Fixed nan in reflection probe when volumetric fog filtering is enabled, causing the whole probe to be invalid.
+- Fixed Debug Color pixel became grey
+- Fixed TAA flickering on the very edge of screen. 
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
@@ -183,6 +188,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Meshes assigned with a decal material are not visible anymore in ray-tracing or path-tracing.
 - Removed BLEND shader keywords.
 - Remove a rendergraph debug option to clear resources on release from UI.
+- added SV_PrimitiveID in the VaryingMesh structure for fulldebugscreenpass as well as primitiveID in FragInputs
 
 ## [10.0.0] - 2019-06-10
 
