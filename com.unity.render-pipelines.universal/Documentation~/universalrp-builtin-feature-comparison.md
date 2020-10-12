@@ -5,8 +5,8 @@ This table provides an overview of the current features supported in the Univers
 **Note:** If a feature is marked __In research__, the URP team is still researching how and when to implement the feature. If a feature is marked as __Not supported__, it's because Unity is not planning to support it in any release. 
 
 
-| Feature                                                      | Built-in Render Pipeline<br/>Unity 2019.x                               | Universal Render Pipeline                                    |
-| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Feature | Built-in Render Pipeline<br/>Unity 2018.x, 2019.x, 2020.x. | Universal Render Pipeline |
+| --- | --- | --- |
 | ***Camera***                                                 |                                                              |                                                              |
 | HDR rendering                                                | Yes                                                          | Yes                                                          |
 | HDR output                                                   | Yes                                                          | In research                                                  |
