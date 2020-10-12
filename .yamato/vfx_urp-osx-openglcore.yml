@@ -15,12 +15,13 @@ VFX_URP_OSX_OpenGLCore_playmode_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/VisualEffectGraph_URP && ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
 VFX_URP_OSX_OpenGLCore_playmode_2020.2:
     name: VFX_URP on OSX_OpenGLCore_playmode on version 2020.2
     agent:
@@ -33,12 +34,13 @@ VFX_URP_OSX_OpenGLCore_playmode_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli -u 93d432f0d085a8671a6c8a331ec8bdccb5c076ef -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/VisualEffectGraph_URP && ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
 VFX_URP_OSX_OpenGLCore_playmode_CUSTOM-REVISION:
     name: VFX_URP on OSX_OpenGLCore_playmode on version CUSTOM-REVISION
     agent:
@@ -58,6 +60,7 @@ VFX_URP_OSX_OpenGLCore_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always

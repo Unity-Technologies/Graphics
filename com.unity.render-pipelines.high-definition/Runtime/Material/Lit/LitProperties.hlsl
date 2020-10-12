@@ -112,6 +112,7 @@ float _DistortionVectorBias;
 float _DistortionBlurScale;
 float _DistortionBlurRemapMin;
 float _DistortionBlurRemapMax;
+float _BlendMode;
 
 float _PPDMaxSamples;
 float _PPDMinSamples;

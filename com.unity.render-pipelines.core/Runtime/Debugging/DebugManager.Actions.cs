@@ -1,5 +1,5 @@
 #if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
-#define USE_INPUT_SYSTEM
+    #define USE_INPUT_SYSTEM
     using UnityEngine.InputSystem;
     using UnityEngine.InputSystem.Controls;
 #endif
@@ -40,9 +40,14 @@ namespace UnityEngine.Rendering
         const string kDPadHorizontal   = "Debug Horizontal";
         const string kMultiplierBtn    = "Debug Multiplier";
         const string kResetBtn         = "Debug Reset";
+        const string kEnableDebug      = "Enable Debug";
 
         DebugActionDesc[] m_DebugActions;
         DebugActionState[] m_DebugActionStates;
+
+#if USE_INPUT_SYSTEM
+        InputActionMap debugActionMap = new InputActionMap("Debug Menu");
+#endif
 
         void RegisterActions()
         {
@@ -50,45 +55,96 @@ namespace UnityEngine.Rendering
             m_DebugActionStates = new DebugActionState[(int)DebugAction.DebugActionCount];
 
             var enableDebugMenu = new DebugActionDesc();
+#if USE_INPUT_SYSTEM
+            enableDebugMenu.buttonAction = debugActionMap.FindAction(kEnableDebug);
+#else
             enableDebugMenu.buttonTriggerList.Add(new[] { kEnableDebugBtn1, kEnableDebugBtn2 });
             enableDebugMenu.keyTriggerList.Add(new[] { KeyCode.LeftControl, KeyCode.Backspace });
+#endif
             enableDebugMenu.repeatMode = DebugActionRepeatMode.Never;
             AddAction(DebugAction.EnableDebugMenu, enableDebugMenu);
 
             var resetDebugMenu = new DebugActionDesc();
-            resetDebugMenu.buttonTriggerList.Add(new[] { kResetBtn, kEnableDebugBtn2 });
+#if USE_INPUT_SYSTEM
+            resetDebugMenu.buttonAction = debugActionMap.FindAction(kResetBtn);
+#else
             resetDebugMenu.keyTriggerList.Add(new[] { KeyCode.LeftAlt, KeyCode.Backspace });
+            resetDebugMenu.buttonTriggerList.Add(new[] { kResetBtn, kEnableDebugBtn2 });
+#endif
             resetDebugMenu.repeatMode = DebugActionRepeatMode.Never;
             AddAction(DebugAction.ResetAll, resetDebugMenu);
 
             var nextDebugPanel = new DebugActionDesc();
+#if USE_INPUT_SYSTEM
+            nextDebugPanel.buttonAction = debugActionMap.FindAction(kDebugNextBtn);
+#else
             nextDebugPanel.buttonTriggerList.Add(new[] { kDebugNextBtn });
+#endif
             nextDebugPanel.repeatMode = DebugActionRepeatMode.Never;
             AddAction(DebugAction.NextDebugPanel, nextDebugPanel);
 
             var previousDebugPanel = new DebugActionDesc();
+#if USE_INPUT_SYSTEM
+            previousDebugPanel.buttonAction = debugActionMap.FindAction(kDebugPreviousBtn);
+#else
             previousDebugPanel.buttonTriggerList.Add(new[] { kDebugPreviousBtn });
+#endif
             previousDebugPanel.repeatMode = DebugActionRepeatMode.Never;
             AddAction(DebugAction.PreviousDebugPanel, previousDebugPanel);
 
             var validate = new DebugActionDesc();
+#if USE_INPUT_SYSTEM
+            validate.buttonAction = debugActionMap.FindAction(kValidateBtn);
+#else
             validate.buttonTriggerList.Add(new[] { kValidateBtn });
+#endif
             validate.repeatMode = DebugActionRepeatMode.Never;
             AddAction(DebugAction.Action, validate);
 
             var persistent = new DebugActionDesc();
+#if USE_INPUT_SYSTEM
+            persistent.buttonAction = debugActionMap.FindAction(kPersistentBtn);
+#else
             persistent.buttonTriggerList.Add(new[] { kPersistentBtn });
+#endif
             persistent.repeatMode = DebugActionRepeatMode.Never;
             AddAction(DebugAction.MakePersistent, persistent);
 
             var multiplier = new DebugActionDesc();
+#if USE_INPUT_SYSTEM
+            multiplier.buttonAction = debugActionMap.FindAction(kMultiplierBtn);
+#else
             multiplier.buttonTriggerList.Add(new[] { kMultiplierBtn });
+#endif
             multiplier.repeatMode = DebugActionRepeatMode.Delay;
             validate.repeatDelay = 0f;
+
             AddAction(DebugAction.Multiplier, multiplier);
 
-            AddAction(DebugAction.MoveVertical, new DebugActionDesc { axisTrigger = kDPadVertical, repeatMode = DebugActionRepeatMode.Delay, repeatDelay = 0.16f });
-            AddAction(DebugAction.MoveHorizontal, new DebugActionDesc { axisTrigger = kDPadHorizontal, repeatMode = DebugActionRepeatMode.Delay, repeatDelay = 0.16f });
+            var moveVertical = new DebugActionDesc();
+#if USE_INPUT_SYSTEM
+            moveVertical.buttonAction = debugActionMap.FindAction(kDPadVertical);
+#else
+            moveVertical.axisTrigger = kDPadVertical;
+#endif
+            moveVertical.repeatMode = DebugActionRepeatMode.Delay;
+            moveVertical.repeatDelay = 0.16f;
+            AddAction(DebugAction.MoveVertical, moveVertical);
+
+            var moveHorizontal = new DebugActionDesc();
+#if USE_INPUT_SYSTEM
+            moveHorizontal.buttonAction = debugActionMap.FindAction(kDPadHorizontal);
+#else
+            moveHorizontal.axisTrigger = kDPadHorizontal;
+#endif
+            moveHorizontal.repeatMode = DebugActionRepeatMode.Delay;
+            moveHorizontal.repeatDelay = 0.16f;
+            AddAction(DebugAction.MoveHorizontal, moveHorizontal);
+
+#if USE_INPUT_SYSTEM
+            foreach (var action in debugActionMap)
+                action.Enable();
+#endif
         }
 
         void AddAction(DebugAction action, DebugActionDesc desc)
@@ -104,7 +160,17 @@ namespace UnityEngine.Rendering
             var state = m_DebugActionStates[actionIndex];
 
 // Disable all input events if we're using the new input system
-#if ENABLE_LEGACY_INPUT_MANAGER
+#if USE_INPUT_SYSTEM
+            if (state.runningAction == false)
+            {
+                if (desc.buttonAction != null)
+                {
+                    var value = desc.buttonAction.ReadValue<float>();
+                    if (!Mathf.Approximately(value, 0))
+                        state.TriggerWithButton(desc.buttonAction, value);
+                }
+            }
+#elif ENABLE_LEGACY_INPUT_MANAGER
             //bool canSampleAction = (state.actionTriggered == false) || (desc.repeatMode == DebugActionRepeatMode.Delay && state.timer > desc.repeatDelay);
             if (state.runningAction == false)
             {
@@ -157,8 +223,7 @@ namespace UnityEngine.Rendering
                     }
                 }
             }
-#elif USE_INPUT_SYSTEM
-        // TODO: make the new input system work
+
 #endif
         }
 
@@ -206,14 +271,69 @@ namespace UnityEngine.Rendering
 
             InputRegistering.RegisterInputs(inputEntries);
 #endif
+
+#if USE_INPUT_SYSTEM
+            // Register input system actions
+            var enableAction = debugActionMap.AddAction(kEnableDebug, type: InputActionType.Button);
+            enableAction.AddCompositeBinding("ButtonWithOneModifier")
+                .With("Modifier", "<Gamepad>/rightStickPress")
+                .With("Button", "<Gamepad>/leftStickPress")
+                .With("Modifier", "<Keyboard>/leftCtrl")
+                .With("Button", "<Keyboard>/backspace");
+
+            var resetAction = debugActionMap.AddAction(kResetBtn, type: InputActionType.Button);
+            resetAction.AddCompositeBinding("ButtonWithOneModifier")
+                .With("Modifier", "<Gamepad>/rightStickPress")
+                .With("Button", "<Gamepad>/b")
+                .With("Modifier", "<Keyboard>/leftAlt")
+                .With("Button", "<Keyboard>/backspace");
+
+            var next = debugActionMap.AddAction(kDebugNextBtn, type: InputActionType.Button);
+            next.AddBinding("<Keyboard>/pageDown");
+            next.AddBinding("<Gamepad>/rightShoulder");
+
+            var previous = debugActionMap.AddAction(kDebugPreviousBtn, type: InputActionType.Button);
+            previous.AddBinding("<Keyboard>/pageUp");
+            previous.AddBinding("<Gamepad>/leftShoulder");
+
+            var validateAction = debugActionMap.AddAction(kValidateBtn, type: InputActionType.Button);
+            validateAction.AddBinding("<Keyboard>/enter");
+            validateAction.AddBinding("<Gamepad>/a");
+
+            var persistentAction = debugActionMap.AddAction(kPersistentBtn, type: InputActionType.Button);
+            persistentAction.AddBinding("<Keyboard>/rightShift");
+            persistentAction.AddBinding("<Gamepad>/x");
+
+            var multiplierAction = debugActionMap.AddAction(kMultiplierBtn, type: InputActionType.Value);
+            multiplierAction.AddBinding("<Keyboard>/leftShift");
+            multiplierAction.AddBinding("<Gamepad>/y");
+
+            var moveVerticalAction = debugActionMap.AddAction(kDPadVertical);
+            moveVerticalAction.AddCompositeBinding("1DAxis")
+                .With("Positive", "<Gamepad>/dpad/up")
+                .With("Negative", "<Gamepad>/dpad/down")
+                .With("Positive", "<Keyboard>/upArrow")
+                .With("Negative", "<Keyboard>/downArrow");
+
+            var moveHorizontalAction = debugActionMap.AddAction(kDPadHorizontal);
+            moveHorizontalAction.AddCompositeBinding("1DAxis")
+                .With("Positive", "<Gamepad>/dpad/right")
+                .With("Negative", "<Gamepad>/dpad/left")
+                .With("Positive", "<Keyboard>/rightArrow")
+                .With("Negative", "<Keyboard>/leftArrow");
+#endif
         }
     }
 
     class DebugActionDesc
     {
-        public List<string[]> buttonTriggerList = new List<string[]>();
+#if USE_INPUT_SYSTEM
+        public InputAction buttonAction = null;
+#else
         public string axisTrigger = "";
+        public List<string[]> buttonTriggerList = new List<string[]>();
         public List<KeyCode[]> keyTriggerList = new List<KeyCode[]>();
+#endif
         public DebugActionRepeatMode repeatMode = DebugActionRepeatMode.Never;
         public float repeatDelay;
     }
@@ -228,9 +348,13 @@ namespace UnityEngine.Rendering
         }
 
         DebugActionKeyType m_Type;
+#if USE_INPUT_SYSTEM
+        InputAction inputAction;
+#else
         string[] m_PressedButtons;
         string m_PressedAxis = "";
         KeyCode[] m_PressedKeys;
+#endif
         bool[] m_TriggerPressedUp;
         float m_Timer;
 
@@ -248,6 +372,13 @@ namespace UnityEngine.Rendering
                 m_TriggerPressedUp[i] = false;
         }
 
+#if USE_INPUT_SYSTEM
+        public void TriggerWithButton(InputAction action, float state)
+        {
+            inputAction = action;
+            Trigger(action.bindings.Count, state);
+        }
+#else
         public void TriggerWithButton(string[] buttons, float state)
         {
             m_Type = DebugActionKeyType.Button;
@@ -270,6 +401,7 @@ namespace UnityEngine.Rendering
             m_PressedAxis = "";
             Trigger(keys.Length, state);
         }
+#endif
 
         void Reset()
         {
@@ -289,12 +421,17 @@ namespace UnityEngine.Rendering
 
                 for (int i = 0; i < m_TriggerPressedUp.Length; ++i)
                 {
+#if USE_INPUT_SYSTEM
+                    if (inputAction != null)
+                        m_TriggerPressedUp[i] |= Mathf.Approximately(inputAction.ReadValue<float>(), 0f);
+#else
                     if (m_Type == DebugActionKeyType.Button)
                         m_TriggerPressedUp[i] |= Input.GetButtonUp(m_PressedButtons[i]);
                     else if (m_Type == DebugActionKeyType.Axis)
                         m_TriggerPressedUp[i] |= Mathf.Approximately(Input.GetAxis(m_PressedAxis), 0f);
                     else
                         m_TriggerPressedUp[i] |= Input.GetKeyUp(m_PressedKeys[i]);
+#endif
                 }
 
                 bool allTriggerUp = true;

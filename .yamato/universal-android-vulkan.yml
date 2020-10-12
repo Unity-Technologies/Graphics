@@ -25,6 +25,7 @@ Universal_Android_Vulkan_Standalone_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/universal-android-vulkan.yml#Build_Universal_Android_Vulkan_Player_trunk
          rerun: on-new-revision
@@ -40,12 +41,13 @@ Build_Universal_Android_Vulkan_Player_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=il2cpp --timeout=1800 --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -71,6 +73,7 @@ Universal_Android_Vulkan_Standalone_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/universal-android-vulkan.yml#Build_Universal_Android_Vulkan_Player_2020.2
          rerun: on-new-revision
@@ -86,12 +89,13 @@ Build_Universal_Android_Vulkan_Player_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 93d432f0d085a8671a6c8a331ec8bdccb5c076ef -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=il2cpp --timeout=1800 --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -118,6 +122,7 @@ Universal_Android_Vulkan_Standalone_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
@@ -142,6 +147,7 @@ Build_Universal_Android_Vulkan_Player_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
         players:
             paths:
               -  "players/**"
