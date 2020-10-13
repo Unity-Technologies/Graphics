@@ -3,6 +3,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
     HLSLINCLUDE
         #pragma exclude_renderers gles
         #pragma multi_compile_local _ _USE_RGBM
+        #pragma multi_compile _ _USE_FAST_SRGB_LINEAR_CONVERSION
         #pragma multi_compile _ _USE_DRAW_PROCEDURAL
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -85,7 +86,11 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
         #endif
 
         #if UNITY_COLORSPACE_GAMMA
+            #if _USE_FAST_SRGB_LINEAR_CONVERSION
+            color = FastSRGBToLinear(color);
+            #else
             color = SRGBToLinear(color);
+            #endif
         #endif
 
             // User controlled clamp to limit crazy high broken spec
