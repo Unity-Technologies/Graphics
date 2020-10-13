@@ -13,9 +13,6 @@
 // NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
 CBUFFER_START(UnityPerMaterial)
 float4 _BaseMap_ST;
-#if defined(_DETAIL)
-float4 _DetailAlbedoMap_ST;
-#endif
 half4 _BaseColor;
 half4 _SpecColor;
 half4 _EmissionColor;
@@ -27,10 +24,9 @@ half _Parallax;
 half _OcclusionStrength;
 half _ClearCoatMask;
 //half _ClearCoatSmoothness; // TODO: enable
-#if defined(_DETAIL)
+float4 _DetailAlbedoMap_ST;
 half _DetailAlbedoMapScale;
 half _DetailNormalMapScale;
-#endif
 CBUFFER_END
 
 // NOTE: Do not ifdef the properties for dots instancing, but ifdef the actual usage.
