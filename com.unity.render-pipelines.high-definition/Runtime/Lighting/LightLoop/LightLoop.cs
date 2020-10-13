@@ -532,7 +532,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public uint         _DensityVolumeIndexShift;
         public uint         _ProbeVolumeIndexShift;
-        public uint         _BinCoarseXYDispatchGroupCountX;
+        public uint         _Pad0_SVLL;
         public uint         _Pad1_SVLL;
     }
 
@@ -3643,10 +3643,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 ConstantBuffer.Push(cmd, parameters.lightListCB, shader, HDShaderIDs._ShaderVariablesLightList);
 
-                const int groupSize = 8; // Shader: GROUP_SIZE (8)
+                const int threadsPerGroup = 64; // Shader: THREADS_PER_GROUP  (64)
 
-                int groupCount = HDUtils.DivRoundUp(parameters.coarseTileBufferDimensions.x, groupSize)
-                               * HDUtils.DivRoundUp(parameters.coarseTileBufferDimensions.y, groupSize);
+                int bufferSize = parameters.coarseTileBufferDimensions.x * parameters.coarseTileBufferDimensions.y;
+                int groupCount = HDUtils.DivRoundUp(bufferSize, threadsPerGroup);
 
                 cmd.DispatchCompute(shader, kernel, groupCount, (int)BoundedEntityCategory.Count, parameters.viewCount);
 
@@ -3916,7 +3916,6 @@ namespace UnityEngine.Rendering.HighDefinition
             const int binCoarseXYDispatchGroupSize = 8; // GROUP_SIZE in the shader
 
             cb._BoundedEntityCount = (uint)boundedEntityCount;
-            cb._BinCoarseXYDispatchGroupCountX = (uint)HDUtils.DivRoundUp(coarseTileBufferDimensions.x, binCoarseXYDispatchGroupSize);
             cb.g_screenSize = hdCamera.screenSize; // TODO remove and use global one.
             cb.g_viDimensions = new Vector2Int((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y);
             cb.g_isOrthographic = camera.orthographic ? 1u : 0u;

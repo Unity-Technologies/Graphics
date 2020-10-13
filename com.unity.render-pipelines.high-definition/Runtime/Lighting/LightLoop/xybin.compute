@@ -71,23 +71,26 @@ bool IntervalsOverlap(float2 i1, float2 i2)
     #error "COARSE_TILE_ENTITY_LIMIT must be an integer multiple of 2."
 #endif
 
-#define GROUP_SIZE (8)
+#define THREADS_PER_GROUP (64)
 
-[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
-void BinCoarseXY(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+[numthreads(THREADS_PER_GROUP, 1, 1)]
+void BinCoarseXY(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 {
-    const uint2 t   = threadID.xy; // 8x8 block for locality (reduce divergence)
-    const uint  g   = groupID.x;
-    const uint  cat = groupID.y;
-    const uint  eye = groupID.z;
+    // We could tile the threads in 8x8 blocks. The problem is,
+    // the size of the buffer is already quite small. The extra padding
+    // (helper threads) required outweights the benefits (reduced divergence).
+    const uint t   = threadID;
+    const uint g   = groupID.x;
+    const uint cat = groupID.y;
+    const uint eye = groupID.z;
 
-    const uint2 groupCoord       = CoordinateFromIndex(g, _BinCoarseXYDispatchGroupCountX);
-    const uint2 tileCoord        = groupCoord * GROUP_SIZE + t;
-    const uint2 clampedTileCoord = min(tileCoord, (uint2)_CoarseTileBufferDimensions - 1); // Stay within bounds
+    const uint  tileIndex        = IndexFromCoordinate(uint2(t, g), THREADS_PER_GROUP);
+    const uint  clampedTileIndex = min(tileIndex, (uint)(_CoarseTileBufferDimensions.x * _CoarseTileBufferDimensions.y - 1));
+    const uint2 clampedTileCoord = CoordinateFromIndex(clampedTileIndex, (uint)_CoarseTileBufferDimensions.x);
 
     // Helper threads may perform the same computation on valid data,
     // but do not store the results of the computation to memory.
-    const bool isHelperThread = any(tileCoord != clampedTileCoord);
+    const bool isHelperThread = tileIndex != clampedTileIndex;
 
     if (isHelperThread) return; // Avoid adding too many checks or branches below
 
@@ -158,13 +161,13 @@ void BinCoarseXY(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
     }
 }
 
-[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+[numthreads(THREADS_PER_GROUP, 1, 1)]
 void PruneCoarseXY(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 {
 
 }
 
-[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+[numthreads(THREADS_PER_GROUP, 1, 1)]
 void BinFineXY(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 {
 

@@ -94,6 +94,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     const uint g   = groupID.x;
     const uint cat = groupID.y;
     const uint eye = groupID.z;
+
     const uint bin = IndexFromCoordinate(uint2(t, g), THREADS_PER_GROUP);
 
     // Entities are sorted by category.
