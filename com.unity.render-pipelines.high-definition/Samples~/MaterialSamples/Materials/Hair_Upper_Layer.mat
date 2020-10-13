@@ -257,7 +257,7 @@ Material:
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
     - _Smoothness: 0.5
-    - _SmoothnessMax: 0.7
+    - _SmoothnessMax: 0.6
     - _SmoothnessMin: 0.3
     - _SmoothnessRemapMax: 0.722
     - _SmoothnessRemapMin: 0.611
@@ -287,7 +287,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _TransmissionEnable: 1
     - _TransmissionRim: 0.2
-    - _TransmissionValue: 0.3
+    - _TransmissionValue: 0.6
     - _TransparentBackfaceEnable: 1
     - _TransparentCullMode: 2
     - _TransparentDepthPostpassEnable: 0
