@@ -3913,8 +3913,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Vector2Int coarseTileBufferDimensions = GetCoarseTileBufferDimensions(hdCamera);
 
-            const int binCoarseXYDispatchGroupSize = 8; // GROUP_SIZE in the shader
-
             cb._BoundedEntityCount = (uint)boundedEntityCount;
             cb.g_screenSize = hdCamera.screenSize; // TODO remove and use global one.
             cb.g_viDimensions = new Vector2Int((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y);
