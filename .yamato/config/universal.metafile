@@ -11,14 +11,6 @@ test_platforms:
   - type: playmode
   - type: editmode
   - type: playmode
-    name: playmode_perf_build
-    extra_utr_flags:
-      - [all]: --scripting-backend=il2cpp
-      - [all]: --timeout=1200
-      - [all]: --performance-project-id=URP_Performance
-      - [all]: --testfilter=Build
-      - [all]: --suite=Editor
-  - type: playmode
     name: playmode_XR
     extra_utr_flags:
       - [all]: --extra-editor-arg="-xr-tests" 

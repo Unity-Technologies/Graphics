@@ -34,7 +34,7 @@ Build_Universal_Hybrid_Win_DX11_Player_mono_2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalHybridTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalHybridTest && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalHybridTest && utr --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11" --compilation-errors-as-warnings
+      -  cd TestProjects/UniversalHybridTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsDX11Linear" --compilation-errors-as-warnings
     artifacts:
         logs:
             paths:
@@ -110,7 +110,7 @@ Build_Universal_Hybrid_Win_DX11_Player_mono_2_Linear_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalHybridTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalHybridTest && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalHybridTest && utr --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11" --compilation-errors-as-warnings
+      -  cd TestProjects/UniversalHybridTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsDX11Linear" --compilation-errors-as-warnings
     artifacts:
         logs:
             paths:
@@ -190,7 +190,7 @@ Build_Universal_Hybrid_Win_DX11_Player_mono_2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalHybridTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalHybridTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalHybridTest && utr --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11" --compilation-errors-as-warnings
+      -  cd TestProjects/UniversalHybridTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsDX11Linear" --compilation-errors-as-warnings
     artifacts:
         logs:
             paths:
