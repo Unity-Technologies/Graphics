@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed camera backgrounds not matching between editor and build when background is set to 'Uninitialized'. [case 1224369](https://issuetracker.unity3d.com/issues/urp-uninitialized-camera-background-type-does-not-match-between-the-build-and-game-view)
 - Fixed an issue where Pixel lighting variants were stripped in builds if another URP asset had Additional Lights set to Per Vertex [case 1263514](https://issuetracker.unity3d.com/issues/urp-all-pixel-lighting-variants-are-stripped-in-build-if-at-least-one-urp-asset-has-additional-lights-set-to-per-vertex)
 - Fixed an issue where transparent meshes were rendered opaque when using custom render passes [case 1262887](https://issuetracker.unity3d.com/issues/urp-transparent-meshes-are-rendered-as-opaques-when-using-lit-shader-with-custom-render-pass)
+- Fixed Missing camera cannot be removed after scene is saved by removing the Missing camera label. [case 1252255](https://issuetracker.unity3d.com/issues/universal-rp-missing-camera-cannot-be-removed-from-camera-stack-after-scene-is-saved)
+- Fixed MissingReferenceException when removing Missing camera from camera stack by removing Missing camera label. [case 1252263](https://issuetracker.unity3d.com/issues/universal-rp-missingreferenceexception-errors-when-removing-missing-camera-from-stack)
 
 ## [7.5.1] - 2020-09-02
 
