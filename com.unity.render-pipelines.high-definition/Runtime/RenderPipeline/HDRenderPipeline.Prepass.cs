@@ -846,6 +846,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void DecalNormalPatch(RenderGraph renderGraph, HDCamera hdCamera, ref PrepassOutput output)
         {
+            // Integrated Intel GPU on Mac don't support the texture format use for normal (RGBA_8UNORM) for SetRandomWriteTarget
+            // So on Metal for now we don't patch normal buffer if we detect an intel GPU
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal && SystemInfo.graphicsDeviceName.Contains("Intel"))
+            {
+                return;
+            }
+
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals) &&
                 !hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)) // MSAA not supported
             {
@@ -876,7 +883,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthTexture;
             public TextureHandle downsampledDepthBuffer;
 
-            // Data needed for potentially writing 
+            // Data needed for potentially writing
             public Vector2Int mip0Offset;
             public bool computesMip1OfAtlas;
         }
