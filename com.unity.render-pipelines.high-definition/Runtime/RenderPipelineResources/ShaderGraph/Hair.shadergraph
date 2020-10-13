@@ -1311,7 +1311,7 @@
             "m_Guid": ""
         }
     },
-    "m_Path": "HDRP/Character Materials",
+    "m_Path": "HDRP",
     "m_ConcretePrecision": 0,
     "m_OutputNode": {
         "m_Id": ""
