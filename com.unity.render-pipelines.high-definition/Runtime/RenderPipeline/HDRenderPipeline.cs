@@ -4765,8 +4765,6 @@ namespace UnityEngine.Rendering.HighDefinition
             var cs = parameters.ssrCS;
             bool usePBRAlgo = parameters.usePBRAlgo;
 
-            hdCamera.AllocateScreenSpaceAccumulationHistoryBuffer(1.0f); // SSR is computed on fullscreen == 1.0f
-
             if (!usePBRAlgo)
             {
                 CoreUtils.SetKeyword(cmd, "SSR_APPROX", true);
@@ -4885,6 +4883,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
+                hdCamera.AllocateScreenSpaceAccumulationHistoryBuffer(1.0f);
+
                 RTHandle ssrAccumulation = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation);
                 RTHandle ssrAccumulationPrev = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation);
 
@@ -4930,6 +4930,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // However if the generated HTile will be used for something else but SSR, this should be made NOT resolve only and
                 // re-enabled in the shader.
                 BuildCoarseStencilAndResolveIfNeeded(hdCamera, cmd, resolveOnly: true);
+
+                hdCamera.AllocateScreenSpaceAccumulationHistoryBuffer(1.0f);
 
                 RTHandle ssrAccumulation = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation);
                 RTHandle ssrAccumulationPrev = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation);

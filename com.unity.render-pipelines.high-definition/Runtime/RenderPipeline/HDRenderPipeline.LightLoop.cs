@@ -441,6 +441,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     builder.EnableAsyncCompute(hdCamera.frameSettings.SSRRunsAsync());
 
+                    hdCamera.AllocateScreenSpaceAccumulationHistoryBuffer(1.0f);
+
                     var colorPyramid = renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain));
 
                     var ssrAccum = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation));
@@ -465,19 +467,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     // and much faster than fully overwriting them from within SSR shaders.
                     passData.hitPointsTexture = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
                         { colorFormat = GraphicsFormat.R16G16_UNorm, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = transparent ? "SSR_Hit_Point_Texture_Trans" : "SSR_Hit_Point_Texture" });
-                    //    { colorFormat = GraphicsFormat.ARGBFloat, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Debug_Texture" }));
-                    //passData.lightingTexture = builder.WriteTexture(ssrAccum);
-                    ////passData.ssrAccum = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    ////    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Lighting_Texture" });
-                    //passData.ssrAccum = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    //{ colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Lighting_Texture" });
-                    //passData.ssrAccumPrev = builder.WriteTexture(ssrAccumPrev);
 
-                    //passData.lightingTexture = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    //{ colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = transparent ? "SSR_Lighting_Texture_Trans" : "SSR_Lighting_Texture" });
                     passData.ssrAccum = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
                         { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Lighting_Texture" });
-                    //passData.ssrAccum = builder.WriteTexture(ssrAccum);
                     passData.lightingTexture = builder.WriteTexture(ssrAccum);
                     passData.ssrAccumPrev = builder.WriteTexture(ssrAccumPrev);
 
