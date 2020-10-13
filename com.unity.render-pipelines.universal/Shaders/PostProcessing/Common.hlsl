@@ -175,7 +175,11 @@ half3 ApplyDithering(half3 input, float2 uv, TEXTURE2D_PARAM(BlueNoiseTexture, B
 #if UNITY_COLORSPACE_GAMMA
     input += noise / 255.0;
 #else
+    #if _USE_FAST_SRGB_LINEAR_CONVERSION
+    input = FastSRGBToLinear(FastLinearToSRGB(input) + noise / 255.0);
+    #else
     input = SRGBToLinear(LinearToSRGB(input) + noise / 255.0);
+    #endif
 #endif
 
     return input;
