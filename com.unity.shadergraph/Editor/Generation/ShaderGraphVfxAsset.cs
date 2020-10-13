@@ -120,6 +120,7 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             get
             {
+                EnsureProperties();
                 return m_Data.m_Properties.SelectValue().ToList();
             }
         }
@@ -135,7 +136,6 @@ namespace UnityEditor.ShaderGraph.Internal
             var json = MultiJson.Serialize(m_Data);
             m_SerializedVfxAssetData = new SerializationHelper.JSONSerializedElement() { JSONnodeData = json };
             m_Data = null;
-            EnsureProperties();
         }
 
         void EnsureProperties()
@@ -155,7 +155,6 @@ namespace UnityEditor.ShaderGraph.Internal
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
             m_Data = null;
-            EnsureProperties();
         }
 
         void ISerializationCallbackReceiver.OnBeforeSerialize() { }

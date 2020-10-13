@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     // also change the layers
                     foreach(var layer in m_InputLayers)
                     {
-                        if (layer.camera)
+                        if (layer.camera && layer.isUsingACameraClone)
                         {
                             layer.camera.enabled = value;
                         }
@@ -522,11 +522,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         void OnDestroy()
         {
-            // We need to destroy the layers from last to first, to avoid releasing a RT that is used by a camera
-            for (int i = m_InputLayers.Count - 1; i >= 0; --i)
-            {
-                m_InputLayers[i].Destroy();
-            }
+            DeleteLayerRTs();
 
             if (m_CompositorGameObject != null)
             {
@@ -804,6 +800,11 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         /// <returns>Returns true if this camera is used to render in more than one layer</returns>
         internal bool IsThisCameraShared(Camera camera)
         {
+            if (camera == null)
+            {
+                return false;
+            }
+
             int count = 0;
             foreach (var layer in m_InputLayers)
             {

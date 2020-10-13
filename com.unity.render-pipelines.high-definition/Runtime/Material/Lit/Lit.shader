@@ -289,7 +289,6 @@ Shader "HDRP/Lit"
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
-    #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
     #pragma shader_feature_local _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
     #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
     #pragma shader_feature_local _TRANSPARENT_WRITES_MOTION_VEC
@@ -357,7 +356,7 @@ Shader "HDRP/Lit"
             Name "SceneSelectionPass"
             Tags { "LightMode" = "SceneSelectionPass" }
 
-            Cull Off
+            Cull[_CullMode]
 
             HLSLPROGRAM
 

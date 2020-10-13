@@ -76,3 +76,21 @@ If you have any Custom Function Nodes with custom Shader Graph Preview code that
 	Out = MainLight;
 #endif
 ```
+
+## Deprecated node and property behaviors
+
+Previously, some nodes and properties such as the [Color Node](Color-Node.md) didn't behave as intended, but they now work correctly in Shader Graph version 10.0. Older graphs that rely on the incorrect behavior still function the same as before, and you can choose to individually upgrade any deprecated nodes and properties. If you don't enable **Allow Deprecated Behaviors** in [Shader Graph Preferences](Shader-Graph-Preferences.md), newly-created nodes and properties use the latest version node and property behaviors.
+
+For deprecated nodes, **(Deprecated)** appears after the node title in the main graph view.
+
+![image](images/DeprecatedColorNode.png)
+
+For deprecated properties, **(Deprecated)** appears after the property name in the [Blackboard](Blackboard.md).
+
+![image](images/DeprecatedColorProperty.png)
+
+When you select a deprecated node or property, a warning appears in the [Internal Inspector](Internal-Inspector.md) along with an **Update** button that allows you to upgrade the selection. You can use undo/redo to reverse this upgrade process.
+
+![image](images/DeprecatedWarning.png)
+
+If you enable **Allow Deprecated Behaviors** in [Shader Graph Preferences](Shader-Graph-Preferences.md), Shader Graph displays the version of the deprecated node or property, and doesn't display any warnings even though the **Update** button appears. You can also use the Blackboard or Searcher to create deprecated nodes and properties.
