@@ -78,7 +78,7 @@ if __name__== "__main__":
     editor_tracks = shared['editors']
     latest_editor_versions = {}
     for editor in editor_tracks:
-        if str(editor['track']).lower()!='custom-revision':
+        if editor['editor_pinning']:
             latest_editor_versions[editor['track']] = yml_load(os.path.join(config_dir,f'_latest_editor_versions_{str(editor["track"])}.metafile'))
 
     # create editor

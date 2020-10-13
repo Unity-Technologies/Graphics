@@ -76,6 +76,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         [SerializeField] bool m_OverrideVolumeMask = false;
         [SerializeField] LayerMask m_VolumeMask;
 
+        public bool hasLayerOverrides => m_OverrideAntialiasing || m_OverrideCullingMask || m_OverrideVolumeMask || m_OverrideClearMode;
+
         [SerializeField] int m_LayerPositionInStack = 0;
 
         // Layer filters
@@ -149,14 +151,18 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             var newLayer = new CompositorLayer();
             newLayer.m_LayerName = layerName;
             newLayer.m_Type = type;
-            newLayer.m_OverrideCullingMask = true;
-            newLayer.m_CullingMask = 0; //LayerMask.GetMask("None");
             newLayer.m_Camera = CompositionManager.GetSceceCamera();
+            newLayer.m_CullingMask = newLayer.m_Camera? newLayer.m_Camera.cullingMask : 0; //LayerMask.GetMask("None");
             newLayer.m_OutputTarget = CompositorLayer.OutputTarget.CameraStack;
             newLayer.m_ClearDepth = true;
 
             if (newLayer.m_Type == LayerType.Image || newLayer.m_Type == LayerType.Video)
             {
+                // Image and movie layers do not render any 3D objects 
+                newLayer.m_OverrideCullingMask = true;
+                newLayer.m_CullingMask = 0;
+
+                // By default image and movie layers should not get any post-processing
                 newLayer.m_OverrideVolumeMask = true;
                 newLayer.m_VolumeMask = 0;
                 newLayer.m_ClearAlpha = false;
@@ -224,9 +230,13 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             // Create a new camera if necessary or use the one specified by the user
             if (m_LayerCamera == null && m_OutputTarget == OutputTarget.CameraStack)
             {
-                if (!compositor.IsThisCameraShared(m_Camera))
+                // We do not clone the camera if :
+                // - it has no layer overrides
+                // - is not shared between layers
+                // - is not used in an mage/video layer (in this case the camera is not exposed at all, so it makes sense to let the compositor manage it)
+                bool isImageOrVideo = (m_Type == LayerType.Image || m_Type == LayerType.Video);
+                if (!isImageOrVideo && !hasLayerOverrides && !compositor.IsThisCameraShared(m_Camera))
                 {
-                    // The camera is not shared, so it is safe to use it directly in the layer (no need to clone it)
                     m_LayerCamera = m_Camera;
                 }
                 else
@@ -246,19 +256,6 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     {
                         m_LayerCamera.tag = "Untagged";
                     }
-
-                    // Remove the compositor copy (if exists) from the cloned camera. This will happen if the compositor script was attached to the camera we are cloning 
-                    var compositionManager = m_LayerCamera.GetComponent<CompositionManager>();
-                    if (compositionManager != null)
-                    {
-                        CoreUtils.Destroy(compositionManager);
-                    }
-
-                    var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
-                    if (cameraData == null)
-                    {
-                        m_LayerCamera.gameObject.AddComponent(typeof(HDAdditionalCameraData));
-                    }
                 }
             }
             m_ClearsBackGround = false;
@@ -275,9 +272,12 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             if (m_OutputTarget != OutputTarget.CameraStack && m_RenderTarget == null)
             {
                 // If we don't have a valid camera (zero width or height) avoid creating the RT
-                if (pixelWidth > 0 && pixelHeight > 0)
+                if (compositor.outputCamera.pixelWidth > 0 && compositor.outputCamera.pixelHeight > 0)
                 {
-                    m_RenderTarget = new RenderTexture(pixelWidth, pixelHeight, 24, (GraphicsFormat)m_ColorBufferFormat);
+                    float resScale = EnumToScale(m_ResolutionScale);
+                    int scaledWidth = (int)(resScale * compositor.outputCamera.pixelWidth);
+                    int scaledHeight = (int)(resScale * compositor.outputCamera.pixelHeight);
+                    m_RenderTarget = new RenderTexture(scaledWidth, scaledHeight, 24, (GraphicsFormat)m_ColorBufferFormat);
                 }
             }
 
@@ -399,16 +399,24 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         public void DestroyRT()
         {
             // We should destroy the layer camera only if it was cloned
-            if (m_LayerCamera != null && isUsingACameraClone)
+            if (m_LayerCamera != null)
             {
-                var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
-                if (cameraData)
+                if (isUsingACameraClone)
                 {
-                    CoreUtils.Destroy(cameraData);
+                    var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
+                    if (cameraData)
+                    {
+                        CoreUtils.Destroy(cameraData);
+                    }
+                    m_LayerCamera.targetTexture = null;
+                    CoreUtils.Destroy(m_LayerCamera);
+                    m_LayerCamera = null;
                 }
-                m_LayerCamera.targetTexture = null;
-                CoreUtils.Destroy(m_LayerCamera);
-                m_LayerCamera = null;
+                else
+                {
+                    m_LayerCamera.targetTexture = null;
+                    m_LayerCamera = null;
+                }
             }
 
             if (m_RTHandle != null)
@@ -644,6 +652,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 }
                 else
                 {
+                    // First layer on the stack always clears depth
                     m_ClearDepth = true;
                 }
             }
