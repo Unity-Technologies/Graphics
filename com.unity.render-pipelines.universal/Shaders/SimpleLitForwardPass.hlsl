@@ -34,7 +34,10 @@ struct Varyings
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     float4 shadowCoord              : TEXCOORD7;
 #endif
+
+#if defined(_BACKFACE_VISIBLE)
     bool isFrontFace                : TEXCOORD8;
+#endif
 
     float4 positionCS               : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -107,7 +110,6 @@ Varyings LitPassVertexSimple(Attributes input)
     output.posWS.xyz = vertexInput.positionWS;
     output.positionCS = vertexInput.positionCS;
 
-    output.isFrontFace = true;
 #if defined(_BACKFACE_VISIBLE)
     output.isFrontFace = dot(viewDirWS, normalInput.normalWS) > 0;
 #endif
@@ -117,7 +119,12 @@ Varyings LitPassVertexSimple(Attributes input)
     output.tangent = half4(normalInput.tangentWS, viewDirWS.y);
     output.bitangent = half4(normalInput.bitangentWS, viewDirWS.z);
 #else
+
+#if defined(_BACKFACE_VISIBLE)
     output.normal = NormalizeNormalPerVertex(output.isFrontFace ? normalInput.normalWS : -normalInput.normalWS);
+#else
+    output.normal = NormalizeNormalPerVertex(normalInput.normalWS);
+#endif
     output.viewDir = viewDirWS;
 #endif
 

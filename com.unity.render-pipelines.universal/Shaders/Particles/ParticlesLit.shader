@@ -140,6 +140,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local _BACKFACE_VISIBLE
             #pragma shader_feature_local_fragment _EMISSION
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local _RECEIVE_SHADOWS_OFF

@@ -148,6 +148,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local _BACKFACE_VISIBLE
             #pragma shader_feature_local_fragment _EMISSION
             #pragma shader_feature_local_fragment _ _SPECGLOSSMAP _SPECULAR_COLOR
             #pragma shader_feature_local_fragment _GLOSSINESS_FROM_BASE_ALPHA

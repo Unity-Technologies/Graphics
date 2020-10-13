@@ -48,7 +48,9 @@ struct Varyings
 #if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
     float3 viewDirTS                : TEXCOORD8;
 #endif
+#if defined(_BACKFACE_VISIBLE)
     bool isFrontFace                : TEXCOORD9;
+#endif
 
     float4 positionCS               : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -79,7 +81,11 @@ void InitializeInputData(Varyings input, half3 normalTS, half3 doubleSidedConsta
 
     inputData.normalWS = TransformTangentToWorld(normalTS, tangentToWorld);
 #else
+#if defined(_BACKFACE_VISIBLE)
     inputData.normalWS = input.isFrontFace ? input.normalWS : -input.normalWS;
+#else
+    inputData.normalWS = input.normalWS;
+#endif
 #endif
 
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
@@ -125,7 +131,7 @@ Varyings LitPassVertex(Attributes input)
     half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
 
     output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
-    output.isFrontFace = true;
+
 #if defined(_BACKFACE_VISIBLE)
     output.isFrontFace = dot(viewDirWS, normalInput.normalWS) > 0;
 #endif
@@ -147,7 +153,12 @@ Varyings LitPassVertex(Attributes input)
 #endif
 
     OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
+
+#if defined(_BACKFACE_VISIBLE)
     OUTPUT_SH(output.isFrontFace ? output.normalWS : -output.normalWS, output.vertexSH);
+#else
+    OUTPUT_SH(output.normalWS, output.vertexSH);
+#endif
 
     output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 

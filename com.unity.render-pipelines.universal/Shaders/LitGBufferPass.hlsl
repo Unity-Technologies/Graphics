@@ -52,13 +52,16 @@ struct Varyings
 #if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
     float3 viewDirTS                : TEXCOORD8;
 #endif
+#if defined(_BACKFACE_VISIBLE)
+    bool isFrontFace                : TEXCOORD9;
+#endif
 
     float4 positionCS               : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData)
+void InitializeInputData(Varyings input, half3 normalTS, half3 doubleSidedConstants, out InputData inputData)
 {
     inputData = (InputData)0;
 
@@ -70,9 +73,23 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 #if defined(_NORMALMAP) || defined(_DETAIL)
     float sgn = input.tangentWS.w;      // should be either +1 or -1
     float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
-    inputData.normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz));
+    half3x3 tangentToWorld = half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
+
+#if defined(_BACKFACE_VISIBLE)
+    float flipSign = input.isFrontFace ? 1.0 : doubleSidedConstants.z;
+    tangentToWorld[2] = flipSign * tangentToWorld[2];
+
+    flipSign = input.isFrontFace ? 1.0 : doubleSidedConstants.x;
+    normalTS.xy *= flipSign;
+#endif
+
+    inputData.normalWS = TransformTangentToWorld(normalTS, tangentToWorld);
+#else
+#if defined(_BACKFACE_VISIBLE)
+    inputData.normalWS = input.isFrontFace ? input.normalWS : -input.normalWS;
 #else
     inputData.normalWS = input.normalWS;
+#endif
 #endif
 
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
@@ -118,6 +135,10 @@ Varyings LitGBufferPassVertex(Attributes input)
 
     output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
 
+#if defined(_BACKFACE_VISIBLE)
+    output.isFrontFace = dot(viewDirWS, normalInput.normalWS) > 0;
+#endif
+
     // already normalized from normal transform to WS.
     output.normalWS = normalInput.normalWS;
     output.viewDirWS = viewDirWS;
@@ -135,7 +156,12 @@ Varyings LitGBufferPassVertex(Attributes input)
 #endif
 
     OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
-    OUTPUT_SH(output.normalWS.xyz, output.vertexSH);
+
+#if defined(_BACKFACE_VISIBLE)
+    OUTPUT_SH(output.isFrontFace ? output.normalWS : -output.normalWS, output.vertexSH);
+#else
+    OUTPUT_SH(output.normalWS, output.vertexSH);
+#endif
 
     output.vertexLighting = vertexLight;
 
@@ -171,7 +197,7 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
     InitializeStandardLitSurfaceData(input.uv, surfaceData);
 
     InputData inputData;
-    InitializeInputData(input, surfaceData.normalTS, inputData);
+    InitializeInputData(input, surfaceData.normalTS, _DoubleSidedConstants, inputData);
 
     // Stripped down version of UniversalFragmentPBR().
 

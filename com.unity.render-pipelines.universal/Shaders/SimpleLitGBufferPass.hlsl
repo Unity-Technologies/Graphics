@@ -38,19 +38,33 @@ struct Varyings
     float4 shadowCoord              : TEXCOORD7;
 #endif
 
+#if defined(_BACKFACE_VISIBLE)
+    bool isFrontFace                : TEXCOORD8;
+#endif
+
     float4 positionCS               : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData)
+void InitializeInputData(Varyings input, half3 normalTS, half3 doubleSidedConstants, out InputData inputData)
 {
     inputData.positionWS = input.posWS;
 
 #ifdef _NORMALMAP
     half3 viewDirWS = half3(input.normal.w, input.tangent.w, input.bitangent.w);
+    half3x3 tangentToWorld = half3x3(input.tangent.xyz, input.bitangent.xyz, input.normal.xyz);
+
+#if defined(_BACKFACE_VISIBLE)
+    float flipSign = input.isFrontFace ? 1.0 : doubleSidedConstants.z;
+    tangentToWorld[2] = flipSign * tangentToWorld[2];
+
+    flipSign = input.isFrontFace ? 1.0 : doubleSidedConstants.x;
+    normalTS.xy *= flipSign;
+#endif
+
     inputData.normalWS = TransformTangentToWorld(normalTS,
-        half3x3(input.tangent.xyz, input.bitangent.xyz, input.normal.xyz));
+        tangentToWorld);
 #else
     half3 viewDirWS = input.viewDir;
     inputData.normalWS = input.normal;
@@ -98,16 +112,27 @@ Varyings LitPassVertexSimple(Attributes input)
     output.posWS.xyz = vertexInput.positionWS;
     output.positionCS = vertexInput.positionCS;
 
+#if defined(_BACKFACE_VISIBLE)
+    output.isFrontFace = dot(viewDirWS, normalInput.normalWS) > 0;
+#endif
+
 #ifdef _NORMALMAP
     output.normal = half4(normalInput.normalWS, viewDirWS.x);
     output.tangent = half4(normalInput.tangentWS, viewDirWS.y);
     output.bitangent = half4(normalInput.bitangentWS, viewDirWS.z);
 #else
+
+#if defined(_BACKFACE_VISIBLE)
+    output.normal = NormalizeNormalPerVertex(output.isFrontFace ? normalInput.normalWS : -normalInput.normalWS);
+#else
     output.normal = NormalizeNormalPerVertex(normalInput.normalWS);
+#endif
+
     output.viewDir = viewDirWS;
 #endif
 
     OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
+
     OUTPUT_SH(output.normal.xyz, output.vertexSH);
 
     output.vertexLighting = vertexLight;
@@ -131,7 +156,7 @@ FragmentOutput LitPassFragmentSimple(Varyings input)
     InitializeSimpleLitSurfaceData(input.uv, surfaceData);
 
     InputData inputData;
-    InitializeInputData(input, surfaceData.normalTS, inputData);
+    InitializeInputData(input, surfaceData.normalTS, _DoubleSidedConstants, inputData);
 
     half4 color = half4(inputData.bakedGI * surfaceData.albedo + surfaceData.emission, surfaceData.alpha);
 
