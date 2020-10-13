@@ -92,11 +92,10 @@ Shader "Hidden/HDRP/ApplyDistortion"
             float2 distordedUV = float2(input.positionCS.xy + distortion * _FetchBias) * _Size.zw;
             #ifndef SMOOTH_DISTORTION
             float mip = (_ColorPyramidLodCount - 1) * clamp(distortionBlur, 0.0, 1.0);
-            float2 uv = distordedUV * _RTHandleScaleHistory.xy;
             #else
             float mip = 0;
-            float2 uv = distordedUV * _RTHandleScale.xy;
             #endif
+            float2 uv = distordedUV * _RTHandleScale.xy;
             float4 sampled = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, uv, mip);
 
             return sampled;

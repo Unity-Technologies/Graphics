@@ -198,10 +198,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // This final Gaussian pyramid can be reused by SSR, so disable it only if there is no distortion
-                TextureHandle distortionColorPyramid;
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Distortion) && hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughDistortion))
                 {
-                    distortionColorPyramid = m_RenderGraph.CreateTexture(
+                    TextureHandle distortionColorPyramid = m_RenderGraph.CreateTexture(
                         new TextureDesc(Vector2.one, true, true)
                         {
                             colorFormat = GetColorBufferFormat(),
@@ -211,16 +210,13 @@ namespace UnityEngine.Rendering.HighDefinition
                             name = "DistortionColorBufferMipChain"
                         });
                     GenerateColorPyramid(m_RenderGraph, hdCamera, colorBuffer, distortionColorPyramid, false);
-                }
-                else
-                {
-                    distortionColorPyramid = currentColorPyramid;
+                    currentColorPyramid = distortionColorPyramid;
                 }
 
                 using (new RenderGraphProfilingScope(m_RenderGraph, ProfilingSampler.Get(HDProfileId.Distortion)))
                 {
                     var distortionBuffer = AccumulateDistortion(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, cullingResults);
-                    RenderDistortion(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, distortionColorPyramid, distortionBuffer);
+                    RenderDistortion(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, currentColorPyramid, distortionBuffer);
                 }
 
                 PushFullScreenDebugTexture(m_RenderGraph, colorBuffer, FullScreenDebugMode.NanTracker);
