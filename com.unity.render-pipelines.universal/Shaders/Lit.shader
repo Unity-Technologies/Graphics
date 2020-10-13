@@ -174,7 +174,7 @@ Shader "Universal Render Pipeline/Lit"
 
             HLSLPROGRAM
             #pragma exclude_renderers d3d11_9x gles
-            #pragma target 2.0
+            #pragma target 4.5
 
             // -------------------------------------
             // Material Keywords
