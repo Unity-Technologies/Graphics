@@ -18,6 +18,7 @@ half _BumpScale;
 half _DistortionStrengthScaled;
 half _DistortionBlend;
 half _Surface;
+half4 _DoubleSidedConstants;
 CBUFFER_END
 
 TEXTURE2D(_MetallicGlossMap);   SAMPLER(sampler_MetallicGlossMap);

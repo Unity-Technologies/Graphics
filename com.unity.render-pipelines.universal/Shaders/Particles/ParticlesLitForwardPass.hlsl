@@ -46,12 +46,15 @@ struct VaryingsParticle
 #endif
 
     float3 vertexSH                 : TEXCOORD8; // SH
+#if defined(_BACKFACE_VISIBLE)
+    bool isFrontFace                : TEXCOORD9;
+#endif 
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData output)
+void InitializeInputData(VaryingsParticle input, half3 normalTS, half3 doubleSidedConstants, out InputData output)
 {
     output = (InputData)0;
 
@@ -59,11 +62,24 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
 
 #ifdef _NORMALMAP
     half3 viewDirWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
-    output.normalWS = TransformTangentToWorld(normalTS,
-        half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
+    half3x3 tangentToWorld = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
+
+#if defined(_BACKFACE_VISIBLE)
+    float flipSign = input.isFrontFace ? 1.0 : doubleSidedConstants.z;
+    tangentToWorld[2] = flipSign * tangentToWorld[2];
+
+    flipSign = input.isFrontFace ? 1.0 : doubleSidedConstants.x;
+    normalTS.xy *= flipSign;
+#endif
+
+    output.normalWS = TransformTangentToWorld(normalTS, tangentToWorld);
 #else
     half3 viewDirWS = input.viewDirWS;
+#if defined(_BACKFACE_VISIBLE)
+    output.normalWS = input.isFrontFace ? input.normalWS : -input.normalWS;
+#else
     output.normalWS = input.normalWS;
+#endif
 #endif
 
     output.normalWS = NormalizeNormalPerPixel(output.normalWS);
@@ -109,6 +125,10 @@ VaryingsParticle ParticlesLitVertex(AttributesParticle input)
     viewDirWS = SafeNormalize(viewDirWS);
 #endif
 
+#if defined(_BACKFACE_VISIBLE)
+    output.isFrontFace = dot(viewDirWS, normalInput.normalWS) > 0;
+#endif
+
     half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
     half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
 
@@ -121,7 +141,11 @@ VaryingsParticle ParticlesLitVertex(AttributesParticle input)
     output.viewDirWS = viewDirWS;
 #endif
 
-    OUTPUT_SH(output.normalWS.xyz, output.vertexSH);
+#if defined(_BACKFACE_VISIBLE)
+    OUTPUT_SH(output.isFrontFace ? output.normalWS : -output.normalWS, output.vertexSH);
+#else
+    OUTPUT_SH(output.normalWS, output.vertexSH);
+#endif
 
     output.positionWS.xyz = vertexInput.positionWS;
     output.positionWS.w = fogFactor;
@@ -168,7 +192,7 @@ half4 ParticlesLitFragment(VaryingsParticle input) : SV_Target
     InitializeParticleLitSurfaceData(input.texcoord, blendUv, input.color, projectedPosition, surfaceData);
 
     InputData inputData = (InputData)0;
-    InitializeInputData(input, surfaceData.normalTS, inputData);
+    InitializeInputData(input, surfaceData.normalTS, _DoubleSidedConstants.xyz, inputData);
 
     half4 color = UniversalFragmentPBR(inputData, surfaceData);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
