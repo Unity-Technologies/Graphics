@@ -110,7 +110,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Controls the amount of accumulation (0 no accumulation, 1 just accumulate)
         /// </summary>
-        public ClampedFloatParameter accumulationFactor = new ClampedFloatParameter(0.125f, 0.0f, 1.0f);
+        public ClampedFloatParameter accumulationFactor = new ClampedFloatParameter(0.75f, 0.0f, 1.0f);
 
         /// <summary>
         /// Layer mask used to include the objects for screen space reflection.
