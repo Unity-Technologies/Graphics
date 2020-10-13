@@ -13,7 +13,7 @@ URP_Performance_Win_DX11_performance_playmode_il2cpp_2_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -34,7 +34,7 @@ Build_URP_Performance_Win_DX11_Player_il2cpp_2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -53,7 +53,7 @@ URP_Performance_Win_DX11_performance_playmode_il2cpp_2_gamma_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -74,7 +74,7 @@ Build_URP_Performance_Win_DX11_Player_il2cpp_2_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -95,7 +95,7 @@ URP_Performance_Win_DX11_performance_editmode_build_il2cpp_2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -113,7 +113,7 @@ URP_Performance_Win_DX11_performance_editmode_build_il2cpp_2_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -129,7 +129,7 @@ URP_Performance_Win_DX11_performance_playmode_il2cpp_4_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -150,7 +150,7 @@ Build_URP_Performance_Win_DX11_Player_il2cpp_4_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -169,7 +169,7 @@ URP_Performance_Win_DX11_performance_playmode_il2cpp_4_gamma_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -190,7 +190,7 @@ Build_URP_Performance_Win_DX11_Player_il2cpp_4_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -211,7 +211,7 @@ URP_Performance_Win_DX11_performance_editmode_build_il2cpp_4_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -229,7 +229,7 @@ URP_Performance_Win_DX11_performance_editmode_build_il2cpp_4_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -245,7 +245,7 @@ URP_Performance_Win_DX11_performance_playmode_mono_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -266,7 +266,7 @@ Build_URP_Performance_Win_DX11_Player_mono_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -285,7 +285,7 @@ URP_Performance_Win_DX11_performance_playmode_mono_gamma_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -306,7 +306,7 @@ Build_URP_Performance_Win_DX11_Player_mono_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -327,7 +327,7 @@ URP_Performance_Win_DX11_performance_editmode_build_mono_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -345,7 +345,7 @@ URP_Performance_Win_DX11_performance_editmode_build_mono_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -361,7 +361,7 @@ URP_Performance_Win_DX11_performance_playmode_il2cpp_2_Linear_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -382,7 +382,7 @@ Build_URP_Performance_Win_DX11_Player_il2cpp_2_Linear_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -401,7 +401,7 @@ URP_Performance_Win_DX11_performance_playmode_il2cpp_2_gamma_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -422,7 +422,7 @@ Build_URP_Performance_Win_DX11_Player_il2cpp_2_gamma_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -443,7 +443,7 @@ URP_Performance_Win_DX11_performance_editmode_build_il2cpp_2_Linear_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -461,7 +461,7 @@ URP_Performance_Win_DX11_performance_editmode_build_il2cpp_2_gamma_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -477,7 +477,7 @@ URP_Performance_Win_DX11_performance_playmode_il2cpp_4_Linear_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -498,7 +498,7 @@ Build_URP_Performance_Win_DX11_Player_il2cpp_4_Linear_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -517,7 +517,7 @@ URP_Performance_Win_DX11_performance_playmode_il2cpp_4_gamma_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -538,7 +538,7 @@ Build_URP_Performance_Win_DX11_Player_il2cpp_4_gamma_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -559,7 +559,7 @@ URP_Performance_Win_DX11_performance_editmode_build_il2cpp_4_Linear_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -577,7 +577,7 @@ URP_Performance_Win_DX11_performance_editmode_build_il2cpp_4_gamma_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -593,7 +593,7 @@ URP_Performance_Win_DX11_performance_playmode_mono_Linear_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -614,7 +614,7 @@ Build_URP_Performance_Win_DX11_Player_mono_Linear_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -633,7 +633,7 @@ URP_Performance_Win_DX11_performance_playmode_mono_gamma_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -654,7 +654,7 @@ Build_URP_Performance_Win_DX11_Player_mono_gamma_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -675,7 +675,7 @@ URP_Performance_Win_DX11_performance_editmode_build_mono_Linear_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -693,7 +693,7 @@ URP_Performance_Win_DX11_performance_editmode_build_mono_gamma_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -710,7 +710,7 @@ URP_Performance_Win_DX11_performance_playmode_il2cpp_2_Linear_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -734,7 +734,7 @@ Build_URP_Performance_Win_DX11_Player_il2cpp_2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -757,7 +757,7 @@ URP_Performance_Win_DX11_performance_playmode_il2cpp_2_gamma_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -781,7 +781,7 @@ Build_URP_Performance_Win_DX11_Player_il2cpp_2_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -806,7 +806,7 @@ URP_Performance_Win_DX11_performance_editmode_build_il2cpp_2_Linear_CUSTOM-REVIS
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -828,7 +828,7 @@ URP_Performance_Win_DX11_performance_editmode_build_il2cpp_2_gamma_CUSTOM-REVISI
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -848,7 +848,7 @@ URP_Performance_Win_DX11_performance_playmode_il2cpp_4_Linear_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -872,7 +872,7 @@ Build_URP_Performance_Win_DX11_Player_il2cpp_4_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -895,7 +895,7 @@ URP_Performance_Win_DX11_performance_playmode_il2cpp_4_gamma_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -919,7 +919,7 @@ Build_URP_Performance_Win_DX11_Player_il2cpp_4_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -944,7 +944,7 @@ URP_Performance_Win_DX11_performance_editmode_build_il2cpp_4_Linear_CUSTOM-REVIS
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -966,7 +966,7 @@ URP_Performance_Win_DX11_performance_editmode_build_il2cpp_4_gamma_CUSTOM-REVISI
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -986,7 +986,7 @@ URP_Performance_Win_DX11_performance_playmode_mono_Linear_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -1010,7 +1010,7 @@ Build_URP_Performance_Win_DX11_Player_mono_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -1033,7 +1033,7 @@ URP_Performance_Win_DX11_performance_playmode_mono_gamma_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -1057,7 +1057,7 @@ Build_URP_Performance_Win_DX11_Player_mono_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -1082,7 +1082,7 @@ URP_Performance_Win_DX11_performance_editmode_build_mono_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -1104,7 +1104,7 @@ URP_Performance_Win_DX11_performance_editmode_build_mono_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:

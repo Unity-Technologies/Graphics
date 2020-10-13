@@ -17,7 +17,7 @@ HDRP_Linux_Vulkan_playmode_mono_2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_Tests/utr
       -  chmod +x TestProjects/HDRP_Tests/utr
       -  cd TestProjects/HDRP_Tests && sudo unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -37,7 +37,7 @@ HDRP_Linux_Vulkan_playmode_NonRenderGraph_mono_2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_Tests/utr
       -  chmod +x TestProjects/HDRP_Tests/utr
       -  cd TestProjects/HDRP_Tests && sudo unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --extra-editor-arg="-non-rendergraph-tests" --suite=playmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --extra-editor-arg="-non-rendergraph-tests" --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -57,7 +57,7 @@ HDRP_Linux_Vulkan_editmode_mono_2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_Tests/utr
       -  chmod +x TestProjects/HDRP_Tests/utr
       -  cd TestProjects/HDRP_Tests && sudo unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -74,7 +74,7 @@ HDRP_Linux_Vulkan_Standalone_mono_2_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_RuntimeTests/utr
       -  chmod +x TestProjects/HDRP_RuntimeTests/utr
-      -  cd TestProjects/HDRP_RuntimeTests && ./utr --suite=playmode --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/HDRP_RuntimeTests && ./utr --suite=playmode --platform=StandaloneLinux64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
     artifacts:
         logs:
             paths:
@@ -97,7 +97,7 @@ Build_HDRP_Linux_Vulkan_Player_mono_2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_RuntimeTests/utr
       -  chmod +x TestProjects/HDRP_RuntimeTests/utr
       -  cd TestProjects/HDRP_RuntimeTests && sudo unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_RuntimeTests && DISPLAY=:0.0 ./utr --suite=playmode --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/HDRP_RuntimeTests && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
             paths:
@@ -120,7 +120,7 @@ HDRP_Linux_Vulkan_playmode_mono_2_Linear_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_Tests/utr
       -  chmod +x TestProjects/HDRP_Tests/utr
       -  cd TestProjects/HDRP_Tests && sudo unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -140,7 +140,7 @@ HDRP_Linux_Vulkan_playmode_NonRenderGraph_mono_2_Linear_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_Tests/utr
       -  chmod +x TestProjects/HDRP_Tests/utr
       -  cd TestProjects/HDRP_Tests && sudo unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --extra-editor-arg="-non-rendergraph-tests" --suite=playmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --extra-editor-arg="-non-rendergraph-tests" --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -160,7 +160,7 @@ HDRP_Linux_Vulkan_editmode_mono_2_Linear_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_Tests/utr
       -  chmod +x TestProjects/HDRP_Tests/utr
       -  cd TestProjects/HDRP_Tests && sudo unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -177,7 +177,7 @@ HDRP_Linux_Vulkan_Standalone_mono_2_Linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_RuntimeTests/utr
       -  chmod +x TestProjects/HDRP_RuntimeTests/utr
-      -  cd TestProjects/HDRP_RuntimeTests && ./utr --suite=playmode --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/HDRP_RuntimeTests && ./utr --suite=playmode --platform=StandaloneLinux64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
     artifacts:
         logs:
             paths:
@@ -200,7 +200,7 @@ Build_HDRP_Linux_Vulkan_Player_mono_2_Linear_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_RuntimeTests/utr
       -  chmod +x TestProjects/HDRP_RuntimeTests/utr
       -  cd TestProjects/HDRP_RuntimeTests && sudo unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_RuntimeTests && DISPLAY=:0.0 ./utr --suite=playmode --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/HDRP_RuntimeTests && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
             paths:
@@ -224,7 +224,7 @@ HDRP_Linux_Vulkan_playmode_mono_2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_Tests/utr
       -  chmod +x TestProjects/HDRP_Tests/utr
       -  cd TestProjects/HDRP_Tests && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -248,7 +248,7 @@ HDRP_Linux_Vulkan_playmode_NonRenderGraph_mono_2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_Tests/utr
       -  chmod +x TestProjects/HDRP_Tests/utr
       -  cd TestProjects/HDRP_Tests && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --extra-editor-arg="-non-rendergraph-tests" --suite=playmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --extra-editor-arg="-non-rendergraph-tests" --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -272,7 +272,7 @@ HDRP_Linux_Vulkan_editmode_mono_2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_Tests/utr
       -  chmod +x TestProjects/HDRP_Tests/utr
       -  cd TestProjects/HDRP_Tests && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -293,7 +293,7 @@ HDRP_Linux_Vulkan_Standalone_mono_2_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_RuntimeTests/utr
       -  chmod +x TestProjects/HDRP_RuntimeTests/utr
-      -  cd TestProjects/HDRP_RuntimeTests && ./utr --suite=playmode --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/HDRP_RuntimeTests && ./utr --suite=playmode --platform=StandaloneLinux64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
     artifacts:
         logs:
             paths:
@@ -319,7 +319,7 @@ Build_HDRP_Linux_Vulkan_Player_mono_2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_RuntimeTests/utr
       -  chmod +x TestProjects/HDRP_RuntimeTests/utr
       -  cd TestProjects/HDRP_RuntimeTests && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_RuntimeTests && DISPLAY=:0.0 ./utr --suite=playmode --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/HDRP_RuntimeTests && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
             paths:

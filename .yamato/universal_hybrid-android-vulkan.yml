@@ -19,7 +19,7 @@ Universal_Hybrid_Android_Vulkan_Standalone_mono_2_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --compilation-errors-as-warnings --suite=playmode --platform=Android --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2
+                 utr --compilation-errors-as-warnings --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -44,7 +44,7 @@ Build_Universal_Hybrid_Android_Vulkan_Player_mono_2_Linear_trunk:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --timeout=1800 --compilation-errors-as-warnings --suite=playmode --platform= --testproject=. --editor-location=. --player-save-path --build-only
+      -  utr --timeout=1800 --compilation-errors-as-warnings --suite=playmode --platform=Android --testproject=. --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=.Editor --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=1200 --timeout=2700
     artifacts:
         logs:
             paths:
@@ -71,7 +71,7 @@ Universal_Hybrid_Android_Vulkan_playmode_mono_2_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --compilation-errors-as-warnings --suite=playmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2
+                 utr --compilation-errors-as-warnings --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -96,7 +96,7 @@ Universal_Hybrid_Android_Vulkan_editmode_mono_2_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --compilation-errors-as-warnings --suite=editor --platform=editmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2
+                 utr --compilation-errors-as-warnings --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -119,7 +119,7 @@ Universal_Hybrid_Android_Vulkan_Standalone_mono_2_Linear_2020.2:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --compilation-errors-as-warnings --suite=playmode --platform=Android --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2
+                 utr --compilation-errors-as-warnings --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -144,7 +144,7 @@ Build_Universal_Hybrid_Android_Vulkan_Player_mono_2_Linear_2020.2:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --timeout=1800 --compilation-errors-as-warnings --suite=playmode --platform= --testproject=. --editor-location=. --player-save-path --build-only
+      -  utr --timeout=1800 --compilation-errors-as-warnings --suite=playmode --platform=Android --testproject=. --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=.Editor --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=1200 --timeout=2700
     artifacts:
         logs:
             paths:
@@ -171,7 +171,7 @@ Universal_Hybrid_Android_Vulkan_playmode_mono_2_Linear_2020.2:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --compilation-errors-as-warnings --suite=playmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2
+                 utr --compilation-errors-as-warnings --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -196,7 +196,7 @@ Universal_Hybrid_Android_Vulkan_editmode_mono_2_Linear_2020.2:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --compilation-errors-as-warnings --suite=editor --platform=editmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2
+                 utr --compilation-errors-as-warnings --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -220,7 +220,7 @@ Universal_Hybrid_Android_Vulkan_Standalone_mono_2_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --compilation-errors-as-warnings --suite=playmode --platform=Android --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2
+                 utr --compilation-errors-as-warnings --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -248,7 +248,7 @@ Build_Universal_Hybrid_Android_Vulkan_Player_mono_2_Linear_CUSTOM-REVISION:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --timeout=1800 --compilation-errors-as-warnings --suite=playmode --platform= --testproject=. --editor-location=. --player-save-path --build-only
+      -  utr --timeout=1800 --compilation-errors-as-warnings --suite=playmode --platform=Android --testproject=. --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=.Editor --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=1200 --timeout=2700
     artifacts:
         logs:
             paths:
@@ -279,7 +279,7 @@ Universal_Hybrid_Android_Vulkan_playmode_mono_2_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --compilation-errors-as-warnings --suite=playmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2
+                 utr --compilation-errors-as-warnings --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -308,7 +308,7 @@ Universal_Hybrid_Android_Vulkan_editmode_mono_2_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --compilation-errors-as-warnings --suite=editor --platform=editmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2
+                 utr --compilation-errors-as-warnings --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:

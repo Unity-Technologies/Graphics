@@ -40,25 +40,37 @@ test_platforms:
     extra_utr_flags:
       - [all]: --suite=playmode
       - [Win_DX11, Win_DX12, Win_Vulkan]: --platform=StandaloneWindows64
+      - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
       - [OSX_OpenGlCore, OSX_Metal]: --platform=StandaloneOSX
       - [iPhone_Metal]: --platform=iOS
       - [Android_OpenGLES3, Android_Vulkan]: --platform=Android
-      - [all]: --player-load-path= #MAKE PER PLATFORM API
-      - [all]: --player-connection-ip= #MAKE PER PLATFORM API
-      - [all]: --artifacts_path=test-results
+      - [Win_DX11, Win_DX12, Win_Vulkan, Linux_OpenGlCore, Linux_Vulkan]: --player-load-path=../../players 
+      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --player-load-path=players 
       - [all]: --reruncount=2
-      - [OSX_Metal]: --timeout=1200
+      - [all]: --player-connection-ip=auto
+      - [all]: --artifacts_path=test-results
+      - [all]: --timeout=1200
+      - [Android_OpenGLES3, Android_Vulkan]: --editor-location=WindowsEditor
       - [Win_DX11]: --extra-editor-arg="-force-d3d11"
       - [Win_DX12]: --extra-editor-arg="-force-d3d12"
-      - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-force-vulkan"
-      - [Linux_OpenGlCore]: --extra-editor-arg="-force-glcore"
+      - [Win_Vulkan]: --extra-editor-arg="-force-vulkan"
     extra_utr_flags_build:
       - [all]: --suite=playmode
-      - [all]: --platform= #MAKE PER PLATFORM API
+      - [Win_DX11, Win_DX12, Win_Vulkan]: --platform=StandaloneWindows64
+      - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
+      - [OSX_OpenGlCore, OSX_Metal]: --platform=StandaloneOSX
+      - [iPhone_Metal]: --platform=iOS
+      - [Android_OpenGLES3, Android_Vulkan]: --platform=Android
       - [all]: --testproject=.
-      - [all]: --editor-location=.
-      - [all]: --player-save-path #MAKE PER PLATFORM API
+      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --testproject=TestProjects\[PROJECT_FOLDER]
+      - [all]: --editor-location=.Editor
+      - [Android_OpenGLES3, Android_Vulkan]: --editor-location=WindowsEditor
+      - [Win_DX11, Win_DX12, Win_Vulkan, Linux_OpenGlCore, Linux_Vulkan]: --player-save-path=../../players 
+      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --player-save-path=players  
       - [all]: --build-only
+      - [all]: --timeout=1200
+      - [Android_OpenGLES3, Android_Vulkan]: --timeout=2700
+      - [iPhone]: --timeout=1800
       - [Linux_OpenGlCore]: --extra-editor-arg="-executemethod CustomBuild.BuildLinuxOpenGlCoreLinear"
       - [Linux_Vulkan]: --extra-editor-arg="-executemethod CustomBuild.BuildLinuxVulkanLinear"
       - [Win_DX11]: --extra-editor-arg="-executemethod CustomBuild.BuildWindowsDX11Linear"
@@ -68,7 +80,7 @@ test_platforms:
     extra_utr_flags:
       - [all]: --suite=playmode
       - [all]: --testproject=.
-      - [all]: --editor-location=.
+      - [all]: --editor-location=.Editor
       - [all]: --artifacts_path=test-results
       - [all]: --reruncount=2
       - [Win_DX11]: --extra-editor-arg="-force-d3d11"
@@ -81,7 +93,7 @@ test_platforms:
       - [all]: --platform=editmode
       - [iPhone_Metal]: --platform=iOS
       - [all]: --testproject=.
-      - [all]: --editor-location=.
+      - [all]: --editor-location=.Editor
       - [all]: --artifacts_path=test-results
       - [all]: --reruncount=2
       - [Win_DX11]: --extra-editor-arg="-force-d3d11"
