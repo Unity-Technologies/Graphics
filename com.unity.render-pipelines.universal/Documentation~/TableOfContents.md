@@ -11,6 +11,7 @@
   * [Renderer Feature](urp-renderer-feature.md)
     * [How to add a Renderer Feature](urp-renderer-feature-how-to-add.md)
 * [Upgrade guides](upgrade-guides.md)
+  * [Upgrading to URP 10.1.x](upgrade-guide-10-1-x.md)
   * [Upgrading to URP 10.0.x](upgrade-guide-10-0-x.md)
   * [Upgrading to URP 9.0.x](upgrade-guide-9-0-x.md)
   * [Upgrading to URP 8.2.0](upgrade-guide-8-2-0.md)
