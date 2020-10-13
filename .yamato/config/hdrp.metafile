@@ -22,6 +22,10 @@ platforms:
       - name: DX11
       - name: DX12
       - name: Vulkan
+    build_configs:
+      - name: mono_2
+    color_spaces:
+      - linear
     agents_project:
       # default: package_ci_mac
       default:
@@ -47,33 +51,25 @@ platforms:
       - name: Metal
         exclude_test_platforms:
           - name: playmode_XR
+    build_configs:
+      - name: mono_2
+    color_spaces:
+      - linear
   - name: Linux
     apis:
       - name: Vulkan
         exclude_test_platforms:
           - name: playmode_XR
-build_configs:
-#- name: il2cpp_2
-#  scripting_backend: il2cpp
-#  api_level: NET_2_0
-#- name: il2cpp_4
-#  scripting_backend: il2cpp
-#  api_level: NET_4_6
-- name: mono_2
-  scripting_backend: mono
-  api_level: NET_2_0
-#- name: mono_4
-#  scripting_backend: mono
-#  api_level: NET_4_6
-color_spaces:
-  - Linear
-#  - gamma
+    build_configs:
+      - name: mono_2
+    color_spaces:
+      - linear
 all:
   dependencies:
     - platform: Win
       api: DX11
       build_config: mono_2
-      color_space: Linear
+      color_space: linear
       test_platforms:
         - editmode
         - playmode
@@ -83,7 +79,7 @@ all:
     - platform: Win
       api: DX12
       build_config: mono_2
-      color_space: Linear
+      color_space: linear
       test_platforms:
         - playmode
         - playmode_XR
@@ -91,7 +87,7 @@ all:
     - platform: Win
       api: Vulkan
       build_config: mono_2
-      color_space: Linear
+      color_space: linear
       test_platforms:
         - playmode
         - playmode_XR
@@ -99,14 +95,14 @@ all:
     - platform: OSX
       api: Metal
       build_config: mono_2
-      color_space: Linear
+      color_space: linear
       test_platforms:
         # - Standalone
         - playmode
     - platform: Linux
       api: Vulkan
       build_config: mono_2
-      color_space: Linear
+      color_space: linear
       test_platforms:
         - editmode
         - playmode
@@ -115,7 +111,7 @@ all:
       platform: Win
       api: DX12
       build_config: mono_2
-      color_space: Linear
+      color_space: linear
       test_platforms:
         - playmode
         - playmode_XR

@@ -32,9 +32,6 @@ build_configs:
   - name: mono_4
     scripting_backend: mono
     api_level: NET_4_6
-color_spaces:
-  - Linear
-  - gamma
 test_platforms:
   - type: Standalone
     extra_utr_flags:

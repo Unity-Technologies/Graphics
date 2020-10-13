@@ -10,14 +10,14 @@ abv: # specify the editor versions for which to create the expression trigger fo
       scripting_backend: mono
       api_level: NET_2_0
   color_spaces:
-    - Linear
+    - linear
 nightly:
   extra_dependencies: # additional project jobs to run nightly (in addition to ABV)
     - project: Smoke_Test
       platform: Win
       api: DX11
       build_config: mono_2
-      color_space: Linear
+      color_space: linear
       test_platforms:
         - playmode
         - editmode
@@ -26,35 +26,35 @@ nightly:
       platform: Android
       api: OpenGLES3
       build_config: mono_2
-      color_space: Linear
+      color_space: linear
       test_platforms:
         - Standalone
     - project: Universal
       platform: Android
       api: Vulkan
       build_config: mono_2
-      color_space: Linear
+      color_space: linear
       test_platforms:
         - Standalone
     - project: Universal
       platform: iPhone
       api: Metal
       build_config: mono_2
-      color_space: Linear
+      color_space: linear
       test_platforms:
         - Standalone
     - project: Universal
       platform: Win
       api: Vulkan
       build_config: mono_2
-      color_space: Linear
+      color_space: linear
       test_platforms:
         - playmode
     - project: Universal
       platform: Win
       api: DX12
       build_config: mono_2
-      color_space: Linear
+      color_space: linear
       test_platforms:
         - Standalone
         - editmode
@@ -63,7 +63,7 @@ nightly:
       platform: Win
       api: DX11
       build_config: mono_2
-      color_space: Linear
+      color_space: linear
       test_platforms:
         - editmode
         - playmode
@@ -71,7 +71,7 @@ nightly:
       platform: Win
       api: DX11
       build_config: mono_2
-      color_space: Linear
+      color_space: linear
       test_platforms:
         - editmode
         - playmode
@@ -83,7 +83,7 @@ trunk_verification: # jobs to include in trunk verification job
       platform: Win
       api: DX11
       build_config: mono_2
-      color_space: Linear
+      color_space: linear
       test_platforms:
         - playmode
         - editmode
@@ -91,7 +91,7 @@ trunk_verification: # jobs to include in trunk verification job
       platform: Win
       api: DX11
       build_config: mono_2
-      color_space: Linear
+      color_space: linear
       test_platforms:
         - playmode
         - editmode
@@ -99,7 +99,7 @@ trunk_verification: # jobs to include in trunk verification job
       platform: Win
       api: DX11
       build_config: mono_2
-      color_space: Linear
+      color_space: linear
       test_platforms:
         - playmode
         - editmode
@@ -107,7 +107,7 @@ trunk_verification: # jobs to include in trunk verification job
       platform: Win
       api: DX11
       build_config: mono_2
-      color_space: Linear
+      color_space: linear
       test_platforms:
         - playmode
         - editmode
@@ -115,6 +115,6 @@ trunk_verification: # jobs to include in trunk verification job
       platform: Win
       api: DX11
       build_config: mono_2
-      color_space: Linear
+      color_space: linear
       test_platforms:
         - playmode

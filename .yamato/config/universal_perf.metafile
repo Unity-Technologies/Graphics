@@ -21,24 +21,18 @@ test_platforms:
       - [all]: --report-performance-data
       - [all]: --performance-project-id=URP_Performance
       - [all]: --testfilter=Build
-build_configs:
-- name: il2cpp_2
-  scripting_backend: il2cpp
-  api_level: NET_2_0
-- name: il2cpp_4
-  scripting_backend: il2cpp
-  api_level: NET_4_6
-- name: mono
-  scripting_backend: mono
-  api_level: NET_2_0
-color_spaces:
-  - Linear
-  - gamma
 platforms:
   - name: Win
     apis:
       - name: DX11
       - name: Vulkan
+    build_configs:
+      - name: il2cpp_2
+      - name: il2cpp_4
+      - name: mono_2
+    color_spaces:
+      - linear
+      - gamma
   - name: OSX
     apis:
       - name: Metal
@@ -48,42 +42,63 @@ platforms:
         exclude_test_platforms:
           - name: playmode_XR
           - name: Standalone
+    build_configs:
+      - name: il2cpp_2
+      - name: il2cpp_4
+      - name: mono_2
+    color_spaces:
+      - linear
+      - gamma
   - name: Android
     apis: 
       - name: Vulkan
       - name: OpenGLES3
+    build_configs:
+      - name: il2cpp_2
+      - name: il2cpp_4
+      - name: mono_2
+    color_spaces:
+      - linear
+      - gamma
   - name: iPhone
     apis: 
       - name: Metal
         exclude_test_platforms:
           - name: playmode_XR
+    build_configs:
+      - name: il2cpp_2
+      - name: il2cpp_4
+      - name: mono_2
+    color_spaces:
+      - linear
+      - gamma
 all:
   dependencies:
     - platform: Win
       api: DX11
       build_config: il2cpp_4
-      color_space: Linear
+      color_space: linear
       test_platforms:
         - performance_playmode
         - performance_editmode_build
     - platform: OSX
       api: Metal
       build_config: il2cpp_4
-      color_space: Linear
+      color_space: linear
       test_platforms:
         - performance_playmode
         - performance_editmode_build
     - platform: Android
       api: OpenGLES3
       build_config: il2cpp_4
-      color_space: Linear
+      color_space: linear
       test_platforms:
         - performance_playmode
         - performance_editmode_build
     - platform: iPhone
       api: Metal
       build_config: il2cpp_4
-      color_space: Linear
+      color_space: linear
       test_platforms:
         - performance_playmode
         - performance_editmode_build

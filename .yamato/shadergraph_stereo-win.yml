@@ -3,8 +3,8 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-ShaderGraph_Stereo_Win_Standalone_mono_2_Linear_trunk:
-    name: ShaderGraph_Stereo on Win__Standalone_mono_2_Linear on version trunk
+ShaderGraph_Stereo_Win_Standalone_mono_2_linear_trunk:
+    name: ShaderGraph_Stereo on Win__Standalone_mono_2_linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -20,10 +20,10 @@ ShaderGraph_Stereo_Win_Standalone_mono_2_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/ShaderGraphUniversalStereo/Logs/*.log"
     dependencies:
-      -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Player_mono_2_Linear_trunk
+      -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Player_mono_2_linear_trunk
          rerun: on-new-revision
-Build_ShaderGraph_Stereo_Win_Player_mono_2_Linear_trunk:
-    name: Build ShaderGraph_Stereo on Win__mono_2_Linear_Player on version trunk
+Build_ShaderGraph_Stereo_Win_Player_mono_2_linear_trunk:
+    name: Build ShaderGraph_Stereo on Win__mono_2_linear_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -43,8 +43,8 @@ Build_ShaderGraph_Stereo_Win_Player_mono_2_Linear_trunk:
         players:
             paths:
               -  "players/**"
-ShaderGraph_Stereo_Win_editmode_mono_2_Linear_trunk:
-    name: ShaderGraph_Stereo on Win__editmode_mono_2_Linear on version trunk
+ShaderGraph_Stereo_Win_editmode_mono_2_linear_trunk:
+    name: ShaderGraph_Stereo on Win__editmode_mono_2_linear on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -61,8 +61,8 @@ ShaderGraph_Stereo_Win_editmode_mono_2_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/ShaderGraphUniversalStereo/Logs/*.log"
-ShaderGraph_Stereo_Win_Standalone_mono_2_Linear_2020.2:
-    name: ShaderGraph_Stereo on Win__Standalone_mono_2_Linear on version 2020.2
+ShaderGraph_Stereo_Win_Standalone_mono_2_linear_2020.2:
+    name: ShaderGraph_Stereo on Win__Standalone_mono_2_linear on version 2020.2
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -78,10 +78,10 @@ ShaderGraph_Stereo_Win_Standalone_mono_2_Linear_2020.2:
               -  "**/test-results/**"
               -  "TestProjects/ShaderGraphUniversalStereo/Logs/*.log"
     dependencies:
-      -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Player_mono_2_Linear_2020.2
+      -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Player_mono_2_linear_2020.2
          rerun: on-new-revision
-Build_ShaderGraph_Stereo_Win_Player_mono_2_Linear_2020.2:
-    name: Build ShaderGraph_Stereo on Win__mono_2_Linear_Player on version 2020.2
+Build_ShaderGraph_Stereo_Win_Player_mono_2_linear_2020.2:
+    name: Build ShaderGraph_Stereo on Win__mono_2_linear_Player on version 2020.2
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -101,8 +101,8 @@ Build_ShaderGraph_Stereo_Win_Player_mono_2_Linear_2020.2:
         players:
             paths:
               -  "players/**"
-ShaderGraph_Stereo_Win_editmode_mono_2_Linear_2020.2:
-    name: ShaderGraph_Stereo on Win__editmode_mono_2_Linear on version 2020.2
+ShaderGraph_Stereo_Win_editmode_mono_2_linear_2020.2:
+    name: ShaderGraph_Stereo on Win__editmode_mono_2_linear on version 2020.2
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -119,8 +119,8 @@ ShaderGraph_Stereo_Win_editmode_mono_2_Linear_2020.2:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/ShaderGraphUniversalStereo/Logs/*.log"
-ShaderGraph_Stereo_Win_Standalone_mono_2_Linear_CUSTOM-REVISION:
-    name: ShaderGraph_Stereo on Win__Standalone_mono_2_Linear on version CUSTOM-REVISION
+ShaderGraph_Stereo_Win_Standalone_mono_2_linear_CUSTOM-REVISION:
+    name: ShaderGraph_Stereo on Win__Standalone_mono_2_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -139,10 +139,10 @@ ShaderGraph_Stereo_Win_Standalone_mono_2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Player_mono_2_Linear_CUSTOM-REVISION
+      -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Player_mono_2_linear_CUSTOM-REVISION
          rerun: always
-Build_ShaderGraph_Stereo_Win_Player_mono_2_Linear_CUSTOM-REVISION:
-    name: Build ShaderGraph_Stereo on Win__mono_2_Linear_Player on version CUSTOM-REVISION
+Build_ShaderGraph_Stereo_Win_Player_mono_2_linear_CUSTOM-REVISION:
+    name: Build ShaderGraph_Stereo on Win__mono_2_linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -166,8 +166,8 @@ Build_ShaderGraph_Stereo_Win_Player_mono_2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-ShaderGraph_Stereo_Win_editmode_mono_2_Linear_CUSTOM-REVISION:
-    name: ShaderGraph_Stereo on Win__editmode_mono_2_Linear on version CUSTOM-REVISION
+ShaderGraph_Stereo_Win_editmode_mono_2_linear_CUSTOM-REVISION:
+    name: ShaderGraph_Stereo on Win__editmode_mono_2_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable

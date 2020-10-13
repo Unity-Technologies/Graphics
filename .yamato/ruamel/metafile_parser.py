@@ -45,7 +45,7 @@ def _unfold_platforms(metafile, shared):
         # retrieve build configs from shared.metafile based on the name specified under project.metafile platforms
         build_configs = []
         for build_config_name in m_plat.get("build_configs",[]):
-            build_configs.extend([bc for bc in shared["build_configs"] if bc["name"]==build_config_name])
+            build_configs.extend([bc for bc in shared["build_configs"] if bc["name"]==build_config_name["name"]])
         joint_plat["build_configs"] = build_configs
         
         platforms.append(joint_plat)

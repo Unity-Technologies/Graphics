@@ -33,6 +33,10 @@ platforms:
     apis:
       - name: DX11
       - name: Vulkan
+    build_configs:
+      - name: il2cpp_4
+    color_spaces:
+      - linear
   - name: OSX
     apis:
       - name: Metal
@@ -42,65 +46,61 @@ platforms:
         exclude_test_platforms:
           - name: playmode_XR
           - name: Standalone
+    build_configs:
+      - name: il2cpp_4
+    color_spaces:
+      - linear
   - name: Android
     apis: 
       - name: Vulkan
       - name: OpenGLES3
+    build_configs:
+      - name: il2cpp_4
+    color_spaces:
+      - linear
   - name: iPhone
     apis: 
       - name: Metal
         exclude_test_platforms:
           - name: playmode_XR
-build_configs:
-#- name: il2cpp_2
-#  scripting_backend: il2cpp
-#  api_level: NET_2_0
-- name: il2cpp_4
-  scripting_backend: il2cpp
-  api_level: NET_4_6
-#- name: mono_2
-#  scripting_backend: mono
-#  api_level: NET_2_0
-#- name: mono_4
-#  scripting_backend: mono
-#  api_level: NET_4_6
-color_spaces:
-  - Linear
-#  - gamma
+    build_configs:
+      - name: il2cpp_4
+    color_spaces:
+      - linear
 all:
   dependencies:
     - platform: Win
       api: DX11
       build_config: il2cpp_4
-      color_space: Linear
+      color_space: linear
       test_platforms:
         - performance_playmode_runtime
 #        - performance_editmode_build
 #    - platform: OSX
 #      api: Metal
 #      build_config: il2cpp_4
-#      color_space: Linear
+#      color_space: linear
 #      test_platforms:
 #        #- performance_playmode_runtime
 #        - performance_editmode_build
     - platform: Android
       api: OpenGLES3
       build_config: il2cpp_4
-      color_space: Linear
+      color_space: linear
       test_platforms:
         - performance_playmode_runtime
 #        - performance_editmode_build
     - platform: Android
       api: Vulkan
       build_config: il2cpp_4
-      color_space: Linear
+      color_space: linear
       test_platforms:
         - performance_playmode_runtime
 #        - performance_editmode_build
 #    - platform: iPhone
 #      api: Metal
 #      build_config: il2cpp_4
-#      color_space: Linear
+#      color_space: linear
 #      test_platforms:
 #        - performance_playmode_runtime
 #        - performance_editmode_build

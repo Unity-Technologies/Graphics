@@ -3,8 +3,8 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-Universal_Linux_Vulkan_Standalone_mono_2_Linear_trunk:
-    name: Universal on Linux_Vulkan_Standalone_mono_2_Linear on version trunk
+Universal_Linux_Vulkan_Standalone_mono_2_linear_trunk:
+    name: Universal on Linux_Vulkan_Standalone_mono_2_linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -21,10 +21,10 @@ Universal_Linux_Vulkan_Standalone_mono_2_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/universal-linux-vulkan.yml#Build_Universal_Linux_Vulkan_Player_mono_2_Linear_trunk
+      -  path: .yamato/universal-linux-vulkan.yml#Build_Universal_Linux_Vulkan_Player_mono_2_linear_trunk
          rerun: on-new-revision
-Build_Universal_Linux_Vulkan_Player_mono_2_Linear_trunk:
-    name: Build Universal on Linux_Vulkan_mono_2_Linear_Player on version trunk
+Build_Universal_Linux_Vulkan_Player_mono_2_linear_trunk:
+    name: Build Universal on Linux_Vulkan_mono_2_linear_Player on version trunk
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
@@ -46,8 +46,8 @@ Build_Universal_Linux_Vulkan_Player_mono_2_Linear_trunk:
         players:
             paths:
               -  "players/**"
-Universal_Linux_Vulkan_playmode_mono_2_Linear_trunk:
-    name: Universal on Linux_Vulkan_playmode_mono_2_Linear on version trunk
+Universal_Linux_Vulkan_playmode_mono_2_linear_trunk:
+    name: Universal on Linux_Vulkan_playmode_mono_2_linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -66,8 +66,8 @@ Universal_Linux_Vulkan_playmode_mono_2_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
-Universal_Linux_Vulkan_editmode_mono_2_Linear_trunk:
-    name: Universal on Linux_Vulkan_editmode_mono_2_Linear on version trunk
+Universal_Linux_Vulkan_editmode_mono_2_linear_trunk:
+    name: Universal on Linux_Vulkan_editmode_mono_2_linear on version trunk
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
@@ -86,8 +86,8 @@ Universal_Linux_Vulkan_editmode_mono_2_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
-Universal_Linux_Vulkan_Standalone_mono_2_Linear_2020.2:
-    name: Universal on Linux_Vulkan_Standalone_mono_2_Linear on version 2020.2
+Universal_Linux_Vulkan_Standalone_mono_2_linear_2020.2:
+    name: Universal on Linux_Vulkan_Standalone_mono_2_linear on version 2020.2
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -104,10 +104,10 @@ Universal_Linux_Vulkan_Standalone_mono_2_Linear_2020.2:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/universal-linux-vulkan.yml#Build_Universal_Linux_Vulkan_Player_mono_2_Linear_2020.2
+      -  path: .yamato/universal-linux-vulkan.yml#Build_Universal_Linux_Vulkan_Player_mono_2_linear_2020.2
          rerun: on-new-revision
-Build_Universal_Linux_Vulkan_Player_mono_2_Linear_2020.2:
-    name: Build Universal on Linux_Vulkan_mono_2_Linear_Player on version 2020.2
+Build_Universal_Linux_Vulkan_Player_mono_2_linear_2020.2:
+    name: Build Universal on Linux_Vulkan_mono_2_linear_Player on version 2020.2
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
@@ -129,8 +129,8 @@ Build_Universal_Linux_Vulkan_Player_mono_2_Linear_2020.2:
         players:
             paths:
               -  "players/**"
-Universal_Linux_Vulkan_playmode_mono_2_Linear_2020.2:
-    name: Universal on Linux_Vulkan_playmode_mono_2_Linear on version 2020.2
+Universal_Linux_Vulkan_playmode_mono_2_linear_2020.2:
+    name: Universal on Linux_Vulkan_playmode_mono_2_linear on version 2020.2
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -149,8 +149,8 @@ Universal_Linux_Vulkan_playmode_mono_2_Linear_2020.2:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
-Universal_Linux_Vulkan_editmode_mono_2_Linear_2020.2:
-    name: Universal on Linux_Vulkan_editmode_mono_2_Linear on version 2020.2
+Universal_Linux_Vulkan_editmode_mono_2_linear_2020.2:
+    name: Universal on Linux_Vulkan_editmode_mono_2_linear on version 2020.2
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
@@ -169,8 +169,8 @@ Universal_Linux_Vulkan_editmode_mono_2_Linear_2020.2:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
-Universal_Linux_Vulkan_Standalone_mono_2_Linear_CUSTOM-REVISION:
-    name: Universal on Linux_Vulkan_Standalone_mono_2_Linear on version CUSTOM-REVISION
+Universal_Linux_Vulkan_Standalone_mono_2_linear_CUSTOM-REVISION:
+    name: Universal on Linux_Vulkan_Standalone_mono_2_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -190,10 +190,10 @@ Universal_Linux_Vulkan_Standalone_mono_2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
-      -  path: .yamato/universal-linux-vulkan.yml#Build_Universal_Linux_Vulkan_Player_mono_2_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal-linux-vulkan.yml#Build_Universal_Linux_Vulkan_Player_mono_2_linear_CUSTOM-REVISION
          rerun: always
-Build_Universal_Linux_Vulkan_Player_mono_2_Linear_CUSTOM-REVISION:
-    name: Build Universal on Linux_Vulkan_mono_2_Linear_Player on version CUSTOM-REVISION
+Build_Universal_Linux_Vulkan_Player_mono_2_linear_CUSTOM-REVISION:
+    name: Build Universal on Linux_Vulkan_mono_2_linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
@@ -219,8 +219,8 @@ Build_Universal_Linux_Vulkan_Player_mono_2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
-Universal_Linux_Vulkan_playmode_mono_2_Linear_CUSTOM-REVISION:
-    name: Universal on Linux_Vulkan_playmode_mono_2_Linear on version CUSTOM-REVISION
+Universal_Linux_Vulkan_playmode_mono_2_linear_CUSTOM-REVISION:
+    name: Universal on Linux_Vulkan_playmode_mono_2_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -243,8 +243,8 @@ Universal_Linux_Vulkan_playmode_mono_2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
-Universal_Linux_Vulkan_editmode_mono_2_Linear_CUSTOM-REVISION:
-    name: Universal on Linux_Vulkan_editmode_mono_2_Linear on version CUSTOM-REVISION
+Universal_Linux_Vulkan_editmode_mono_2_linear_CUSTOM-REVISION:
+    name: Universal on Linux_Vulkan_editmode_mono_2_linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
