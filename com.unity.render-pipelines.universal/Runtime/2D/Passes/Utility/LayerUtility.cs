@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Net;
-using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.Universal
