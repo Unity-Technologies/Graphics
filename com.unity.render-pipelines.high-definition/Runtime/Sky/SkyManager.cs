@@ -111,7 +111,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Sky used for static lighting. It will be used for ambient lighting if Ambient Mode is set to Static (even when realtime GI is enabled)
         // It will also be used for lightmap and light probe baking
-        SkyUpdateContext m_StaticLightingSky = new SkyUpdateContext();
+        // Note: because the static lighting can be camera depended (culling/light mask), we keep one per camera to properly support side-by-side views  
+        static Dictionary<int, SkyUpdateContext> m_StaticLightingSky = new Dictionary<int, SkyUpdateContext>();
+        static int m_LastCameraIDUsedForStaticLighting = -1;
 
         // This interpolation volume stack is used to interpolate the lighting override separately from the visual sky.
         // If a sky setting is present in this volume then it will be used for lighting override.
@@ -334,7 +336,12 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < m_CachedSkyContexts.size; ++i)
                 m_CachedSkyContexts[i].Cleanup();
 
-            m_StaticLightingSky.Cleanup();
+            foreach (var staticSky in m_StaticLightingSky)
+                staticSky.Value.Cleanup();
+
+            m_StaticLightingSky.Clear();
+            m_LastCameraIDUsedForStaticLighting = -1;
+
             lightingOverrideVolumeStack.Dispose();
 
 #if UNITY_EDITOR
@@ -407,7 +414,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (hdCamera.skyAmbientMode == SkyAmbientMode.Static)
             {
-                return GetAmbientProbe(m_StaticLightingSky);
+                int cameraID = hdCamera.camera.GetInstanceID();
+                if (!m_StaticLightingSky.ContainsKey(cameraID))
+                {
+                    m_StaticLightingSky.Add(cameraID, new SkyUpdateContext());
+                }
+                return GetAmbientProbe(m_StaticLightingSky[cameraID]);
             }
 
             return GetAmbientProbe(hdCamera.lightingSky);
@@ -456,7 +468,7 @@ namespace UnityEngine.Rendering.HighDefinition
             useRealtimeGI = UnityEditor.Lightmapping.realtimeGI;
 #pragma warning restore 618
 #endif
-            m_StandardSkyboxMaterial.SetTexture("_Tex", GetSkyCubemap((hdCamera.skyAmbientMode != SkyAmbientMode.Static && useRealtimeGI) ? hdCamera.lightingSky : m_StaticLightingSky));
+            m_StandardSkyboxMaterial.SetTexture("_Tex", GetSkyCubemap((hdCamera.skyAmbientMode != SkyAmbientMode.Static && useRealtimeGI) ? hdCamera.lightingSky : m_StaticLightingSky[hdCamera.camera.GetInstanceID()]));
 
             // This is only needed if we use realtime GI otherwise enlighten won't get the right sky information
             RenderSettings.skybox = m_StandardSkyboxMaterial; // Setup this material as the default to be use in RenderSettings
@@ -589,6 +601,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     ReleaseCachedContext(updateContext.cachedSkyRenderingContextId);
+                    //RequestStaticEnvironmentUpdate();
                 }
                 else
                 {
@@ -835,8 +848,14 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
             if ((ambientMode == SkyAmbientMode.Static || forceStaticUpdate) && hdCamera.camera.cameraType != CameraType.Preview)
             {
-                m_StaticLightingSky.skySettings = staticLightingSky != null ? staticLightingSky.skySettings : null;
-                UpdateEnvironment(hdCamera, renderContext, m_StaticLightingSky, sunLight, m_StaticSkyUpdateRequired || m_UpdateRequired, true, true, SkyAmbientMode.Static, frameIndex, cmd);
+                int cameraID = hdCamera.camera.GetInstanceID();
+                if (!m_StaticLightingSky.ContainsKey(cameraID))
+                {
+                    m_StaticLightingSky.Add(cameraID, new SkyUpdateContext());
+                }
+                m_StaticLightingSky[cameraID].skySettings = staticLightingSky != null ? staticLightingSky.skySettings : null;
+                UpdateEnvironment(hdCamera, renderContext, m_StaticLightingSky[cameraID], sunLight, m_StaticSkyUpdateRequired || m_UpdateRequired, true, true, SkyAmbientMode.Static, frameIndex, cmd);
+                m_LastCameraIDUsedForStaticLighting = cameraID;
                 m_StaticSkyUpdateRequired = false;
             }
 
@@ -1068,10 +1087,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // At the start of baking we need to update the GI system with the static lighting sky in order for lightmaps and probes to be baked with it.
             var staticLightingSky = GetStaticLightingSky();
-            if (m_StaticLightingSky.skySettings != null && IsCachedContextValid(m_StaticLightingSky))
+            int cameraID = m_LastCameraIDUsedForStaticLighting;
+            if (!m_StaticLightingSky.ContainsKey(cameraID) && m_StaticLightingSky.Count > 0)
             {
-                var renderingContext = m_CachedSkyContexts[m_StaticLightingSky.cachedSkyRenderingContextId].renderingContext;
-                m_StandardSkyboxMaterial.SetTexture("_Tex", m_StaticLightingSky.IsValid() ? (Texture)renderingContext.skyboxCubemapRT : CoreUtils.blackCubeTexture);
+                cameraID = m_StaticLightingSky.Keys.Last();
+            }
+
+            if (m_StaticLightingSky.ContainsKey(cameraID) && m_StaticLightingSky[cameraID].skySettings != null && IsCachedContextValid(m_StaticLightingSky[cameraID]))
+            {
+                var renderingContext = m_CachedSkyContexts[m_StaticLightingSky[cameraID].cachedSkyRenderingContextId].renderingContext;
+                m_StandardSkyboxMaterial.SetTexture("_Tex", m_StaticLightingSky[cameraID].IsValid() ? (Texture)renderingContext.skyboxCubemapRT : CoreUtils.blackCubeTexture);
             }
             else
             {
