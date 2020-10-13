@@ -87,8 +87,13 @@ namespace UnityEngine.Rendering.Universal
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_BlitMaterial);
-            m_TransparentSettingsPass = new TransparentSettingsPass(RenderPassEvent.BeforeRenderingTransparents, data.shadowTransparentReceive);
-            m_RenderTransparentForwardPass = new DrawObjectsPass("Render Transparents", false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
+#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
+            if (!UniversalRenderPipeline.asset.useAdaptivePerformance || AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipTransparentObjects == false)
+#endif
+            {
+                m_TransparentSettingsPass = new TransparentSettingsPass(RenderPassEvent.BeforeRenderingTransparents, data.shadowTransparentReceive);
+                m_RenderTransparentForwardPass = new DrawObjectsPass("Render Transparents", false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
+            }
             m_OnRenderObjectCallbackPass = new InvokeOnRenderObjectCallbackPass(RenderPassEvent.BeforeRenderingPostProcessing);
             m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
             m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRendering + 1, data.postProcessData, m_BlitMaterial);
@@ -130,6 +135,9 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
+            bool needTransparencyPass = !UniversalRenderPipeline.asset.useAdaptivePerformance || !AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipTransparentObjects;
+#endif
             Camera camera = renderingData.cameraData.camera;
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
@@ -142,6 +150,10 @@ namespace UnityEngine.Rendering.Universal
                 AddRenderPasses(ref renderingData);
                 EnqueuePass(m_RenderOpaqueForwardPass);
                 EnqueuePass(m_DrawSkyboxPass);
+#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
+                if (!needTransparencyPass)
+                    return;
+#endif
                 EnqueuePass(m_RenderTransparentForwardPass);
                 return;
             }
@@ -311,13 +323,17 @@ namespace UnityEngine.Rendering.Universal
                 m_CopyColorPass.Setup(m_ActiveCameraColorAttachment.Identifier(), m_OpaqueColor, downsamplingMethod);
                 EnqueuePass(m_CopyColorPass);
             }
-
-            if (transparentsNeedSettingsPass)
+#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
+            if (needTransparencyPass)
+#endif
             {
-                EnqueuePass(m_TransparentSettingsPass);
-            }
+                if (transparentsNeedSettingsPass)
+                {
+                    EnqueuePass(m_TransparentSettingsPass);
+                }
 
-            EnqueuePass(m_RenderTransparentForwardPass);
+                EnqueuePass(m_RenderTransparentForwardPass);
+            }
             EnqueuePass(m_OnRenderObjectCallbackPass);
 
             bool lastCameraInTheStack = cameraData.resolveFinalTarget;
