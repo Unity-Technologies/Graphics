@@ -3,110 +3,6 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_il2cpp_2_Linear_trunk:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_runtime_il2cpp_2_Linear on version trunk
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_il2cpp_2_gamma_trunk:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_runtime_il2cpp_2_gamma on version trunk
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_il2cpp_2_Linear_trunk:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_editmode_build_il2cpp_2_Linear on version trunk
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_il2cpp_2_gamma_trunk:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_editmode_build_il2cpp_2_gamma on version trunk
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
 URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_il2cpp_4_Linear_trunk:
     name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_runtime_il2cpp_4_Linear on version trunk
     agent:
@@ -116,15 +12,37 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_il2cpp_4_Linea
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
+      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
       -  chmod +x TestProjects/BoatAttack/utr
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only'
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --timeout=1200"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --reruncount=2 --timeout=1200"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/BoatAttack/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
@@ -133,32 +51,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_il2cpp_4_Linea
         logs:
             paths:
               -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_il2cpp_4_gamma_trunk:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_runtime_il2cpp_4_gamma on version trunk
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
+              -  "TestProjects/BoatAttack/Logs/*.log"
 URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_il2cpp_4_Linear_trunk:
     name: URP_Performance_BoatAttack on OSX_Metal_performance_editmode_build_il2cpp_4_Linear on version trunk
     agent:
@@ -168,15 +61,37 @@ URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_il2cpp_4_Linear_
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
+      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
       -  chmod +x TestProjects/BoatAttack/utr
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only'
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --timeout=1200"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --reruncount=2"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/BoatAttack/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
@@ -185,344 +100,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_il2cpp_4_Linear_
         logs:
             paths:
               -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_il2cpp_4_gamma_trunk:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_editmode_build_il2cpp_4_gamma on version trunk
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_2_Linear_trunk:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_runtime_mono_2_Linear on version trunk
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_2_gamma_trunk:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_runtime_mono_2_gamma on version trunk
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_mono_2_Linear_trunk:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_editmode_build_mono_2_Linear on version trunk
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_mono_2_gamma_trunk:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_editmode_build_mono_2_gamma on version trunk
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_4_Linear_trunk:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_runtime_mono_4_Linear on version trunk
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_4_gamma_trunk:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_runtime_mono_4_gamma on version trunk
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_mono_4_Linear_trunk:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_editmode_build_mono_4_Linear on version trunk
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_mono_4_gamma_trunk:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_editmode_build_mono_4_gamma on version trunk
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_il2cpp_2_Linear_2020.2:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_runtime_il2cpp_2_Linear on version 2020.2
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_il2cpp_2_gamma_2020.2:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_runtime_il2cpp_2_gamma on version 2020.2
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_il2cpp_2_Linear_2020.2:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_editmode_build_il2cpp_2_Linear on version 2020.2
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_il2cpp_2_gamma_2020.2:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_editmode_build_il2cpp_2_gamma on version 2020.2
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
+              -  "TestProjects/BoatAttack/Logs/*.log"
 URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_il2cpp_4_Linear_2020.2:
     name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_runtime_il2cpp_4_Linear on version 2020.2
     agent:
@@ -532,15 +110,37 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_il2cpp_4_Linea
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
+      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
       -  chmod +x TestProjects/BoatAttack/utr
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only'
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --timeout=1200"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --reruncount=2 --timeout=1200"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/BoatAttack/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
@@ -549,32 +149,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_il2cpp_4_Linea
         logs:
             paths:
               -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_il2cpp_4_gamma_2020.2:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_runtime_il2cpp_4_gamma on version 2020.2
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
+              -  "TestProjects/BoatAttack/Logs/*.log"
 URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_il2cpp_4_Linear_2020.2:
     name: URP_Performance_BoatAttack on OSX_Metal_performance_editmode_build_il2cpp_4_Linear on version 2020.2
     agent:
@@ -584,15 +159,37 @@ URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_il2cpp_4_Linear_
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
+      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
       -  chmod +x TestProjects/BoatAttack/utr
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only'
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --timeout=1200"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --reruncount=2"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/BoatAttack/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
@@ -601,360 +198,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_il2cpp_4_Linear_
         logs:
             paths:
               -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_il2cpp_4_gamma_2020.2:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_editmode_build_il2cpp_4_gamma on version 2020.2
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_2_Linear_2020.2:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_runtime_mono_2_Linear on version 2020.2
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_2_gamma_2020.2:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_runtime_mono_2_gamma on version 2020.2
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_mono_2_Linear_2020.2:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_editmode_build_mono_2_Linear on version 2020.2
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_mono_2_gamma_2020.2:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_editmode_build_mono_2_gamma on version 2020.2
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_4_Linear_2020.2:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_runtime_mono_4_Linear on version 2020.2
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_4_gamma_2020.2:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_runtime_mono_4_gamma on version 2020.2
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_mono_4_Linear_2020.2:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_editmode_build_mono_4_Linear on version 2020.2
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_mono_4_gamma_2020.2:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_editmode_build_mono_4_gamma on version 2020.2
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_il2cpp_2_Linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_runtime_il2cpp_2_Linear on version CUSTOM-REVISION
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
-         rerun: always
-URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_il2cpp_2_gamma_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_runtime_il2cpp_2_gamma on version CUSTOM-REVISION
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
-         rerun: always
-URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_il2cpp_2_Linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_editmode_build_il2cpp_2_Linear on version CUSTOM-REVISION
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
-         rerun: always
-URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_il2cpp_2_gamma_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_editmode_build_il2cpp_2_gamma on version CUSTOM-REVISION
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
-         rerun: always
+              -  "TestProjects/BoatAttack/Logs/*.log"
 URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_il2cpp_4_Linear_CUSTOM-REVISION:
     name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_runtime_il2cpp_4_Linear on version CUSTOM-REVISION
     agent:
@@ -965,6 +209,28 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_il2cpp_4_Linea
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
+      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
       -  chmod +x TestProjects/BoatAttack/utr
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
@@ -973,7 +239,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_il2cpp_4_Linea
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --timeout=1200"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --reruncount=2 --timeout=1200"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/BoatAttack/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
@@ -982,36 +248,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_il2cpp_4_Linea
         logs:
             paths:
               -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
-         rerun: always
-URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_il2cpp_4_gamma_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_runtime_il2cpp_4_gamma on version CUSTOM-REVISION
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
+              -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
@@ -1025,6 +262,28 @@ URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_il2cpp_4_Linear_
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
+      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
+      -  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-config
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
       -  chmod +x TestProjects/BoatAttack/utr
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
@@ -1033,7 +292,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_il2cpp_4_Linear_
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --timeout=1200"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --reruncount=2"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/BoatAttack/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
@@ -1042,276 +301,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_il2cpp_4_Linear_
         logs:
             paths:
               -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
-         rerun: always
-URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_il2cpp_4_gamma_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_editmode_build_il2cpp_4_gamma on version CUSTOM-REVISION
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
-         rerun: always
-URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_2_Linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_runtime_mono_2_Linear on version CUSTOM-REVISION
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
-         rerun: always
-URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_2_gamma_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_runtime_mono_2_gamma on version CUSTOM-REVISION
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
-         rerun: always
-URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_mono_2_Linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_editmode_build_mono_2_Linear on version CUSTOM-REVISION
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
-         rerun: always
-URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_mono_2_gamma_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_editmode_build_mono_2_gamma on version CUSTOM-REVISION
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
-         rerun: always
-URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_4_Linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_runtime_mono_4_Linear on version CUSTOM-REVISION
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
-         rerun: always
-URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_4_gamma_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_runtime_mono_4_gamma on version CUSTOM-REVISION
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
-         rerun: always
-URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_mono_4_Linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_editmode_build_mono_4_Linear on version CUSTOM-REVISION
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
-         rerun: always
-URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_mono_4_gamma_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_editmode_build_mono_4_gamma on version CUSTOM-REVISION
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
-      -  chmod +x TestProjects/BoatAttack/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"--reruncount=2 --timeout=1200"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/BoatAttack/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
+              -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always

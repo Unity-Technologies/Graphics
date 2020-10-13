@@ -14,11 +14,12 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_2_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"--reruncount=2
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --reruncount=2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_performance-iphone-metal.yml#Build_URP_Performance_iPhone_Metal_Player_il2cpp_2_Linear_trunk
          rerun: on-new-revision
@@ -32,14 +33,15 @@ Build_URP_Performance_iPhone_Metal_Player_il2cpp_2_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -54,11 +56,12 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_2_gamma_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"--reruncount=2
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --reruncount=2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_performance-iphone-metal.yml#Build_URP_Performance_iPhone_Metal_Player_il2cpp_2_gamma_trunk
          rerun: on-new-revision
@@ -72,14 +75,15 @@ Build_URP_Performance_iPhone_Metal_Player_il2cpp_2_gamma_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -93,14 +97,15 @@ URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_2_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
 URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_2_gamma_trunk:
     name: URP_Performance on iPhone_Metal_performance_editmode_build_il2cpp_2_gamma on version trunk
     agent:
@@ -111,14 +116,15 @@ URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_2_gamma_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
 URP_Performance_iPhone_Metal_performance_playmode_il2cpp_4_Linear_trunk:
     name: URP_Performance on iPhone_Metal_performance_playmode_il2cpp_4_Linear on version trunk
     agent:
@@ -130,11 +136,12 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_4_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"--reruncount=2
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --reruncount=2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_performance-iphone-metal.yml#Build_URP_Performance_iPhone_Metal_Player_il2cpp_4_Linear_trunk
          rerun: on-new-revision
@@ -148,14 +155,15 @@ Build_URP_Performance_iPhone_Metal_Player_il2cpp_4_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -170,11 +178,12 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_4_gamma_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"--reruncount=2
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --reruncount=2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_performance-iphone-metal.yml#Build_URP_Performance_iPhone_Metal_Player_il2cpp_4_gamma_trunk
          rerun: on-new-revision
@@ -188,14 +197,15 @@ Build_URP_Performance_iPhone_Metal_Player_il2cpp_4_gamma_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -209,14 +219,15 @@ URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_4_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
 URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_4_gamma_trunk:
     name: URP_Performance on iPhone_Metal_performance_editmode_build_il2cpp_4_gamma on version trunk
     agent:
@@ -227,14 +238,15 @@ URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_4_gamma_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
 URP_Performance_iPhone_Metal_performance_playmode_mono_Linear_trunk:
     name: URP_Performance on iPhone_Metal_performance_playmode_mono_Linear on version trunk
     agent:
@@ -246,11 +258,12 @@ URP_Performance_iPhone_Metal_performance_playmode_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"--reruncount=2
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --reruncount=2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_performance-iphone-metal.yml#Build_URP_Performance_iPhone_Metal_Player_mono_Linear_trunk
          rerun: on-new-revision
@@ -264,14 +277,15 @@ Build_URP_Performance_iPhone_Metal_Player_mono_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -286,11 +300,12 @@ URP_Performance_iPhone_Metal_performance_playmode_mono_gamma_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"--reruncount=2
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --reruncount=2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_performance-iphone-metal.yml#Build_URP_Performance_iPhone_Metal_Player_mono_gamma_trunk
          rerun: on-new-revision
@@ -304,14 +319,15 @@ Build_URP_Performance_iPhone_Metal_Player_mono_gamma_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -325,14 +341,15 @@ URP_Performance_iPhone_Metal_performance_editmode_build_mono_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
 URP_Performance_iPhone_Metal_performance_editmode_build_mono_gamma_trunk:
     name: URP_Performance on iPhone_Metal_performance_editmode_build_mono_gamma on version trunk
     agent:
@@ -343,14 +360,15 @@ URP_Performance_iPhone_Metal_performance_editmode_build_mono_gamma_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
 URP_Performance_iPhone_Metal_performance_playmode_il2cpp_2_Linear_2020.2:
     name: URP_Performance on iPhone_Metal_performance_playmode_il2cpp_2_Linear on version 2020.2
     agent:
@@ -362,11 +380,12 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_2_Linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"--reruncount=2
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --reruncount=2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_performance-iphone-metal.yml#Build_URP_Performance_iPhone_Metal_Player_il2cpp_2_Linear_2020.2
          rerun: on-new-revision
@@ -380,14 +399,15 @@ Build_URP_Performance_iPhone_Metal_Player_il2cpp_2_Linear_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -402,11 +422,12 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_2_gamma_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"--reruncount=2
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --reruncount=2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_performance-iphone-metal.yml#Build_URP_Performance_iPhone_Metal_Player_il2cpp_2_gamma_2020.2
          rerun: on-new-revision
@@ -420,14 +441,15 @@ Build_URP_Performance_iPhone_Metal_Player_il2cpp_2_gamma_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -441,14 +463,15 @@ URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_2_Linear_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
 URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_2_gamma_2020.2:
     name: URP_Performance on iPhone_Metal_performance_editmode_build_il2cpp_2_gamma on version 2020.2
     agent:
@@ -459,14 +482,15 @@ URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_2_gamma_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
 URP_Performance_iPhone_Metal_performance_playmode_il2cpp_4_Linear_2020.2:
     name: URP_Performance on iPhone_Metal_performance_playmode_il2cpp_4_Linear on version 2020.2
     agent:
@@ -478,11 +502,12 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_4_Linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"--reruncount=2
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --reruncount=2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_performance-iphone-metal.yml#Build_URP_Performance_iPhone_Metal_Player_il2cpp_4_Linear_2020.2
          rerun: on-new-revision
@@ -496,14 +521,15 @@ Build_URP_Performance_iPhone_Metal_Player_il2cpp_4_Linear_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -518,11 +544,12 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_4_gamma_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"--reruncount=2
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --reruncount=2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_performance-iphone-metal.yml#Build_URP_Performance_iPhone_Metal_Player_il2cpp_4_gamma_2020.2
          rerun: on-new-revision
@@ -536,14 +563,15 @@ Build_URP_Performance_iPhone_Metal_Player_il2cpp_4_gamma_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -557,14 +585,15 @@ URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_4_Linear_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
 URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_4_gamma_2020.2:
     name: URP_Performance on iPhone_Metal_performance_editmode_build_il2cpp_4_gamma on version 2020.2
     agent:
@@ -575,14 +604,15 @@ URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_4_gamma_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
 URP_Performance_iPhone_Metal_performance_playmode_mono_Linear_2020.2:
     name: URP_Performance on iPhone_Metal_performance_playmode_mono_Linear on version 2020.2
     agent:
@@ -594,11 +624,12 @@ URP_Performance_iPhone_Metal_performance_playmode_mono_Linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"--reruncount=2
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --reruncount=2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_performance-iphone-metal.yml#Build_URP_Performance_iPhone_Metal_Player_mono_Linear_2020.2
          rerun: on-new-revision
@@ -612,14 +643,15 @@ Build_URP_Performance_iPhone_Metal_Player_mono_Linear_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -634,11 +666,12 @@ URP_Performance_iPhone_Metal_performance_playmode_mono_gamma_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"--reruncount=2
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --reruncount=2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_performance-iphone-metal.yml#Build_URP_Performance_iPhone_Metal_Player_mono_gamma_2020.2
          rerun: on-new-revision
@@ -652,14 +685,15 @@ Build_URP_Performance_iPhone_Metal_Player_mono_gamma_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -673,14 +707,15 @@ URP_Performance_iPhone_Metal_performance_editmode_build_mono_Linear_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
 URP_Performance_iPhone_Metal_performance_editmode_build_mono_gamma_2020.2:
     name: URP_Performance on iPhone_Metal_performance_editmode_build_mono_gamma on version 2020.2
     agent:
@@ -691,14 +726,15 @@ URP_Performance_iPhone_Metal_performance_editmode_build_mono_gamma_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
 URP_Performance_iPhone_Metal_performance_playmode_il2cpp_2_Linear_CUSTOM-REVISION:
     name: URP_Performance on iPhone_Metal_performance_playmode_il2cpp_2_Linear on version CUSTOM-REVISION
     agent:
@@ -711,11 +747,12 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_2_Linear_CUSTOM-REVISIO
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"--reruncount=2
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --reruncount=2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
@@ -735,11 +772,12 @@ Build_URP_Performance_iPhone_Metal_Player_il2cpp_2_Linear_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -758,11 +796,12 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_2_gamma_CUSTOM-REVISION
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"--reruncount=2
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --reruncount=2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
@@ -782,11 +821,12 @@ Build_URP_Performance_iPhone_Metal_Player_il2cpp_2_gamma_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -807,11 +847,12 @@ URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_2_Linear_CUSTOM-R
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
@@ -829,11 +870,12 @@ URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_2_gamma_CUSTOM-RE
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
@@ -849,11 +891,12 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_4_Linear_CUSTOM-REVISIO
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"--reruncount=2
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --reruncount=2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
@@ -873,11 +916,12 @@ Build_URP_Performance_iPhone_Metal_Player_il2cpp_4_Linear_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -896,11 +940,12 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_4_gamma_CUSTOM-REVISION
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"--reruncount=2
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma" --reruncount=2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
@@ -920,11 +965,12 @@ Build_URP_Performance_iPhone_Metal_Player_il2cpp_4_gamma_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -945,11 +991,12 @@ URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_4_Linear_CUSTOM-R
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
@@ -967,11 +1014,12 @@ URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_4_gamma_CUSTOM-RE
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
@@ -987,11 +1035,12 @@ URP_Performance_iPhone_Metal_performance_playmode_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"--reruncount=2
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --reruncount=2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
@@ -1011,11 +1060,12 @@ Build_URP_Performance_iPhone_Metal_Player_mono_Linear_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -1034,11 +1084,12 @@ URP_Performance_iPhone_Metal_performance_playmode_mono_gamma_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"--reruncount=2
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma" --reruncount=2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
@@ -1058,11 +1109,12 @@ Build_URP_Performance_iPhone_Metal_Player_mono_gamma_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -1083,11 +1135,12 @@ URP_Performance_iPhone_Metal_performance_editmode_build_mono_Linear_CUSTOM-REVIS
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
@@ -1105,11 +1158,12 @@ URP_Performance_iPhone_Metal_performance_editmode_build_mono_gamma_CUSTOM-REVISI
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/URP_Performance --extra-editor-arg="-playergraphicsapi=" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-scriptingbackend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=gamma"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always

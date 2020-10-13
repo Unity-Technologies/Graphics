@@ -34,18 +34,25 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor, build_con
 
     return  _cmd_base(project_folder, platform, utr_args, editor)
 
+
 def cmd_standalone(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    try:
-        scripting_backend = build_config["scripting_backend"]
-        api_level = build_config["api_level"]
-        utr_args = utr_standalone_split_flags("Linux64", scripting_backend=f'{scripting_backend}', api_level=f'{api_level}', color_space=f'{color_space}')
-        cmd_standalone_build(project_folder, platform, api, test_platform, build_config, color_space)
-    except:
-        utr_args = utr_standalone_not_split_flags("Linux64")
+    scripting_backend = build_config["scripting_backend"]
+    api_level = build_config["api_level"]
+    utr_args = utr_standalone_split_flags("Linux64", scripting_backend=f'{scripting_backend}', api_level=f'{api_level}', color_space=f'{color_space}')
     utr_args.extend(extract_flags(test_platform["extra_utr_flags"], platform["name"], api["name"]))
 
-    return  _cmd_base(project_folder, platform, utr_args, editor)
+    base = [f'curl -s {UTR_INSTALL_URL} --output {TEST_PROJECTS_DIR}/{project_folder}/utr']
+    base.extend([
+        f'chmod +x {TEST_PROJECTS_DIR}/{project_folder}/utr',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && ./utr {" ".join(utr_args)}'])
+    
+    return base
 
 
 def cmd_standalone_build(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    raise NotImplementedError('linux: split build not specified')
+    scripting_backend = build_config["scripting_backend"]
+    api_level = build_config["api_level"]
+    utr_args = utr_standalone_build_flags("Linux64", graphics_api=api["name"], scripting_backend=f'{scripting_backend}', api_level=f'{api_level}', color_space=f'{color_space}')
+    utr_args.extend(extract_flags(test_platform["extra_utr_flags"], platform["name"], api["name"]))
+    
+    return _cmd_base(project_folder, platform, utr_args, editor)

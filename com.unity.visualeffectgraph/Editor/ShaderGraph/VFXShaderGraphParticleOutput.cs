@@ -63,7 +63,7 @@ namespace UnityEditor.VFX
                     return null;
                 case PropertyType.Boolean:
                     return typeof(bool);
-                case PropertyType.Vector1:
+                case PropertyType.Float:
                     return typeof(float);
                 case PropertyType.Vector2:
                     return typeof(Vector2);
@@ -133,8 +133,12 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
-                    if (!shaderGraph.alphaClipping) //alpha threshold isn't controlled by shadergraph
-                        return true;
+                    if (!shaderGraph.alphaClipping)
+                    {
+                        //alpha clipping isn't enabled in shaderGraph, we implicitly still allows clipping for shadow & motion vector passes.
+                        if (!isBlendModeOpaque && (hasMotionVector || hasShadowCasting))
+                            return true;
+                    }
                 }
                 return false;
             }
@@ -173,7 +177,7 @@ namespace UnityEditor.VFX
                              .Select(t => new { property = t, type = GetSGPropertyType(t) })
                              .Where(t => t.type != null))
                     {
-                        if (property.property.propertyType == PropertyType.Vector1)
+                        if (property.property.propertyType == PropertyType.Float)
                         {
                             var prop = property.property as Vector1ShaderProperty;
 

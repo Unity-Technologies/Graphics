@@ -7,7 +7,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Spawn/Attribute", variantProvider = typeof(AttributeVariantReadWritableNoVariadic))]
+    [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeVariantReadWritableNoVariadic))]
     class VFXSpawnerSetAttribute : VFXAbstractSpawner
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(AttributeProvider))]
@@ -61,7 +61,7 @@ namespace UnityEditor.VFX.Block
 
                 if (size == 1)
                 {
-                    random = new VFXExpressionRandom();
+                    random = new VFXExpressionRandom(false, new RandId(this, 0));
                 }
                 else
                 {
@@ -69,10 +69,10 @@ namespace UnityEditor.VFX.Block
                     {
                         default:
                         case RandomMode.PerComponent:
-                            random = new VFXExpressionCombine(Enumerable.Repeat(0, size).Select(_ => new VFXExpressionRandom()).ToArray());
+                            random = new VFXExpressionCombine(Enumerable.Range(0, size).Select(i => new VFXExpressionRandom(false, new RandId(this, i))).ToArray());
                             break;
                         case RandomMode.Uniform:
-                            random = new VFXExpressionCombine(Enumerable.Repeat(new VFXExpressionRandom(), size).ToArray());
+                            random = new VFXExpressionCombine(Enumerable.Repeat(new VFXExpressionRandom(false, new RandId(this, 0)), size).ToArray());
                             break;
                     }
                 }

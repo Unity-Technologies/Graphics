@@ -42,7 +42,6 @@ platforms:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
-        model: rtx2080
   - name: OSX
     apis:
       - name: Metal
@@ -54,23 +53,26 @@ platforms:
         exclude_test_platforms:
           - name: playmode_XR
 build_configs:
-- name: il2cpp_2
-  scripting_backend: il2cpp
-  api_level: NET_2_0
-- name: il2cpp_4
-  scripting_backend: il2cpp
-  api_level: NET_4_6
-- name: mono
+#- name: il2cpp_2
+#  scripting_backend: il2cpp
+#  api_level: NET_2_0
+#- name: il2cpp_4
+#  scripting_backend: il2cpp
+#  api_level: NET_4_6
+- name: mono_2
   scripting_backend: mono
   api_level: NET_2_0
+#- name: mono_4
+#  scripting_backend: mono
+#  api_level: NET_4_6
 color_spaces:
   - Linear
-  - gamma
+#  - gamma
 all:
   dependencies:
     - platform: Win
       api: DX11
-      build_config: il2cpp_4
+      build_config: mono_2
       color_space: Linear
       test_platforms:
         - editmode
@@ -80,7 +82,7 @@ all:
         - Standalone
     - platform: Win
       api: DX12
-      build_config: il2cpp_4
+      build_config: mono_2
       color_space: Linear
       test_platforms:
         - playmode
@@ -88,7 +90,7 @@ all:
         - Standalone
     - platform: Win
       api: Vulkan
-      build_config: il2cpp_4
+      build_config: mono_2
       color_space: Linear
       test_platforms:
         - playmode
@@ -96,14 +98,14 @@ all:
         - Standalone
     - platform: OSX
       api: Metal
-      build_config: il2cpp_4
+      build_config: mono_2
       color_space: Linear
       test_platforms:
         # - Standalone
         - playmode
     - platform: Linux
       api: Vulkan
-      build_config: il2cpp_4
+      build_config: mono_2
       color_space: Linear
       test_platforms:
         - editmode
@@ -112,7 +114,7 @@ all:
     - project: HDRP_DXR
       platform: Win
       api: DX12
-      build_config: il2cpp_4
+      build_config: mono_2
       color_space: Linear
       test_platforms:
         - playmode
