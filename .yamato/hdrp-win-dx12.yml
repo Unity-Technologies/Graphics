@@ -35,7 +35,7 @@ HDRP_Win_DX12_playmode_XR_mono_2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --extra-editor-arg="-xr-tests" --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d12"
+      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d12" --extra-editor-arg="-xr-tests"
     artifacts:
         logs:
             paths:
@@ -54,7 +54,7 @@ HDRP_Win_DX12_playmode_NonRenderGraph_mono_2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --extra-editor-arg="-non-rendergraph-tests" --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d12"
+      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d12" --extra-editor-arg="-non-rendergraph-tests"
     artifacts:
         logs:
             paths:
@@ -151,7 +151,7 @@ HDRP_Win_DX12_playmode_XR_mono_2_Linear_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --extra-editor-arg="-xr-tests" --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d12"
+      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d12" --extra-editor-arg="-xr-tests"
     artifacts:
         logs:
             paths:
@@ -170,7 +170,7 @@ HDRP_Win_DX12_playmode_NonRenderGraph_mono_2_Linear_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --extra-editor-arg="-non-rendergraph-tests" --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d12"
+      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d12" --extra-editor-arg="-non-rendergraph-tests"
     artifacts:
         logs:
             paths:
@@ -272,7 +272,7 @@ HDRP_Win_DX12_playmode_XR_mono_2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --extra-editor-arg="-xr-tests" --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d12"
+      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d12" --extra-editor-arg="-xr-tests"
     artifacts:
         logs:
             paths:
@@ -295,7 +295,7 @@ HDRP_Win_DX12_playmode_NonRenderGraph_mono_2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --extra-editor-arg="-non-rendergraph-tests" --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d12"
+      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d12" --extra-editor-arg="-non-rendergraph-tests"
     artifacts:
         logs:
             paths:

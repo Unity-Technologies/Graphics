@@ -19,7 +19,7 @@ URP_Performance_Android_Vulkan_performance_playmode_il2cpp_2_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
+                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -44,7 +44,7 @@ Build_URP_Performance_Android_Vulkan_Player_il2cpp_2_Linear_trunk:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --timeout=2700
+      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -69,7 +69,7 @@ URP_Performance_Android_Vulkan_performance_playmode_il2cpp_2_gamma_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
+                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -94,7 +94,7 @@ Build_URP_Performance_Android_Vulkan_Player_il2cpp_2_gamma_trunk:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --timeout=2700
+      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -121,7 +121,7 @@ URP_Performance_Android_Vulkan_performance_editmode_build_il2cpp_2_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -146,7 +146,7 @@ URP_Performance_Android_Vulkan_performance_editmode_build_il2cpp_2_gamma_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -169,7 +169,7 @@ URP_Performance_Android_Vulkan_performance_playmode_il2cpp_4_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
+                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -194,7 +194,7 @@ Build_URP_Performance_Android_Vulkan_Player_il2cpp_4_Linear_trunk:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --timeout=2700
+      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -219,7 +219,7 @@ URP_Performance_Android_Vulkan_performance_playmode_il2cpp_4_gamma_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
+                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -244,7 +244,7 @@ Build_URP_Performance_Android_Vulkan_Player_il2cpp_4_gamma_trunk:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --timeout=2700
+      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -271,7 +271,7 @@ URP_Performance_Android_Vulkan_performance_editmode_build_il2cpp_4_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -296,7 +296,7 @@ URP_Performance_Android_Vulkan_performance_editmode_build_il2cpp_4_gamma_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -319,7 +319,7 @@ URP_Performance_Android_Vulkan_performance_playmode_mono_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
+                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -344,7 +344,7 @@ Build_URP_Performance_Android_Vulkan_Player_mono_Linear_trunk:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --timeout=2700
+      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -369,7 +369,7 @@ URP_Performance_Android_Vulkan_performance_playmode_mono_gamma_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
+                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -394,7 +394,7 @@ Build_URP_Performance_Android_Vulkan_Player_mono_gamma_trunk:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --timeout=2700
+      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -421,7 +421,7 @@ URP_Performance_Android_Vulkan_performance_editmode_build_mono_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -446,7 +446,7 @@ URP_Performance_Android_Vulkan_performance_editmode_build_mono_gamma_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -469,7 +469,7 @@ URP_Performance_Android_Vulkan_performance_playmode_il2cpp_2_Linear_2020.2:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
+                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -494,7 +494,7 @@ Build_URP_Performance_Android_Vulkan_Player_il2cpp_2_Linear_2020.2:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --timeout=2700
+      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -519,7 +519,7 @@ URP_Performance_Android_Vulkan_performance_playmode_il2cpp_2_gamma_2020.2:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
+                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -544,7 +544,7 @@ Build_URP_Performance_Android_Vulkan_Player_il2cpp_2_gamma_2020.2:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --timeout=2700
+      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -571,7 +571,7 @@ URP_Performance_Android_Vulkan_performance_editmode_build_il2cpp_2_Linear_2020.2
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -596,7 +596,7 @@ URP_Performance_Android_Vulkan_performance_editmode_build_il2cpp_2_gamma_2020.2:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -619,7 +619,7 @@ URP_Performance_Android_Vulkan_performance_playmode_il2cpp_4_Linear_2020.2:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
+                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -644,7 +644,7 @@ Build_URP_Performance_Android_Vulkan_Player_il2cpp_4_Linear_2020.2:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --timeout=2700
+      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -669,7 +669,7 @@ URP_Performance_Android_Vulkan_performance_playmode_il2cpp_4_gamma_2020.2:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
+                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -694,7 +694,7 @@ Build_URP_Performance_Android_Vulkan_Player_il2cpp_4_gamma_2020.2:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --timeout=2700
+      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -721,7 +721,7 @@ URP_Performance_Android_Vulkan_performance_editmode_build_il2cpp_4_Linear_2020.2
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -746,7 +746,7 @@ URP_Performance_Android_Vulkan_performance_editmode_build_il2cpp_4_gamma_2020.2:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -769,7 +769,7 @@ URP_Performance_Android_Vulkan_performance_playmode_mono_Linear_2020.2:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
+                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -794,7 +794,7 @@ Build_URP_Performance_Android_Vulkan_Player_mono_Linear_2020.2:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --timeout=2700
+      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -819,7 +819,7 @@ URP_Performance_Android_Vulkan_performance_playmode_mono_gamma_2020.2:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
+                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -844,7 +844,7 @@ Build_URP_Performance_Android_Vulkan_Player_mono_gamma_2020.2:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --timeout=2700
+      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -871,7 +871,7 @@ URP_Performance_Android_Vulkan_performance_editmode_build_mono_Linear_2020.2:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -896,7 +896,7 @@ URP_Performance_Android_Vulkan_performance_editmode_build_mono_gamma_2020.2:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -920,7 +920,7 @@ URP_Performance_Android_Vulkan_performance_playmode_il2cpp_2_Linear_CUSTOM-REVIS
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
+                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -948,7 +948,7 @@ Build_URP_Performance_Android_Vulkan_Player_il2cpp_2_Linear_CUSTOM-REVISION:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --timeout=2700
+      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -977,7 +977,7 @@ URP_Performance_Android_Vulkan_performance_playmode_il2cpp_2_gamma_CUSTOM-REVISI
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
+                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1005,7 +1005,7 @@ Build_URP_Performance_Android_Vulkan_Player_il2cpp_2_gamma_CUSTOM-REVISION:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --timeout=2700
+      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -1036,7 +1036,7 @@ URP_Performance_Android_Vulkan_performance_editmode_build_il2cpp_2_Linear_CUSTOM
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1065,7 +1065,7 @@ URP_Performance_Android_Vulkan_performance_editmode_build_il2cpp_2_gamma_CUSTOM-
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1092,7 +1092,7 @@ URP_Performance_Android_Vulkan_performance_playmode_il2cpp_4_Linear_CUSTOM-REVIS
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
+                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1120,7 +1120,7 @@ Build_URP_Performance_Android_Vulkan_Player_il2cpp_4_Linear_CUSTOM-REVISION:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --timeout=2700
+      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -1149,7 +1149,7 @@ URP_Performance_Android_Vulkan_performance_playmode_il2cpp_4_gamma_CUSTOM-REVISI
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
+                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1177,7 +1177,7 @@ Build_URP_Performance_Android_Vulkan_Player_il2cpp_4_gamma_CUSTOM-REVISION:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --timeout=2700
+      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -1208,7 +1208,7 @@ URP_Performance_Android_Vulkan_performance_editmode_build_il2cpp_4_Linear_CUSTOM
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1237,7 +1237,7 @@ URP_Performance_Android_Vulkan_performance_editmode_build_il2cpp_4_gamma_CUSTOM-
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1264,7 +1264,7 @@ URP_Performance_Android_Vulkan_performance_playmode_mono_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
+                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1292,7 +1292,7 @@ Build_URP_Performance_Android_Vulkan_Player_mono_Linear_CUSTOM-REVISION:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --timeout=2700
+      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -1321,7 +1321,7 @@ URP_Performance_Android_Vulkan_performance_playmode_mono_gamma_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
+                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1349,7 +1349,7 @@ Build_URP_Performance_Android_Vulkan_Player_mono_gamma_CUSTOM-REVISION:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --timeout=2700
+      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -1380,7 +1380,7 @@ URP_Performance_Android_Vulkan_performance_editmode_build_mono_Linear_CUSTOM-REV
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1409,7 +1409,7 @@ URP_Performance_Android_Vulkan_performance_editmode_build_mono_gamma_CUSTOM-REVI
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --report-performance-data --performance-project-id=URP_Performance --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:

@@ -64,10 +64,16 @@ def _unfold_individual_agents(metafile, shared, root_keys=[]):
 
 def _join_utr_flags(metafile, shared):
     for test_platform in metafile["test_platforms"]:
+        
         shared_tp = [tp for tp in shared["test_platforms"] if tp["type"].lower() == test_platform["type"].lower()][0]
-        test_platform["extra_utr_flags"].extend(shared_tp["extra_utr_flags"])
+        
+        utr_flags = shared_tp["extra_utr_flags"] + test_platform["extra_utr_flags"]
+        test_platform["extra_utr_flags"] = utr_flags
+        
         if test_platform["type"].lower()=="standalone":
-            test_platform["extra_utr_flags_build"].extend(shared_tp["extra_utr_flags_build"])
+            utr_flags_build = shared_tp.get("extra_utr_flags_build",[]) + test_platform.get("extra_utr_flags_build",[])
+            test_platform["extra_utr_flags_build"] = utr_flags_build
+
     return metafile
 
 

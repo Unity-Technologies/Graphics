@@ -96,7 +96,7 @@ Universal_iPhone_Metal_playmode_perf_build_mono_2_Linear_trunk:
       -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  TestProjects/UniversalGraphicsTest/utr --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+      -  TestProjects/UniversalGraphicsTest/utr --suite=Editor --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -195,7 +195,7 @@ Universal_iPhone_Metal_playmode_perf_build_mono_2_Linear_2020.2:
       -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  TestProjects/UniversalGraphicsTest/utr --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+      -  TestProjects/UniversalGraphicsTest/utr --suite=Editor --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -310,7 +310,7 @@ Universal_iPhone_Metal_playmode_perf_build_mono_2_Linear_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  TestProjects/UniversalGraphicsTest/utr --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+      -  TestProjects/UniversalGraphicsTest/utr --suite=Editor --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:

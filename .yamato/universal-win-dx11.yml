@@ -92,7 +92,7 @@ Universal_Win_DX11_playmode_perf_build_mono_2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && utr --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/UniversalGraphicsTest && utr --suite=Editor --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -110,7 +110,7 @@ Universal_Win_DX11_playmode_XR_mono_2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && utr --extra-editor-arg="-xr-tests" --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-tests"
     artifacts:
         logs:
             paths:
@@ -205,7 +205,7 @@ Universal_Win_DX11_playmode_perf_build_mono_2_Linear_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && utr --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/UniversalGraphicsTest && utr --suite=Editor --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -223,7 +223,7 @@ Universal_Win_DX11_playmode_XR_mono_2_Linear_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && utr --extra-editor-arg="-xr-tests" --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-tests"
     artifacts:
         logs:
             paths:
@@ -334,7 +334,7 @@ Universal_Win_DX11_playmode_perf_build_mono_2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && utr --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build --suite=Editor --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/UniversalGraphicsTest && utr --suite=Editor --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11" --scripting-backend=il2cpp --timeout=1200 --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -356,7 +356,7 @@ Universal_Win_DX11_playmode_XR_mono_2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && utr --extra-editor-arg="-xr-tests" --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-tests"
     artifacts:
         logs:
             paths:
