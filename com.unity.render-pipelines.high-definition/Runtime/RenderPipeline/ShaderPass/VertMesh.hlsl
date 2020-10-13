@@ -42,18 +42,18 @@ PackedVaryingsToPS PackVaryingsToPS(VaryingsToPS input)
     return output;
 }
 
-FragInputs UnpackVaryingsToFragInputs(PackedVaryingsToPS packed)
+FragInputs UnpackVaryingsToFragInputs(PackedVaryingsToPS input)
 {
-    FragInputs input = UnpackVaryingsMeshToFragInputs(packed.vmesh);
+    FragInputs input = UnpackVaryingsMeshToFragInputs(input.vmesh);
 
 #if defined(PLATFORM_SUPPORTS_PRIMITIVE_ID_IN_PIXEL_SHADER) && SHADER_STAGE_FRAGMENT
 #if (defined(VARYINGS_NEED_PRIMITIVEID) || (SHADERPASS == SHADERPASS_FULLSCREEN_DEBUG))
-    input.primitiveID = packed.primitiveID;
+    input.primitiveID = input.primitiveID;
 #endif
 #endif
 
 #if defined(VARYINGS_NEED_CULLFACE) && SHADER_STAGE_FRAGMENT
-    input.isFrontFace = IS_FRONT_VFACE(packed.cullFace, true, false);
+    input.isFrontFace = IS_FRONT_VFACE(input.cullFace, true, false);
 #endif
 
     return input;
