@@ -5,8 +5,9 @@
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesGlobal.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/TilingAndBinningUtilities.hlsl"
 
 /* ------------------------------ Inputs ------------------------------------ */
 
@@ -23,31 +24,11 @@ RWStructuredBuffer<uint> _zBinBuffer : register(u0); // {start << 16 | end}
 
 /* ------------------------------ Utilities --------------------------------- */
 
-// The HLSL preprocessor does not support the '%' operator.
-#define REMAINDER(a, n) ((a) - (n) * ((a) / (n)))
-
 // Repackage to work around ridiculous constant buffer limitations of HLSL.
 static uint s_BoundedEntityCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT]  = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityCountPerCategory;
 static uint s_BoundedEntityOffsetPerCategory[BOUNDEDENTITYCATEGORY_COUNT] = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityOffsetPerCategory;
 
-uint ComputeEntityBoundsBufferIndex(uint entityIndex, uint eye)
-{
-    return IndexFromCoordinate(uint2(entityIndex, eye), _BoundedEntityCount);
-}
-
-uint ComputeZBinBufferIndex(uint bin, uint category, uint eye)
-{
-    return IndexFromCoordinate(uint3(bin, category, eye),
-                               uint2(ZBIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT));
-}
-
-uint ComputeZBinFromLinearDepth(float w, float4 encodingParams)
-{
-    float z = EncodeLogarithmicDepth(w, encodingParams);
-    z = saturate(z); // Clamp to the region between the near and the far planes
-
-    return min((uint)(z * ZBIN_COUNT), ZBIN_COUNT - 1);
-}
+/* ------------------------------ Implementation ---------------------------- */
 
 float2 ComputeZBinLinearDepthBounds(uint bin, float4 encodingParams)
 {
@@ -67,19 +48,6 @@ float2 ComputeZBinLinearDepthBounds(uint bin, float4 encodingParams)
 
     return wBounds;
 }
-
-// The intervals must be defined s.t.
-// the 'x' component holds the lower bound and
-// the 'y' component holds the upper bound.
-bool IntervalsOverlap(float2 i1, float2 i2)
-{
-    float l = max(i1.x, i2.x); // Lower bound of the intersection interval
-    float u = min(i1.y, i2.y); // Upper bound of the intersection interval
-
-    return l <= u;             // Is the interval non-empty?
-}
-
-/* ------------------------------ Implementation ---------------------------- */
 
 #define THREADS_PER_GROUP (64)
 
