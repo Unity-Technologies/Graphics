@@ -123,10 +123,10 @@ namespace UnityEditor.VFX
             return false;
         }
 
-        public bool ArcGizmo(Vector3 center, float radius, float degArc, IProperty<float> arcProperty, Quaternion rotation, bool always)
+        public void ArcGizmo(Vector3 center, float radius, float degArc, IProperty<float> arcProperty, Quaternion rotation)
         {
             // Arc handle control
-            if (arcProperty.isEditable && (always || Tools.current == Tool.Rotate || Tools.current == Tool.Transform))
+            if (arcProperty.isEditable)
             {
                 using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Translate(center) * Matrix4x4.Rotate(rotation)))
                 {
@@ -147,11 +147,9 @@ namespace UnityEditor.VFX
                         degArc += Mathf.DeltaAngle(degArc, newArc);
                         degArc = Mathf.Repeat(degArc, 360.0f);
                         arcProperty.SetValue(degArc * Mathf.Deg2Rad);
-                        return true;
                     }
                 }
             }
-            return false;
         }
 
         static Vector3 m_InitialNormal;

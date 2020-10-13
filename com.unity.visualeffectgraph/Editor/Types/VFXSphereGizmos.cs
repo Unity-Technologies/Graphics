@@ -109,7 +109,7 @@ namespace UnityEditor.VFX
                 // Draw 3rd circle around the arc
                 Handles.DrawWireArc(Vector3.zero, -Vector3.forward, Vector3.up, arc, radius);
 
-                ArcGizmo(Vector3.zero, radius, arc, m_ArcProperty, Quaternion.Euler(-90.0f, 0.0f, 0.0f), true);
+                ArcGizmo(Vector3.zero, radius, arc, m_ArcProperty, Quaternion.Euler(-90.0f, 0.0f, 0.0f));
             }
 
             VFXSphereGizmo.DrawSphere(arcSphere.sphere, this, m_CenterProperty, m_AnglesProperty, m_RadiusProperty);

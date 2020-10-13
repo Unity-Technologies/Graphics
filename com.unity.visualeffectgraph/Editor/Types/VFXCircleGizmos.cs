@@ -93,7 +93,7 @@ namespace UnityEditor.VFX
             using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(arcCircle.circle.center, Quaternion.Euler(arcCircle.circle.angles), Vector3.one)))
             {
                 Handles.DrawWireArc(Vector3.zero, -Vector3.forward, Vector3.up, arc, radius);
-                ArcGizmo(Vector3.zero, radius, arc, m_ArcProperty, Quaternion.Euler(-90.0f, 0.0f, 0.0f), true);
+                ArcGizmo(Vector3.zero, radius, arc, m_ArcProperty, Quaternion.Euler(-90.0f, 0.0f, 0.0f));
             }
 
             VFXCircleGizmo.DrawCircle(arcCircle.circle, this, m_CenterProperty, m_AnglesProperty, m_RadiusProperty, VFXCircleGizmo.radiusDirections, Mathf.CeilToInt(arc / 90));

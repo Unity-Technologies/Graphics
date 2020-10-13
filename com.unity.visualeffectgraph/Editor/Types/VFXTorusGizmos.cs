@@ -141,7 +141,7 @@ namespace UnityEditor.VFX
                 Handles.DrawWireArc(Vector3.zero, Vector3.back, Vector3.up, angle, arcTorus.majorRadius + arcTorus.minorRadius);
                 Handles.DrawWireArc(Vector3.zero, Vector3.back, Vector3.up, angle, arcTorus.majorRadius - arcTorus.minorRadius);
 
-                ArcGizmo(Vector3.zero, arcTorus.majorRadius, arc, m_ArcProperty, Quaternion.Euler(-90.0f, 0.0f, 0.0f), true);
+                ArcGizmo(Vector3.zero, arcTorus.majorRadius, arc, m_ArcProperty, Quaternion.Euler(-90.0f, 0.0f, 0.0f));
             }
 
             Torus torus = new Torus() { center = arcTorus.center, angles = arcTorus.angles, minorRadius = arcTorus.minorRadius, majorRadius = arcTorus.majorRadius };

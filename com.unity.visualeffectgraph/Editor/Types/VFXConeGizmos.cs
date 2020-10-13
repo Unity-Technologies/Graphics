@@ -275,7 +275,7 @@ namespace UnityEditor.VFX
                 Vector3 center = arcCone.radius0 > arcCone.radius1 ? Vector3.zero : extremities.topCap;
 
                 if (radius != 0)
-                    ArcGizmo(center, radius, arc, m_ArcProperty, Quaternion.identity, true);
+                    ArcGizmo(center, radius, arc, m_ArcProperty, Quaternion.identity);
             }
 
             VFXConeGizmo.DrawCone(cone, this, ref extremities, m_CenterProperty, m_AnglesProperty, m_baseRadiusProperty, m_topRadiusProperty, m_HeightProperty, baseRadiusScreen, topRadiusScreen);
