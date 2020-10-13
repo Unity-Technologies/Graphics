@@ -9,7 +9,7 @@ Returns the determinant of the matrix defined by input **In**. It can be viewed 
 | Name        | Direction           | Type  | Description |
 |:------------ |:-------------|:-----|:---|
 | In      | Input | Dynamic Matrix | Input value |
-| Out | Output      |    Vector 1 | Output value |
+| Out | Output      |    Float    | Output value |
 
 ## Generated Code Example
 

@@ -23,16 +23,17 @@ namespace UnityEngine.Rendering.HighDefinition
         MaterialPropertyBlock   m_ConvertTextureMPB;
         bool                    m_PerformBC6HCompression;
 
+        GraphicsFormat          m_ProbeFormat;
+
         public ReflectionProbeCache(RenderPipelineResources defaultResources, IBLFilterBSDF[] iblFilterBSDFArray, int cacheSize, int probeSize, GraphicsFormat probeFormat, bool isMipmaped)
         {
             m_ConvertTextureMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitCubeTextureFacePS);
             m_ConvertTextureMPB = new MaterialPropertyBlock();
             m_CubeToPano = CoreUtils.CreateEngineMaterial(defaultResources.shaders.cubeToPanoPS);
 
-            // BC6H requires CPP feature not yet available
-            probeFormat = GraphicsFormat.R16G16B16A16_SFloat;
-
-            Debug.Assert(probeFormat == GraphicsFormat.RGB_BC6H_SFloat || probeFormat == GraphicsFormat.R16G16B16A16_SFloat, "Reflection Probe Cache format for HDRP can only be BC6H or FP16.");
+            Debug.Assert(probeFormat == GraphicsFormat.RGB_BC6H_SFloat || probeFormat == GraphicsFormat.B10G11R11_UFloatPack32 || probeFormat == GraphicsFormat.R16G16B16A16_SFloat,
+                "Reflection Probe Cache format for HDRP can only be BC6H, FP16 or R11G11B10.");
+            m_ProbeFormat = probeFormat;
 
             m_ProbeSize = probeSize;
             m_CacheSize = cacheSize;
@@ -50,23 +51,23 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_TempRenderTexture == null)
             {
                 // Temporary RT used for convolution and compression
-                m_TempRenderTexture = new RenderTexture(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf);
+                m_TempRenderTexture = new RenderTexture(m_ProbeSize, m_ProbeSize, 1, m_ProbeFormat);
                 m_TempRenderTexture.hideFlags = HideFlags.HideAndDontSave;
                 m_TempRenderTexture.dimension = TextureDimension.Cube;
                 m_TempRenderTexture.useMipMap = true;
                 m_TempRenderTexture.autoGenerateMips = false;
-                m_TempRenderTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf, "ReflectionProbeTemp", mips: true);
+                m_TempRenderTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, 1, m_ProbeFormat, "ReflectionProbeTemp", mips: true);
                 m_TempRenderTexture.Create();
 
                 m_ConvolutionTargetTextureArray = new RenderTexture[m_IBLFilterBSDF.Length];
                 for (int bsdfIdx = 0; bsdfIdx < m_IBLFilterBSDF.Length; ++bsdfIdx)
                 {
-                    m_ConvolutionTargetTextureArray[bsdfIdx] = new RenderTexture(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf);
+                    m_ConvolutionTargetTextureArray[bsdfIdx] = new RenderTexture(m_ProbeSize, m_ProbeSize, 1, m_ProbeFormat);
                     m_ConvolutionTargetTextureArray[bsdfIdx].hideFlags = HideFlags.HideAndDontSave;
                     m_ConvolutionTargetTextureArray[bsdfIdx].dimension = TextureDimension.Cube;
                     m_ConvolutionTargetTextureArray[bsdfIdx].useMipMap = true;
                     m_ConvolutionTargetTextureArray[bsdfIdx].autoGenerateMips = false;
-                    m_ConvolutionTargetTextureArray[bsdfIdx].name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf, "ReflectionProbeConvolution_" + bsdfIdx.ToString(), mips: true);
+                    m_ConvolutionTargetTextureArray[bsdfIdx].name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, 1, m_ProbeFormat, "ReflectionProbeConvolution_" + bsdfIdx.ToString(), mips: true);
                     m_ConvolutionTargetTextureArray[bsdfIdx].Create();
                 }
             }
@@ -140,7 +141,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // 1) to a format for which we can generate mip maps
                 // 2) to the proper reflection probe cache size
                 bool sizeMismatch = cubeTexture.width != m_ProbeSize || cubeTexture.height != m_ProbeSize;
-                bool formatMismatch = cubeTexture.format != TextureFormat.RGBAHalf; // Temporary RT for convolution is always FP16
+                bool formatMismatch = (GraphicsFormatUtility.GetGraphicsFormat(cubeTexture.format, false) != m_TempRenderTexture.graphicsFormat);
                 if (formatMismatch || sizeMismatch)
                 {
                     // We comment the following warning as they have no impact on the result but spam the console, it is just that we waste offline time and a bit of quality for nothing.
@@ -177,7 +178,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // TODO: Do a different case for downsizing, in this case, instead of doing ConvertTexture just use the relevant mipmaps.
                 bool sizeMismatch = renderTexture.width != m_ProbeSize || renderTexture.height != m_ProbeSize;
-                if (sizeMismatch)
+                bool formatMismatch = (renderTexture.graphicsFormat != m_ProbeFormat);
+
+                if (formatMismatch || sizeMismatch)
                 {
                     ConvertTexture(cmd, renderTexture, m_TempRenderTexture);
                     convolutionSourceTexture = m_TempRenderTexture;

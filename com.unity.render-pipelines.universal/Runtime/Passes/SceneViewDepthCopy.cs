@@ -10,6 +10,7 @@ namespace UnityEngine.Rendering.Universal
 
         public SceneViewDepthCopyPass(RenderPassEvent evt, Material copyDepthMaterial)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(SceneViewDepthCopyPass));
             m_CopyDepthMaterial = copyDepthMaterial;
             renderPassEvent = evt;
         }
