@@ -220,6 +220,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static SubShaderDescriptor Lit = new SubShaderDescriptor()
             {
                 pipelineTag = UniversalTarget.kPipelineTag,
+                customTags = UniversalTarget.kLitMaterialTypeTag,
                 generatesPreview = true,
                 passes = new PassCollection
                 {
@@ -256,6 +257,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     return new SubShaderDescriptor()
                     {
                         pipelineTag = UniversalTarget.kPipelineTag,
+                        customTags = UniversalTarget.kLitMaterialTypeTag,
                         generatesPreview = true,
                         passes = new PassCollection
                         {
@@ -325,7 +327,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
-                renderStates = CoreRenderStates.GBufferLit,
+                renderStates = CoreRenderStates.Default,
                 pragmas = CorePragmas.GBuffer,
                 keywords = LitKeywords.GBuffer,
                 includes = LitIncludes.GBuffer,
