@@ -14,7 +14,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_4_Li
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --report-performance-data --performance-project-id=BoatAttack --suite=playmode --platform=iOS --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
+      -  ./utr --report-performance-data --performance-project-id=BoatAttack --suite=playmode --platform=iOS --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
     artifacts:
         logs:
             paths:
@@ -56,9 +56,9 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_4_Linear_trunk:
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
-      -  chmod +x ./utr
-      -  ./utr --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --suite=playmode --platform=iOS --testproject=. --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=.Editor --player-save-path=players --build-only --timeout=1200
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
+      -  chmod +x TestProjects/BoatAttack/utr
+      -  TestProjects/BoatAttack/utr --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --suite=playmode --platform=iOS --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200
     artifacts:
         logs:
             paths:
@@ -100,9 +100,9 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_4_Line
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
-      -  chmod +x ./utr
-      -  ./utr --report-performance-data --performance-project-id=BoatAttack --testfilter=Build --suite=editor --platform=editmode --platform=iOS --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
+      -  chmod +x TestProjects/BoatAttack/utr
+      -  TestProjects/BoatAttack/utr --report-performance-data --performance-project-id=BoatAttack --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
     artifacts:
         logs:
             paths:
@@ -119,7 +119,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_4_Li
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --report-performance-data --performance-project-id=BoatAttack --suite=playmode --platform=iOS --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
+      -  ./utr --report-performance-data --performance-project-id=BoatAttack --suite=playmode --platform=iOS --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
     artifacts:
         logs:
             paths:
@@ -161,9 +161,9 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_4_Linear_2020.2:
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
-      -  chmod +x ./utr
-      -  ./utr --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --suite=playmode --platform=iOS --testproject=. --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=.Editor --player-save-path=players --build-only --timeout=1200
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
+      -  chmod +x TestProjects/BoatAttack/utr
+      -  TestProjects/BoatAttack/utr --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --suite=playmode --platform=iOS --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200
     artifacts:
         logs:
             paths:
@@ -205,9 +205,9 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_4_Line
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
-      -  chmod +x ./utr
-      -  ./utr --report-performance-data --performance-project-id=BoatAttack --testfilter=Build --suite=editor --platform=editmode --platform=iOS --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
+      -  chmod +x TestProjects/BoatAttack/utr
+      -  TestProjects/BoatAttack/utr --report-performance-data --performance-project-id=BoatAttack --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
     artifacts:
         logs:
             paths:
@@ -225,7 +225,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_4_Li
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --report-performance-data --performance-project-id=BoatAttack --suite=playmode --platform=iOS --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
+      -  ./utr --report-performance-data --performance-project-id=BoatAttack --suite=playmode --platform=iOS --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
     artifacts:
         logs:
             paths:
@@ -270,9 +270,9 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_4_Linear_CUSTOM-REVI
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
-      -  chmod +x ./utr
-      -  ./utr --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --suite=playmode --platform=iOS --testproject=. --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=.Editor --player-save-path=players --build-only --timeout=1200
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
+      -  chmod +x TestProjects/BoatAttack/utr
+      -  TestProjects/BoatAttack/utr --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-testCategory Performance" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --suite=playmode --platform=iOS --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200
     artifacts:
         logs:
             paths:
@@ -318,9 +318,9 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_4_Line
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
-      -  chmod +x ./utr
-      -  ./utr --report-performance-data --performance-project-id=BoatAttack --testfilter=Build --suite=editor --platform=editmode --platform=iOS --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
+      -  chmod +x TestProjects/BoatAttack/utr
+      -  TestProjects/BoatAttack/utr --report-performance-data --performance-project-id=BoatAttack --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
     artifacts:
         logs:
             paths:

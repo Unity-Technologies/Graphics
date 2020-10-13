@@ -20,7 +20,7 @@ URP_Performance_OSX_Metal_performance_playmode_il2cpp_2_Linear_trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/URP_Performance/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/URP_Performance/test-results/ TestProjects/URP_Performance/test-results/
@@ -47,7 +47,7 @@ URP_Performance_OSX_Metal_performance_playmode_il2cpp_2_gamma_trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/URP_Performance/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/URP_Performance/test-results/ TestProjects/URP_Performance/test-results/
@@ -128,7 +128,7 @@ URP_Performance_OSX_Metal_performance_playmode_il2cpp_4_Linear_trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/URP_Performance/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/URP_Performance/test-results/ TestProjects/URP_Performance/test-results/
@@ -155,7 +155,7 @@ URP_Performance_OSX_Metal_performance_playmode_il2cpp_4_gamma_trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/URP_Performance/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/URP_Performance/test-results/ TestProjects/URP_Performance/test-results/
@@ -236,7 +236,7 @@ URP_Performance_OSX_Metal_performance_playmode_mono_Linear_trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/URP_Performance/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/URP_Performance/test-results/ TestProjects/URP_Performance/test-results/
@@ -263,7 +263,7 @@ URP_Performance_OSX_Metal_performance_playmode_mono_gamma_trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/URP_Performance/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/URP_Performance/test-results/ TestProjects/URP_Performance/test-results/
@@ -344,7 +344,7 @@ URP_Performance_OSX_Metal_performance_playmode_il2cpp_2_Linear_2020.2:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/URP_Performance/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/URP_Performance/test-results/ TestProjects/URP_Performance/test-results/
@@ -371,7 +371,7 @@ URP_Performance_OSX_Metal_performance_playmode_il2cpp_2_gamma_2020.2:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/URP_Performance/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/URP_Performance/test-results/ TestProjects/URP_Performance/test-results/
@@ -452,7 +452,7 @@ URP_Performance_OSX_Metal_performance_playmode_il2cpp_4_Linear_2020.2:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/URP_Performance/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/URP_Performance/test-results/ TestProjects/URP_Performance/test-results/
@@ -479,7 +479,7 @@ URP_Performance_OSX_Metal_performance_playmode_il2cpp_4_gamma_2020.2:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/URP_Performance/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/URP_Performance/test-results/ TestProjects/URP_Performance/test-results/
@@ -560,7 +560,7 @@ URP_Performance_OSX_Metal_performance_playmode_mono_Linear_2020.2:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/URP_Performance/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/URP_Performance/test-results/ TestProjects/URP_Performance/test-results/
@@ -587,7 +587,7 @@ URP_Performance_OSX_Metal_performance_playmode_mono_gamma_2020.2:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/URP_Performance/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/URP_Performance/test-results/ TestProjects/URP_Performance/test-results/
@@ -669,7 +669,7 @@ URP_Performance_OSX_Metal_performance_playmode_il2cpp_2_Linear_CUSTOM-REVISION:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/URP_Performance/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/URP_Performance/test-results/ TestProjects/URP_Performance/test-results/
@@ -700,7 +700,7 @@ URP_Performance_OSX_Metal_performance_playmode_il2cpp_2_gamma_CUSTOM-REVISION:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/URP_Performance/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/URP_Performance/test-results/ TestProjects/URP_Performance/test-results/
@@ -793,7 +793,7 @@ URP_Performance_OSX_Metal_performance_playmode_il2cpp_4_Linear_CUSTOM-REVISION:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/URP_Performance/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/URP_Performance/test-results/ TestProjects/URP_Performance/test-results/
@@ -824,7 +824,7 @@ URP_Performance_OSX_Metal_performance_playmode_il2cpp_4_gamma_CUSTOM-REVISION:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/URP_Performance/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/URP_Performance/test-results/ TestProjects/URP_Performance/test-results/
@@ -917,7 +917,7 @@ URP_Performance_OSX_Metal_performance_playmode_mono_Linear_CUSTOM-REVISION:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/URP_Performance/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/URP_Performance/test-results/ TestProjects/URP_Performance/test-results/
@@ -948,7 +948,7 @@ URP_Performance_OSX_Metal_performance_playmode_mono_gamma_CUSTOM-REVISION:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --report-performance-data --performance-project-id=URP_Performance --suite=playmode --platform=StandaloneOSX --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/URP_Performance/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/URP_Performance/test-results/ TestProjects/URP_Performance/test-results/
