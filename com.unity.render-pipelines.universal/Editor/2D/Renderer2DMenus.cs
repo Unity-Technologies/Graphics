@@ -26,7 +26,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
                 var instance = CreateInstance<Renderer2DData>();
-                instance.lightRenderTextureScale = 0.5f;
                 AssetDatabase.CreateAsset(instance, pathName);
                 Selection.activeObject = instance;
 
