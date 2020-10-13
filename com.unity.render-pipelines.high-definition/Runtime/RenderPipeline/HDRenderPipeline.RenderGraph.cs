@@ -198,13 +198,29 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // This final Gaussian pyramid can be reused by SSR, so disable it only if there is no distortion
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Distortion) || hdCamera.IsSSREnabled())
-                    GenerateColorPyramid(m_RenderGraph, hdCamera, colorBuffer, currentColorPyramid, false);
+                TextureHandle distortionColorPyramid;
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Distortion) && hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughDistortion))
+                {
+                    distortionColorPyramid = m_RenderGraph.CreateTexture(
+                        new TextureDesc(Vector2.one, true, true)
+                        {
+                            colorFormat = GetColorBufferFormat(),
+                            enableRandomWrite = true,
+                            useMipMap = true,
+                            autoGenerateMips = false,
+                            name = "DistortionColorBufferMipChain"
+                        });
+                    GenerateColorPyramid(m_RenderGraph, hdCamera, colorBuffer, distortionColorPyramid, false);
+                }
+                else
+                {
+                    distortionColorPyramid = currentColorPyramid;
+                }
 
                 using (new RenderGraphProfilingScope(m_RenderGraph, ProfilingSampler.Get(HDProfileId.Distortion)))
                 {
                     var distortionBuffer = AccumulateDistortion(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, cullingResults);
-                    RenderDistortion(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, currentColorPyramid, distortionBuffer);
+                    RenderDistortion(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, distortionColorPyramid, distortionBuffer);
                 }
 
                 PushFullScreenDebugTexture(m_RenderGraph, colorBuffer, FullScreenDebugMode.NanTracker);
@@ -1133,18 +1149,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void GenerateColorPyramid(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputColor, TextureHandle output, bool isPreRefraction)
         {
-            // Here we cannot rely on automatic pass culling if the result is not read
-            // because the output texture is imported from outside of render graph (as it is persistent)
-            // and in this case the pass is considered as having side effect and cannot be culled.
-            if (isPreRefraction)
+            if (!isPreRefraction)
             {
-                if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction))
+                bool distortionRequiresPyramid = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Distortion)
+                    && hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughDistortion);
+                // This final Gaussian pyramid is not used by the SSR, so distortion is the only condition.
+                if (!distortionRequiresPyramid)
                     return;
-            }
-            // This final Gaussian pyramid can be reused by SSR, so disable it only if there is no distortion
-            else if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Distortion) && !hdCamera.IsSSREnabled())
-            {
-                return;
             }
 
             using (var builder = renderGraph.AddRenderPass<GenerateColorPyramidData>("Color Gaussian MIP Chain", out var passData, ProfilingSampler.Get(HDProfileId.ColorPyramid)))
@@ -1206,11 +1217,12 @@ namespace UnityEngine.Rendering.HighDefinition
         class RenderDistortionPassData
         {
             public Material         applyDistortionMaterial;
-            public TextureHandle    colorPyramidBuffer;
+            public TextureHandle    sourceColorBuffer;
             public TextureHandle    distortionBuffer;
             public TextureHandle    colorBuffer;
             public TextureHandle    depthStencilBuffer;
             public Vector4          size;
+            public bool             smoothDistortion;
         }
 
         void RenderDistortion(  RenderGraph     renderGraph,
@@ -1226,7 +1238,8 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<RenderDistortionPassData>("Apply Distortion", out var passData, ProfilingSampler.Get(HDProfileId.ApplyDistortion)))
             {
                 passData.applyDistortionMaterial = m_ApplyDistortionMaterial;
-                passData.colorPyramidBuffer = builder.ReadTexture(colorPyramidBuffer);
+                passData.smoothDistortion = !hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughDistortion);
+                passData.sourceColorBuffer = passData.smoothDistortion ? builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GetColorBufferFormat(), name = "DistortionIntermediateBuffer" }) : builder.ReadTexture(colorPyramidBuffer);
                 passData.distortionBuffer = builder.ReadTexture(distortionBuffer);
                 passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
                 passData.depthStencilBuffer = builder.UseDepthBuffer(depthStencilBuffer, DepthAccess.Read);
@@ -1235,13 +1248,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (RenderDistortionPassData data, RenderGraphContext context) =>
                 {
+                    if (data.smoothDistortion)
+                        HDUtils.BlitCameraTexture(context.cmd, passData.colorBuffer, data.sourceColorBuffer);
+
                     // TODO: Set stencil stuff via parameters rather than hard-coding it in shader.
                     data.applyDistortionMaterial.SetTexture(HDShaderIDs._DistortionTexture, data.distortionBuffer);
-                    data.applyDistortionMaterial.SetTexture(HDShaderIDs._ColorPyramidTexture, data.colorPyramidBuffer);
+                    data.applyDistortionMaterial.SetTexture(HDShaderIDs._ColorPyramidTexture, data.sourceColorBuffer);
                     data.applyDistortionMaterial.SetVector(HDShaderIDs._Size, data.size);
                     data.applyDistortionMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.DistortionVectors);
                     data.applyDistortionMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.DistortionVectors);
 
+                    CoreUtils.SetKeyword(context.cmd, "SMOOTH_DISTORTION", data.smoothDistortion);
                     HDUtils.DrawFullScreen(context.cmd, data.applyDistortionMaterial, data.colorBuffer, data.depthStencilBuffer, null, 0);
                 });
             }

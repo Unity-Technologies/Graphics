@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a new ray tracing only function that samples the specular part of the materials.
 - Adding missing marker for ray tracing profiling (RaytracingDeferredLighting)
 - Added the support of eye shader for ray tracing.
+- Added a rough distortion frame setting and and info box on distortion materials.
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
@@ -204,6 +205,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Move System Generated Values semantics out of VaryingsMesh structure.
 - Other forms of FSAA are silently deactivated, when path tracing is on.
 - Removed XRSystemTests. The GC verification is now done during playmode tests (case 1285012).
+- SSR now uses the pre-refraction color pyramid.
 
 ## [10.0.0] - 2019-06-10
 
