@@ -13,9 +13,9 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, build_con
     base = [
         f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
         f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } {"".join([f"-c {c} " for c in platform["components"]])}  --wait --published-only',
-        f'curl -s {UTR_INSTALL_URL} --output {TEST_PROJECTS_DIR}/{project_folder}/utr',
-        f'chmod +x {TEST_PROJECTS_DIR}/{project_folder}/utr',
-        f'{TEST_PROJECTS_DIR}/{project_folder}/utr {" ".join(utr_args)}'
+        f'curl -s {UTR_INSTALL_URL} --output utr',
+        f'chmod +x ./utr',
+        f'./utr {" ".join(utr_args)}'
      ]
 
     extra_cmds = extra_perf_cmd(project_folder)
@@ -35,9 +35,9 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor, build_con
     base = [
         f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
         f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } {"".join([f"-c {c} " for c in platform["components"]])}  --wait --published-only',
-        f'curl -s {UTR_INSTALL_URL} --output {TEST_PROJECTS_DIR}/{project_folder}/utr',
-        f'chmod +x {TEST_PROJECTS_DIR}/{project_folder}/utr',
-        f'{TEST_PROJECTS_DIR}/{project_folder}/utr {" ".join(utr_args)}'
+        f'curl -s {UTR_INSTALL_URL} --output utr',
+        f'chmod +x ./utr',
+        f'./utr {" ".join(utr_args)}'
      ]
     extra_cmds = extra_perf_cmd(project_folder)
     unity_config = install_unity_config(project_folder)
@@ -67,9 +67,9 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, b
     base = [
         f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
         f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } {"".join([f"-c {c} " for c in platform["components"]])}  --wait --published-only',
-        f'curl -s {UTR_INSTALL_URL} --output {TEST_PROJECTS_DIR}/{project_folder}/utr',
-        f'chmod +x {TEST_PROJECTS_DIR}/{project_folder}/utr',
-        f'{TEST_PROJECTS_DIR}/{project_folder}/utr {" ".join(utr_args)}'
+        f'curl -s {UTR_INSTALL_URL} --output utr',
+        f'chmod +x ./utr',
+        f'./utr {" ".join(utr_args)}'
      ]
     extra_cmds = extra_perf_cmd(project_folder)
     unity_config = install_unity_config(project_folder)

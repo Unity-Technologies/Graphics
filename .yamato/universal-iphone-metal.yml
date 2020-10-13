@@ -14,7 +14,7 @@ Universal_iPhone_Metal_Standalone_mono_2_linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
+      -  ./utr --suite=playmode --platform=iOS --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
     artifacts:
         logs:
             paths:
@@ -34,9 +34,9 @@ Build_Universal_iPhone_Metal_Player_mono_2_linear_trunk:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
-      -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  TestProjects/UniversalGraphicsTest/utr --suite=playmode --platform=iOS --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=.Editor --player-save-path=players --build-only --timeout=1200
     artifacts:
         logs:
             paths:
@@ -56,9 +56,9 @@ Universal_iPhone_Metal_playmode_mono_2_linear_trunk:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
-      -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  TestProjects/UniversalGraphicsTest/utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
     artifacts:
         logs:
             paths:
@@ -75,9 +75,9 @@ Universal_iPhone_Metal_editmode_mono_2_linear_trunk:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
-      -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  TestProjects/UniversalGraphicsTest/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=editor --platform=iOS --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
     artifacts:
         logs:
             paths:
@@ -94,7 +94,7 @@ Universal_iPhone_Metal_Standalone_mono_2_linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
+      -  ./utr --suite=playmode --platform=iOS --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
     artifacts:
         logs:
             paths:
@@ -114,9 +114,9 @@ Build_Universal_iPhone_Metal_Player_mono_2_linear_2020.2:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
-      -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  TestProjects/UniversalGraphicsTest/utr --suite=playmode --platform=iOS --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=.Editor --player-save-path=players --build-only --timeout=1200
     artifacts:
         logs:
             paths:
@@ -136,9 +136,9 @@ Universal_iPhone_Metal_playmode_mono_2_linear_2020.2:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
-      -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  TestProjects/UniversalGraphicsTest/utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
     artifacts:
         logs:
             paths:
@@ -155,9 +155,9 @@ Universal_iPhone_Metal_editmode_mono_2_linear_2020.2:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
-      -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  TestProjects/UniversalGraphicsTest/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=editor --platform=iOS --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
     artifacts:
         logs:
             paths:
@@ -175,7 +175,7 @@ Universal_iPhone_Metal_Standalone_mono_2_linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
+      -  ./utr --suite=playmode --platform=iOS --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200
     artifacts:
         logs:
             paths:
@@ -198,9 +198,9 @@ Build_Universal_iPhone_Metal_Player_mono_2_linear_CUSTOM-REVISION:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
-      -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  TestProjects/UniversalGraphicsTest/utr --suite=playmode --platform=iOS --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=.Editor --player-save-path=players --build-only --timeout=1200
     artifacts:
         logs:
             paths:
@@ -224,9 +224,9 @@ Universal_iPhone_Metal_playmode_mono_2_linear_CUSTOM-REVISION:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
-      -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  TestProjects/UniversalGraphicsTest/utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
     artifacts:
         logs:
             paths:
@@ -247,9 +247,9 @@ Universal_iPhone_Metal_editmode_mono_2_linear_CUSTOM-REVISION:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
-      -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  TestProjects/UniversalGraphicsTest/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=editor --platform=iOS --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
     artifacts:
         logs:
             paths:

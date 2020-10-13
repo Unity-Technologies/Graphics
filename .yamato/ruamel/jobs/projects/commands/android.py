@@ -11,15 +11,15 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, build_con
     utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"])
 
     base = [ 
-        f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}\\{project_folder}\\utr.bat',
+        f'curl -s {UTR_INSTALL_URL}.bat --output utr.bat',
         f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
-        f'cd {TEST_PROJECTS_DIR}\\{project_folder} && unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } -p WindowsEditor {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only',
+        f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } -p WindowsEditor {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only',
         f'%ANDROID_SDK_ROOT%\platform-tools\\adb.exe connect %BOKKEN_DEVICE_IP%',
         f'powershell %ANDROID_SDK_ROOT%\platform-tools\\adb.exe devices',
         f'NetSh Advfirewall set allprofiles state off',
         pss(f'''
         set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-        cd {TEST_PROJECTS_DIR}\\{project_folder} && utr {" ".join(utr_args)}'''),
+        utr {" ".join(utr_args)}'''),
         f'start %ANDROID_SDK_ROOT%\platform-tools\\adb.exe kill-server'
         ]
     
@@ -39,15 +39,15 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor, build_con
     utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"])
 
     base = [ 
-        f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}\\{project_folder}\\utr.bat',
+        f'curl -s {UTR_INSTALL_URL}.bat --output utr.bat',
         f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
-        f'cd {TEST_PROJECTS_DIR}\\{project_folder} && unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only',
+        f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } -p WindowsEditor {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only',
         f'%ANDROID_SDK_ROOT%\platform-tools\\adb.exe connect %BOKKEN_DEVICE_IP%',
         f'powershell %ANDROID_SDK_ROOT%\platform-tools\\adb.exe devices',
         f'NetSh Advfirewall set allprofiles state off',
         pss(f'''
         set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-        cd {TEST_PROJECTS_DIR}\\{project_folder} && utr {" ".join(utr_args)}'''),
+        utr {" ".join(utr_args)}'''),
         f'start %ANDROID_SDK_ROOT%\platform-tools\\adb.exe kill-server'
         ]
     
@@ -66,13 +66,13 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, build_c
 
 
     base = [ 
-        f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}\\{project_folder}\\utr.bat',
+        f'curl -s {UTR_INSTALL_URL}.bat --output utr.bat',
         f'%ANDROID_SDK_ROOT%\platform-tools\\adb.exe connect %BOKKEN_DEVICE_IP%',
         f'powershell %ANDROID_SDK_ROOT%\platform-tools\\adb.exe devices',
         f'NetSh Advfirewall set allprofiles state off',
         pss(f'''
         set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-        cd {TEST_PROJECTS_DIR}\\{project_folder} && utr {" ".join(utr_args)}'''),
+        utr {" ".join(utr_args)}'''),
         f'start %ANDROID_SDK_ROOT%\platform-tools\\adb.exe kill-server'
         ]
     
@@ -83,13 +83,13 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, b
     utr_args = extract_flags(test_platform["utr_flags_build"], platform["name"], api["name"])
 
     base = [  
-        f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}\\{project_folder}\\utr.bat',
+        f'curl -s {UTR_INSTALL_URL}.bat --output utr.bat',
         f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
-        f'cd {TEST_PROJECTS_DIR}\\{project_folder} && unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } -p WindowsEditor {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only',
+        f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } -p WindowsEditor {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only',
         f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0',
         f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0',
         f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\\NDK %ANDROID_NDK_ROOT% || exit 0',
-        f'cd {TEST_PROJECTS_DIR}\\{project_folder} && utr {" ".join(utr_args)}'
+        f'utr {" ".join(utr_args)}'
         ]
     
     extra_cmds = extra_perf_cmd(project_folder)

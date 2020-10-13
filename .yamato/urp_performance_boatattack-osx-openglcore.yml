@@ -16,7 +16,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_il2cpp_4_
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -54,7 +54,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_il2cpp_4_
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -93,7 +93,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_il2cpp_4_
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=BoatAttack
+      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:

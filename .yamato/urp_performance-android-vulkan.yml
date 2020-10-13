@@ -12,14 +12,14 @@ URP_Performance_Android_Vulkan_performance_playmode_il2cpp_2_linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -38,13 +38,13 @@ Build_URP_Performance_Android_Vulkan_Player_il2cpp_2_linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -62,14 +62,14 @@ URP_Performance_Android_Vulkan_performance_playmode_il2cpp_2_gamma_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -88,13 +88,13 @@ Build_URP_Performance_Android_Vulkan_Player_il2cpp_2_gamma_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -112,14 +112,14 @@ URP_Performance_Android_Vulkan_performance_playmode_il2cpp_4_linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -138,13 +138,13 @@ Build_URP_Performance_Android_Vulkan_Player_il2cpp_4_linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -162,14 +162,14 @@ URP_Performance_Android_Vulkan_performance_playmode_il2cpp_4_gamma_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -188,13 +188,13 @@ Build_URP_Performance_Android_Vulkan_Player_il2cpp_4_gamma_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -212,14 +212,14 @@ URP_Performance_Android_Vulkan_performance_playmode_mono_2_linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -238,13 +238,13 @@ Build_URP_Performance_Android_Vulkan_Player_mono_2_linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -262,14 +262,14 @@ URP_Performance_Android_Vulkan_performance_playmode_mono_2_gamma_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -288,13 +288,13 @@ Build_URP_Performance_Android_Vulkan_Player_mono_2_gamma_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -312,16 +312,16 @@ URP_Performance_Android_Vulkan_performance_editmode_build_il2cpp_2_linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -337,16 +337,16 @@ URP_Performance_Android_Vulkan_performance_editmode_build_il2cpp_2_gamma_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -362,16 +362,16 @@ URP_Performance_Android_Vulkan_performance_editmode_build_il2cpp_4_linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -387,16 +387,16 @@ URP_Performance_Android_Vulkan_performance_editmode_build_il2cpp_4_gamma_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -412,16 +412,16 @@ URP_Performance_Android_Vulkan_performance_editmode_build_mono_2_linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -437,16 +437,16 @@ URP_Performance_Android_Vulkan_performance_editmode_build_mono_2_gamma_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -462,14 +462,14 @@ URP_Performance_Android_Vulkan_performance_playmode_il2cpp_2_linear_2020.2:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -488,13 +488,13 @@ Build_URP_Performance_Android_Vulkan_Player_il2cpp_2_linear_2020.2:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -512,14 +512,14 @@ URP_Performance_Android_Vulkan_performance_playmode_il2cpp_2_gamma_2020.2:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -538,13 +538,13 @@ Build_URP_Performance_Android_Vulkan_Player_il2cpp_2_gamma_2020.2:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -562,14 +562,14 @@ URP_Performance_Android_Vulkan_performance_playmode_il2cpp_4_linear_2020.2:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -588,13 +588,13 @@ Build_URP_Performance_Android_Vulkan_Player_il2cpp_4_linear_2020.2:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -612,14 +612,14 @@ URP_Performance_Android_Vulkan_performance_playmode_il2cpp_4_gamma_2020.2:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -638,13 +638,13 @@ Build_URP_Performance_Android_Vulkan_Player_il2cpp_4_gamma_2020.2:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -662,14 +662,14 @@ URP_Performance_Android_Vulkan_performance_playmode_mono_2_linear_2020.2:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -688,13 +688,13 @@ Build_URP_Performance_Android_Vulkan_Player_mono_2_linear_2020.2:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -712,14 +712,14 @@ URP_Performance_Android_Vulkan_performance_playmode_mono_2_gamma_2020.2:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -738,13 +738,13 @@ Build_URP_Performance_Android_Vulkan_Player_mono_2_gamma_2020.2:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -762,16 +762,16 @@ URP_Performance_Android_Vulkan_performance_editmode_build_il2cpp_2_linear_2020.2
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -787,16 +787,16 @@ URP_Performance_Android_Vulkan_performance_editmode_build_il2cpp_2_gamma_2020.2:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -812,16 +812,16 @@ URP_Performance_Android_Vulkan_performance_editmode_build_il2cpp_4_linear_2020.2
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -837,16 +837,16 @@ URP_Performance_Android_Vulkan_performance_editmode_build_il2cpp_4_gamma_2020.2:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -862,16 +862,16 @@ URP_Performance_Android_Vulkan_performance_editmode_build_mono_2_linear_2020.2:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -887,16 +887,16 @@ URP_Performance_Android_Vulkan_performance_editmode_build_mono_2_gamma_2020.2:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -913,14 +913,14 @@ URP_Performance_Android_Vulkan_performance_playmode_il2cpp_2_linear_CUSTOM-REVIS
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -942,13 +942,13 @@ Build_URP_Performance_Android_Vulkan_Player_il2cpp_2_linear_CUSTOM-REVISION:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -970,14 +970,14 @@ URP_Performance_Android_Vulkan_performance_playmode_il2cpp_2_gamma_CUSTOM-REVISI
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -999,13 +999,13 @@ Build_URP_Performance_Android_Vulkan_Player_il2cpp_2_gamma_CUSTOM-REVISION:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -1027,14 +1027,14 @@ URP_Performance_Android_Vulkan_performance_playmode_il2cpp_4_linear_CUSTOM-REVIS
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1056,13 +1056,13 @@ Build_URP_Performance_Android_Vulkan_Player_il2cpp_4_linear_CUSTOM-REVISION:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -1084,14 +1084,14 @@ URP_Performance_Android_Vulkan_performance_playmode_il2cpp_4_gamma_CUSTOM-REVISI
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1113,13 +1113,13 @@ Build_URP_Performance_Android_Vulkan_Player_il2cpp_4_gamma_CUSTOM-REVISION:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -1141,14 +1141,14 @@ URP_Performance_Android_Vulkan_performance_playmode_mono_2_linear_CUSTOM-REVISIO
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1170,13 +1170,13 @@ Build_URP_Performance_Android_Vulkan_Player_mono_2_linear_CUSTOM-REVISION:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -1198,14 +1198,14 @@ URP_Performance_Android_Vulkan_performance_playmode_mono_2_gamma_CUSTOM-REVISION
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --report-performance-data --performance-project-id=URP_Performance
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1227,13 +1227,13 @@ Build_URP_Performance_Android_Vulkan_Player_mono_2_gamma_CUSTOM-REVISION:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  cd TestProjects\URP_Performance && utr --suite=playmode --platform=Android --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=2700 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -1255,16 +1255,16 @@ URP_Performance_Android_Vulkan_performance_editmode_build_il2cpp_2_linear_CUSTOM
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1284,16 +1284,16 @@ URP_Performance_Android_Vulkan_performance_editmode_build_il2cpp_2_gamma_CUSTOM-
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1313,16 +1313,16 @@ URP_Performance_Android_Vulkan_performance_editmode_build_il2cpp_4_linear_CUSTOM
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1342,16 +1342,16 @@ URP_Performance_Android_Vulkan_performance_editmode_build_il2cpp_4_gamma_CUSTOM-
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1371,16 +1371,16 @@ URP_Performance_Android_Vulkan_performance_editmode_build_mono_2_linear_CUSTOM-R
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -1400,16 +1400,16 @@ URP_Performance_Android_Vulkan_performance_editmode_build_mono_2_gamma_CUSTOM-RE
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects\URP_Performance\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects\URP_Performance && unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 cd TestProjects\URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:

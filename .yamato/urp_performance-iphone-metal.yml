@@ -14,7 +14,7 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_2_linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+      -  ./utr --suite=playmode --platform=iOS --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
     artifacts:
         logs:
             paths:
@@ -34,9 +34,9 @@ Build_URP_Performance_iPhone_Metal_Player_il2cpp_2_linear_trunk:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=playmode --platform=iOS --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=.Editor --player-save-path=players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -56,7 +56,7 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_2_gamma_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+      -  ./utr --suite=playmode --platform=iOS --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
     artifacts:
         logs:
             paths:
@@ -76,9 +76,9 @@ Build_URP_Performance_iPhone_Metal_Player_il2cpp_2_gamma_trunk:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=playmode --platform=iOS --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=.Editor --player-save-path=players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -98,7 +98,7 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_4_linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+      -  ./utr --suite=playmode --platform=iOS --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
     artifacts:
         logs:
             paths:
@@ -118,9 +118,9 @@ Build_URP_Performance_iPhone_Metal_Player_il2cpp_4_linear_trunk:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=playmode --platform=iOS --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=.Editor --player-save-path=players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -140,7 +140,7 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_4_gamma_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+      -  ./utr --suite=playmode --platform=iOS --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
     artifacts:
         logs:
             paths:
@@ -160,9 +160,9 @@ Build_URP_Performance_iPhone_Metal_Player_il2cpp_4_gamma_trunk:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=playmode --platform=iOS --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=.Editor --player-save-path=players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -182,7 +182,7 @@ URP_Performance_iPhone_Metal_performance_playmode_mono_2_linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+      -  ./utr --suite=playmode --platform=iOS --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
     artifacts:
         logs:
             paths:
@@ -202,9 +202,9 @@ Build_URP_Performance_iPhone_Metal_Player_mono_2_linear_trunk:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=playmode --platform=iOS --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=.Editor --player-save-path=players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -224,7 +224,7 @@ URP_Performance_iPhone_Metal_performance_playmode_mono_2_gamma_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+      -  ./utr --suite=playmode --platform=iOS --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
     artifacts:
         logs:
             paths:
@@ -244,9 +244,9 @@ Build_URP_Performance_iPhone_Metal_Player_mono_2_gamma_trunk:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=playmode --platform=iOS --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=.Editor --player-save-path=players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -266,9 +266,9 @@ URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_2_linear_trunk:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=editor --platform=iOS --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -285,9 +285,9 @@ URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_2_gamma_trunk:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=editor --platform=iOS --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -304,9 +304,9 @@ URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_4_linear_trunk:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=editor --platform=iOS --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -323,9 +323,9 @@ URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_4_gamma_trunk:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=editor --platform=iOS --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -342,9 +342,9 @@ URP_Performance_iPhone_Metal_performance_editmode_build_mono_2_linear_trunk:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=editor --platform=iOS --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -361,9 +361,9 @@ URP_Performance_iPhone_Metal_performance_editmode_build_mono_2_gamma_trunk:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=editor --platform=iOS --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -380,7 +380,7 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_2_linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+      -  ./utr --suite=playmode --platform=iOS --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
     artifacts:
         logs:
             paths:
@@ -400,9 +400,9 @@ Build_URP_Performance_iPhone_Metal_Player_il2cpp_2_linear_2020.2:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=playmode --platform=iOS --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=.Editor --player-save-path=players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -422,7 +422,7 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_2_gamma_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+      -  ./utr --suite=playmode --platform=iOS --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
     artifacts:
         logs:
             paths:
@@ -442,9 +442,9 @@ Build_URP_Performance_iPhone_Metal_Player_il2cpp_2_gamma_2020.2:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=playmode --platform=iOS --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=.Editor --player-save-path=players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -464,7 +464,7 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_4_linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+      -  ./utr --suite=playmode --platform=iOS --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
     artifacts:
         logs:
             paths:
@@ -484,9 +484,9 @@ Build_URP_Performance_iPhone_Metal_Player_il2cpp_4_linear_2020.2:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=playmode --platform=iOS --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=.Editor --player-save-path=players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -506,7 +506,7 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_4_gamma_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+      -  ./utr --suite=playmode --platform=iOS --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
     artifacts:
         logs:
             paths:
@@ -526,9 +526,9 @@ Build_URP_Performance_iPhone_Metal_Player_il2cpp_4_gamma_2020.2:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=playmode --platform=iOS --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=.Editor --player-save-path=players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -548,7 +548,7 @@ URP_Performance_iPhone_Metal_performance_playmode_mono_2_linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+      -  ./utr --suite=playmode --platform=iOS --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
     artifacts:
         logs:
             paths:
@@ -568,9 +568,9 @@ Build_URP_Performance_iPhone_Metal_Player_mono_2_linear_2020.2:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=playmode --platform=iOS --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=.Editor --player-save-path=players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -590,7 +590,7 @@ URP_Performance_iPhone_Metal_performance_playmode_mono_2_gamma_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+      -  ./utr --suite=playmode --platform=iOS --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
     artifacts:
         logs:
             paths:
@@ -610,9 +610,9 @@ Build_URP_Performance_iPhone_Metal_Player_mono_2_gamma_2020.2:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=playmode --platform=iOS --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=.Editor --player-save-path=players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -632,9 +632,9 @@ URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_2_linear_2020.2:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=editor --platform=iOS --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -651,9 +651,9 @@ URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_2_gamma_2020.2:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=editor --platform=iOS --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -670,9 +670,9 @@ URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_4_linear_2020.2:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=editor --platform=iOS --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -689,9 +689,9 @@ URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_4_gamma_2020.2:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=editor --platform=iOS --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -708,9 +708,9 @@ URP_Performance_iPhone_Metal_performance_editmode_build_mono_2_linear_2020.2:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=editor --platform=iOS --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -727,9 +727,9 @@ URP_Performance_iPhone_Metal_performance_editmode_build_mono_2_gamma_2020.2:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=editor --platform=iOS --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -747,7 +747,7 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_2_linear_CUSTOM-REVISIO
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+      -  ./utr --suite=playmode --platform=iOS --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
     artifacts:
         logs:
             paths:
@@ -770,9 +770,9 @@ Build_URP_Performance_iPhone_Metal_Player_il2cpp_2_linear_CUSTOM-REVISION:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=playmode --platform=iOS --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=.Editor --player-save-path=players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -796,7 +796,7 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_2_gamma_CUSTOM-REVISION
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+      -  ./utr --suite=playmode --platform=iOS --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
     artifacts:
         logs:
             paths:
@@ -819,9 +819,9 @@ Build_URP_Performance_iPhone_Metal_Player_il2cpp_2_gamma_CUSTOM-REVISION:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=playmode --platform=iOS --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=.Editor --player-save-path=players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -845,7 +845,7 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_4_linear_CUSTOM-REVISIO
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+      -  ./utr --suite=playmode --platform=iOS --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
     artifacts:
         logs:
             paths:
@@ -868,9 +868,9 @@ Build_URP_Performance_iPhone_Metal_Player_il2cpp_4_linear_CUSTOM-REVISION:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=playmode --platform=iOS --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=.Editor --player-save-path=players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -894,7 +894,7 @@ URP_Performance_iPhone_Metal_performance_playmode_il2cpp_4_gamma_CUSTOM-REVISION
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+      -  ./utr --suite=playmode --platform=iOS --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
     artifacts:
         logs:
             paths:
@@ -917,9 +917,9 @@ Build_URP_Performance_iPhone_Metal_Player_il2cpp_4_gamma_CUSTOM-REVISION:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=playmode --platform=iOS --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=.Editor --player-save-path=players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -943,7 +943,7 @@ URP_Performance_iPhone_Metal_performance_playmode_mono_2_linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+      -  ./utr --suite=playmode --platform=iOS --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
     artifacts:
         logs:
             paths:
@@ -966,9 +966,9 @@ Build_URP_Performance_iPhone_Metal_Player_mono_2_linear_CUSTOM-REVISION:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=playmode --platform=iOS --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=.Editor --player-save-path=players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -992,7 +992,7 @@ URP_Performance_iPhone_Metal_performance_playmode_mono_2_gamma_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
+      -  ./utr --suite=playmode --platform=iOS --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --report-performance-data --performance-project-id=URP_Performance
     artifacts:
         logs:
             paths:
@@ -1015,9 +1015,9 @@ Build_URP_Performance_iPhone_Metal_Player_mono_2_gamma_CUSTOM-REVISION:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=playmode --platform=iOS --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=.Editor --player-save-path=players --build-only --timeout=1200 --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -1041,9 +1041,9 @@ URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_2_linear_CUSTOM-R
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=editor --platform=iOS --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -1064,9 +1064,9 @@ URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_2_gamma_CUSTOM-RE
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=editor --platform=iOS --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -1087,9 +1087,9 @@ URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_4_linear_CUSTOM-R
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=editor --platform=iOS --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -1110,9 +1110,9 @@ URP_Performance_iPhone_Metal_performance_editmode_build_il2cpp_4_gamma_CUSTOM-RE
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=editor --platform=iOS --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -1133,9 +1133,9 @@ URP_Performance_iPhone_Metal_performance_editmode_build_mono_2_linear_CUSTOM-REV
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=editor --platform=iOS --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -1156,9 +1156,9 @@ URP_Performance_iPhone_Metal_performance_editmode_build_mono_2_gamma_CUSTOM-REVI
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/URP_Performance/utr
-      -  chmod +x TestProjects/URP_Performance/utr
-      -  TestProjects/URP_Performance/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  ./utr --suite=editor --platform=iOS --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
