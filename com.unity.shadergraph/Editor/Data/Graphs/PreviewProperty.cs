@@ -46,6 +46,7 @@ namespace UnityEditor.ShaderGraph
 
         ClassData m_ClassData;
         StructData m_StructData;
+        Texture2DShaderProperty.DefaultType m_texture2dDefaultType;
 
         public Color colorValue
         {
@@ -76,6 +77,22 @@ namespace UnityEditor.ShaderGraph
                 if (propType != PropertyType.Texture2D && propType != PropertyType.Texture2DArray && propType != PropertyType.Texture3D)
                     throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Texture2D, propType));
                 m_ClassData.textureValue = value;
+            }
+        }
+
+        public Texture2DShaderProperty.DefaultType texture2DDefaultType
+        {
+            get
+            {
+                if (propType != PropertyType.Texture2D)
+                    throw new ArgumentException(string.Format(k_GetErrorMessage, "Texture2DShaderProperty.DefaultType", propType));
+                return m_texture2dDefaultType;
+            }
+            set
+            {
+                if (propType != PropertyType.Texture2D)
+                    throw new ArgumentException(string.Format(k_GetErrorMessage, "Texture2DShaderProperty.DefaultType", propType));
+                m_texture2dDefaultType = value;
             }
         }
 
@@ -205,7 +222,21 @@ namespace UnityEditor.ShaderGraph
                     // and no way to delete the property either
                     // so instead we set the value to what we know the default will be
                     // (all textures in ShaderGraph default to white)
-                    mat.SetTexture(name, Texture2D.whiteTexture);
+                    switch (m_texture2dDefaultType)
+                    {
+                        case Texture2DShaderProperty.DefaultType.White:
+                            mat.SetTexture(name, Texture2D.whiteTexture);
+                            break;
+                        case Texture2DShaderProperty.DefaultType.Black:
+                            mat.SetTexture(name, Texture2D.blackTexture);
+                            break;
+                        case Texture2DShaderProperty.DefaultType.Grey:
+                            mat.SetTexture(name, Texture2D.grayTexture);
+                            break;
+                        case Texture2DShaderProperty.DefaultType.Bump:
+                            mat.SetTexture(name, Texture2D.normalTexture);
+                            break;
+                    }
                 }
                 else
                     mat.SetTexture(name, m_ClassData.textureValue);
