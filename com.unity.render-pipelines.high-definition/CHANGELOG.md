@@ -1,4 +1,4 @@
-# Changelog
+﻿hangelog
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -160,6 +160,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the denoising and multi-sample not being used for smooth multibounce RTReflections.
 - Fixed after post process rendering pass options not showing for unlit ShaderGraphs.
 - Fixed a migration issue with the rendering queue in ShaderGraph when upgrading to 10.x;
+- Fixed error messages when accessing HDRP default project settings with a non-HDRP SRP asset (case 1282860).
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
