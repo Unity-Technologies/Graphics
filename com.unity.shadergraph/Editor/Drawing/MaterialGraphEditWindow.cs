@@ -809,7 +809,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             const int subtractHeight = 20;
             var propPos = new Vector2(0, -((amountOfProps / 2) + height) - subtractHeight);
 
-            var passsthroughSlotRefLookup = new Dictionary<SlotReference, SlotReference>();
+            var passthroughSlotRefLookup = new Dictionary<SlotReference, SlotReference>();
 
             var passedInProperties = new Dictionary<AbstractShaderProperty, AbstractShaderProperty>();
             foreach (var group in uniqueIncomingEdges)
@@ -913,7 +913,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     if (passthroughSlots.Contains(edge))
                     {
-                        passsthroughSlotRefLookup.Add(sr, new SlotReference(propNode, PropertyNode.OutputSlotId));
+                        passthroughSlotRefLookup.Add(sr, new SlotReference(propNode, PropertyNode.OutputSlotId));
                     }
                     else
                     {
@@ -966,7 +966,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 foreach (var edge in group.edges)
                 {
-                    var newEdge = subGraph.Connect(passsthroughSlotRefLookup.TryGetValue(edge.outputSlot, out SlotReference remap) ? remap : edge.outputSlot, inputSlotRef);
+                    var newEdge = subGraph.Connect(passthroughSlotRefLookup.TryGetValue(edge.outputSlot, out SlotReference remap) ? remap : edge.outputSlot, inputSlotRef);
                     externalOutputsNeedingConnection.Add(new KeyValuePair<IEdge, IEdge>(edge, newEdge));
                 }
             }
@@ -1019,6 +1019,42 @@ namespace UnityEditor.ShaderGraph.Drawing
                 new IEdge[] {},
                 new GroupData[] {},
                 graphView.selection.OfType<StickyNote>().Select(x => x.userData).ToArray());
+
+            List<GraphElement> moved = new List<GraphElement>();
+            foreach(var nodeView in graphView.selection.OfType<IShaderNodeView>())
+            {
+                var node = nodeView.node;
+                if(graphView.graph.removedNodes.Contains(node))
+                {
+                    continue;
+                }
+
+                var edges = graphView.graph.GetEdges(node);
+                int numEdges = edges.Count();
+                if(numEdges == 0)
+                {
+                    graphView.graph.RemoveNode(node);
+                }
+                else if(numEdges == 1 && edges.First().inputSlot.node != node) //its an output edge
+                {
+                    var edge = edges.First();
+                    int i;
+                    var inputs = edge.inputSlot.node.GetInputSlots<MaterialSlot>().ToList();
+                    for(i = 0; i < inputs.Count; ++i)
+                    {
+                        if(inputs[i].slotReference.slotId == edge.inputSlot.slotId)
+                        {
+                            break;
+                        }
+                    }
+                    node.drawState = new DrawState()
+                    {
+                        position = new Rect(new Vector2(edge.inputSlot.node.drawState.position.xMin, edge.inputSlot.node.drawState.position.center.y) - new Vector2(150f, -30f * i), node.drawState.position.size),
+                        expanded = node.drawState.expanded
+                    };
+                    (nodeView as GraphElement).SetPosition(node.drawState.position);
+                }
+            }
             graphObject.graph.ValidateGraph();
         }
 

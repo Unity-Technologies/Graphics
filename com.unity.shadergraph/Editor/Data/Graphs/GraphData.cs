@@ -1123,6 +1123,21 @@ namespace UnityEditor.ShaderGraph
             return edges;
         }
 
+        public void GetEdges(AbstractMaterialNode node, List<IEdge> foundEdges)
+        {
+            if (m_NodeEdges.TryGetValue(node.objectId, out var edges))
+            {
+                foundEdges.AddRange(edges);
+            }
+        }
+
+        public IEnumerable<IEdge> GetEdges(AbstractMaterialNode node)
+        {
+            List<IEdge> edges = new List<IEdge>();
+            GetEdges(node, edges);
+            return edges;
+        }
+
         public void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
             foreach (var prop in properties)
