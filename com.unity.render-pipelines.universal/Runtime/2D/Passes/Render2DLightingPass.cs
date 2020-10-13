@@ -237,13 +237,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 using (new ProfilingScope(cmd, m_ProfilingSamplerUnlit))
                 {
                     CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment, ClearFlag.None, Color.white);
-                    for (var i = 0; i < k_ShapeLightTextureIDs.Length; i++)
-                    {
-                        cmd.SetGlobalTexture(k_ShapeLightTextureIDs[i], Texture2D.blackTexture);
-                    }
+                    
                     cmd.SetGlobalFloat(k_UseSceneLightingID, isLitView ? 1.0f : 0.0f);
                     cmd.SetGlobalColor(k_RendererColorID, Color.white);
-                    cmd.EnableShaderKeyword("USE_SHAPE_LIGHT_TYPE_0");
+
+                    for (var blendStyleIndex = 0; blendStyleIndex < k_ShapeLightTextureIDs.Length; blendStyleIndex++)
+                    {
+                        if (blendStyleIndex == 0)
+                            cmd.SetGlobalTexture(k_ShapeLightTextureIDs[blendStyleIndex], Texture2D.blackTexture);
+
+                        RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleIndex == 0);
+                    }
                 }
 
                 context.ExecuteCommandBuffer(cmd);
