@@ -19,6 +19,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         Material m_CopyDepthMaterial;
         public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(CopyDepthPass));
             AllocateRT = true;
             m_CopyDepthMaterial = copyDepthMaterial;
             renderPassEvent = evt;

@@ -44,7 +44,7 @@ bool RayTraceContactShadow(PositionInputs posInput, float3 direction)
 
         // Create the ray descriptor for this pixel
         RayDesc rayDescriptor;
-        rayDescriptor.Origin = GetAbsolutePositionWS(posInput.positionWS) + _RaytracingRayBias * direction;
+        rayDescriptor.Origin = posInput.positionWS + _RaytracingRayBias * direction;
         rayDescriptor.Direction = direction;
         rayDescriptor.TMin = 0.0;
         rayDescriptor.TMax = rayLength - _RaytracingRayBias;
