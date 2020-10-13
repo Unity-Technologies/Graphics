@@ -38,6 +38,7 @@
 #define SHADOW_VIEW_BIAS        1 // Prevents light leaking through thin geometry. Not as good as normal bias at grazing angles, but cheaper and independent from the geometry.
 #define USE_DEPTH_BUFFER        1 // Accounts for opaque geometry along the camera ray
 
+
 //--------------------------------------------------------------------------------------------------
 // Included headers
 //--------------------------------------------------------------------------------------------------
@@ -78,6 +79,13 @@ TEXTURE2D_X(_MaxZMaskTexture);
 //--------------------------------------------------------------------------------------------------
 // Implementation
 //--------------------------------------------------------------------------------------------------
+
+#ifdef USE_BIG_TILE_LIGHTLIST
+
+#define MAX_SUPPORTED_LIGHTS min(128, MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE)
+groupshared int gs_localLightList[GROUP_SIZE_1D*GROUP_SIZE_1D][MAX_SUPPORTED_LIGHTS];
+
+#endif
 
 // Jittered ray with screen-space derivatives.
 struct JitteredRay
@@ -236,7 +244,7 @@ VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint fe
 
 // Computes the light integral (in-scattered radiance) within the voxel.
 // Multiplication by the scattering coefficient and the phase function is performed outside.
-VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureFlags, PositionInputs posInput,
+VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint groupIdx, uint featureFlags, PositionInputs posInput,
                                          uint lightCount, uint lightStart, float3 centerWS,
                                          JitteredRay ray, float t0, float t1, float dt, float rndVal, float extinction, float anisotropy)
 {
@@ -255,8 +263,13 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
         // This loop does not process box lights.
         for (; lightOffset < lightCount; lightOffset++)
         {
+#ifdef USE_BIG_TILE_LIGHTLIST
+            uint lightIndex = gs_localLightList[groupIdx][lightOffset];
+#else
             uint lightIndex = FetchIndex(lightStart, lightOffset);
+#endif
             LightData light = _LightDatas[lightIndex];
+                
 
             if (light.lightType >= GPULIGHTTYPE_PROJECTOR_BOX) { break; }
 
@@ -357,7 +370,11 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
         // This loop only processes box lights.
         for (; lightOffset < lightCount; lightOffset++)
         {
+#ifdef USE_BIG_TILE_LIGHTLIST
+            uint lightIndex = gs_localLightList[groupIdx][lightOffset];
+#else
             uint lightIndex = FetchIndex(lightStart, lightOffset);
+#endif
             LightData light = _LightDatas[lightIndex];
 
             if (light.lightType != GPULIGHTTYPE_PROJECTOR_BOX) { break; }
@@ -443,7 +460,7 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
 
 // Computes the in-scattered radiance along the ray.
 void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
-                                  PositionInputs posInput, uint tileIndex, JitteredRay ray)
+                                  PositionInputs posInput, uint tileIndex, int groupIdx, JitteredRay ray)
 {
     uint lightCount, lightStart;
 
@@ -462,9 +479,15 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     {
         uint offset = 0;
 
+        int validLightCount = 0;
         for (; offset < lightCount; offset++)
         {
             uint objectIndex = FetchIndex(lightStart, offset);
+            LightData light = _LightDatas[objectIndex];
+            if (light.volumetricLightDimmer > 0)
+            {
+                gs_localLightList[groupIdx][validLightCount++] = objectIndex;
+            }
 
             if (objectIndex >= _EnvLightIndexShift)
             {
@@ -473,7 +496,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
             }
         }
 
-        lightCount = offset;
+        lightCount = validLightCount;
     }
 
 #else  // USE_BIG_TILE_LIGHTLIST
@@ -564,7 +587,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 
         #ifdef SUPPORT_LOCAL_LIGHTS
         {
-            VoxelLighting lighting = EvaluateVoxelLightingLocal(context, featureFlags, posInput,
+            VoxelLighting lighting = EvaluateVoxelLightingLocal(context, groupIdx, featureFlags, posInput,
                                                                 lightCount, lightStart,
                                                                 centerWS, ray, t0, t1, dt, rndVal,
                                                                 extinction, anisotropy);
@@ -696,7 +719,8 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 [numthreads(GROUP_SIZE_1D, GROUP_SIZE_1D, 1)]
 void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
                         uint2 groupId          : SV_GroupID,
-                        uint2 groupThreadId    : SV_GroupThreadID)
+                        uint2 groupThreadId    : SV_GroupThreadID,
+                        int   groupIndex       : SV_GroupIndex)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
@@ -787,5 +811,5 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     ApplyCameraRelativeXR(ray.originWS);
 
-    FillVolumetricLightingBuffer(context, featureFlags, posInput, tileIndex, ray);
+    FillVolumetricLightingBuffer(context, featureFlags, posInput, tileIndex, groupIndex, ray);
 }
