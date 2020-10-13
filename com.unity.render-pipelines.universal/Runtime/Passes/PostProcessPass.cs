@@ -419,7 +419,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if(renderingData.postProcessingData.useFastSRGBLinearConversion)
                 {
-                    m_Materials.uber.EnableKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
+                    Shader.EnableKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
+                }
+                else
+                {
+                    Shader.DisableKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
                 }
 
                 // Done with Uber, blit it
