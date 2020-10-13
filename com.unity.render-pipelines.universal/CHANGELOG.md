@@ -59,6 +59,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added API to check if a Camera or Light is compatible with Universal Render Pipeline.
 - Added Smooth shadow fading.
 - Fixed an issue that impacted MSAA performance on iOS/Metal [case 1219054](https://issuetracker.unity3d.com/issues/urp-ios-msaa-has-a-bigger-negative-impact-on-performance-when-using-urp-compared-to-built-in-rp)
+- Fixed an issue that caused a warning to be thrown about temporary render texture not found when user calls ConfigureTarget(0). [case 1220871](https://issuetracker.unity3d.com/issues/urp-scriptable-render-passes-which-dont-require-a-bound-render-target-triggers-render-target-warning)
 
 ### Changed
 
