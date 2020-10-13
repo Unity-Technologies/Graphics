@@ -7,6 +7,7 @@
         * [Master Preview](Master-Preview) 
         * [Graph Inspector](Internal-Inspector.md)
     * [Create Node Menu](Create-Node-Menu)
+    * [Graph Settings Menu](Graph-Settings-Menu.md)
     * [Master Stack](Master-Stack)
     * [Sticky Notes](Sticky-Notes)
     * [Sub Graph](Sub-graph)     
@@ -16,9 +17,10 @@
     * [Shader Graph Preferences](Shader-Graph-Preferences)
     * [Samples](ShaderGraph-Samples.md)
 * Upgrade Guides
-  * [Upgrading to Shader Graph 10.0.x](Upgrade-Guide-10-0-x)
+  * [Upgrade to Shader Graph 10.0.x](Upgrade-Guide-10-0-x)
 * Inside Shader Graph  
-    * [Shader Graph Asset](Shader-Graph-Asset) 
+    * [Shader Graph Asset](Shader-Graph-Asset)
+    * [Graph Target](Graph-Target.md)
     * [Sub Graph Asset](Sub-graph-Asset)
     * [Node](Node) 
         * [Port](Port)  
