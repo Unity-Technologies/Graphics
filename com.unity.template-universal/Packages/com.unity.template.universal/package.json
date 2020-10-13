@@ -7,6 +7,6 @@
   "host": "hub",
   "description": "The Universal Render Pipeline Template configures Project settings for Projects where performance, wide platform support, and ease of customizing graphics are the primary considerations.\n\nThis Template uses the Universal Render Pipeline (URP) and Shader Graph. URP is prebuilt Scriptable Render Pipeline that is quick and easy to customize, and lets you create optimized graphics across a wide range of platforms. URP also includes an optimized 2D renderer complete with 2D lights and pixel perfect rendering, and an integrated post-processing solution. Shader Graph is a tool that allows you to create shaders using a visual node editor instead of writing code.\n\nThis template contains a sample Scene that contains examples of how to configure lighting settings, Materials, Shaders, and post-processing effects in URP, several preconfigured Universal Render Pipeline Assets that let you quickly swap between graphics quality levels, and Presets that have been optimized for use with URP.",
   "dependencies": {
-    "com.unity.render-pipelines.universal": "10.1.0-preview.9"
+    "com.unity.render-pipelines.universal": "10.1.0-preview.10"
   }
 }
