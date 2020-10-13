@@ -1,5 +1,5 @@
 from ...shared.constants import TEST_PROJECTS_DIR,PATH_UNITY_REVISION, PATH_TEST_RESULTS, UNITY_DOWNLOADER_CLI_URL, UTR_INSTALL_URL,get_unity_downloader_cli_cmd, get_timeout
-from ...shared.utr_utils import utr_editmode_flags, utr_playmode_flags, utr_standalone_split_flags,utr_standalone_not_split_flags, utr_standalone_build_flags, extract_flags
+from ...shared.utr_utils import extract_flags
 
 
 def _cmd_base(project_folder, platform, utr_flags, editor):
@@ -14,32 +14,19 @@ def _cmd_base(project_folder, platform, utr_flags, editor):
 
 
 def cmd_editmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    scripting_backend = build_config["scripting_backend"]
-    api_level = build_config["api_level"]
-    if test_platform['is_performance']:
-        utr_args = utr_editmode_flags(platform='StandaloneWindows64', scripting_backend=f'{scripting_backend}', api_level=f'{api_level}', color_space=f'{color_space}')
-    else:
-        utr_args = utr_editmode_flags()
         
-    utr_args.extend(extract_flags(test_platform["extra_utr_flags"], platform["name"], api["name"]))
+    utr_args = extract_flags(test_platform["extra_utr_flags"], platform["name"], api["name"])
     return  _cmd_base(project_folder, platform, utr_args, editor)
 
 
 def cmd_playmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    scripting_backend = build_config["scripting_backend"]
-    api_level = build_config["api_level"]
-    utr_args = utr_playmode_flags(scripting_backend=f'{scripting_backend}', api_level=f'{api_level}', color_space=f'{color_space}')
-
-    utr_args.extend(extract_flags(test_platform["extra_utr_flags"], platform["name"], api["name"]))
+    utr_args = extract_flags(test_platform["extra_utr_flags"], platform["name"], api["name"])
 
     return  _cmd_base(project_folder, platform, utr_args, editor)
 
 
 def cmd_standalone(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    scripting_backend = build_config["scripting_backend"]
-    api_level = build_config["api_level"]
-    utr_args = utr_standalone_split_flags("Linux64", scripting_backend=f'{scripting_backend}', api_level=f'{api_level}', color_space=f'{color_space}')
-    utr_args.extend(extract_flags(test_platform["extra_utr_flags"], platform["name"], api["name"]))
+    utr_args = extract_flags(test_platform["extra_utr_flags"], platform["name"], api["name"])
 
     base = [f'curl -s {UTR_INSTALL_URL} --output {TEST_PROJECTS_DIR}/{project_folder}/utr']
     base.extend([
@@ -50,9 +37,5 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, build_c
 
 
 def cmd_standalone_build(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    scripting_backend = build_config["scripting_backend"]
-    api_level = build_config["api_level"]
-    utr_args = utr_standalone_build_flags("Linux64", graphics_api=api["name"], scripting_backend=f'{scripting_backend}', api_level=f'{api_level}', color_space=f'{color_space}')
-    utr_args.extend(extract_flags(test_platform["extra_utr_flags"], platform["name"], api["name"]))
-    
+    utr_args = extract_flags(test_platform["extra_utr_flags"], platform["name"], api["name"])
     return _cmd_base(project_folder, platform, utr_args, editor)

@@ -1,5 +1,5 @@
 from ...shared.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS, PATH_PLAYERS, GITHUB_CDS_URL, UNITY_DOWNLOADER_CLI_URL, UTR_INSTALL_URL,get_unity_downloader_cli_cmd
-from ...shared.utr_utils import utr_editmode_flags, utr_playmode_flags, utr_standalone_split_flags,utr_standalone_not_split_flags, utr_standalone_build_flags, extract_flags
+from ...shared.utr_utils import  extract_flags
 
 
 def _cmd_base(project_folder, platform, utr_flags, editor):
@@ -15,22 +15,18 @@ def _cmd_base(project_folder, platform, utr_flags, editor):
     ]
 
 def cmd_editmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    scripting_backend = build_config["scripting_backend"]
-    utr_args = utr_editmode_flags()
-    utr_args.extend(extract_flags(test_platform["extra_utr_flags"], platform["name"], api["name"]))
+    utr_args = extract_flags(test_platform["extra_utr_flags"], platform["name"], api["name"])
 
     return  _cmd_base(project_folder, platform, utr_args, editor)
 
 
 def cmd_playmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    utr_args = utr_playmode_flags()
-    utr_args.extend(extract_flags(test_platform["extra_utr_flags"], platform["name"], api["name"]))
+    utr_args = extract_flags(test_platform["extra_utr_flags"], platform["name"], api["name"])
 
     return  _cmd_base(project_folder, platform, utr_args, editor)
 
 def cmd_standalone(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    utr_args = utr_standalone_split_flags("Windows64")
-    utr_args.extend(extract_flags(test_platform["extra_utr_flags"], platform["name"], api["name"]))
+    utr_args = extract_flags(test_platform["extra_utr_flags"], platform["name"], api["name"])
 
     base = [f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}/{project_folder}/utr.bat']
     base.append(f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}')
@@ -39,8 +35,6 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, build_c
 
 
 def cmd_standalone_build(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    utr_args = utr_standalone_build_flags("Windows64", graphics_api=api["name"])
-    utr_args.extend(test_platform["extra_utr_flags_build"])
-    utr_args.extend(extract_flags(test_platform["extra_utr_flags_build"], platform["name"], api["name"]))
+    utr_args = extract_flags(test_platform["extra_utr_flags_build"], platform["name"], api["name"])
     
     return _cmd_base(project_folder, platform, utr_args, editor)

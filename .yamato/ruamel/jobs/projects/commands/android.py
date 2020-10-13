@@ -1,6 +1,6 @@
 from ...shared.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS, PATH_PLAYERS, UTR_INSTALL_URL, UNITY_DOWNLOADER_CLI_URL, get_unity_downloader_cli_cmd, get_timeout
 from ruamel.yaml.scalarstring import PreservedScalarString as pss
-from ...shared.utr_utils import utr_editmode_flags, utr_playmode_flags, utr_standalone_split_flags,utr_standalone_not_split_flags, utr_standalone_build_flags, extract_flags
+from ...shared.utr_utils import extract_flags
 
 
 def _cmd_base(project_folder, components):
@@ -8,10 +8,7 @@ def _cmd_base(project_folder, components):
 
 
 def cmd_editmode(project_folder, platform, api, test_platform, editor, build_config, color_space):    
-    scripting_backend = build_config["scripting_backend"]
-    api_level = build_config["api_level"]
-    utr_args = utr_editmode_flags( testproject=f'{TEST_PROJECTS_DIR}\{project_folder}',editor_location='WindowsEditor', scripting_backend=f'{scripting_backend}', api_level=f'{api_level}', color_space=f'{color_space}')
-    utr_args.extend(extract_flags(test_platform["extra_utr_flags"], platform["name"], api["name"]))
+    utr_args = extract_flags(test_platform["extra_utr_flags"], platform["name"], api["name"])
 
     base = [ 
         f'curl -s {UTR_INSTALL_URL}.bat --output utr.bat',
@@ -38,10 +35,8 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, build_con
 
 
 def cmd_playmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    scripting_backend = build_config["scripting_backend"]
-    api_level = build_config["api_level"]
-    utr_args = utr_playmode_flags(testproject=f'{TEST_PROJECTS_DIR}\{project_folder}',editor_location='WindowsEditor', scripting_backend=f'{scripting_backend}', api_level=f'{api_level}', color_space=f'{color_space}')
-    utr_args.extend(extract_flags(test_platform["extra_utr_flags"], platform["name"], api["name"]))
+
+    utr_args = extract_flags(test_platform["extra_utr_flags"], platform["name"], api["name"])
 
     base = [ 
         f'curl -s {UTR_INSTALL_URL}.bat --output utr.bat',
@@ -67,10 +62,7 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor, build_con
     return base
 
 def cmd_standalone(project_folder, platform, api, test_platform, editor, build_config, color_space):   
-    scripting_backend = build_config["scripting_backend"]
-    api_level = build_config["api_level"]
-    utr_args = utr_standalone_split_flags(platform_spec='', platform='Android', testproject=f'{TEST_PROJECTS_DIR}\{project_folder}', player_load_path=PATH_PLAYERS, player_conn_ip=None, scripting_backend=f'{scripting_backend}', api_level=f'{api_level}', color_space=f'{color_space}')
-    utr_args.extend(extract_flags(test_platform["extra_utr_flags"], platform["name"], api["name"]))
+    utr_args = extract_flags(test_platform["extra_utr_flags"], platform["name"], api["name"])
 
 
     base = [ 
@@ -88,10 +80,7 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, build_c
 
         
 def cmd_standalone_build(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    scripting_backend = build_config["scripting_backend"]
-    api_level = build_config["api_level"]
-    utr_args = utr_standalone_build_flags(platform_spec='', platform='Android', testproject=f'{TEST_PROJECTS_DIR}\\{project_folder}', player_save_path=PATH_PLAYERS, editor_location='WindowsEditor', scripting_backend=f'{scripting_backend}', api_level=f'{api_level}', color_space=f'{color_space}')
-    utr_args.extend(extract_flags(test_platform["extra_utr_flags_build"], platform["name"], api["name"]))
+    utr_args = extract_flags(test_platform["extra_utr_flags_build"], platform["name"], api["name"])
 
     base = [  
         f'curl -s {UTR_INSTALL_URL}.bat --output utr.bat',

@@ -16,7 +16,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_il2cpp_4_
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --reruncount=2
+      -  cd TestProjects/BoatAttack && ./utr --report-performance-data --performance-project-id=BoatAttack --suite=playmode --platform=StandaloneOSX --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2
     artifacts:
         logs:
             paths:
@@ -35,7 +35,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_il2cpp_4_Li
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --reruncount=2
+      -  cd TestProjects/BoatAttack && ./utr --report-performance-data --performance-project-id=BoatAttack --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2
     artifacts:
         logs:
             paths:
@@ -54,7 +54,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_il2cpp_4_
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --reruncount=2
+      -  cd TestProjects/BoatAttack && ./utr --report-performance-data --performance-project-id=BoatAttack --suite=playmode --platform=StandaloneOSX --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2
     artifacts:
         logs:
             paths:
@@ -73,7 +73,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_il2cpp_4_Li
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --reruncount=2
+      -  cd TestProjects/BoatAttack && ./utr --report-performance-data --performance-project-id=BoatAttack --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2
     artifacts:
         logs:
             paths:
@@ -93,7 +93,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_playmode_runtime_il2cpp_4_
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=playmode --platform=StandaloneOSX --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --reruncount=2
+      -  cd TestProjects/BoatAttack && ./utr --report-performance-data --performance-project-id=BoatAttack --suite=playmode --platform=StandaloneOSX --player-load-path= --player-connection-ip= --artifacts_path=test-results --reruncount=2
     artifacts:
         logs:
             paths:
@@ -116,7 +116,7 @@ URP_Performance_BoatAttack_OSX_OpenGLCore_performance_editmode_build_il2cpp_4_Li
       -  chmod +x TestProjects/BoatAttack/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/BoatAttack && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-scriptingbackend=il2cpp" --extra-editor-arg="-apicompatibilitylevel=NET_4_6" --extra-editor-arg="-colorspace=Linear" --reruncount=2
+      -  cd TestProjects/BoatAttack && ./utr --report-performance-data --performance-project-id=BoatAttack --testfilter=Build --suite=editor --platform=editmode --testproject=. --editor-location=. --artifacts_path=test-results --reruncount=2
     artifacts:
         logs:
             paths:
