@@ -10,6 +10,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     {
         RenderGraphPass             m_RenderPass;
         RenderGraphResourceRegistry m_Resources;
+        RenderGraph                 m_RenderGraph;
         bool                        m_Disposed;
 
         #region Public Interface
@@ -196,10 +197,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         #endregion
 
         #region Internal Interface
-        internal RenderGraphBuilder(RenderGraphPass renderPass, RenderGraphResourceRegistry resources)
+        internal RenderGraphBuilder(RenderGraphPass renderPass, RenderGraphResourceRegistry resources, RenderGraph renderGraph)
         {
             m_RenderPass = renderPass;
             m_Resources = resources;
+            m_RenderGraph = renderGraph;
             m_Disposed = false;
         }
 
@@ -208,6 +210,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (m_Disposed)
                 return;
 
+            m_RenderGraph.OnPassAdded(m_RenderPass);
             m_Disposed = true;
         }
 
@@ -217,6 +220,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (res.IsValid())
             {
                 int transientIndex = m_Resources.GetResourceTransientIndex(res);
+                if (transientIndex == m_RenderPass.index)
+                {
+                    Debug.LogError($"Trying to read or write a transient resource at pass {m_RenderPass.name}.Transient resource are always assumed to be both read and written.");
+                }
+
                 if (transientIndex != -1 && transientIndex != m_RenderPass.index)
                 {
                     throw new ArgumentException($"Trying to use a transient texture (pass index {transientIndex}) in a different pass (pass index {m_RenderPass.index}.");

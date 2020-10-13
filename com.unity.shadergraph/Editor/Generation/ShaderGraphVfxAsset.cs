@@ -36,6 +36,9 @@ namespace UnityEditor.ShaderGraph.Internal
         public bool lit;
 
         [SerializeField]
+        public bool alphaClipping;
+
+        [SerializeField]
         internal GraphCompilationResult compilationResult;
 
         [SerializeField]
@@ -51,7 +54,7 @@ namespace UnityEditor.ShaderGraph.Internal
         string m_OutputStructName;
 
         [SerializeField]
-        ConcretePrecision m_ConcretePrecision = ConcretePrecision.Float;
+        ConcretePrecision m_ConcretePrecision = ConcretePrecision.Single;
 
         ShaderGraphVfxAssetData m_Data = new ShaderGraphVfxAssetData();
 
@@ -117,7 +120,6 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             get
             {
-                EnsureProperties();
                 return m_Data.m_Properties.SelectValue().ToList();
             }
         }
@@ -133,6 +135,7 @@ namespace UnityEditor.ShaderGraph.Internal
             var json = MultiJson.Serialize(m_Data);
             m_SerializedVfxAssetData = new SerializationHelper.JSONSerializedElement() { JSONnodeData = json };
             m_Data = null;
+            EnsureProperties();
         }
 
         void EnsureProperties()
@@ -149,7 +152,11 @@ namespace UnityEditor.ShaderGraph.Internal
             }
         }
 
-        void ISerializationCallbackReceiver.OnAfterDeserialize() { }
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            m_Data = null;
+            EnsureProperties();
+        }
 
         void ISerializationCallbackReceiver.OnBeforeSerialize() { }
 
@@ -180,7 +187,6 @@ namespace UnityEditor.ShaderGraph.Internal
                     propertyIndexSet.Add(propertyIndex);
                 }
             }
-            EnsureProperties();
             var propertyIndices = propertyIndexSet.ToArray();
             Array.Sort(propertyIndices);
             var filteredProperties = propertyIndices.Select(i => properties[i]).ToArray();

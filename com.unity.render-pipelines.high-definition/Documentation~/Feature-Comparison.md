@@ -210,6 +210,13 @@ The tables that follow provide an overview of the **Features** that the High Def
 | Hair                        | Not supported                                 | Yes                                                          |
 | Fabric                      | Not supported                                 | Yes                                                          |
 
+## LOD Management
+In the Built-in Render Pipeline, you manage levels of detail (LOD) from the QualitySettings. Each quality setting defines a LOD Bias and a Maximum LOD value. As such, they are global to the quality setting and you cannot change them on a per camera basis. In HDRP, there are scalability settings that allow you to change the LOD settings per camera by using either predetermined values contained in the HDRP Asset of the current quality level or overridden values. For more information, see [HDRP Asset](HDRP-Asset.md) and [Frame Settings](Frame-Settings.md).
+
+Managing LOD in this way has two consequences:
+- Default LOD settings for a quality level are now stored in the HDRP Asset instead of the Quality Settings.
+- Built-in APIs such as QualitySettings.lodBias or QualitySettings.maximumLODLevel no longer work. Instead, you need to change these properties through the camera Frame Settings. If you use the Built-in APIs, they have no effect at all.
+
 ## Render Pipeline Hooks
 
 | **Feature**                                                  | **Built-in Render Pipeline** | **High Definition Render Pipeline (HDRP)** |
@@ -315,9 +322,9 @@ The tables that follow provide an overview of the **Features** that the High Def
 
 | **Feature**       | **Built-in Render Pipeline**                           | **High Definition Render Pipeline (HDRP)** |
 | ------------- | -------------------------------------------------- | ------------------------------- |
-| Sprite        | Yes                                                | Yes                             |
-| Tilemap       | Yes                                                | Yes                             |
-| Sprite Shape  | Yes                                                | Yes                             |
+| Sprite        | Yes                                                | Not supported                |
+| Tilemap       | Yes                                                | Not supported                |
+| Sprite Shape  | Yes                                                | Not supported                |
 | Pixel-Perfect | Yes. Using the standalone 2D Pixel Perfect Package. | Not supported                   |
 | 2D Lights     | Not supported                                      | Not supported                   |
 | 2D Shadows    | Not supported                                      | Not supported                   |
@@ -365,7 +372,7 @@ The tables that follow provide an overview of the **Features** that the High Def
 
 | **Feature**       | **Built-in Render Pipeline** | **High Definition Render Pipeline (HDRP)** |
 | ------------- | ------------------------ | ------------------------------- |
-| AR Foundation | No                       | No                              |
+| AR Foundation | Yes                    | No                        |
 
 ## Debug
 

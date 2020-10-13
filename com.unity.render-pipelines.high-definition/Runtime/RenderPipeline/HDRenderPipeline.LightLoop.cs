@@ -17,6 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public TextureHandle    ambientOcclusionBuffer;
             public TextureHandle    ssrLightingBuffer;
+            public TextureHandle    ssgiLightingBuffer;
             public TextureHandle    contactShadowsBuffer;
             public TextureHandle    screenspaceShadowBuffer;
         }
@@ -27,6 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // We only read those buffers because sssBuffer and diffuseLightingBuffer our just output of the lighting process, not inputs.
             result.ambientOcclusionBuffer = builder.ReadTexture(buffers.ambientOcclusionBuffer);
             result.ssrLightingBuffer = builder.ReadTexture(buffers.ssrLightingBuffer);
+            result.ssgiLightingBuffer = builder.ReadTexture(buffers.ssgiLightingBuffer);
             result.contactShadowsBuffer = builder.ReadTexture(buffers.contactShadowsBuffer);
             result.screenspaceShadowBuffer = builder.ReadTexture(buffers.screenspaceShadowBuffer);
 
@@ -37,6 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, buffers.ambientOcclusionBuffer);
             cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, buffers.ssrLightingBuffer);
+            cmd.SetGlobalTexture(HDShaderIDs._IndirectDiffuseTexture, buffers.ssgiLightingBuffer);
             cmd.SetGlobalTexture(HDShaderIDs._ContactShadowTexture, buffers.contactShadowsBuffer);
             cmd.SetGlobalTexture(HDShaderIDs._ScreenSpaceShadowsTexture, buffers.screenspaceShadowBuffer);
         }
@@ -238,9 +241,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal ShadowResult RenderShadows(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullResults)
+        internal ShadowResult RenderShadows(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullResults, ref ShadowResult result)
         {
-            var result = m_ShadowManager.RenderShadows(m_RenderGraph, m_ShaderVariablesGlobalCB, hdCamera, cullResults);
+            m_ShadowManager.RenderShadows(m_RenderGraph, m_ShaderVariablesGlobalCB, hdCamera, cullResults, ref result);
             // Need to restore global camera parameters.
             PushGlobalCameraParams(renderGraph, hdCamera);
             return result;
@@ -405,6 +408,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                     HDCamera            hdCamera,
                                     ref PrepassOutput   prepassOutput,
                                     TextureHandle       clearCoatMask,
+                                    TextureHandle       rayCountTexture,
+                                    Texture             skyTexture,
                                     bool                transparent)
         {
             if (!hdCamera.IsSSREnabled(transparent))
@@ -412,17 +417,24 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureHandle result;
 
-            // TODO RENDERGRAPH
-            //var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
-            //bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value;
-            //if (usesRaytracedReflections)
-            //{
-            //    RenderRayTracedReflections(hdCamera, cmd, m_SsrLightingTexture, renderContext, m_FrameCount, true);
-            //}
-            //else
+            var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
+            bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value;
+            if (usesRaytracedReflections)
+            {
+                result = RenderRayTracedReflections(renderGraph, hdCamera,
+                                                    prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, clearCoatMask, skyTexture, rayCountTexture,
+                                                    m_FrameCount, m_ShaderVariablesRayTracingCB, transparent);
+            }
+            else
             {
                 if (transparent)
-                    BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, ref prepassOutput);
+                {
+                    // NOTE: Currently we profiled that generating the HTile for SSR and using it is not worth it the optimization.
+                    // However if the generated HTile will be used for something else but SSR, this should be made NOT resolve only and
+                    // re-enabled in the shader.
+                    BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, resolveOnly: true, ref prepassOutput);
+
+                }
 
                 using (var builder = renderGraph.AddRenderPass<RenderSSRPassData>("Render SSR", out var passData))
                 {
@@ -497,7 +509,7 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle RenderContactShadows(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, in BuildGPULightListOutput lightLists, int firstMipOffsetY)
         {
             if (!WillRenderContactShadow())
-                return renderGraph.defaultResources.clearTextureXR;
+                return renderGraph.defaultResources.blackUIntTextureXR;
 
             TextureHandle result;
             using (var builder = renderGraph.AddRenderPass<RenderContactShadowPassData>("Contact Shadows", out var passData))
