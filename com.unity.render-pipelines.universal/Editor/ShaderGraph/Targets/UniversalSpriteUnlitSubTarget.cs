@@ -75,6 +75,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static SubShaderDescriptor SpriteUnlit = new SubShaderDescriptor()
             {
                 pipelineTag = UniversalTarget.kPipelineTag,
+                customTags = UniversalTarget.kUnlitMaterialTypeTag,
                 renderType = $"{RenderType.Transparent}",
                 renderQueue = $"{UnityEditor.ShaderGraph.RenderQueue.Transparent}",
                 generatesPreview = true,
