@@ -69,8 +69,7 @@ namespace UnityEditor.ShaderGraph.Internal
             return new PreviewProperty(propertyType)
             {
                 name = referenceName,
-                textureValue = value.texture,
-                texture2DDefaultType = defaultType
+                textureValue = value.texture
             };
         }
 
