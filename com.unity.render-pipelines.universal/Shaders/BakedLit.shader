@@ -18,6 +18,10 @@ Shader "Universal Render Pipeline/Baked Lit"
 
         // Editmode props
         [HideInInspector] _QueueOffset("Queue offset", Float) = 0.0
+
+        [HideInInspector][NoScaleOffset]unity_Lightmaps("unity_Lightmaps", 2DArray) = "" {}
+        [HideInInspector][NoScaleOffset]unity_LightmapsInd("unity_LightmapsInd", 2DArray) = "" {}
+        [HideInInspector][NoScaleOffset]unity_ShadowMasks("unity_ShadowMasks", 2DArray) = "" {}
     }
     SubShader
     {
@@ -39,18 +43,27 @@ Shader "Universal Render Pipeline/Baked Lit"
 
             #pragma vertex vert
             #pragma fragment frag
+
+            // -------------------------------------
+            // Material Keywords
             #pragma shader_feature_local _NORMALMAP
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
+
+            // -------------------------------------
+            // Universal Pipeline keywords
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
+
+            //--------------------------------------
+            // GPU Instancing
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
-            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             // Lighting include is needed because of GI
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
@@ -273,15 +286,25 @@ Shader "Universal Render Pipeline/Baked Lit"
 
             #pragma vertex vert
             #pragma fragment frag
-            #pragma shader_feature_local _ _NORMALMAP
+
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature_local _NORMALMAP
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
+
+            // -------------------------------------
+            // Universal Pipeline keywords
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
+
+            //--------------------------------------
+            // GPU Instancing
             #pragma multi_compile_instancing
 
             // Lighting include is needed because of GI

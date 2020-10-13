@@ -180,7 +180,9 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             pl.color.rgb = asfloat(_PunctualLightBuffer[i + 1].rgb);
             pl.attenuation.xyzw = asfloat(_PunctualLightBuffer[i + 2].xyzw);
             pl.spotDirection.xyz = asfloat(_PunctualLightBuffer[i + 3].xyz);
-            pl.shadowLightIndex = _PunctualLightBuffer[i + 3].w;
+            pl.flags = _PunctualLightBuffer[i + 3].w;
+            pl.occlusionProbeInfo = asfloat(_PunctualLightBuffer[i + 4].xyzz);
+            pl.shadowLightIndex = -1;
 
             return pl;
         }
@@ -196,6 +198,10 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
     TEXTURE2D_X_HALF(_GBuffer0);
     TEXTURE2D_X_HALF(_GBuffer1);
     TEXTURE2D_X_HALF(_GBuffer2);
+    #ifdef _DEFERRED_SUBTRACTIVE_LIGHTING
+    TEXTURE2D_X_HALF(_GBuffer4);
+    #endif
+
     float4x4 _ScreenToWorld[2];
 
     half4 PunctualLightShading(Varyings input) : SV_Target
@@ -204,6 +210,12 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
         half4 gbuffer0 = LOAD_TEXTURE2D_X(_GBuffer0, input.positionCS.xy);
         half4 gbuffer1 = LOAD_TEXTURE2D_X(_GBuffer1, input.positionCS.xy);
         half4 gbuffer2 = LOAD_TEXTURE2D_X(_GBuffer2, input.positionCS.xy);
+        #ifdef _DEFERRED_SUBTRACTIVE_LIGHTING
+        half4 gbuffer4 = LOAD_TEXTURE2D_X(_GBuffer4, input.positionCS.xy);
+        half4 shadowMask = gbuffer4;
+        #else
+        half4 shadowMask = 1.0;
+        #endif
 
         #if defined(USING_STEREO_MATRICES)
         int eyeIndex = unity_StereoEyeIndex;
@@ -239,10 +251,15 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 uint relLightIndex = LoadRelLightIndex(li);
                 PunctualLightData light = LoadPunctualLightData(relLightIndex & 0xFFFF);
 
+                #if defined(_DEFERRED_SUBTRACTIVE_LIGHTING)
+                [branch] if ((light.flags & materialFlags) == kMaterialFlagSubtractiveMixedLighting)
+                    continue;
+                #endif
+
                 float3 L = light.posWS - posWS.xyz;
                 [branch] if (dot(L, L) < light.radius2)
                 {
-                    Light unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, materialReceiveShadowsOff);
+                    Light unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, materialReceiveShadowsOff);
                     color += LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS, materialSpecularHighlightsOff);
                 }
             }
@@ -256,10 +273,15 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 uint relLightIndex = LoadRelLightIndex(li);
                 PunctualLightData light = LoadPunctualLightData(relLightIndex & 0xFFFF);
 
+                #if defined(_DEFERRED_SUBTRACTIVE_LIGHTING)
+                [branch] if ((light.flags & materialFlags) == kMaterialFlagSubtractiveMixedLighting)
+                    continue;
+                #endif
+
                 float3 L = light.posWS - posWS.xyz;
                 [branch] if (dot(L, L) < light.radius2)
                 {
-                    Light unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, materialReceiveShadowsOff);
+                    Light unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, materialReceiveShadowsOff);
 
                     half3 attenuatedLightColor = unityLight.color * (unityLight.distanceAttenuation * unityLight.shadowAttenuation);
                     half3 diffuseColor = LightingLambert(attenuatedLightColor, unityLight.direction, inputData.normalWS);
@@ -295,18 +317,21 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             Stencil {
                 Ref [_LitStencilRef]
-                ReadMask [_LitReadMask]
-                WriteMask [_LitWriteMask]
+                ReadMask [_LitStencilReadMask]
+                WriteMask [_LitStencilWriteMask]
                 Comp Equal
-                Pass Zero
-                Fail Zero
-                ZFail Zero
+                Pass Keep
+                Fail Keep
+                ZFail Keep
             }
 
             HLSLPROGRAM
+            #pragma exclude_renderers d3d11_9x gles gles3 glcore
+            #pragma target 4.5
 
             #pragma multi_compile_fragment _LIT
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+            #pragma multi_compile_fragment _ _DEFERRED_SUBTRACTIVE_LIGHTING
 
             #pragma vertex Vertex
             #pragma fragment PunctualLightShading
@@ -328,8 +353,8 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
             Stencil {
                 Ref [_SimpleLitStencilRef]
-                ReadMask [_SimpleLitReadMask]
-                WriteMask [_SimpleLitWriteMask]
+                ReadMask [_SimpleLitStencilReadMask]
+                WriteMask [_SimpleLitStencilWriteMask]
                 Comp Equal
                 Pass Keep
                 Fail Keep
@@ -337,9 +362,12 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             }
 
             HLSLPROGRAM
+            #pragma exclude_renderers d3d11_9x gles gles3 glcore
+            #pragma target 4.5
 
             #pragma multi_compile_fragment _SIMPLELIT
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+            #pragma multi_compile_fragment _ _DEFERRED_SUBTRACTIVE_LIGHTING
 
             #pragma vertex Vertex
             #pragma fragment PunctualLightShading
