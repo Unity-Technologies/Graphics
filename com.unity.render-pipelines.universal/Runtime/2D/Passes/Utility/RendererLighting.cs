@@ -138,8 +138,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public static void ReleaseRenderTextures(this IRenderPass2D pass, CommandBuffer cmd)
         {
-            LightTextureManager.ReleaseLightTextures(cmd);
-
             pass.rendererData.isNormalsRenderTargetValid = false;
             pass.rendererData.normalsRenderTargetScale = 0.0f;
             cmd.ReleaseTemporaryRT(pass.rendererData.normalsRenderTarget.id);
@@ -361,7 +359,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        public static void RenderLights(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, LayerBatch layerBatch)
+        public static void RenderLights(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, LayerBatch layerBatch, ref RenderTextureDescriptor rtDesc)
         {
             var blendStyles = pass.rendererData.lightBlendStyles;
 
@@ -376,7 +374,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 if (!Light2DManager.GetGlobalColor(layerToRender, i, out var clearColor))
                     clearColor = Color.black;
 
-                var identifier = LightTextureManager.GetLightTextureIdentifier(cmd, layerBatch.GetLightTextureKey(i));
+                var identifier =  layerBatch.GetRTId(cmd, rtDesc, i);
 
                 cmd.SetRenderTarget(identifier,
                     RenderBufferLoadAction.DontCare,

@@ -73,24 +73,25 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
 
         private int DrawLayerBatches(
-            List<LayerBatch> layerBatches,
+            LayerBatch[] layerBatches,
+            int batchCount,
             int startIndex,
             CommandBuffer cmd,
             ScriptableRenderContext context,
             ref RenderingData renderingData,
             ref FilteringSettings filterSettings,
             ref DrawingSettings normalsDrawSettings,
-            ref DrawingSettings drawSettings)
+            ref DrawingSettings drawSettings,
+            ref RenderTextureDescriptor desc)
         {
             var batchesDrawn = 0;
-            LightTextureManager.ResetKeys();
 
             // Draw lights
             using (new ProfilingScope(cmd, m_ProfilingDrawLights))
             {
-                for (var i = 0; startIndex + i < layerBatches.Count; ++i)
+                for (var i = startIndex; i < batchCount; ++i)
                 {
-                    var layerBatch = layerBatches[startIndex + i];
+                    var layerBatch = layerBatches[i];
 
                     var blendStyleMask = layerBatch.lightStats.blendStylesUsed;
                     uint blendStyleCount = 0;
@@ -100,8 +101,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         blendStyleMask >>= 1;
                     }
 
-                    if (!LightTextureManager.HasBudgetFor((int)blendStyleCount))
-                        break;
+                    // if (!LightTextureManager.HasBudgetFor((int)blendStyleCount))
+                    //     break;
 
                     batchesDrawn++;
 
@@ -114,7 +115,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                     using (new ProfilingScope(cmd, m_ProfilingDrawLightTextures))
                     {
-                        this.RenderLights(renderingData, cmd, layerBatch.startLayerID, layerBatch);
+                        this.RenderLights(renderingData, cmd, layerBatch.startLayerID, layerBatch, ref desc);
                     }
                 }
             }
@@ -140,7 +141,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                                 if (blendStyleUsed)
                                 {
-                                    var identifier = LightTextureManager.GetLightTextureIdentifier(cmd, layerBatch.GetLightTextureKey(blendStyleIndex));
+                                    var identifier = layerBatch.GetRTId(cmd, desc, blendStyleIndex);
                                     cmd.SetGlobalTexture(k_ShapeLightTextureIDs[blendStyleIndex], identifier);
                                 }
 
@@ -174,6 +175,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         }
                     }
                 }
+            }
+
+            foreach (var layerBatch in layerBatches)
+            {
+                layerBatch.ReleaseRT(cmd);
             }
 
             return batchesDrawn;
@@ -216,14 +222,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 this.SetShapeLightShaderGlobals(cmd);
 
                 var desc = this.GetBlendStyleRenderTextureDesc(renderingData);
-                LightTextureManager.Initialize(ref desc, m_Renderer2DData.lightRenderTextureMemoryBudget * 1024 * 1024);
 
-                var layerBatches = LayerUtility.CalculateBatches(m_Renderer2DData.lightCullResult);
-                var batchCount = layerBatches.Count;
+                var layerBatches = LayerUtility.CalculateBatches(m_Renderer2DData.lightCullResult, out var batchCount);
                 var batchesDrawn = 0;
 
                 for (var i = 0; i < batchCount; i += batchesDrawn)
-                    batchesDrawn = DrawLayerBatches(layerBatches, i, cmd, context, ref renderingData, ref filterSettings, ref normalsDrawSettings, ref combinedDrawSettings);
+                    batchesDrawn = DrawLayerBatches(layerBatches, batchCount, i, cmd, context, ref renderingData, ref filterSettings, ref normalsDrawSettings, ref combinedDrawSettings, ref desc);
 
                 this.ReleaseRenderTextures(cmd);
                 context.ExecuteCommandBuffer(cmd);
