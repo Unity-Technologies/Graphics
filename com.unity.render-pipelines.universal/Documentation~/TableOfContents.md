@@ -70,6 +70,7 @@
     * [URP unlit shader with color input](writing-shaders-urp-unlit-color.md)
     * [Drawing a texture](writing-shaders-urp-unlit-texture.md)
     * [Visualizing normal vectors](writing-shaders-urp-unlit-normals.md)
+  * [URP ShaderLab Pass tags](urp-shaders/urp-shaderlab-pass-tags.md)
 
 * [Customizing URP](customizing-urp.md)
   * [beginCameraRendering event](using-begincamerarendering.md)

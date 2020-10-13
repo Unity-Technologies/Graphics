@@ -107,9 +107,9 @@ ShaderLab code starts with the `Shader` declaration.
 Shader "Example/URPUnlitShaderBasic"
 ```
 
-The path in this declaration determines the display name and location of the Unity shader in the Shader menu on a Material. The path is also used when you search shaders with [Shader.Find](https://docs.unity3d.com/ScriptReference/Shader.Find.html).
+The path in this declaration determines the display name and location of the Unity shader in the Shader menu on a Material. The method [Shader.Find](https://docs.unity3d.com/ScriptReference/Shader.Find.html) also uses this path.
 
-![location of the shader in the Shader menu on a Material](Images/shader-examples/urp-material-ui-shader-path.png)
+![Location of the shader in the Shader menu on a Material](Images/shader-examples/urp-material-ui-shader-path.png)
 
 <a name="properties"></a>
 
@@ -131,7 +131,7 @@ Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" }
 
 A SubShader Tag with a name of `RenderPipeline` tells Unity which render pipelines to use this SubShader with, and the value of `UniversalPipeline` indicates that Unity should use this SubShader with URP.
 
-You can create multiple SubShaders with different `RenderPipeline` tags if you wish to execute the same shader in different render pipelines.
+To execute the same shader in different render pipelines, create multiple SubShader blocks with different `RenderPipeline` tag values.
 
 For more information on SubShader Tags, see [ShaderLab: SubShader Tags](https://docs.unity3d.com/Manual/SL-SubShaderTags.html).
 
@@ -139,38 +139,15 @@ For more information on SubShader Tags, see [ShaderLab: SubShader Tags](https://
 
 In this example, there is one Pass block that contains the HLSL program code. For more information on Pass blocks, see [ShaderLab: Pass](https://docs.unity3d.com/Manual/SL-Pass.html).
 
-A Pass block can optionally contain a Pass Tags block. [ShaderLab: PassTags](https://docs.unity3d.com/Manual/SL-PassTags.html).
-
-When writing passes for URP you need to define the `LightMode` that tells the pipeline which pass to use when executing different parts of the render pipeline.
-
-Possible values for `LightMode` tag are:
-
-*UniversalForward*: Renders objects geometry and evaluate all light contributions. Used in forward rendering mode.
-
-*UniversalGBuffer*: Renders objects geometry without evaluating any light contribution. Used in deferred rendering mode.
-
-*UniversalForwardOnly*: Same as *UniversalForward*, however used for both forward and deferred rendering modes. This is useful when you want to render objects in forward while the pipeline is in deferred mode because they contain additional data that doens't fit the GBuffer, f.ex, clear coat normals. If you want a shader to render in both forward and deferred, declare both 
-
-*UniversalForward* and *UniversalGBuffer* passes. If you want a material to render in forward regarless of the rendering mode you should declare only a *UniversalForwardOnly* pass.
-
-*Universal2D*: Renders objects and evaluate 2D lights. Used in 2D renderer.
-
-*ShadowCaster*: Renders object depth from the perspective of lights into the shadowmap or a depth texture.
-
-*DepthOnly*: Renders only depth information from the perspective of the camera into a depth texture.
-
-*Meta*: Used by the Lightmapper to bake lightmaps and probes. This pass is stripped from shaders when building a standalone player.
-
-*SRPDefaultUnlit*: Used to draw an additional pass when rendering objects. Use can use this to draw an object outline. Used in both forward and deferred rendering mode. When a pass doesn't declare a LightMode tag, it behaves as if *SRPDefaultUnlit* was declared.
-
-> **NOTE**: The following LightMode tags are not supported in URP: Always, ForwardAdd, PrepassBase, PrepassFinal, Vertex, VertexLMRGBM, VertexLM.
-
+A Pass block can optionally contain a Pass tags block. For more information, see [URP ShaderLab Pass tags](urp-shaders/urp-shaderlab-pass-tags.md).
 
 ### HLSLPROGRAM block
 
 This block contains the HLSL program code.
 
-> **NOTE**: URP supports shaders written with CGPROGRAM/ENDCGPROGRAM, however when using those, Unity will automatically include the built-in shader library and if you also include SRP shader library you might end up with conflicting shader libraries. It's also not possible to have a shader that's SRP Batcher compatible when using CGPROGRAM.
+> **NOTE**: HLSL language is the preferred language for URP shaders.
+
+> **NOTE**: URP supports the CG language. If you add the CGPROGRAM/ENDCGPROGRAM block in a shader, Unity includes shaders from the Built-in Render Pipeline library automatically. If you include shaders from the SRP shader library, some SRP shader macros and functions might conflict with the Built-in Render Pipeline shader functions. Shaders with the CGPROGRAM block are not SRP Batcher compatible.
 
 This block contains the `#include` declaration with the reference to the `Core.hlsl` file.
 
