@@ -9,7 +9,7 @@ def format_metafile(metafile, shared, latest_editor_versions, unfold_agents_root
     metafile['target_branch_editor_ci'] = metafile.get('target_branch_editor_ci', shared.get('target_branch_editor_ci'))
     metafile['platforms'] = _unfold_platforms(metafile, shared)
     metafile = _unfold_individual_agents(metafile, shared, root_keys=unfold_agents_root_keys)
-    metafile = _unfold_test_platforms(metafile, shared, root_keys=unfold_test_platforms_root_keys)
+    metafile = _unfold_test_platforms(metafile, shared)
     return metafile
 
 def _get_editors(metafile, shared, latest_editor_versions):
@@ -19,8 +19,9 @@ def _get_editors(metafile, shared, latest_editor_versions):
         if editor["editor_pinning"]:
             editor['revisions'] = {}
             revisions = [{k:v} for k,v in latest_editor_versions[editor['track']]['editor_versions'].items() if str(editor['track']) in k] # get all revisions for this track
+            # loop over the list of dictionaries to get the revisions into proper dictionary format
             for rev in revisions:
-                for k,v in rev.items(): # TODO loops over the single dict value, see if there is a better way
+                for k,v in rev.items():
                     editor['revisions'][k] = v
             
     #print(json.dumps(editors, indent=2))
@@ -32,14 +33,21 @@ def _unfold_platforms(metafile, shared):
     for m_plat in metafile.get('platforms',[]):
         s_plat = shared['platforms'][m_plat['name']]
 
-        joint_plat = {**s_plat, **m_plat}
-        joint_plat["extra_utr_flags"] = [] if not joint_plat.get("extra_utr_flags") else joint_plat.get("extra_utr_flags")
-        joint_plat["extra_utr_flags_build"] = [] if not joint_plat.get("extra_utr_flags_build") else joint_plat.get("extra_utr_flags_build")
+        # join details from the shared and project metafile platform (with metafile overwriting shared in case of same keys)
+        joint_plat = {**s_plat, **m_plat} 
 
+        # handle cases where api not specified (stereo projects)
         if joint_plat.get('apis')=="" or joint_plat.get('apis')==None:
             joint_plat['apis'] = [{
                 "name": ""
             }]
+
+        # retrieve build configs from shared.metafile based on the name specified under project.metafile platforms
+        build_configs = []
+        for build_config_name in m_plat.get("build_configs",[]):
+            build_configs.extend([bc for bc in shared["build_configs"] if bc["name"]==build_config_name])
+        joint_plat["build_configs"] = build_configs
+        
         platforms.append(joint_plat)
     
     return platforms
@@ -62,46 +70,29 @@ def _unfold_individual_agents(metafile, shared, root_keys=[]):
     return metafile
 
 
-def _join_utr_flags(metafile, shared):
-    for test_platform in metafile["test_platforms"]:
+def _unfold_test_platforms(metafile, shared):
+    '''Concatenates test platform details from shared and project metafiles'''
+
+    test_platforms = []
+    for tp in metafile.get("test_platforms", []):
+
+        # initialize possibly empty properties
+        tp["name"] = tp["type"] if not tp.get("name") else tp.get("name")
+        tp["extra_utr_flags"] = [] if not tp.get("extra_utr_flags") else tp.get("extra_utr_flags")
+        if tp["type"].lower()=="standalone":
+            tp["extra_utr_flags_build"] = [] if not tp.get("extra_utr_flags_build") else tp.get("extra_utr_flags_build")
         
-        shared_tp = [tp for tp in shared["test_platforms"] if tp["type"].lower() == test_platform["type"].lower()][0]
-        
-        utr_flags = shared_tp["extra_utr_flags"] + test_platform["extra_utr_flags"]
-        test_platform["extra_utr_flags"] = utr_flags
-        
-        if test_platform["type"].lower()=="standalone":
-            utr_flags_build = shared_tp.get("extra_utr_flags_build",[]) + test_platform.get("extra_utr_flags_build",[])
-            test_platform["extra_utr_flags_build"] = utr_flags_build
 
-    return metafile
+        # get the matching test platform from shared metafile and
+        # concatenate extra_utr_flags and extra_utr_flags_build for this test platform from shared.metafile + project.metafile
+        shared_tp = [t for t in shared["test_platforms"] if t["type"].lower() == tp["type"].lower()][0]
+        tp["extra_utr_flags"] = shared_tp["extra_utr_flags"] + tp["extra_utr_flags"]
+        if tp["type"].lower()=="standalone":
+            tp["extra_utr_flags_build"] = shared_tp.get("extra_utr_flags_build",[]) + tp.get("extra_utr_flags_build",[])
 
 
+        # updating the testplatform done, append it to metafile
+        test_platforms.append(tp)
 
-def _unfold_test_platforms(metafile, shared, root_keys=[]):
-    '''Retrieves test platform details from shared metafile, corresponding to the specific metafile. 
-    Returns the new 'test_platforms' section.'''
-
-    def replace_test_platforms(target_dict):
-        test_platforms = []
-        for tp in target_dict.get("test_platforms", []):
-            tp["name"] = tp["type"] if not tp.get("name") else tp.get("name")
-            tp["is_performance"] = False if not tp.get("is_performance") else tp.get("is_performance")
-            tp["extra_utr_flags"] = [] if not tp.get("extra_utr_flags") else tp.get("extra_utr_flags")
-            
-            if tp["type"].lower()=="standalone":
-                tp["extra_utr_flags_build"] = [] if not tp.get("extra_utr_flags_build") else tp.get("extra_utr_flags_build")
-            test_platforms.append(tp)
-
-        target_dict['test_platforms'] = test_platforms
-        return target_dict
-
-    # replace all test platforms found directly under root of metafile
-    metafile = replace_test_platforms(metafile)
-
-    # replace any additional test platforms found under other specified keys
-    for root_key in root_keys:
-        metafile[root_key] = replace_test_platforms(metafile[root_key])
-    
-    metafile = _join_utr_flags(metafile, shared)
+    metafile['test_platforms'] = test_platforms 
     return metafile
