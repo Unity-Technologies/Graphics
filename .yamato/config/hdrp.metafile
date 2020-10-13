@@ -7,24 +7,21 @@ test_platforms:
   - type: playmode
     name: playmode_XR
     extra_utr_flags:
-      - --extra-editor-arg="-xr-tests" 
+      - [all]: --extra-editor-arg="-xr-tests" 
   - type: playmode
     name: playmode_NonRenderGraph
     extra_utr_flags:
-      - --extra-editor-arg="-non-rendergraph-tests"
+      - [all]: --extra-editor-arg="-non-rendergraph-tests"
   - type: editmode
   - type: Standalone
-    timeout:
-      OSX_Metal: 2400
+    extra_utr_flags:
+      - [OSX_Metal]: --timeout=2400
 platforms:
   - name: Win
     apis:
       - name: DX11
-        cmd: -force-d3d11
       - name: DX12
-        cmd: -force-d3d12
       - name: Vulkan
-        cmd: -force-vulkan
     agents_project:
       # default: package_ci_mac
       default:
@@ -50,13 +47,12 @@ platforms:
     apis:
       - name: Metal
         exclude_test_platforms:
-          - playmode_XR
+          - name: playmode_XR
   - name: Linux
     apis:
       - name: Vulkan
-        cmd: -force-vulkan
         exclude_test_platforms:
-          - playmode_XR
+          - name: playmode_XR
 build_configs:
 - name: il2cpp_2
   scripting_backend: il2cpp

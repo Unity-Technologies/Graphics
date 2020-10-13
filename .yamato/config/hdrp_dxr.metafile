@@ -7,16 +7,15 @@ test_platforms:
   - type: playmode
     name: playmode_XR
     extra_utr_flags:
-      - --extra-editor-arg="-xr-tests" 
+      - [all]: --extra-editor-arg="-xr-tests" 
   - type: playmode
     name: playmode_NonRenderGraph
     extra_utr_flags:
-      - --extra-editor-arg="-non-rendergraph-tests"
+      - [all]: --extra-editor-arg="-non-rendergraph-tests"
 platforms:
   - name: Win
     apis:
       - name: DX12
-        cmd: -force-d3d12
     overrides:
       agents_project:
         default:

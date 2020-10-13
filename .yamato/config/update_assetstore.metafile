@@ -8,13 +8,11 @@ platforms:
   - name: Win
     apis:
       - name: DX11
-        cmd: -force-d3d11
       - name: Vulkan
-        cmd: -force-vulkan
 #  - name: OSX
 #    apis:
-#      - OpenGLCore
-#      - Metal
+#      - name: OpenGLCore
+#      - name: Metal
 build_configs:
 - name: il2cpp_2
   scripting_backend: il2cpp

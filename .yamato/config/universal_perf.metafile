@@ -39,24 +39,24 @@ platforms:
     apis:
       - name: DX11
       - name: Vulkan
-#  - name: OSX
-#    apis:
-#      - name: Metal
-#        exclude_test_platforms:
-#          - playmode_XR
-#      - name: OpenGLCore
-#        exclude_test_platforms:
-#          - playmode_XR
-#          - Standalone
-#  - name: Android
-#    apis: 
-#      - name: Vulkan
-#      - name: OpenGLES3
-#  - name: iPhone
-#    apis: 
-#      - name: Metal
-#        exclude_test_platforms:
-#          - playmode_XR
+  - name: OSX
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+          - name: playmode_XR
+      - name: OpenGLCore
+        exclude_test_platforms:
+          - name: playmode_XR
+          - name: Standalone
+  - name: Android
+    apis: 
+      - name: Vulkan
+      - name: OpenGLES3
+  - name: iPhone
+    apis: 
+      - name: Metal
+        exclude_test_platforms:
+          - name: playmode_XR
 all:
   dependencies:
     - platform: Win

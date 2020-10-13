@@ -29,7 +29,8 @@ def create_project_ymls(metafile):
                     for test_platform in metafile['test_platforms']:
                         for color_space in metafile['color_spaces']:
                             
-                            if test_platform['name'].lower() not in map(str.lower, api.get('exclude_test_platforms', [])):
+                            exclude_tp = [tp["name"] for tp in api.get('exclude_test_platforms', [])]
+                            if test_platform['name'].lower() not in map(str.lower, exclude_tp):
 
                                 if test_platform['type'].lower() == 'standalone':
                                     job = Project_StandaloneJob(project, editor, platform, api, test_platform, build_config, color_space)

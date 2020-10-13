@@ -8,6 +8,8 @@ All_Universal_Hybrid_trunk:
     dependencies:
       -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_playmode_il2cpp_4_Linear_trunk
          rerun: on-new-revision
+      -  path: .yamato/universal_hybrid-osx-metal.yml#Universal_Hybrid_OSX_Metal_Standalone_il2cpp_4_Linear_trunk
+         rerun: on-new-revision
       -  path: .yamato/universal_hybrid-osx-metal.yml#Universal_Hybrid_OSX_Metal_playmode_il2cpp_4_Linear_trunk
          rerun: on-new-revision
 All_Universal_Hybrid_2020.2:
@@ -15,12 +17,16 @@ All_Universal_Hybrid_2020.2:
     dependencies:
       -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_playmode_il2cpp_4_Linear_2020.2
          rerun: on-new-revision
+      -  path: .yamato/universal_hybrid-osx-metal.yml#Universal_Hybrid_OSX_Metal_Standalone_il2cpp_4_Linear_2020.2
+         rerun: on-new-revision
       -  path: .yamato/universal_hybrid-osx-metal.yml#Universal_Hybrid_OSX_Metal_playmode_il2cpp_4_Linear_2020.2
          rerun: on-new-revision
 All_Universal_Hybrid_CUSTOM-REVISION:
     name: All Universal_Hybrid CI - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_playmode_il2cpp_4_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/universal_hybrid-osx-metal.yml#Universal_Hybrid_OSX_Metal_Standalone_il2cpp_4_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/universal_hybrid-osx-metal.yml#Universal_Hybrid_OSX_Metal_playmode_il2cpp_4_Linear_CUSTOM-REVISION
          rerun: always
