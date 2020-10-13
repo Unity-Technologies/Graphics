@@ -403,6 +403,16 @@ namespace UnityEngine.Rendering.HighDefinition
             return GetReflectionTexture(hdCamera.lightingSky);
         }
 
+        internal SkyUpdateContext GetOrCreateStaticSkyUpdateConext(HDCamera hdCamera)
+        {
+            int cameraID = hdCamera.camera.GetInstanceID();
+            if (!m_StaticLightingSky.ContainsKey(cameraID))
+            {
+                m_StaticLightingSky.Add(cameraID, new SkyUpdateContext());
+            }
+            return m_StaticLightingSky[cameraID];
+        }
+
         // Return the value of the ambient probe
         internal SphericalHarmonicsL2 GetAmbientProbe(HDCamera hdCamera)
         {
@@ -414,12 +424,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (hdCamera.skyAmbientMode == SkyAmbientMode.Static)
             {
-                int cameraID = hdCamera.camera.GetInstanceID();
-                if (!m_StaticLightingSky.ContainsKey(cameraID))
-                {
-                    m_StaticLightingSky.Add(cameraID, new SkyUpdateContext());
-                }
-                return GetAmbientProbe(m_StaticLightingSky[cameraID]);
+                return GetAmbientProbe(GetOrCreateStaticSkyUpdateConext(hdCamera));
             }
 
             return GetAmbientProbe(hdCamera.lightingSky);
@@ -601,7 +606,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     ReleaseCachedContext(updateContext.cachedSkyRenderingContextId);
-                    //RequestStaticEnvironmentUpdate();
                 }
                 else
                 {
@@ -848,14 +852,10 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
             if ((ambientMode == SkyAmbientMode.Static || forceStaticUpdate) && hdCamera.camera.cameraType != CameraType.Preview)
             {
-                int cameraID = hdCamera.camera.GetInstanceID();
-                if (!m_StaticLightingSky.ContainsKey(cameraID))
-                {
-                    m_StaticLightingSky.Add(cameraID, new SkyUpdateContext());
-                }
-                m_StaticLightingSky[cameraID].skySettings = staticLightingSky != null ? staticLightingSky.skySettings : null;
-                UpdateEnvironment(hdCamera, renderContext, m_StaticLightingSky[cameraID], sunLight, m_StaticSkyUpdateRequired || m_UpdateRequired, true, true, SkyAmbientMode.Static, frameIndex, cmd);
-                m_LastCameraIDUsedForStaticLighting = cameraID;
+                var staticLightingSkyUpdateContext = GetOrCreateStaticSkyUpdateConext(hdCamera);
+                staticLightingSkyUpdateContext.skySettings = staticLightingSky != null ? staticLightingSky.skySettings : null;
+                UpdateEnvironment(hdCamera, renderContext, staticLightingSkyUpdateContext, sunLight, m_StaticSkyUpdateRequired || m_UpdateRequired, true, true, SkyAmbientMode.Static, frameIndex, cmd);
+                m_LastCameraIDUsedForStaticLighting = hdCamera.camera.GetInstanceID();
                 m_StaticSkyUpdateRequired = false;
             }
 

@@ -154,6 +154,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Lit ShaderGraph surface option property block to only display transmission and energy conserving specular color options for their proper material mode (case 1257050)
 - Fixed nan in reflection probe when volumetric fog filtering is enabled, causing the whole probe to be invalid.
 - Fixed Debug Color pixel became grey
+- Fixed flickering in static environment lighting when having scene and game view side-by-side with a camera with 0 culling mask and PBR sky. 
+- Fixed Null reference exception in graphics compositor undo/redo action.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
