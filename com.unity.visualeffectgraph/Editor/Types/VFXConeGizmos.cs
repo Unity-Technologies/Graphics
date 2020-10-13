@@ -108,6 +108,19 @@ namespace UnityEditor.VFX
             public int visibleCount;
         }
 
+        private static readonly int[] s_ExtremitiesNames =
+        {
+            "VFX_DrawCone_Cap_0".GetHashCode(),
+            "VFX_DrawCone_Cap_1".GetHashCode(),
+            "VFX_DrawCone_Cap_2".GetHashCode(),
+            "VFX_DrawCone_Cap_3".GetHashCode(),
+            "VFX_DrawCone_Cap_4".GetHashCode(),
+            "VFX_DrawCone_Cap_5".GetHashCode(),
+            "VFX_DrawCone_Cap_6".GetHashCode(),
+            "VFX_DrawCone_Cap_7".GetHashCode(),
+        };
+
+        private static readonly int s_HeightCapName = "VFX_DrawCone_HeightCap".GetHashCode();
 
         public static void DrawCone(Cone cone, VFXGizmo gizmo, ref Extremities extremities, IProperty<Vector3> centerProperty, IProperty<Vector3> anglesProperty, IProperty<float> baseRadiusProperty, IProperty<float> topRadiusProperty, IProperty<float> heightProperty, float baseRadiusScreen, float topRadiusScreen)
         {
@@ -118,46 +131,37 @@ namespace UnityEditor.VFX
             {
                 if (baseRadiusScreen > 2 && baseRadiusProperty.isEditable)
                 {
-                    for (int i = extremities.extremities.Count / 2; i < extremities.extremities.Count; ++i)
+                    for (int i = extremities.extremities.Count / 2; i < extremities.extremities.Count && (i - extremities.extremities.Count / 2) < extremities.visibleCount; ++i)
                     {
                         EditorGUI.BeginChangeCheck();
-
                         Vector3 pos = extremities.extremities[i];
-                        Vector3 result = Handles.Slider(pos, pos - extremities.bottomCap, (i - extremities.extremities.Count / 2) < extremities.visibleCount ? handleSize * HandleUtility.GetHandleSize(pos) : 0, Handles.CubeHandleCap, 0);
-
+                        Vector3 result = Handles.Slider(s_ExtremitiesNames[i], pos, pos - extremities.bottomCap,  handleSize * HandleUtility.GetHandleSize(pos), Handles.CubeHandleCap, 0);
                         if (EditorGUI.EndChangeCheck())
-                        {
                             baseRadiusProperty.SetValue(result.magnitude);
-                        }
                     }
                 }
 
                 if (topRadiusScreen > 2 && topRadiusProperty.isEditable)
                 {
-                    for (int i = 0; i < extremities.extremities.Count / 2; ++i)
+                    for (int i = 0; i < extremities.extremities.Count / 2 && i < extremities.visibleCount; ++i)
                     {
                         EditorGUI.BeginChangeCheck();
 
                         Vector3 pos = extremities.extremities[i];
                         Vector3 dir = pos - extremities.topCap;
-                        Vector3 result = Handles.Slider(pos, dir, i < extremities.visibleCount ? handleSize * HandleUtility.GetHandleSize(pos) : 0, Handles.CubeHandleCap, 0);
+                        Vector3 result = Handles.Slider(s_ExtremitiesNames[i], pos, dir, handleSize * HandleUtility.GetHandleSize(pos), Handles.CubeHandleCap, 0);
 
                         if (EditorGUI.EndChangeCheck())
-                        {
                             topRadiusProperty.SetValue((result - extremities.topCap).magnitude);
-                        }
                     }
                 }
 
                 if (heightProperty.isEditable)
                 {
                     EditorGUI.BeginChangeCheck();
-                    Vector3 result = Handles.Slider(extremities.topCap, Vector3.up, handleSize * HandleUtility.GetHandleSize(extremities.topCap), Handles.CubeHandleCap, 0);
-
+                    Vector3 result = Handles.Slider(s_HeightCapName, extremities.topCap, Vector3.up, handleSize * HandleUtility.GetHandleSize(extremities.topCap), Handles.CubeHandleCap, 0);
                     if (EditorGUI.EndChangeCheck())
-                    {
                         heightProperty.SetValue(result.magnitude);
-                    }
                 }
             }
         }

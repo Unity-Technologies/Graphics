@@ -23,9 +23,27 @@ namespace UnityEditor.VFX
             m_RadiusProperty = context.RegisterProperty<float>("majorRadius");
         }
 
-        public static readonly Vector3[] radiusDirections = new Vector3[] { Vector3.left, Vector3.up, Vector3.right, Vector3.down };
+        private static readonly Vector3[] s_RadiusDirections = new Vector3[] { Vector3.left, Vector3.up, Vector3.right, Vector3.down };
+        public static readonly float[] s_Angles = new float[] { 0.0f, 90.0f, 180.0f, 270.0f };
+        
+        private static readonly int[] s_RadiusDirectionsNames = new int[]
+        {
+            "VFX_Torus_Left".GetHashCode(),
+            "VFX_Torus_Up".GetHashCode(),
+            "VFX_Torus_Right".GetHashCode(),
+            "VFX_Torus_Down".GetHashCode(),
+        };
 
-        public static readonly float[] angles = new float[] { 0.0f, 90.0f, 180.0f, 270.0f };
+        private static readonly int[] s_AngleNames = new int[]
+        {
+            "VFX_Torus_Angle_0".GetHashCode(),
+            "VFX_Torus_Angle_90".GetHashCode(),
+            "VFX_Torus_Angle_180".GetHashCode(),
+            "VFX_Torus_Angle_270".GetHashCode(),
+            "VFX_Torus_Angle_Extra".GetHashCode()
+        };
+
+        private static readonly int s_MajorRadius = "VFX_Torus_MajorRadius".GetHashCode();
 
         public static void DrawTorus(Torus torus, VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<Vector3> anglesProperty, IProperty<float> thicknessProperty, IProperty<float> radiusProperty, IEnumerable<float> angles, float maxAngle = Mathf.PI * 2)
         {
@@ -35,31 +53,33 @@ namespace UnityEditor.VFX
             // Radius controls
             using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(torus.center, Quaternion.Euler(torus.angles), Vector3.one) * Matrix4x4.Rotate(Quaternion.Euler(-90.0f, 0.0f, 0.0f))))
             {
-                foreach (var arcAngle in angles)
+                for (int i = 0; i < angles.Count(); ++i)
                 {
-                    Quaternion arcRotation = Quaternion.AngleAxis(arcAngle, Vector3.up);
-                    Vector3 capCenter = arcRotation * Vector3.forward * torus.majorRadius;
+                    var arcAngle = angles.ElementAt(i);
+                    if (arcAngle > maxAngle)
+                        continue;
+
+                    var angleName = s_AngleNames[i];
+                    var arcRotation = Quaternion.AngleAxis(arcAngle, Vector3.up);
+                    var capCenter = arcRotation * Vector3.forward * torus.majorRadius;
                     Handles.DrawWireDisc(capCenter, arcRotation * Vector3.right, torus.minorRadius);
 
                     if (thicknessProperty.isEditable)
                     {
                         // Minor radius
-                        foreach (var dist in radiusDirections)
+                        for (int j = 0; j < s_RadiusDirections.Length; ++j)
                         {
-                            Vector3 distRotated = Matrix4x4.Rotate(Quaternion.Euler(0.0f, arcAngle + 90.0f, 0.0f)) * dist;
+                            var composedName = (angleName * 397) ^ s_RadiusDirectionsNames[j];
+                            Vector3 distRotated = Matrix4x4.Rotate(Quaternion.Euler(0.0f, arcAngle + 90.0f, 0.0f)) * s_RadiusDirections[j];
+                            Vector3 sliderPos = capCenter + distRotated * torus.minorRadius;
 
                             EditorGUI.BeginChangeCheck();
-                            Vector3 sliderPos = capCenter + distRotated * torus.minorRadius;
-                            Vector3 result = Handles.Slider(sliderPos, distRotated, arcAngle <= maxAngle ? handleSize * HandleUtility.GetHandleSize(sliderPos) : 0, Handles.CubeHandleCap, 0);
-
+                            Vector3 result = Handles.Slider(composedName, sliderPos, distRotated, arcAngle <= maxAngle ? handleSize * HandleUtility.GetHandleSize(sliderPos) : 0, Handles.CubeHandleCap, 0);
                             if (EditorGUI.EndChangeCheck())
                             {
                                 float newRadius = (result - capCenter).magnitude;
-
                                 if (float.IsNaN(newRadius))
-                                {
                                     newRadius = 0;
-                                }
                                 thicknessProperty.SetValue(newRadius);
                             }
                         }
@@ -68,23 +88,19 @@ namespace UnityEditor.VFX
                     if (radiusProperty.isEditable)
                     {
                         // Major radius
+                        var composedName = (angleName * 397) ^ s_MajorRadius;
+
+                        Vector3 distRotated = Matrix4x4.Rotate(Quaternion.Euler(0.0f, arcAngle + 90.0f, 0.0f)) * Vector3.left;
+                        Vector3 sliderPos = distRotated * torus.majorRadius;
+
+                        EditorGUI.BeginChangeCheck();
+                        Vector3 result = Handles.Slider(composedName, sliderPos, distRotated, handleSize * HandleUtility.GetHandleSize(sliderPos), Handles.CubeHandleCap, 0);
+                        if (EditorGUI.EndChangeCheck())
                         {
-                            Vector3 distRotated = Matrix4x4.Rotate(Quaternion.Euler(0.0f, arcAngle + 90.0f, 0.0f)) * Vector3.left;
-
-                            EditorGUI.BeginChangeCheck();
-                            Vector3 sliderPos = distRotated * torus.majorRadius;
-                            Vector3 result = Handles.Slider(sliderPos, distRotated, handleSize * HandleUtility.GetHandleSize(sliderPos), Handles.CubeHandleCap, 0);
-
-                            if (EditorGUI.EndChangeCheck())
-                            {
-                                float newRadius = (result).magnitude;
-
-                                if (float.IsNaN(newRadius))
-                                {
-                                    newRadius = 0;
-                                }
-                                radiusProperty.SetValue(newRadius);
-                            }
+                            float newRadius = (result).magnitude;
+                            if (float.IsNaN(newRadius))
+                                newRadius = 0;
+                            radiusProperty.SetValue(newRadius);
                         }
                     }
                 }
@@ -101,7 +117,7 @@ namespace UnityEditor.VFX
                 Handles.DrawWireDisc(Vector3.zero, Vector3.forward, torus.majorRadius - torus.minorRadius);
             }
 
-            DrawTorus(torus, this, m_CenterProperty, m_AnglesProperty, m_ThicknessProperty, m_RadiusProperty, angles);
+            DrawTorus(torus, this, m_CenterProperty, m_AnglesProperty, m_ThicknessProperty, m_RadiusProperty, s_Angles);
         }
 
         public override Bounds OnGetSpacedGizmoBounds(Torus value)
@@ -144,8 +160,8 @@ namespace UnityEditor.VFX
                 ArcGizmo(Vector3.zero, arcTorus.majorRadius, arc, m_ArcProperty, Quaternion.Euler(-90.0f, 0.0f, 0.0f));
             }
 
-            Torus torus = new Torus() { center = arcTorus.center, angles = arcTorus.angles, minorRadius = arcTorus.minorRadius, majorRadius = arcTorus.majorRadius };
-            VFXTorusGizmo.DrawTorus(torus, this, m_CenterProperty, m_AnglesProperty, m_thicknessProperty, m_radiusProperty, VFXTorusGizmo.angles.Concat(new float[] { arc }), arc);
+            var torus = new Torus() { center = arcTorus.center, angles = arcTorus.angles, minorRadius = arcTorus.minorRadius, majorRadius = arcTorus.majorRadius };
+            VFXTorusGizmo.DrawTorus(torus, this, m_CenterProperty, m_AnglesProperty, m_thicknessProperty, m_radiusProperty, VFXTorusGizmo.s_Angles.Concat(new float[] { arc }), arc);
         }
 
         public override Bounds OnGetSpacedGizmoBounds(ArcTorus value)

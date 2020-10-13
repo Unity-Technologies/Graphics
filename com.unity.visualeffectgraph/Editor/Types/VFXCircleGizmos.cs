@@ -20,25 +20,30 @@ namespace UnityEditor.VFX
             m_RadiusProperty = context.RegisterProperty<float>("radius");
         }
 
-        public static readonly Vector3[] radiusDirections = new Vector3[] { Vector3.up, Vector3.right, Vector3.down, Vector3.left };
+        private static readonly Vector3[] s_RadiusDirections = new Vector3[] { Vector3.up, Vector3.right, Vector3.down, Vector3.left };
+        private static readonly int[] s_RadiusDirectionsName = new int[]
+        {
+            "VFX_Circle_Up".GetHashCode(),
+            "VFX_Circle_Right".GetHashCode(),
+            "VFX_Circle_Down".GetHashCode(),
+            "VFX_Circle_Left".GetHashCode()
+        };
 
-        public static void DrawCircle(Circle circle, VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<Vector3> anglesProperty, IProperty<float> radiusProperty, IEnumerable<Vector3> radiusDirections, int countVisible = int.MaxValue)
+        public static void DrawCircle(Circle circle, VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<Vector3> anglesProperty, IProperty<float> radiusProperty, int countVisible = int.MaxValue)
         {
             gizmo.PositionGizmo(circle.center, circle.angles, centerProperty, false);
             gizmo.RotationGizmo(circle.center, circle.angles, anglesProperty, false);
 
-            // Radius controls
             if (radiusProperty.isEditable)
             {
                 using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(circle.center, Quaternion.Euler(circle.angles), Vector3.one)))
                 {
-                    int cpt = 0;
-                    foreach (var dist in radiusDirections)
+                    for (int i = 0; i < countVisible; ++i)
                     {
                         EditorGUI.BeginChangeCheck();
-                        var sliderPos = dist * circle.radius;
-                        var result = Handles.Slider(sliderPos, dist, cpt++ < countVisible ? (handleSize * HandleUtility.GetHandleSize(sliderPos)) : 0.0f, Handles.CubeHandleCap, 0.0f);
-
+                        var dir = s_RadiusDirections[i];
+                        var sliderPos = dir * circle.radius;
+                        var result = Handles.Slider(s_RadiusDirectionsName[i], sliderPos, dir, handleSize * HandleUtility.GetHandleSize(sliderPos), Handles.CubeHandleCap, 0.0f);
                         if (EditorGUI.EndChangeCheck())
                         {
                             circle.radius = result.magnitude;
@@ -60,7 +65,7 @@ namespace UnityEditor.VFX
                 Handles.DrawWireDisc(Vector3.zero, -Vector3.forward, circle.radius);
             }
 
-            DrawCircle(circle, this, m_CenterProperty, m_AnglesProperty, m_RadiusProperty, radiusDirections);
+            DrawCircle(circle, this, m_CenterProperty, m_AnglesProperty, m_RadiusProperty);
         }
 
         public override Bounds OnGetSpacedGizmoBounds(Circle value)
@@ -96,7 +101,7 @@ namespace UnityEditor.VFX
                 ArcGizmo(Vector3.zero, radius, arc, m_ArcProperty, Quaternion.Euler(-90.0f, 0.0f, 0.0f));
             }
 
-            VFXCircleGizmo.DrawCircle(arcCircle.circle, this, m_CenterProperty, m_AnglesProperty, m_RadiusProperty, VFXCircleGizmo.radiusDirections, Mathf.CeilToInt(arc / 90));
+            VFXCircleGizmo.DrawCircle(arcCircle.circle, this, m_CenterProperty, m_AnglesProperty, m_RadiusProperty, Mathf.CeilToInt(arc / 90));
         }
 
         public override Bounds OnGetSpacedGizmoBounds(ArcCircle value)

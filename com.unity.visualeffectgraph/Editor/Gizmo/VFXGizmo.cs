@@ -123,6 +123,8 @@ namespace UnityEditor.VFX
             return false;
         }
 
+        private static readonly int s_ArcGizmoName = "VFX_ArcGizmo".GetHashCode();
+
         public void ArcGizmo(Vector3 center, float radius, float degArc, IProperty<float> arcProperty, Quaternion rotation)
         {
             // Arc handle control
@@ -133,14 +135,16 @@ namespace UnityEditor.VFX
                     EditorGUI.BeginChangeCheck();
                     Vector3 arcHandlePosition =  Quaternion.AngleAxis(degArc, Vector3.up) * Vector3.forward * radius;
                     arcHandlePosition = Handles.Slider2D(
+                        s_ArcGizmoName,
                         arcHandlePosition,
                         Vector3.up,
                         Vector3.forward,
                         Vector3.right,
                         handleSize * arcHandleSizeMultiplier * HandleUtility.GetHandleSize(arcHandlePosition),
                         DefaultAngleHandleDrawFunction,
-                        0
+                        Vector2.zero
                     );
+
                     if (EditorGUI.EndChangeCheck())
                     {
                         float newArc = Vector3.Angle(Vector3.forward, arcHandlePosition) * Mathf.Sign(Vector3.Dot(Vector3.right, arcHandlePosition));

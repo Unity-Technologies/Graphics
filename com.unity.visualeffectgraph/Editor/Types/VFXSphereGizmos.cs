@@ -20,7 +20,8 @@ namespace UnityEditor.VFX
             m_RadiusProperty = context.RegisterProperty<float>("radius");
         }
 
-        public static readonly Vector3[] radiusDirections = new Vector3[] { Vector3.right, Vector3.up, Vector3.forward };
+        private static readonly Vector3[] s_RadiusDirections = new Vector3[] { Vector3.right, Vector3.up, Vector3.forward };
+        private static readonly int[] s_RadiusName = { "VFX_Radius_Right".GetHashCode(), "VFX_Radius_Up".GetHashCode(), "VFX_Radius_Forward".GetHashCode() };
 
         public static void DrawSphere(Sphere sphere, VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<Vector3> anglesProperty, IProperty<float> radiusProperty)
         {
@@ -32,20 +33,19 @@ namespace UnityEditor.VFX
             {
                 using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(sphere.center, Quaternion.Euler(sphere.angles), Vector3.one)))
                 {
-                    foreach (var dist in radiusDirections)
+                    //foreach (var dist in s_RadiusDirections)
+                    for (int i = 0; i < s_RadiusDirections.Length; ++i)
                     {
                         EditorGUI.BeginChangeCheck();
-                        Vector3 sliderPos = dist * sphere.radius;
-                        Vector3 result = Handles.Slider(sliderPos, dist, handleSize * HandleUtility.GetHandleSize(sliderPos), Handles.CubeHandleCap, 0);
+                        var dir = s_RadiusDirections[i];
+                        var sliderPos = dir * sphere.radius;
+                        var result = Handles.Slider(s_RadiusName[i], sliderPos, dir, handleSize * HandleUtility.GetHandleSize(sliderPos), Handles.CubeHandleCap, 0);
 
                         if (EditorGUI.EndChangeCheck())
                         {
                             float newRadius = result.magnitude;
-
                             if (float.IsNaN(newRadius))
-                            {
                                 newRadius = 0;
-                            }
                             radiusProperty.SetValue(newRadius);
                         }
                     }
@@ -85,7 +85,6 @@ namespace UnityEditor.VFX
             m_ArcProperty = context.RegisterProperty<float>("arc");
         }
 
-        public static readonly Vector3[] radiusDirections = new Vector3[] { Vector3.left, Vector3.up, Vector3.right, Vector3.down };
         public override void OnDrawSpacedGizmo(ArcSphere arcSphere)
         {
             Vector3 center = arcSphere.sphere.center;
