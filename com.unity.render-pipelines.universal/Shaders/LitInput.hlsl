@@ -25,8 +25,10 @@ half _Parallax;
 half _OcclusionStrength;
 half _ClearCoatMask;
 //half _ClearCoatSmoothness; // TODO: enable
+#if defined(_DETAIL)
 half _DetailAlbedoMapScale;
 half _DetailNormalMapScale;
+#endif
 CBUFFER_END
 
 // NOTE: Do not ifdef the properties for dots instancing, but ifdef the actual usage.
