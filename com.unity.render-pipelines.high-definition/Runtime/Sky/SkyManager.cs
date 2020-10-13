@@ -473,7 +473,7 @@ namespace UnityEngine.Rendering.HighDefinition
             useRealtimeGI = UnityEditor.Lightmapping.realtimeGI;
 #pragma warning restore 618
 #endif
-            m_StandardSkyboxMaterial.SetTexture("_Tex", GetSkyCubemap((hdCamera.skyAmbientMode != SkyAmbientMode.Static && useRealtimeGI) ? hdCamera.lightingSky : m_StaticLightingSky[hdCamera.camera.GetInstanceID()]));
+            m_StandardSkyboxMaterial.SetTexture("_Tex", GetSkyCubemap((hdCamera.skyAmbientMode != SkyAmbientMode.Static && useRealtimeGI) ? hdCamera.lightingSky : GetOrCreateStaticSkyUpdateConext(hdCamera)));
 
             // This is only needed if we use realtime GI otherwise enlighten won't get the right sky information
             RenderSettings.skybox = m_StandardSkyboxMaterial; // Setup this material as the default to be use in RenderSettings
