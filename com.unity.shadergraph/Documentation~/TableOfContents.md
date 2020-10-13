@@ -234,5 +234,7 @@
         * [Tiling And Offset](Tiling-And-Offset-Node)
         * [Triplanar](Triplanar-Node)  
         * [Twirl](Twirl-Node)
+        * [Parallax Mapping](Parallax-Mapping-Node)  
+        * [Parallax Occlusion Mapping](Parallax-Occlusion-Mapping-Node)  
     * [Block Nodes](Block-Node)
       * [Built In](Built-In-Blocks)

@@ -44,6 +44,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 new GUIContent("Environment Reflections",
                     "When enabled, the Material samples reflections from the nearest Reflection Probes or Lighting Probe.");
 
+            public static GUIContent heightMapText = new GUIContent("Height Map",
+                "Specifies the Height Map (G) for this Material.");
+
             public static GUIContent occlusionText = new GUIContent("Occlusion Map",
                 "Sets an occlusion map to simulate shadowing from ambient lighting.");
 
@@ -78,6 +81,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             public MaterialProperty smoothnessMapChannel;
             public MaterialProperty bumpMapProp;
             public MaterialProperty bumpScaleProp;
+            public MaterialProperty parallaxMapProp;
+            public MaterialProperty parallaxScaleProp;
             public MaterialProperty occlusionStrength;
             public MaterialProperty occlusionMap;
 
@@ -103,6 +108,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 smoothnessMapChannel = BaseShaderGUI.FindProperty("_SmoothnessTextureChannel", properties, false);
                 bumpMapProp = BaseShaderGUI.FindProperty("_BumpMap", properties, false);
                 bumpScaleProp = BaseShaderGUI.FindProperty("_BumpScale", properties, false);
+                parallaxMapProp = BaseShaderGUI.FindProperty("_ParallaxMap", properties, false);
+                parallaxScaleProp = BaseShaderGUI.FindProperty("_Parallax", properties, false);
                 occlusionStrength = BaseShaderGUI.FindProperty("_OcclusionStrength", properties, false);
                 occlusionMap = BaseShaderGUI.FindProperty("_OcclusionMap", properties, false);
                 // Advanced Props
@@ -120,6 +127,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         {
             DoMetallicSpecularArea(properties, materialEditor, material);
             BaseShaderGUI.DrawNormalArea(materialEditor, properties.bumpMapProp, properties.bumpScaleProp);
+            DoHeightmapArea(properties, materialEditor);
 
             if (properties.occlusionMap != null)
             {
@@ -137,6 +145,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 //DoClearCoat(properties, materialEditor, material);
             }
 
+        }
+
+        private static void DoHeightmapArea(LitProperties properties, MaterialEditor materialEditor)
+        {
+            materialEditor.TexturePropertySingleLine(Styles.heightMapText, properties.parallaxMapProp,
+                properties.parallaxMapProp.textureValue != null ? properties.parallaxScaleProp : null);
         }
 
         private static bool ClearCoatEnabled(Material material)
@@ -272,6 +286,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                     material.GetFloat("_EnvironmentReflections") == 0.0f);
             if (material.HasProperty("_OcclusionMap"))
                 CoreUtils.SetKeyword(material, "_OCCLUSIONMAP", material.GetTexture("_OcclusionMap"));
+
+            if (material.HasProperty("_ParallaxMap"))
+                CoreUtils.SetKeyword(material, "_PARALLAXMAP", material.GetTexture("_ParallaxMap"));
 
             if (material.HasProperty("_SmoothnessTextureChannel"))
             {
