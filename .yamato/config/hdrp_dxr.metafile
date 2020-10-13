@@ -6,11 +6,11 @@ test_platforms:
   - type: playmode
   - type: playmode
     name: playmode_XR
-    extra_utr_flags:
+    utr_flags:
       - [all]: --extra-editor-arg="-xr-tests" 
   - type: playmode
     name: playmode_NonRenderGraph
-    extra_utr_flags:
+    utr_flags:
       - [all]: --extra-editor-arg="-non-rendergraph-tests"
 platforms:
   - name: Win

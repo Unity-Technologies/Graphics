@@ -5,10 +5,10 @@ test_platforms:
   - type: Standalone
     name: performance_playmode
     is_performance: True
-    extra_utr_flags:
+    utr_flags:
       - [all]: --report-performance-data
       - [all]: --performance-project-id=URP_Performance
-    extra_utr_flags_build:
+    utr_flags_build:
       - [all]: --extra-editor-arg="Editor.Setup" 
       - [all]: --extra-editor-arg="-stripenginecode-" 
       - [all]: --extra-editor-arg="-managedstrippinglevel=Low"
@@ -17,7 +17,7 @@ test_platforms:
   - type: editmode
     name: performance_editmode_build
     is_performance: True
-    extra_utr_flags:
+    utr_flags:
       - [all]: --report-performance-data
       - [all]: --performance-project-id=URP_Performance
       - [all]: --testfilter=Build

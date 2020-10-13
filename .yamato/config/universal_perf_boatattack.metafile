@@ -7,10 +7,10 @@ test_platforms:
       Android: 2000
     name: performance_playmode_runtime
     is_performance: True
-    extra_utr_flags:
+    utr_flags:
       - [all]: --report-performance-data
       - [all]: --performance-project-id=BoatAttack
-    extra_utr_flags_build:
+    utr_flags_build:
       - [all]: --extra-editor-arg="-executemethod Editor.Setup"
       - [all]: --extra-editor-arg="-testCategory Performance"
       - [all]: --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
@@ -24,7 +24,7 @@ test_platforms:
   - type: editmode
     name: performance_editmode_build
     is_performance: True
-    extra_utr_flags:
+    utr_flags:
       - [all]: --report-performance-data
       - [all]: --performance-project-id=BoatAttack
       - [all]: --testfilter=Build

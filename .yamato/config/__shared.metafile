@@ -34,7 +34,7 @@ build_configs:
     api_level: NET_4_6
 test_platforms:
   - type: Standalone
-    extra_utr_flags:
+    utr_flags:
       - [all]: --suite=playmode
       - [Win_DX11, Win_DX12, Win_Vulkan]: --platform=StandaloneWindows64
       - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
@@ -49,7 +49,7 @@ test_platforms:
       - [Win_DX11]: --extra-editor-arg="-force-d3d11"
       - [Win_DX12]: --extra-editor-arg="-force-d3d12"
       - [Win_Vulkan]: --extra-editor-arg="-force-vulkan"
-    extra_utr_flags_build:
+    utr_flags_build:
       - [all]: --suite=playmode
       - [Win_DX11, Win_DX12, Win_Vulkan]: --platform=StandaloneWindows64
       - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
@@ -69,7 +69,7 @@ test_platforms:
       - [Win_DX12]: --extra-editor-arg="-executemethod CustomBuild.BuildWindowsDX12Linear"
       - [Win_Vulkan]: --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear"
   - type: playmode
-    extra_utr_flags:
+    utr_flags:
       - [all]: --suite=playmode
       - [all]: --testproject=.
       - [all]: --editor-location=.Editor
@@ -80,7 +80,7 @@ test_platforms:
       - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-force-vulkan"
       - [Linux_OpenGlCore]: --extra-editor-arg="-force-glcore"
   - type: editmode
-    extra_utr_flags:
+    utr_flags:
       - [all]: --suite=editor
       - [all]: --platform=editmode
       - [all]: --testproject=.

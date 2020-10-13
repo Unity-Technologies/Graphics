@@ -3,17 +3,17 @@ project:
   folder: UniversalHybridTest
 test_platforms:
   - type: Standalone
-    extra_utr_flags:
+    utr_flags:
       - [all]: --compilation-errors-as-warnings
       - [OSX_Metal]: --timeout=2400
-    extra_utr_flags_build:
+    utr_flags_build:
       - [Android_OpenGles3, Android_Vulkan]: --timeout=1800
       - [all]: --compilation-errors-as-warnings
   - type: playmode
-    extra_utr_flags:
+    utr_flags:
       - [all]: --compilation-errors-as-warnings
   - type: editmode
-    extra_utr_flags:
+    utr_flags:
       - [all]: --compilation-errors-as-warnings
 platforms:
   - name: Win

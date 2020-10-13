@@ -78,17 +78,17 @@ def _unfold_test_platforms(metafile, shared):
 
         # initialize possibly empty properties
         tp["name"] = tp["type"] if not tp.get("name") else tp.get("name")
-        tp["extra_utr_flags"] = [] if not tp.get("extra_utr_flags") else tp.get("extra_utr_flags")
+        tp["utr_flags"] = [] if not tp.get("utr_flags") else tp.get("utr_flags")
         if tp["type"].lower()=="standalone":
-            tp["extra_utr_flags_build"] = [] if not tp.get("extra_utr_flags_build") else tp.get("extra_utr_flags_build")
+            tp["utr_flags_build"] = [] if not tp.get("utr_flags_build") else tp.get("utr_flags_build")
         
 
         # get the matching test platform from shared metafile and
-        # concatenate extra_utr_flags and extra_utr_flags_build for this test platform from shared.metafile + project.metafile
+        # concatenate utr_flags and utr_flags_build for this test platform from shared.metafile + project.metafile
         shared_tp = [t for t in shared["test_platforms"] if t["type"].lower() == tp["type"].lower()][0]
-        tp["extra_utr_flags"] = shared_tp["extra_utr_flags"] + tp["extra_utr_flags"]
+        tp["utr_flags"] = shared_tp["utr_flags"] + tp["utr_flags"]
         if tp["type"].lower()=="standalone":
-            tp["extra_utr_flags_build"] = shared_tp.get("extra_utr_flags_build",[]) + tp.get("extra_utr_flags_build",[])
+            tp["utr_flags_build"] = shared_tp.get("utr_flags_build",[]) + tp.get("utr_flags_build",[])
 
 
         # updating the testplatform done, append it to metafile

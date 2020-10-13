@@ -3,16 +3,16 @@ project:
   folder: UniversalGraphicsTest
 test_platforms:
   - type: Standalone
-    extra_utr_flags:
+    utr_flags:
       - [OSX_Metal]: --timeout=2400
-    extra_utr_flags_build:
+    utr_flags_build:
       - [Android_OpenGles3, Android_Vulkan]: --timeout=1800
       - [Win_DX11, Win_DX12, Win_Vulkan]: --timeout=2000
   - type: playmode
   - type: editmode
   - type: playmode
     name: playmode_XR
-    extra_utr_flags:
+    utr_flags:
       - [all]: --extra-editor-arg="-xr-tests" 
 platforms:
   - name: Win
