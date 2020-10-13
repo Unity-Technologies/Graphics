@@ -75,11 +75,11 @@ void BinCoarseXY(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     {
         // Compute 2-D the AABB of the tile.
         const uint2  tileAaBbMinPtSS  = clampedTileCoord * COARSE_TILE_SIZE;
-        const uint2  tileAaBbMaxPtSS  = tileAaBbMinPtSS  + COARSE_TILE_SIZE;        // (clampedTileCoord + 1) * COARSE_TILE_SIZE
-        const float2 tileAaBbMinPtNDC =          tileAaBbMinPtSS * _ScreenSize.zw;  // Divide
-        const float2 tileAaBbMaxPtNDC = saturate(tileAaBbMaxPtSS * _ScreenSize.zw); // Divide and clamp to the edge
-        const float2 tileBoundsX      = float2(tileAaBbMinPtNDC.x, tileAaBbMaxPtNDC.x);
-        const float2 tileBoundsY      = float2(tileAaBbMinPtNDC.y, tileAaBbMaxPtNDC.y);
+        const uint2  tileAaBbMaxPtSS  = tileAaBbMinPtSS  + COARSE_TILE_SIZE;            // (clampedTileCoord + 1) * COARSE_TILE_SIZE
+        const float2 tileAaBbMinPtNDC =          tileAaBbMinPtSS * _ScreenSize.zw;      // Divide
+        const float2 tileAaBbMaxPtNDC = saturate(tileAaBbMaxPtSS * _ScreenSize.zw);     // Divide and clamp to the edge
+        const float2 tileBoundsX      = float2(tileAaBbMinPtNDC.x, tileAaBbMaxPtNDC.x); // TODO: add epsilon for numerical robustness?
+        const float2 tileBoundsY      = float2(tileAaBbMinPtNDC.y, tileAaBbMaxPtNDC.y); // TODO: add epsilon for numerical robustness?
 
         const uint inputStart  = ComputeEntityBoundsBufferIndex(entityIndex, eye);
         const uint outputStart = ComputeCoarseTileBufferIndex(clampedTileCoord, cat, eye);

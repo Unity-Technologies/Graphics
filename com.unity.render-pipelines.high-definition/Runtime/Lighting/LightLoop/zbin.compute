@@ -46,7 +46,7 @@ float2 ComputeZBinLinearDepthBounds(uint bin, float4 encodingParams)
     // to be included, since they have invalid AABBs.
     wBounds.x = (bin == 0) ? 0 : wBounds.x;
 
-    return wBounds;
+    return wBounds; // TODO: add epsilon for numerical robustness?
 }
 
 #define THREADS_PER_GROUP (64)
@@ -73,7 +73,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 
     if (entityCount > 0) // Avoid wasted work
     {
-        const float2 binBoundsW = ComputeZBinLinearDepthBounds(bin, _ZBinBufferEncodingParams);
+        const float2 binBounds  = ComputeZBinLinearDepthBounds(bin, _ZBinBufferEncodingParams);
         const uint   inputStart = ComputeEntityBoundsBufferIndex(entityIndex, eye);
 
         // The algorithm is O(n * m) where 'n' is the entity count and 'm' is bin count.
@@ -82,10 +82,10 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
         // TODO: unroll.
         for (uint i = 0; i < entityCount; i++)
         {
-            float2 entityBoundsW = _wBoundsBuffer[inputStart + i];
+            float2 entityBounds = _wBoundsBuffer[inputStart + i];
 
             // TODO: flatten.
-            if (IntervalsOverlap(entityBoundsW, binBoundsW))
+            if (IntervalsOverlap(entityBounds, binBounds))
             {
                 // We store intra-category indices.
                 first = min(i, first);

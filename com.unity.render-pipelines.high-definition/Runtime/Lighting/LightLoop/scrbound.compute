@@ -439,7 +439,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
         // 0 <= y <= w   <-- include boundary points to avoid clipping them later
         // 0 <= z <= w
         // w is always valid
-        // TODO: epsilon for numerical robustness?
+        // TODO: add epsilon for numerical robustness?
 
         for (uint j = 0; j < (NUM_PLANES / 2); j++)
         {
@@ -531,7 +531,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
             // -w < y < w   <-- exclude boundary points, as we will not clip using these vertices
             // -w < z < w   <-- assume that Z-precision is not very important here
             // 0  < w
-            // TODO: epsilon for numerical robustness?
+            // TODO: add epsilon for numerical robustness?
 
             bool inside = Max3(abs(hapVertLS.x), abs(hapVertLS.y), abs(hapVertLS.z)) < hapVertLS.w;
 
