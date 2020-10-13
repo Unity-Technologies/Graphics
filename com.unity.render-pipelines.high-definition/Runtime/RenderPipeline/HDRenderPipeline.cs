@@ -2920,7 +2920,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     // First resolution of the color buffer for the color pyramid
                     m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_CameraColorMSAABuffer, m_CameraColorBuffer);
 
-                    RenderColorPyramid(hdCamera, cmd, true, null);
+                    RTHandle colorPyramid = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
+                    RenderColorPyramid(hdCamera, cmd, colorPyramid, FullScreenDebugMode.PreRefractionColorPyramid);
 
                     // Bind current color pyramid for shader graph SceneColorNode on transparent objects
                     cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain));
@@ -3642,7 +3643,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (smoothDistortion)
                     HDUtils.BlitCameraTexture(cmd, m_CameraColorBuffer, m_DistortionIntermediateBuffer);
                 else
-                    RenderColorPyramid(hdCamera, cmd, false, m_DistortionIntermediateBuffer);
+                    RenderColorPyramid(hdCamera, cmd, m_DistortionIntermediateBuffer, FullScreenDebugMode.FinalColorPyramid);
 
                 CoreUtils.SetRenderTarget(cmd, m_CameraColorBuffer);
                 m_ApplyDistortionMaterial.SetTexture(HDShaderIDs._DistortionTexture, m_DistortionBuffer);
@@ -4919,29 +4920,13 @@ namespace UnityEngine.Rendering.HighDefinition
             PushFullScreenDebugTexture(hdCamera, cmd, m_SsrLightingTexture, FullScreenDebugMode.TransparentScreenSpaceReflections);
         }
 
-        void RenderColorPyramid(HDCamera hdCamera, CommandBuffer cmd, bool isPreRefraction, RTHandle outputPyramid)
+        void RenderColorPyramid(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputPyramid, FullScreenDebugMode fsDebugMode)
         {
-            RTHandle currentColorPyramid;
-            if (!isPreRefraction)
-            {
-                bool distortionRequiresPyramid = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Distortion)
-                    && hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughDistortion);
-                // This final Gaussian pyramid is not used by the SSR, so distortion is the only condition.
-                if (!distortionRequiresPyramid)
-                    return;
-                currentColorPyramid = outputPyramid;
-            }
-            else
-            {
-                currentColorPyramid = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
-            }
-
             int lodCount;
-
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ColorPyramid)))
             {
                 Vector2Int pyramidSizeV2I = new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight);
-                lodCount = m_MipGenerator.RenderColorGaussianPyramid(cmd, pyramidSizeV2I, m_CameraColorBuffer, currentColorPyramid);
+                lodCount = m_MipGenerator.RenderColorGaussianPyramid(cmd, pyramidSizeV2I, m_CameraColorBuffer, outputPyramid);
                 hdCamera.colorPyramidHistoryMipCount = lodCount;
             }
 
@@ -4952,8 +4937,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // size AND the viewport, (uv * _ColorPyramidScale.xy) can be off by a texel
             // unless the scale is 1 (and it will not be 1 if the texture was resized
             // and is of greater size compared to the viewport).
-            cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, currentColorPyramid);
-            PushFullScreenDebugTextureMip(hdCamera, cmd, currentColorPyramid, lodCount, isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
+            cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, outputPyramid);
+            PushFullScreenDebugTextureMip(hdCamera, cmd, outputPyramid, lodCount, fsDebugMode);
         }
 
         void GenerateDepthPyramid(HDCamera hdCamera, CommandBuffer cmd, FullScreenDebugMode debugMode, bool mip1AlreadyComputed)
