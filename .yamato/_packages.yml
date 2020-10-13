@@ -2115,7 +2115,7 @@ test_config_macos_CUSTOM-REVISION_dependencies:
             paths:
               -  "**/test-results/**"
 all_package_ci_trunk:
-    name: Pack and test all packages - trunk
+    name: Pack and test all packages - trunk [package context]
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -2140,7 +2140,7 @@ all_package_ci_trunk:
       -  upm-ci package izon -t
       -  upm-ci package izon -d
 all_package_ci_fast-trunk:
-    name: Pack and test all packages - fast-trunk
+    name: Pack and test all packages - fast-trunk [package context]
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -2165,7 +2165,7 @@ all_package_ci_fast-trunk:
       -  upm-ci package izon -t
       -  upm-ci package izon -d
 all_package_ci_CUSTOM-REVISION:
-    name: Pack and test all packages - CUSTOM-REVISION
+    name: Pack and test all packages - CUSTOM-REVISION [package context]
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -2190,7 +2190,17 @@ all_package_ci_CUSTOM-REVISION:
       -  upm-ci package izon -t
       -  upm-ci package izon -d
 publish_all:
-    name: Publish all packages
+    name: Publish all packages [package context][manual]
+    dependencies:
+      -  .yamato/_packages.yml#publish_core
+      -  .yamato/_packages.yml#publish_lwrp
+      -  .yamato/_packages.yml#publish_shadergraph
+      -  .yamato/_packages.yml#publish_hdrp
+      -  .yamato/_packages.yml#publish_universal
+      -  .yamato/_packages.yml#publish_vfx
+      -  .yamato/_packages.yml#publish_config
+publish_all_tag:
+    name: Publish all packages [package context][manual][tag]
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable

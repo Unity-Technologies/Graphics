@@ -404,7 +404,21 @@ all_package_ci_project_CUSTOM-REVISION:
       -  upm-ci package izon -t
       -  upm-ci package izon -d
 publish_all_project:
-    name: Publish all packages [project context]
+    name: Publish all packages [project context][recurrent]
+    dependencies:
+      -  .yamato/_projectcontext.yml#publish_core_project
+      -  .yamato/_projectcontext.yml#publish_lwrp_project
+      -  .yamato/_projectcontext.yml#publish_shadergraph_project
+      -  .yamato/_projectcontext.yml#publish_hdrp_project
+      -  .yamato/_projectcontext.yml#publish_universal_project
+      -  .yamato/_projectcontext.yml#publish_vfx_project
+      -  .yamato/_projectcontext.yml#publish_config_project
+    triggers:
+        recurring:
+          -  branch: master
+             frequency: daily
+publish_all_project_tag:
+    name: Publish all packages [project context][manual][tag]
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -420,7 +434,3 @@ publish_all_project:
     commands:
       -  git tag v$(cd com.unity.render-pipelines.core && node -e "console.log(require('./package.json').version)")
       -  git push origin --tags
-    triggers:
-        recurring:
-          -  branch: master
-             frequency: daily
