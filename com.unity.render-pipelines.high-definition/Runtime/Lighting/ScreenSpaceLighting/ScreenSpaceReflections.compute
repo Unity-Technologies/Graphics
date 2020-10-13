@@ -711,6 +711,12 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
 
     if (wAll > 0.0f)
     {
+        uint3 intCol = asuint(outputs.rgb);
+        bool  isPosFin = Max3(intCol.r, intCol.g, intCol.b) < 0x7F800000;
+
+        outputs.rgb = isPosFin ? outputs.rgb : 0;
+        wAll = isPosFin ? wAll : 0;
+
         _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS0)] = outputs / wAll;
     }
 #endif
@@ -762,6 +768,12 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, speed);
 
     float4 result = lerp(previous, original, lerp(1.0f, coefExpAvg, saturate(_FrameCount - 1.0f)));
+
+    uint3 intCol = asuint(result.rgb);
+    bool  isPosFin = Max3(intCol.r, intCol.g, intCol.b) < 0x7F800000;
+
+    result.rgb = isPosFin ? result.rgb : 0;
+    result.w = isPosFin ? result.w : 0;
 
     _SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] = result;
     _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = result;
