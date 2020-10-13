@@ -16,6 +16,7 @@ CBUFFER_START(UnityPerMaterial)
     half _DistortionStrengthScaled;
     half _DistortionBlend;
     half _Surface;
+    half4 _DoubleSidedConstants;
 CBUFFER_END
 
 TEXTURE2D(_SpecGlossMap);       SAMPLER(sampler_SpecGlossMap);

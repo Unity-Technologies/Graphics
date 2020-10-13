@@ -44,6 +44,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
         [HideInInspector] _Cull("__cull", Float) = 2.0
+        [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (-1,-1,-1,0)
 
         // Particle specific
         [HideInInspector] _ColorMode("_ColorMode", Float) = 0.0
@@ -90,6 +91,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local _BACKFACE_VISIBLE
             #pragma shader_feature_local_fragment _EMISSION
             #pragma shader_feature_local_fragment _ _SPECGLOSSMAP _SPECULAR_COLOR
             #pragma shader_feature_local_fragment _GLOSSINESS_FROM_BASE_ALPHA

@@ -47,12 +47,15 @@ struct VaryingsParticle
 #endif
 
     float3 vertexSH                 : TEXCOORD8; // SH
+#if defined(_BACKFACE_VISIBLE)
+    bool isFrontFace                : TEXCOORD9;
+#endif 
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData output)
+void InitializeInputData(VaryingsParticle input, half3 normalTS, half3 doubleSidedConstants, out InputData output)
 {
     output = (InputData)0;
 
@@ -60,8 +63,17 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
 
 #ifdef _NORMALMAP
     half3 viewDirWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
-    output.normalWS = TransformTangentToWorld(normalTS,
-        half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
+    half3x3 tangentToWorld = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
+
+#if defined(_BACKFACE_VISIBLE)
+    float flipSign = input.isFrontFace ? 1.0 : doubleSidedConstants.z;
+    tangentToWorld[2] = flipSign * tangentToWorld[2];
+
+    flipSign = input.isFrontFace ? 1.0 : doubleSidedConstants.x;
+    normalTS.xy *= flipSign;
+#endif
+
+    output.normalWS = TransformTangentToWorld(normalTS, tangentToWorld);
 #else
     half3 viewDirWS = input.viewDirWS;
     output.normalWS = input.normalWS;
@@ -110,12 +122,20 @@ VaryingsParticle ParticlesLitVertex(AttributesParticle input)
     viewDirWS = SafeNormalize(viewDirWS);
 #endif
 
+#if defined(_BACKFACE_VISIBLE)
+    output.isFrontFace = dot(viewDirWS, normalInput.normalWS) > 0;
+#endif
+
 #ifdef _NORMALMAP
     output.normalWS = half4(normalInput.normalWS, viewDirWS.x);
     output.tangentWS = half4(normalInput.tangentWS, viewDirWS.y);
     output.bitangentWS = half4(normalInput.bitangentWS, viewDirWS.z);
 #else
+#if defined(_BACKFACE_VISIBLE)
+    output.normalWS = output.isFrontFace ? normalInput.normalWS : -normalInput.normalWS;
+#else
     output.normalWS = normalInput.normalWS;
+#endif
     output.viewDirWS = viewDirWS;
 #endif
 
@@ -180,7 +200,7 @@ half4 ParticlesLitFragment(VaryingsParticle input) : SV_Target
 #endif
 
     InputData inputData;
-    InitializeInputData(input, normalTS, inputData);
+    InitializeInputData(input, normalTS, _DoubleSidedConstants, inputData);
 
     half4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specularGloss, shininess, emission, alpha);
 
