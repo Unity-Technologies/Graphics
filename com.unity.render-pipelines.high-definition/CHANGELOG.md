@@ -158,6 +158,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed TAA flickering on the very edge of screen. 
 - Fixed profiling scope for quality RTGI.
 - Fixed the denoising and multi-sample not being used for smooth multibounce RTReflections.
+- Fixed issue where multiple cameras would cause GC each frame.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
