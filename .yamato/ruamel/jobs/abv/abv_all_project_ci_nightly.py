@@ -4,12 +4,12 @@ from ..shared.yml_job import YMLJob
 
 class ABV_AllProjectCiNightlyJob():
     
-    def __init__(self, editor, test_platforms, nightly_config, target_branch):
+    def __init__(self, editor, nightly_config, target_branch):
         self.job_id = abv_job_id_all_project_ci_nightly(editor["name"])
-        self.yml = self.get_job_definition(editor,test_platforms, nightly_config.get("extra_dependencies",[]), target_branch).get_yml()
+        self.yml = self.get_job_definition(editor, nightly_config.get("extra_dependencies",[]), target_branch).get_yml()
 
     
-    def get_job_definition(self, editor, test_platforms, extra_dependencies, target_branch): 
+    def get_job_definition(self, editor, extra_dependencies, target_branch): 
 
         # define dependencies
         dependencies = [
