@@ -1,4 +1,4 @@
-# Changelog
+﻿hangelog
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -197,6 +197,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - added SV_PrimitiveID in the VaryingMesh structure for fulldebugscreenpass as well as primitiveID in FragInputs
 - Changed which local frame is used for multi-bounce RTReflections.
 - Move System Generated Values semantics out of VaryingsMesh structure.
+- Other forms of FSAA are silently deactivated, when path tracing is on.
 
 ## [10.0.0] - 2019-06-10
 
