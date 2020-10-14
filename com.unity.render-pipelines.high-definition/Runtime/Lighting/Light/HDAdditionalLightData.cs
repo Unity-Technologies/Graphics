@@ -1438,7 +1438,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_UpdateShadowOnLightMovement = false;
         /// <summary>
         /// Whether a cached shadow map will be automatically updated when the light transform changes (more than a given threshold set via cachedShadowTranslationUpdateThreshold
-        /// and cachedShadowAngleUpdateThreshold). 
+        /// and cachedShadowAngleUpdateThreshold).
         /// </summary>
         /// <value></value>
         public bool updateUponLightMovement
@@ -1479,7 +1479,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         float m_CachedShadowAngularThreshold = 0.5f;
         /// <summary>
-        /// If any transform angle of the light is over this threshold (in degrees) since last update, a cached shadow which is set to update upon light movement 
+        /// If any transform angle of the light is over this threshold (in degrees) since last update, a cached shadow which is set to update upon light movement
         /// (updateUponLightMovement from script or Update on Light Movement in UI) is updated.
         /// </summary>
         public float cachedShadowAngleUpdateThreshold
@@ -2156,7 +2156,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 shadowRequest.isInCachedAtlas = isSampledFromCache;
                 shadowRequest.isMixedCached = updateType == ShadowMapUpdateType.Mixed;
-                shadowRequest.shouldUseCachedShadowData = false;  
+                shadowRequest.shouldUseCachedShadowData = false;
 
                 Vector2 viewportSize = resolutionRequest.resolution;
 
@@ -2637,6 +2637,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RefreshCachedShadow();
 
+#if UNITY_EDITOR
             // If modification are due to change on prefab asset, we want to have prefab instances to self-update, but we cannot check in OnValidate if this is part of
             // prefab instance. So we delay the check on next update (and before teh LateUpdate logic)
             m_NeedsPrefabInstanceCheck = true;
