@@ -38,11 +38,6 @@ namespace UnityEditor.Rendering.HighDefinition
             bool transparentWritesMotionVec = (surfaceType == SurfaceType.Transparent) && material.HasProperty(kTransparentWritingMotionVec) && material.GetInt(kTransparentWritingMotionVec) > 0;
             CoreUtils.SetKeyword(material, "_TRANSPARENT_WRITES_MOTION_VEC", transparentWritesMotionVec);
 
-            // These need to always been set either with opaque or transparent! So a users can switch to opaque and remove the keyword correctly
-            CoreUtils.SetKeyword(material, "_BLENDMODE_ALPHA", false);
-            CoreUtils.SetKeyword(material, "_BLENDMODE_ADD", false);
-            CoreUtils.SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", false);
-
             HDRenderQueue.RenderQueueType renderQueueType = HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue);
             bool needOffScreenBlendFactor = renderQueueType == HDRenderQueue.RenderQueueType.AfterPostprocessTransparent || renderQueueType == HDRenderQueue.RenderQueueType.LowTransparent;
 
@@ -92,10 +87,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (material.HasProperty(kBlendMode))
                 {
                     BlendMode blendMode = material.GetBlendMode();
-
-                    CoreUtils.SetKeyword(material, "_BLENDMODE_ALPHA", BlendMode.Alpha == blendMode);
-                    CoreUtils.SetKeyword(material, "_BLENDMODE_ADD", BlendMode.Additive == blendMode);
-                    CoreUtils.SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", BlendMode.Premultiply == blendMode);
 
                     // When doing off-screen transparency accumulation, we change blend factors as described here: https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
                     switch (blendMode)

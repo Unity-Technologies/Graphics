@@ -14,3 +14,4 @@ In the High Definition Render Pipeline (HDRP), various ray-traced effects share 
 | **Ray Bias** | Specifies the bias value HDRP applies when casting rays for all effects. This value should remain unchained unless your scene scale is significantly smaller or larger than average. |
 | **Extend Shadow Culling** | Extends the sets of GameObjects that HDRP includes in shadow maps for more accurate shadows in ray traced effects. |
 | **Extend Camera Culling** | Extends the sets of GameObjects that HDRP includes in the rendering. This is a way to force skinned mesh animations for GameObjects that are not in the frustum. |
+| **Directional Shadow Ray Length** | Controls the maximal ray length for ray traced directional shadows. |

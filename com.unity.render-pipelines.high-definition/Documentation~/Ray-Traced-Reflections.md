@@ -46,7 +46,7 @@ All Cameras can now process screen space reflection unless they use custom [Fram
 Ray-Traced Reflections uses the [Volume](Volumes.md) framework, so to enable this feature, and modify its properties, you need to add a Screen Space Reflection override to a [Volume](Volumes.md) in your Scene. To do this:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
-2. In the Inspector, navigate to ****Add Override > Lighting**** and click on Screen Space Reflection. HDRP now applies screen space reflection to any Camera this Volume affects.
+2. In the Inspector, navigate to **Add Override > Lighting** and click on Screen Space Reflection. HDRP now applies screen space reflection to any Camera this Volume affects.
 3. In the Inspector for the Screen Space Reflection Volume Override, enable Ray Tracing. HDRP now uses ray tracing to calculate reflections. If you do not see the Ray Tracing option, make sure your HDRP Project supports ray tracing. For information on setting up ray tracing in HDRP, see [Getting started with ray tracing](Ray-Tracing-Getting-Started.md).
 
 ## Properties
@@ -66,7 +66,7 @@ Alongside the standard properties, Unity exposes extra properties depending on t
 | **Quality**               | Specifies the preset HDRP uses to populate the values of the following nested properties. The options are:<br/>&#8226; **Low**: A preset that emphasizes performance over quality.<br/>&#8226; **Medium**: A preset that balances performance and quality.<br/>&#8226; **High**: A preset that emphasizes quality over performance.<br/>&#8226; **Custom**: Allows you to override each property individually.<br/>This property only appears in [Performance](Ray-Tracing-Getting-Started.md#ray-tracing-mode) mode. |
 | **Minimum Smoothness**    | Controls the minimum smoothness value for a pixel at which HDRP processes ray-traced reflections. If the smoothness value of the pixel is lower than this value, HDRP falls back to the next available reflection method in the [reflection hierarchy](Reflection-in-HDRP.md#ReflectionHierarchy). |
 | **Smoothness Fade Start** | Controls the smoothness value at which the smoothness controlled fade out starts. The fade is in the range [Minimum Smoothness, Smoothness Fade Start]. |
-| **Ray Length**            | Controls the length of the rays that HDRP uses for ray tracing. If a ray doesn't find an intersection, then the ray returns the color of the sky if Reflect Sky is enabled, or black if not. |
+| **Max Ray Length**        | Controls the maximal length of global illumination rays. The higher this value is, the more expensive ray traced global illumination is. If a ray doesn't find an intersection. |
 | **Clamp Value**           | Controls the threshold that HDRP uses to clamp the pre-exposed value. This reduces the range of values and makes the reflections more stable to denoise, but reduces quality. |
 | **Denoise**               | Enables the spatio-temporal filter that HDRP uses to remove noise from the reflections. |
 | - **Denoiser Radius**     | Controls the radius of the spatio-temporal filter. Increasing this value results in a more blurry result and a higher execution time. |
@@ -86,3 +86,7 @@ When using quality mode, there are extra properties that you can use to customiz
 | ---------------- | ------------------------------------------------------------ |
 | **Sample Count** | Controls the number of rays per pixel per frame. Increasing this value increases execution time linearly. |
 | **Bounce Count** | Controls the number of bounces that reflection rays can do. Increasing this value increases execution time exponentially. |
+
+## Limitations
+Currently, ray tracing in HDRP does not support [decals](decal.md). This means that, when you use ray-traced reflection, decals do not appear in reflective surfaces.
+
