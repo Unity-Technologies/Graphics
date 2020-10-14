@@ -16,15 +16,17 @@ In the command line, add`--performance-project-id=ProjectName`. Replace `Project
 
 Here's an example of a utr command line:
 
-`utr/utr --timeout=2400 --loglevel=verbose --scripting-backend=Il2Cpp --suite={{ suite.mode }} --testfilter={{ suite.filter }} --platform={{ platform.name }} --testproject=C:/Link/TestProjects/{{ project.folder }} --editor-location=.Editor  --report-performance-data --performance-project-id=HDRP --artifacts_path=test-results --player-connection-ip=%BOKKEN_HOST_IP%`
+```
+utr/utr --timeout=2400 --loglevel=verbose --scripting-backend=Il2Cpp --suite={{ suite.mode }} --testfilter={{ suite.filter }} --platform={{ platform.name }} --testproject=C:/Link/TestProjects/{{ project.folder }} --editor-location=.Editor  --report-performance-data --performance-project-id=HDRP --artifacts_path=test-results --player-connection-ip=%BOKKEN_HOST_IP%
+```
 
 You can also instruct Yamato to automatically run daily updates to the performance metrics on a certain branch. To do this, add the following to your Yamato job description:
 
-`triggers:`
-
-`recurring:`
-
-​        `-branch: master
-​     frequency: daily`
+```
+triggers:
+recurring:
+​       -branch: master
+​     frequency: daily
+```
 
 If you have any issues during the data reporting, you can check what Yamato sends to the database in the **Artifacts** field after the reporting has finished. The default path for the file is located in the **Artifacts** field in the Yamato build: **results/test-results/PerformanceTestReport.html.**

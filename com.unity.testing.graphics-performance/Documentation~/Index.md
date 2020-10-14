@@ -11,5 +11,5 @@ When you use the performance testing package in a project, it sends measured per
 
 You can use Yamato to run your tests automatically. For more information see [Using Yamato to automate your tests](#using-yamato-to-automate-your-tests).
 
-![img](Images\Grafana-HDRP.png)
+![img](Images/Grafana-HDRP.png)
 Performance data visualised in Grafana.

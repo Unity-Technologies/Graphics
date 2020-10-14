@@ -6,7 +6,7 @@ You can reference multiple SRP assets for each test category. Unity pairs each S
 
 For example, if you have two SRP assets and four scenes, Unity generates eight tests in the Test Runner window (four for each SRP asset).
 
-![Test Description Asset](Images\Test Description Asset.png)
+![Test Description Asset](Images/Test Description Asset.png)
 
 A. **Performance Counters**
 The Performance Counters test evaluates timings. It is particularly useful for counting frame timings gathered from profiling scopes using either:
@@ -30,18 +30,18 @@ This section lists the SRP assets that the Performance Test Description asset us
 ## Test classification
 You can use categories to classify your tests. Unity automatically creates categories from asset tags, which you can see on each asset’s Inspector. To create a new tag, type the name of your tag in the search box and press `Enter`.
 
-![AssetLabels](Images\AssetLabels.png)
+![AssetLabels](Images/AssetLabels.png)
 
 Each category is aggregated in the test name with the '_' symbol. This means that each asset can have multiple categories, which you can then use to filter test results on Grafana.
 
-![Filename_Aggregate](Images\Filename_Aggregate.png)
+![Filename_Aggregate](Images/Filename_Aggregate.png)
 
 SRP assets and scene assets support these tags. The **ToString()** of the struct in parameter of the test function handles the asset name generation. For example, the **Counters** test function takes a `CounterTestDescription` struct in parameter:
 
 `public IEnumerator Counters([ValueSource(nameof(GetCounterTests))] CounterTestDescription testDescription)`
 
 This structure has the following **ToString()** override:
-`
+```
 public override string ToString()
 ​    => PerformanceTestUtils.FormatTestName(
 ​        sceneData.scene,
@@ -49,5 +49,5 @@ public override string ToString()
 ​        String.IsNullOrEmpty(assetData.alias) ? assetData.asset.name : assetData.alias,
 ​        assetData.assetLabels,
 ​        k_Default)
-`
+```
 

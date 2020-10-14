@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph.Internal
             hidden = true,
             modifiable = true,
             overrideReferenceName = "unity_Lightmaps",
-            precision = Precision.Float
+            precision = Precision.Single
         };
 
         public static readonly LightmapTextureArrayProperty kLightmapsIndirectionArray = new LightmapTextureArrayProperty()
@@ -36,8 +36,8 @@ namespace UnityEditor.ShaderGraph.Internal
                 hidden = true,
                 modifiable = true,
                 overrideReferenceName = "unity_LightmapsInd",
-                precision = Precision.Float
-            };
+                precision = Precision.Single
+        };
 
         public static readonly LightmapTextureArrayProperty kShadowMasksArray = new LightmapTextureArrayProperty()
         {
@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderGraph.Internal
             hidden = true,
             modifiable = true,
             overrideReferenceName = "unity_ShadowMasks",
-            precision = Precision.Float
+            precision = Precision.Single
         };
     }
 }

@@ -4,6 +4,14 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- New particle strip attribute in Initialize: spawnIndexInStrip
+- New operator for strips that adds Orientation modes
+
+### Fixed
+- SpawnOverDistance spawner block now behaves correctly
+
 ## [10.1.0] - 2019-08-04
 ### Added
 - Compare operator can take int and uint as inputs
@@ -14,8 +22,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Output Event Handler Samples
 - Added ExposedProperty custom Property Drawer
 - Error display within the graph.
-- New particle strip attribute in Initialize: spawnIndexInStrip
-- New operator for strips that adds Orientation modes
 
 ### Fixed
 - Mesh Sampling incorrect with some GPU (use ByteAddressBuffer instead of Buffer<float>)
@@ -36,10 +42,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix corrupted UI in nodes due to corrupted point cache files [Case 1232867](https://fogbugz.unity3d.com/f/cases/1232867/)
 - Fix InvalidCastException when using byte properties in point cache files [Case 1276623](https://fogbugz.unity3d.com/f/cases/1276623/)
 - Fix  https://issuetracker.unity3d.com/issues/ux-cant-drag-a-noodle-out-of-trigger-blocks
+- Fix [Case 1114281](https://issuetracker.unity3d.com/product/unity/issues/guid/1114281/)
+- Fix [Case 1268977](https://issuetracker.unity3d.com/product/unity/issues/guid/1268977/)
 - Fix [Case 1114281](https://fogbugz.unity3d.com/f/cases/1114281/)
+- Forbid creation of context in VisualEffectSubgraphBlock through edge dropping. No context should be allowed.
 - Fix shadows not being rendered to some cascades with directional lights [Case 1229972](https://issuetracker.unity3d.com/issues/output-inconsistencies-with-vfx-shadow-casting-and-shadow-cascades)
+- Fix [Case 1199540](https://issuetracker.unity3d.com/product/unity/issues/guid/1199540/)
+- Fix [Case 1219072](https://issuetracker.unity3d.com/product/unity/issues/guid/1219072/)
+- Fix [Case 1211372](https://issuetracker.unity3d.com/product/unity/issues/guid/1211372/)
+- Fix [Case 1262961](https://issuetracker.unity3d.com/product/unity/issues/guid/1262961/)
+- Fix [Case 1268354](https://fogbugz.unity3d.com/f/cases/1268354/)
+- Fix [Case 1281861](https://issuetracker.unity3d.com/product/unity/issues/guid/1281861/)
 - Fix VFX Graph window invalidating existing Undo.undoRedoPerformed delegates.
-- SpawnOverDistance spawner block now behaves correctly
+- Fix shadergraph changes not reflected in VisualEffectGraph [Case 1278469](https://fogbugz.unity3d.com/f/cases/resolve/1278469/)
+- Unexpected exception while installing samples inside an URP project [Case 1280065](https://issuetracker.unity3d.com/product/unity/issues/guid/1280065/)
 
 ## [10.0.0] - 2019-06-10
 ### Added
