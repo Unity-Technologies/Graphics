@@ -631,7 +631,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                lightOcclusionProbeChannel.x = -1.0f; // Use -1 to say we have no mask
+                //lightOcclusionProbeChannel.x = -1.0f; // Use -1 to say we have no mask
             }
         }
     }

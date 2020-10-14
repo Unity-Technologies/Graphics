@@ -125,6 +125,8 @@ Light GetMainLight(float4 shadowCoord)
 Light GetMainLight(float4 shadowCoord, float3 positionWS, half4 shadowMask)
 {
     Light light = GetMainLight();
+    //light.shadowAttenuation = MainLightRealtimeShadow(shadowCoord);
+    //light.shadowAttenuation = ApplyShadowFade(light.shadowAttenuation, positionWS);
     light.shadowAttenuation = MainLightShadow(shadowCoord, positionWS, shadowMask, _MainLightOcclusionProbes);
     return light;
 }
@@ -233,6 +235,9 @@ Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
     half4 occlusionProbeChannels = _AdditionalLightsOcclusionProbes[perObjectLightIndex];
 #endif
     light.shadowAttenuation = AdditionalLightShadow(perObjectLightIndex, positionWS, shadowMask, occlusionProbeChannels);
+    
+    //light.shadowAttenuation = AdditionalLightRealtimeShadow(perObjectLightIndex, positionWS);
+    //light.shadowAttenuation = ApplyShadowFade(light.shadowAttenuation, positionWS);
 
     return light;
 }

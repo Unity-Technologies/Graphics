@@ -238,6 +238,7 @@ float4 TransformWorldToShadowCoord(float3 positionWS)
     half cascadeIndex = 0;
 #endif
 
+    //return mul(_MainLightWorldToShadow[cascadeIndex], float4(positionWS, 1.0));
     float4 shadowCoord = mul(_MainLightWorldToShadow[cascadeIndex], float4(positionWS, 1.0));
 
     return float4(shadowCoord.xyz, cascadeIndex);
@@ -300,9 +301,24 @@ half MixRealtimeAndBakedShadows(half realtimeShadow, half bakedShadow, half shad
 
 half BakedShadow(half4 shadowMask, half4 occlusionProbeChannels)
 {
-    // shadowMaskSelector.x is -1 if there is no shadow mask
+    /*// shadowMaskSelector.x is -1 if there is no shadow mask
     // Note that we override shadow value (in case we don't have any dynamic shadow)
-    half bakedShadow = occlusionProbeChannels.x >= 0 ? dot(shadowMask, occlusionProbeChannels) : 1.0h;
+    half bakedShadow = occlusionProbeChannels.x >= 0 ? dot(shadowMask, occlusionProbeChannels) : 1.0h;*/
+
+#if defined(LIGHTMAP_ON) || defined(LIGHTMAP_SHADOW_MIXING)
+    half bakedShadow =  dot(unity_ProbesOcclusion, occlusionProbeChannels);// occlusionProbeChannels.x >= 0 ? dot(shadowMask, occlusionProbeChannels) : 1.0h;
+
+    half v = 1.0h - (occlusionProbeChannels.x + occlusionProbeChannels.y + occlusionProbeChannels.z + occlusionProbeChannels.w);
+    bakedShadow += v;
+
+#else
+    half bakedShadow = 1;
+#endif
+
+    // When no channel is selected we want to default baked shadow to 1.0
+    //half v = 1.0h - (occlusionProbeChannels.x + occlusionProbeChannels.y + occlusionProbeChannels.z + occlusionProbeChannels.w);
+    //bakedShadow += v;
+
     return bakedShadow;
 }
 
@@ -319,7 +335,7 @@ half MainLightShadow(float4 shadowCoord, float3 positionWS, half4 shadowMask, ha
 #ifdef _MAIN_LIGHT_SHADOWS_CASCADE
     // shadowCoord.w represents shadow cascade index
     // in case we are out of shadow cascade we need to set shadow fade to 1.0 for correct blending
-    shadowFade = shadowCoord.w == 4 ? 1.0h : shadowFade;
+    //shadowFade = shadowCoord.w == 4 ? 1.0h : shadowFade;
 #endif
 
     return MixRealtimeAndBakedShadows(realtimeShadow, bakedShadow, shadowFade);
