@@ -106,7 +106,7 @@ bool IsPointLightActive(LightData lightData, float3 position, float3 normal)
 
 bool IsDistantLightActive(DirectionalLightData lightData, float3 normal)
 {
-    return dot(normal, lightData.forward) < sin(lightData.angularDiameter * 0.5);
+    return dot(normal, lightData.forward) <= sin(lightData.angularDiameter * 0.5);
 }
 
 LightList CreateLightList(float3 position, float3 normal, uint lightLayers, bool withLocal = true, bool withDistant = true)
