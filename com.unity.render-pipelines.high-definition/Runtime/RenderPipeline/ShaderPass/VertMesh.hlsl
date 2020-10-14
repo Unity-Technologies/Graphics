@@ -44,19 +44,19 @@ PackedVaryingsToPS PackVaryingsToPS(VaryingsToPS input)
 
 FragInputs UnpackVaryingsToFragInputs(PackedVaryingsToPS input)
 {
-    FragInputs input = UnpackVaryingsMeshToFragInputs(input.vmesh);
+    FragInputs output = UnpackVaryingsMeshToFragInputs(input.vmesh);
 
 #if defined(PLATFORM_SUPPORTS_PRIMITIVE_ID_IN_PIXEL_SHADER) && SHADER_STAGE_FRAGMENT
 #if (defined(VARYINGS_NEED_PRIMITIVEID) || (SHADERPASS == SHADERPASS_FULLSCREEN_DEBUG))
-    input.primitiveID = input.primitiveID;
+    output.primitiveID = input.primitiveID;
 #endif
 #endif
 
 #if defined(VARYINGS_NEED_CULLFACE) && SHADER_STAGE_FRAGMENT
-    input.isFrontFace = IS_FRONT_VFACE(input.cullFace, true, false);
+    output.isFrontFace = IS_FRONT_VFACE(input.cullFace, true, false);
 #endif
 
-    return input;
+    return output;
 }
 
 #ifdef TESSELLATION_ON
