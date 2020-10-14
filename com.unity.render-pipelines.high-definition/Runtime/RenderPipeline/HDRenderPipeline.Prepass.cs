@@ -204,7 +204,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Bind the custom color/depth before the first custom pass
                 BindCustomPassBuffers(renderGraph, hdCamera);
 
-                RenderCustomPass(renderGraph, hdCamera, colorBuffer, result.depthBuffer, result.normalBuffer, customPassCullingResults, CustomPassInjectionPoint.BeforeRendering, aovRequest, aovBuffers);
+                RenderCustomPass(renderGraph, hdCamera, colorBuffer, result, customPassCullingResults, CustomPassInjectionPoint.BeforeRendering, aovRequest, aovBuffers);
 
                 RenderRayTracingPrepass(renderGraph, cullingResults, hdCamera, result.flagMaskBuffer, result.depthBuffer, false);
 
@@ -249,7 +249,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 DecalNormalPatch(renderGraph, hdCamera, ref result);
 
                 // After Depth and Normals/roughness including decals
-                bool depthBufferModified = RenderCustomPass(renderGraph, hdCamera, colorBuffer, result.depthBuffer, result.normalBuffer, customPassCullingResults, CustomPassInjectionPoint.AfterOpaqueDepthAndNormal, aovRequest, aovBuffers);
+                bool depthBufferModified = RenderCustomPass(renderGraph, hdCamera, colorBuffer, result, customPassCullingResults, CustomPassInjectionPoint.AfterOpaqueDepthAndNormal, aovRequest, aovBuffers);
 
                 // If the depth was already copied in RenderDBuffer, we force the copy again because the custom pass modified the depth.
                 if (depthBufferModified)
@@ -282,6 +282,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // However if the generated HTile will be used for something else but SSR, this should be made NOT resolve only and
                 // re-enabled in the shader.
                 BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, resolveOnly: true, ref result);
+
+                RenderTransparencyOverdraw(renderGraph, result.depthBuffer, cullingResults, hdCamera);
             }
 
             return result;
@@ -608,6 +610,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.normalBuffer = builder.UseColorBuffer(CreateNormalBuffer(renderGraph, false), 1);
                 if (passData.needMotionVectors)
                     passData.motionVectorsBuffer = builder.UseColorBuffer(CreateMotionVectorBuffer(renderGraph, false, false), 2);
+                else
+                    passData.motionVectorsBuffer = TextureHandle.nullHandle;
 
                 passData.normalBufferMSAA = builder.ReadTexture(output.normalBuffer);
                 passData.depthAsColorBufferMSAA = builder.ReadTexture(output.depthAsColor);
@@ -624,8 +628,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     data.depthResolveMaterial.SetTexture(HDShaderIDs._NormalTextureMS, data.normalBufferMSAA);
                     data.depthResolveMaterial.SetTexture(HDShaderIDs._DepthTextureMS, data.depthAsColorBufferMSAA);
-                    if (data.needMotionVectors)
+                    if (passData.needMotionVectors)
+                    {
                         data.depthResolveMaterial.SetTexture(HDShaderIDs._MotionVectorTextureMS, data.motionVectorBufferMSAA);
+                    }
+
+                    CoreUtils.SetKeyword(context.cmd, "_HAS_MOTION_VECTORS", data.needMotionVectors);
 
                     context.cmd.DrawProcedural(Matrix4x4.identity, data.depthResolveMaterial, data.depthResolvePassIndex, MeshTopology.Triangles, 3, 1);
                 });

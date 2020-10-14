@@ -9,49 +9,49 @@ editor_version_names:
 editor_versions:
   2020.2_latest_internal:
     android:
-      revision: e2067236bd5c
-      version: 2020.2.0b5
+      revision: 1b1252580c64
+      version: 2020.2.0b7
     ios:
-      revision: e2067236bd5c
-      version: 2020.2.0b5
+      revision: 1b1252580c64
+      version: 2020.2.0b7
     linux:
-      revision: e2067236bd5c
-      version: 2020.2.0b5
+      revision: 1b1252580c64
+      version: 2020.2.0b7
     macos:
-      revision: e2067236bd5c
-      version: 2020.2.0b5
+      revision: 1b1252580c64
+      version: 2020.2.0b7
     windows:
-      revision: e2067236bd5c
-      version: 2020.2.0b5
+      revision: 1b1252580c64
+      version: 2020.2.0b7
   2020.2_latest_public:
     android:
-      revision: 7b778e331e0b
-      version: 2020.2.0b4
+      revision: 24a0f8b56f72
+      version: 2020.2.0b6
     ios:
-      revision: 7b778e331e0b
-      version: 2020.2.0b4
+      revision: 24a0f8b56f72
+      version: 2020.2.0b6
     linux:
-      revision: 7b778e331e0b
-      version: 2020.2.0b4
+      revision: 24a0f8b56f72
+      version: 2020.2.0b6
     macos:
-      revision: 7b778e331e0b
-      version: 2020.2.0b4
+      revision: 24a0f8b56f72
+      version: 2020.2.0b6
     windows:
-      revision: 7b778e331e0b
-      version: 2020.2.0b4
+      revision: 24a0f8b56f72
+      version: 2020.2.0b6
   2020.2_staging:
     android:
-      revision: 93d432f0d085a8671a6c8a331ec8bdccb5c076ef
+      revision: 2ea77e477b085e913ac2cdc798fcd655b010f1a2
       version: ''
     ios:
-      revision: e2067236bd5c1b9c43925d2e39e6338adcc40a5a
+      revision: 2ea77e477b085e913ac2cdc798fcd655b010f1a2
       version: ''
     linux:
-      revision: e2067236bd5c1b9c43925d2e39e6338adcc40a5a
+      revision: 2ea77e477b085e913ac2cdc798fcd655b010f1a2
       version: ''
     macos:
-      revision: 93d432f0d085a8671a6c8a331ec8bdccb5c076ef
+      revision: 2ea77e477b085e913ac2cdc798fcd655b010f1a2
       version: ''
     windows:
-      revision: 93d432f0d085a8671a6c8a331ec8bdccb5c076ef
+      revision: 2ea77e477b085e913ac2cdc798fcd655b010f1a2
       version: ''

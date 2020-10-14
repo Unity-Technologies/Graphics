@@ -102,7 +102,7 @@ In this snippet, we fetch a lot of useful input data that you might need in your
 
 ### DrawRenderers Custom Pass
 
-This pass will allow you to draw a subset of objects that are in the camera view (the result of the camera culling).  
+This pass will allow you to draw any objects in a certain layer, note that the layer don't require to be visible by the camera to be rendered in this pass.
 Here is how the inspector for the DrawRenderers pass looks like:
 
 ![CustomPassDrawRenderers_Inspector](Images/CustomPassDrawRenderers_Inspector.png)

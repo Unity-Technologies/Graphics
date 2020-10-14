@@ -127,7 +127,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int g_vLayeredOffsetsBuffer = Shader.PropertyToID("g_vLayeredOffsetsBuffer");
 
         public static readonly int _LightListToClear = Shader.PropertyToID("_LightListToClear");
-        public static readonly int _LightListEntries = Shader.PropertyToID("_LightListEntries");
+        public static readonly int _LightListEntriesAndOffset = Shader.PropertyToID("_LightListEntriesAndOffset");
 
         public static readonly int _ViewTilesFlags = Shader.PropertyToID("_ViewTilesFlags");
         public static readonly int _ClusterDebugMode = Shader.PropertyToID("_ClusterDebugMode");
@@ -532,7 +532,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ShadowFilterMapping             = Shader.PropertyToID("_ShadowFilterMapping");
         public static readonly int _DistanceTexture                 = Shader.PropertyToID("_DistanceTexture");
         public static readonly int _JitterFramePeriod               = Shader.PropertyToID("_JitterFramePeriod");
-
+        public static readonly int _SingleReflectionBounce          = Shader.PropertyToID("_SingleReflectionBounce");
+        
         // Reflections
         public static readonly int _ReflectionHistorybufferRW       = Shader.PropertyToID("_ReflectionHistorybufferRW");
         public static readonly int _CurrentFrameTexture             = Shader.PropertyToID("_CurrentFrameTexture");
@@ -567,6 +568,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RaytracedColorShadowIntegration = Shader.PropertyToID("_RaytracedColorShadowIntegration");
 
         public static readonly int _DirectionalLightAngle           = Shader.PropertyToID("_DirectionalLightAngle");
+        public static readonly int _DirectionalMaxRayLength         = Shader.PropertyToID("_DirectionalMaxRayLength");
         public static readonly int _DirectionalLightDirection       = Shader.PropertyToID("_DirectionalLightDirection");
         public static readonly int _SphereLightPosition             = Shader.PropertyToID("_SphereLightPosition");
         public static readonly int _SphereLightRadius               = Shader.PropertyToID("_SphereLightRadius");
@@ -712,6 +714,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _ChromaSpectralLut              = Shader.PropertyToID("_ChromaSpectralLut");
         public static readonly int _ChromaParams                   = Shader.PropertyToID("_ChromaParams");
+
+        public static readonly int _AlphaScaleBias                 = Shader.PropertyToID("_AlphaScaleBias");
 
         public static readonly int _VignetteParams1                = Shader.PropertyToID("_VignetteParams1");
         public static readonly int _VignetteParams2                = Shader.PropertyToID("_VignetteParams2");
