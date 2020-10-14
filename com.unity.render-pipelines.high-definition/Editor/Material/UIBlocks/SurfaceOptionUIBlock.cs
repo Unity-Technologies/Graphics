@@ -217,7 +217,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Refraction (for show pre-refraction pass enum)
         protected MaterialProperty refractionModel = null;
-        protected const string kRefractionModel = "_RefractionModel";
 
         MaterialProperty transparentZWrite = null;
         MaterialProperty stencilRef = null;

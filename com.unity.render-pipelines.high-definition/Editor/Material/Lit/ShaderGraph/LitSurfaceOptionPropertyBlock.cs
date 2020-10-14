@@ -39,7 +39,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 AddProperty(transmissionEnableText, () => litData.sssTransmission, (newValue) => litData.sssTransmission = newValue);
             }
-            AddProperty(refractionModelText, () => litData.refractionModel, (newValue) => litData.refractionModel = newValue);
+            if (systemData.surfaceType == SurfaceType.Transparent)
+            {
+                AddProperty(refractionModelText, () => litData.refractionModel, (newValue) => litData.refractionModel = newValue);
+            }
             if (litData.materialType == HDLitData.MaterialType.SpecularColor)
             {
                 AddProperty(energyConservingSpecularColorText, () => litData.energyConservingSpecular, (newValue) => litData.energyConservingSpecular = newValue);

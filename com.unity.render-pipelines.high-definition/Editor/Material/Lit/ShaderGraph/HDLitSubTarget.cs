@@ -55,6 +55,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override bool supportPathtracing => true;
         protected override bool requireSplitLighting => litData.materialType == HDLitData.MaterialType.SubsurfaceScattering;
 
+        public override void Setup(ref TargetSetupContext ctx)
+        {
+            // before we fixed the pre-refraction options, it was possible to enable both refraction and pre-refraction option, so we patch this here.
+            if (systemData.renderQueueType == HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None)
+                systemData.renderQueueType = HDRenderQueue.RenderQueueType.Transparent;
+
+            base.Setup(ref ctx);
+        }
+
         protected override SubShaderDescriptor GetSubShaderDescriptor()
         {
             var descriptor = base.GetSubShaderDescriptor();
@@ -94,7 +103,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             AddDistortionFields(ref context);
             var descs = context.blocks.Select(x => x.descriptor);
 
-            bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderingPass != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
+            bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
 
             // Lit specific properties
             context.AddField(DotsProperties,                       context.hasDotsProperties);
@@ -129,7 +138,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderingPass != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
+            bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderQueueType != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
             bool hasDistortion = (systemData.surfaceType == SurfaceType.Transparent && builtinData.distortion);
 
             // Vertex
@@ -163,11 +172,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.CollectShaderProperties(collector, generationMode);
 
             HDSubShaderUtilities.AddRayTracingProperty(collector, litData.rayTracing);
+
+            // Refraction model property allow the material inspector to check if refraction is enabled in the shader.
+            collector.AddShaderProperty(new Vector1ShaderProperty{
+                floatType = FloatType.Default,
+                hidden = true,
+                value = (int)litData.refractionModel,
+                overrideReferenceName = kRefractionModel,
+            });
         }
 
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
         {
-            blockList.AddPropertyBlock(new LitSurfaceOptionPropertyBlock(SurfaceOptionPropertyBlock.Features.Lit, litData));
+            var features = SurfaceOptionPropertyBlock.Features.Lit | (litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None ? SurfaceOptionPropertyBlock.Features.HasRefraction : 0);
+            blockList.AddPropertyBlock(new LitSurfaceOptionPropertyBlock(features, litData));
             if (systemData.surfaceType == SurfaceType.Transparent)
                 blockList.AddPropertyBlock(new DistortionPropertyBlock());
             blockList.AddPropertyBlock(new AdvancedOptionsPropertyBlock());
