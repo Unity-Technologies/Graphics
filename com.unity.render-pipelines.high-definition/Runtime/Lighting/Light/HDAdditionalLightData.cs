@@ -2788,17 +2788,20 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Update Mesh
-            switch (areaLightShape)
+            if (HDRenderPipeline.defaultAsset != null)
             {
-                case AreaLightShape.Tube:
-                    if (m_EmissiveMeshFilter.sharedMesh != HDRenderPipeline.defaultAsset.renderPipelineResources.assets.emissiveCylinderMesh)
-                        m_EmissiveMeshFilter.sharedMesh = HDRenderPipeline.defaultAsset.renderPipelineResources.assets.emissiveCylinderMesh;
-                    break;
-                case AreaLightShape.Rectangle:
-                default:
-                    if (m_EmissiveMeshFilter.sharedMesh != HDRenderPipeline.defaultAsset.renderPipelineResources.assets.emissiveQuadMesh)
-                        m_EmissiveMeshFilter.sharedMesh = HDRenderPipeline.defaultAsset.renderPipelineResources.assets.emissiveQuadMesh;
-                    break;
+                switch (areaLightShape)
+                {
+                    case AreaLightShape.Tube:
+                        if (m_EmissiveMeshFilter.sharedMesh != HDRenderPipeline.defaultAsset.renderPipelineResources.assets.emissiveCylinderMesh)
+                            m_EmissiveMeshFilter.sharedMesh = HDRenderPipeline.defaultAsset.renderPipelineResources.assets.emissiveCylinderMesh;
+                        break;
+                    case AreaLightShape.Rectangle:
+                    default:
+                        if (m_EmissiveMeshFilter.sharedMesh != HDRenderPipeline.defaultAsset.renderPipelineResources.assets.emissiveQuadMesh)
+                            m_EmissiveMeshFilter.sharedMesh = HDRenderPipeline.defaultAsset.renderPipelineResources.assets.emissiveQuadMesh;
+                        break;
+                }
             }
 
             // Update light area size with clamping
