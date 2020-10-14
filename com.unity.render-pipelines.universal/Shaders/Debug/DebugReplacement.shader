@@ -108,6 +108,8 @@ Shader "Hidden/Universal Render Pipeline/Debug/DebugReplacement"
             #pragma vertex vert
             #pragma fragment frag
 
+            #define _DEBUG_SHADER
+
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debugging.hlsl"
 

@@ -2,6 +2,7 @@
 #ifndef UNIVERSAL_DEBUGGING_INCLUDED
 #define UNIVERSAL_DEBUGGING_INCLUDED
 
+// _DebugMaterialIndex
 #define DEBUG_MATERIAL_NONE 0
 #define DEBUG_MATERIAL_UNLIT 1
 #define DEBUG_MATERIAL_DIFFUSE 2
@@ -15,16 +16,16 @@
 #define DEBUG_MATERIAL_LIGHTING_COMPLEXITY 10
 #define DEBUG_MATERIAL_LOD 11
 #define DEBUG_MATERIAL_METALLIC 12
-int _DebugMaterialIndex;
 
+// _DebugLightingIndex
 #define DEBUG_LIGHTING_NONE 0
 #define DEBUG_LIGHTING_SHADOW_CASCADES 1
 #define DEBUG_LIGHTING_LIGHT_ONLY 2
 #define DEBUG_LIGHTING_LIGHT_DETAIL 3
 #define DEBUG_LIGHTING_REFLECTIONS 4
 #define DEBUG_LIGHTING_REFLECTIONS_WITH_SMOOTHNESS 5
-int _DebugLightingIndex;
 
+// _DebugAttributesIndex
 #define DEBUG_ATTRIBUTE_TEXCOORD0 1
 #define DEBUG_ATTRIBUTE_TEXCOORD1 2
 #define DEBUG_ATTRIBUTE_TEXCOORD2 3
@@ -32,31 +33,28 @@ int _DebugLightingIndex;
 #define DEBUG_ATTRIBUTE_COLOR     5
 #define DEBUG_ATTRIBUTE_TANGENT   6
 #define DEBUG_ATTRIBUTE_NORMAL    7
-int _DebugAttributesIndex;
 
+// _DebugLightingFeatureMask
 #define DEBUG_LIGHTING_FEATURE_GI 0
 #define DEBUG_LIGHTING_FEATURE_MAIN_LIGHT 1
 #define DEBUG_LIGHTING_FEATURE_ADDITIONAL_LIGHTS 2
 #define DEBUG_LIGHTING_FEATURE_VERTEX_LIGHTING 3
 #define DEBUG_LIGHTING_FEATURE_EMISSION 4
-int _DebugLightingFeatureMask;
 
+// _DebugMipIndex
 #define DEBUG_MIPMAPMODE_NONE 0
 #define DEBUG_MIPMAPMODE_MIP_LEVEL 1
 #define DEBUG_MIPMAPMODE_MIP_COUNT 2
 #define DEBUG_MIPMAPMODE_MIP_COUNT_REDUCTION 3
 //#define DEBUG_MIPMAPMODE_STREAMING_MIP_BUDGET 4
 //#define DEBUG_MIPMAPMODE_STREAMING_MIP 5
-int _DebugMipIndex;
 
-sampler2D _DebugNumberTexture;
-
+// _DebugValidationIndex
 #define DEBUG_VALIDATION_NONE 0
 //#define DEBUG_VALIDATION_HIGHLIGHT_NAN_INFINITE_NEGATIVE 1
 //#define DEBUG_VALIDATION_HIGHLIGHT_OUTSIDE_RANGE 2
 #define DEBUG_VALIDATION_ALBEDO 3
 #define DEBUG_VALIDATION_METAL 4
-int _DebugValidationIndex;
 
 // Set of colors that should still provide contrast for the Color-blind
 #define kPurpleColor float4(156.0 / 255.0, 79.0 / 255.0, 255.0 / 255.0, 1.0) // #9C4FFF
@@ -75,11 +73,20 @@ int _DebugValidationIndex;
 float4 _BaseMap_TexelSize;
 float4 _BaseMap_MipInfo;
 
+int _DebugMaterialIndex;
+int _DebugLightingIndex;
+int _DebugAttributesIndex;
+int _DebugLightingFeatureMask;
+int _DebugMipIndex;
+int _DebugValidationIndex;
+
 half _AlbedoMinLuminance = 0.01;
 half _AlbedoMaxLuminance = 0.90;
 half _AlbedoSaturationTolerance = 0.214;
 half _AlbedoHueTolerance = 0.104;
 half3 _AlbedoCompareColor = half3(0.5, 0.5, 0.5);
+
+sampler2D _DebugNumberTexture;
 
 struct DebugData
 {
