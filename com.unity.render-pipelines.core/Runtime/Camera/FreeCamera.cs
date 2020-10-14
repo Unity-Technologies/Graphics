@@ -151,7 +151,6 @@ namespace UnityEngine.Rendering
 
             leftShift = Input.GetKeyDown(KeyCode.LeftShift);
             fire1 = Input.GetAxis("Fire1") > 0.0f;
-            Debug.Log(fire1);
 
             inputChangeSpeed = Input.GetAxis(kSpeedAxis);
 
@@ -166,7 +165,7 @@ namespace UnityEngine.Rendering
             // If the debug menu is running, we don't want to conflict with its inputs.
             if (DebugManager.instance.displayRuntimeUI)
                 return;
-            
+
             UpdateInputs();
 
             if (inputChangeSpeed != 0.0f)
