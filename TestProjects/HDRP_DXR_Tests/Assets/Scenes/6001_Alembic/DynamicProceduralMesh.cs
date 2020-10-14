@@ -10,7 +10,7 @@ class DynamicProceduralMesh : MonoBehaviour
 
     private uint minSphereRes = 4;
     private uint maxSphereRes = 16;
-    private uint currSphereRes = 4;
+    private uint currSphereRes;
 
     void UpdateMeshGeometry(uint sphereRes)
     {
@@ -41,7 +41,8 @@ class DynamicProceduralMesh : MonoBehaviour
 
         _mesh.MarkDynamic();
 
-        UpdateMeshGeometry(minSphereRes);
+        currSphereRes = minSphereRes;
+        UpdateMeshGeometry(currSphereRes);
     }
 
     void Update()
@@ -49,7 +50,7 @@ class DynamicProceduralMesh : MonoBehaviour
         if (Application.isPlaying)
         {
             
-            currSphereRes = currSphereRes < maxSphereRes ? currSphereRes++ : minSphereRes;
+            currSphereRes = currSphereRes < maxSphereRes ? currSphereRes + 1 : minSphereRes;
             UpdateMeshGeometry(currSphereRes);
         }
     }
