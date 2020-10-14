@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added scalability settings for the planar reflection resolution.
 - Added tests for AOV stacking and UI rendering in the graphics compositor.
 - Added a new ray tracing only function that samples the specular part of the materials.
+- Adding missing marker for ray tracing profiling (RaytracingDeferredLighting)
 - Added fog volumetric scattering support for path tracing.
 
 ### Fixed
@@ -162,6 +163,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue where multiple cameras would cause GC each frame.
 - Fixed after post process rendering pass options not showing for unlit ShaderGraphs.
 - Fixed a migration issue with the rendering queue in ShaderGraph when upgrading to 10.x;
+- Fixed null reference in the Undo callback of the graphics compositor 
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.

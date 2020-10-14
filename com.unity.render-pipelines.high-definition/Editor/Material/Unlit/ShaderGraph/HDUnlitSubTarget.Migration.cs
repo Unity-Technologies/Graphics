@@ -67,7 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Set data
             systemData.surfaceType = (SurfaceType)hdUnlitMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)hdUnlitMasterNode.m_AlphaMode);
-            systemData.renderingPass = HDRenderQueue.MigrateRenderQueueToHDRP10(hdUnlitMasterNode.m_RenderingPass);
+            systemData.renderingPass = hdUnlitMasterNode.m_RenderingPass;
             // Patch rendering pass in case the master node had an old configuration
             if (systemData.renderingPass == HDRenderQueue.RenderQueueType.Background)
                 systemData.renderingPass = HDRenderQueue.RenderQueueType.Opaque;
