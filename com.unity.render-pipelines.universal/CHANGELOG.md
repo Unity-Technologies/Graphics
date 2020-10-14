@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed GLES2 shader compilation.
 - Fixed issue with lens distortion breaking rendering when enabled and its intensity is 0.
 - Fixed issue that caused motion blur to not work in XR.
+- Fixed the Unlit shader not being SRP Batcher compatible on OpenGLES/OpenGLCore. [case 1263720](https://issuetracker.unity3d.com/issues/urp-mobile-srp-batcher-is-not-visible-on-mobile-devices-in-frame-debugger)
 
 ## [10.0.0] - 2020-06-10
 ### Added
