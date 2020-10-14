@@ -42,7 +42,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 for (var i = 0; i < shapeEditor.pointCount; ++i)
                     pointsProperty.GetArrayElementAtIndex(i).vector3Value = shapeEditor.GetPoint(i).position;
 
-                ((Light2D)(serializedObject.targetObject)).UpdateMesh();
+                ((Light2D)(serializedObject.targetObject)).UpdateMesh(true);
 
                 // This is untracked right now...
                 serializedObject.ApplyModifiedProperties();
@@ -97,6 +97,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             public static GUIContent renderPipelineUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("Universal scriptable renderpipeline asset must be assigned in Graphics Settings or Quality Settings.", MessageType.Warning);
             public static GUIContent asset2DUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("2D renderer data must be assigned to your universal render pipeline asset or camera.", MessageType.Warning);
+            public static GUIContent cacheGeometryLabel = EditorGUIUtility.TrTextContent("Cache Geometry", "Bake geometry data. This will save geometry data on editor and load it on runtime instead of generating.");
         }
 
         const float     k_GlobalLightGizmoSize      = 1.2f;
@@ -135,6 +136,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         SerializedProperty m_ShapeLightParametricAngleOffset;
         SerializedProperty m_ShapeLightFalloffOffset;
         SerializedProperty m_ShapeLightSprite;
+        SerializedProperty m_GeometryCachedProp;
 
         int[]           m_BlendStyleIndices;
         GUIContent[]    m_BlendStyleNames;
@@ -195,6 +197,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_ShapeLightParametricAngleOffset = serializedObject.FindProperty("m_ShapeLightParametricAngleOffset");
             m_ShapeLightFalloffOffset = serializedObject.FindProperty("m_ShapeLightFalloffOffset");
             m_ShapeLightSprite = serializedObject.FindProperty("m_LightCookieSprite");
+            m_GeometryCachedProp = serializedObject.FindProperty("m_GeometryCached");
 
             m_AnyBlendStyleEnabled = false;
             var blendStyleIndices = new List<int>();
@@ -274,7 +277,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             EditorGUILayout.PropertyField(m_PointLightCookie, Styles.pointLightCookie);
         }
 
-        void OnShapeLight(Light2D.LightType lightType, SerializedObject serializedObject)
+        void OnShapeLight(Light2D.LightType lightType, SerializedObject serializedObject, Light2D light)
         {
             if (lightType == Light2D.LightType.Sprite)
             {
@@ -304,6 +307,26 @@ namespace UnityEditor.Experimental.Rendering.Universal
                     EditorGUIUtility.wideMode = true;
                     EditorGUILayout.PropertyField(m_ShapeLightFalloffOffset, Styles.shapeLightFalloffOffset);
                     EditorGUIUtility.wideMode = oldWideMode;
+                }
+
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(m_GeometryCachedProp, Styles.cacheGeometryLabel);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (m_GeometryCachedProp.boolValue)
+                    {
+                        var cachedMesh = light.cachedMeshData;
+                        if (!cachedMesh)
+                            cachedMesh = light.gameObject.AddComponent<LightCachedMeshData>();
+                        cachedMesh.hideFlags = HideFlags.HideInInspector;
+                    }
+                    else
+                    {
+                        if (light.cachedMeshData)
+                            Object.DestroyImmediate(light.cachedMeshData);
+                    }
+
+                    light.UpdateMesh(true);
                 }
             }
         }
@@ -586,7 +609,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 case (int)Light2D.LightType.Freeform:
                 case (int)Light2D.LightType.Sprite:
                     {
-                        OnShapeLight((Light2D.LightType)m_LightType.intValue, serializedObject);
+                        OnShapeLight((Light2D.LightType)m_LightType.intValue, serializedObject, target as Light2D);
                     }
                     break;
             }
@@ -642,7 +665,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             if (serializedObject.ApplyModifiedProperties())
             {
                 if(meshChanged)
-                    lightObject.UpdateMesh();
+                    lightObject.UpdateMesh(true);
             }
         }
 
