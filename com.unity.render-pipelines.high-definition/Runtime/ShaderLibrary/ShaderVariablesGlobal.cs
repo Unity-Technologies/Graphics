@@ -165,7 +165,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint     _DirectionalLightCount;
         public uint     _PunctualLightCount;
         public uint     _AreaLightCount;
-        public uint     _EnvLightCount;
+        public uint     _ReflectionProbeCount;
 
         public int      _EnvLightSkyEnabled;
         public uint     _CascadeShadowCount;

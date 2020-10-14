@@ -1039,6 +1039,9 @@ struct PositionInputs
     uint2  tileCoord;   // Screen tile coordinates                              : [0, NumTiles)
     float  deviceDepth; // Depth from the depth buffer                          : [0, 1] (typically reversed)
     float  linearDepth; // View space Z coordinate                              : [Near, Far]
+
+    uint xyTile;
+    uint zBin;
 };
 
 // This function is use to provide an easy way to sample into a screen texture, either from a pixel or a compute shaders.

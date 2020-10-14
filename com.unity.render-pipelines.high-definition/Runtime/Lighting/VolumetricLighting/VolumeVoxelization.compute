@@ -38,8 +38,8 @@
 // Inputs & outputs
 //--------------------------------------------------------------------------------------------------
 
-StructuredBuffer<OrientedBBox>            _VolumeBounds;
-StructuredBuffer<DensityVolumeEngineData> _VolumeData;
+StructuredBuffer<OrientedBBox>            _DensityVolumeBounds;
+StructuredBuffer<DensityVolumeEngineData> _DensityVolumeData;
 
 TEXTURE3D(_VolumeMaskAtlas);
 
@@ -180,7 +180,7 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
             uint volumeIndex = FetchIndex(volumeStart, volumeOffset);
         #endif
 
-            const OrientedBBox obb = _VolumeBounds[volumeIndex];
+            const OrientedBBox obb = _DensityVolumeBounds[volumeIndex];
 
             const float3x3 obbFrame   = float3x3(obb.right, obb.up, cross(obb.up, obb.right));
             const float3   obbExtents = float3(obb.extentX, obb.extentY, obb.extentZ);
@@ -269,25 +269,25 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
                 float dist = t;
 
                 overlapFraction *= ComputeFadeFactor(voxelCenterNDC, dist,
-                                                     _VolumeData[volumeIndex].rcpPosFaceFade,
-                                                     _VolumeData[volumeIndex].rcpNegFaceFade,
-                                                     _VolumeData[volumeIndex].invertFade,
-                                                     _VolumeData[volumeIndex].rcpDistFadeLen,
-                                                     _VolumeData[volumeIndex].endTimesRcpDistFadeLen);
+                                                     _DensityVolumeData[volumeIndex].rcpPosFaceFade,
+                                                     _DensityVolumeData[volumeIndex].rcpNegFaceFade,
+                                                     _DensityVolumeData[volumeIndex].invertFade,
+                                                     _DensityVolumeData[volumeIndex].rcpDistFadeLen,
+                                                     _DensityVolumeData[volumeIndex].endTimesRcpDistFadeLen);
 
                 // Sample the volumeMask.
-                if (_VolumeData[volumeIndex].textureIndex != -1)
+                if (_DensityVolumeData[volumeIndex].textureIndex != -1)
                 {
                     float3 xDerivUVW = (0.5 *  t) * voxelAxisRightBS   * rcp(obbExtents);
                     float3 yDerivUVW = (0.5 *  t) * voxelAxisUpBS      * rcp(obbExtents);
                     float3 zDerivUVW = (0.5 * dt) * voxelAxisForwardBS * rcp(obbExtents);
 
-                    overlapFraction *= SampleVolumeMask(_VolumeData[volumeIndex], voxelCenterNDC, xDerivUVW, yDerivUVW, zDerivUVW);
+                    overlapFraction *= SampleVolumeMask(_DensityVolumeData[volumeIndex], voxelCenterNDC, xDerivUVW, yDerivUVW, zDerivUVW);
                 }
 
                 // There is an overlap. Sample the 3D texture, or load the constant value.
-                voxelScattering += overlapFraction * _VolumeData[volumeIndex].scattering;
-                voxelExtinction += overlapFraction * _VolumeData[volumeIndex].extinction;
+                voxelScattering += overlapFraction * _DensityVolumeData[volumeIndex].scattering;
+                voxelExtinction += overlapFraction * _DensityVolumeData[volumeIndex].extinction;
             }
         }
 

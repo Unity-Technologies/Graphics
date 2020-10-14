@@ -144,165 +144,99 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
 // Single Pass and Tile Pass
 // ----------------------------------------------------------------------------
 
-#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/TilingAndBinningUtilities.hlsl"
 
-// Calculate the offset in global light index light for current light category
-int GetTileOffset(PositionInputs posInput, uint lightCategory)
+// Careful, this may not work if 'TextureXR.hlsl' has not already been included.
+uint GetEyeIndex()
 {
-    uint2 tileIndex = posInput.tileCoord;
-    return (tileIndex.y + lightCategory * _NumTileFtplY) * _NumTileFtplX + tileIndex.x;
-}
-
-void GetCountAndStartTile(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
-{
-    int tileOffset = GetTileOffset(posInput, lightCategory);
-
 #if defined(UNITY_STEREO_INSTANCING_ENABLED)
-    // Eye base offset must match code in lightlistbuild.compute
-    tileOffset += unity_StereoEyeIndex * _NumTileFtplX * _NumTileFtplY * LIGHTCATEGORY_COUNT;
-#endif
-
-    // The first entry inside a tile is the number of light for lightCategory (thus the +0)
-    lightCount = g_vLightListGlobal[DWORD_PER_TILE * tileOffset + 0] & 0xffff;
-    start = tileOffset;
-}
-
-#ifdef USE_FPTL_LIGHTLIST
-
-uint GetTileSize()
-{
-    return TILE_SIZE_FPTL;
-}
-
-void GetCountAndStart(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
-{
-    GetCountAndStartTile(posInput, lightCategory, start, lightCount);
-}
-
-uint FetchIndex(uint tileOffset, uint lightOffset)
-{
-    const uint lightOffsetPlusOne = lightOffset + 1; // Add +1 as first slot is reserved to store number of light
-    // Light index are store on 16bit
-    return (g_vLightListGlobal[DWORD_PER_TILE * tileOffset + (lightOffsetPlusOne >> 1)] >> ((lightOffsetPlusOne & 1) * DWORD_PER_TILE)) & 0xffff;
-}
-
-#elif defined(USE_CLUSTERED_LIGHTLIST)
-
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ClusteredUtils.hlsl"
-
-uint GetTileSize()
-{
-    return TILE_SIZE_CLUSTERED;
-}
-
-uint GetLightClusterIndex(uint2 tileIndex, float linearDepth)
-{
-    float logBase = g_fClustBase;
-    if (g_isLogBaseBufferEnabled)
-    {
-        const uint logBaseIndex = GenerateLogBaseBufferIndex(tileIndex, _NumTileClusteredX, _NumTileClusteredY, unity_StereoEyeIndex);
-        logBase = g_logBaseBuffer[logBaseIndex];
-    }
-
-    return SnapToClusterIdxFlex(linearDepth, logBase, g_isLogBaseBufferEnabled != 0);
-}
-
-void GetCountAndStartCluster(uint2 tileIndex, uint clusterIndex, uint lightCategory, out uint start, out uint lightCount)
-{
-    int nrClusters = (1 << g_iLog2NumClusters);
-
-    const int idx = GenerateLayeredOffsetBufferIndex(lightCategory, tileIndex, clusterIndex, _NumTileClusteredX, _NumTileClusteredY, nrClusters, unity_StereoEyeIndex);
-
-    uint dataPair = g_vLayeredOffsetsBuffer[idx];
-    start = dataPair & 0x7ffffff;
-    lightCount = (dataPair >> 27) & 31;
-}
-
-void GetCountAndStartCluster(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
-{
-    // Note: XR depends on unity_StereoEyeIndex already being defined,
-    // which means ShaderVariables.hlsl needs to be defined ahead of this!
-
-    uint2 tileIndex    = posInput.tileCoord;
-    uint  clusterIndex = GetLightClusterIndex(tileIndex, posInput.linearDepth);
-
-    GetCountAndStartCluster(tileIndex, clusterIndex, lightCategory, start, lightCount);
-}
-
-void GetCountAndStart(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
-{
-    GetCountAndStartCluster(posInput, lightCategory, start, lightCount);
-}
-
-uint FetchIndex(uint lightStart, uint lightOffset)
-{
-    return g_vLightListGlobal[lightStart + lightOffset];
-}
-
-#elif defined(USE_BIG_TILE_LIGHTLIST)
-
-uint FetchIndex(uint lightStart, uint lightOffset)
-{
-    return g_vBigTileLightList[lightStart + lightOffset];
-}
-
+    return unity_StereoEyeIndex;
 #else
-// Fallback case (mainly for raytracing right now)
-uint FetchIndex(uint lightStart, uint lightOffset)
-{
     return 0;
-}
-#endif // USE_FPTL_LIGHTLIST
-
-#else
-
-uint GetTileSize()
-{
-    return 1;
+#endif
 }
 
-uint FetchIndex(uint lightStart, uint lightOffset)
-{
-    return lightStart + lightOffset;
-}
+#ifdef LIGHTLOOP_COARSE_BINNED_LIGHTING
 
-#endif // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
+#elif defined(LIGHTLOOP_FINE_BINNED_LIGHTING)
 
-uint FetchIndexWithBoundsCheck(uint start, uint count, uint i)
+/* ... */
+
+#else // !(defined(LIGHTLOOP_COARSE_BINNED_LIGHTING) || defined(LIGHTLOOP_FINE_BINNED_LIGHTING))
+
+bool TryLoadPunctualLightData(uint i, uint xyTile, uint zBin, out LightData data)
 {
-    if (i < count)
+    bool b = false;
+    uint n = _PunctualLightCount;
+
+    if (i < n)
     {
-        return FetchIndex(start, i);
+        data = _PunctualLightData[i];
+        b    = true;
     }
-    else
+
+    return b;
+}
+
+bool TryLoadAreaLightData(uint i, uint xyTile, uint zBin, out LightData data)
+{
+    bool b = false;
+    uint n = _AreaLightCount;
+
+    if (i < n)
     {
-        return UINT_MAX;
+        data = _AreaLightData[i];
+        b    = true;
     }
+
+    return b;
 }
 
-LightData FetchLight(uint start, uint i)
+bool TryLoadReflectionProbeData(uint i, uint xyTile, uint zBin, out EnvLightData data)
 {
-    uint j = FetchIndex(start, i);
+    bool b = false;
+    uint n = _ReflectionProbeCount;
 
-    return _LightData[j];
+    if (i < n)
+    {
+        data = _ReflectionProbeData[i];
+        b    = true;
+    }
+
+    return b;
 }
 
-LightData FetchLight(uint index)
+bool TryLoadDecalData(uint i, uint xyTile, uint zBin, out DecalData data)
 {
-    return _LightData[index];
+    bool b = false;
+    uint n = _DecalCount;
+
+    if (i < n)
+    {
+        data = _DecalData[i];
+        b    = true;
+    }
+
+    return b;
 }
 
-EnvLightData FetchEnvLight(uint start, uint i)
-{
-    int j = FetchIndex(start, i);
+// bool TryLoadDensityVolumeDataDataAndBounds(uint i, uint xyTile, uint zBin,
+//                                            out DensityVolumeEngineData data, out OrientedBBox bounds)
+// {
+//     bool b = false;
+//     uint n = _DensityVolumeCount;
 
-    return _EnvLightData[j];
-}
+//     if (i < n)
+//     {
+//         data   = _DensityVolumeData[i];
+//         bounds = _DensityVolumeBounds[i];
+//         b      = true;
+//     }
 
-EnvLightData FetchEnvLight(uint index)
-{
-    return _EnvLightData[index];
-}
+//     return b;
+// }
+
+#endif // !(defined(LIGHTLOOP_COARSE_BINNED_LIGHTING) || defined(LIGHTLOOP_FINE_BINNED_LIGHTING))
 
 // In the first 8 bits of the target we store the max fade of the contact shadows as a byte
 void UnpackContactShadowData(uint contactShadowData, out float fade, out uint mask)

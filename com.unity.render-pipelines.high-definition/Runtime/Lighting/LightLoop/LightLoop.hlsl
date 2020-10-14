@@ -223,6 +223,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         }
     }
 
+    uint i; // Declare once to avoid the D3D11 compiler warning.
+
     // This struct is define in the material. the Lightloop must not access it
     // PostEvaluateBSDF call at the end will convert Lighting to diffuse and specular lighting
     AggregateLighting aggregateLighting;
@@ -230,323 +232,265 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
     if (featureFlags & LIGHTFEATUREFLAGS_PUNCTUAL)
     {
-        uint lightCount, lightStart;
+        LightData lightData;
 
-#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-        GetCountAndStart(posInput, LIGHTCATEGORY_PUNCTUAL, lightStart, lightCount);
-#else   // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-        lightCount = _PunctualLightCount;
-        lightStart = 0;
-#endif
+        i = 0;
 
-        bool fastPath = false;
-    #if SCALARIZE_LIGHT_LOOP
-        uint lightStartLane0;
-        fastPath = IsFastPath(lightStart, lightStartLane0);
-
-        if (fastPath)
+        while (TryLoadPunctualLightData(i, posInput.xyTile, posInput.zBin, lightData))
         {
-            lightStart = lightStartLane0;
-        }
-    #endif
-
-        // Scalarized loop. All lights that are in a tile/cluster touched by any pixel in the wave are loaded (scalar load), only the one relevant to current thread/pixel are processed.
-        // For clarity, the following code will follow the convention: variables starting with s_ are meant to be wave uniform (meant for scalar register),
-        // v_ are variables that might have different value for each thread in the wave (meant for vector registers).
-        // This will perform more loads than it is supposed to, however, the benefits should offset the downside, especially given that light data accessed should be largely coherent.
-        // Note that the above is valid only if wave intriniscs are supported.
-        uint v_lightListOffset = 0;
-        uint v_lightIdx = lightStart;
-
-        while (v_lightListOffset < lightCount)
-        {
-            v_lightIdx = FetchIndex(lightStart, v_lightListOffset);
-#if SCALARIZE_LIGHT_LOOP
-            uint s_lightIdx = ScalarizeElementIndex(v_lightIdx, fastPath);
-#else
-            uint s_lightIdx = v_lightIdx;
-#endif
-            if (s_lightIdx == -1)
-                break;
-
-            LightData s_lightData = FetchLight(s_lightIdx);
-
-            // If current scalar and vector light index match, we process the light. The v_lightListOffset for current thread is increased.
-            // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could
-            // end up with a unique v_lightIdx value that is smaller than s_lightIdx hence being stuck in a loop. All the active lanes will not have this problem.
-            if (s_lightIdx >= v_lightIdx)
+            if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
             {
-                v_lightListOffset++;
-                if (IsMatchingLightLayer(s_lightData.lightLayers, builtinData.renderingLayers))
-                {
-                    DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, s_lightData, bsdfData, builtinData);
-                    AccumulateDirectLighting(lighting, aggregateLighting);
-                }
-            }
-        }
-    }
-
-
-    // Define macro for a better understanding of the loop
-    // TODO: this code is now much harder to understand...
-#define EVALUATE_BSDF_ENV_SKY(envLightData, TYPE, type) \
-        IndirectLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, envLightData, bsdfData, envLightData.influenceShapeType, MERGE_NAME(GPUIMAGEBASEDLIGHTINGTYPE_, TYPE), MERGE_NAME(type, HierarchyWeight)); \
-        AccumulateIndirectLighting(lighting, aggregateLighting);
-
-// Environment cubemap test lightlayers, sky don't test it
-#define EVALUATE_BSDF_ENV(envLightData, TYPE, type) if (IsMatchingLightLayer(envLightData.lightLayers, builtinData.renderingLayers)) { EVALUATE_BSDF_ENV_SKY(envLightData, TYPE, type) }
-
-    // First loop iteration
-    if (featureFlags & (LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_SSREFRACTION | LIGHTFEATUREFLAGS_SSREFLECTION))
-    {
-        float reflectionHierarchyWeight = 0.0; // Max: 1.0
-        float refractionHierarchyWeight = _EnableSSRefraction ? 0.0 : 1.0; // Max: 1.0
-
-        uint envLightStart, envLightCount;
-
-        // Fetch first env light to provide the scene proxy for screen space computation
-#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-        GetCountAndStart(posInput, LIGHTCATEGORY_ENV, envLightStart, envLightCount);
-#else   // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-        envLightCount = _EnvLightCount;
-        envLightStart = 0;
-#endif
-
-        bool fastPath = false;
-    #if SCALARIZE_LIGHT_LOOP
-        uint envStartFirstLane;
-        fastPath = IsFastPath(envLightStart, envStartFirstLane);
-    #endif
-
-        // Reflection / Refraction hierarchy is
-        //  1. Screen Space Refraction / Reflection
-        //  2. Environment Reflection / Refraction
-        //  3. Sky Reflection / Refraction
-
-        // Apply SSR.
-    #if (defined(_SURFACE_TYPE_TRANSPARENT) && !defined(_DISABLE_SSR_TRANSPARENT)) || (!defined(_SURFACE_TYPE_TRANSPARENT) && !defined(_DISABLE_SSR))
-        {
-            IndirectLighting indirect = EvaluateBSDF_ScreenSpaceReflection(posInput, preLightData, bsdfData,
-                                                                           reflectionHierarchyWeight);
-            AccumulateIndirectLighting(indirect, aggregateLighting);
-        }
-    #endif
-
-        EnvLightData envLightData;
-        if (envLightCount > 0)
-        {
-            envLightData = FetchEnvLight(envLightStart, 0);
-        }
-        else
-        {
-            envLightData = InitSkyEnvLightData(0);
-        }
-
-        if ((featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION) && (_EnableSSRefraction > 0))
-        {
-            IndirectLighting lighting = EvaluateBSDF_ScreenspaceRefraction(context, V, posInput, preLightData, bsdfData, envLightData, refractionHierarchyWeight);
-            AccumulateIndirectLighting(lighting, aggregateLighting);
-        }
-
-        // Reflection probes are sorted by volume (in the increasing order).
-        if (featureFlags & LIGHTFEATUREFLAGS_ENV)
-        {
-            context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES;
-
-        #if SCALARIZE_LIGHT_LOOP
-            if (fastPath)
-            {
-                envLightStart = envStartFirstLane;
-            }
-        #endif
-
-            // Scalarized loop, same rationale of the punctual light version
-            uint v_envLightListOffset = 0;
-            uint v_envLightIdx = envLightStart;
-            while (v_envLightListOffset < envLightCount)
-            {
-                v_envLightIdx = FetchIndex(envLightStart, v_envLightListOffset);
-                uint s_envLightIdx = ScalarizeElementIndex(v_envLightIdx, fastPath);
-                if (s_envLightIdx == -1)
-                    break;
-
-                EnvLightData s_envLightData = FetchEnvLight(s_envLightIdx);    // Scalar load.
-
-                // If current scalar and vector light index match, we process the light. The v_envLightListOffset for current thread is increased.
-                // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could
-                // end up with a unique v_envLightIdx value that is smaller than s_envLightIdx hence being stuck in a loop. All the active lanes will not have this problem.
-                if (s_envLightIdx >= v_envLightIdx)
-                {
-                    v_envLightListOffset++;
-                    if (reflectionHierarchyWeight < 1.0)
-                    {
-                        EVALUATE_BSDF_ENV(s_envLightData, REFLECTION, reflection);
-                    }
-                    // Refraction probe and reflection probe will process exactly the same weight. It will be good for performance to be able to share this computation
-                    // However it is hard to deal with the fact that reflectionHierarchyWeight and refractionHierarchyWeight have not the same values, they are independent
-                    // The refraction probe is rarely used and happen only with sphere shape and high IOR. So we accept the slow path that use more simple code and
-                    // doesn't affect the performance of the reflection which is more important.
-                    // We reuse LIGHTFEATUREFLAGS_SSREFRACTION flag as refraction is mainly base on the screen. Would be a waste to not use screen and only cubemap.
-                    if ((featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION) && (refractionHierarchyWeight < 1.0))
-                    {
-                        EVALUATE_BSDF_ENV(s_envLightData, REFRACTION, refraction);
-                    }
-                }
-
-            }
-        }
-
-        // Only apply the sky IBL if the sky texture is available
-        if ((featureFlags & LIGHTFEATUREFLAGS_SKY) && _EnvLightSkyEnabled)
-        {
-            // The sky is a single cubemap texture separate from the reflection probe texture array (different resolution and compression)
-            context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_SKY;
-
-            // The sky data are generated on the fly so the compiler can optimize the code
-            EnvLightData envLightSky = InitSkyEnvLightData(0);
-
-            // Only apply the sky if we haven't yet accumulated enough IBL lighting.
-            if (reflectionHierarchyWeight < 1.0)
-            {
-                EVALUATE_BSDF_ENV_SKY(envLightSky, REFLECTION, reflection);
-            }
-
-            if ((featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION) && (refractionHierarchyWeight < 1.0))
-            {
-                EVALUATE_BSDF_ENV_SKY(envLightSky, REFRACTION, refraction);
-            }
-        }
-    }
-#undef EVALUATE_BSDF_ENV
-#undef EVALUATE_BSDF_ENV_SKY
-
-    uint i = 0; // Declare once to avoid the D3D11 compiler warning.
-    if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
-    {
-        for (i = 0; i < _DirectionalLightCount; ++i)
-        {
-            if (IsMatchingLightLayer(_DirectionalLightData[i].lightLayers, builtinData.renderingLayers))
-            {
-                DirectLighting lighting = EvaluateBSDF_Directional(context, V, posInput, preLightData, _DirectionalLightData[i], bsdfData, builtinData);
+                DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, lightData, bsdfData, builtinData);
                 AccumulateDirectLighting(lighting, aggregateLighting);
             }
+
+            i++;
         }
     }
 
-#if SHADEROPTIONS_AREA_LIGHTS
-    if (featureFlags & LIGHTFEATUREFLAGS_AREA)
-    {
-        uint lightCount, lightStart;
+//     // Define macro for a better understanding of the loop
+//     // TODO: this code is now much harder to understand...
+// #define EVALUATE_BSDF_ENV_SKY(envLightData, TYPE, type) \
+//         IndirectLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, envLightData, bsdfData, envLightData.influenceShapeType, MERGE_NAME(GPUIMAGEBASEDLIGHTINGTYPE_, TYPE), MERGE_NAME(type, HierarchyWeight)); \
+//         AccumulateIndirectLighting(lighting, aggregateLighting);
 
-    #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-        GetCountAndStart(posInput, LIGHTCATEGORY_AREA, lightStart, lightCount);
-    #else
-        lightCount = _AreaLightCount;
-        lightStart = _PunctualLightCount;
-    #endif
+// // Environment cubemap test lightlayers, sky don't test it
+// #define EVALUATE_BSDF_ENV(envLightData, TYPE, type) if (IsMatchingLightLayer(envLightData.lightLayers, builtinData.renderingLayers)) { EVALUATE_BSDF_ENV_SKY(envLightData, TYPE, type) }
 
-        // COMPILER BEHAVIOR WARNING!
-        // If rectangle lights are before line lights, the compiler will duplicate light matrices in VGPR because they are used differently between the two types of lights.
-        // By keeping line lights first we avoid this behavior and save substantial register pressure.
-        // TODO: This is based on the current Lit.shader and can be different for any other way of implementing area lights, how to be generic and ensure performance ?
+//     // First loop iteration
+//     if (featureFlags & (LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_SSREFRACTION | LIGHTFEATUREFLAGS_SSREFLECTION))
+//     {
+//         float reflectionHierarchyWeight = 0.0; // Max: 1.0
+//         float refractionHierarchyWeight = _EnableSSRefraction ? 0.0 : 1.0; // Max: 1.0
 
-        if (lightCount > 0)
-        {
-            i = 0;
+//         // Reflection / Refraction hierarchy is
+//         //  1. Screen Space Refraction / Reflection
+//         //  2. Environment Reflection / Refraction
+//         //  3. Sky Reflection / Refraction
 
-            uint      last      = lightCount - 1;
-            LightData lightData = FetchLight(lightStart, i);
+//         // Apply SSR.
+//     #if (defined(_SURFACE_TYPE_TRANSPARENT) && !defined(_DISABLE_SSR_TRANSPARENT)) || (!defined(_SURFACE_TYPE_TRANSPARENT) && !defined(_DISABLE_SSR))
+//         {
+//             IndirectLighting indirect = EvaluateBSDF_ScreenSpaceReflection(posInput, preLightData, bsdfData,
+//                                                                            reflectionHierarchyWeight);
+//             AccumulateIndirectLighting(indirect, aggregateLighting);
+//         }
+//     #endif
 
-            while (i <= last && lightData.lightType == GPULIGHTTYPE_TUBE)
-            {
-                lightData.lightType = GPULIGHTTYPE_TUBE; // Enforce constant propagation
-                lightData.cookieMode = COOKIEMODE_NONE;  // Enforce constant propagation
+//         EnvLightData envLightData;
+//         if (envLightCount > 0)
+//         {
+//             envLightData = FetchEnvLight(envLightStart, 0);
+//         }
+//         else
+//         {
+//             envLightData = InitSkyEnvLightData(0);
+//         }
 
-                if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
-                {
-                    DirectLighting lighting = EvaluateBSDF_Area(context, V, posInput, preLightData, lightData, bsdfData, builtinData);
-                    AccumulateDirectLighting(lighting, aggregateLighting);
-                }
+//         if ((featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION) && (_EnableSSRefraction > 0))
+//         {
+//             IndirectLighting lighting = EvaluateBSDF_ScreenspaceRefraction(context, V, posInput, preLightData, bsdfData, envLightData, refractionHierarchyWeight);
+//             AccumulateIndirectLighting(lighting, aggregateLighting);
+//         }
 
-                lightData = FetchLight(lightStart, min(++i, last));
-            }
+//         // Reflection probes are sorted by volume (in the increasing order).
+//         if (featureFlags & LIGHTFEATUREFLAGS_ENV)
+//         {
+//             context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES;
 
-            while (i <= last) // GPULIGHTTYPE_RECTANGLE
-            {
-                lightData.lightType = GPULIGHTTYPE_RECTANGLE; // Enforce constant propagation
+//         #if SCALARIZE_LIGHT_LOOP
+//             if (fastPath)
+//             {
+//                 envLightStart = envStartFirstLane;
+//             }
+//         #endif
 
-                if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
-                {
-                    DirectLighting lighting = EvaluateBSDF_Area(context, V, posInput, preLightData, lightData, bsdfData, builtinData);
-                    AccumulateDirectLighting(lighting, aggregateLighting);
-                }
+//             // Scalarized loop, same rationale of the punctual light version
+//             uint v_envLightListOffset = 0;
+//             uint v_envLightIdx = envLightStart;
+//             while (v_envLightListOffset < envLightCount)
+//             {
+//                 v_envLightIdx = FetchIndex(envLightStart, v_envLightListOffset);
+//                 uint s_envLightIdx = ScalarizeElementIndex(v_envLightIdx, fastPath);
+//                 if (s_envLightIdx == -1)
+//                     break;
 
-                lightData = FetchLight(lightStart, min(++i, last));
-            }
-        }
-    }
-#endif
+//                 EnvLightData s_envLightData = FetchEnvLight(s_envLightIdx);    // Scalar load.
 
-#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
-    bool uninitialized = IsUninitializedGI(builtinData.bakeDiffuseLighting);
-    builtinData.bakeDiffuseLighting = uninitialized ? float3(0.0, 0.0, 0.0) : builtinData.bakeDiffuseLighting;
+//                 // If current scalar and vector light index match, we process the light. The v_envLightListOffset for current thread is increased.
+//                 // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could
+//                 // end up with a unique v_envLightIdx value that is smaller than s_envLightIdx hence being stuck in a loop. All the active lanes will not have this problem.
+//                 if (s_envLightIdx >= v_envLightIdx)
+//                 {
+//                     v_envLightListOffset++;
+//                     if (reflectionHierarchyWeight < 1.0)
+//                     {
+//                         EVALUATE_BSDF_ENV(s_envLightData, REFLECTION, reflection);
+//                     }
+//                     // Refraction probe and reflection probe will process exactly the same weight. It will be good for performance to be able to share this computation
+//                     // However it is hard to deal with the fact that reflectionHierarchyWeight and refractionHierarchyWeight have not the same values, they are independent
+//                     // The refraction probe is rarely used and happen only with sphere shape and high IOR. So we accept the slow path that use more simple code and
+//                     // doesn't affect the performance of the reflection which is more important.
+//                     // We reuse LIGHTFEATUREFLAGS_SSREFRACTION flag as refraction is mainly base on the screen. Would be a waste to not use screen and only cubemap.
+//                     if ((featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION) && (refractionHierarchyWeight < 1.0))
+//                     {
+//                         EVALUATE_BSDF_ENV(s_envLightData, REFRACTION, refraction);
+//                     }
+//                 }
 
-    // If probe volume feature is enabled, this bit is enabled for all tiles to handle ambient probe fallback.
-    // No need to branch internally on _EnableProbeVolumes uniform.
-    if (featureFlags & LIGHTFEATUREFLAGS_PROBE_VOLUME)
-    {
-#if !SHADEROPTIONS_PROBE_VOLUMES_ADDITIVE_BLENDING
-        if (uninitialized)
-#endif
-        {
-            // Need to make sure not to apply ModifyBakedDiffuseLighting() twice to our bakeDiffuseLighting data, which could happen if we are dealing with initialized data (light maps).
-            // Create a local BuiltinData variable here, and then add results to builtinData.bakeDiffuseLighting at the end.
-            BuiltinData builtinDataProbeVolumes;
-            ZERO_INITIALIZE(BuiltinData, builtinDataProbeVolumes);
+//             }
+//         }
 
-            float probeVolumeHierarchyWeight = uninitialized ? 0.0f : 1.0f;
+//         // Only apply the sky IBL if the sky texture is available
+//         if ((featureFlags & LIGHTFEATUREFLAGS_SKY) && _EnvLightSkyEnabled)
+//         {
+//             // The sky is a single cubemap texture separate from the reflection probe texture array (different resolution and compression)
+//             context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_SKY;
 
-            // Note: we aren't suppose to access normalWS in lightloop, but bsdfData.normalWS is always define for any material. So this is safe.
-            ProbeVolumeEvaluateSphericalHarmonics(
-                posInput,
-                bsdfData.normalWS,
-                -bsdfData.normalWS,
-                builtinData.renderingLayers,
-                probeVolumeHierarchyWeight,
-                builtinDataProbeVolumes.bakeDiffuseLighting,
-                builtinDataProbeVolumes.backBakeDiffuseLighting
-            );
+//             // The sky data are generated on the fly so the compiler can optimize the code
+//             EnvLightData envLightSky = InitSkyEnvLightData(0);
 
-            // Apply control from the indirect lighting volume settings (Remember there is no emissive here at this step)
-            float indirectDiffuseMultiplier = GetIndirectDiffuseMultiplier(builtinData.renderingLayers);
-            builtinDataProbeVolumes.bakeDiffuseLighting *= indirectDiffuseMultiplier;
-            builtinDataProbeVolumes.backBakeDiffuseLighting *= indirectDiffuseMultiplier;
+//             // Only apply the sky if we haven't yet accumulated enough IBL lighting.
+//             if (reflectionHierarchyWeight < 1.0)
+//             {
+//                 EVALUATE_BSDF_ENV_SKY(envLightSky, REFLECTION, reflection);
+//             }
 
-#ifdef MODIFY_BAKED_DIFFUSE_LIGHTING
-#ifdef DEBUG_DISPLAY
-            // When the lux meter is enabled, we don't want the albedo of the material to modify the diffuse baked lighting
-            if (_DebugLightingMode != DEBUGLIGHTINGMODE_LUX_METER)
-#endif
-                ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, builtinDataProbeVolumes);
+//             if ((featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION) && (refractionHierarchyWeight < 1.0))
+//             {
+//                 EVALUATE_BSDF_ENV_SKY(envLightSky, REFRACTION, refraction);
+//             }
+//         }
+//     }
+// #undef EVALUATE_BSDF_ENV
+// #undef EVALUATE_BSDF_ENV_SKY
 
-#endif
+//     if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
+//     {
+//         for (i = 0; i < _DirectionalLightCount; ++i)
+//         {
+//             if (IsMatchingLightLayer(_DirectionalLightData[i].lightLayers, builtinData.renderingLayers))
+//             {
+//                 DirectLighting lighting = EvaluateBSDF_Directional(context, V, posInput, preLightData, _DirectionalLightData[i], bsdfData, builtinData);
+//                 AccumulateDirectLighting(lighting, aggregateLighting);
+//             }
+//         }
+//     }
 
-#if (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING)
-            // If we are deferred we should apply baked AO here as it was already apply for lightmap.
-            // But in deferred ambientOcclusion is white so we should use specularOcclusion instead. It is the
-            // same case than for Microshadow so we can reuse this function. It should not be apply in forward
-            // as in this case the baked AO is correctly apply in PostBSDF()
-            // This is apply only on bakeDiffuseLighting as ModifyBakedDiffuseLighting combine both bakeDiffuseLighting and backBakeDiffuseLighting
-            builtinDataProbeVolumes.bakeDiffuseLighting *= GetAmbientOcclusionForMicroShadowing(bsdfData);
-#endif
+// #if SHADEROPTIONS_AREA_LIGHTS
+//     if (featureFlags & LIGHTFEATUREFLAGS_AREA)
+//     {
+//         uint lightCount, lightStart;
 
-            ApplyDebugToBuiltinData(builtinDataProbeVolumes);
+//     #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
+//         GetCountAndStart(posInput, LIGHTCATEGORY_AREA, lightStart, lightCount);
+//     #else
+//         lightCount = _AreaLightCount;
+//         lightStart = _PunctualLightCount;
+//     #endif
 
-            // Note: builtinDataProbeVolumes.bakeDiffuseLighting and builtinDataProbeVolumes.backBakeDiffuseLighting were combine inside of ModifyBakedDiffuseLighting().
-            builtinData.bakeDiffuseLighting += builtinDataProbeVolumes.bakeDiffuseLighting;
-        }
-    }
-#endif
+//         // COMPILER BEHAVIOR WARNING!
+//         // If rectangle lights are before line lights, the compiler will duplicate light matrices in VGPR because they are used differently between the two types of lights.
+//         // By keeping line lights first we avoid this behavior and save substantial register pressure.
+//         // TODO: This is based on the current Lit.shader and can be different for any other way of implementing area lights, how to be generic and ensure performance ?
+
+//         if (lightCount > 0)
+//         {
+//             i = 0;
+
+//             uint      last      = lightCount - 1;
+//             LightData lightData = FetchLight(lightStart, i);
+
+//             while (i <= last && lightData.lightType == GPULIGHTTYPE_TUBE)
+//             {
+//                 lightData.lightType = GPULIGHTTYPE_TUBE; // Enforce constant propagation
+//                 lightData.cookieMode = COOKIEMODE_NONE;  // Enforce constant propagation
+
+//                 if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
+//                 {
+//                     DirectLighting lighting = EvaluateBSDF_Area(context, V, posInput, preLightData, lightData, bsdfData, builtinData);
+//                     AccumulateDirectLighting(lighting, aggregateLighting);
+//                 }
+
+//                 lightData = FetchLight(lightStart, min(++i, last));
+//             }
+
+//             while (i <= last) // GPULIGHTTYPE_RECTANGLE
+//             {
+//                 lightData.lightType = GPULIGHTTYPE_RECTANGLE; // Enforce constant propagation
+
+//                 if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
+//                 {
+//                     DirectLighting lighting = EvaluateBSDF_Area(context, V, posInput, preLightData, lightData, bsdfData, builtinData);
+//                     AccumulateDirectLighting(lighting, aggregateLighting);
+//                 }
+
+//                 lightData = FetchLight(lightStart, min(++i, last));
+//             }
+//         }
+//     }
+// #endif
+
+// #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
+//     bool uninitialized = IsUninitializedGI(builtinData.bakeDiffuseLighting);
+//     builtinData.bakeDiffuseLighting = uninitialized ? float3(0.0, 0.0, 0.0) : builtinData.bakeDiffuseLighting;
+
+//     // If probe volume feature is enabled, this bit is enabled for all tiles to handle ambient probe fallback.
+//     // No need to branch internally on _EnableProbeVolumes uniform.
+//     if (featureFlags & LIGHTFEATUREFLAGS_PROBE_VOLUME)
+//     {
+// #if !SHADEROPTIONS_PROBE_VOLUMES_ADDITIVE_BLENDING
+//         if (uninitialized)
+// #endif
+//         {
+//             // Need to make sure not to apply ModifyBakedDiffuseLighting() twice to our bakeDiffuseLighting data, which could happen if we are dealing with initialized data (light maps).
+//             // Create a local BuiltinData variable here, and then add results to builtinData.bakeDiffuseLighting at the end.
+//             BuiltinData builtinDataProbeVolumes;
+//             ZERO_INITIALIZE(BuiltinData, builtinDataProbeVolumes);
+
+//             float probeVolumeHierarchyWeight = uninitialized ? 0.0f : 1.0f;
+
+//             // Note: we aren't suppose to access normalWS in lightloop, but bsdfData.normalWS is always define for any material. So this is safe.
+//             ProbeVolumeEvaluateSphericalHarmonics(
+//                 posInput,
+//                 bsdfData.normalWS,
+//                 -bsdfData.normalWS,
+//                 builtinData.renderingLayers,
+//                 probeVolumeHierarchyWeight,
+//                 builtinDataProbeVolumes.bakeDiffuseLighting,
+//                 builtinDataProbeVolumes.backBakeDiffuseLighting
+//             );
+
+//             // Apply control from the indirect lighting volume settings (Remember there is no emissive here at this step)
+//             float indirectDiffuseMultiplier = GetIndirectDiffuseMultiplier(builtinData.renderingLayers);
+//             builtinDataProbeVolumes.bakeDiffuseLighting *= indirectDiffuseMultiplier;
+//             builtinDataProbeVolumes.backBakeDiffuseLighting *= indirectDiffuseMultiplier;
+
+// #ifdef MODIFY_BAKED_DIFFUSE_LIGHTING
+// #ifdef DEBUG_DISPLAY
+//             // When the lux meter is enabled, we don't want the albedo of the material to modify the diffuse baked lighting
+//             if (_DebugLightingMode != DEBUGLIGHTINGMODE_LUX_METER)
+// #endif
+//                 ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, builtinDataProbeVolumes);
+
+// #endif
+
+// #if (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING)
+//             // If we are deferred we should apply baked AO here as it was already apply for lightmap.
+//             // But in deferred ambientOcclusion is white so we should use specularOcclusion instead. It is the
+//             // same case than for Microshadow so we can reuse this function. It should not be apply in forward
+//             // as in this case the baked AO is correctly apply in PostBSDF()
+//             // This is apply only on bakeDiffuseLighting as ModifyBakedDiffuseLighting combine both bakeDiffuseLighting and backBakeDiffuseLighting
+//             builtinDataProbeVolumes.bakeDiffuseLighting *= GetAmbientOcclusionForMicroShadowing(bsdfData);
+// #endif
+
+//             ApplyDebugToBuiltinData(builtinDataProbeVolumes);
+
+//             // Note: builtinDataProbeVolumes.bakeDiffuseLighting and builtinDataProbeVolumes.backBakeDiffuseLighting were combine inside of ModifyBakedDiffuseLighting().
+//             builtinData.bakeDiffuseLighting += builtinDataProbeVolumes.bakeDiffuseLighting;
+//         }
+//     }
+// #endif
 
 #if !defined(_SURFACE_TYPE_TRANSPARENT)
     // If we use the texture ssgi for ssgi or rtgi, we want to combine it with the value in the bake diffuse lighting value

@@ -124,7 +124,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _PunctualLightCount    = Shader.PropertyToID(nameof(_PunctualLightCount));
         public static readonly int _AreaLightData         = Shader.PropertyToID(nameof(_AreaLightData));
         public static readonly int _AreaLightCount        = Shader.PropertyToID(nameof(_AreaLightCount));
-        public static readonly int _EnvLightData          = Shader.PropertyToID(nameof(_EnvLightData));
+        public static readonly int _ReflectionProbeData   = Shader.PropertyToID(nameof(_ReflectionProbeData));
         public static readonly int _EnvLightCount         = Shader.PropertyToID(nameof(_EnvLightCount));
         public static readonly int _DecalData             = Shader.PropertyToID(nameof(_DecalData));
         public static readonly int _DecalCount            = Shader.PropertyToID(nameof(_DecalCount));

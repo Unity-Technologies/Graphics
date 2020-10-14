@@ -4188,7 +4188,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._DirectionalLightCount = (uint)m_DirectionalLightData.Count;
             cb._PunctualLightCount    = (uint)m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.PunctualLight);
             cb._AreaLightCount        = (uint)m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.AreaLight);
-            cb._EnvLightCount         = (uint)m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.ReflectionProbe);
+            cb._ReflectionProbeCount  = (uint)m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.ReflectionProbe);
             cb._DecalCount            = (uint)m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.Decal);
             // cb._DensityVolumeCount    = (uint)m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.DensityVolume);
 
@@ -4244,7 +4244,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightData,  m_DirectionalLightDataBuffer);
             cmd.SetGlobalBuffer(HDShaderIDs._PunctualLightData,     m_BoundedEntityCollection.GetEntityDataBuffer(BoundedEntityCategory.PunctualLight));
             cmd.SetGlobalBuffer(HDShaderIDs._AreaLightData,         m_BoundedEntityCollection.GetEntityDataBuffer(BoundedEntityCategory.AreaLight));
-            cmd.SetGlobalBuffer(HDShaderIDs._EnvLightData,          m_BoundedEntityCollection.GetEntityDataBuffer(BoundedEntityCategory.ReflectionProbe));
+            cmd.SetGlobalBuffer(HDShaderIDs._ReflectionProbeData,   m_BoundedEntityCollection.GetEntityDataBuffer(BoundedEntityCategory.ReflectionProbe));
             cmd.SetGlobalBuffer(HDShaderIDs._DecalData,             m_BoundedEntityCollection.GetEntityDataBuffer(BoundedEntityCategory.Decal));
             cmd.SetGlobalBuffer(HDShaderIDs._DensityVolumeData,     m_BoundedEntityCollection.GetEntityDataBuffer(BoundedEntityCategory.DensityVolume));
 

@@ -11,9 +11,17 @@ StructuredBuffer<float> g_logBaseBuffer;
     StructuredBuffer<uint> g_TileFeatureFlags;
 #endif
 
-StructuredBuffer<DirectionalLightData> _DirectionalLightData;
-StructuredBuffer<LightData>            _LightData;
-StructuredBuffer<EnvLightData>         _EnvLightData;
+// Directional lights + 1x list per BoundedEntityCategory.
+StructuredBuffer<DirectionalLightData>       _DirectionalLightData;
+
+// NEVER ACCESS THESE DIRECTLY.
+StructuredBuffer<LightData>                  _PunctualLightData;
+StructuredBuffer<LightData>                  _AreaLightData;
+StructuredBuffer<EnvLightData>               _ReflectionProbeData;
+// Defined elsewhere:
+// StructuredBuffer<DecalData> 		   		 _DecalData;
+// StructuredBuffer<DensityVolumeEngineData> _DensityVolumeData;
+// StructuredBuffer<OrientedBBox>            _DensityVolumeBounds;
 
 // Used by directional and spot lights
 TEXTURE2D(_CookieAtlas);

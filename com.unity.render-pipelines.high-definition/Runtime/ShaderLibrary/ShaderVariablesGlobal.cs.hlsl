@@ -84,7 +84,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     uint _DirectionalLightCount;
     uint _PunctualLightCount;
     uint _AreaLightCount;
-    uint _EnvLightCount;
+    uint _ReflectionProbeCount;
     int _EnvLightSkyEnabled;
     uint _CascadeShadowCount;
     int _DirectionalShadowIndex;

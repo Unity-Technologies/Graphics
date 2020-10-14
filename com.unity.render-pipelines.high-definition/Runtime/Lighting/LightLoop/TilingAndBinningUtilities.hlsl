@@ -1,6 +1,12 @@
 #ifndef UNITY_TILINGANDBINNINGUTILITIES_INCLUDED
 #define UNITY_TILINGANDBINNINGUTILITIES_INCLUDED
 
+// REMOVE!!!
+uint GetTileSize()
+{
+    return 16;
+}
+
 // The HLSL preprocessor does not support the '%' operator.
 #define REMAINDER(a, n) ((a) - (n) * ((a) / (n)))
 
@@ -92,6 +98,12 @@ uint ComputeEntityBoundsBufferIndex(uint entityIndex, uint eye)
     return IndexFromCoordinate(uint2(entityIndex, eye), _BoundedEntityCount);
 }
 
+uint ComputeZBinBufferIndex(uint bin, uint category, uint eye)
+{
+    return IndexFromCoordinate(uint3(bin, category, eye),
+                               uint2(ZBIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT));
+}
+
 // TODO: should we move '_CoarseTileBufferDimensions' to 'LightLoop.cs.hlsl'?
 #ifndef NO_SHADERVARIABLESGLOBAL_HLSL
 
@@ -104,15 +116,9 @@ uint ComputeCoarseTileBufferIndex(uint2 tileCoord, uint category, uint eye)
                                         uint3(rowSize, ZBIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT));
 }
 
-uint ComputeZBinBufferIndex(uint bin, uint category, uint eye)
+uint ComputeZBinFromLinearDepth(float w)
 {
-    return IndexFromCoordinate(uint3(bin, category, eye),
-                               uint2(ZBIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT));
-}
-
-uint ComputeZBinFromLinearDepth(float w, float4 encodingParams)
-{
-    float z = EncodeLogarithmicDepth(w, encodingParams);
+    float z = EncodeLogarithmicDepth(w, _ZBinBufferEncodingParams);
     z = saturate(z); // Clamp to the region between the near and the far planes
 
     return min((uint)(z * ZBIN_COUNT), ZBIN_COUNT - 1);
