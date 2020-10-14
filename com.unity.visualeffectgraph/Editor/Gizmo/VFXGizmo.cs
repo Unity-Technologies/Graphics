@@ -44,13 +44,19 @@ namespace UnityEditor.VFX
         public bool spaceLocalByDefault { get; set; }
         public VisualEffect component {get; set; }
 
+        private Quaternion GetHandleRotation(Quaternion localRotation)
+        {
+            if (Tools.pivotRotation == PivotRotation.Local)
+                return localRotation;
+            return Handles.matrix.inverse.rotation;
+        }
+
         public bool PositionGizmo(ref Vector3 position, Vector3 rotation, bool always)
         {
             if (always || Tools.current == Tool.Move || Tools.current == Tool.Transform || Tools.current == Tool.None)
             {
                 EditorGUI.BeginChangeCheck();
-                var quaternion = Quaternion.Euler(rotation);
-                position = Handles.PositionHandle(position, Tools.pivotRotation == PivotRotation.Local ? quaternion : quaternion * Handles.matrix.inverse.rotation);
+                position = Handles.PositionHandle(position, GetHandleRotation(Quaternion.Euler(rotation)));
                 return EditorGUI.EndChangeCheck();
             }
             return false;
@@ -61,7 +67,7 @@ namespace UnityEditor.VFX
             if (always || Tools.current == Tool.Scale || Tools.current == Tool.Transform || Tools.current == Tool.None)
             {
                 EditorGUI.BeginChangeCheck();
-                scale = Handles.ScaleHandle(scale, position , rotation, Tools.current == Tool.Transform || Tools.current == Tool.None ? HandleUtility.GetHandleSize(position) * 0.75f : HandleUtility.GetHandleSize(position));
+                scale = Handles.ScaleHandle(scale, position, GetHandleRotation(rotation), Tools.current == Tool.Transform || Tools.current == Tool.None ? HandleUtility.GetHandleSize(position) * 0.75f : HandleUtility.GetHandleSize(position));
                 return EditorGUI.EndChangeCheck();
             }
             return false;
@@ -99,8 +105,7 @@ namespace UnityEditor.VFX
 
         public bool RotationGizmo(Vector3 position, ref Vector3 rotation, bool always)
         {
-            Quaternion quaternion = Quaternion.Euler(rotation);
-
+            var quaternion = Quaternion.Euler(rotation);
             bool result = RotationGizmo(position, ref quaternion, always);
             if (result)
             {
@@ -110,15 +115,41 @@ namespace UnityEditor.VFX
             return false;
         }
 
+        bool m_IsRotating = false;
+        Quaternion m_StartRotation = Quaternion.identity;
+        int m_HotControlRotation = -1;
         public bool RotationGizmo(Vector3 position, ref Quaternion rotation, bool always)
         {
             if (always || Tools.current == Tool.Rotate || Tools.current == Tool.Transform || Tools.current == Tool.None)
             {
                 EditorGUI.BeginChangeCheck();
+                var newRotation = Handles.RotationHandle(GetHandleRotation(rotation), position);
 
-                rotation = Handles.RotationHandle(rotation, position);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (!m_IsRotating)
+                    {
+                        //Save first rotation state to avoid rotation accumulation while dragging in global space.
+                        m_StartRotation = rotation;
+                        m_HotControlRotation = GUIUtility.hotControl;
+                    }
 
-                return EditorGUI.EndChangeCheck();
+                    if (Tools.pivotRotation == PivotRotation.Global)
+                        rotation = newRotation * Handles.matrix.rotation * m_StartRotation;
+                    else
+                        rotation = newRotation;
+
+                    m_IsRotating = true;
+                    return true;
+                }
+
+                if (GUIUtility.hotControl != m_HotControlRotation)
+                {
+                    //If hotControl has changed, the dragging has been terminated.
+                    m_StartRotation = Quaternion.identity;
+                    m_IsRotating = false;
+                    m_HotControlRotation = -1;
+                }
             }
             return false;
         }
