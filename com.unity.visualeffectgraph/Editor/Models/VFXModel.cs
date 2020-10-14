@@ -465,7 +465,7 @@ namespace UnityEditor.VFX
                 var oneF3 = VFXOperatorUtility.OneExpression[VFXValueType.Float3];
                 VFXExpression rotationMatrix = new VFXExpressionTRSToMatrix(zeroF3, input, oneF3);
                 var extractRotationMatrix = VFXOperatorUtility.GetRotationMatrixFromTRS(matrix);
-                rotationMatrix = new VFXExpressionTransformMatrix(rotationMatrix, extractRotationMatrix);
+                rotationMatrix = new VFXExpressionTransformMatrix(extractRotationMatrix, rotationMatrix);
                 input = new VFXExpressionExtractAnglesFromMatrix(rotationMatrix);
             }
             else if (spaceType == SpaceableType.Scale)
