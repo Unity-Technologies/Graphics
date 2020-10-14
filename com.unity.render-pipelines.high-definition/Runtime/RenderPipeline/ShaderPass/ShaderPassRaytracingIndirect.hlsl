@@ -36,6 +36,8 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
     // Compute the bsdf data
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
 
+    // No need for SurfaceData after this line
+
 #ifdef HAS_LIGHTLOOP
     // We do not want to use the diffuse when we compute the indirect diffuse
     if (_RayTracingDiffuseLightingOnly)
@@ -61,18 +63,16 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
         float3 sampleDir;
         if (_RayTracingDiffuseLightingOnly)
         {
-            sampleDir = SampleHemisphereCosine(sample.x, sample.y, surfaceData.normalWS);
+            sampleDir = SampleHemisphereCosine(sample.x, sample.y, bsdfData.normalWS);
         }
         else
         {
-            float roughness = PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness);
-            float NdotL, NdotH, VdotH;
-            SampleGGXDir(sample, viewWS, fragInput.tangentToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
+            sampleDir = SampleSpecularBRDF(bsdfData, sample, viewWS);
         }
 
         // Create the ray descriptor for this pixel
         RayDesc rayDescriptor;
-        rayDescriptor.Origin = pointWSPos + surfaceData.normalWS * _RaytracingRayBias;
+        rayDescriptor.Origin = pointWSPos + bsdfData.normalWS * _RaytracingRayBias;
         rayDescriptor.Direction = sampleDir;
         rayDescriptor.TMin = 0.0f;
         rayDescriptor.TMax = _RaytracingRayMaxLength;
@@ -93,7 +93,7 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
 
         bool launchRay = true;
         if (!_RayTracingDiffuseLightingOnly)
-            launchRay = dot(sampleDir, surfaceData.normalWS) > 0.0;
+            launchRay = dot(sampleDir, bsdfData.normalWS) > 0.0;
 
         // Evaluate the ray intersection
         if (launchRay)

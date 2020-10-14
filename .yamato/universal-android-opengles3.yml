@@ -42,7 +42,7 @@ Build_Universal_Android_OpenGLES3_Player_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=il2cpp --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=il2cpp --timeout=2700
     artifacts:
         logs:
             paths:
@@ -89,8 +89,8 @@ Build_Universal_Android_OpenGLES3_Player_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=il2cpp --timeout=1800
+      -  unity-downloader-cli -u 2ea77e477b085e913ac2cdc798fcd655b010f1a2 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=il2cpp --timeout=2700
     artifacts:
         logs:
             paths:
@@ -142,7 +142,7 @@ Build_Universal_Android_OpenGLES3_Player_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=il2cpp --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalGraphicsTest --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=il2cpp --timeout=2700
     artifacts:
         logs:
             paths:
