@@ -44,7 +44,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     // Make sure to add the additional travel distance
     pathIntersection.cone.width += pathIntersection.t * abs(pathIntersection.cone.spreadAngle);
 
-#ifdef EMISSIVE_ONLY
+#ifdef SHADER_UNLIT
     // This is quick and dirty way to avoid double contribution from light meshes
     if (currentDepth)
         pathIntersection.cone.spreadAngle = -1.0;
@@ -73,7 +73,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     // Compute the bsdf data
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
 
-#ifndef EMISSIVE_ONLY
+#ifndef SHADER_UNLIT
 
     // Let's compute the world space position (the non-camera relative one if camera relative rendering is enabled)
     float3 shadingPosition = fragInput.positionRWS;
@@ -191,7 +191,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
         }
     }
 
-#else // EMISSIVE_ONLY
+#else // SHADER_UNLIT
 
     pathIntersection.value = (!currentDepth || computeDirect) ? bsdfData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor : 0.0;
 
@@ -214,7 +214,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     }
 #endif
 
-#endif // EMISSIVE_ONLY
+#endif // SHADER_UNLIT
 }
 
 // Generic function that handles one scattering event (a vertex along the full path), can be either:

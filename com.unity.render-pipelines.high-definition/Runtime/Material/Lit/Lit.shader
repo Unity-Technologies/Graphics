@@ -1152,7 +1152,7 @@ Shader "HDRP/Lit"
 
             #define SHADERPASS SHADERPASS_PATH_TRACING
 
-            // This is just because it need to be defined, shadow maps are not used.
+            // This is just because it needs to be defined, shadow maps are not used.
             #define SHADOW_LOW
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"

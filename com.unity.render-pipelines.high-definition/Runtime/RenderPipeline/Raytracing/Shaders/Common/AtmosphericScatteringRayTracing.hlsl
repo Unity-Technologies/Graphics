@@ -7,8 +7,7 @@ void ApplyFogAttenuation(float3 origin, float3 direction, float t, inout float3 
 {
     if (_FogEnabled)
     {
-        float dist = t; // FIXME: This gives a better match with the raster version...
-        //float dist = min(t, _MaxFogDistance);
+        float dist = min(t, _MaxFogDistance);
         float absFogBaseHeight = _HeightFogBaseHeight;
         float fogTransmittance = TransmittanceHeightFog(_HeightFogBaseExtinction, absFogBaseHeight, _HeightFogExponents, direction.y, origin.y, dist);
 

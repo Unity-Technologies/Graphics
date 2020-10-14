@@ -46,6 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string postDecalsInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl";
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Lit;
         protected override string raytracingInclude => CoreIncludes.kLitRaytracing;
+        protected override string pathtracingInclude => CoreIncludes.kLitPathtracing;
         protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "Lit Subshader", "");
         protected override string subShaderInclude => CoreIncludes.kLit;
 
