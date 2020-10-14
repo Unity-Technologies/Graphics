@@ -13,7 +13,6 @@
 // NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
 CBUFFER_START(UnityPerMaterial)
 float4 _BaseMap_ST;
-float4 _DetailAlbedoMap_ST;
 half4 _BaseColor;
 half4 _SpecColor;
 half4 _EmissionColor;
@@ -25,6 +24,7 @@ half _Parallax;
 half _OcclusionStrength;
 half _ClearCoatMask;
 //half _ClearCoatSmoothness; // TODO: enable
+float4 _DetailAlbedoMap_ST;
 #if defined(_DETAIL)
 half _DetailAlbedoMapScale;
 half _DetailNormalMapScale;
