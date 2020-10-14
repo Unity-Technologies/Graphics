@@ -161,6 +161,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue where multiple cameras would cause GC each frame.
 - Fixed after post process rendering pass options not showing for unlit ShaderGraphs.
 - Fixed a migration issue with the rendering queue in ShaderGraph when upgrading to 10.x;
+- Fixed null reference in the Undo callback of the graphics compositor 
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
