@@ -62,6 +62,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 m_ShaderTagIdList.Add(new ShaderTagId("SRPDefaultUnlit"));
                 m_ShaderTagIdList.Add(new ShaderTagId("UniversalForward"));
+                m_ShaderTagIdList.Add(new ShaderTagId("UniversalForwardOnly"));
                 m_ShaderTagIdList.Add(new ShaderTagId("LightweightForward"));
             }
 
