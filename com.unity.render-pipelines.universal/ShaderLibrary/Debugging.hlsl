@@ -45,16 +45,16 @@
 #define DEBUG_MIPMAPMODE_NONE 0
 #define DEBUG_MIPMAPMODE_MIP_LEVEL 1
 #define DEBUG_MIPMAPMODE_MIP_COUNT 2
-#define DEBUG_MIPMAPMODE_MIP_COUNT_REDUCTION 3
+//#define DEBUG_MIPMAPMODE_MIP_COUNT_REDUCTION 3
 //#define DEBUG_MIPMAPMODE_STREAMING_MIP_BUDGET 4
 //#define DEBUG_MIPMAPMODE_STREAMING_MIP 5
 
 // _DebugValidationIndex
 #define DEBUG_VALIDATION_NONE 0
-//#define DEBUG_VALIDATION_HIGHLIGHT_NAN_INFINITE_NEGATIVE 1
-//#define DEBUG_VALIDATION_HIGHLIGHT_OUTSIDE_RANGE 2
+#define DEBUG_VALIDATION_HIGHLIGHT_NAN_INFINITE_NEGATIVE 1
+#define DEBUG_VALIDATION_HIGHLIGHT_OUTSIDE_RANGE 2
 #define DEBUG_VALIDATION_ALBEDO 3
-#define DEBUG_VALIDATION_METAL 4
+//#define DEBUG_VALIDATION_METAL 4
 
 // Set of colors that should still provide contrast for the Color-blind
 #define kPurpleColor float4(156.0 / 255.0, 79.0 / 255.0, 255.0 / 255.0, 1.0) // #9C4FFF
@@ -369,13 +369,13 @@ bool CalculateValidationColorForMipMaps(InputData inputData, SurfaceData surface
         case DEBUG_MIPMAPMODE_MIP_COUNT:
             color = GetMipCountDebugColor(inputData, debugData.uv);
             return true;
-        case DEBUG_MIPMAPMODE_MIP_COUNT_REDUCTION:
-            //color = GetDebugMipReductionColor(_BaseMap, mipInfo);
-            return true;
-        //case DEBUG_MIPMAPMODE_STREAMING_MIP_BUDGET:
+        // case DEBUG_MIPMAPMODE_MIP_COUNT_REDUCTION:
+        //     color = GetDebugMipReductionColor(_BaseMap, mipInfo);
+        //     return true;
+        // case DEBUG_MIPMAPMODE_STREAMING_MIP_BUDGET:
         //    color = GetDebugStreamingMipColor(tex, mipInfo);
         //    break;
-        //case DEBUG_MIPMAPMODE_STREAMING_MIP:
+        // case DEBUG_MIPMAPMODE_STREAMING_MIP:
         //    color = GetDebugStreamingMipColorBlended(originalColor, tex, mipInfo);
         //    break;
         default:
