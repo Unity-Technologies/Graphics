@@ -3760,96 +3760,99 @@ namespace UnityEngine.Rendering.HighDefinition
         //     }
         // }
 
-        // static void BuildDispatchIndirectArguments(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, bool tileFlagsWritten, CommandBuffer cmd)
-        // {
-        //     if (parameters.enableFeatureVariants)
-        //     {
-        //         // We need to touch up the tile flags if we need material classification or, if disabled, to patch up for missing flags during the skipped light tile gen
-        //         bool needModifyingTileFeatures = !tileFlagsWritten || parameters.computeMaterialVariants;
-        //         if (needModifyingTileFeatures)
-        //         {
-        //             int buildMaterialFlagsKernel = s_BuildMaterialFlagsWriteKernel;
-        //             parameters.buildMaterialFlagsShader.shaderKeywords = null;
-        //             if (tileFlagsWritten && parameters.computeLightVariants)
-        //             {
-        //                 parameters.buildMaterialFlagsShader.EnableKeyword("USE_OR");
-        //             }
+        static void BuildDispatchIndirectArguments(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, bool tileFlagsWritten, CommandBuffer cmd)
+        {
+            var parameters_computeLightVariants = false; // REMOVE
 
-        //             uint baseFeatureFlags = 0;
-        //             if (!parameters.computeLightVariants)
-        //             {
-        //                 baseFeatureFlags |= TiledLightingConstants.s_LightFeatureMaskFlags;
-        //             }
-        //             if (parameters.probeVolumeEnabled)
-        //             {
-        //                 // TODO: Verify that we should be globally enabling ProbeVolume feature for all tiles here, or if we should be using per-tile culling.
-        //                 baseFeatureFlags |= (uint)LightFeatureFlags.ProbeVolume;
-        //             }
+            if (parameters.enableFeatureVariants)
+            {
+                // We need to touch up the tile flags if we need material classification or, if disabled, to patch up for missing flags during the skipped light tile gen
+                bool needModifyingTileFeatures = !tileFlagsWritten || parameters.computeMaterialVariants;
+                if (needModifyingTileFeatures)
+                {
+                    int buildMaterialFlagsKernel = s_BuildMaterialFlagsWriteKernel;
+                    parameters.buildMaterialFlagsShader.shaderKeywords = null;
 
-        //             // If we haven't run the light list building, we are missing some basic lighting flags.
-        //             if (!tileFlagsWritten)
-        //             {
-        //                 if (parameters.lightList.directionalLights.Count > 0)
-        //                 {
-        //                     baseFeatureFlags |= (uint)LightFeatureFlags.Directional;
-        //                 }
-        //                 if (parameters.skyEnabled)
-        //                 {
-        //                     baseFeatureFlags |= (uint)LightFeatureFlags.Sky;
-        //                 }
-        //                 if (!parameters.computeMaterialVariants)
-        //                 {
-        //                     baseFeatureFlags |= TiledLightingConstants.s_MaterialFeatureMaskFlags;
-        //                 }
-        //             }
+                    if (tileFlagsWritten && parameters_computeLightVariants)
+                    {
+                        parameters.buildMaterialFlagsShader.EnableKeyword("USE_OR");
+                    }
 
-        //             var localLightListCB = parameters.lightListCB;
-        //             localLightListCB.g_BaseFeatureFlags = baseFeatureFlags;
+                    uint baseFeatureFlags = 0;
+                    if (!parameters_computeLightVariants)
+                    {
+                        baseFeatureFlags |= TiledLightingConstants.s_LightFeatureMaskFlags;
+                    }
+                    if (parameters.probeVolumeEnabled)
+                    {
+                        // TODO: Verify that we should be globally enabling ProbeVolume feature for all tiles here, or if we should be using per-tile culling.
+                        baseFeatureFlags |= (uint)LightFeatureFlags.ProbeVolume;
+                    }
 
-        //             cmd.SetComputeBufferParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlags);
+                    // If we haven't run the light list building, we are missing some basic lighting flags.
+                    if (!tileFlagsWritten)
+                    {
+                        if (parameters.hasDirectionalLights)
+                        {
+                            baseFeatureFlags |= (uint)LightFeatureFlags.Directional;
+                        }
+                        if (parameters.skyEnabled)
+                        {
+                            baseFeatureFlags |= (uint)LightFeatureFlags.Sky;
+                        }
+                        if (!parameters.computeMaterialVariants)
+                        {
+                            baseFeatureFlags |= TiledLightingConstants.s_MaterialFeatureMaskFlags;
+                        }
+                    }
 
-        //             for (int i = 0; i < resources.gBuffer.Length; ++i)
-        //                 cmd.SetComputeTextureParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._GBufferTexture[i], resources.gBuffer[i]);
+                    var localLightListCB = parameters.lightListCB;
+                    localLightListCB.g_BaseFeatureFlags = baseFeatureFlags;
 
-        //             if(resources.stencilTexture.rt.stencilFormat == GraphicsFormat.None) // We are accessing MSAA resolved version and not the depth stencil buffer directly.
-        //             {
-        //                 cmd.SetComputeTextureParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._StencilTexture, resources.stencilTexture);
-        //             }
-        //             else
-        //             {
-        //                 cmd.SetComputeTextureParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._StencilTexture, resources.stencilTexture, 0, RenderTextureSubElement.Stencil);
-        //             }
+                    cmd.SetComputeBufferParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlags);
 
-        //             ConstantBuffer.Push(cmd, localLightListCB, parameters.buildMaterialFlagsShader, HDShaderIDs._ShaderVariablesLightList);
+                    for (int i = 0; i < resources.gBuffer.Length; ++i)
+                        cmd.SetComputeTextureParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._GBufferTexture[i], resources.gBuffer[i]);
 
-        //             cmd.DispatchCompute(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, parameters.numTilesFPTLX, parameters.numTilesFPTLY, parameters.viewCount);
-        //         }
+                    if (resources.stencilTexture.rt.stencilFormat == GraphicsFormat.None) // We are accessing MSAA resolved version and not the depth stencil buffer directly.
+                    {
+                        cmd.SetComputeTextureParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._StencilTexture, resources.stencilTexture);
+                    }
+                    else
+                    {
+                        cmd.SetComputeTextureParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._StencilTexture, resources.stencilTexture, 0, RenderTextureSubElement.Stencil);
+                    }
 
-        //         // clear dispatch indirect buffer
-        //         if (parameters.useComputeAsPixel)
-        //         {
-        //             cmd.SetComputeBufferParam(parameters.clearDispatchIndirectShader, s_ClearDrawProceduralIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, resources.dispatchIndirectBuffer);
-        //             cmd.SetComputeIntParam(parameters.clearDispatchIndirectShader, HDShaderIDs.g_NumTiles, parameters.numTilesFPTL);
-        //             cmd.SetComputeIntParam(parameters.clearDispatchIndirectShader, HDShaderIDs.g_VertexPerTile, k_HasNativeQuadSupport ? 4 : 6);
-        //             cmd.DispatchCompute(parameters.clearDispatchIndirectShader, s_ClearDrawProceduralIndirectKernel, 1, 1, 1);
+                    ConstantBuffer.Push(cmd, localLightListCB, parameters.buildMaterialFlagsShader, HDShaderIDs._ShaderVariablesLightList);
 
-        //         }
-        //         else
-        //         {
-        //             cmd.SetComputeBufferParam(parameters.clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, resources.dispatchIndirectBuffer);
-        //             cmd.DispatchCompute(parameters.clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, 1, 1, 1);
-        //         }
+                    cmd.DispatchCompute(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, parameters.numTilesFPTLX, parameters.numTilesFPTLY, parameters.viewCount);
+                }
 
-        //         // add tiles to indirect buffer
-        //         cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, resources.dispatchIndirectBuffer);
-        //         cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildIndirectKernel, HDShaderIDs.g_TileList, resources.tileList);
-        //         cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildIndirectKernel, HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlags);
-        //         cmd.SetComputeIntParam(parameters.buildDispatchIndirectShader, HDShaderIDs.g_NumTiles, parameters.numTilesFPTL);
-        //         cmd.SetComputeIntParam(parameters.buildDispatchIndirectShader, HDShaderIDs.g_NumTilesX, parameters.numTilesFPTLX);
-        //         // Round on k_ThreadGroupOptimalSize so we have optimal thread for buildDispatchIndirectShader kernel
-        //         cmd.DispatchCompute(parameters.buildDispatchIndirectShader, s_BuildIndirectKernel, (parameters.numTilesFPTL + k_ThreadGroupOptimalSize - 1) / k_ThreadGroupOptimalSize, 1, parameters.viewCount);
-        //     }
-        // }
+                // clear dispatch indirect buffer
+                if (parameters.useComputeAsPixel)
+                {
+                    cmd.SetComputeBufferParam(parameters.clearDispatchIndirectShader, s_ClearDrawProceduralIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, resources.dispatchIndirectBuffer);
+                    cmd.SetComputeIntParam(parameters.clearDispatchIndirectShader, HDShaderIDs.g_NumTiles, parameters.numTilesFPTL);
+                    cmd.SetComputeIntParam(parameters.clearDispatchIndirectShader, HDShaderIDs.g_VertexPerTile, k_HasNativeQuadSupport ? 4 : 6);
+                    cmd.DispatchCompute(parameters.clearDispatchIndirectShader, s_ClearDrawProceduralIndirectKernel, 1, 1, 1);
+
+                }
+                else
+                {
+                    cmd.SetComputeBufferParam(parameters.clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, resources.dispatchIndirectBuffer);
+                    cmd.DispatchCompute(parameters.clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, 1, 1, 1);
+                }
+
+                // add tiles to indirect buffer
+                cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, resources.dispatchIndirectBuffer);
+                cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildIndirectKernel, HDShaderIDs.g_TileList, resources.tileList);
+                cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildIndirectKernel, HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlags);
+                cmd.SetComputeIntParam(parameters.buildDispatchIndirectShader, HDShaderIDs.g_NumTiles, parameters.numTilesFPTL);
+                cmd.SetComputeIntParam(parameters.buildDispatchIndirectShader, HDShaderIDs.g_NumTilesX, parameters.numTilesFPTLX);
+                // Round on k_ThreadGroupOptimalSize so we have optimal thread for buildDispatchIndirectShader kernel
+                cmd.DispatchCompute(parameters.buildDispatchIndirectShader, s_BuildIndirectKernel, (parameters.numTilesFPTL + k_ThreadGroupOptimalSize - 1) / k_ThreadGroupOptimalSize, 1, parameters.viewCount);
+            }
+        }
 
         static bool DeferredUseComputeAsPixel(FrameSettings frameSettings)
         {
@@ -4105,7 +4108,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     isGBufferNeeded: true
                 );
 
-                //bool tileFlagsWritten = false;
 
                 // The algorithm (below) works even if the bounded entity count is 0.
                 // That is fairly efficient, and allows us to avoid weird special cases.
@@ -4120,7 +4122,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // BuildPerTileLightList(parameters, resources, ref tileFlagsWritten, cmd);
                 // VoxelLightListGeneration(parameters, resources, cmd);
 
-                // BuildDispatchIndirectArguments(parameters, resources, tileFlagsWritten, cmd);
+                bool tileFlagsWritten = false; // ???
+                BuildDispatchIndirectArguments(parameters, resources, tileFlagsWritten, cmd);
             }
         }
 
