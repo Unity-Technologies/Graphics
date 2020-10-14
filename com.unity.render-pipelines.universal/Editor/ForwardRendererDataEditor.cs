@@ -34,7 +34,6 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_DefaultStencilState;
         SerializedProperty m_PostProcessData;
         SerializedProperty m_Shaders;
-        SerializedProperty m_Textures;
         SerializedProperty m_ShadowTransparentReceiveProp;
 
         private void OnEnable()
@@ -50,7 +49,6 @@ namespace UnityEditor.Rendering.Universal
             m_DefaultStencilState = serializedObject.FindProperty("m_DefaultStencilState");
             m_PostProcessData = serializedObject.FindProperty("postProcessData");
             m_Shaders = serializedObject.FindProperty("shaders");
-            m_Textures = serializedObject.FindProperty("textures");
             m_ShadowTransparentReceiveProp = serializedObject.FindProperty("m_ShadowTransparentReceive");
         }
 
