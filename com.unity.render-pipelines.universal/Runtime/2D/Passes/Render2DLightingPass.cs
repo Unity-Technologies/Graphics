@@ -85,7 +85,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             ref RenderTextureDescriptor desc)
         {
             var batchesDrawn = 0;
-
+            var rtCount = 0U;
             // Draw lights
             using (new ProfilingScope(cmd, m_ProfilingDrawLights))
             {
@@ -101,8 +101,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         blendStyleMask >>= 1;
                     }
 
-                    // if (!LightTextureManager.HasBudgetFor((int)blendStyleCount))
-                    //     break;
+                    rtCount += blendStyleCount;
+
+                    if (rtCount > LayerUtility.maxTextureCount)
+                        break;
 
                     batchesDrawn++;
 
@@ -177,8 +179,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 }
             }
 
-            foreach (var layerBatch in layerBatches)
+            for (var i = startIndex; i < batchCount; ++i)
             {
+                ref var layerBatch = ref layerBatches[i];
                 layerBatch.ReleaseRT(cmd);
             }
 
@@ -202,6 +205,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             filterSettings.layerMask = -1;
             filterSettings.renderingLayerMask = 0xFFFFFFFF;
             filterSettings.sortingLayerRange = SortingLayerRange.all;
+
+            LayerUtility.InitializeBudget(m_Renderer2DData.lightRenderTextureMemoryBudget);
 
             var isSceneLit = m_Renderer2DData.lightCullResult.IsSceneLit();
             if (isSceneLit)
@@ -241,7 +246,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 using (new ProfilingScope(cmd, m_ProfilingSamplerUnlit))
                 {
                     CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment, ClearFlag.None, Color.white);
-                    
+
                     cmd.SetGlobalFloat(k_UseSceneLightingID, isLitView ? 1.0f : 0.0f);
                     cmd.SetGlobalColor(k_RendererColorID, Color.white);
 

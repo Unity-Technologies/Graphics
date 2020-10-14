@@ -1,3 +1,4 @@
+using Unity.Mathematics;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.Universal
@@ -56,6 +57,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
     internal static class LayerUtility
     {
         private static LayerBatch[] s_LayerBatches;
+        public static uint maxTextureCount { get; private set; }
+
+        public static void InitializeBudget(uint maxTextureCount)
+        {
+            LayerUtility.maxTextureCount = math.max(4, maxTextureCount);
+        }
 
         private static bool CompareLightsInLayer(int layerIndex1, int layerIndex2, SortingLayer[] sortingLayers, ILight2DCullResult lightCullResult)
         {
@@ -140,157 +147,4 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return s_LayerBatches;
         }
     }
-
-//     internal static class LightTextureManager
-//     {
-//         private struct TextureInfo
-//         {
-//             public int key;
-//             public bool allocated;
-//         }
-//
-//         private static List<int> s_AllNameIDs;
-//         private static List<TextureInfo> s_AllTextureInfo;
-//
-//         private static RenderTextureDescriptor s_Desc;
-//         private static long s_MemoryBudget;
-//         private static int s_ActiveTextureCount;
-//
-//         public static void Initialize(ref RenderTextureDescriptor desc, long memoryBudget)
-//         {
-//             var maxTextureCount = Light2DManager.GetCachedSortingLayer().Length * 4;
-//             if (s_AllNameIDs == null || s_AllNameIDs.Capacity != maxTextureCount)
-//             {
-//                 s_AllNameIDs = new List<int>(maxTextureCount);
-//                 for (int i = 0; i < s_AllNameIDs.Capacity; ++i)
-//                     s_AllNameIDs.Add(Shader.PropertyToID("_LightTexture" + i));
-//
-//                 s_AllTextureInfo = new List<TextureInfo>(maxTextureCount);
-//             }
-//
-//             if (s_MemoryBudget == memoryBudget && s_Desc.width == desc.width && s_Desc.height == desc.height)
-//                 return;
-//
-//             s_Desc = desc;
-//             s_MemoryBudget = memoryBudget;
-//
-//             var dummyTexture = RenderTexture.GetTemporary(desc);
-//             dummyTexture.Create();
-//             var textureCount = (int)(memoryBudget / Profiler.GetRuntimeMemorySizeLong(dummyTexture));
-//             RenderTexture.ReleaseTemporary(dummyTexture);
-//             textureCount = Mathf.Clamp(textureCount, 4, maxTextureCount);
-//
-//             s_AllTextureInfo.Clear();
-//             for (var i = 0; i < textureCount; ++i)
-//                 s_AllTextureInfo.Add(new TextureInfo());
-//         }
-//
-//         public static bool HasBudgetFor(int textureCount)
-//         {
-//             return s_AllTextureInfo.Count - s_ActiveTextureCount >= textureCount;
-//         }
-//
-//         public static void ResetKeys()
-//         {
-//             for (var i = 0; i < s_AllTextureInfo.Count; ++i)
-//             {
-//                 var textureInfo = s_AllTextureInfo[i];
-//                 textureInfo.key = -1;
-//                 s_AllTextureInfo[i] = textureInfo;
-//             }
-//
-//             s_ActiveTextureCount = 0;
-//         }
-//
-//         public static RenderTargetIdentifier GetLightTextureIdentifier(CommandBuffer cmd, int key)
-//         {
-//             for (var i = 0; i < s_AllTextureInfo.Count; ++i)
-//             {
-//                 var textureInfo = s_AllTextureInfo[i];
-//
-//                 if (textureInfo.key == -1 || textureInfo.key == key)
-//                 {
-//                     if (textureInfo.key == -1)
-//                     {
-//                         textureInfo.key = key;
-//                         s_ActiveTextureCount++;
-//                     }
-//
-//                     var nameID = s_AllNameIDs[i];
-//
-//                     if (!textureInfo.allocated)
-//                     {
-//                         cmd.GetTemporaryRT(nameID, s_Desc, FilterMode.Bilinear);
-//                         textureInfo.allocated = true;
-//                     }
-//
-//                     s_AllTextureInfo[i] = textureInfo;
-//
-//                     return nameID;
-//                 }
-//             }
-//
-//             return BuiltinRenderTextureType.None;
-//         }
-//
-//         public static void ReleaseLightTextures(CommandBuffer cmd)
-//         {
-//             for (var i = 0; i < s_AllTextureInfo.Count; ++i)
-//             {
-//                 var textureInfo = s_AllTextureInfo[i];
-//
-//                 if (!textureInfo.allocated)
-//                     continue;
-//
-//                 cmd.ReleaseTemporaryRT(s_AllNameIDs[i]);
-//                 textureInfo.allocated = false;
-//
-//                 s_AllTextureInfo[i] = textureInfo;
-//             }
-//         }
-//     }
-//
-//     internal static class TemporaryRTManager
-//     {
-//         private static int[] textureIDs;
-//         private static int top = 0;
-//
-//         public static void Begin()
-//         {
-//             var layers = Light2DManager.GetCachedSortingLayer();
-//             var initIDs = textureIDs == null;
-//             textureIDs ??= new int[layers.Length * 4];
-//
-// #if UNITY_EDITOR
-//             if(textureIDs.Length != layers.Length * 4)
-//             {
-//                 textureIDs = new int[layers.Length * 4];
-//                 initIDs = true;
-//             }
-// #endif
-//             if (initIDs)
-//             {
-//                 for (var i = 0; i < textureIDs.Length; i++)
-//                 {
-//                     textureIDs[top] = Shader.PropertyToID($"_LightTexture_{i}");
-//                 }
-//             }
-//
-//             top = 0;
-//         }
-//
-//         public static int GetTempID()
-//         {
-//             return textureIDs[top++];
-//         }
-//
-//         public static void End(CommandBuffer cmd)
-//         {
-//             for (var i = 0; i < top; i++)
-//             {
-//                 cmd.ReleaseTemporaryRT(textureIDs[i]);
-//             }
-//         }
-//
-//     }
 }
