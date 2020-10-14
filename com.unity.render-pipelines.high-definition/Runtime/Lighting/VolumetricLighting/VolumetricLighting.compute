@@ -33,7 +33,7 @@
 #define PREFER_HALF             0
 #define GROUP_SIZE_1D           8
 #define SHADOW_USE_DEPTH_BIAS   0 // Too expensive, not particularly effective
-#define SHADOW_ULTRA_LOW          // Too expensive
+#define SHADOW_ULTRA_LOW          // Different options are too expensive.
 #define SHADOW_AUTO_FLIP_NORMAL 0 // No normal information, so no need to flip
 #define SHADOW_VIEW_BIAS        1 // Prevents light leaking through thin geometry. Not as good as normal bias at grazing angles, but cheaper and independent from the geometry.
 #define USE_DEPTH_BUFFER        1 // Accounts for opaque geometry along the camera ray
@@ -82,7 +82,7 @@ TEXTURE2D_X(_MaxZMaskTexture);
 
 #ifdef USE_BIG_TILE_LIGHTLIST
 
-#define MAX_SUPPORTED_LIGHTS min(128, MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE)
+#define MAX_SUPPORTED_LIGHTS min(128, MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE) // If we have more than 128 lights we exceed the LDS size.
 groupshared int gs_localLightList[GROUP_SIZE_1D*GROUP_SIZE_1D][MAX_SUPPORTED_LIGHTS];
 
 #endif
@@ -480,11 +480,12 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         uint offset = 0;
 
         int validLightCount = 0;
+
         for (; offset < lightCount; offset++)
         {
             uint objectIndex = FetchIndex(lightStart, offset);
             LightData light = _LightDatas[objectIndex];
-            if (light.volumetricLightDimmer > 0)
+            if (light.volumetricLightDimmer > 0 && validLightCount < MAX_SUPPORTED_LIGHTS)
             {
                 gs_localLightList[groupIdx][validLightCount++] = objectIndex;
             }
@@ -556,9 +557,6 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float  extinction = density.a;
         float  anisotropy = _GlobalFogAnisotropy;
 
-        // Prevent division by 0.
-        extinction = max(extinction, FLT_MIN);
-
         // Perform per-pixel randomization by adding an offset and then sampling uniformly
         // (in the log space) in a vein similar to Stochastic Universal Sampling:
         // https://en.wikipedia.org/wiki/Stochastic_universal_sampling
@@ -574,6 +572,9 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 
         VoxelLighting aggregateLighting;
         ZERO_INITIALIZE(VoxelLighting, aggregateLighting);
+
+        // Prevent division by 0.
+        extinction = max(extinction, FLT_MIN);
 
         if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
         {
