@@ -32,7 +32,7 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Explopre global volume
+      m_Summary: Explore global volume
       m_Description: 'Lets see how volumes are being used in this scene
 
 
