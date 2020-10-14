@@ -175,6 +175,11 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
             float3 dirt = SAMPLE_TEXTURE2D_LOD(_BloomDirtTexture, sampler_LinearClamp, uvDistorted * DirtScale + DirtOffset, 0.0).xyz;
             color.xyz += bloom * dirt * DirtIntensity;
         }
+
+#ifdef ENABLE_ALPHA
+        // Bloom should also spread in areas with zero alpha, so we save the image with bloom here to do the mixing at the end of the shader 
+        inputColor.xyz = color.xyz;
+#endif
     }
 
     // Vignette

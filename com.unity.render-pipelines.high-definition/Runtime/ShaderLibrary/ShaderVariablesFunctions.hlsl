@@ -114,11 +114,6 @@ float2 GetNormalizedFullScreenTriangleTexCoord(uint vertexID)
     return GetFullScreenTriangleTexCoord(vertexID) * _RTHandleScale.xy;
 }
 
-float4 SampleSkyTexture(float3 texCoord, int sliceIndex)
-{
-    return SAMPLE_TEXTURECUBE_ARRAY(_SkyTexture, s_trilinear_clamp_sampler, texCoord, sliceIndex);
-}
-
 float4 SampleSkyTexture(float3 texCoord, float lod, int sliceIndex)
 {
     return SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, texCoord, sliceIndex, lod);
