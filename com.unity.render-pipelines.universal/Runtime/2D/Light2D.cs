@@ -169,14 +169,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal void UpdateMesh(bool forced)
         {
             var shapePathHash = LightUtility.GetShapePathHash(shapePath);
+            var fallOffSizeChanged = LightUtility.CheckForChange(m_ShapeLightFalloffSize, ref m_PreviousShapeLightFalloffSize);
+            var parametricRadiusChanged = LightUtility.CheckForChange(m_ShapeLightParametricRadius, ref m_PreviousShapeLightParametricRadius);
+            var parametricSidesChanged = LightUtility.CheckForChange(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides);
+            var parametricAngleOffsetChanged = LightUtility.CheckForChange(m_ShapeLightParametricAngleOffset, ref m_PreviousShapeLightParametricAngleOffset);
+            var spriteInstanceChanged = LightUtility.CheckForChange(lightCookieSpriteInstanceID, ref m_PreviousLightCookieSprite);
+            var shapePathHashChanged = LightUtility.CheckForChange(shapePathHash, ref m_PreviousShapePathHash);
+            var updateMesh = fallOffSizeChanged || parametricRadiusChanged || parametricSidesChanged ||
+                             parametricAngleOffsetChanged || spriteInstanceChanged || shapePathHashChanged;
             // Mesh Rebuilding
-            if (LightUtility.CheckForChange(m_ShapeLightFalloffSize, ref m_PreviousShapeLightFalloffSize) ||
-                LightUtility.CheckForChange(m_ShapeLightParametricRadius, ref m_PreviousShapeLightParametricRadius) ||
-                LightUtility.CheckForChange(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides) ||
-                LightUtility.CheckForChange(m_ShapeLightParametricAngleOffset, ref m_PreviousShapeLightParametricAngleOffset) ||
-                LightUtility.CheckForChange(lightCookieSpriteInstanceID, ref m_PreviousLightCookieSprite) ||
-                LightUtility.CheckForChange(shapePathHash, ref m_PreviousShapePathHash) ||
-                forced)
+            if ( updateMesh || forced)
             {
                 switch (m_LightType)
                 {
