@@ -10,6 +10,7 @@ class DynamicProceduralMesh : MonoBehaviour
 
     private uint minSphereRes = 4;
     private uint maxSphereRes = 16;
+    private uint currSphereRes = 4;
 
     void UpdateMeshGeometry(uint sphereRes)
     {
@@ -47,8 +48,9 @@ class DynamicProceduralMesh : MonoBehaviour
     {
         if (Application.isPlaying)
         {
-			uint sphereRes = (uint)Mathf.Lerp((float)minSphereRes, (float)maxSphereRes, 0.5f * Mathf.Cos(Time.frameCount) + 0.5f);
-            UpdateMeshGeometry(sphereRes);
+            
+            currSphereRes = currSphereRes < maxSphereRes ? currSphereRes++ : minSphereRes;
+            UpdateMeshGeometry(currSphereRes);
         }
     }
 
