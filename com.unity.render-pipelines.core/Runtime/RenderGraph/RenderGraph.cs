@@ -293,7 +293,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Render Graph constructor.
         /// </summary>
         /// <param name="name">Optional name used to identify the render graph instnace.</param>
-        public RenderGraph(string name = "")
+        public RenderGraph(string name = "RenderGraph")
         {
             this.name = name;
             m_Resources = new RenderGraphResourceRegistry(m_DebugParameters, m_Logger);
