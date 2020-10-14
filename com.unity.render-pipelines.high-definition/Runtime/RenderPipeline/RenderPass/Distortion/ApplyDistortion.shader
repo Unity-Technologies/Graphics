@@ -12,8 +12,6 @@ Shader "Hidden/HDRP/ApplyDistortion"
         #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
         #pragma editor_sync_compilation
 
-        #pragma multi_compile _ SMOOTH_DISTORTION
-
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -22,6 +20,7 @@ Shader "Hidden/HDRP/ApplyDistortion"
 
         CBUFFER_START(cb)
             float4 _Size;
+            int _RoughDistortion;
         CBUFFER_END
 
         struct Attributes
@@ -90,11 +89,7 @@ Shader "Hidden/HDRP/ApplyDistortion"
 
             // Get source pixel for distortion
             float2 distordedUV = float2(input.positionCS.xy + distortion * _FetchBias) * _Size.zw;
-            #ifndef SMOOTH_DISTORTION
-            float mip = (_ColorPyramidLodCount - 1) * clamp(distortionBlur, 0.0, 1.0);
-            #else
-            float mip = 0;
-            #endif
+            int mip = (_ColorPyramidLodCount - 1) * saturate(distortionBlur) * _RoughDistortion;
             float2 uv = distordedUV * _RTHandleScale.xy;
             float4 sampled = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, uv, mip);
 
