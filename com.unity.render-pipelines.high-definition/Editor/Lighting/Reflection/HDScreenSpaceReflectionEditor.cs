@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering.HighDefinition
     class HDScreenSpaceReflectionEditor : VolumeComponentWithQualityEditor
     {
         SerializedDataParameter m_Enable;
-        SerializedDataParameter m_SSRAlgo;
+        SerializedDataParameter m_UsedAlgorithm;
         SerializedDataParameter m_RayTracing;
 
         // Shared data
@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var o = new PropertyFetcher<ScreenSpaceReflection>(serializedObject);
             m_Enable                        = Unpack(o.Find(x => x.enabled));
-            m_SSRAlgo                       = Unpack(o.Find(x => x.ssrAlgo));
+            m_UsedAlgorithm                 = Unpack(o.Find(x => x.usedAlgorithm));
             m_RayTracing                    = Unpack(o.Find(x => x.rayTracing));
 
             // Shared data
@@ -112,7 +112,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.indentLevel--;
             }
         }
-
 
         void RayTracingPerformanceModeGUI()
         {
@@ -197,7 +196,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
-                PropertyField(m_SSRAlgo, k_Algo);
+                PropertyField(m_UsedAlgorithm, k_Algo);
 
                 // Shared Data
                 PropertyField(m_MinSmoothness, k_MinimumSmoothnessText);
@@ -217,7 +216,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     m_RayMaxIterations.value.intValue = Mathf.Max(0, m_RayMaxIterations.value.intValue);
                     EditorGUI.indentLevel--;
                 }
-                if (m_SSRAlgo.value.intValue == (int)ScreenSpaceReflectionAlgorithm.PBRAccumulation)
+                if (m_UsedAlgorithm.value.intValue == (int)ScreenSpaceReflectionAlgorithm.PBRAccumulation)
                     PropertyField(m_AccumulationFactor, k_AccumulationFactorText);
             }
         }

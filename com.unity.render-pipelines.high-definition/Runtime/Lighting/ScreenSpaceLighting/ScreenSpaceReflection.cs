@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter enabled = new BoolParameter(true);
 
         /// <summary>Screen Space Reflections Algorithm used.</summary>
-        public SSRAlgoParameter ssrAlgo = new SSRAlgoParameter(ScreenSpaceReflectionAlgorithm.Approximation);
+        public SSRAlgoParameter usedAlgorithm = new SSRAlgoParameter(ScreenSpaceReflectionAlgorithm.Approximation);
 
         /// <summary>
         /// Enable ray traced reflections.

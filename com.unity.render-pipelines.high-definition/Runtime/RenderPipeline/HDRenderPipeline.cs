@@ -2638,7 +2638,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderCameraMotionVectors(cullingResults, hdCamera, renderContext, cmd);
             }
 
-
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors))
                 cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, m_SharedRTManager.GetMotionVectorsBuffer());
             else
@@ -2662,7 +2661,6 @@ namespace UnityEngine.Rendering.HighDefinition
                      hdCamera.volumeStack.GetComponent<PathTracing>().enable.value &&
                      hdCamera.camera.cameraType != CameraType.Preview)
             {
-
                 // We only request the light cluster if we are gonna use it for debug mode
                 if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode && GetRayTracingClusterState())
                 {
@@ -2674,7 +2672,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-
                 // When debug is enabled we need to clear otherwise we may see non-shadows areas with stale values.
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ContactShadows) && m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.ContactShadows)
                 {
@@ -2687,7 +2684,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (hdCamera.IsSSREnabled())
                     BuildCoarseStencilAndResolveIfNeeded(hdCamera, cmd, resolveOnly: true);
 
-                    hdCamera.xr.StopSinglePass(cmd);
+                hdCamera.xr.StopSinglePass(cmd);
 
                 var buildLightListTask = new HDGPUAsyncTask("Build light list", ComputeQueueType.Background);
                 // It is important that this task is in the same queue as the build light list due to dependency it has on it. If really need to move it, put an extra fence to make sure buildLightListTask has finished.
@@ -2722,7 +2719,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     haveAsyncTaskWithShadows = true;
 
-                void Callback(CommandBuffer c, HDGPUAsyncTaskParams a)
+                    void Callback(CommandBuffer c, HDGPUAsyncTaskParams a)
                         => RenderSSR(a.hdCamera, c, a.renderContext);
                 }
 
@@ -2738,7 +2735,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     void AsyncSSAODispatch(CommandBuffer c, HDGPUAsyncTaskParams a)
                         => m_AmbientOcclusionSystem.Dispatch(c, a.hdCamera, depthTexture, normalBuffer, motionVectors, a.frameCount);
                 }
-                    
+
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderShadowMaps)))
                 {
                     // This call overwrites camera properties passed to the shader system.
@@ -2837,7 +2834,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 SetContactShadowsTexture(hdCamera, m_ContactShadowBuffer, cmd);
-
 
                 if (hdCamera.frameSettings.SSRRunsAsync())
                 {
@@ -4709,7 +4705,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.reprojectionKernel = m_SsrReprojectionKernel;
             parameters.accumulateKernel = m_SsrAccumulateKernel;
             parameters.transparentSSR = transparentSSR;
-            parameters.usePBRAlgo = volumeSettings.ssrAlgo.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation;
+            parameters.usePBRAlgo = volumeSettings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation;
 
             parameters.width = hdCamera.actualWidth;
             parameters.height = hdCamera.actualHeight;
@@ -4943,7 +4939,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Clear the SSR lighting buffer (not sure it is required)
                     CoreUtils.SetRenderTarget(cmd, m_SsrLightingTexture, ClearFlag.Color, Color.clear);
                     CoreUtils.SetRenderTarget(cmd, m_SsrHitPointTexture, ClearFlag.Color, Color.clear);
-                    if (settings.ssrAlgo == ScreenSpaceReflectionAlgorithm.Approximation)
+                    if (settings.usedAlgorithm == ScreenSpaceReflectionAlgorithm.Approximation)
                     {
                         CoreUtils.SetRenderTarget(cmd, ssrAccumulation, ClearFlag.Color, Color.clear);
                     }
@@ -5625,12 +5621,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         RTHandle ssrAccumulation = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation);
 
+                        ScreenSpaceReflection ssrSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
+
+                        bool ssrNeedReset = false;
+                        if (ssrSettings.usedAlgorithm == ScreenSpaceReflectionAlgorithm.PBRAccumulation &&
+                            hdCamera.currentSSRAlgorithm == ScreenSpaceReflectionAlgorithm.Approximation)
+                            ssrNeedReset = true;
+
+                        hdCamera.currentSSRAlgorithm = ssrSettings.usedAlgorithm.value;
+
                         // In practice, these textures are sparse (mostly black). Therefore, clearing them is fast (due to CMASK),
                         // and much faster than fully overwriting them from within SSR shaders.
                         // CoreUtils.SetRenderTarget(cmd, hdCamera, m_SsrDebugTexture,    ClearFlag.Color, Color.clear);
                         CoreUtils.SetRenderTarget(cmd, m_SsrHitPointTexture, ClearFlag.Color, Color.clear);
                         CoreUtils.SetRenderTarget(cmd, m_SsrLightingTexture, ClearFlag.None);
                         CoreUtils.SetRenderTarget(cmd, ssrAccumulation, ClearFlag.Color, Color.clear);
+                        if (ssrNeedReset || hdCamera.isFirstFrame)
+                        {
+                            RTHandle ssrAccumulationPrev = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation);
+                            CoreUtils.SetRenderTarget(cmd, ssrAccumulationPrev, ClearFlag.Color, Color.clear);
+                        }
                     }
                 }
 

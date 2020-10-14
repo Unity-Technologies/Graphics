@@ -767,7 +767,7 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
 
     float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, speed);
 
-    float4 result = lerp(previous, original, lerp(1.0f, coefExpAvg, saturate(_FrameCount - 1.0f)));
+    float4 result = lerp(previous, original, coefExpAvg);
 
     uint3 intCol = asuint(result.rgb);
     bool  isPosFin = Max3(intCol.r, intCol.g, intCol.b) < 0x7F800000;
