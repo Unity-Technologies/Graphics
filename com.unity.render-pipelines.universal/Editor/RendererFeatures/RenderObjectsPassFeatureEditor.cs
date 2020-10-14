@@ -75,20 +75,20 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         private List<SerializedObject> m_properties = new List<SerializedObject>();
 
-        static Func<int, bool> filterRenderPassEvent = x =>
+        static bool FilterRenderPassEvent(int evt) =>
             // Return all events higher or equal than before rendering prepasses
-            x >= (int) RenderPassEvent.BeforeRenderingPrepasses &&
+            evt >= (int) RenderPassEvent.BeforeRenderingPrepasses &&
             // filter obsolete events
-            typeof(RenderPassEvent).GetField(Enum.GetName(typeof(RenderPassEvent), x))?.GetCustomAttribute(typeof(ObsoleteAttribute)) == null;
+            typeof(RenderPassEvent).GetField(Enum.GetName(typeof(RenderPassEvent), evt))?.GetCustomAttribute(typeof(ObsoleteAttribute)) == null;
 
         // Return all render pass event names that match filterRenderPassEvent
         private GUIContent[] m_EventOptionNames = Enum.GetValues(typeof(RenderPassEvent)).Cast<int>()
-            .Where(filterRenderPassEvent)
+            .Where(FilterRenderPassEvent)
             .Select(x => new GUIContent(Enum.GetName(typeof(RenderPassEvent), x))).ToArray();
 
         // Return all render pass event options that match filterRenderPassEvent
         private int[] m_EventOptionValues = Enum.GetValues(typeof(RenderPassEvent)).Cast<int>()
-            .Where(filterRenderPassEvent).ToArray();
+            .Where(FilterRenderPassEvent).ToArray();
 
         private void Init(SerializedProperty property)
         {

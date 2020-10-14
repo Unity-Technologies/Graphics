@@ -67,12 +67,12 @@ namespace UnityEngine.Rendering.Universal
         AfterRenderingOpaques = 300,
 
         /// <summary>
-        /// Executes a <c>ScriptableRenderPass</c> before rendering sky.
+        /// Executes a <c>ScriptableRenderPass</c> before rendering the sky.
         /// </summary>
         BeforeRenderingSkybox = 350,
 
         /// <summary>
-        /// Executes a <c>ScriptableRenderPass</c> after rendering sky.
+        /// Executes a <c>ScriptableRenderPass</c> after rendering the sky.
         /// </summary>
         AfterRenderingSkybox = 400,
 
