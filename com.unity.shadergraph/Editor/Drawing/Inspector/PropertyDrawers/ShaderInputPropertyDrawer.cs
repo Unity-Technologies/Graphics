@@ -212,7 +212,17 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             if(property == null)
                 return;
 
-            switch(property)
+            if (property.sgVersion < property.latestVersion)
+            {
+                var typeString = property.propertyType.ToString();
+                var help = HelpBoxRow.TryGetDeprecatedHelpBoxRow($"{typeString} Property", () => property.ChangeVersion(property.latestVersion));
+                if (help != null)
+                {
+                    propertySheet.Insert(0, help);
+                }
+            }
+
+            switch (property)
             {
             case IShaderPropertyDrawer propDrawer:	
                 propDrawer.HandlePropertyField(propertySheet, _preChangeValueCallback, _postChangeValueCallback);	
@@ -488,6 +498,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     ColorMode.Default,
                     out var colorModeField));
             }
+
         }
 
         void HandleTexture2DProperty(PropertySheet propertySheet, Texture2DShaderProperty texture2DProperty)

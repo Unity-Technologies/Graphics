@@ -1724,12 +1724,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector3 vy = yAxisVS;
                 Vector3 vz = zAxisVS;
 
-                const float pi = 3.1415926535897932384626433832795f;
-                const float degToRad = (float)(pi / 180.0);
-
                 var sa = light.spotAngle;
-                var cs = Mathf.Cos(0.5f * sa * degToRad);
-                var si = Mathf.Sin(0.5f * sa * degToRad);
+                var cs = Mathf.Cos(0.5f * sa * Mathf.Deg2Rad);
+                var si = Mathf.Sin(0.5f * sa * Mathf.Deg2Rad);
 
                 if (gpuLightType == GPULightType.ProjectorPyramid)
                 {
@@ -1874,6 +1871,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool GetEnvLightData(CommandBuffer cmd, HDCamera hdCamera, in ProcessedProbeData processedProbe, ref EnvLightData envLightData)
         {
+            // For the generic case, we consider that all probes have mip maps. The more specific case will override this attribute.
+            envLightData.roughReflections = 1.0f;
+
             Camera camera = hdCamera.camera;
             HDProbe probe = processedProbe.hdProbe;
 
@@ -1913,6 +1913,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // We need to collect the set of parameters required for the filtering
                         IBLFilterBSDF.PlanarTextureFilteringParameters planarTextureFilteringParameters = new IBLFilterBSDF.PlanarTextureFilteringParameters();
+                        planarTextureFilteringParameters.smoothPlanarReflection = !probe.settings.roughReflections;
                         planarTextureFilteringParameters.probeNormal = Vector3.Normalize(hdCamera.camera.transform.position - renderData.capturePosition);
                         planarTextureFilteringParameters.probePosition = probe.gameObject.transform.position;
                         planarTextureFilteringParameters.captureCameraDepthBuffer = planarProbe.realtimeDepthTexture;
@@ -1946,6 +1947,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         m_TextureCaches.env2DAtlasScaleOffset[fetchIndex] = scaleOffset;
                         m_TextureCaches.env2DCaptureVP[fetchIndex] = vp;
+
+                        // Propagate the smoothness information to the env light data
+                        envLightData.roughReflections = probe.settings.roughReflections ? 1.0f : 0.0f;
 
                         var capturedForwardWS = renderData.captureRotation * Vector3.forward;
                         //capturedForwardWS.z *= -1; // Transform to RHS standard
@@ -3059,10 +3063,26 @@ namespace UnityEngine.Rendering.HighDefinition
         static void ClearLightList(in BuildGPULightListParameters parameters, CommandBuffer cmd, ComputeBuffer bufferToClear)
         {
             cmd.SetComputeBufferParam(parameters.clearLightListCS, parameters.clearLightListKernel, HDShaderIDs._LightListToClear, bufferToClear);
-            cmd.SetComputeIntParam(parameters.clearLightListCS, HDShaderIDs._LightListEntries, bufferToClear.count);
+            Vector2 countAndOffset = new Vector2Int(bufferToClear.count, 0);
 
             int groupSize = 64;
-            cmd.DispatchCompute(parameters.clearLightListCS, parameters.clearLightListKernel, (bufferToClear.count + groupSize - 1) / groupSize, 1, 1);
+            int totalNumberOfGroupsNeeded = (bufferToClear.count + groupSize - 1) / groupSize;
+
+            const int maxAllowedGroups = 65535;
+            // On higher resolutions we might end up with more than 65535 group which is not allowed, so we need to to have multiple dispatches.
+            int i = 0;
+            while(totalNumberOfGroupsNeeded > 0)
+            {
+                countAndOffset.y = maxAllowedGroups * i;                
+                cmd.SetComputeVectorParam(parameters.clearLightListCS, HDShaderIDs._LightListEntriesAndOffset, countAndOffset);
+
+                int currGroupCount = Math.Min(maxAllowedGroups, totalNumberOfGroupsNeeded);
+
+                cmd.DispatchCompute(parameters.clearLightListCS, parameters.clearLightListKernel, currGroupCount, 1, 1);
+
+                totalNumberOfGroupsNeeded -= currGroupCount;
+                i++;
+            }
         }
 
         static void ClearLightLists(    in BuildGPULightListParameters parameters,

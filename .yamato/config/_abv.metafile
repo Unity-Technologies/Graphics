@@ -1,6 +1,4 @@
 abv: # specify the editor versions for which to create the expression trigger for all_project_ci job
-  trigger_editors:
-    - 2020.2
   projects:
     - name: Universal
     - name: ShaderGraph
@@ -8,10 +6,14 @@ abv: # specify the editor versions for which to create the expression trigger fo
     - name: VFX_HDRP
     - name: VFX_URP
 nightly:
-  allowed_editors: # specify the editor versions for which to create nightly jobs
-    - trunk
-    - 2020.2
-  extra_dependencies: # additional project jobs to run nightly (in addition to ABV and smoke tests)
+  extra_dependencies: # additional project jobs to run nightly (in addition to ABV)
+    - project: Smoke_Test
+      platform: Win
+      api: DX11
+      test_platforms:
+        - playmode
+        - editmode
+        - Standalone
     - project: Universal
       platform: Android
       api: OpenGLES3
@@ -53,14 +55,6 @@ nightly:
       test_platforms:
         - editmode
         - playmode
-smoke_test: # specifications for smoke tests
-  folder: SRP_SmokeTest
-  agent: sdet_win_large # used for editmode
-  agent_gpu: sdet_win_large_gpu  # used for non-editmode
-  test_platforms:
-    # - type: Standalone
-    - type: playmode
-    - type: editmode
 trunk_verification: # jobs to include in trunk verification job
   dependencies:
     - project: Universal
