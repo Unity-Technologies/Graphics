@@ -85,22 +85,7 @@ struct PackedVaryingsMeshToPS
     float4 interpolators5 : TEXCOORD5;
 #endif
 
-    // In order to compile on all HDRP target platform we need to respect the following order for semantic:
-    // - SV_RenderTargetArrayIndex  // use for stereo instancing - Must be declare before SV_IsFrontFace
-    // - SV_PrimitiveID // Must be declare before SV_IsFrontFace and after SV_RenderTargetArrayIndex
-    // - SV_IsFrontFace 
-
     UNITY_VERTEX_INPUT_INSTANCE_ID
-
-#ifdef PLATFORM_SUPPORTS_PRIMITIVE_ID_IN_PIXEL_SHADER
-#if (defined(VARYINGS_NEED_PRIMITIVEID) || (SHADERPASS == SHADERPASS_FULLSCREEN_DEBUG)) && SHADER_STAGE_FRAGMENT
-    uint primitiveID : SV_PrimitiveID;
-#endif
-#endif
-
-#if defined(VARYINGS_NEED_CULLFACE) && SHADER_STAGE_FRAGMENT
-    FRONT_FACE_TYPE cullFace : FRONT_FACE_SEMANTIC;
-#endif
 };
 
 // Functions to pack data to use as few interpolator as possible, the ShaderGraph should generate these functions
@@ -178,16 +163,6 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 #endif
 #ifdef VARYINGS_NEED_COLOR
     output.color = input.interpolators5;
-#endif
-
-#ifdef PLATFORM_SUPPORTS_PRIMITIVE_ID_IN_PIXEL_SHADER
-#if (defined(VARYINGS_NEED_PRIMITIVEID) || (SHADERPASS == SHADERPASS_FULLSCREEN_DEBUG)) && SHADER_STAGE_FRAGMENT
-    output.primitiveID = input.primitiveID;
-#endif
-#endif
-
-#if defined(VARYINGS_NEED_CULLFACE) && SHADER_STAGE_FRAGMENT
-    output.isFrontFace = IS_FRONT_VFACE(input.cullFace, true, false);
 #endif
 
     return output;

@@ -37,6 +37,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added scalability settings for the planar reflection resolution.
 - Added tests for AOV stacking and UI rendering in the graphics compositor.
 - Added a new ray tracing only function that samples the specular part of the materials.
+- Adding missing marker for ray tracing profiling (RaytracingDeferredLighting)
+- Added the support of eye shader for ray tracing.
 - Added new algorithm for SSR with temporal accumulation
 
 ### Fixed
@@ -159,6 +161,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed TAA flickering on the very edge of screen. 
 - Fixed profiling scope for quality RTGI.
 - Fixed the denoising and multi-sample not being used for smooth multibounce RTReflections.
+- Fixed issue where multiple cameras would cause GC each frame.
+- Fixed after post process rendering pass options not showing for unlit ShaderGraphs.
+- Fixed a migration issue with the rendering queue in ShaderGraph when upgrading to 10.x;
+- Fixed null reference in the Undo callback of the graphics compositor 
+- Fixed cullmode for SceneSelectionPass.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
@@ -194,6 +201,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Remove a rendergraph debug option to clear resources on release from UI.
 - added SV_PrimitiveID in the VaryingMesh structure for fulldebugscreenpass as well as primitiveID in FragInputs
 - Changed which local frame is used for multi-bounce RTReflections.
+- Move System Generated Values semantics out of VaryingsMesh structure.
+- Other forms of FSAA are silently deactivated, when path tracing is on.
 
 ## [10.0.0] - 2019-06-10
 
