@@ -19,7 +19,7 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_mono_2_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --architecture=ARM64" --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=mono" --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --architecture=ARM64" --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -42,7 +42,7 @@ Build_Universal_Hybrid_Android_OpenGLES3_Player_mono_2_Linear_trunk:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalHybridTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --architecture=ARM64" --compilation-errors-as-warnings --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalHybridTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=mono" --extra-editor-arg="-colorspace=Linear" --architecture=ARM64" --compilation-errors-as-warnings --timeout=1800
     artifacts:
         logs:
             paths:
@@ -67,7 +67,7 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_mono_2_Linear_2020.2:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --architecture=ARM64" --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=mono" --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --architecture=ARM64" --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -90,7 +90,7 @@ Build_Universal_Hybrid_Android_OpenGLES3_Player_mono_2_Linear_2020.2:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalHybridTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --architecture=ARM64" --compilation-errors-as-warnings --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalHybridTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=mono" --extra-editor-arg="-colorspace=Linear" --architecture=ARM64" --compilation-errors-as-warnings --timeout=1800
     artifacts:
         logs:
             paths:
@@ -116,7 +116,7 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_mono_2_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --architecture=ARM64" --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=mono" --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --architecture=ARM64" --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -142,7 +142,7 @@ Build_Universal_Hybrid_Android_OpenGLES3_Player_mono_2_Linear_CUSTOM-REVISION:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalHybridTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=mono" --extra-editor-arg="-apicompatibilitylevel=NET_2_0" --extra-editor-arg="-colorspace=Linear" --architecture=ARM64" --compilation-errors-as-warnings --timeout=1800
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalHybridTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=mono" --extra-editor-arg="-colorspace=Linear" --architecture=ARM64" --compilation-errors-as-warnings --timeout=1800
     artifacts:
         logs:
             paths:
