@@ -693,7 +693,7 @@ namespace UnityEngine.Rendering.Universal
             set { m_UseAdaptivePerformance = value; }
         }
 
-        override public int antialiasing => msaaSampleCount;
+        override public int antiAliasing => msaaSampleCount;
 
         public override Material defaultMaterial
         {
