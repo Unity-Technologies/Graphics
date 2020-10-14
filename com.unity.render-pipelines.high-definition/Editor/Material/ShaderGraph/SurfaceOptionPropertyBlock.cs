@@ -55,6 +55,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var renderingPassValue = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.GetOpaqueEquivalent(systemData.renderQueueType) : HDRenderQueue.GetTransparentEquivalent(systemData.renderQueueType);
             var renderQueueType = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
 
+            if (renderingPassValue == HDRenderQueue.RenderQueueType.PreRefraction && hasRefraction)
+                renderingPassValue = HDRenderQueue.RenderQueueType.Transparent;
+
             context.AddProperty(renderingPassText, new PopupField<HDRenderQueue.RenderQueueType>(renderingPassList, renderQueueType, HDSubShaderUtilities.RenderQueueName, HDSubShaderUtilities.RenderQueueName) { value = renderingPassValue }, (evt) =>
             {
                 registerUndo(renderingPassText);
