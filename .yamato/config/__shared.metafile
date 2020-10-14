@@ -3,16 +3,22 @@ target_branch_editor_ci: ci/editor-pinning # specifies the branch on which edito
 target_editor: trunk # specifies the target editor used for some package/preview publish jobs
 editors: # applied for all yml files
   - track: trunk
+    name: trunk
     rerun_strategy: on-new-revision
+    editor_pinning: True
+    nightly: True
+  - track: 2020.2
+    name: 2020.2
+    rerun_strategy: on-new-revision
+    editor_pinning: True
+    # fast: True
+    abv_pr: True
+    nightly: True
   - track: CUSTOM-REVISION
+    name: CUSTOM-REVISION
     rerun_strategy: always
-
-test_platforms:
-  Standalone: --suite=playmode --platform=Standalone
-  playmode: --suite=playmode
-  playmode_XR: --suite=playmode --extra-editor-arg="-xr-tests"
-  playmode_RenderGraph: --suite=playmode --extra-editor-arg="-rendergraph-tests"
-  editmode: --suite=editor --platform=editmode
+    editor_pinning: False
+    fast: False
 platforms:
   Win:
     name: Win
@@ -100,6 +106,10 @@ platforms:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
         flavor: b1.large
+      standalone_build:
+        type: Unity::VM
+        image: cds-ops/ubuntu-18.04-base:stable
+        flavor: b1.xlarge
   Android:
     name: Android
     os: android

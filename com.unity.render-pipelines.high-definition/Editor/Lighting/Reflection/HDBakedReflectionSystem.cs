@@ -380,6 +380,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     "please switch your render pipeline or use another reflection system");
                 return false;
             }
+            
+
 
             var cubemapSize = (int)hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize;
             // We force RGBAHalf as we don't support 11-11-10 textures (only RT)
