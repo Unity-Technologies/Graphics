@@ -910,10 +910,10 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
 
 #endif
 
-bool IsLightingFeatureEnabled(uint bitIndex)
+bool IsLightingFeatureEnabled(uint bitMask)
 {
     #if defined(_DEBUG_SHADER)
-    return (_DebugLightingFeatureMask == 0) || IsBitSet(_DebugLightingFeatureMask, bitIndex);
+    return (_DebugLightingFeatureMask == 0) || ((_DebugLightingFeatureMask & bitMask) != 0);
     #else
     return true;
     #endif
@@ -931,9 +931,9 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
 {
     #if defined(_SPECULARHIGHLIGHTS_OFF)
     bool specularHighlightsOff = true;
-#else
+    #else
     bool specularHighlightsOff = false;
-#endif
+    #endif
     // NOTE: can modify alpha
     BRDFData brdfData = CreateBRDFData(surfaceData);
 
@@ -948,19 +948,19 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
 
     // Clear-coat calculation...
     BRDFData brdfDataClearCoat = (BRDFData)0;
-#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
+    #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
     // base brdfData is modified here, rely on the compiler to eliminate dead computation by InitializeBRDFData()
     InitializeBRDFDataClearCoat(surfaceData.clearCoatMask, surfaceData.clearCoatSmoothness, brdfData, brdfDataClearCoat);
-#endif
+    #endif
 
     // To ensure backward compatibility we have to avoid using shadowMask input, as it is not present in older shaders
-#if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
+    #if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
     half4 shadowMask = inputData.shadowMask;
-#elif !defined (LIGHTMAP_ON)
+    #elif !defined (LIGHTMAP_ON)
     half4 shadowMask = unity_ProbesOcclusion;
-#else
+    #else
     half4 shadowMask = half4(1, 1, 1, 1);
-#endif
+    #endif
 
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, shadowMask);
 
@@ -983,10 +983,10 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
 
     if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_MAIN_LIGHT))
     {
-    color += LightingPhysicallyBased(brdfData, brdfDataClearCoat,
-                                     mainLight,
-                                     inputData.normalWS, inputData.viewDirectionWS,
-                                     surfaceData.clearCoatMask, specularHighlightsOff);
+        color += LightingPhysicallyBased(brdfData, brdfDataClearCoat,
+                                         mainLight,
+                                         inputData.normalWS, inputData.viewDirectionWS,
+                                         surfaceData.clearCoatMask, specularHighlightsOff);
     }
 
     #if defined(_ADDITIONAL_LIGHTS)
@@ -1004,18 +1004,18 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
                                          surfaceData.clearCoatMask, specularHighlightsOff);
     	}
     }
-#endif
+    #endif
 
     #if defined(_ADDITIONAL_LIGHTS_VERTEX)
     if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_VERTEX_LIGHTING))
     {
-    color += inputData.vertexLighting * brdfData.diffuse;
+        color += inputData.vertexLighting * brdfData.diffuse;
     }
-#endif
+    #endif
 
     if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_EMISSION))
     {
-    color += surfaceData.emission;
+        color += surfaceData.emission;
     }
 
     return half4(color, surfaceData.alpha);
