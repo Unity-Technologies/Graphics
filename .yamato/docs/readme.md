@@ -48,6 +48,36 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
     - Change `abv.trigger_editors` to the editor against which to trigger the ABV (*all_project_ci*) job (typically `fast-*` editor)  (e.g. for 9.x.x this would correspond to `fast-2020.1`)
     - Change `nightly.allowed_editors` to contain the editors for which to run nightly (*all_project_ci_nightly*) jobs (e.g. for 9.x.x this would correspond to `2020.1`)
 
+### Custom test platforms:
+- There are 3 base test platforms to choose from: standalone (build), playmode, editmode. These can be extended by renaming them, and/or adding additional utr on top of existing ones. Their corresponding base UTR flags are found in `ruamel/jobs/shared/utr_utils.py`
+- If name not specified, name it set to type. Name is used for creating Yamato job ids and excluding testplatforms. If setting up e.g. two playmode types with different flags, renaming must be used, otherwise (due to matching job id) one job overrides the other.
+- If a specific platform requires flags different from what is marked in `utr_utils.py`, they are to be configured in the corresponding platform cmd file. Either _a)_ override flag value with the optional parameters _b)_ cancel the flag by overriding with `None` (make sure the function expects such value for such flag though), or _c)_ append additional platform specific flags to the utr_flags list 
+- Exclude testplatforms for platforms by specifying the testplatform NAME (not type) in `__shared.metafile`
+- Example: extending the default playmode for a specific project performance tests (this takes base playmode flags, and appends these for all platforms, unless specified otherwise in platform cmd file.) Note: when adding extra args to a standalone job, build flags can be specified separately by `extra_utr_flags_build` (scroll down to see project metafile docs)
+  ```
+    - type: playmode
+      name: playmode_perf_build
+      extra_utr_flags:
+        - --scripting-backend=il2cpp
+        - --timeout=1200
+        - --performance-project-id=URP_Performance
+        - --testfilter=Build
+        - --suite=Editor
+  ```
+  If this platform should not be included eg for IPhone, then specify it in `__shared.metafile` like
+  ```
+  iPhone:
+    name: iPhone
+    os: ios
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+        - editmode
+        - ...
+        - playmode_perf_build
+  ```
+
+
 ### Other changes to metafiles
 - All files follow a similar structure and changes can be done according to the metafile descriptions given below. 
 
@@ -89,13 +119,6 @@ editors:
     rerun_strategy: always
     cmd: -u trunk # used only by editor job
   - ...
-
-# test platforms with their corresponding command args (dict)
-test_platforms:   
-  Standalone: --suite=playmode --platform=Standalone
-  playmode: --suite=playmode
-  playmode_XR: --suite=playmode --extra-editor-arg="-xr-tests"
-  editmode: --suite=editor --platform=editmode
 
 # specifies platform details for each platform 
 platforms:
@@ -368,10 +391,24 @@ project:
 
 # test platforms to generate jobs for
 test_platforms:
-  - Standalone
-  - playmode
-  - editmode
-  - playmode_XR
+  - type: Standalone
+    extra_utr_flags: # specify additional utr flags to run for this project and test platform
+      - --some-extra-utr-flag
+    extra_utr_flags_build:
+      - --some-extra-utr-flag # additional utr flags for build (only available for standalone type)
+    timeout: 3000 # overrides default timeout 1200 for all platforms which use this property in cmd files
+    # timeout: # overrides default timeout per platform (for unspecified platforms, default is used)
+    #  OSX_Metal: 2400 
+    #  Win: 3000 
+    timeout_build: 3000 # overrides default timeout 1200 for all platforms which use this property in cmd files (only for split build jobs)
+    # timeout_build: # overrides default timeout per platform (for unspecified platforms, default is used)
+    #  Win: 3000 
+  - type: playmode
+  - type: editmode
+  - type: playmode # custom testplatform: specify the 'base' type, name it to what you want, and add any additional flags
+    name: playmode_XR
+    extra_utr_flags:
+      - --extra-editor-arg="-xr-tests" 
 
 # platforms to use (platform details obtained from __shared.metafile)
 # platforms can be overridden by using the same structure from shared
