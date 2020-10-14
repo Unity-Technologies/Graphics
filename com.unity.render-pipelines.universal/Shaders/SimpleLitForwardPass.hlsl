@@ -18,14 +18,14 @@ struct Varyings
     float2 uv                       : TEXCOORD0;
     DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
 
-    float3 posWS                    : TEXCOORD2;    // xyz: posWS
+    float3 positionWS               : TEXCOORD2;    // xyz: position
 
 #ifdef _NORMALMAP
-    float4 normal                   : TEXCOORD3;    // xyz: normal, w: viewDir.x
-    float4 tangent                  : TEXCOORD4;    // xyz: tangent, w: viewDir.y
-    float4 bitangent                : TEXCOORD5;    // xyz: bitangent, w: viewDir.z
+    float4 normalWS                 : TEXCOORD3;    // xyz: normal, w: viewDir.x
+    float4 tangentWS                : TEXCOORD4;    // xyz: tangent, w: viewDir.y
+    float4 bitangentWS              : TEXCOORD5;    // xyz: bitangent, w: viewDir.z
 #else
-    float3  normal                  : TEXCOORD3;
+    float3 normalWS                 : TEXCOORD3;
     float3 viewDir                  : TEXCOORD4;
 #endif
 
@@ -42,15 +42,15 @@ struct Varyings
 
 void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData)
 {
-    inputData.positionWS = input.posWS;
+    inputData.positionWS = input.positionWS;
 
 #ifdef _NORMALMAP
-    half3 viewDirWS = half3(input.normal.w, input.tangent.w, input.bitangent.w);
-    inputData.tangentMatrixWS = half3x3(input.tangent.xyz, input.bitangent.xyz, input.normal.xyz);
+    half3 viewDirWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
+    inputData.tangentMatrixWS = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
     inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentMatrixWS);
 #else
     half3 viewDirWS = input.viewDir;
-    inputData.normalWS = input.normal;
+    inputData.normalWS = input.normalWS;
 #endif
 
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
@@ -73,6 +73,7 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.lightmapUV);
 
     inputData.normalTS = normalTS;
+
     #if defined(LIGHTMAP_ON)
     inputData.lightmapUV = input.lightmapUV;
     #else
@@ -104,20 +105,20 @@ Varyings LitPassVertexSimple(Attributes input)
     half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
 
     output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
-    output.posWS.xyz = vertexInput.positionWS;
+    output.positionWS.xyz = vertexInput.positionWS;
     output.positionCS = vertexInput.positionCS;
 
 #ifdef _NORMALMAP
-    output.normal = half4(normalInput.normalWS, viewDirWS.x);
-    output.tangent = half4(normalInput.tangentWS, viewDirWS.y);
-    output.bitangent = half4(normalInput.bitangentWS, viewDirWS.z);
+    output.normalWS = half4(normalInput.normalWS, viewDirWS.x);
+    output.tangentWS = half4(normalInput.tangentWS, viewDirWS.y);
+    output.bitangentWS = half4(normalInput.bitangentWS, viewDirWS.z);
 #else
-    output.normal = NormalizeNormalPerVertex(normalInput.normalWS);
+    output.normalWS = NormalizeNormalPerVertex(normalInput.normalWS);
     output.viewDir = viewDirWS;
 #endif
 
     OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
-    OUTPUT_SH(output.normal.xyz, output.vertexSH);
+    OUTPUT_SH(output.normalWS.xyz, output.vertexSH);
 
     output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
@@ -145,7 +146,11 @@ half4 LitPassFragmentSimple(Varyings input) : SV_Target
         diffuse *= alpha;
     #endif
 
-    half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
+    #if defined(_NORMALMAP)
+    half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap)).xyz;
+    #else
+    half3 normalTS = half3(0, 0, 1);
+    #endif
     half3 emission = SampleEmission(uv, _EmissionColor.rgb, TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap));
     half4 specular = SampleSpecularSmoothness(uv, alpha, _SpecColor, TEXTURE2D_ARGS(_SpecGlossMap, sampler_SpecGlossMap));
     half smoothness = specular.a;
@@ -153,7 +158,7 @@ half4 LitPassFragmentSimple(Varyings input) : SV_Target
     InputData inputData;
     InitializeInputData(input, normalTS, inputData);
 
-    half4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specular, smoothness, emission, alpha);
+    half4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specular, smoothness, emission, alpha, normalTS);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     color.a = OutputAlpha(color.a, _Surface);
 

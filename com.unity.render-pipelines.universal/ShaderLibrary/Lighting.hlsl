@@ -1135,7 +1135,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
     return half4(finalColor, surfaceData.alpha);
 }
 
-half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)
+half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha, half3 normalTS)
 {
     SurfaceData surfaceData;
 
@@ -1143,12 +1143,12 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     surfaceData.alpha = alpha;
     surfaceData.emission = emission;
     surfaceData.metallic = 0;
-    surfaceData.occlusion = 0;
+    surfaceData.occlusion = 1;
     surfaceData.smoothness = smoothness;
     surfaceData.specular = specularGloss.rgb;
     surfaceData.clearCoatMask = 0;
     surfaceData.clearCoatSmoothness = 1;
-    surfaceData.normalTS = half3(0, 0, 1);
+    surfaceData.normalTS = normalTS;
 
     return UniversalFragmentBlinnPhong(inputData, surfaceData);
 }
@@ -1156,7 +1156,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
 //LWRP -> Universal Backwards Compatibility
 half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)
 {
-    return UniversalFragmentBlinnPhong(inputData, diffuse, specularGloss, smoothness, emission, alpha);
+    return UniversalFragmentBlinnPhong(inputData, diffuse, specularGloss, smoothness, emission, alpha, half3(0, 0, 1));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
