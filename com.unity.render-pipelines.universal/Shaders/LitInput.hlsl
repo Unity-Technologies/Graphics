@@ -13,6 +13,7 @@
 // NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
 CBUFFER_START(UnityPerMaterial)
 float4 _BaseMap_ST;
+float4 _DetailAlbedoMap_ST;
 half4 _BaseColor;
 half4 _SpecColor;
 half4 _EmissionColor;
@@ -24,9 +25,10 @@ half _Parallax;
 half _OcclusionStrength;
 half _ClearCoatMask;
 //half _ClearCoatSmoothness; // TODO: enable
-float4 _DetailAlbedoMap_ST;
+#if defined(_DETAIL)
 half _DetailAlbedoMapScale;
 half _DetailNormalMapScale;
+#endif
 CBUFFER_END
 
 // NOTE: Do not ifdef the properties for dots instancing, but ifdef the actual usage.
@@ -199,6 +201,8 @@ inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfa
 {
     half4 albedoAlpha = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap));
     outSurfaceData.alpha = Alpha(albedoAlpha.a, _BaseColor, _Cutoff);
+
+    albedoAlpha.xyz += _DetailAlbedoMap_ST * 0.0001;
 
     half4 specGloss = SampleMetallicSpecGloss(uv, albedoAlpha.a);
     outSurfaceData.albedo = albedoAlpha.rgb * _BaseColor.rgb;
