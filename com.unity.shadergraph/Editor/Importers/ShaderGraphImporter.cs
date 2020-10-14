@@ -24,9 +24,14 @@ namespace UnityEditor.ShaderGraph
     // sure that all shader graphs get re-imported. Re-importing is required,
     // because the shader graph codegen is different for V2.
     // This ifdef can be removed once V2 is the only option.
-    [ScriptedImporter(111, Extension, -902)]
+    // custom-begin:
+    // Bump ShaderImporter version after stripping LIGHTMAP_ON variants from shadergraph codegen in 9.x.x/custom/cherry-pick.
+    // [ScriptedImporter(111, Extension, -902)]
+    [ScriptedImporter(112, Extension, -902)]
 #else
-    [ScriptedImporter(43, Extension, -902)]
+    // [ScriptedImporter(43, Extension, -902)]
+    [ScriptedImporter(44, Extension, -902)]
+    // custom-end
 #endif
 
     class ShaderGraphImporter : ScriptedImporter
