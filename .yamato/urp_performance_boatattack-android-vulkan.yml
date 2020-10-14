@@ -8,7 +8,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_4_
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
-        flavor: b1.large
+        flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
