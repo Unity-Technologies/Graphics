@@ -407,8 +407,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(HDStructFields.FragInputs.texCoord2,                                 HDStructFields.VaryingsMeshToPS.texCoord2),
             new FieldDependency(HDStructFields.FragInputs.texCoord3,                                 HDStructFields.VaryingsMeshToPS.texCoord3),
             new FieldDependency(HDStructFields.FragInputs.color,                                     HDStructFields.VaryingsMeshToPS.color),
-            new FieldDependency(HDStructFields.FragInputs.primitiveID,                               HDStructFields.VaryingsMeshToPS.primitiveID),
-            new FieldDependency(HDStructFields.FragInputs.IsFrontFace,                               HDStructFields.VaryingsMeshToPS.cullFace),
         };
 
         public static DependencyCollection VertexDescription = new DependencyCollection
@@ -598,6 +596,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static RenderStateCollection SceneSelection = new RenderStateCollection
         {
+            { RenderState.Cull(Cull.Off) },
             { RenderState.ColorMask("ColorMask 0") },
         };
 
