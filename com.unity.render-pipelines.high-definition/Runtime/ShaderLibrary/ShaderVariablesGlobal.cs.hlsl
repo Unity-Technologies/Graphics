@@ -112,8 +112,8 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     uint4 _BoundedEntityCountPerCategory[2];
     uint4 _BoundedEntityOffsetPerCategory[2];
     float4 _ZBinBufferEncodingParams;
-    int2 _CoarseTileBufferDimensions;
-    int2 _FineTileBufferDimensions;
+    int2 _CoarseXyTileBufferDimensions;
+    int2 _FineXyTileBufferDimensions;
     uint _NumTileFtplX;
     uint _NumTileFtplY;
     float g_fClustScale;

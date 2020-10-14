@@ -18,7 +18,7 @@ StructuredBuffer<float2> _wBoundsBuffer : register(t0); // {w_min, w_max}
 
 // 1x list for all entites (sorted by category, we concatenate lists of all views).
 // The size of the buffer can be computed as follows:
-// ZBIN_COUNT * BOUNDEDENTITYCATEGORY_COUNT * EYE_COUNT * (4 bytes per range).
+// Z_BIN_COUNT * BOUNDEDENTITYCATEGORY_COUNT * EYE_COUNT * (4 bytes per range).
 // For example (1080p): 8192 * 5 * 1 * 4 = 160 KiB.
 RWStructuredBuffer<uint> _zBinBuffer : register(u0); // {start << 16 | end}
 
@@ -33,7 +33,7 @@ static uint s_BoundedEntityOffsetPerCategory[BOUNDEDENTITYCATEGORY_COUNT] = (uin
 float2 ComputeZBinLinearDepthBounds(uint bin, float4 encodingParams)
 {
     float2 bBounds = float2(bin, bin + 1);
-    float2 zBounds = saturate(bBounds * rcp(ZBIN_COUNT));
+    float2 zBounds = saturate(bBounds * rcp(Z_BIN_COUNT));
 
     float2 wBounds = float2(DecodeLogarithmicDepth(zBounds.x, encodingParams),
                             DecodeLogarithmicDepth(zBounds.y, encodingParams));
@@ -51,8 +51,8 @@ float2 ComputeZBinLinearDepthBounds(uint bin, float4 encodingParams)
 
 #define THREADS_PER_GROUP (64)
 
-#if (REMAINDER(ZBIN_COUNT, THREADS_PER_GROUP) != 0)
-    #error "ZBIN_COUNT must be an integer multiple of THREADS_PER_GROUP."
+#if (REMAINDER(Z_BIN_COUNT, THREADS_PER_GROUP) != 0)
+    #error "Z_BIN_COUNT must be an integer multiple of THREADS_PER_GROUP."
 #endif
 
 [numthreads(THREADS_PER_GROUP, 1, 1)]

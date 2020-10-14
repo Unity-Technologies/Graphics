@@ -101,19 +101,18 @@ uint ComputeEntityBoundsBufferIndex(uint entityIndex, uint eye)
 uint ComputeZBinBufferIndex(uint bin, uint category, uint eye)
 {
     return IndexFromCoordinate(uint3(bin, category, eye),
-                               uint2(ZBIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT));
+                               uint2(Z_BIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT));
 }
 
-// TODO: should we move '_CoarseTileBufferDimensions' to 'LightLoop.cs.hlsl'?
 #ifndef NO_SHADERVARIABLESGLOBAL_HLSL
 
 uint ComputeCoarseTileBufferIndex(uint2 tileCoord, uint category, uint eye)
 {
-    uint rowSize = (uint)_CoarseTileBufferDimensions.x;
-    uint stride  = COARSE_TILE_ENTITY_LIMIT / 2; // We use 'uint' buffer rather than a 'uint16_t[n]'
+    uint rowSize = (uint)_CoarseXyTileBufferDimensions.x;
+    uint stride  = COARSE_XY_TILE_ENTITY_LIMIT / 2; // We use 'uint' buffer rather than a 'uint16_t[n]'
 
     return stride * IndexFromCoordinate(uint4(tileCoord, category, eye),
-                                        uint3(rowSize, ZBIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT));
+                                        uint3(rowSize, Z_BIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT));
 }
 
 uint ComputeZBinFromLinearDepth(float w)
@@ -121,7 +120,7 @@ uint ComputeZBinFromLinearDepth(float w)
     float z = EncodeLogarithmicDepth(w, _ZBinBufferEncodingParams);
     z = saturate(z); // Clamp to the region between the near and the far planes
 
-    return min((uint)(z * ZBIN_COUNT), ZBIN_COUNT - 1);
+    return min((uint)(z * Z_BIN_COUNT), Z_BIN_COUNT - 1);
 }
 
 #endif // NO_SHADERVARIABLESGLOBAL_HLSL

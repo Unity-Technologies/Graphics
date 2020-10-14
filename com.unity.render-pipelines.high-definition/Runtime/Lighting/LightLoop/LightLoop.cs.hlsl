@@ -70,10 +70,10 @@
 #define SCREEN_SPACE_COLOR_SHADOW_FLAG (256)
 #define INVALID_SCREEN_SPACE_SHADOW (255)
 #define SCREEN_SPACE_SHADOW_INDEX_MASK (255)
-#define COARSE_TILE_ENTITY_LIMIT (64)
-#define COARSE_TILE_SIZE (64)
-#define FINE_TILE_SIZE (8)
-#define ZBIN_COUNT (8192)
+#define COARSE_XY_TILE_ENTITY_LIMIT (64)
+#define COARSE_XY_TILE_SIZE (64)
+#define FINE_XY_TILE_SIZE (8)
+#define Z_BIN_COUNT (8192)
 
 //
 // UnityEngine.Rendering.HighDefinition.ClusterDebugMode:  static fields

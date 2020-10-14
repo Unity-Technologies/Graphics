@@ -59,10 +59,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader buildDispatchIndirectCS;
             [Reload("Runtime/Lighting/LightLoop/scrbound.compute")]
             public ComputeShader buildScreenAABBCS;
-            [Reload("Runtime/Lighting/LightLoop/zbin.compute")]
+            [Reload("Runtime/Lighting/LightLoop/zBin.compute")]
             public ComputeShader zBinCS;
-            [Reload("Runtime/Lighting/LightLoop/xybin.compute")]
-            public ComputeShader xyBinCS;
+            [Reload("Runtime/Lighting/LightLoop/xyTile.compute")]
+            public ComputeShader xyTileCS;
             [Reload("Runtime/Lighting/LightLoop/lightlistbuild.compute")]
             public ComputeShader buildPerTileLightListCS;               // FPTL
             [Reload("Runtime/Lighting/LightLoop/lightlistbuild-bigtile.compute")]
