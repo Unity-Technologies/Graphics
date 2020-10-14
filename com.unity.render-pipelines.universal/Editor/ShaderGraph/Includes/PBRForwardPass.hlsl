@@ -86,7 +86,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
         float metallic = surfaceDescription.Metallic;
     #endif
 
-    SurfaceData surface         = (SurfaceData)0;
+    SurfaceData surface;
     surface.albedo              = surfaceDescription.BaseColor;
     surface.metallic            = saturate(metallic);
     surface.specular            = specular;
@@ -94,6 +94,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     surface.occlusion           = surfaceDescription.Occlusion,
     surface.emission            = surfaceDescription.Emission,
     surface.alpha               = saturate(alpha);
+    surface.normalTS            = surfaceDescription.NormalTS;
     surface.clearCoatMask       = 0;
     surface.clearCoatSmoothness = 1;
 
