@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         const int k_ShadowmapBufferBits = 16;
         private RenderTargetHandle m_AdditionalLightsShadowmap;
-        public RenderTexture m_AdditionalLightsShadowmapTexture;
+        internal RenderTexture m_AdditionalLightsShadowmapTexture;
 
         int m_ShadowmapWidth;
         int m_ShadowmapHeight;
