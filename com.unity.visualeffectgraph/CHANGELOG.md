@@ -92,8 +92,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Compute culling of particle which have their alive attribute set to false in output
 - Mesh and lit mesh outputs can now have up to 4 differents meshes that can be set per Particle (Experimental)
 - Screen space per particle LOD on mesh and lit mesh outputs (Experimental)
-- New particle strip attribute in Initialize: spawnIndexInStrip
-- New operator for strips that adds Orientation modes
 
 ### Fixed
 - Moved VFX Event Tester Window visibility to Component Play Controls SceneView Window
