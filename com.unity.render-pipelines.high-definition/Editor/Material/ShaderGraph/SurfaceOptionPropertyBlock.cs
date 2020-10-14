@@ -27,8 +27,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         class Styles
         {
-            public static GUIContent fragmentNormalSpace = new GUIContent("Fragment Normal Space", "TODO");
-            public static GUIContent doubleSidedModeText = new GUIContent("Double Sided Mode", "TODO");
+            public static GUIContent fragmentNormalSpace = new GUIContent("Fragment Normal Space", "Select the space use for normal map in Fragment shader in this shader graph.");
+            public static GUIContent doubleSidedModeText = new GUIContent("Double Sided Mode", "Select the double sided mode to use with this Material.");
         }
 
         Features enabledFeatures;
