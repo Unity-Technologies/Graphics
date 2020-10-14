@@ -4,7 +4,7 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [10.1.0] - 2019-08-04
+## [10.1.0] - 2020-10-12
 
 ### Added
 - Added parallax mapping node and parallax occlusion mapping node.
@@ -52,6 +52,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issues with ShaderGraph detection and handling of deleted graph files
 - Fixed an issue where the ShaderGraph was corrupting the translation cache
 - Fixed an issue where ShaderGraph would not prompt the user to save unsaved changes after an assembly reload
+- Fixed an issue with Position Node not automatically upgrading
+- Fixed an issue where failing SubGraphs would block saving graph files using them (recursion check would throw exceptions) [1283425]
+- Fixed an issue where choosing "None" as the default texture for a texture property would not correctly preview the correct default color [1283782]
 
 ## [10.0.0] - 2019-06-10
 ### Added
