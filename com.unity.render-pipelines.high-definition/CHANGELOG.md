@@ -167,6 +167,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed cullmode for SceneSelectionPass.
 - Fixed issue that caused non-static object to not render at times in OnEnable reflection probes.
 - Fixed XR shadows culling.
+- Fixed an issue when rendering into texture where alpha would not default to 1.0 when using 11_11_10 color buffer in non-dev builds.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
