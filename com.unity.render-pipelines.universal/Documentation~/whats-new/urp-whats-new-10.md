@@ -67,7 +67,7 @@ URP 10.1 supports the Shadowmask Lighting Mode. Shadowmask Lighting Mode combine
   <tr>
     <td style="padding:3px; border:none;"><em>Lighting Mode: Subtractive. Shadows within the Maximum Shadow Distance have lower quality.</em></td>
     <td style="padding:3px; border:none;"><em>Shadows only from real-time lights. Shadows further than the Maximum Distance are missing.</em></td>
-    <td style="padding:3px; border:none;">Lighting Mode: Subtractive.</td>
+    <td style="padding:3px; border:none;">Lighting Mode: Shadowmask.</td>
   </tr>
 </tbody></table>
 
