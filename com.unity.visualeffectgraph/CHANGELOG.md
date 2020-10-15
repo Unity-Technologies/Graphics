@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix [Case 1199540](https://issuetracker.unity3d.com/product/unity/issues/guid/1199540/)
 - Fix VFX Graph window invalidating existing Undo.undoRedoPerformed delegates.
 - Fix for VisualEffect prefab override window [Case 1242693](https://issuetracker.unity3d.com/product/unity/issues/guid/1242693/)
+- Fix edited operator being collapsed [Case 1270517](https://issuetracker.unity3d.com/product/unity/issues/guid/1270517/)
 
 ## [8.2.0] - 2020-07-08
 
