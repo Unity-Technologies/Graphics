@@ -111,7 +111,6 @@ def extra_perf_cmd(project_folder):
 
 def install_unity_config(project_folder):
     cmds = [
-        f'/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"',
         f'brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git',
         f'brew install unity-config',
 
