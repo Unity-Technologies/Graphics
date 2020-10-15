@@ -178,7 +178,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowFilter |= unchecked((uint)LightFeatureFlags.Directional);
             if (hdriSky.rectLightShadow.value)
                 shadowFilter |= unchecked((uint)LightFeatureFlags.Area);
-            m_SkyHDRIMaterial.SetInt(HDShaderIDs._BackplateShadowFilter, unchecked((int)shadowFilter));
+            int value = unchecked((int)shadowFilter);
+            m_SkyHDRIMaterial.SetFloat(HDShaderIDs._BackplateShadowFilter, (float)(value));
 
             // This matrix needs to be updated at the draw call frequency.
             m_PropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);

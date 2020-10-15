@@ -177,7 +177,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
 
             // Blend Mode
-            int previousBlendMode = srcMaterial.GetInt("_Mode");
+            int previousBlendMode = (int)srcMaterial.GetFloat("_Mode");
             switch (previousBlendMode)
             {
                 case 0: // Opaque

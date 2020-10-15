@@ -570,7 +570,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // so here we adjust the value of kEmissiveColorLDR to compensate. But only if not using a HDR Color
             const string kUseEmissiveIntensity = "_UseEmissiveIntensity";
 
-            if (material.HasProperty(kUseEmissiveIntensity) && material.GetInt(kUseEmissiveIntensity) == 1)
+            if (material.HasProperty(kUseEmissiveIntensity) && material.GetFloat(kUseEmissiveIntensity) > 0.0f)
             {
                 const string kEmissiveColorLDR = "_EmissiveColorLDR";
                 const string kEmissiveColor = "_EmissiveColor";
