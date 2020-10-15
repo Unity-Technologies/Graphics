@@ -9,7 +9,9 @@ using UnityEngine.U2D;
 namespace UnityEngine.Experimental.Rendering.Universal
 {
 
-    // Simple Cache for SpriteShape Geometry Data.
+    // Simple Cache for Shape Geometry Data.
+    // Note: The cache only gets saved in Editor mode.
+    // On Runtime, data is only used on Load. Any further changes to Light2D will involve regeneration.
     [AddComponentMenu("")]
     internal class LightCachedMeshData : MonoBehaviour
     {
