@@ -26,15 +26,6 @@ namespace UnityEditor.ShaderGraph
 
         public override PropertyType propertyType => PropertyType.VirtualTexture;
 
-        // isBatchable should never be called of we override hasBatchable / hasNonBatchableProperties
-        internal override bool isBatchable
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        internal override bool hasBatchableProperties => true;
-        internal override bool hasNonBatchableProperties => true;
-
         internal override bool isExposable => true;         // the textures are exposable at least..
         internal override bool isRenamable => true;
 
@@ -76,72 +67,67 @@ namespace UnityEditor.ShaderGraph
             throw new NotSupportedException();
         }
 
-        internal override void AppendBatchablePropertyDeclarations(ShaderStringBuilder builder, string delimiter = ";")
+        internal override void AppendPropertyDeclarations(ShaderStringBuilder builder, Func<string, string> nameModifier, PropertyHLSLGenerationType generationTypes)
         {
-            int numLayers = value.layers.Count;
-            if (numLayers > 0)
+            if (generationTypes.HasFlag(PropertyHLSLGenerationType.UnityPerMaterial))
             {
-                builder.Append("DECLARE_STACK_CB(");
-                builder.Append(referenceName);
-                builder.Append(")");
-                builder.AppendLine(delimiter);
-            }
-        }
-
-        internal override void AppendNonBatchablePropertyDeclarations(ShaderStringBuilder builder, string delimiter = ";")
-        {
-            int numLayers = value.layers.Count;
-            if (numLayers > 0)
-            {
-                if (!value.procedural)
+                int numLayers = value.layers.Count;
+                if (numLayers > 0)
                 {
-                    // declare regular texture properties (for fallback case)
+                    builder.Append("DECLARE_STACK_CB(");
+                    builder.Append((nameModifier == null) ? referenceName : nameModifier(referenceName));
+                    builder.AppendLine(");");
+                }
+            }
+            if (generationTypes.HasFlag(PropertyHLSLGenerationType.Global))
+            {
+                int numLayers = value.layers.Count;
+                if (numLayers > 0)
+                {
+                    if (!value.procedural)
+                    {
+                        // declare regular texture properties (for fallback case)
+                        for (int i = 0; i < value.layers.Count; i++)
+                        {
+                            string layerRefName = value.layers[i].layerRefName;
+                            builder.AppendLine($"TEXTURE2D({layerRefName});");
+                            builder.AppendLine($"SAMPLER(sampler{layerRefName});");
+                            // builder.AppendLine($"{ concretePrecision.ToShaderString()}4 {layerRefName}_TexelSize;");
+                        }
+                    }
+
+                    // declare texture stack
+                    builder.AppendIndentation();
+                    builder.Append("DECLARE_STACK");
+                    builder.Append((numLayers <= 1) ? "" : numLayers.ToString());
+                    builder.Append("(");
+                    builder.Append(referenceName);
+                    builder.Append(",");
                     for (int i = 0; i < value.layers.Count; i++)
                     {
-                        string layerRefName = value.layers[i].layerRefName;
-                        builder.AppendLine(
-                            $"TEXTURE2D({layerRefName}); SAMPLER(sampler{layerRefName}); {concretePrecision.ToShaderString()}4 {layerRefName}_TexelSize;");
+                        if (i != 0) builder.Append(",");
+                        builder.Append(value.layers[i].layerRefName);
                     }
-                }
+                    builder.Append(");");
+                    builder.AppendNewLine();
 
-                // declare texture stack
-                builder.AppendIndentation();
-                builder.Append("DECLARE_STACK");
-                builder.Append((numLayers <= 1) ? "" : numLayers.ToString());
-                builder.Append("(");
-                builder.Append(referenceName);
-                builder.Append(",");
-                for (int i = 0; i < value.layers.Count; i++)
-                {
-                    if (i != 0) builder.Append(",");
-                    builder.Append(value.layers[i].layerRefName);
+                    // declare the actual virtual texture property "variable" as a macro define to the BuildVTProperties function
+                    builder.AppendIndentation();
+                    builder.Append("#define ");
+                    builder.Append(referenceName);
+                    builder.Append(" AddTextureType(BuildVTProperties_");
+                    builder.Append(referenceName);
+                    builder.Append("()");
+                    for (int i = 0; i < value.layers.Count; i++)
+                    {
+                        builder.Append(",");
+                        builder.Append("TEXTURETYPE_");
+                        builder.Append(value.layers[i].layerTextureType.ToString().ToUpper());
+                    }
+                    builder.Append(")");
+                    builder.AppendNewLine();
                 }
-                builder.Append(")");
-                builder.Append(delimiter);
-                builder.AppendNewLine();
-
-                // declare the actual virtual texture property "variable" as a macro define to the BuildVTProperties function
-                builder.AppendIndentation();
-                builder.Append("#define ");
-                builder.Append(referenceName);
-                builder.Append(" AddTextureType(BuildVTProperties_");
-                builder.Append(referenceName);
-                builder.Append("()");
-                for (int i = 0; i < value.layers.Count; i++)
-                {
-                    builder.Append(",");
-                    builder.Append("TEXTURETYPE_");
-                    builder.Append(value.layers[i].layerTextureType.ToString().ToUpper());
-                }
-                builder.Append(")");
-                builder.AppendNewLine();
             }
-        }
-
-        internal override string GetPropertyDeclarationString(string delimiter = ";")
-        {
-            // this should not be called, as it is replaced by the Append*PropertyDeclarations functions above
-            throw new NotSupportedException();
         }
 
         // argument string used to pass this property to a subgraph

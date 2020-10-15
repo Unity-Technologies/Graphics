@@ -16,7 +16,6 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public override PropertyType propertyType => PropertyType.Texture2DArray;
 
-        internal override bool isBatchable => false;
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
 
@@ -27,9 +26,14 @@ namespace UnityEditor.ShaderGraph.Internal
             return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2DArray) = \"\" {{}}";
         }
 
-        internal override string GetPropertyDeclarationString(string delimiter = ";")
+        internal override void AppendPropertyDeclarations(ShaderStringBuilder builder, Func<string, string> nameModifier, PropertyHLSLGenerationType generationTypes)
         {
-            return $"TEXTURE2D_ARRAY({referenceName}){delimiter} SAMPLER(sampler{referenceName}){delimiter}";
+            if (generationTypes.HasFlag(PropertyHLSLGenerationType.Global))
+            {
+                string name = nameModifier?.Invoke(referenceName) ?? referenceName;
+                builder.AppendLine($"TEXTURE2D_ARRAY({name});");
+                builder.AppendLine($"SAMPLER(sampler{name});");
+            }
         }
 
         internal override string GetPropertyAsArgumentString()

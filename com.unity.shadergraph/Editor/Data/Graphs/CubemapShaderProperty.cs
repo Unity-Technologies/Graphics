@@ -18,7 +18,6 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public override PropertyType propertyType => PropertyType.Cubemap;
 
-        internal override bool isBatchable => false;
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
 
@@ -29,9 +28,14 @@ namespace UnityEditor.ShaderGraph.Internal
             return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", CUBE) = \"\" {{}}";
         }
 
-        internal override string GetPropertyDeclarationString(string delimiter = ";")
+        internal override void AppendPropertyDeclarations(ShaderStringBuilder builder, Func<string, string> nameModifier, PropertyHLSLGenerationType generationTypes)
         {
-            return $"TEXTURECUBE({referenceName}){delimiter} SAMPLER(sampler{referenceName}){delimiter}";
+            if (generationTypes.HasFlag(PropertyHLSLGenerationType.Global))
+            {
+                string name = nameModifier?.Invoke(referenceName) ?? referenceName;
+                builder.AppendLine($"TEXTURECUBE({name});");
+                builder.AppendLine($"SAMPLER(sampler{name});");
+            }
         }
 
         internal override string GetPropertyAsArgumentString()

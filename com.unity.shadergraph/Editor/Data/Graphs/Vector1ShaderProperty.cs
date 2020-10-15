@@ -13,6 +13,8 @@ namespace UnityEditor.ShaderGraph.Internal
     [BlackboardInputInfo(0, "Float")]
     public sealed class Vector1ShaderProperty : AbstractShaderProperty<float>
     {
+        internal PropertyHLSLGenerationType m_generationType = PropertyHLSLGenerationType.UnityPerMaterial;
+
         internal Vector1ShaderProperty()
         {
             displayName = "Float";
@@ -20,7 +22,6 @@ namespace UnityEditor.ShaderGraph.Internal
         
         public override PropertyType propertyType => PropertyType.Float;
         
-        internal override bool isBatchable => true;
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
         internal override bool isGpuInstanceable => true;
@@ -61,6 +62,20 @@ namespace UnityEditor.ShaderGraph.Internal
                     return $"{hideTagString}{enumTagString}{referenceName}(\"{displayName}\", Float) = {valueString}";
                 default:
                     return $"{hideTagString}{referenceName}(\"{displayName}\", Float) = {valueString}";
+            }
+        }
+
+        internal override string GetPropertyAsArgumentString()
+        {
+            return $"{concreteShaderValueType.ToShaderString(concretePrecision.ToShaderString())} {referenceName}";
+        }
+
+        internal override void AppendPropertyDeclarations(ShaderStringBuilder builder, Func<string, string> nameModifier, PropertyHLSLGenerationType generationTypes)
+        {
+            if ((generationTypes & m_generationType) != 0)
+            {
+                string name = nameModifier?.Invoke(referenceName) ?? referenceName;
+                builder.AppendLine($"{concretePrecision.ToShaderString()} {name};");
             }
         }
 

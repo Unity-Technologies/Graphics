@@ -16,7 +16,6 @@ namespace UnityEditor.ShaderGraph
 
         public override PropertyType propertyType => PropertyType.SamplerState;
 
-        internal override bool isBatchable => false;
         internal override bool isExposable => false;
         internal override bool isRenamable => false;
 
@@ -30,9 +29,13 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        internal override string GetPropertyDeclarationString(string delimiter = ";")
+        internal override void AppendPropertyDeclarations(ShaderStringBuilder builder, Func<string, string> nameModifier, PropertyHLSLGenerationType generationTypes)
         {
-            return $"SAMPLER({referenceName}){delimiter}";
+            if (generationTypes.HasFlag(PropertyHLSLGenerationType.Global))
+            {
+                string name = nameModifier?.Invoke(referenceName) ?? referenceName;
+                builder.AppendLine($"SAMPLER({name});");
+            }
         }
 
         internal override string GetPropertyAsArgumentString()

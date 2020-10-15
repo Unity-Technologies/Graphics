@@ -17,7 +17,12 @@ namespace UnityEditor.ShaderGraph
         internal override bool isGpuInstanceable => true;
         
         public override PropertyType propertyType => PropertyType.Matrix4;
-        
+
+        internal override string GetPropertyAsArgumentString()
+        {
+            return $"{concretePrecision.ToShaderString()}4x4 {referenceName}";
+        }
+
         internal override AbstractMaterialNode ToConcreteNode()
         {
             return new Matrix4Node

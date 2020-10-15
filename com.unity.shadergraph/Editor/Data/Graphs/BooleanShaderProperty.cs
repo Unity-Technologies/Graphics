@@ -11,6 +11,8 @@ namespace UnityEditor.ShaderGraph.Internal
     [BlackboardInputInfo(20)]
     public sealed class BooleanShaderProperty : AbstractShaderProperty<bool>
     {
+        internal PropertyHLSLGenerationType m_generationType = PropertyHLSLGenerationType.UnityPerMaterial;
+
         internal BooleanShaderProperty()
         {
             displayName = "Boolean";
@@ -18,9 +20,22 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public override PropertyType propertyType => PropertyType.Boolean;
 
-        internal override bool isBatchable => true;
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
+
+        internal override string GetPropertyAsArgumentString()
+        {
+            return $"{concreteShaderValueType.ToShaderString(concretePrecision.ToShaderString())} {referenceName}";
+        }
+
+        internal override void AppendPropertyDeclarations(ShaderStringBuilder builder, Func<string, string> nameModifier, PropertyHLSLGenerationType generationTypes)
+        {
+            if ((generationTypes & m_generationType) != 0)
+            {
+                string name = nameModifier?.Invoke(referenceName) ?? referenceName;
+                builder.AppendLine($"{concreteShaderValueType.ToShaderString(concretePrecision.ToShaderString())} {name};");
+            }
+        }
 
         internal override string GetPropertyBlockString()
         {

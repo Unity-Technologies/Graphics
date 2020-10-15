@@ -10,6 +10,8 @@ namespace UnityEditor.ShaderGraph.Internal
     [BlackboardInputInfo(10)]
     public sealed class ColorShaderProperty : AbstractShaderProperty<Color>
     {
+        internal PropertyHLSLGenerationType m_generationType = PropertyHLSLGenerationType.UnityPerMaterial;
+
         public override int latestVersion => 1;
 
         internal ColorShaderProperty()
@@ -24,7 +26,6 @@ namespace UnityEditor.ShaderGraph.Internal
         
         public override PropertyType propertyType => PropertyType.Color;
         
-        internal override bool isBatchable => true;
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
         internal override bool isGpuInstanceable => true;
@@ -34,6 +35,20 @@ namespace UnityEditor.ShaderGraph.Internal
         internal override string GetPropertyBlockString()
         {
             return $"{hideTagString}{hdrTagString}{referenceName}(\"{displayName}\", Color) = ({NodeUtils.FloatToShaderValue(value.r)}, {NodeUtils.FloatToShaderValue(value.g)}, {NodeUtils.FloatToShaderValue(value.b)}, {NodeUtils.FloatToShaderValue(value.a)})";
+        }
+
+        internal override string GetPropertyAsArgumentString()
+        {
+            return $"{concreteShaderValueType.ToShaderString(concretePrecision.ToShaderString())} {referenceName}";
+        }
+
+        internal override void AppendPropertyDeclarations(ShaderStringBuilder builder, Func<string, string> nameModifier, PropertyHLSLGenerationType generationTypes)
+        {
+            if ((generationTypes & m_generationType) != 0)
+            {
+                string name = nameModifier?.Invoke(referenceName) ?? referenceName;
+                builder.AppendLine($"{concreteShaderValueType.ToShaderString(concretePrecision.ToShaderString())} {name};");
+            }
         }
 
         public override string GetDefaultReferenceName()

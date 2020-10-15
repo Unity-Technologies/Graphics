@@ -16,12 +16,13 @@ namespace UnityEditor.Rendering.HighDefinition
     [BlackboardInputInfo(55)]
     class DiffusionProfileShaderProperty : AbstractShaderProperty<LazyLoadReference<DiffusionProfileSettings>>, IShaderPropertyDrawer
     {
+        internal PropertyHLSLGenerationType m_generationType = PropertyHLSLGenerationType.UnityPerMaterial;
+
         internal DiffusionProfileShaderProperty()
         {
             displayName = "Diffusion Profile";
         }
 
-        internal override bool isBatchable => true;
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
         internal override bool isGpuInstanceable => true;
@@ -51,7 +52,19 @@ $@"[DiffusionProfile]{referenceName}(""{displayName}"", Float) = {f2s(HDShadowUt
 
         public override string GetDefaultReferenceName() => $"DiffusionProfile_{objectId}";
 
-        internal override string GetPropertyDeclarationString(string delimiter = ";") => $@"float {referenceName}{delimiter}";
+        internal override string GetPropertyAsArgumentString()
+        {
+            return $"float {referenceName}";
+        }
+
+        internal override void AppendPropertyDeclarations(ShaderStringBuilder builder, Func<string, string> nameModifier, PropertyHLSLGenerationType generationTypes)
+        {
+            if ((generationTypes & m_generationType) != 0)
+            {
+                string name = nameModifier?.Invoke(referenceName) ?? referenceName;
+                builder.AppendLine($"float {name};");
+            }
+        }
 
         internal override AbstractMaterialNode ToConcreteNode()
         {

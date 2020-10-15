@@ -16,7 +16,6 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public override PropertyType propertyType => PropertyType.Texture3D;
 
-        internal override bool isBatchable => false;
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
 
@@ -27,9 +26,14 @@ namespace UnityEditor.ShaderGraph.Internal
             return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 3D) = \"white\" {{}}";
         }
 
-        internal override string GetPropertyDeclarationString(string delimiter = ";")
+        internal override void AppendPropertyDeclarations(ShaderStringBuilder builder, Func<string, string> nameModifier, PropertyHLSLGenerationType generationTypes)
         {
-            return $"TEXTURE3D({referenceName}){delimiter} SAMPLER(sampler{referenceName}){delimiter}";
+            string name = nameModifier?.Invoke(referenceName) ?? referenceName;
+            if (generationTypes.HasFlag(PropertyHLSLGenerationType.Global))
+            {
+                builder.AppendLine($"TEXTURE3D({name});");
+                builder.AppendLine($"SAMPLER(sampler{name});");
+            }
         }
 
         internal override string GetPropertyAsArgumentString()

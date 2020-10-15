@@ -20,7 +20,6 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public override PropertyType propertyType => PropertyType.Texture2D;
 
-        internal override bool isBatchable => false;
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
 
@@ -31,9 +30,18 @@ namespace UnityEditor.ShaderGraph.Internal
             return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2D) = \"{defaultType.ToString().ToLower()}\" {{}}";
         }
 
-        internal override string GetPropertyDeclarationString(string delimiter = ";")
+        internal override void AppendPropertyDeclarations(ShaderStringBuilder builder, Func<string, string> nameModifier, PropertyHLSLGenerationType generationTypes)
         {
-            return $"TEXTURE2D({referenceName}){delimiter} SAMPLER(sampler{referenceName}){delimiter} {concretePrecision.ToShaderString()}4 {referenceName}_TexelSize{delimiter}";
+            string name = nameModifier?.Invoke(referenceName) ?? referenceName;
+            if (generationTypes.HasFlag(PropertyHLSLGenerationType.Global))
+            {
+                builder.AppendLine($"TEXTURE2D({name});");
+                builder.AppendLine($"SAMPLER(sampler{name});");
+            }
+            if (generationTypes.HasFlag(PropertyHLSLGenerationType.UnityPerMaterial))       // TODO: if this is a global texture, this should be in Global above... :P
+            {
+                builder.AppendLine($"{concretePrecision.ToShaderString()}4 {name}_TexelSize;");
+            }
         }
 
         internal override string GetPropertyAsArgumentString()

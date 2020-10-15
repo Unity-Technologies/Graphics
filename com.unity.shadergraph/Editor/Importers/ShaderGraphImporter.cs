@@ -506,7 +506,11 @@ Shader ""Hidden/GraphErrorShader2""
                     }
                 }
 
-                codeSnippets.Add($"// Property: {property.displayName}{nl}{property.GetPropertyDeclarationString()}{nl}{nl}");
+                // TODO: need to test this actually works with VFX
+                ShaderStringBuilder builder = new ShaderStringBuilder();
+                property.AppendPropertyDeclarations(builder, null, PropertyHLSLGenerationType.UnityPerMaterial | PropertyHLSLGenerationType.Global);
+
+                codeSnippets.Add($"// Property: {property.displayName}{nl}{builder.ToCodeBlock()}{nl}{nl}");
             }
 
 

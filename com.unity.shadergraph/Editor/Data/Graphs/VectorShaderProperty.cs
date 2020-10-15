@@ -8,13 +8,28 @@ namespace UnityEditor.ShaderGraph.Internal
     [Serializable]
     public abstract class VectorShaderProperty : AbstractShaderProperty<Vector4>
     {
-        internal override bool isBatchable => true;
+        internal PropertyHLSLGenerationType m_generationType = PropertyHLSLGenerationType.UnityPerMaterial;
+
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
 
         internal override string GetPropertyBlockString()
         {
             return $"{hideTagString}{referenceName}(\"{displayName}\", Vector) = ({NodeUtils.FloatToShaderValueShaderLabSafe(value.x)}, {NodeUtils.FloatToShaderValueShaderLabSafe(value.y)}, {NodeUtils.FloatToShaderValueShaderLabSafe(value.z)}, {NodeUtils.FloatToShaderValueShaderLabSafe(value.w)})";
+        }
+
+        internal override string GetPropertyAsArgumentString()
+        {
+            return $"{concreteShaderValueType.ToShaderString(concretePrecision.ToShaderString())} {referenceName}";
+        }
+
+        internal override void AppendPropertyDeclarations(ShaderStringBuilder builder, Func<string, string> nameModifier, PropertyHLSLGenerationType generationTypes)
+        {
+            if ((generationTypes & m_generationType) != 0)
+            {
+                string name = nameModifier?.Invoke(referenceName) ?? referenceName;
+                builder.AppendLine($"{concreteShaderValueType.ToShaderString(concretePrecision.ToShaderString())} {name};");
+            }
         }
     }
 }

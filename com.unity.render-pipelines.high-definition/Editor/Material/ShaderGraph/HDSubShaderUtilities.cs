@@ -32,6 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 floatType = FloatType.Integer,
                 value = defaultValue,
                 hidden = true,
+                m_generationType = PropertyHLSLGenerationType.None,
                 overrideReferenceName = referenceName,
             });
         }
@@ -41,6 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddShaderProperty(new Vector1ShaderProperty{
                 floatType = FloatType.Default,
                 hidden = true,
+                m_generationType = PropertyHLSLGenerationType.None,
                 value = defaultValue,
                 overrideReferenceName = referenceName,
             });
@@ -53,6 +55,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 value = defaultValue,
                 overrideReferenceName = referenceName,
                 hidden = true,
+                m_generationType = PropertyHLSLGenerationType.None,
                 displayName = displayName,
             });
         }
@@ -62,6 +65,7 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddShaderProperty(new BooleanShaderProperty{
                 value = defaultValue,
                 hidden = true,
+                m_generationType = PropertyHLSLGenerationType.None,
                 overrideReferenceName = referenceName,
             });
         }
@@ -139,6 +143,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 enumNames = {"Front", "Back"},
                 enumValues = {(int)TransparentCullMode.Front, (int)TransparentCullMode.Back},
                 hidden = true,
+                m_generationType = PropertyHLSLGenerationType.None,
             });
             collector.AddShaderProperty(new Vector1ShaderProperty{
                 overrideReferenceName = kOpaqueCullMode,
@@ -147,6 +152,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 enumType = EnumType.CSharpEnum,
                 cSharpEnumType = typeof(OpaqueCullMode),
                 hidden = true,
+                m_generationType = PropertyHLSLGenerationType.None,
             });
 
             // Add ZTest properties:
@@ -158,6 +164,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 enumType = EnumType.CSharpEnum,
                 cSharpEnumType = typeof(CompareFunction),
                 hidden = true,
+                m_generationType = PropertyHLSLGenerationType.None,
             });
 
             collector.AddToggleProperty(kTransparentBackfaceEnable, backThenFrontRendering);
@@ -179,11 +186,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 floatType = FloatType.Enum,
                 overrideReferenceName = "_DoubleSidedNormalMode",
                 hidden = true,
+                m_generationType = PropertyHLSLGenerationType.None,
                 value = (int)normalMode
             });
             collector.AddShaderProperty(new Vector4ShaderProperty{
                 overrideReferenceName = "_DoubleSidedConstants",
                 hidden = true,
+                m_generationType = PropertyHLSLGenerationType.None,
                 value = new Vector4(1, 1, -1, 0)
             });
         }

@@ -34,23 +34,27 @@ namespace UnityEditor.ShaderGraph
             if (mode == GenerationMode.Preview)
             {
                 builder.AppendLine("CBUFFER_START(UnityPerMaterial)");
-                foreach (var prop in properties.Where(p => !p.gpuInstanced))    // all non-gpu instanced properties (even non-batchable ones) - preview is weird
+
+                // all non-gpu instanced properties (even non-batchable ones) - preview is weird (wtf?)
+                foreach (var prop in properties.Where(p => !p.gpuInstanced))
                 {
-                    prop.AppendBatchablePropertyDeclarations(builder);
-                    prop.AppendNonBatchablePropertyDeclarations(builder);
+                    prop.AppendPropertyDeclarations(builder, null, PropertyHLSLGenerationType.UnityPerMaterial);
+
+                    // this puts textures in the UnityPerMaterial cbuffer?
+                    prop.AppendPropertyDeclarations(builder, null, PropertyHLSLGenerationType.Global);
                 }
-                var GPUInstancedProperties = properties.Where(p => p.gpuInstanced);
-                if (GPUInstancedProperties.Any())
+                var gpuInstancedProperties = properties.Where(p => p.gpuInstanced);
+                if (gpuInstancedProperties.Any())
                 {
                     builder.AppendLine("#ifdef UNITY_HYBRID_V1_INSTANCING_ENABLED");
-                    foreach (var prop in GPUInstancedProperties)
+                    foreach (var prop in gpuInstancedProperties)
                     {
-                        prop.AppendBatchablePropertyDeclarations(builder, "_dummy;");
+                        prop.AppendPropertyDeclarations(builder, name => (name + "_dummy"), PropertyHLSLGenerationType.UnityPerMaterial);
                     }
-                    builder.AppendLine("#else");
-                    foreach (var prop in GPUInstancedProperties)
+                    builder.AppendLine("#else // V2");
+                    foreach (var prop in gpuInstancedProperties)
                     {
-                        prop.AppendBatchablePropertyDeclarations(builder);
+                        prop.AppendPropertyDeclarations(builder, null, PropertyHLSLGenerationType.Global);
                     }
                     builder.AppendLine("#endif");
                 }
@@ -67,26 +71,26 @@ namespace UnityEditor.ShaderGraph
             builder.AppendLine("CBUFFER_START(UnityPerMaterial)");
 
             // non-GPU instanced properties go first in the UnityPerMaterial cbuffer
-            var batchableProperties = properties.Where(n => n.generatePropertyBlock && n.hasBatchableProperties);
-            foreach (var prop in batchableProperties)
+            //var batchableProperties = properties.Where(n => n.hasBatchableProperties);
+            foreach (var prop in properties.Where(p => !p.gpuInstanced))
             {
-                if (!prop.gpuInstanced)
-                    prop.AppendBatchablePropertyDeclarations(builder);
+                // +batchable, -gpuInstanced, *genPropBlock
+                prop.AppendPropertyDeclarations(builder, null, PropertyHLSLGenerationType.UnityPerMaterial);
             }
 
-            var batchableGPUInstancedProperties = batchableProperties.Where(p => p.gpuInstanced);
-            if (batchableGPUInstancedProperties.Any())
+            var GPUInstancedProperties = properties.Where(p => p.gpuInstanced);
+            if (GPUInstancedProperties.Any())
             {
                 builder.AppendLine("#ifdef UNITY_HYBRID_V1_INSTANCING_ENABLED");
-                foreach (var prop in batchableGPUInstancedProperties)
+                foreach (var prop in GPUInstancedProperties)
                 {
-                    // TODO: why is this inserting a dummy value?  this won't work on complex properties...
-                    prop.AppendBatchablePropertyDeclarations(builder, "_dummy;");
+                    // +batchable, +gpuInstanced, *genPropBlock
+                    prop.AppendPropertyDeclarations(builder, (name => name + "_dummy"), PropertyHLSLGenerationType.UnityPerMaterial);
                 }
                 builder.AppendLine("#else");
-                foreach (var prop in batchableGPUInstancedProperties)
+                foreach (var prop in GPUInstancedProperties)
                 {
-                    prop.AppendBatchablePropertyDeclarations(builder);
+                    prop.AppendPropertyDeclarations(builder, null, PropertyHLSLGenerationType.UnityPerMaterial);
                 }
                 builder.AppendLine("#endif");
             }
@@ -96,7 +100,7 @@ namespace UnityEditor.ShaderGraph
 
             builder.AppendLine("CBUFFER_START(UnityPerMaterial)");
             int instancedCount = 0;
-            foreach (var prop in properties.Where(n => n.generatePropertyBlock && n.hasBatchableProperties))
+            foreach (var prop in properties.Where(n => n.hasBatchableProperties))
             {
                 if (!prop.gpuInstanced)
                     prop.AppendBatchablePropertyDeclarations(builder);
@@ -107,7 +111,7 @@ namespace UnityEditor.ShaderGraph
             if (instancedCount > 0)
             {
                 builder.AppendLine("// Hybrid instanced properties");
-                foreach (var prop in properties.Where(n => n.generatePropertyBlock && n.hasBatchableProperties))
+                foreach (var prop in properties.Where(n => n.hasBatchableProperties))
                 {
                     if (prop.gpuInstanced)
                         prop.AppendBatchablePropertyDeclarations(builder);
@@ -121,7 +125,7 @@ namespace UnityEditor.ShaderGraph
 
                 builder.AppendLine("// DOTS instancing definitions");
                 builder.AppendLine("UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)");
-                foreach (var prop in properties.Where(n => n.generatePropertyBlock && n.hasBatchableProperties))
+                foreach (var prop in properties.Where(n => n.hasBatchableProperties))
                 {
                     if (prop.gpuInstanced)
                     {
@@ -133,7 +137,7 @@ namespace UnityEditor.ShaderGraph
                 builder.AppendLine("UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)");
 
                 builder.AppendLine("// DOTS instancing usage macros");
-                foreach (var prop in properties.Where(n => n.generatePropertyBlock && n.hasBatchableProperties))
+                foreach (var prop in properties.Where(n => n.hasBatchableProperties))
                 {
                     if (prop.gpuInstanced)
                     {
@@ -147,19 +151,17 @@ namespace UnityEditor.ShaderGraph
 #endif
 
             // declare non-batchable properties
-            foreach (var prop in properties.Where(n => n.hasNonBatchableProperties || !n.generatePropertyBlock))
+            foreach (var prop in properties)
             {
-                if (prop.hasBatchableProperties && !prop.generatePropertyBlock) // batchable properties that don't generate property block can't be instanced, get put here
-                    prop.AppendBatchablePropertyDeclarations(builder);
-
-                prop.AppendNonBatchablePropertyDeclarations(builder);
+                prop.AppendPropertyDeclarations(builder, null, PropertyHLSLGenerationType.Global);
             }
         }
 
         public IEnumerable<AbstractShaderProperty> DotsInstancingProperties(GenerationMode mode)
         {
             var previewMode = (mode == GenerationMode.Preview);
-            return properties.Where(n => (previewMode || (n.generatePropertyBlock && n.hasBatchableProperties)) && n.gpuInstanced);
+            // return properties.Where(n => (previewMode || (n.generatePropertyBlock && n.hasBatchableProperties)) && n.gpuInstanced);
+            return properties.Where(n => (previewMode || (n.generatePropertyBlock && n.isGpuInstanceable)) && n.gpuInstanced);      // todo : NOT sure about this line here
         }
 
         public string GetDotsInstancingPropertiesDeclaration(GenerationMode mode)
@@ -176,7 +178,7 @@ namespace UnityEditor.ShaderGraph
             if (dotsInstancingProperties.Any())
             {
                 builder.AppendLine("#if defined(UNITY_HYBRID_V1_INSTANCING_ENABLED)");
-                builder.Append("#define HYBRID_V1_CUSTOM_ADDITIONAL_MATERIAL_VARS\t");
+                builder.AppendLine("#define HYBRID_V1_CUSTOM_ADDITIONAL_MATERIAL_VARS \\");
 
                 int count = 0;
                 int instancedCount = dotsInstancingProperties.Count();
