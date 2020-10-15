@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// Sets up the keywords and passes for a Lit Shader Graph material.
         /// </summary>
         /// <param name="material">The target material.</param>
-        public static void SetupMaterialKeywordsAndPass(Material material)
+        new public static void SetupMaterialKeywordsAndPass(Material material)
         {
             SynchronizeShaderGraphProperties(material);
 
