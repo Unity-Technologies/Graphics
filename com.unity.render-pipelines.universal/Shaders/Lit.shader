@@ -148,6 +148,7 @@ Shader "Universal Render Pipeline/Lit"
 
             ZWrite On
             ZTest LEqual
+            ColorMask 0
             Cull[_Cull]
 
             HLSLPROGRAM
@@ -427,6 +428,7 @@ Shader "Universal Render Pipeline/Lit"
 
             ZWrite On
             ZTest LEqual
+            ColorMask 0
             Cull[_Cull]
 
             HLSLPROGRAM
