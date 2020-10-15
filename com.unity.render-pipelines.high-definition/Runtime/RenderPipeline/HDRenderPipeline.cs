@@ -1735,6 +1735,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         var needCulling = true;
 
+                        // In XR mode, sync the FOV on the camera to match the projection from the device in order to cull accurately
+                        if (hdCamera.xr.enabled)
+                            camera.fieldOfView = Mathf.Rad2Deg * Mathf.Atan(1.0f / hdCamera.xr.cullingParams.stereoProjectionMatrix.m00) * 2.0f;
+
                         // In XR multipass, culling results can be shared if the pass has the same culling id
                         if (xrPass.multipassId > 0)
                         {

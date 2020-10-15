@@ -36,7 +36,7 @@ HDRP_Hybrid_Linux_OpenGLCore_playmode_2020.2:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
       -  chmod +x TestProjects/HDRP_HybridTests/utr
-      -  cd TestProjects/HDRP_HybridTests && sudo unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_HybridTests && sudo unity-downloader-cli -u 2ea77e477b085e913ac2cdc798fcd655b010f1a2 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_HybridTests && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --compilation-errors-as-warnings --extra-editor-arg="-force-glcore"
     artifacts:
         logs:
