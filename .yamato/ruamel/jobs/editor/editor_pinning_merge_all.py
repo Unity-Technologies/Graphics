@@ -17,10 +17,10 @@ class Editor_PinningMergeAllJob():
         
         dependencies = []
         for editor in editors:
-            if str(editor['track']).lower()=='custom-revision':
+            if not editor['editor_pinning']:
                 continue
 
-            dependencies.append(f'{editor_pinning_filepath()}#{editor_job_id_merge_revisions(editor["track"], abv)}')
+            dependencies.append(f'{editor_pinning_filepath()}#{editor_job_id_merge_revisions(editor["name"], abv)}')
         
         commands = [
             f'sudo pip3 install pipenv --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple',# Remove when the image has this preinstalled.

@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [10.1.0] - 2019-08-04
+## [10.1.0] - 2020-10-12
 ### Added
 - Compare operator can take int and uint as inputs
 - New operator : Sample Signed distance field
@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Output Event Handler Samples
 - Added ExposedProperty custom Property Drawer
 - Error display within the graph.
+- Warning using Depth Collision on unsupported scriptable render pipeline.
 - Harmonized position, direction and velocity composition modes for position (shape, sequential, depth) and Velocity from Direction & Speed blocks
 
 ### Fixed
@@ -87,6 +88,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Compute culling of particle which have their alive attribute set to false in output
 - Mesh and lit mesh outputs can now have up to 4 differents meshes that can be set per Particle (Experimental)
 - Screen space per particle LOD on mesh and lit mesh outputs (Experimental)
+- Added command to delete unuser parameters.
 
 ### Fixed
 - Moved VFX Event Tester Window visibility to Component Play Controls SceneView Window
