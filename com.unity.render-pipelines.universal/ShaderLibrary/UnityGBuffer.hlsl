@@ -129,10 +129,8 @@ FragmentOutput SurfaceDataToGbuffer(SurfaceData surfaceData, InputData inputData
     output.GBuffer1 = half4(surfaceData.specular.rgb, 0);                                // specular        specular        specular        [unused]        (sRGB rendertarget)
     output.GBuffer2 = half4(packedNormalWS, packedSmoothness);                           // encoded-normal  encoded-normal  encoded-normal  packed-smoothness
     output.GBuffer3 = half4(globalIllumination, 1);                                      // GI              GI              GI              [optional: see OutputAlpha()] (lighting buffer)
-    #if OUTPUT_SHADOWMASK == 1
-    output.GBuffer4 = unity_ProbesOcclusion;
-    #elif OUTPUT_SHADOWMASK == 2
-    output.GBuffer4 = inputData.shadowMask;
+    #if OUTPUT_SHADOWMASK
+    output.GBuffer4 = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
     #endif
 
     return output;
@@ -189,10 +187,8 @@ FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half sm
     output.GBuffer1 = half4(specular, brdfData.reflectivity);                        // specular        specular        specular        reflectivity    (sRGB rendertarget)
     output.GBuffer2 = half4(packedNormalWS, packedSmoothness);                       // encoded-normal  encoded-normal  encoded-normal  smoothness
     output.GBuffer3 = half4(globalIllumination, 1);                                  // GI              GI              GI              [optional: see OutputAlpha()] (lighting buffer)
-    #if OUTPUT_SHADOWMASK == 1
-    output.GBuffer4 = unity_ProbesOcclusion;
-    #elif OUTPUT_SHADOWMASK == 2
-    output.GBuffer4 = inputData.shadowMask;
+    #if OUTPUT_SHADOWMASK
+    output.GBuffer4 = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
     #endif
 
     return output;

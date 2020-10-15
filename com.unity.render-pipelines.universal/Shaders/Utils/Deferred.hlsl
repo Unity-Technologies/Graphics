@@ -44,6 +44,9 @@ struct PunctualLightData
     int flags;               // Light flags (enum kLightFlags and LightFlag in C# code)
     half4 occlusionProbeInfo;
     int shadowLightIndex;
+    int spare0;
+    int spare1;
+    int spare2;
 };
 
 Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData punctualLightData, float3 positionWS, half4 shadowMask, bool materialFlagReceiveShadowsOff)
