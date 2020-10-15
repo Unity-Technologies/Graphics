@@ -314,15 +314,11 @@ half MixRealtimeAndBakedShadows(half realtimeShadow, half bakedShadow, half shad
 
 half BakedShadow(half4 shadowMask, half4 occlusionProbeChannels)
 {
+    // Here occlusionProbeChannels used as mask selector to select shadows in shadowMask
+    // If occlusionProbeChannels all components are zero we use default baked shadow value 1.0
     // This code is optimized for mobile platforms:
-    // half sumOfChannels = occlusionProbeChannels.x + occlusionProbeChannels.y + occlusionProbeChannels.z + occlusionProbeChannels.w;
-    // half bakedShadow = sumOfChannels != 0 ? dot(shadowMask, occlusionProbeChannels) : 1.0h;
-    half bakedShadow = dot(shadowMask, occlusionProbeChannels);
-
-    // If nothing is selected in shadowmask we default baked shadow to 1.0
-    half sumOfChannels = occlusionProbeChannels.x + occlusionProbeChannels.y + occlusionProbeChannels.z + occlusionProbeChannels.w;
-    bakedShadow += 1.0h - sumOfChannels;
-
+    // half bakedShadow = any(occlusionProbeChannels) ? dot(shadowMask, occlusionProbeChannels) : 1.0h;
+    half bakedShadow = 1.0h + dot(shadowMask - 1.0h, occlusionProbeChannels);
     return bakedShadow;
 }
 
