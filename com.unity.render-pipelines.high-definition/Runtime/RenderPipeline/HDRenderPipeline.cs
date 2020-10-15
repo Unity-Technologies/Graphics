@@ -788,7 +788,7 @@ namespace UnityEngine.Rendering.HighDefinition
             //TODO : Clean this with the RenderGraph system
             if (Debug.isDebugBuild && m_DebugColorPickerBuffer == null && m_DebugFullScreenTempBuffer == null)
             {
-                m_DebugColorPickerBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, useDynamicScale: true, name: "DebugColorPicker");
+                m_DebugColorPickerBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, useDynamicScale: true, dimension: TextureXR.dimension, slices: TextureXR.slices, name: "DebugColorPicker");
                 m_DebugFullScreenTempBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, useDynamicScale: true, name: "DebugFullScreen");
             }
 
@@ -1565,19 +1565,34 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+#if UNITY_2021_1_OR_NEWER
+        protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
+        {
+            Render(renderContext, new List<Camera>(cameras));
+        }
+#endif
+
         /// <summary>
         /// RenderPipeline Render implementation.
         /// </summary>
         /// <param name="renderContext">Current ScriptableRenderContext.</param>
         /// <param name="cameras">List of cameras to render.</param>
+#if UNITY_2021_1_OR_NEWER
+        protected override void Render(ScriptableRenderContext renderContext, List<Camera> cameras)
+#else
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
+#endif
         {
 #if UNITY_EDITOR
             if (!m_ResourcesInitialized)
                 return;
 #endif
 
+#if UNITY_2021_1_OR_NEWER
+            if (!m_ValidAPI || cameras.Count == 0)
+#else
             if (!m_ValidAPI || cameras.Length == 0)
+#endif
                 return;
 
             GetOrCreateDefaultVolume();
@@ -1586,7 +1601,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // This function should be called once every render (once for all camera)
             LightLoopNewRender();
 
+#if UNITY_2021_1_OR_NEWER
+            BeginContextRendering(renderContext, cameras);
+#else
             BeginFrameRendering(renderContext, cameras);
+
+#endif
 
             // Check if we can speed up FrameSettings process by skiping history
             // or go in detail if debug is activated. Done once for all renderer.
@@ -2300,7 +2320,13 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_EnableRenderGraph)
                 m_RenderGraph.EndFrame();
             m_XRSystem.ReleaseFrame();
-            UnityEngine.Rendering.RenderPipeline.EndFrameRendering(renderContext, cameras);
+
+#if UNITY_2021_1_OR_NEWER
+            EndContextRendering(renderContext, cameras);
+#else
+            EndFrameRendering(renderContext, cameras);
+#endif
+
         }
 
 
@@ -2424,7 +2450,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (DebugManager.instance.displayRuntimeUI
 #if UNITY_EDITOR
                     || DebugManager.instance.displayEditorUI
-    #endif
+#endif
                 )
                 m_CurrentDebugDisplaySettings.UpdateAveragedProfilerTimings();
 
@@ -3024,15 +3050,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BlitToFinalRTDevBuildOnly)))
                 {
-                        for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
-                        {
-                            var finalBlitParams = PrepareFinalBlitParameters(hdCamera, viewIndex);
-                            BlitFinalCameraTexture(finalBlitParams, m_BlitPropertyBlock, m_IntermediateAfterPostProcessBuffer, target.id, cmd);
+                    for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
+                    {
+                        var finalBlitParams = PrepareFinalBlitParameters(hdCamera, viewIndex);
+                        BlitFinalCameraTexture(finalBlitParams, m_BlitPropertyBlock, m_IntermediateAfterPostProcessBuffer, target.id, cmd);
 
-                            // If a depth target is specified, fill it
-                            if (target.targetDepth != null)
-                                BlitFinalCameraTexture(finalBlitParams, m_BlitPropertyBlock, m_SharedRTManager.GetDepthTexture(), target.targetDepth, cmd);
-                        }
+                        // If a depth target is specified, fill it
+                        if (target.targetDepth != null)
+                            BlitFinalCameraTexture(finalBlitParams, m_BlitPropertyBlock, m_SharedRTManager.GetDepthTexture(), target.targetDepth, cmd);
+                    }
                 }
 
                 if (aovRequest.isValid)

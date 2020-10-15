@@ -23,7 +23,7 @@ Shader "Hidden/HDRP/DebugColorPicker"
             #define DEBUG_DISPLAY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
 
-            TEXTURE2D(_DebugColorPickerTexture);
+            TEXTURE2D_X(_DebugColorPickerTexture);
             SAMPLER(sampler_DebugColorPickerTexture);
 
             float4 _ColorPickerParam; // 4 increasing threshold
@@ -155,7 +155,7 @@ Shader "Hidden/HDRP/DebugColorPicker"
                     input.texcoord.y = 1.0 * _RTHandleScale.y - input.texcoord.y;
                 }
 
-                float4 result = SAMPLE_TEXTURE2D(_DebugColorPickerTexture, sampler_DebugColorPickerTexture, input.texcoord);
+                float4 result = SAMPLE_TEXTURE2D_X(_DebugColorPickerTexture, sampler_DebugColorPickerTexture, input.texcoord);
 
                 //Decompress value if luxMeter is active
                 if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER && _ColorPickerMode != COLORPICKERDEBUGMODE_NONE)
@@ -178,7 +178,7 @@ Shader "Hidden/HDRP/DebugColorPicker"
                         // Note: We must not flip the mousePixelCoord.w coordinate
                     }
 
-                    float4 mouseResult = SAMPLE_TEXTURE2D(_DebugColorPickerTexture, sampler_DebugColorPickerTexture, mousePixelCoord.zw);
+                    float4 mouseResult = SAMPLE_TEXTURE2D_X(_DebugColorPickerTexture, sampler_DebugColorPickerTexture, mousePixelCoord.zw);
 
                     //Decompress value if luxMeter is active
                     if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
