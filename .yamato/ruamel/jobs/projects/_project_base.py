@@ -9,9 +9,9 @@ def _job(project, test_platform_name, editor, platform, api, cmd):
 
     # define name
     if test_platform_name.lower() == 'standalone_build':
-        job_name = f'Build {project["name"]} on {platform["name"]}_{api["name"]}_Player on version {editor["track"]}'
+        job_name = f'Build {project["name"]} on {platform["name"]}_{api["name"]}_Player on version {editor["name"]}'
     else:
-        job_name = f'{project["name"]} on {platform["name"]}_{api["name"]}_{test_platform_name} on version {editor["track"]}'
+        job_name = f'{project["name"]} on {platform["name"]}_{api["name"]}_{test_platform_name} on version {editor["name"]}'
 
     # define agent
     platform_agents_project = platform.get(f'agents_project_{api["name"]}', platform.get('agents_project'))
@@ -33,11 +33,9 @@ def _job(project, test_platform_name, editor, platform, api, cmd):
         
 
 
-    dependencies = [{
-                'path' : f'{editor_priming_filepath()}#{editor_job_id(editor["track"], platform["os"])}',
-                'rerun' : editor["rerun_strategy"]}]
-
-    if str(editor['track']).lower() == 'custom-revision':
-        job.add_dependencies(dependencies)
+    if not editor['editor_pinning']:
+        job.add_dependencies([{
+                'path' : f'{editor_priming_filepath()}#{editor_job_id(editor["name"], platform["os"])}',
+                'rerun' : editor["rerun_strategy"]}])
 
     return job

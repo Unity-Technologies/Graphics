@@ -6,7 +6,8 @@ test_platforms:
     timeout:
       OSX_Metal: 2400
     timeout_build:
-      Android: 1800
+      Android: 2700
+      iOS: 1800
       Win: 2000
   - type: playmode
   - type: editmode
