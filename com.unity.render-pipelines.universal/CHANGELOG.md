@@ -4,6 +4,16 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [11.0.0] - 2020-MM-DD
+### Changed
+- Optimized 2D Renderer performance on mobile GPUs by reducing the number of render target switches.
+- Optimized 2D Renderer performance by rendering the normal buffer at the same lower resolution as the light buffers.
+- 2D Renderer: The per Blend Style render texture scale setting was replaced by a global scale setting for all Blend Styles.
+
+### Fixed
+- Fixed an issue where Sprites on one Sorting Layer were fully lit even when there's no 2D light targeting that layer.
+- Fixed an issue where null reference exception was thrown when creating a 2D Renderer Data asset while scripts are compiling. [case 1263040](https://issuetracker.unity3d.com/issues/urp-nullreferenceexception-error-is-thrown-on-creating-2d-renderer-asset)
+
 ## [10.1.0] - 2020-08-04
 ### Added
 - Added support for the Shadowmask Mixed Lighting Mode (Forward only), which supports up to four baked-shadow Lights.
