@@ -4,7 +4,7 @@ This section contains descriptions of URP-specific ShaderLab Pass tags.
 
 ## URP Pass tags: LightMode
 
-The value of this tag determines whether Unity executes the Pass during a given frame, when during the frame Unity executes the Pass, and what Unity does with the output.
+The value of this tag lets the pipeline determine which Pass to use when executing different parts of the Render Pipeline.
 
 If you do not set the `LightMode` tag in a Pass, URP uses the `SRPDefaultUnlit` tag value for that Pass.
 

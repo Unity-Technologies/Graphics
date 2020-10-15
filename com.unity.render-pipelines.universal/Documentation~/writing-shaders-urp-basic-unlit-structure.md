@@ -131,7 +131,7 @@ Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" }
 
 A SubShader Tag with a name of `RenderPipeline` tells Unity which render pipelines to use this SubShader with, and the value of `UniversalPipeline` indicates that Unity should use this SubShader with URP.
 
-To execute the same shader in different render pipelines, create multiple SubShader blocks with different `RenderPipeline` tag values.
+To execute the same shader in different render pipelines, create multiple SubShader blocks with different `RenderPipeline` tag values. To execute a SubShader block in HDRP, set the `RenderPipeline` tag to `HDRenderPipeline`, to execute it in the Built-in Render Pipeline, set `RenderPipeline` to an empty value.
 
 For more information on SubShader Tags, see [ShaderLab: SubShader Tags](https://docs.unity3d.com/Manual/SL-SubShaderTags.html).
 
