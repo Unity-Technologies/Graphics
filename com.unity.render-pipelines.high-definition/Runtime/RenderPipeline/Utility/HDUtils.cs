@@ -1118,5 +1118,15 @@ namespace UnityEngine.Rendering.HighDefinition
             ComponentSingleton<HDAdditionalLightData>.Release();
             ComponentSingleton<HDAdditionalCameraData>.Release();
         }
+
+        internal static int GetFrameCount()
+        {
+            int currentFrame = int.MinValue;
+            HDRenderPipeline hdrp = HDRenderPipeline.currentPipeline;
+            if (hdrp != null)
+                currentFrame = hdrp.GetFrameCount();
+
+            return currentFrame;
+        }
     }
 }

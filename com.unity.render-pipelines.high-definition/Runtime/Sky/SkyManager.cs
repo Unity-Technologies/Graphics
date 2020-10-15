@@ -77,12 +77,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public SkyRenderingContext  renderingContext;
         public int                  hash;
         public int                  refCount;
+        public int                  deletionFrame;
 
         public void Reset()
         {
             // We keep around the renderer and the rendering context to avoid useless allocation if they get reused.
             hash = 0;
             refCount = 0;
+            deletionFrame = int.MinValue; //not 0, to properly handle overflow
         }
 
         public void Cleanup()
@@ -597,6 +599,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+            int currentFrame = HDUtils.GetFrameCount();
+
             // Else allocate a new one
             int firstFreeContext = -1;
             for (int i = 0; i < m_CachedSkyContexts.size; ++i)
@@ -608,6 +612,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     updateContext.cachedSkyRenderingContextId = i;
                     updateContext.skyParametersHash = newHash;
                     return false;
+                }
+
+                // Garbage collect deleted contexes
+                if (m_CachedSkyContexts[i].refCount == 0 && (currentFrame - m_CachedSkyContexts[i].deletionFrame > 1))
+                {
+                    m_CachedSkyContexts[i].Reset();
                 }
 
                 // Find the first available slot in case we don't find a matching one.
@@ -647,8 +657,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             cachedContext.refCount--;
+            // We will delete the context in the next frame, in case we stil need it 
             if (cachedContext.refCount == 0)
-                cachedContext.Reset();
+                cachedContext.deletionFrame = HDUtils.GetFrameCount();
+
         }
 
         bool IsCachedContextValid(SkyUpdateContext skyContext)
