@@ -396,7 +396,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             return true;
         }
 
-        public void DestroyRT()
+        public void DestroyCameras()
         {
             // We should destroy the layer camera only if it was cloned
             if (m_LayerCamera != null)
@@ -418,7 +418,10 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     m_LayerCamera = null;
                 }
             }
+        }
 
+        public void DestroyRT()
+        {
             if (m_RTHandle != null)
             {
                 RTHandles.Release(m_RTHandle);
@@ -451,6 +454,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         public void Destroy()
         {
+            DestroyCameras();
             DestroyRT();
         }
 
