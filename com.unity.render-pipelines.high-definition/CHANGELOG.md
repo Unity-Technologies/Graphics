@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Custom Post Processes affecting preview cameras.
 - Fixed serialization issue with matcap scale intensity.
 
+### Changed
+- Removed XRSystemTests. The GC verification is now done during playmode tests (case 1285012).
+
 ## [7.5.1] - 2020-09-02
 
 ### Fixed
