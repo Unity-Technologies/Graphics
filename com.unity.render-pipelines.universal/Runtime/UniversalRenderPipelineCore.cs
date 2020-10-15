@@ -642,10 +642,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 lightOcclusionProbeChannel[light.bakingOutput.occlusionMaskChannel] = 1.0f;
             }
-            else
-            {
-                lightOcclusionProbeChannel.x = -1.0f; // Use -1 to say we have no mask
-            }
         }
     }
 
