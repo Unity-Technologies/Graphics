@@ -42,12 +42,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed GC when using XR single-pass automated tests.
 - Fixed an issue that caused a null reference when deleting camera component in a prefab. [case 1244430](https://issuetracker.unity3d.com/issues/urp-argumentnullexception-error-is-thrown-on-removing-camera-component-from-camera-prefab)
 - Fixed resolution of intermediate textures when rendering to part of a render texture. [case 1261287](https://issuetracker.unity3d.com/product/unity/issues/guid/1261287/)
+- Fixed indirect albedo not working with shadergraph shaders in some rare setups. [case 1274967](https://issuetracker.unity3d.com/issues/gameobjects-with-custom-mesh-are-not-reflecting-the-light-when-using-the-shader-graph-shaders)
 - Fixed XR mirroView sRGB issue when color space is gamma.
 - Fixed an issue where XR eye textures are recreated multiple times per frame due to per camera MSAA change.
 - Fixed an issue wehre XR mirror view selector stuck. 
 - Fixed GLES2 shader compilation.
 - Fixed issue with lens distortion breaking rendering when enabled and its intensity is 0.
 - Fixed issue that caused motion blur to not work in XR.
+- Fixed issue where multiple cameras would cause GC each frame. [case 1259717](https://issuetracker.unity3d.com/issues/urp-scriptablerendercontext-dot-getcamera-array-dot-resize-creates-garbage-every-frame-when-more-than-one-camera-is-active)
 - Fixed Missing camera cannot be removed after scene is saved by removing the Missing camera label. [case 1252255](https://issuetracker.unity3d.com/issues/universal-rp-missing-camera-cannot-be-removed-from-camera-stack-after-scene-is-saved)
 - Fixed MissingReferenceException when removing Missing camera from camera stack by removing Missing camera label. [case 1252263](https://issuetracker.unity3d.com/issues/universal-rp-missingreferenceexception-errors-when-removing-missing-camera-from-stack)
 

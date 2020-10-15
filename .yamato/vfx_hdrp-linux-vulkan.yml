@@ -119,7 +119,7 @@ Build_VFX_HDRP_Linux_Vulkan_Player_mono_2_Linear_2020.2:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_HDRP/utr
       -  chmod +x TestProjects/VisualEffectGraph_HDRP/utr
-      -  cd TestProjects/VisualEffectGraph_HDRP && sudo unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/VisualEffectGraph_HDRP && sudo unity-downloader-cli -u 2ea77e477b085e913ac2cdc798fcd655b010f1a2 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/VisualEffectGraph_HDRP && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --testproject=. --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --scripting-backend=mono" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
@@ -142,7 +142,7 @@ VFX_HDRP_Linux_Vulkan_playmode_mono_2_Linear_2020.2:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_HDRP/utr
       -  chmod +x TestProjects/VisualEffectGraph_HDRP/utr
-      -  cd TestProjects/VisualEffectGraph_HDRP && sudo unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/VisualEffectGraph_HDRP && sudo unity-downloader-cli -u 2ea77e477b085e913ac2cdc798fcd655b010f1a2 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/VisualEffectGraph_HDRP && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
@@ -162,7 +162,7 @@ VFX_HDRP_Linux_Vulkan_editmode_mono_2_Linear_2020.2:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_HDRP/utr
       -  chmod +x TestProjects/VisualEffectGraph_HDRP/utr
-      -  cd TestProjects/VisualEffectGraph_HDRP && sudo unity-downloader-cli -u 24a0f8b56f72092c87d71cefbe3c26d3d6f4f6e9 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/VisualEffectGraph_HDRP && sudo unity-downloader-cli -u 2ea77e477b085e913ac2cdc798fcd655b010f1a2 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/VisualEffectGraph_HDRP && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=il2cpp --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
