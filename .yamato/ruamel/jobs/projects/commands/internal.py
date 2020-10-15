@@ -16,7 +16,8 @@ def _cmd_base(project_folder, platform, utr_flags, editor):
 
 def cmd_editmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
     scripting_backend = build_config["scripting_backend"]
-    utr_args = utr_editmode_flags()
+    api_level = build_config["api_level"]
+    utr_args = utr_editmode_flags(scripting_backend=f'{scripting_backend}', api_level=f'{api_level}', color_space=f'{color_space}')
     utr_args.extend(test_platform["extra_utr_flags"])
     utr_args.extend(platform["extra_utr_flags"])
     if api["name"] != "":

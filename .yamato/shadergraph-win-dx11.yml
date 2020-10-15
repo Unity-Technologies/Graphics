@@ -73,7 +73,7 @@ ShaderGraph_Win_DX11_editmode_mono_2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraph/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraph && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/ShaderGraph && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=il2cpp --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/ShaderGraph && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -149,7 +149,7 @@ ShaderGraph_Win_DX11_editmode_mono_2_Linear_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraph/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraph && unity-downloader-cli -u 2ea77e477b085e913ac2cdc798fcd655b010f1a2 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/ShaderGraph && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=il2cpp --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/ShaderGraph && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -237,7 +237,7 @@ ShaderGraph_Win_DX11_editmode_mono_2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraph/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraph && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/ShaderGraph && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=il2cpp --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/ShaderGraph && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
