@@ -167,6 +167,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed cullmode for SceneSelectionPass.
 - Fixed issue that caused non-static object to not render at times in OnEnable reflection probes.
 - Fixed XR shadows culling.
+- Fixed issues with reordering and hiding graphics compositor layers (cases 1283903, 1285282, 1283886).
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
