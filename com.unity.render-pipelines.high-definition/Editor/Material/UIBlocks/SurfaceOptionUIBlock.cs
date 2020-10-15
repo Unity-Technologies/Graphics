@@ -481,9 +481,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawSurfaceGUI()
         {
+            float refractionModelValue = refractionModel != null ? refractionModel.floatValue : 0;
+
+            var shader = materials[0].shader;
+            if (refractionModel != null && shader.IsShaderGraph())
+                refractionModelValue = shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex(kRefractionModel));
+
             // TODO: does not work with multi-selection
             bool showBlendModePopup = refractionModel == null
-                || refractionModel.floatValue == 0
+                || refractionModelValue == 0
                 || materials.All(m => HDRenderQueue.k_RenderQueue_PreRefraction.Contains(m.renderQueue));
 
             SurfaceTypePopup();
