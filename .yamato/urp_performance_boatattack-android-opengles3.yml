@@ -19,7 +19,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2 --report-performance-data --performance-project-id=BoatAttack --architecture=ARM64" --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2 --report-performance-data --performance-project-id=BoatAttack --architecture=ARM64 --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -64,7 +64,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_4_Linear_trunk:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --architecture=ARM64" --extra-editor-arg="-executemethod Editor.Setup" --category=URP --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --timeout=2000
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --extra-editor-arg="-executemethod Editor.Setup" --category=URP --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --timeout=2000
     artifacts:
         logs:
             paths:
@@ -89,7 +89,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_mono_2
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --report-performance-data --performance-project-id=BoatAttack --architecture=ARM64" --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --report-performance-data --performance-project-id=BoatAttack --architecture=ARM64 --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -134,7 +134,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_mono_2_Linear_trunk:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --architecture=ARM64" --extra-editor-arg="-executemethod Editor.Setup" --category=URP --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --timeout=2000
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --extra-editor-arg="-executemethod Editor.Setup" --category=URP --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --timeout=2000
     artifacts:
         logs:
             paths:
@@ -159,7 +159,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2 --report-performance-data --performance-project-id=BoatAttack --architecture=ARM64" --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2 --report-performance-data --performance-project-id=BoatAttack --architecture=ARM64 --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -204,7 +204,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_4_Linear_2020.2
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 2ea77e477b085e913ac2cdc798fcd655b010f1a2 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --architecture=ARM64" --extra-editor-arg="-executemethod Editor.Setup" --category=URP --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --timeout=2000
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --extra-editor-arg="-executemethod Editor.Setup" --category=URP --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --timeout=2000
     artifacts:
         logs:
             paths:
@@ -229,7 +229,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_mono_2
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --report-performance-data --performance-project-id=BoatAttack --architecture=ARM64" --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --report-performance-data --performance-project-id=BoatAttack --architecture=ARM64 --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -274,7 +274,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_mono_2_Linear_2020.2:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 2ea77e477b085e913ac2cdc798fcd655b010f1a2 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --architecture=ARM64" --extra-editor-arg="-executemethod Editor.Setup" --category=URP --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --timeout=2000
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --extra-editor-arg="-executemethod Editor.Setup" --category=URP --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --timeout=2000
     artifacts:
         logs:
             paths:
@@ -300,7 +300,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2 --report-performance-data --performance-project-id=BoatAttack --architecture=ARM64" --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2 --report-performance-data --performance-project-id=BoatAttack --architecture=ARM64 --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -348,7 +348,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_4_Linear_CUSTOM
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --architecture=ARM64" --extra-editor-arg="-executemethod Editor.Setup" --category=URP --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --timeout=2000
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --extra-editor-arg="-executemethod Editor.Setup" --category=URP --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --timeout=2000
     artifacts:
         logs:
             paths:
@@ -377,7 +377,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_mono_2
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --report-performance-data --performance-project-id=BoatAttack --architecture=ARM64" --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --report-performance-data --performance-project-id=BoatAttack --architecture=ARM64 --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -425,7 +425,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_mono_2_Linear_CUSTOM-R
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --architecture=ARM64" --extra-editor-arg="-executemethod Editor.Setup" --category=URP --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --timeout=2000
+      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --extra-editor-arg="-executemethod Editor.Setup" --category=URP --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --timeout=2000
     artifacts:
         logs:
             paths:
