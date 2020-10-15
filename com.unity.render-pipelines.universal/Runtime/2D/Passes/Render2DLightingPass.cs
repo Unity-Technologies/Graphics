@@ -94,7 +94,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     var layerBatch = layerBatches[i];
 
                     var blendStyleMask = layerBatch.lightStats.blendStylesUsed;
-                    uint blendStyleCount = 0;
+                    var blendStyleCount = 0U;
                     while (blendStyleMask > 0)
                     {
                         blendStyleCount += blendStyleMask & 1;

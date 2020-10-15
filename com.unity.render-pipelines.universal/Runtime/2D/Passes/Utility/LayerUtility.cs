@@ -6,7 +6,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
     internal struct LayerBatch
     {
         public int startLayerID;
-        public int startLayerValue;
 		public int endLayerValue;
         public SortingLayerRange layerRange;
         public LightStats lightStats;
@@ -123,8 +122,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 var lightStats = lightCullResult.GetLightStatsByLayer(layerToRender);
                 ref var layerBatch = ref s_LayerBatches[batchCount++];
 
-                // find the highest layer that share the same set of lights as this layer
+                // Find the highest layer that share the same set of lights as this layer.
                 var upperLayerInBatch = FindUpperBoundInBatch(i, cachedSortingLayers, lightCullResult);
+
                 // Some renderers override their sorting layer value with short.MinValue or short.MaxValue.
                 // When drawing the first sorting layer, we should include the range from short.MinValue to layerValue.
                 // Similarly, when drawing the last sorting layer, include the range from layerValue to short.MaxValue.
@@ -132,12 +132,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 var lowerBound = (i == 0) ? short.MinValue : startLayerValue;
                 var endLayerValue = (short) cachedSortingLayers[upperLayerInBatch].value;
                 var upperBound = (upperLayerInBatch == cachedSortingLayers.Length - 1) ? short.MaxValue : endLayerValue;
-                // renderer within this range share the same set of lights so they should be rendered together
+
+                // Renderer within this range share the same set of lights so they should be rendered together.
                 var sortingLayerRange = new SortingLayerRange(lowerBound, upperBound);
 
                 layerBatch.startLayerID = layerToRender;
-                layerBatch.startLayerValue = startLayerValue;
-				layerBatch.endLayerValue = endLayerValue;
+                layerBatch.endLayerValue = endLayerValue;
                 layerBatch.layerRange = sortingLayerRange;
                 layerBatch.lightStats = lightStats;
 
