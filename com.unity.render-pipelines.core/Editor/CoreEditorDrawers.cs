@@ -34,7 +34,13 @@ namespace UnityEditor.Rendering
     /// Utility class to draw inspectors
     /// </summary>
     /// <typeparam name="TData">Type of class containing data needed to draw inspector</typeparam>
-    public static class CoreEditorDrawer<TData>
+    public abstract class CoreEditorDrawer<TData> : CoreEditorDrawer<TData, Editor> { }
+
+    /// Utility class to draw inspectors
+    /// </summary>
+    /// <typeparam name="TData">Type of class containing data needed to draw inspector</typeparam>
+    /// <typeparam name="TEditor">Type of editor class used. Usually Editor.</typeparam>
+    public abstract class CoreEditorDrawer<TData, TEditor>
     {
         /// <summary> Abstraction that have the Draw hability </summary>
         public interface IDrawer
@@ -44,31 +50,31 @@ namespace UnityEditor.Rendering
             /// </summary>
             /// <param name="serializedProperty">The SerializedProperty to draw</param>
             /// <param name="owner">The editor handling this draw call</param>
-            void Draw(TData serializedProperty, Editor owner);
+            void Draw(TData serializedProperty, TEditor owner);
         }
 
         /// <summary>Delegate that must say if this is enabled for drawing</summary>
         /// <param name="data">The data used</param>
         /// <param name="owner">The editor rendering</param>
         /// <returns>True if this should be drawn</returns>
-        public delegate bool Enabler(TData data, Editor owner);
+        public delegate bool Enabler(TData data, TEditor owner);
 
         /// <summary>Delegate is called when the foldout state is switched</summary>
         /// <param name="data">The data used</param>
         /// <param name="owner">The editor rendering</param>
-        public delegate void SwitchEnabler(TData data, Editor owner);
+        public delegate void SwitchEnabler(TData data, TEditor owner);
         
         /// <summary>Delegate that must be used to select sub object for data for drawing</summary>
         /// <typeparam name="T2Data">The type of the sub object used for data</typeparam>
         /// <param name="data">The data used</param>
         /// <param name="owner">The editor rendering</param>
         /// <returns>Embeded object that will be used as data source for later draw in this Select</returns>
-        public delegate T2Data DataSelect<T2Data>(TData data, Editor owner);
+        public delegate T2Data DataSelect<T2Data>(TData data, TEditor owner);
 
         /// <summary>Delegate type alternative to IDrawer</summary>
         /// <param name="data">The data used</param>
         /// <param name="owner">The editor rendering</param>
-        public delegate void ActionDrawer(TData data, Editor owner);
+        public delegate void ActionDrawer(TData data, TEditor owner);
 
         /// <summary> Equivalent to EditorGUILayout.Space that can be put in a drawer group </summary>
         public static readonly IDrawer space = Group((data, owner) => EditorGUILayout.Space());
@@ -109,7 +115,7 @@ namespace UnityEditor.Rendering
                 m_Enabler = enabler;
             }
 
-            void IDrawer.Draw(TData data, Editor owner)
+            void IDrawer.Draw(TData data, TEditor owner)
             {
                 if (m_Enabler != null && !m_Enabler(data, owner))
                     return;
@@ -152,7 +158,7 @@ namespace UnityEditor.Rendering
                 m_Switch = @switch;
             }
 
-            void IDrawer.Draw(TData data, Editor owner)
+            void IDrawer.Draw(TData data, TEditor owner)
             {
                 if (m_Switch != null && !m_Switch(data, owner))
                     drawIfFalse?.Invoke(data, owner);
@@ -258,7 +264,7 @@ namespace UnityEditor.Rendering
                 isIndented = (options & GroupOption.Indent) != 0;
             }
 
-            void IDrawer.Draw(TData data, Editor owner)
+            void IDrawer.Draw(TData data, TEditor owner)
             {
                 if (isIndented)
                     ++EditorGUI.indentLevel;
@@ -285,7 +291,7 @@ namespace UnityEditor.Rendering
         /// <returns>A IDrawer object</returns>
         public static IDrawer Select<T2Data>(
             DataSelect<T2Data> dataSelect,
-            params CoreEditorDrawer<T2Data>.IDrawer[] otherDrawers)
+            params CoreEditorDrawer<T2Data, TEditor>.IDrawer[] otherDrawers)
         {
             return new SelectDrawerInternal<T2Data>(dataSelect, otherDrawers.Draw);
         }
@@ -297,7 +303,7 @@ namespace UnityEditor.Rendering
         /// <returns>A IDrawer object</returns>
         public static IDrawer Select<T2Data>(
             DataSelect<T2Data> dataSelect,
-            params CoreEditorDrawer<T2Data>.ActionDrawer[] otherDrawers)
+            params CoreEditorDrawer<T2Data, TEditor>.ActionDrawer[] otherDrawers)
         {
             return new SelectDrawerInternal<T2Data>(dataSelect, otherDrawers);
         }
@@ -305,16 +311,16 @@ namespace UnityEditor.Rendering
         class SelectDrawerInternal<T2Data> : IDrawer
         {
             DataSelect<T2Data> m_DataSelect;
-            CoreEditorDrawer<T2Data>.ActionDrawer[] m_SourceDrawers;
+            CoreEditorDrawer<T2Data, TEditor>.ActionDrawer[] m_SourceDrawers;
 
             public SelectDrawerInternal(DataSelect<T2Data> dataSelect,
-                params CoreEditorDrawer<T2Data>.ActionDrawer[] otherDrawers)
+                params CoreEditorDrawer<T2Data, TEditor>.ActionDrawer[] otherDrawers)
             {
                 m_SourceDrawers = otherDrawers;
                 m_DataSelect = dataSelect;
             }
 
-            void IDrawer.Draw(TData data, Editor o)
+            void IDrawer.Draw(TData data, TEditor o)
             {
                 var p2 = m_DataSelect(data, o);
                 for (var i = 0; i < m_SourceDrawers.Length; i++)
@@ -575,7 +581,7 @@ namespace UnityEditor.Rendering
         /// <param name="drawers">A collection of IDrawers</param>
         /// <param name="data">The data source for the inner drawers</param>
         /// <param name="owner">The editor drawing</param>
-        public static void Draw<TData>(this IEnumerable<CoreEditorDrawer<TData>.IDrawer> drawers, TData data, Editor owner)
+        public static void Draw<TData, TEditor>(this IEnumerable<CoreEditorDrawer<TData, TEditor>.IDrawer> drawers, TData data, TEditor owner)
         {
             foreach (var drawer in drawers)
                 drawer.Draw(data, owner);
