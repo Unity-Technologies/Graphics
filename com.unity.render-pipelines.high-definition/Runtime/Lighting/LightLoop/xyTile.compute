@@ -2,11 +2,11 @@
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
 // Generates large screen tiles in a fast, conservative manner
-#pragma kernel FillCoarseXyTile  PASS = FILL_COARSE_XY_TILE
+#pragma kernel FillCoarseXyTile  COARSE_BINNING PASS = FILL_COARSE_XY_TILE
 // Removes certain entities from the coarse buffer at a large cost
-#pragma kernel PruneCoarseXyTile PASS = PRUNE_COARSE_XY_TILE
+#pragma kernel PruneCoarseXyTile COARSE_BINNING PASS = PRUNE_COARSE_XY_TILE
 // Generates small screen tiles in an accurate manner
-#pragma kernel BuildFineXyTile   PASS = BUILD_FINE_XY_TILE
+#pragma kernel BuildFineXyTile   FINE_BINNING   PASS = BUILD_FINE_XY_TILE
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
@@ -27,9 +27,17 @@
     // 1x list for all entites (sorted by category, we concatenate lists of all views).
     // The size of the buffer can be computed as follows:
     // DIV_ROUND_UP(RES_X, COARSE_XY_TILE_SIZE) * DIV_ROUND_UP(RES_Y, COARSE_XY_TILE_SIZE) *
-    // BOUNDEDENTITYCATEGORY_COUNT * EYE_COUNT * (COARSE_XY_TILE_ENTITY_LIMIT * 2 bytes per entry).
+    // BOUNDEDENTITYCATEGORY_COUNT * EYE_COUNT * (COARSE_XY_TILE_ENTRY_LIMIT * 2 bytes per entry).
     // For example (1080p): 30 * 17 * 5 * 1 * (64 * 2) = 318.75 KiB.
     RWStructuredBuffer<uint> _CoarseXyTileBuffer : register(u0); // List of 16-bit indices
+#endif
+
+#if (PASS == BUILD_FINE_XY_TILE)
+    // 1x list for all entites (sorted by category, we concatenate lists of all views).
+    // The size of the buffer can be computed as follows:
+    // DIV_ROUND_UP(RES_X, FINE_XY_TILE_SIZE) * DIV_ROUND_UP(RES_Y, FINE_XY_TILE_SIZE) *
+    // BOUNDEDENTITYCATEGORY_COUNT * EYE_COUNT * (FINE_XY_TILE_ENTRY_LIMIT * 2 bytes per entry).
+    // For example (1080p): 240 * 165 * 5 * 1 * (16 * 2) = 6.04 MiB.
 #endif
 
 /* ------------------------------ Utilities --------------------------------- */
@@ -40,8 +48,8 @@ static uint s_BoundedEntityOffsetPerCategory[BOUNDEDENTITYCATEGORY_COUNT] = (uin
 
 /* ------------------------------ Implementation ---------------------------- */
 
-#if (REMAINDER(COARSE_XY_TILE_ENTITY_LIMIT, 2) != 0)
-    #error "COARSE_XY_TILE_ENTITY_LIMIT must be an integer multiple of 2."
+#if (REMAINDER(XY_TILE_ENTRY_LIMIT, 2) != 0)
+    #error "XY_TILE_ENTRY_LIMIT must be an integer multiple of 2."
 #endif
 
 #define THREADS_PER_GROUP (64)
@@ -58,8 +66,8 @@ void FillCoarseXyTile(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     const uint eye = groupID.z;
 
     const uint  tileIndex        = IndexFromCoordinate(uint2(t, g), THREADS_PER_GROUP);
-    const uint  clampedTileIndex = min(tileIndex, (uint)(_CoarseXyTileBufferDimensions.x * _CoarseXyTileBufferDimensions.y - 1));
-    const uint2 clampedTileCoord = CoordinateFromIndex(clampedTileIndex, (uint)_CoarseXyTileBufferDimensions.x);
+    const uint  clampedTileIndex = min(tileIndex, XY_TILE_BUFFER_DIMS.x * XY_TILE_BUFFER_DIMS.y - 1);
+    const uint2 clampedTileCoord = CoordinateFromIndex(clampedTileIndex, XY_TILE_BUFFER_DIMS.x);
 
     // Helper threads may perform the same computation on valid data,
     // but do not store the results of the computation to memory.
@@ -74,15 +82,15 @@ void FillCoarseXyTile(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     if (entityCount > 0) // Avoid wasted work
     {
         // Compute 2-D the AABB of the tile.
-        const uint2  tileAaBbMinPtSS  = clampedTileCoord * COARSE_XY_TILE_SIZE;
-        const uint2  tileAaBbMaxPtSS  = tileAaBbMinPtSS  + COARSE_XY_TILE_SIZE;         // (clampedTileCoord + 1) * COARSE_XY_TILE_SIZE
+        const uint2  tileAaBbMinPtSS  = clampedTileCoord * XY_TILE_SIZE;
+        const uint2  tileAaBbMaxPtSS  = tileAaBbMinPtSS  + XY_TILE_SIZE;         // (clampedTileCoord + 1) * COARSE_XY_TILE_SIZE
         const float2 tileAaBbMinPtNDC =          tileAaBbMinPtSS * _ScreenSize.zw;      // Divide
         const float2 tileAaBbMaxPtNDC = saturate(tileAaBbMaxPtSS * _ScreenSize.zw);     // Divide and clamp to the edge
         const float2 tileBoundsX      = float2(tileAaBbMinPtNDC.x, tileAaBbMaxPtNDC.x); // TODO: add epsilon for numerical robustness?
         const float2 tileBoundsY      = float2(tileAaBbMinPtNDC.y, tileAaBbMaxPtNDC.y); // TODO: add epsilon for numerical robustness?
 
         const uint inputStart  = ComputeEntityBoundsBufferIndex(entityIndex, eye);
-        const uint outputStart = ComputeCoarseXyTileBufferIndex(clampedTileIndex, cat, eye);
+        const uint outputStart = ComputeXyTileBufferIndex(clampedTileIndex, cat, eye);
 
         // Define inputs and outputs.
         uint i = 0, j = 0;
@@ -92,7 +100,7 @@ void FillCoarseXyTile(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
         // Therefore, it will be slow if 'n' is large.
         // We should consider a sorting-based algorithm, which could be closer to O((n + m) * log(n)).
         // TODO: unroll.
-        while ((i < entityCount) && (j < COARSE_XY_TILE_ENTITY_LIMIT))
+        while ((i < entityCount) && (j < XY_TILE_ENTRY_LIMIT))
         {
             float2 entityBoundsX = _xyBoundsBuffer[inputStart + i].xy;
             float2 entityBoundsY = _xyBoundsBuffer[inputStart + i].zw;
@@ -117,7 +125,7 @@ void FillCoarseXyTile(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
             i++;
         }
 
-        if (j < COARSE_XY_TILE_ENTITY_LIMIT)
+        if (j < XY_TILE_ENTRY_LIMIT)
         {
             // Add a terminator.
             indexPair |= UINT16_MAX << (16 * (j & 1)); // Order: first Lo, then Hi bits
@@ -127,7 +135,7 @@ void FillCoarseXyTile(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     }
     else
     {
-        const uint outputStart = ComputeCoarseXyTileBufferIndex(clampedTileIndex, cat, eye);
+        const uint outputStart = ComputeXyTileBufferIndex(clampedTileIndex, cat, eye);
 
         // We do not clear the buffer, so we must add a terminator.
         _CoarseXyTileBuffer[outputStart] = UINT16_MAX;

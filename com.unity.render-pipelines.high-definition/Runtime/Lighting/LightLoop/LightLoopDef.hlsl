@@ -156,13 +156,27 @@ uint GetEyeIndex()
 #endif
 }
 
-#ifdef LIGHTLOOP_COARSE_BINNED_LIGHTING
+#if defined(COARSE_BINNING)
 
-#elif defined(LIGHTLOOP_FINE_BINNED_LIGHTING)
+bool TryLoadPunctualLightData(uint i, uint xyTile, uint zBin, out LightData data)
+{
+    bool b = false;
+    uint n = _PunctualLightCount;
+
+    if (i < n)
+    {
+        data = _PunctualLightData[i];
+        b    = true;
+    }
+
+    return b;
+}
+
+#elif defined(FINE_BINNING)
 
 /* ... */
 
-#else // !(defined(LIGHTLOOP_COARSE_BINNED_LIGHTING) || defined(LIGHTLOOP_FINE_BINNED_LIGHTING))
+#else // !(defined(COARSE_BINNING) || defined(FINE_BINNING))
 
 bool TryLoadPunctualLightData(uint i, uint xyTile, uint zBin, out LightData data)
 {
@@ -236,7 +250,7 @@ bool TryLoadDecalData(uint i, uint xyTile, uint zBin, out DecalData data)
 //     return b;
 // }
 
-#endif // !(defined(LIGHTLOOP_COARSE_BINNED_LIGHTING) || defined(LIGHTLOOP_FINE_BINNED_LIGHTING))
+#endif // !(defined(COARSE_BINNING) || defined(FINE_BINNING))
 
 // In the first 8 bits of the target we store the max fade of the contact shadows as a byte
 void UnpackContactShadowData(uint contactShadowData, out float fade, out uint mask)

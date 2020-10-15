@@ -403,10 +403,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public static uint s_ScreenSpaceShadowIndexMask = 0xff;
 
         // Binned lighting
-        public static int s_CoarseXyTileEntityLimit = 64; // Before pruning, so, in practice, the number is lower
-        public static int s_CoarseXyTileSize        = 64;
-        public static int s_FineXyTileSize          = 8;
-        public static int s_zBinCount               = 8192;
+        public static int s_CoarseXyTileEntryLimit = 64; // Per category; before pruning, so, in practice, the number is lower
+        public static int s_FineXyTileEntryLimit   = 16; // Per category; after pruning, so the number is exact
+        public static int s_CoarseXyTileSize       = 64;
+        public static int s_FineXyTileSize         = 8;
+        public static int s_zBinCount              = 8192;
     }
 
     [GenerateHLSL]
@@ -782,7 +783,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 int coarseXyTileBufferElementCount = coarseXyTileBufferDimensions.x * coarseXyTileBufferDimensions.y *
                                                      (int)BoundedEntityCategory.Count * viewCount *
-                                                     (TiledLightingConstants.s_CoarseXyTileEntityLimit / 2);
+                                                     (TiledLightingConstants.s_CoarseXyTileEntryLimit / 2);
 
                 // Actually resolution-dependent buffers below.
                 coarseXyTileBuffer = new ComputeBuffer(coarseXyTileBufferElementCount, sizeof(uint)); // List of 16-bit indices

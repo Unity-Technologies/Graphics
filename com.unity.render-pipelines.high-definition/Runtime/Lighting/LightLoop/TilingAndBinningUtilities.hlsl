@@ -114,25 +114,37 @@ uint ComputeZBinFromLinearDepth(float w)
     return min((uint)(z * Z_BIN_COUNT), Z_BIN_COUNT - 1);
 }
 
+#if defined(COARSE_BINNING)
+    #define XY_TILE_SIZE           COARSE_XY_TILE_SIZE
+    #define XY_TILE_BUFFER_DIMS    uint2(_CoarseXyTileBufferDimensions.xy)
+    #define XY_TILE_ENTRY_LIMIT    COARSE_XY_TILE_ENTRY_LIMIT
+#elif defined(FINE_BINNING)
+    #define XY_TILE_SIZE           FINE_XY_TILE_SIZE
+    #define XY_TILE_BUFFER_DIMS    uint2(_FineXyTileBufferDimensions.xy)
+    #define XY_TILE_ENTRY_LIMIT    FINE_XY_TILE_ENTRY_LIMIT
+#else // !(defined(COARSE_BINNING) || defined(FINE_BINNING))
+    #define XY_TILE_SIZE           0
+    #define XY_TILE_BUFFER_DIMS    0
+    #define XY_TILE_ENTRY_LIMIT    0
+#endif
+
 // Cannot be used to index directly into the buffer.
-// Use ComputeCoarseXyTileBufferIndex for that purpose.
-uint ComputeCoarseXyTileIndex(uint2 pixelCoord)
+// Use ComputXyTileBufferIndex for that purpose.
+uint ComputeXyTileIndex(uint2 pixelCoord)
 {
-    const uint  rowSize   = (uint)_CoarseXyTileBufferDimensions.x;
-    const uint2 tileCoord = pixelCoord / COARSE_XY_TILE_SIZE;
+    uint2 tileCoord = pixelCoord / XY_TILE_SIZE;
 
     return IndexFromCoordinate(uint4(tileCoord, 0, 0),
-                               uint3(rowSize, Z_BIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT));
+                               uint3(XY_TILE_BUFFER_DIMS.x, Z_BIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT));
 }
 
-// 'tileIndex' may be computed by invoking ComputeCoarseXyTileIndex.
-uint ComputeCoarseXyTileBufferIndex(uint tileIndex, uint category, uint eye)
+// 'tileIndex' may be computed by invoking ComputeXyTileIndex.
+uint ComputeXyTileBufferIndex(uint tileIndex, uint category, uint eye)
 {
-    const uint rowSize = (uint)_CoarseXyTileBufferDimensions.x;
-    const uint stride  = COARSE_XY_TILE_ENTITY_LIMIT / 2; // We use 'uint' buffer rather than a 'uint16_t[n]'
+    const uint stride = XY_TILE_ENTRY_LIMIT / 2; // We use 'uint' buffer rather than a 'uint16_t[n]'
 
     return stride * (tileIndex + IndexFromCoordinate(uint4(0, 0, category, eye),
-                                                     uint3(rowSize, Z_BIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT)));
+                                                     uint3(XY_TILE_BUFFER_DIMS.x, Z_BIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT)));
 }
 
 #endif // NO_SHADERVARIABLESGLOBAL_HLSL
