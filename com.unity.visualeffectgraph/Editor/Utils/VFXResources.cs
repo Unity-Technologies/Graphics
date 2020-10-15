@@ -166,7 +166,10 @@ namespace UnityEditor.VFX
                     if (s_Instance == null)
                         s_Instance = FindObjectOfType<VFXResources>();
                     if (s_Instance != null)
+                    {
                         s_Instance.userTemplateDirectory = value;
+                        EditorUtility.SetDirty(s_Instance);
+                    }
                 }
             }
         }
