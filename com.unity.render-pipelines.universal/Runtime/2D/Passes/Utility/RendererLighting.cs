@@ -359,7 +359,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        public static void RenderLights(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, LayerBatch layerBatch, ref RenderTextureDescriptor rtDesc)
+        public static void RenderLights(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, ref LayerBatch layerBatch, ref RenderTextureDescriptor rtDesc)
         {
             var blendStyles = pass.rendererData.lightBlendStyles;
 

@@ -91,7 +91,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 for (var i = startIndex; i < batchCount; ++i)
                 {
-                    var layerBatch = layerBatches[i];
+                    ref var layerBatch = ref layerBatches[i];
 
                     var blendStyleMask = layerBatch.lightStats.blendStylesUsed;
                     var blendStyleCount = 0U;
@@ -117,7 +117,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                     using (new ProfilingScope(cmd, m_ProfilingDrawLightTextures))
                     {
-                        this.RenderLights(renderingData, cmd, layerBatch.startLayerID, layerBatch, ref desc);
+                        this.RenderLights(renderingData, cmd, layerBatch.startLayerID, ref layerBatch, ref desc);
                     }
                 }
             }
@@ -128,11 +128,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment, ClearFlag.None, Color.white);
 
-                for (var i = 0; i < batchesDrawn; i++)
+                for (var i = startIndex; i < startIndex + batchesDrawn; i++)
                 {
                     using (new ProfilingScope(cmd, m_ProfilingDrawLayerBatch))
                     {
-                        var layerBatch = layerBatches[startIndex + i];
+                        ref var layerBatch = ref layerBatches[i];
 
                         if (layerBatch.lightStats.totalLights > 0)
                         {
@@ -179,7 +179,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 }
             }
 
-            for (var i = startIndex; i < batchCount; ++i)
+            for (var i = startIndex; i < startIndex + batchesDrawn; ++i)
             {
                 ref var layerBatch = ref layerBatches[i];
                 layerBatch.ReleaseRT(cmd);
