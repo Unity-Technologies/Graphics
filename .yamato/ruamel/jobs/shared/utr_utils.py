@@ -82,7 +82,7 @@ def utr_standalone_build_flags(platform_spec, suite='playmode', platform='Standa
         f'--artifacts_path={artifacts_path}',
         f'--player-save-path={player_save_path}' if player_save_path!=None else '',
         f'--build-only',
-        f'--scripting-backend={scripting_backend}"',
+        f'--scripting-backend={scripting_backend}',
         #f'--extra-editor-arg="-apicompatibilitylevel={api_level}"',
         f'--extra-editor-arg="-colorspace={color_space}"'
         ]
