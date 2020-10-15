@@ -82,7 +82,7 @@ void FillCoarseXyTile(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
         const float2 tileBoundsY      = float2(tileAaBbMinPtNDC.y, tileAaBbMaxPtNDC.y); // TODO: add epsilon for numerical robustness?
 
         const uint inputStart  = ComputeEntityBoundsBufferIndex(entityIndex, eye);
-        const uint outputStart = ComputeCoarseTileBufferIndex(clampedTileCoord, cat, eye);
+        const uint outputStart = ComputeCoarseXyTileBufferIndex(clampedTileIndex, cat, eye);
 
         // Define inputs and outputs.
         uint i = 0, j = 0;
@@ -127,7 +127,7 @@ void FillCoarseXyTile(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     }
     else
     {
-        const uint outputStart = ComputeCoarseTileBufferIndex(clampedTileCoord, cat, eye);
+        const uint outputStart = ComputeCoarseXyTileBufferIndex(clampedTileIndex, cat, eye);
 
         // We do not clear the buffer, so we must add a terminator.
         _CoarseXyTileBuffer[outputStart] = UINT16_MAX;

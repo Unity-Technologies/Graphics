@@ -106,21 +106,33 @@ uint ComputeZBinBufferIndex(uint bin, uint category, uint eye)
 
 #ifndef NO_SHADERVARIABLESGLOBAL_HLSL
 
-uint ComputeCoarseTileBufferIndex(uint2 tileCoord, uint category, uint eye)
-{
-    uint rowSize = (uint)_CoarseXyTileBufferDimensions.x;
-    uint stride  = COARSE_XY_TILE_ENTITY_LIMIT / 2; // We use 'uint' buffer rather than a 'uint16_t[n]'
-
-    return stride * IndexFromCoordinate(uint4(tileCoord, category, eye),
-                                        uint3(rowSize, Z_BIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT));
-}
-
 uint ComputeZBinFromLinearDepth(float w)
 {
     float z = EncodeLogarithmicDepth(w, _ZBinBufferEncodingParams);
     z = saturate(z); // Clamp to the region between the near and the far planes
 
     return min((uint)(z * Z_BIN_COUNT), Z_BIN_COUNT - 1);
+}
+
+// Cannot be used to index directly into the buffer.
+// Use ComputeCoarseXyTileBufferIndex for that purpose.
+uint ComputeCoarseXyTileIndex(uint2 pixelCoord)
+{
+    const uint  rowSize   = (uint)_CoarseXyTileBufferDimensions.x;
+    const uint2 tileCoord = pixelCoord / COARSE_XY_TILE_SIZE;
+
+    return IndexFromCoordinate(uint4(tileCoord, 0, 0),
+                               uint3(rowSize, Z_BIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT));
+}
+
+// 'tileIndex' may be computed by invoking ComputeCoarseXyTileIndex.
+uint ComputeCoarseXyTileBufferIndex(uint tileIndex, uint category, uint eye)
+{
+    const uint rowSize = (uint)_CoarseXyTileBufferDimensions.x;
+    const uint stride  = COARSE_XY_TILE_ENTITY_LIMIT / 2; // We use 'uint' buffer rather than a 'uint16_t[n]'
+
+    return stride * (tileIndex + IndexFromCoordinate(uint4(0, 0, category, eye),
+                                                     uint3(rowSize, Z_BIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT)));
 }
 
 #endif // NO_SHADERVARIABLESGLOBAL_HLSL
