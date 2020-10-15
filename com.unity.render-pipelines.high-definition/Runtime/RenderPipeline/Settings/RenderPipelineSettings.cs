@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
         /// <summary>
-        /// Resolution setting for planar reflections.
+        /// Represents resolution settings for planar reflections.
         /// </summary>
         [Serializable]
         public class PlanarReflectionAtlasResolutionScalableSetting : ScalableSetting<PlanarReflectionAtlasResolution>

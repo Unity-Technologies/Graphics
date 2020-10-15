@@ -243,7 +243,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Callback called to do any necessary cleanup.
+        /// The HDRP implementation for the callback that the look dev raises to process any necessary cleanup.
         /// </summary>
         /// <param name="SRI">Access element of the LookDev's scene</param>
         void IDataProvider.Cleanup(StageRuntimeInterface SRI)
