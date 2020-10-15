@@ -18,10 +18,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] [HideInInspector] ushort[] m_IndexArray = null;
         bool m_RequiresUpload = true;
 
+        internal ushort[] indices => m_IndexArray;
+        internal LightUtility.ParametricLightMeshVertex[] vertices => m_VertexArray;
+        internal bool allowUpdateOnTests = false; // Only Used during Playmode Tests.
+        internal bool requiresUpload { get => m_RequiresUpload; set => m_RequiresUpload = value; }
+
         // Has Geometry Data
         internal bool HasGeometryData()
         {
-            return m_IndexArray.Length > 0 && m_VertexArray.Length > 0;
+            return null != m_IndexArray && null != m_VertexArray && m_IndexArray.Length != 0 && m_VertexArray.Length != 0;
         }
 
         // Has Uploaded.
@@ -33,8 +38,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
         // Set Geometry Cache.
         internal void SetGeometryCache(LightUtility.ParametricLightMeshVertex[] vertexArray, ushort[] indexArray)
         {
-            m_IndexArray = indexArray;
-            m_VertexArray = vertexArray;
+#if UNITY_EDITOR
+            if (!Application.isPlaying || allowUpdateOnTests)
+            {
+                m_IndexArray = indexArray;
+                m_VertexArray = vertexArray;
+            }
+#endif
         }
 
         internal Bounds Upload(Mesh mesh)

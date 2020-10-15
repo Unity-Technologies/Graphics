@@ -143,7 +143,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             mesh.SetIndices(triangles, MeshTopology.Triangles, 0, false);
 
 #if UNITY_EDITOR
-            if (!Application.isPlaying && cachedMeshData)
+            if (cachedMeshData)
                 cachedMeshData.SetGeometryCache(vertices.ToArray(), triangles.ToArray());
 #endif
 
@@ -311,7 +311,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             mesh.SetIndices(finalIndices, MeshTopology.Triangles, 0, false);
 
 #if UNITY_EDITOR
-            if (!Application.isPlaying && cachedMeshData)
+            if (cachedMeshData)
                 cachedMeshData.SetGeometryCache(finalVertices.ToArray(), finalIndices.ToArray());
 #endif
 
