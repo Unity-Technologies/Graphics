@@ -107,6 +107,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.surfaceType = (SurfaceType)hdLitMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)hdLitMasterNode.m_AlphaMode);
             systemData.renderQueueType = HDRenderQueue.MigrateRenderQueueToHDRP10(hdLitMasterNode.m_RenderingPass);
+            if (systemData.renderQueueType == HDRenderQueue.RenderQueueType.PreRefraction && !hdLitMasterNode.m_DrawBeforeRefraction)
+                systemData.renderQueueType = HDRenderQueue.RenderQueueType.Transparent;
             // Patch rendering pass in case the master node had an old configuration
             if (systemData.renderQueueType == HDRenderQueue.RenderQueueType.Background)
                 systemData.renderQueueType = HDRenderQueue.RenderQueueType.Opaque;

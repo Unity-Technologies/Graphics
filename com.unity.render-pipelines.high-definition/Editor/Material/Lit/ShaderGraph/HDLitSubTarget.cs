@@ -55,15 +55,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override bool supportPathtracing => true;
         protected override bool requireSplitLighting => litData.materialType == HDLitData.MaterialType.SubsurfaceScattering;
 
-        public override void Setup(ref TargetSetupContext ctx)
-        {
-            // before we fixed the pre-refraction options, it was possible to enable both refraction and pre-refraction option, so we patch this here.
-            if (systemData.renderQueueType == HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None)
-                systemData.renderQueueType = HDRenderQueue.RenderQueueType.Transparent;
-
-            base.Setup(ref ctx);
-        }
-
         protected override SubShaderDescriptor GetSubShaderDescriptor()
         {
             var descriptor = base.GetSubShaderDescriptor();
