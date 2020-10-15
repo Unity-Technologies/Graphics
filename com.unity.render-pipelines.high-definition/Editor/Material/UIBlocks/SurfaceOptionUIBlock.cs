@@ -481,17 +481,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawSurfaceGUI()
         {
-            float refractionModelValue = refractionModel != null ? refractionModel.floatValue : 0;
-
-            var shader = materials[0].shader;
-            if (refractionModel != null && shader.IsShaderGraph())
-                refractionModelValue = shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex(kRefractionModel));
-
-            // TODO: does not work with multi-selection
-            bool showBlendModePopup = refractionModel == null
-                || refractionModelValue == 0
-                || materials.All(m => HDRenderQueue.k_RenderQueue_PreRefraction.Contains(m.renderQueue));
-
             SurfaceTypePopup();
 
             if (surfaceTypeValue == SurfaceType.Transparent)
@@ -511,7 +500,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     using (new EditorGUI.DisabledScope(true))
                         EditorGUILayout.LabelField(Styles.blendModeText, Styles.notSupportedInMultiEdition);
                 }
-                else if (blendMode != null && showBlendModePopup)
+                else if (blendMode != null)
                     BlendModePopup();
 
                 if ((m_Features & Features.PreserveSpecularLighting) != 0)
@@ -521,7 +510,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         using (new EditorGUI.DisabledScope(true))
                             EditorGUILayout.LabelField(Styles.enableBlendModePreserveSpecularLightingText, Styles.notSupportedInMultiEdition);
                     }
-                    else if (enableBlendModePreserveSpecularLighting != null && blendMode != null && showBlendModePopup)
+                    else if (enableBlendModePreserveSpecularLighting != null && blendMode != null)
                         materialEditor.ShaderProperty(enableBlendModePreserveSpecularLighting, Styles.enableBlendModePreserveSpecularLightingText);
                     EditorGUI.indentLevel--;
                 }

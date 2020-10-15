@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using System.Linq;
 
@@ -25,8 +26,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected MaterialProperty refractionModel = null;
         protected const string kRefractionModel = "_RefractionModel";
-        protected MaterialProperty ssrefractionProjectionModel = null;
-        protected const string kSSRefractionProjectionModel = "_SSRefractionProjectionModel";
         protected MaterialProperty atDistance = null;
         protected const string kATDistance = "_ATDistance";
         protected MaterialProperty[] thickness = null;
@@ -41,6 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected const string kTransmittanceColorMap = "_TransmittanceColorMap";
         protected MaterialProperty transmittanceColor = null;
         protected const string kTransmittanceColor = "_TransmittanceColor";
+        protected MaterialProperty blendMode = null;
 
         int m_LayerCount;
 
@@ -52,13 +52,13 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void LoadMaterialProperties()
         {
             refractionModel = FindProperty(kRefractionModel, false);
-            ssrefractionProjectionModel = FindProperty(kSSRefractionProjectionModel, false);
             atDistance = FindProperty(kATDistance, false);
             transmittanceColorMap = FindProperty(kTransmittanceColorMap, false);
             transmittanceColor = FindProperty(kTransmittanceColor, false);
             thicknessMap = FindPropertyLayered(kThicknessMap, m_LayerCount, false);
             thickness = FindPropertyLayered(kThickness, m_LayerCount, false);
             thicknessRemap = FindPropertyLayered(kThicknessRemap, m_LayerCount, false);
+            blendMode = FindProperty(kBlendMode, false);
             ior = FindProperty(kIor, false);
         }
 
@@ -77,48 +77,54 @@ namespace UnityEditor.Rendering.HighDefinition
                     case ScreenSpaceRefraction.RefractionModel.Box:
                     case ScreenSpaceRefraction.RefractionModel.Sphere:
                     {
-                        materialEditor.ShaderProperty(ior, Styles.refractionIorText);
-                        // TODO: change check
-                        foreach (var material in materials)
-                        {
-                            // TODO
-                            // material.SetBlendMode(BlendMode.Alpha);
-                            // blendMode.floatValue = (float)BlendMode.Alpha;
-                        }
+                        if (ior != null)
+                            materialEditor.ShaderProperty(ior, Styles.refractionIorText);
 
-                        if (thicknessMap[0].textureValue == null)
+                        if (thicknessMap[0] != null)
                         {
-                            materialEditor.TexturePropertySingleLine(Styles.refractionThicknessText, thicknessMap[0], thickness[0]);
-                        }
-                        else
-                        {
-                            materialEditor.TexturePropertySingleLine(Styles.refractionThicknessMapText, thicknessMap[0]);
-                            // Display the remap of texture values.
-                            Vector2 remap = thicknessRemap[0].vectorValue;
-                            EditorGUI.BeginChangeCheck();
-                            EditorGUILayout.MinMaxSlider(Styles.refractionThicknessRemappingText, ref remap.x, ref remap.y, 0.0f, 1.0f);
-                            if (EditorGUI.EndChangeCheck())
+                            if (thicknessMap[0].textureValue == null)
                             {
-                                thicknessRemap[0].vectorValue = remap;
+                                materialEditor.TexturePropertySingleLine(Styles.refractionThicknessText, thicknessMap[0], thickness[0]);
+                            }
+                            else
+                            {
+                                materialEditor.TexturePropertySingleLine(Styles.refractionThicknessMapText, thicknessMap[0]);
+                                // Display the remap of texture values.
+                                Vector2 remap = thicknessRemap[0].vectorValue;
+                                EditorGUI.BeginChangeCheck();
+                                EditorGUILayout.MinMaxSlider(Styles.refractionThicknessRemappingText, ref remap.x, ref remap.y, 0.0f, 1.0f);
+                                if (EditorGUI.EndChangeCheck())
+                                {
+                                    thicknessRemap[0].vectorValue = remap;
+                                }
                             }
                         }
 
-
-                        materialEditor.TexturePropertySingleLine(Styles.transmittanceColorText, transmittanceColorMap, transmittanceColor);
-                        ++EditorGUI.indentLevel;
-                        materialEditor.ShaderProperty(atDistance, Styles.atDistanceText);
-                        atDistance.floatValue = Mathf.Max(atDistance.floatValue, 0);
-                        --EditorGUI.indentLevel;
+                        if (transmittanceColorMap != null)
+                        {
+                            materialEditor.TexturePropertySingleLine(Styles.transmittanceColorText, transmittanceColorMap, transmittanceColor);
+                            ++EditorGUI.indentLevel;
+                            materialEditor.ShaderProperty(atDistance, Styles.atDistanceText);
+                            atDistance.floatValue = Mathf.Max(atDistance.floatValue, 0);
+                            --EditorGUI.indentLevel;
+                        }
                     }
                     break;
                     case ScreenSpaceRefraction.RefractionModel.Thin:
                     {
-                        materialEditor.ShaderProperty(ior, Styles.refractionIorText);
-                        materialEditor.TexturePropertySingleLine(Styles.transmittanceColorText, transmittanceColorMap, transmittanceColor);
+                        if (ior != null)
+                            materialEditor.ShaderProperty(ior, Styles.refractionIorText);
+                        if (transmittanceColorMap != null)
+                            materialEditor.TexturePropertySingleLine(Styles.transmittanceColorText, transmittanceColorMap, transmittanceColor);
                     }
                     break;
                     default:
                         break;
+                }
+            
+                if (refractionModel.floatValue != 0 && blendMode != null && blendMode.floatValue != (int)BlendMode.Alpha)
+                {
+                    EditorGUILayout.HelpBox("Refraction is only support with the Blend Mode value Alpha. Please set the Blend Mode to Alpha in the Surface Options to remove this mesage.", MessageType.Warning);
                 }
             }
         }
