@@ -594,6 +594,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RenderState.ColorMask("ColorMask 0") },
         };
 
+        public static RenderStateCollection ScenePicking = new RenderStateCollection
+        {
+            { RenderState.Cull(Uniforms.cullMode) },
+        };
+
         public static RenderStateCollection SceneSelection = new RenderStateCollection
         {
             { RenderState.Cull(Cull.Off) },
@@ -800,6 +805,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 #region Defines
     static class CoreDefines
     {
+        public static DefineCollection ScenePicking = new DefineCollection
+        {
+            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
+            { CoreKeywordDescriptors.ScenePickingPass, 1 },
+        };
+
         public static DefineCollection SceneSelection = new DefineCollection
         {
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
@@ -925,6 +936,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kPassForwardUnlit = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl";
         public const string kPassConstant = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassConstant.hlsl";
         public const string kPassFullScreenDebug = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassFullScreenDebug.hlsl";
+        public const string kPickingSpaceTransforms = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/PickingSpaceTransforms.hlsl";
 
         public static IncludeCollection MinimalCorePregraph = new IncludeCollection
         {
@@ -1153,6 +1165,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             displayName = "Enable Fog On Transparent",
             referenceName = "_ENABLE_FOG_ON_TRANSPARENT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+        };
+
+        public static KeywordDescriptor ScenePickingPass = new KeywordDescriptor()
+        {
+            displayName = "Scene Picking Pass",
+            referenceName = "SCENEPICKINGPASS",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
