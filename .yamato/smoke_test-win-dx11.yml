@@ -15,7 +15,13 @@ Smoke_Test_Win_DX11_playmode_mono_apiNet2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -33,7 +39,13 @@ Smoke_Test_Win_DX11_editmode_mono_apiNet2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/SRP_SmokeTest && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/SRP_SmokeTest && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -70,7 +82,13 @@ Build_Smoke_Test_Win_DX11_Player_mono_apiNet2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
     artifacts:
         logs:
             paths:
@@ -91,7 +109,13 @@ Smoke_Test_Win_DX11_playmode_mono_apiNet2_Linear_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli -u 2ea77e477b085e913ac2cdc798fcd655b010f1a2 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -109,7 +133,13 @@ Smoke_Test_Win_DX11_editmode_mono_apiNet2_Linear_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli -u 2ea77e477b085e913ac2cdc798fcd655b010f1a2 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/SRP_SmokeTest && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/SRP_SmokeTest && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -146,7 +176,13 @@ Build_Smoke_Test_Win_DX11_Player_mono_apiNet2_Linear_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli -u 2ea77e477b085e913ac2cdc798fcd655b010f1a2 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
     artifacts:
         logs:
             paths:
@@ -168,7 +204,13 @@ Smoke_Test_Win_DX11_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -190,7 +232,13 @@ Smoke_Test_Win_DX11_editmode_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/SRP_SmokeTest && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/SRP_SmokeTest && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -234,7 +282,13 @@ Build_Smoke_Test_Win_DX11_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Direct3D11" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
     artifacts:
         logs:
             paths:

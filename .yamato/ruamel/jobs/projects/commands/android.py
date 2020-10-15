@@ -114,7 +114,12 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, b
         f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
         f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } -p WindowsEditor {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only',
         f'NetSh Advfirewall set allprofiles state off',
-        f'utr {" ".join(utr_args)}'
+        pss(f'''
+         git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+         set /p GIT_REVISIONDATE=<revdate.tmp
+         echo %GIT_REVISIONDATE%
+         del revdate.tmp
+         utr {" ".join(utr_args)}''')
         ]
     
     extra_cmds = extra_perf_cmd(project_folder)

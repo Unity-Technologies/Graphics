@@ -42,7 +42,13 @@ Build_Universal_Android_OpenGLES3_Player_il2cpp_apiNet4_Linear_trunk:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --timeout=2700
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --timeout=2700
     artifacts:
         logs:
             paths:
@@ -90,7 +96,13 @@ Build_Universal_Android_OpenGLES3_Player_mono_apiNet2_Linear_trunk:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --timeout=2700
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --timeout=2700
     artifacts:
         logs:
             paths:
@@ -138,7 +150,13 @@ Build_Universal_Android_OpenGLES3_Player_il2cpp_apiNet4_Linear_2020.2:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 2ea77e477b085e913ac2cdc798fcd655b010f1a2 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --timeout=2700
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --timeout=2700
     artifacts:
         logs:
             paths:
@@ -186,7 +204,13 @@ Build_Universal_Android_OpenGLES3_Player_mono_apiNet2_Linear_2020.2:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 2ea77e477b085e913ac2cdc798fcd655b010f1a2 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --timeout=2700
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --timeout=2700
     artifacts:
         logs:
             paths:
@@ -238,7 +262,13 @@ Build_Universal_Android_OpenGLES3_Player_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --timeout=2700
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --timeout=2700
     artifacts:
         logs:
             paths:
@@ -293,7 +323,13 @@ Build_Universal_Android_OpenGLES3_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
-      -  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --timeout=2700
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --timeout=2700
     artifacts:
         logs:
             paths:
