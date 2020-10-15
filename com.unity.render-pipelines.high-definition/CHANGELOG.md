@@ -166,7 +166,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed null reference in the Undo callback of the graphics compositor 
 - Fixed cullmode for SceneSelectionPass.
 - Fixed issue that caused non-static object to not render at times in OnEnable reflection probes.
-- Fixed XR shadows culling.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
@@ -204,7 +203,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed which local frame is used for multi-bounce RTReflections.
 - Move System Generated Values semantics out of VaryingsMesh structure.
 - Other forms of FSAA are silently deactivated, when path tracing is on.
-- Disable field of view UI settings when XR is enabled on the camera.
 - Removed XRSystemTests. The GC verification is now done during playmode tests (case 1285012).
 
 ## [10.0.0] - 2019-06-10
