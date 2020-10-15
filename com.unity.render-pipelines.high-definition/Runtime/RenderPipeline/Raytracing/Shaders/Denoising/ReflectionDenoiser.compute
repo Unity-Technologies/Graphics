@@ -30,6 +30,7 @@ TEXTURE2D_X(_HistoryBuffer);
 RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
 // Value that tells us if the current history should be discarded based on scene-level data
 float _HistoryValidity;
+int _SingleReflectionBounce;
 
 [numthreads(REFLECTION_FILTER_TILE_SIZE, REFLECTION_FILTER_TILE_SIZE, 1)]
 void TemporalAccumulation(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -71,7 +72,7 @@ void TemporalAccumulation(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gr
     NormalData normalData;
     DecodeFromNormalBuffer(centerCoord, normalData);
     // If this is close to a perfectly smooth surface, we do not want to use the history (it introduced unwanted ghosting)
-    if (PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness) > 0.99)
+    if (_SingleReflectionBounce == 1 && PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness) > 0.99)
     {
         _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color * GetInverseCurrentExposureMultiplier(), LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).w);
         return;

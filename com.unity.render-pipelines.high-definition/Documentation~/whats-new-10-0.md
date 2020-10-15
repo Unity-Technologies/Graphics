@@ -283,6 +283,10 @@ HDRP's ray-traced reflection (RTR) solution now support transparent materials. T
 
 Ray tracing now supports VR. However, since ray tracing is resource intensive and VR amplifies this, the performance is very slow.
 
+### Render Graph
+
+HDRP now internally uses a Render Graph system. This has no impact on features available to you and it should improve overall memory usage significantly. In the new HDRP template, GPU memory usage decreased by 25%.
+
 ## Issues resolved
 
 For information on issues resolved in version 10 of HDRP, see the [changelog](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/changelog/CHANGELOG.html).

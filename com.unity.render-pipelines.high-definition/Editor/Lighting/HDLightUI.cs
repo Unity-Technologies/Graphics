@@ -617,6 +617,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var lightType = serialized.type;
             var lightUnit = serialized.lightUnit.GetEnumValue<LightUnit>();
+            k_LightUnitSliderUIDrawer.SetSerializedObject(serialized.serializedObject);
             k_LightUnitSliderUIDrawer.Draw(lightType, lightUnit, serialized.intensity, lightUnitSliderRect, serialized, owner);
 
             // We use PropertyField to draw the value to keep the handle at left of the field
