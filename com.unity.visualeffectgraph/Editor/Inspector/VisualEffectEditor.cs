@@ -160,9 +160,9 @@ namespace UnityEditor.VFX
                 return false;
             }
             EditorGUILayout.BeginHorizontal();
-
+            
             var height = 18f;
-            if (EditorGUIUtility.currentViewWidth < 333f && GenerateMultipleField(ref parameter, valueProperty))
+            if (!EditorGUIUtility.wideMode && GenerateMultipleField(ref parameter, valueProperty))
             {
                 height *= 2.0f;
             }
@@ -778,9 +778,8 @@ namespace UnityEditor.VFX
                 DrawRendererProperties();
                 DrawParameters(resource);
             }
-
+            EditorGUI.indentLevel = 0;
             serializedObject.ApplyModifiedProperties();
-            GUI.enabled = true;
         }
 
 
@@ -794,7 +793,6 @@ namespace UnityEditor.VFX
                 graph = resource.GetOrCreateGraph();
 
 
-            GUI.enabled = true;
             if (graph == null)
             {
                 ShowHeader(Contents.headerProperties, true, showPropertyCategory);
@@ -806,7 +804,6 @@ namespace UnityEditor.VFX
                 {
                     graph.BuildParameterInfo();
                 }
-
 
                 m_PropertyToProp.Clear();
 

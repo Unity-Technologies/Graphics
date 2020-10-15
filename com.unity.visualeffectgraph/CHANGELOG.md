@@ -45,6 +45,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix [Case 1211372](https://issuetracker.unity3d.com/product/unity/issues/guid/1211372/)
 - Fix [Case 1262961](https://issuetracker.unity3d.com/product/unity/issues/guid/1262961/)
 - Fix [Case 1268354](https://fogbugz.unity3d.com/f/cases/1268354/)
+- Fix VFX Graph window invalidating existing Undo.undoRedoPerformed delegates.
+- Fix for VisualEffect prefab override window [Case 1242693](https://issuetracker.unity3d.com/product/unity/issues/guid/1242693/)
 - Fix [Case 1281861](https://issuetracker.unity3d.com/product/unity/issues/guid/1281861/)
 - Fix VFX Graph window invalidating existing Undo.undoRedoPerformed delegates.
 - Fix shadergraph changes not reflected in VisualEffectGraph [Case 1278469](https://fogbugz.unity3d.com/f/cases/resolve/1278469/)
