@@ -132,7 +132,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 {
                     using (new ProfilingScope(cmd, m_ProfilingDrawLayerBatch))
                     {
-                        ref var layerBatch = ref layerBatches[i];
+                        // This is a local copy of the array element (it's a struct). Remember to add a ref here if you need to modify the real thing.
+                        var layerBatch = layerBatches[i];
 
                         if (layerBatch.lightStats.totalLights > 0)
                         {
