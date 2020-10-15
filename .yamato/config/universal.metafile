@@ -11,6 +11,10 @@ test_platforms:
       Win: 2000
   - type: playmode
   - type: editmode
+  - type: playmode
+    name: playmode_XR
+    extra_utr_flags:
+      - --extra-editor-arg="-xr-tests" 
 platforms:
   - name: Win
     apis:
@@ -58,6 +62,7 @@ all:
         - Standalone
         - editmode
         - playmode
+        - playmode_XR
     - platform: OSX
       api: Metal
       build_config: mono_2

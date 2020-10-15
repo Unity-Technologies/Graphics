@@ -53,6 +53,7 @@ nightly:
       color_space: Linear
       test_platforms:
         - playmode
+        - playmode_XR
     - project: Universal
       platform: Win
       api: DX12
@@ -62,6 +63,7 @@ nightly:
         - Standalone
         - editmode
         - playmode
+        # - playmode_XR # uncomment once bug fixed on XR side
     - project: URPUpdate
       platform: Win
       api: DX11
