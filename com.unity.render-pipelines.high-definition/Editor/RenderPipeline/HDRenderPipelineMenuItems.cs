@@ -224,19 +224,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        //[MenuItem("Internal/HDRP/Add \"Additional Camera Data\" (if not present)")]
-        static void AddAdditionalCameraData()
-        {
-            var cameras = UnityObject.FindObjectsOfType(typeof(Camera)) as Camera[];
-
-            foreach (var camera in cameras)
-            {
-                // Do not add a component if there already is one.
-                if (!camera.TryGetComponent<HDAdditionalCameraData>(out _))
-                    camera.gameObject.AddComponent<HDAdditionalCameraData>();
-            }
-        }
-
         // This script is a helper for the artists to re-synchronize all layered materials
         //[MenuItem("Internal/HDRP/Synchronize all Layered materials")]
         static void SynchronizeAllLayeredMaterial()

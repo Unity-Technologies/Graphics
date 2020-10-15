@@ -52,10 +52,10 @@ namespace UnityEditor.Rendering.HighDefinition
         public bool HaveMultipleOverride(FrameSettingsField field)
             => m_BitOverrides?.HasBitMultipleDifferentValue((uint)field) ?? false;
 
-        ref FrameSettings GetData(Object obj)
+        ref FrameSettings GetData(System.Object obj)
         {
-            if (obj is HDAdditionalCameraData)
-                return ref (obj as HDAdditionalCameraData).renderingPathCustomFrameSettings;
+            if (obj is HDCameraExtension)
+                return ref (obj as HDCameraExtension).renderingPathCustomFrameSettings;
             if (obj is HDProbe)
                 return ref (obj as HDProbe).frameSettings;
             if (obj is HDRenderPipelineAsset)
@@ -73,10 +73,10 @@ namespace UnityEditor.Rendering.HighDefinition
             throw new System.ArgumentException("Unknown kind of object");
         }
 
-        FrameSettingsOverrideMask? GetMask(Object obj)
+        FrameSettingsOverrideMask? GetMask(System.Object obj)
         {
-            if (obj is HDAdditionalCameraData)
-                return (obj as HDAdditionalCameraData).renderingPathCustomFrameSettingsOverrideMask;
+            if (obj is HDCameraExtension)
+                return (obj as HDCameraExtension).renderingPathCustomFrameSettingsOverrideMask;
             if (obj is HDProbe)
                 return (obj as HDProbe).frameSettingsOverrideMask;
             if (obj is HDRenderPipelineAsset)

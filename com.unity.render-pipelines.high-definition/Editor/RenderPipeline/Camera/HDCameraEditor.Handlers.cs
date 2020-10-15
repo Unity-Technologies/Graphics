@@ -9,14 +9,14 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     partial class HDCameraEditor
     {
-        void OnSceneGUI()
+        override protected void OnSceneGUI()
         {
-            var c = (Camera)target;
+            var c = cameraTarget;
 
-            if (!UnityEditor.Rendering.CameraEditorUtils.IsViewPortRectValidToRender(c.rect))
+            if (!CameraEditorUtils.IsViewPortRectValidToRender(c.rect))
                 return;
 
-            SceneViewOverlay_Window(EditorGUIUtility.TrTextContent("Camera Preview"), OnOverlayGUI, -100, target);
+            SceneViewOverlay_Window(EditorGUIUtility.TrTextContent("Camera Preview"), OnOverlayGUI, -100, c);
 
             UnityEditor.CameraEditorUtils.HandleFrustum(c, c.GetInstanceID());
         }
@@ -30,8 +30,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             m_PreviewCamera.CopyFrom(c);
             EditorUtility.CopySerialized(c, m_PreviewCamera);
-            var cameraData = c.GetComponent<HDAdditionalCameraData>();
-            EditorUtility.CopySerialized(cameraData, m_PreviewAdditionalCameraData);
+            var cameraData = c.extension as HDCameraExtension;
+            cameraData.CopyTo(m_PreviewAdditionalCameraData);
+
             // We need to explicitly reset the camera type here
             // It is probably a CameraType.Game, because we copied the source camera's properties.
             m_PreviewCamera.cameraType = CameraType.Preview;

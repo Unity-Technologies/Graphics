@@ -22,8 +22,6 @@ namespace UnityEngine.Rendering.HighDefinition
         static internal HDAdditionalReflectionData s_DefaultHDAdditionalReflectionData { get { return ComponentSingleton<HDAdditionalReflectionData>.instance; } }
         /// <summary>Default HDAdditionalLightData</summary>
         static internal HDAdditionalLightData s_DefaultHDAdditionalLightData { get { return ComponentSingleton<HDAdditionalLightData>.instance; } }
-        /// <summary>Default HDAdditionalCameraData</summary>
-        static internal HDAdditionalCameraData s_DefaultHDAdditionalCameraData { get { return ComponentSingleton<HDAdditionalCameraData>.instance; } }
 
         static List<CustomPassVolume> m_TempCustomPassVolumeList = new List<CustomPassVolume>();
 
@@ -539,9 +537,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (camera.cameraType == CameraType.Preview)
             {
-                camera.TryGetComponent<HDAdditionalCameraData>(out var additionalCameraData);
-                return (additionalCameraData == null) || !additionalCameraData.isEditorCameraPreview;
+                if (camera.extension is HDCameraExtension extension)
+                    return !extension.isEditorCameraPreview;
 
+                return true; //former code returned true if no additional data component where available
             }
             return false;
         }
@@ -1042,15 +1041,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         }
 
-        internal static HDAdditionalCameraData TryGetAdditionalCameraDataOrDefault(Camera camera)
+        internal static HDCameraExtension TryGetAdditionalCameraDataOrDefault(Camera camera)
         {
-            if (camera == null || camera.Equals(null))
-                return s_DefaultHDAdditionalCameraData;
+            Assertions.Assert.IsTrue(camera != null && !camera.Equals(null), "Trying to get additional data from a null camera is not allowed.");
 
-            if (camera.TryGetComponent<HDAdditionalCameraData>(out var hdCamera))
-                return hdCamera;
+            if (camera.extension is HDCameraExtension hdExtension)
+                return hdExtension;
 
-            return s_DefaultHDAdditionalCameraData;
+            if (!camera.HasExtension<HDCameraExtension>())
+                camera.CreateExtension<HDCameraExtension>();
+
+            return camera.SwitchActiveExtensionTo<HDCameraExtension>();
         }
 
         static Dictionary<GraphicsFormat, int> graphicsFormatSizeCache = new Dictionary<GraphicsFormat, int>
@@ -1116,7 +1117,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             ComponentSingleton<HDAdditionalReflectionData>.Release();
             ComponentSingleton<HDAdditionalLightData>.Release();
-            ComponentSingleton<HDAdditionalCameraData>.Release();
         }
     }
 }

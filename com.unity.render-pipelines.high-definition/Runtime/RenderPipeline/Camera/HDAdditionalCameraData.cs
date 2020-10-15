@@ -4,6 +4,12 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    using NewFlipYMode = FlipYMode;
+    using NewClearColorMode = ClearColorMode;
+    using NewAntialiasingMode = AntialiasingMode;
+    using NewSMAAQualityLevel = SMAAQualityLevel;
+    using NewTAAQualityLevel = TAAQualityLevel;
+
     /// <summary>
     /// Additional component that holds HDRP specific parameters for Cameras.
     /// </summary>
@@ -11,11 +17,38 @@ namespace UnityEngine.Rendering.HighDefinition
     [AddComponentMenu("")] // Hide in menu
     [DisallowMultipleComponent, ExecuteAlways]
     [RequireComponent(typeof(Camera))]
-    public partial class HDAdditionalCameraData : MonoBehaviour, IFrameSettingsHistoryContainer
+    public partial class HDAdditionalCameraData : MonoBehaviour
     {
+        HDCameraExtension m_Extension;
+        HDCameraExtension extension
+        {
+            get
+            {
+                if (m_Extension == null)
+                {
+                    Camera camera = GetComponent<Camera>();
+                    if (camera.extension is HDCameraExtension extension)
+                    {
+                        m_Extension = extension;
+                    }
+                    else
+                    {
+                        //handling case where user removed the extension manually
+                        if (!camera.HasExtension<HDCameraExtension>())
+                            camera.CreateExtension<HDCameraExtension>();
+
+                        m_Extension = camera.SwitchActiveExtensionTo<HDCameraExtension>();
+                    }
+                }
+
+                return m_Extension;
+            }
+        }
+
         /// <summary>
         /// How the camera should handle vertically flipping the frame at the end of rendering.
         /// </summary>
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.FlipYMode instead.")]
         public enum FlipYMode
         {
             /// <summary>Handle flip automatically.</summary>
@@ -28,6 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Type of buffers that can be accessed for this camera.
         /// </summary>
         [Flags]
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.BufferAccess.BufferAccessType instead.")]
         public enum BufferAccessType
         {
             /// <summary>Depth buffer.</summary>
@@ -41,6 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Structure used to access graphics buffers for this camera.
         /// </summary>
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.BufferAccess instead.")]
         public struct BufferAccess
         {
             internal BufferAccessType bufferAccess;
@@ -54,9 +89,29 @@ namespace UnityEngine.Rendering.HighDefinition
             /// Request access to a list of buffer in the form of a bitfield.
             /// </summary>
             /// <param name="flags">List of buffers that need to be accessed.</param>
+            [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.BufferAccess.RequestAccess instead.")]
             public void RequestAccess(BufferAccessType flags)
             {
                 bufferAccess |= flags;
+            }
+
+            //conversion operator for former event redirection
+#pragma warning disable CS0618 // Type or member is obsolete
+            public static explicit operator BufferAccess(HDCameraExtension.BufferAccess bufferAccess)
+#pragma warning restore CS0618 // Type or member is obsolete
+            {
+                var result = new BufferAccess();
+                result.bufferAccess = (BufferAccessType)bufferAccess.bufferAccess;
+                return result;
+            }
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            public static explicit operator HDCameraExtension.BufferAccess(BufferAccess bufferAccess)
+#pragma warning restore CS0618 // Type or member is obsolete
+            {
+                var result = new HDCameraExtension.BufferAccess();
+                result.bufferAccess = (HDCameraExtension.BufferAccess.BufferAccessType)bufferAccess.bufferAccess;
+                return result;
             }
         }
 
@@ -68,13 +123,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="camera">Requested camera.</param>
         /// <returns>The non oblique projection matrix for a particular camera.</returns>
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.NonObliqueProjectionGetter instead.")]
         public delegate Matrix4x4 NonObliqueProjectionGetter(Camera camera);
-
-        Camera m_Camera;
 
         /// <summary>
         /// Clear mode for the camera background.
         /// </summary>
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.ClearColorMode instead.")]
         public enum ClearColorMode
         {
             /// <summary>Clear the background with the sky.</summary>
@@ -88,6 +143,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Anti-aliasing mode.
         /// </summary>
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.AntialiasingMode instead.")]
         public enum AntialiasingMode
         {
             /// <summary>No Anti-aliasing.</summary>
@@ -103,6 +159,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// SMAA quality level.
         /// </summary>
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.SMAAQualityLevel instead.")]
         public enum SMAAQualityLevel
         {
             /// <summary>Low quality.</summary>
@@ -116,6 +173,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// TAA quality level.
         /// </summary>
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.TAAQualityLevel instead.")]
         public enum TAAQualityLevel
         {
             /// <summary>Low quality.</summary>
@@ -127,144 +185,268 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>Clear mode for the camera background.</summary>
-        public ClearColorMode clearColorMode = ClearColorMode.Sky;
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.clearColorMode instead.")]
+        public ClearColorMode clearColorMode
+        {
+            get => (ClearColorMode)extension.clearColorMode;
+            set => extension.clearColorMode = (NewClearColorMode)value;
+        }
         /// <summary>HDR color used for clearing the camera background.</summary>
-        [ColorUsage(true, true)]
-        public Color backgroundColorHDR = new Color(0.025f, 0.07f, 0.19f, 0.0f);
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.backgroundColorHDR instead.")]
+        public Color backgroundColorHDR
+        {
+            get => extension.backgroundColorHDR;
+            set => extension.backgroundColorHDR = value;
+        }
         /// <summary>Clear depth as well as color.</summary>
-        public bool clearDepth = true;
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.clearDepth instead.")]
+        public bool clearDepth
+        {
+            get => extension.clearDepth;
+            set => extension.clearDepth = value;
+        }
 
         /// <summary>Layer mask used to select which volumes will influence this camera.</summary>
-        [Tooltip("LayerMask HDRP uses for Volume interpolation for this Camera.")]
-        public LayerMask volumeLayerMask = 1;
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.volumeLayerMask instead.")]
+        public LayerMask volumeLayerMask
+        {
+            get => extension.volumeLayerMask;
+            set => extension.volumeLayerMask = value;
+        }
 
         /// <summary>Optional transform override for the position where volumes are interpolated.</summary>
-        public Transform volumeAnchorOverride;
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.volumeAnchorOverride instead.")]
+        public Transform volumeAnchorOverride
+        {
+            get => extension.volumeAnchorOverride;
+            set => extension.volumeAnchorOverride = value;
+        }
 
         /// <summary>Anti-aliasing mode.</summary>
-        public AntialiasingMode antialiasing = AntialiasingMode.None;
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.antialiasing instead.")]
+        public AntialiasingMode antialiasing
+        {
+            get => (AntialiasingMode)extension.antialiasing;
+            set => extension.antialiasing = (NewAntialiasingMode)value;
+        }
         /// <summary>Quality of the anti-aliasing when using SMAA.</summary>
-        public SMAAQualityLevel SMAAQuality = SMAAQualityLevel.High;
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.SMAAQuality instead.")]
+        public SMAAQualityLevel SMAAQuality
+        {
+            get => (SMAAQualityLevel)extension.SMAAQuality;
+            set => extension.SMAAQuality = (NewSMAAQualityLevel)value;
+        }
         /// <summary>Use dithering to filter out minor banding.</summary>
-        public bool dithering = false;
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.dithering instead.")]
+        public bool dithering
+        {
+            get => extension.dithering;
+            set => extension.dithering = value;
+        }
         /// <summary>Use a pass to eliminate NaNs contained in the color buffer before post-processing.</summary>
-        public bool stopNaNs = false;
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.stopNaNs instead.")]
+        public bool stopNaNs
+        {
+            get => extension.stopNaNs;
+            set => extension.stopNaNs = value;
+        }
 
         /// <summary>Strength of the sharpening component of temporal anti-aliasing.</summary>
-        [Range(0, 2)]
-        public float taaSharpenStrength = 0.5f;
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.taaSharpenStrength instead.")]
+        public float taaSharpenStrength
+        {
+            get => extension.taaSharpenStrength;
+            set => extension.taaSharpenStrength = value;
+        }
 
         /// <summary>Quality of the anti-aliasing when using TAA.</summary>
-        public TAAQualityLevel TAAQuality = TAAQualityLevel.Medium;
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.TAAQuality instead.")]
+        public TAAQualityLevel TAAQuality
+        {
+            get => (TAAQualityLevel)extension.TAAQuality;
+            set => extension.TAAQuality = (NewTAAQualityLevel)value;
+        }
 
         /// <summary>Strength of the sharpening of the history sampled for TAA.</summary>
-        [Range(0, 1)]
-        public float taaHistorySharpening = 0.35f;
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.taaHistorySharpening instead.")]
+        public float taaHistorySharpening
+        {
+            get => extension.taaHistorySharpening;
+            set => extension.taaHistorySharpening = value;
+        }
 
         /// <summary>Drive the anti-flicker mechanism. With high values flickering might be reduced, but it can lead to more ghosting or disocclusion artifacts.</summary>
-        [Range(0.0f, 1.0f)]
-        public float taaAntiFlicker = 0.5f;
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.taaAntiFlicker instead.")]
+        public float taaAntiFlicker
+        {
+            get => extension.taaAntiFlicker;
+            set => extension.taaAntiFlicker = value;
+        }
 
         /// <summary>Larger is this value, more likely history will be rejected when current and reprojected history motion vector differ by a substantial amount. 
         /// Larger values can decrease ghosting but will also reintroduce aliasing on the aforementioned cases.</summary>
-        [Range(0.0f, 1.0f)]
-        public float taaMotionVectorRejection = 0.0f;
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.taaMotionVectorRejection instead.")]
+        public float taaMotionVectorRejection
+        {
+            get => extension.taaMotionVectorRejection;
+            set => extension.taaMotionVectorRejection = value;
+        }
 
         /// <summary>When enabled, ringing artifacts (dark or strangely saturated edges) caused by history sharpening will be improved. This comes at a potential loss of sharpness upon motion.</summary>
-        public bool taaAntiHistoryRinging = false;
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.taaAntiHistoryRinging instead.")]
+        public bool taaAntiHistoryRinging
+        {
+            get => extension.taaAntiHistoryRinging;
+            set => extension.taaAntiHistoryRinging = value;
+        }
 
         /// <summary>Physical camera parameters.</summary>
-        public HDPhysicalCamera physicalParameters = new HDPhysicalCamera();
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.physicalParameters instead.")]
+        public HDPhysicalCamera physicalParameters
+        {
+            get => extension.physicalParameters;
+            set => extension.physicalParameters = value;
+        }
 
         /// <summary>Vertical flip mode.</summary>
-        public FlipYMode flipYMode;
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.flipYMode instead.")]
+        public FlipYMode flipYMode
+        {
+            get => (FlipYMode)extension.flipYMode;
+            set => extension.flipYMode = (NewFlipYMode)value;
+        }
 
         /// <summary>Enable XR rendering.</summary>
-        public bool xrRendering = true;
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.xrRendering instead.")]
+        public bool xrRendering
+        {
+            get => extension.xrRendering;
+            set => extension.xrRendering = value;
+        }
 
         /// <summary>Skips rendering settings to directly render in fullscreen (Useful for video).</summary>
-        [Tooltip("Skips rendering settings to directly render in fullscreen (Useful for video).")]
-        public bool fullscreenPassthrough = false;
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.fullscreenPassthrough instead.")]
+        public bool fullscreenPassthrough
+        {
+            get => extension.fullscreenPassthrough;
+            set => extension.fullscreenPassthrough = value;
+        }
 
         /// <summary>Allows dynamic resolution on buffers linked to this camera.</summary>
-        [Tooltip("Allows dynamic resolution on buffers linked to this camera.")]
-        public bool allowDynamicResolution = false;
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.allowDynamicResolution instead.")]
+        public bool allowDynamicResolution
+        {
+            get => extension.allowDynamicResolution;
+            set => extension.allowDynamicResolution = value;
+        }
 
         /// <summary>Allows you to override the default frame settings for this camera.</summary>
-        [Tooltip("Allows you to override the default settings for this camera.")]
-        public bool customRenderingSettings = false;
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.customRenderingSettings instead.")]
+        public bool customRenderingSettings
+        {
+            get => extension.customRenderingSettings;
+            set => extension.customRenderingSettings = value;
+        }
 
         /// <summary>Invert face culling.</summary>
-        public bool invertFaceCulling = false;
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.invertFaceCulling instead.")]
+        public bool invertFaceCulling
+        {
+            get => extension.invertFaceCulling;
+            set => extension.invertFaceCulling = value;
+        }
 
         /// <summary>Probe layer mask.</summary>
-        public LayerMask probeLayerMask = ~0;
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.probeLayerMask instead.")]
+        public LayerMask probeLayerMask
+        {
+            get => extension.probeLayerMask;
+            set => extension.probeLayerMask = value;
+        }
 
         /// <summary>Enable to retain history buffers even if the camera is disabled.</summary>
-        public bool hasPersistentHistory = false;
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.hasPersistentHistory instead.")]
+        public bool hasPersistentHistory
+        {
+            get => extension.hasPersistentHistory;
+            set => extension.hasPersistentHistory = value;
+        }
 
         /// <summary>Event used to override HDRP rendering for this particular camera.</summary>
-        public event Action<ScriptableRenderContext, HDCamera> customRender;
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.customRender instead.")]
+        public event Action<ScriptableRenderContext, HDCamera> customRender
+        {
+            add => extension.customRender += value;
+            remove => extension.customRender -= value;
+        }
+
         /// <summary>True if any Custom Render event is registered for this camera.</summary>
-        public bool hasCustomRender { get { return customRender != null; } }
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.hasCustomRender instead.")]
+        public bool hasCustomRender => extension.hasCustomRender;
+
         /// <summary>
         /// Delegate used to request access to various buffers of this camera.
         /// </summary>
         /// <param name="bufferAccess">Ref to a BufferAccess structure on which users should specify which buffer(s) they need.</param>
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.RequestAccessDelegate instead.")]
         public delegate void RequestAccessDelegate(ref BufferAccess bufferAccess);
+
+#pragma warning disable CS0618 // Type or member is obsolete
+        //This is to keep remove hability on requestGraphicsBuffer event
+        Dictionary<RequestAccessDelegate, HDCameraExtension.RequestAccessDelegate> m_Refs_requestGraphicsBuffer = new Dictionary<RequestAccessDelegate, HDCameraExtension.RequestAccessDelegate>();
+#pragma warning restore CS0618 // Type or member is obsolete
+
         /// <summary>RequestAccessDelegate used to request access to various buffers of this camera.</summary>
-        public event RequestAccessDelegate requestGraphicsBuffer;
-
-        /// <summary>The object used as a target for centering the Exposure's Procedural Mask metering mode when target object option is set (See Exposure Volume Component).</summary>
-        public GameObject exposureTarget = null;
-
-        internal float probeCustomFixedExposure = 1.0f;
-
-        [SerializeField, FormerlySerializedAs("renderingPathCustomFrameSettings")]
-        FrameSettings m_RenderingPathCustomFrameSettings = FrameSettings.NewDefaultCamera();
-        /// <summary>Mask specifying which frame settings are overridden when using custom frame settings.</summary>
-        public FrameSettingsOverrideMask renderingPathCustomFrameSettingsOverrideMask;
-        /// <summary>When using default frame settings, specify which type of frame settings to use.</summary>
-        public FrameSettingsRenderType defaultFrameSettings;
-        /// <summary>Custom frame settings.</summary>
-        public ref FrameSettings renderingPathCustomFrameSettings => ref m_RenderingPathCustomFrameSettings;
-
-        bool IFrameSettingsHistoryContainer.hasCustomFrameSettings
-            => customRenderingSettings;
-
-        FrameSettingsOverrideMask IFrameSettingsHistoryContainer.frameSettingsMask
-            => renderingPathCustomFrameSettingsOverrideMask;
-
-        FrameSettings IFrameSettingsHistoryContainer.frameSettings
-            => m_RenderingPathCustomFrameSettings;
-
-        FrameSettingsHistory m_RenderingPathHistory = new FrameSettingsHistory()
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.RequestAccessDelegate instead.")]
+        public event RequestAccessDelegate requestGraphicsBuffer
         {
-            defaultType = FrameSettingsRenderType.Camera
-        };
-
-        FrameSettingsHistory IFrameSettingsHistoryContainer.frameSettingsHistory
-        {
-            get => m_RenderingPathHistory;
-            set => m_RenderingPathHistory = value;
+            add
+            {
+                //We need to register the transformed call (see m_Refs_requestGraphicsBuffer) to be able to remove it later.
+                //The transformation convert data between HDAdditionalCameraData.BufferAccess and HDCameraExtension.BufferAccess to call extension event with old BufferAccess format.
+                extension.requestGraphicsBuffer += (m_Refs_requestGraphicsBuffer[value] = new HDCameraExtension.RequestAccessDelegate(
+                    (ref HDCameraExtension.BufferAccess bufferAccess) =>
+                    {
+                        BufferAccess oldFormat = (BufferAccess)bufferAccess;
+                        value(ref oldFormat);
+                        bufferAccess.bufferAccess = (HDCameraExtension.BufferAccess.BufferAccessType)oldFormat.bufferAccess;
+                    }));
+            }
+            remove
+            {
+                if (!m_Refs_requestGraphicsBuffer.ContainsKey(value))
+                    return;
+                extension.requestGraphicsBuffer -= m_Refs_requestGraphicsBuffer[value];
+                m_Refs_requestGraphicsBuffer.Remove(value);
+            }
         }
 
-        string IFrameSettingsHistoryContainer.panelName
-            => m_CameraRegisterName;
+        /// <summary>The object used as a target for centering the Exposure's Procedural Mask metering mode when target object option is set (See Exposure Volume Component).</summary>
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.exposureTarget instead.")]
+        public GameObject exposureTarget
+        {
+            get => extension.exposureTarget;
+            set => extension.exposureTarget = value;
+        }
 
-        /// <summary>
-        /// .
-        /// </summary>
-        /// <returns>.</returns>
-        Action IDebugData.GetReset()
-                //caution: we actually need to retrieve the right
-                //m_FrameSettingsHistory as it is a struct so no direct
-                // => m_FrameSettingsHistory.TriggerReset
-                => () => m_RenderingPathHistory.TriggerReset();
-
-        internal ProfilingSampler profilingSampler;
-
-        AOVRequestDataCollection m_AOVRequestDataCollection = new AOVRequestDataCollection(null);
+        /// <summary>Mask specifying which frame settings are overridden when using custom frame settings.</summary>
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.renderingPathCustomFrameSettingsOverrideMask instead.")]
+        public FrameSettingsOverrideMask renderingPathCustomFrameSettingsOverrideMask
+        {
+            get => extension.renderingPathCustomFrameSettingsOverrideMask;
+            set => extension.renderingPathCustomFrameSettingsOverrideMask = value;
+        }
+        /// <summary>When using default frame settings, specify which type of frame settings to use.</summary>
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.defaultFrameSettings instead.")]
+        public FrameSettingsRenderType defaultFrameSettings
+        {
+            get => extension.defaultFrameSettings;
+            set => extension.defaultFrameSettings = value;
+        }
+        /// <summary>Custom frame settings.</summary>
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.renderingPathCustomFrameSettings instead.")]
+        public ref FrameSettings renderingPathCustomFrameSettings
+            => ref extension.renderingPathCustomFrameSettings;
 
         /// <summary>Set AOV requests to use.</summary>
         /// <param name="aovRequests">Describes the requests to execute.</param>
@@ -346,181 +528,57 @@ namespace UnityEngine.Rendering.HighDefinition
         /// * Export Depth stencil: use AOVBuffers.DepthStencil
         /// * Export AO: use MaterialSharedProperty.AmbientOcclusion and AOVBuffers.Color
         /// </example>
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.SetAOVRequests instead.")]
         public void SetAOVRequests(AOVRequestDataCollection aovRequests)
-            => m_AOVRequestDataCollection = aovRequests;
+            => extension.SetAOVRequests(aovRequests);
 
         /// <summary>
         /// Use this property to get the aov requests.
         ///
         /// It is never null.
         /// </summary>
-        public IEnumerable<AOVRequestData> aovRequests =>
-            m_AOVRequestDataCollection ?? (m_AOVRequestDataCollection = new AOVRequestDataCollection(null));
-
-        // Use for debug windows
-        // When camera name change we need to update the name in DebugWindows.
-        // This is the purpose of this class
-        bool m_IsDebugRegistered = false;
-        string m_CameraRegisterName;
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.aovRequests instead.")]
+        public IEnumerable<AOVRequestData> aovRequests
+            => extension.aovRequests;
 
         // When we are a preview, there is no way inside Unity to make a distinction between camera preview and material preview.
         // This property allow to say that we are an editor camera preview when the type is preview.
         /// <summary>
         /// Unity support two type of preview: Camera preview and material preview. This property allow to know that we are an editor camera preview when the type is preview.
         /// </summary>
-        public bool isEditorCameraPreview { get; internal set; }
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.isEditorCameraPreview instead.")]
+        public bool isEditorCameraPreview
+            => extension.isEditorCameraPreview;
 
         // This is use to copy data into camera for the Reset() workflow in camera editor
         /// <summary>
         /// Copy HDAdditionalCameraData.
         /// </summary>
         /// <param name="data">Component to copy to.</param>
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.CopyTo instead.")]
         public void CopyTo(HDAdditionalCameraData data)
-        {
-            data.clearColorMode = clearColorMode;
-            data.backgroundColorHDR = backgroundColorHDR;
-            data.clearDepth = clearDepth;
-            data.customRenderingSettings = customRenderingSettings;
-            data.volumeLayerMask = volumeLayerMask;
-            data.volumeAnchorOverride = volumeAnchorOverride;
-            data.antialiasing = antialiasing;
-            data.dithering = dithering;
-            data.xrRendering = xrRendering;
-            physicalParameters.CopyTo(data.physicalParameters);
-
-            data.renderingPathCustomFrameSettings = renderingPathCustomFrameSettings;
-            data.renderingPathCustomFrameSettingsOverrideMask = renderingPathCustomFrameSettingsOverrideMask;
-            data.defaultFrameSettings = defaultFrameSettings;
-
-            data.probeCustomFixedExposure = probeCustomFixedExposure;
-
-            // We must not copy the following
-            //data.m_IsDebugRegistered = m_IsDebugRegistered;
-            //data.m_CameraRegisterName = m_CameraRegisterName;
-            //data.isEditorCameraPreview = isEditorCameraPreview;
-        }
+            => extension.CopyTo(data.extension);
 
         // For custom projection matrices
         // Set the proper getter
         /// <summary>
         /// Specify a custom getter for non oblique projection matrix.
         /// </summary>
-        public NonObliqueProjectionGetter nonObliqueProjectionGetter = GeometryUtils.CalculateProjectionMatrix;
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.nonObliqueProjectionGetter instead.")]
+        public NonObliqueProjectionGetter nonObliqueProjectionGetter
+        {
+            get => new NonObliqueProjectionGetter(extension.nonObliqueProjectionGetter);
+            set => extension.nonObliqueProjectionGetter = new HDCameraExtension.NonObliqueProjectionGetter(value);
+        }
 
         /// <summary>
         /// Returns the non oblique projection matrix for this camera.
         /// </summary>
         /// <param name="camera">Requested camera.</param>
         /// <returns>The non oblique projection matrix for this camera.</returns>
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.GetNonObliqueProjection instead.")]
         public Matrix4x4 GetNonObliqueProjection(Camera camera)
-        {
-            return nonObliqueProjectionGetter(camera);
-        }
-
-        void RegisterDebug()
-        {
-            if (!m_IsDebugRegistered)
-            {
-                // Note that we register FrameSettingsHistory, so manipulating FrameSettings in the Debug windows
-                // doesn't affect the serialized version
-                // Note camera's preview camera is registered with preview type but then change to game type that lead to issue.
-                // Do not attempt to not register them till this issue persist.
-                m_CameraRegisterName = name;
-                if (m_Camera.cameraType != CameraType.Preview && m_Camera.cameraType != CameraType.Reflection)
-                {
-                    DebugDisplaySettings.RegisterCamera(this);
-                    VolumeDebugSettings.RegisterCamera(this);
-                }
-                m_IsDebugRegistered = true;
-            }
-        }
-
-        void UnRegisterDebug()
-        {
-            if (m_IsDebugRegistered)
-            {
-                // Note camera's preview camera is registered with preview type but then change to game type that lead to issue.
-                // Do not attempt to not register them till this issue persist.
-                if (m_Camera.cameraType != CameraType.Preview && m_Camera?.cameraType != CameraType.Reflection)
-                {
-                    VolumeDebugSettings.UnRegisterCamera(this);
-                    DebugDisplaySettings.UnRegisterCamera(this);
-                }
-                m_IsDebugRegistered = false;
-            }
-        }
-
-        void OnEnable()
-        {
-            // Be sure legacy HDR option is disable on camera as it cause banding in SceneView. Yes, it is a contradiction, but well, Unity...
-            // When HDR option is enabled, Unity render in FP16 then convert to 8bit with a stretch copy (this cause banding as it should be convert to sRGB (or other color appropriate color space)), then do a final shader with sRGB conversion
-            // When LDR, unity render in 8bitSRGB, then do a final shader with sRGB conversion
-            // What should be done is just in our Post process we convert to sRGB and store in a linear 10bit, but require C++ change...
-            m_Camera = GetComponent<Camera>();
-            if (m_Camera == null)
-                return;
-
-            m_Camera.allowMSAA = false; // We don't use this option in HD (it is legacy MSAA) and it produce a warning in the inspector UI if we let it
-            m_Camera.allowHDR = false;
-
-            RegisterDebug();
-
-#if UNITY_EDITOR
-            UpdateDebugCameraName();
-            UnityEditor.EditorApplication.hierarchyChanged += UpdateDebugCameraName;
-#endif
-        }
-
-        void UpdateDebugCameraName()
-        {
-            // Move the garbage generated by accessing name outside of HDRP
-            profilingSampler = new ProfilingSampler(HDUtils.ComputeCameraName(name));
-
-            if (name != m_CameraRegisterName)
-            {
-                UnRegisterDebug();
-                RegisterDebug();
-            }
-        }
-
-        void OnDisable()
-        {
-            UnRegisterDebug();
-
-#if UNITY_EDITOR
-            UnityEditor.EditorApplication.hierarchyChanged -= UpdateDebugCameraName;
-#endif
-        }
-
-        // This is called at the creation of the HD Additional Camera Data, to convert the legacy camera settings to HD
-        internal static void InitDefaultHDAdditionalCameraData(HDAdditionalCameraData cameraData)
-        {
-            var camera = cameraData.gameObject.GetComponent<Camera>();
-
-            cameraData.clearDepth = camera.clearFlags != CameraClearFlags.Nothing;
-
-            if (camera.clearFlags == CameraClearFlags.Skybox)
-                cameraData.clearColorMode = ClearColorMode.Sky;
-            else if (camera.clearFlags == CameraClearFlags.SolidColor)
-                cameraData.clearColorMode = ClearColorMode.Color;
-            else     // None
-                cameraData.clearColorMode = ClearColorMode.None;
-        }
-
-        internal void ExecuteCustomRender(ScriptableRenderContext renderContext, HDCamera hdCamera)
-        {
-            if (customRender != null)
-            {
-                customRender(renderContext, hdCamera);
-            }
-        }
-
-        internal BufferAccessType GetBufferAccess()
-        {
-            BufferAccess result = new BufferAccess();
-            requestGraphicsBuffer?.Invoke(ref result);
-            return result.bufferAccess;
-        }
+            => extension.GetNonObliqueProjection(camera);
 
         /// <summary>
         /// Returns the requested graphics buffer.
@@ -529,17 +587,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="type">Type of the requested buffer.</param>
         /// <returns>Requested buffer as a RTHandle. Can be null if the buffer is not available.</returns>
+        [Obsolete("Use UnityEngine.Rendering.HighDefinition.HDCameraExtension.GetGraphicsBuffer instead.")]
         public RTHandle GetGraphicsBuffer(BufferAccessType type)
-        {
-            HDCamera hdCamera = HDCamera.GetOrCreate(m_Camera);
-            if ((type & BufferAccessType.Color) != 0)
-                return  hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
-            else if ((type & BufferAccessType.Depth) != 0)
-                return hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth);
-            else if ((type & BufferAccessType.Normal) != 0)
-                return hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Normal);
-            else
-                return null;
-        }
+            => extension.GetGraphicsBuffer((HDCameraExtension.BufferAccess.BufferAccessType)type);
     }
 }

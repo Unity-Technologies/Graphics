@@ -127,10 +127,10 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                     {
                         if(compositor.outputCamera.name == CompositionUtils.k_DefaultCameraName)
                         {
-                            var cameraData = compositor.outputCamera.GetComponent<HDAdditionalCameraData>();
+                            var cameraData = compositor.outputCamera.extension;
                             if (cameraData != null)
-                            {
-                                CoreUtils.Destroy(cameraData);
+                            { 
+                                compositor.outputCamera.RemoveExtension<HDCameraExtension>();
                             }
                             CoreUtils.Destroy(compositor.outputCamera.gameObject);
                             CoreUtils.Destroy(compositor.outputCamera);

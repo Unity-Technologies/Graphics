@@ -234,15 +234,16 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 return false;
             }
 
-            var cameraData = m_OutputCamera.GetComponent<HDAdditionalCameraData>();
+            var cameraData = m_OutputCamera.extension as HDCameraExtension;
             if (cameraData == null)
             {
-                m_OutputCamera.gameObject.AddComponent(typeof(HDAdditionalCameraData));
-                cameraData = m_OutputCamera.GetComponent<HDAdditionalCameraData>();
+                if (!m_OutputCamera.HasExtension<HDCameraExtension>())
+                    m_OutputCamera.CreateExtension<HDCameraExtension>();
+                cameraData = m_OutputCamera.SwitchActiveExtensionTo<HDCameraExtension>();
             }
 
             // Setup custom rendering (we don't want HDRP to compute anything in this camera)
-            if (cameraData)
+            if (cameraData!= null)
             {
                 cameraData.customRender += CustomRender;
             }
@@ -278,8 +279,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 SetupCompositionMaterial();
             }
 
-            var cameraData = m_OutputCamera.GetComponent<HDAdditionalCameraData>();
-            if (cameraData && !cameraData.hasCustomRender)
+            var cameraData = m_OutputCamera.extension as HDCameraExtension;
+            if (cameraData != null && !cameraData.hasCustomRender)
             {
                 cameraData.customRender += CustomRender;
             }
@@ -293,8 +294,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         {
             if (m_OutputCamera)
             {
-                var cameraData = m_OutputCamera.GetComponent<HDAdditionalCameraData>();
-                if (cameraData && cameraData.hasCustomRender)
+                var cameraData = m_OutputCamera.extension as HDCameraExtension;
+                if (cameraData != null && cameraData.hasCustomRender)
                 {
                     cameraData.customRender -= CustomRender;
                 }
@@ -443,8 +444,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         public void OnAfterAssemblyReload()
         {
             // Bug? : After assembly reload, the customRender callback is dropped, so set it again
-            var cameraData = m_OutputCamera.GetComponent<HDAdditionalCameraData>();
-            if (cameraData && !cameraData.hasCustomRender)
+            var cameraData = m_OutputCamera.extension as HDCameraExtension;
+            if (cameraData != null && !cameraData.hasCustomRender)
             {
                 cameraData.customRender += CustomRender;
             }

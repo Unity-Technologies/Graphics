@@ -24,10 +24,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal void SetupRenderPipelinePreviewCamera(Camera camera)
         {
-            HDAdditionalCameraData hdCamera = camera.gameObject.AddComponent<HDAdditionalCameraData>();
+            HDCameraExtension hdCamera = camera.CreateExtension<HDCameraExtension>();
+            camera.SwitchActiveExtensionTo<HDCameraExtension>();
 
             hdCamera.clearDepth = true;
-            hdCamera.clearColorMode = HDAdditionalCameraData.ClearColorMode.None;
+            hdCamera.clearColorMode = ClearColorMode.None;
 
             hdCamera.GetType().GetProperty("isEditorCameraPreview", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).SetValue(hdCamera, true, null);
         }

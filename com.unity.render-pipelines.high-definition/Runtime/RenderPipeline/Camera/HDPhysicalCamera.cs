@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Holds the physical settings set on cameras.
     /// </summary>
     [Serializable]
-    public class HDPhysicalCamera
+    public struct HDPhysicalCamera
     {
         /// <summary>
         /// The minimum allowed aperture.
@@ -29,18 +29,18 @@ namespace UnityEngine.Rendering.HighDefinition
         public const int kMaxBladeCount = 11;
 
         // Camera body
-        [SerializeField] [Min(1f)] int m_Iso = 200;
-        [SerializeField] [Min(0f)] float m_ShutterSpeed = 1f / 200f;
+        [SerializeField] [Min(1f)] int m_Iso;
+        [SerializeField] [Min(0f)] float m_ShutterSpeed;
 
         // Lens
         // Note: focalLength is already defined in the regular camera component
-        [SerializeField] [Range(kMinAperture, kMaxAperture)] float m_Aperture = 16f;
+        [SerializeField] [Range(kMinAperture, kMaxAperture)] float m_Aperture;
 
         // Aperture shape
-        [SerializeField] [Range(kMinBladeCount, kMaxBladeCount)] int m_BladeCount = 5;
-        [SerializeField] Vector2 m_Curvature = new Vector2(2f, 11f);
-        [SerializeField] [Range(0f, 1f)] float m_BarrelClipping = 0.25f;
-        [SerializeField] [Range(-1f, 1f)] float m_Anamorphism = 0f;
+        [SerializeField] [Range(kMinBladeCount, kMaxBladeCount)] int m_BladeCount;
+        [SerializeField] Vector2 m_Curvature;
+        [SerializeField] [Range(0f, 1f)] float m_BarrelClipping;
+        [SerializeField] [Range(-1f, 1f)] float m_Anamorphism;
 
         /// <summary>
         /// The sensor sensitivity (ISO).
@@ -123,6 +123,24 @@ namespace UnityEngine.Rendering.HighDefinition
             c.curvature = curvature;
             c.barrelClipping = barrelClipping;
             c.anamorphism = anamorphism;
+        }
+        
+        public void Reset()
+        {
+            m_Iso = 200;
+            m_ShutterSpeed = 1f / 200f;
+            m_Aperture = 16f;
+            m_BladeCount = 5;
+            m_Curvature = new Vector2(2f, 11f);
+            m_BarrelClipping = 0.25f;
+            m_Anamorphism = 0f;
+        }
+
+        public static HDPhysicalCamera Create()
+        {
+            HDPhysicalCamera result = default;
+            result.Reset();
+            return result;
         }
     }
 }

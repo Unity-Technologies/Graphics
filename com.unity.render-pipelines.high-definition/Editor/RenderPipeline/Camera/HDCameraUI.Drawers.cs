@@ -8,7 +8,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    using CED = CoreEditorDrawer<SerializedHDCamera>;
+    using CED = CoreEditorDrawer<SerializedHDCamera, HDCameraEditor>;
 
     static partial class HDCameraUI
     {
@@ -178,21 +178,21 @@ namespace UnityEditor.Rendering.HighDefinition
             })
         );
 
-        static void Drawer_FieldVolumeLayerMask(SerializedHDCamera p, Editor owner)
+        static void Drawer_FieldVolumeLayerMask(SerializedHDCamera p, HDCameraEditor owner)
         {
             EditorGUILayout.PropertyField(p.volumeLayerMask, volumeLayerMaskContent);
         }
-        static void Drawer_FieldVolumeAnchorOverride(SerializedHDCamera p, Editor owner)
+        static void Drawer_FieldVolumeAnchorOverride(SerializedHDCamera p, HDCameraEditor owner)
         {
             EditorGUILayout.PropertyField(p.volumeAnchorOverride, volumeAnchorOverrideContent);
         }
 
-        static void Drawer_FieldCullingMask(SerializedHDCamera p, Editor owner)
+        static void Drawer_FieldCullingMask(SerializedHDCamera p, HDCameraEditor owner)
         {
             EditorGUILayout.PropertyField(p.baseCameraSettings.cullingMask, cullingMaskContent);
         }
 
-        static void Drawer_Projection(SerializedHDCamera p, Editor owner)
+        static void Drawer_Projection(SerializedHDCamera p, HDCameraEditor owner)
         {
             // Most of this is replicated from CameraEditor.DrawProjection as we don't want to draw
             // it the same way it's done in non-SRP cameras. Unfortunately, because a lot of the
@@ -242,12 +242,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (!fovAxisVertical && !cam.fovAxisMode.hasMultipleDifferentValues)
                 {
-                    var targets = p.serializedObject.targetObjects;
-                    var camera0 = targets[0] as Camera;
+                    var targets = owner.targets;
+                    var camera0 = targets[0];
                     float aspectRatio = isPhysicalCamera ? cam.sensorSize.vector2Value.x / cam.sensorSize.vector2Value.y : camera0.aspect;
                     // camera.aspect is not serialized so we have to check all targets.
                     fovCurrentValue = Camera.VerticalToHorizontalFieldOfView(camera0.fieldOfView, aspectRatio);
-                    if (targets.Cast<Camera>().Any(camera => camera.fieldOfView != fovCurrentValue))
+                    if (targets.Any(camera => camera.fieldOfView != fovCurrentValue))
                         multipleDifferentFovValues = true;
                 }
                 else
@@ -282,14 +282,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     cam.verticalFOV.floatValue = fovAxisVertical
                         ? s_FovLastValue
-                        : Camera.HorizontalToVerticalFieldOfView(s_FovLastValue, (p.serializedObject.targetObjects[0] as Camera).aspect);
+                        : Camera.HorizontalToVerticalFieldOfView(s_FovLastValue, owner.targets[0].aspect);
                 }
 
                 EditorGUILayout.Space();
             }
         }
 
-        static void Drawer_FieldClippingPlanes(SerializedHDCamera p, Editor owner)
+        static void Drawer_FieldClippingPlanes(SerializedHDCamera p, HDCameraEditor owner)
         {
             CoreEditorUtils.DrawMultipleFields(
                 clippingPlaneMultiFieldTitle,
@@ -297,7 +297,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new[] { nearPlaneContent, farPlaneContent });
         }
 
-        static void Drawer_PhysicalCamera(SerializedHDCamera p, Editor owner)
+        static void Drawer_PhysicalCamera(SerializedHDCamera p, HDCameraEditor owner)
         {
             var cam = p.baseCameraSettings;
 
@@ -319,14 +319,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     // Retrieve the previous custom size value, if one exists for this camera
                     object previousCustomValue;
-                    s_PerCameraSensorSizeHistory.TryGetValue((Camera)p.serializedObject.targetObject, out previousCustomValue);
+                    s_PerCameraSensorSizeHistory.TryGetValue(owner.targets[0], out previousCustomValue);
 
                     // When switching from custom to a preset, update the last custom value (to display again, in case the user switches back to custom)
                     if (oldFilmGateIndex == k_CustomPresetIndex)
                     {
                         if (previousCustomValue == null)
                         {
-                            s_PerCameraSensorSizeHistory.Add((Camera)p.serializedObject.targetObject, cam.sensorSize.vector2Value);
+                            s_PerCameraSensorSizeHistory.Add(owner.targets[0], cam.sensorSize.vector2Value);
                         }
                         else
                         {
@@ -503,17 +503,17 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static void Drawer_FieldNormalizedViewPort(SerializedHDCamera p, Editor owner)
+        static void Drawer_FieldNormalizedViewPort(SerializedHDCamera p, HDCameraEditor owner)
         {
             EditorGUILayout.PropertyField(p.baseCameraSettings.normalizedViewPortRect, viewportContent);
         }
 
-        static void Drawer_FieldDepth(SerializedHDCamera p, Editor owner)
+        static void Drawer_FieldDepth(SerializedHDCamera p, HDCameraEditor owner)
         {
             EditorGUILayout.PropertyField(p.baseCameraSettings.depth, depthContent);
         }
 
-        static void Drawer_FieldClear(SerializedHDCamera p, Editor owner)
+        static void Drawer_FieldClear(SerializedHDCamera p, HDCameraEditor owner)
         {
             EditorGUILayout.PropertyField(p.clearColorMode, clearModeContent);
             // if(p.clearColorMode.GetEnumValue<HDAdditionalCameraData.ClearColorMode>() == HDAdditionalCameraData.ClearColorMode.BackgroundColor) or no sky in scene
@@ -523,7 +523,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 p.clearDepth.boolValue = true;
         }
 
-        static void Drawer_Antialiasing(SerializedHDCamera p, Editor owner)
+        static void Drawer_Antialiasing(SerializedHDCamera p, HDCameraEditor owner)
         {
             Rect antiAliasingRect = EditorGUILayout.GetControlRect();
             EditorGUI.BeginProperty(antiAliasingRect, antialiasingContent, p.antialiasing);
@@ -535,11 +535,11 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             EditorGUI.EndProperty();
 
-            if (p.antialiasing.intValue == (int)HDAdditionalCameraData.AntialiasingMode.SubpixelMorphologicalAntiAliasing)
+            if (p.antialiasing.intValue == (int)AntialiasingMode.SubpixelMorphologicalAntiAliasing)
             {
                 EditorGUILayout.PropertyField(p.SMAAQuality, SMAAQualityPresetContent);
             }
-            else if(p.antialiasing.intValue == (int)HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing)
+            else if(p.antialiasing.intValue == (int)AntialiasingMode.TemporalAntialiasing)
             {
                 EditorGUILayout.PropertyField(p.taaQualityLevel, TAAQualityLevelContent);
 
@@ -547,13 +547,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 EditorGUILayout.PropertyField(p.taaSharpenStrength, TAASharpenContent);
 
-                if (p.taaQualityLevel.intValue > (int)HDAdditionalCameraData.TAAQualityLevel.Low)
+                if (p.taaQualityLevel.intValue > (int)TAAQualityLevel.Low)
                 {
                     EditorGUILayout.PropertyField(p.taaHistorySharpening, TAAHistorySharpening);
                     EditorGUILayout.PropertyField(p.taaAntiFlicker, TAAAntiFlicker);
                 }
 
-                if(p.taaQualityLevel.intValue == (int)HDAdditionalCameraData.TAAQualityLevel.High)
+                if(p.taaQualityLevel.intValue == (int)TAAQualityLevel.High)
                 {
                     EditorGUILayout.PropertyField(p.taaMotionVectorRejection, TAAMotionVectorRejection);
                     EditorGUILayout.PropertyField(p.taaAntiRinging, TAAAntiRingingContent);
@@ -563,30 +563,30 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static void Drawer_Dithering(SerializedHDCamera p, Editor owner)
+        static void Drawer_Dithering(SerializedHDCamera p, HDCameraEditor owner)
         {
             EditorGUILayout.PropertyField(p.dithering, ditheringContent);
         }
 
-        static void Drawer_StopNaNs(SerializedHDCamera p, Editor owner)
+        static void Drawer_StopNaNs(SerializedHDCamera p, HDCameraEditor owner)
         {
             EditorGUILayout.PropertyField(p.stopNaNs, stopNaNsContent);
         }
 
-        static void Drawer_AllowDynamicResolution(SerializedHDCamera p, Editor owner)
+        static void Drawer_AllowDynamicResolution(SerializedHDCamera p, HDCameraEditor owner)
         {
             EditorGUILayout.PropertyField(p.allowDynamicResolution, allowDynResContent);
             p.baseCameraSettings.allowDynamicResolution.boolValue = p.allowDynamicResolution.boolValue;
         }
 
-        static void Drawer_FieldRenderingPath(SerializedHDCamera p, Editor owner)
+        static void Drawer_FieldRenderingPath(SerializedHDCamera p, HDCameraEditor owner)
         {
             EditorGUILayout.PropertyField(p.passThrough, fullScreenPassthroughContent);
             using (new EditorGUI.DisabledScope(p.passThrough.boolValue))
                 EditorGUILayout.PropertyField(p.customRenderingSettings, renderingPathContent);
         }
 
-        static void Drawer_FieldRenderTarget(SerializedHDCamera p, Editor owner)
+        static void Drawer_FieldRenderTarget(SerializedHDCamera p, HDCameraEditor owner)
         {
             EditorGUILayout.PropertyField(p.baseCameraSettings.targetTexture);
 
@@ -604,19 +604,19 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static void Drawer_FieldExposureTarget(SerializedHDCamera p, Editor owner)
+        static void Drawer_FieldExposureTarget(SerializedHDCamera p, HDCameraEditor owner)
         {
             EditorGUILayout.PropertyField(p.exposureTarget, exposureTargetContent);
         }
 
-        static void Drawer_FieldOcclusionCulling(SerializedHDCamera p, Editor owner)
+        static void Drawer_FieldOcclusionCulling(SerializedHDCamera p, HDCameraEditor owner)
         {
             EditorGUILayout.PropertyField(p.baseCameraSettings.occlusionCulling, occlusionCullingContent);
         }
 
-        static void Drawer_CameraWarnings(SerializedHDCamera p, Editor owner)
+        static void Drawer_CameraWarnings(SerializedHDCamera p, HDCameraEditor owner)
         {
-            foreach (Camera camera in p.serializedObject.targetObjects)
+            foreach (Camera camera in owner.targets)
             {
                 var warnings = GetCameraBufferWarnings(camera);
                 if (warnings.Length > 0)
@@ -624,13 +624,13 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static void Drawer_SectionXRRendering(SerializedHDCamera p, Editor owner)
+        static void Drawer_SectionXRRendering(SerializedHDCamera p, HDCameraEditor owner)
         {
             EditorGUILayout.PropertyField(p.xrRendering, xrRenderingContent);
         }
 
 #if ENABLE_MULTIPLE_DISPLAYS
-        static void Drawer_SectionMultiDisplay(SerializedHDCamera p, Editor owner)
+        static void Drawer_SectionMultiDisplay(SerializedHDCamera p, HDCameraEditor owner)
         {
             if (ModuleManager_ShouldShowMultiDisplayOption())
             {

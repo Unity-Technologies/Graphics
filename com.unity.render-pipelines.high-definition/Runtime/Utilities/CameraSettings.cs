@@ -74,16 +74,16 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <returns>The default value.</returns>
             public static BufferClearing NewDefault() => new BufferClearing
                 {
-                    clearColorMode = HDAdditionalCameraData.ClearColorMode.Sky,
+                    clearColorMode = ClearColorMode.Sky,
                     backgroundColorHDR = new Color32(6, 18, 48, 0),
                     clearDepth = true
                 };
 
             /// <summary>Define the source for the clear color.</summary>
-            public HDAdditionalCameraData.ClearColorMode clearColorMode;
+            public ClearColorMode clearColorMode;
             /// <summary>
             /// The color to use when
-            /// <c><see cref="clearColorMode"/> == <see cref="HDAdditionalCameraData.ClearColorMode.Color"/></c>.
+            /// <c><see cref="clearColorMode"/> == <see cref="HDCameraExtension.ClearColorMode.Color"/></c>.
             /// </summary>
             [ColorUsage(true, true)]
             public Color backgroundColorHDR;
@@ -262,7 +262,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 frustum = Frustum.NewDefault(),
                 customRenderingSettings = false,
                 volumes = Volumes.NewDefault(),
-                flipYMode = HDAdditionalCameraData.FlipYMode.Automatic,
+                flipYMode = FlipYMode.Automatic,
                 invertFaceCulling = false,
                 probeLayerMask = ~0,
                 probeRangeCompressionFactor = 1.0f
@@ -289,9 +289,8 @@ namespace UnityEngine.Rendering.HighDefinition
             settings.frustum.mode = Frustum.Mode.UseProjectionMatrixField;
             settings.frustum.projectionMatrix = hdCamera.camera.projectionMatrix;
             settings.invertFaceCulling = false;
-
-            HDAdditionalCameraData   add;
-            if (hdCamera.camera.TryGetComponent<HDAdditionalCameraData>(out add))
+            
+            if (hdCamera.camera.extension is HDCameraExtension add)
             {
                 settings.customRenderingSettings = add.customRenderingSettings;
                 settings.bufferClearing.backgroundColorHDR = add.backgroundColorHDR;
@@ -341,7 +340,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>True to invert face culling, false otherwise.</summary>
         public bool invertFaceCulling;
         /// <summary>The mode to use when we want to flip the Y axis.</summary>
-        public HDAdditionalCameraData.FlipYMode flipYMode;
+        public FlipYMode flipYMode;
         /// <summary>The layer mask to use to filter probes that can influence this camera.</summary>
         public LayerMask probeLayerMask;
         /// <summary>Which default FrameSettings should be used when rendering with these parameters.</summary>

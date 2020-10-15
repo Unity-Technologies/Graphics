@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="camera">The Camera to check</param>
         /// <returns>True if it is compatible, false otherwise</returns>
         public static bool IsHDCamera(Camera camera)
-            => camera.GetComponent<HDAdditionalCameraData>() != null;
+            => camera.extension is HDCameraExtension;
 
         /// <summary> Check if the provided light is compatible with High-Definition Render Pipeline </summary>
         /// <param name="light">The Light to check</param>

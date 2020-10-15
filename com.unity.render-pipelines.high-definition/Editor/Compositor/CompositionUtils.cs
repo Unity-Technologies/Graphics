@@ -76,7 +76,8 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 camera.tag = "Untagged";
                 camera.cullingMask = 0; // we don't want to render any 3D objects on the compositor camera
             }
-            newCameraGameObject.AddComponent<HDAdditionalCameraData>();
+            camera.CreateExtension<HDCameraExtension>();
+            camera.SwitchActiveExtensionTo<HDCameraExtension>();
             compositor.outputCamera = camera;
         }
 

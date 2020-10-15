@@ -1463,7 +1463,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 foreach (var camera in VolumeDebugSettings.cameras)
                 {
-                    componentNames.Add(new GUIContent() { text = camera.name });
+                    componentNames.Add(new GUIContent() { text = camera.gameObject.name });
                     componentValues.Add(componentIndex++);
                 }
 

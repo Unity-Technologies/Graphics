@@ -5,7 +5,6 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-
     partial class PostProcessSystem
     {
         class ColorGradingPassData
@@ -419,7 +418,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             bool postDoFTAAEnabled = false;
             bool isSceneView = hdCamera.camera.cameraType == CameraType.SceneView;
-            bool taaEnabled = hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
+            bool taaEnabled = hdCamera.antialiasing == AntialiasingMode.TemporalAntialiasing;
 
             // If Path tracing is enabled, then DoF is computed in the path tracer by sampling the lens aperure (when using the physical camera mode)
             bool isDoFPathTraced = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
@@ -817,7 +816,7 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle FXAAPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
         {
             if (DynamicResolutionHandler.instance.DynamicResolutionEnabled() &&     // Dynamic resolution is on.
-                hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.FastApproximateAntialiasing &&
+                hdCamera.antialiasing == AntialiasingMode.FastApproximateAntialiasing &&
                 m_AntialiasingFS)
             {
                 using (var builder = renderGraph.AddRenderPass<FXAAData>("FXAA", out var passData, ProfilingSampler.Get(HDProfileId.FXAA)))
@@ -1002,11 +1001,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Temporal anti-aliasing goes first
                 if (m_AntialiasingFS)
                 {
-                    if (hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing)
+                    if (hdCamera.antialiasing == AntialiasingMode.TemporalAntialiasing)
                     {
                         source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source);
                     }
-                    else if (hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.SubpixelMorphologicalAntiAliasing)
+                    else if (hdCamera.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing)
                     {
                         source = SMAAPass(renderGraph, hdCamera, depthBuffer, source);
                     }

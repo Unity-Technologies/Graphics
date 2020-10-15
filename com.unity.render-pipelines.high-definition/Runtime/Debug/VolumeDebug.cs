@@ -44,11 +44,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_SelectedCamera == 1)
                     return SceneView.lastActiveSceneView.camera;
                 else
-                    return cameras[m_SelectedCamera - 2].GetComponent<Camera>();
+                    return cameras[m_SelectedCamera - 2].camera;
 #else
                 if (m_SelectedCamera <= 0 || m_SelectedCamera > cameras.Count)
                     return null;
-                return cameras[m_SelectedCamera - 1].GetComponent<Camera>();
+                return cameras[m_SelectedCamera - 1].camera;
 #endif
             }
         }
@@ -100,7 +100,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (anchor == null) // means the hdcamera has not been initialized
                 {
                     // So we have to update the stack manually
-                    if (cam.TryGetComponent<HDAdditionalCameraData>(out var data))
+                    if (cam.extension is HDCameraExtension data)
                         anchor = data.volumeAnchorOverride;
                     if (anchor == null) anchor = cam.transform;
                     var stack = selectedCameraVolumeStack;
@@ -153,11 +153,11 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>List of HD Additional Camera data.</summary>
-        static public List<HDAdditionalCameraData> cameras {get; private set; } = new List<HDAdditionalCameraData>();
+        static public List<HDCameraExtension> cameras {get; private set; } = new List<HDCameraExtension>();
 
         /// <summary>Register HDAdditionalCameraData for DebugMenu</summary>
         /// <param name="camera">The camera to register.</param>
-        public static void RegisterCamera(HDAdditionalCameraData camera)
+        public static void RegisterCamera(HDCameraExtension camera)
         {
             if (!cameras.Contains(camera))
                 cameras.Add(camera);
@@ -165,7 +165,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Unregister HDAdditionalCameraData for DebugMenu</summary>
         /// <param name="camera">The camera to unregister.</param>
-        public static void UnRegisterCamera(HDAdditionalCameraData camera)
+        public static void UnRegisterCamera(HDCameraExtension camera)
         {
             if (cameras.Contains(camera))
                 cameras.Remove(camera);

@@ -1,8 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Serialization;
 using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
@@ -11,13 +13,47 @@ namespace UnityEngine.VFX.Utility
     /// Camera parameter binding helper class.
     /// </summary>
     [VFXBinder("HDRP/HDRP Camera")]
-    public class HDRPCameraBinder : VFXBinderBase
+    public class HDRPCameraBinder : VFXBinderBase, IVersionable<HDRPCameraBinder.Version>
     {
+        #region migration
+        enum Version
+        {
+            Initial,
+            ChangeSerializationToSaveCamera,
+        }
+        [SerializeField] Version m_Version = MigrationDescription.LastVersion<Version>();
+
+        Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
+
+        static readonly MigrationDescription<Version, HDRPCameraBinder> k_Migration = MigrationDescription.New(
+            MigrationStep.New(Version.ChangeSerializationToSaveCamera, (HDRPCameraBinder data) =>
+            {
+#pragma warning disable CS0618 // Type or member is obsolete
+                data.cameraBinded = data.m_AdditionalData?.GetComponent<Camera>();
+                data.m_AdditionalData = null;
+#pragma warning restore CS0618 // Type or member is obsolete
+            })
+        );
+
+        //formerly serialized data. should not be used
+        [Obsolete("Keeped for migration only")]
+        [SerializeField, HideInInspector, FormerlySerializedAs("AdditionalData")]
+#pragma warning disable 649 // Field never assigned
+        HDAdditionalCameraData m_AdditionalData;
+#pragma warning restore 649 // Field never assigned
+
+        protected override void Awake()
+        {
+            k_Migration.Migrate(this);
+            base.Awake();
+        }
+        #endregion
+
         /// <summary>
-        /// Camera HDRP additional data.
+        /// Camera HDRP.
         /// </summary>
-        public HDAdditionalCameraData AdditionalData;
-        Camera m_Camera;
+        public Camera cameraBinded;
+        HDCameraExtension m_Extension;
 
         [VFXPropertyBinding("UnityEditor.VFX.CameraType"), SerializeField]
         ExposedProperty CameraProperty = "Camera";
@@ -48,9 +84,16 @@ namespace UnityEngine.VFX.Utility
         void UpdateSubProperties()
         {
             // Get Camera component from HDRP additional data
-            if (AdditionalData != null)
+            if (cameraBinded != null)
             {
-                m_Camera = AdditionalData.GetComponent<Camera>();
+                if (cameraBinded.extension is HDCameraExtension extension)
+                    m_Extension = extension;
+                else
+                {
+                    if (!cameraBinded.HasExtension<HDCameraExtension>())
+                        cameraBinded.CreateExtension<HDCameraExtension>();
+                    m_Extension = cameraBinded.SwitchActiveExtensionTo<HDCameraExtension>();
+                }
             }
 
             // Update VFX Sub Properties
@@ -66,10 +109,10 @@ namespace UnityEngine.VFX.Utility
             m_ColorBuffer = CameraProperty + "_colorBuffer";
         }
 
-        void RequestHDRPBuffersAccess(ref HDAdditionalCameraData.BufferAccess access)
+        void RequestHDRPBuffersAccess(ref HDCameraExtension.BufferAccess access)
         {
-            access.RequestAccess(HDAdditionalCameraData.BufferAccessType.Color);
-            access.RequestAccess(HDAdditionalCameraData.BufferAccessType.Depth);
+            access.RequestAccess(HDCameraExtension.BufferAccess.BufferAccessType.Color);
+            access.RequestAccess(HDCameraExtension.BufferAccess.BufferAccessType.Depth);
         }
 
         /// <summary>
@@ -79,8 +122,8 @@ namespace UnityEngine.VFX.Utility
         {
             base.OnEnable();
 
-            if (AdditionalData != null)
-                AdditionalData.requestGraphicsBuffer += RequestHDRPBuffersAccess;
+            if (m_Extension != null)
+                m_Extension.requestGraphicsBuffer += RequestHDRPBuffersAccess;
 
             UpdateSubProperties();
         }
@@ -92,16 +135,16 @@ namespace UnityEngine.VFX.Utility
         {
             base.OnDisable();
 
-            if (AdditionalData != null)
-                AdditionalData.requestGraphicsBuffer -= RequestHDRPBuffersAccess;
+            if (m_Extension != null)
+                m_Extension.requestGraphicsBuffer -= RequestHDRPBuffersAccess;
         }
 
         private void OnValidate()
         {
             UpdateSubProperties();
 
-            if (AdditionalData != null)
-                AdditionalData.requestGraphicsBuffer += RequestHDRPBuffersAccess;
+            if (m_Extension != null)
+                m_Extension.requestGraphicsBuffer += RequestHDRPBuffersAccess;
         }
 
         /// <summary>
@@ -111,8 +154,8 @@ namespace UnityEngine.VFX.Utility
         /// <returns>True if the Visual Effect and the configuration of the binder are valid to perform the binding.</returns>
         public override bool IsValid(VisualEffect component)
         {
-            return AdditionalData != null
-                && m_Camera != null
+            return cameraBinded != null
+                && m_Extension != null
                 && component.HasVector3(m_Position)
                 && component.HasVector3(m_Angles)
                 && component.HasVector3(m_Scale)
@@ -131,23 +174,23 @@ namespace UnityEngine.VFX.Utility
         /// <param name="component">Component to update.</param>
         public override void UpdateBinding(VisualEffect component)
         {
-            var depth = AdditionalData.GetGraphicsBuffer(HDAdditionalCameraData.BufferAccessType.Depth);
-            var color = AdditionalData.GetGraphicsBuffer(HDAdditionalCameraData.BufferAccessType.Color);
+            var depth = m_Extension.GetGraphicsBuffer(HDCameraExtension.BufferAccess.BufferAccessType.Depth);
+            var color = m_Extension.GetGraphicsBuffer(HDCameraExtension.BufferAccess.BufferAccessType.Color);
 
             if (depth == null && color == null)
                 return;
 
-            component.SetVector3(m_Position, AdditionalData.transform.position);
-            component.SetVector3(m_Angles, AdditionalData.transform.eulerAngles);
-            component.SetVector3(m_Scale, AdditionalData.transform.lossyScale);
+            component.SetVector3(m_Position, cameraBinded.transform.position);
+            component.SetVector3(m_Angles, cameraBinded.transform.eulerAngles);
+            component.SetVector3(m_Scale, cameraBinded.transform.lossyScale);
 
             // While field of View is set in degrees for the camera, it is expected in radians in VFX
-            component.SetFloat(m_FieldOfView, Mathf.Deg2Rad * m_Camera.fieldOfView);
-            component.SetFloat(m_NearPlane, m_Camera.nearClipPlane);
-            component.SetFloat(m_FarPlane, m_Camera.farClipPlane);
+            component.SetFloat(m_FieldOfView, Mathf.Deg2Rad * cameraBinded.fieldOfView);
+            component.SetFloat(m_NearPlane, cameraBinded.nearClipPlane);
+            component.SetFloat(m_FarPlane, cameraBinded.farClipPlane);
 
-            component.SetFloat(m_AspectRatio, m_Camera.aspect);
-            component.SetVector2(m_Dimensions, new Vector2(m_Camera.pixelWidth * depth.rtHandleProperties.rtHandleScale.x, m_Camera.pixelHeight * depth.rtHandleProperties.rtHandleScale.y));
+            component.SetFloat(m_AspectRatio, cameraBinded.aspect);
+            component.SetVector2(m_Dimensions, new Vector2(cameraBinded.pixelWidth * depth.rtHandleProperties.rtHandleScale.x, cameraBinded.pixelHeight * depth.rtHandleProperties.rtHandleScale.y));
 
             if (depth != null)
                 component.SetTexture(m_DepthBuffer, depth.rt);
@@ -163,7 +206,7 @@ namespace UnityEngine.VFX.Utility
         /// <returns>String containing the binder information.</returns>
         public override string ToString()
         {
-            return string.Format($"HDRP Camera : '{(AdditionalData == null? "null" : AdditionalData.gameObject.name)}' -> {CameraProperty}");
+            return string.Format($"HDRP Camera : '{(cameraBinded == null? "null" : cameraBinded.gameObject.name)}' -> {CameraProperty}");
         }
     }
 

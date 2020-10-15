@@ -65,10 +65,10 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         // Layer overrides
         [SerializeField] bool m_OverrideAntialiasing = false;
-        [SerializeField] HDAdditionalCameraData.AntialiasingMode m_Antialiasing;
+        [SerializeField] AntialiasingMode m_Antialiasing;
 
         [SerializeField] bool m_OverrideClearMode = false;
-        [SerializeField] HDAdditionalCameraData.ClearColorMode m_ClearMode = HDAdditionalCameraData.ClearColorMode.Color;
+        [SerializeField] ClearColorMode m_ClearMode = ClearColorMode.Color;
 
         [SerializeField] bool m_OverrideCullingMask = false;
         [SerializeField] LayerMask m_CullingMask;
@@ -161,7 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 newLayer.m_VolumeMask = 0;
                 newLayer.m_ClearAlpha = false;
                 newLayer.m_OverrideAntialiasing = true;
-                newLayer.m_Antialiasing = HDAdditionalCameraData.AntialiasingMode.None;
+                newLayer.m_Antialiasing = AntialiasingMode.None;
             }
 
             return newLayer;
@@ -237,7 +237,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                         hideFlags = HideFlags.HideInInspector | HideFlags.HideInHierarchy | HideFlags.HideAndDontSave
                     };
                     m_LayerCamera = newCameraGameObject.AddComponent<Camera>();
-                    newCameraGameObject.AddComponent<HDAdditionalCameraData>();
+                    m_LayerCamera.CreateExtension<HDCameraExtension>();
+                    m_LayerCamera.SwitchActiveExtensionTo<HDCameraExtension>();
                     CopyInternalCameraData();
 
                     m_LayerCamera.name = "Compositor" + layerID;
@@ -252,12 +253,6 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     if (compositionManager != null)
                     {
                         CoreUtils.Destroy(compositionManager);
-                    }
-
-                    var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
-                    if (cameraData == null)
-                    {
-                        m_LayerCamera.gameObject.AddComponent(typeof(HDAdditionalCameraData));
                     }
                 }
             }
@@ -338,7 +333,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             if (m_LayerCamera)
             {
                 m_LayerCamera.enabled = m_Show;
-                var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
+                var cameraData = m_LayerCamera.extension as HDCameraExtension;
                 var layerData = m_LayerCamera.GetComponent<AdditionalCompositorData>();
                 {
                     // create the component if it is required and does not exist
@@ -364,7 +359,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 }
                 else if (m_Type == LayerType.Image && m_InputTexture != null)
                 {
-                    cameraData.clearColorMode = HDAdditionalCameraData.ClearColorMode.None;
+                    cameraData.clearColorMode = ClearColorMode.None;
 
                     layerData.clearColorTexture = m_InputTexture;
                     layerData.imageFitMode = m_BackgroundFit;
@@ -401,10 +396,10 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             // We should destroy the layer camera only if it was cloned
             if (m_LayerCamera != null && isUsingACameraClone)
             {
-                var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
-                if (cameraData)
+                var cameraData = m_LayerCamera.extension as HDCameraExtension;
+                if (cameraData != null)
                 {
-                    CoreUtils.Destroy(cameraData);
+                    m_LayerCamera.RemoveExtension<HDCameraExtension>();
                 }
                 m_LayerCamera.targetTexture = null;
                 CoreUtils.Destroy(m_LayerCamera);
@@ -455,8 +450,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             if (m_LayerCamera)
             {
-                var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
-                if (cameraData)
+                var cameraData = m_LayerCamera.extension as HDCameraExtension;
+                if (cameraData != null)
                 {
                     if (m_OverrideVolumeMask && m_LayerCamera)
                     {
@@ -505,9 +500,9 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             m_LayerCamera.CopyFrom(m_Camera);
             m_LayerCamera.depth = drawOrder;
 
-            var cameraDataOrig = m_Camera.GetComponent<HDAdditionalCameraData>();
-            var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
-            if (cameraDataOrig)
+            var cameraDataOrig = m_Camera.extension as HDCameraExtension;
+            var cameraData = m_LayerCamera.extension as HDCameraExtension;
+            if (cameraDataOrig != null)
             {
                 cameraDataOrig.CopyTo(cameraData);
             }
@@ -584,8 +579,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         {
             m_LayerCamera.enabled = true;
             m_LayerCamera.cullingMask = 0;
-            var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
-            var cameraDataOrig = m_Camera.GetComponent<HDAdditionalCameraData>();
+            var cameraData = m_LayerCamera.extension as HDCameraExtension;
+            var cameraDataOrig = m_Camera.extension as HDCameraExtension;
 
             cameraData.clearColorMode = cameraDataOrig.clearColorMode;
             cameraData.clearDepth = true;
@@ -621,7 +616,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             m_LayerPositionInStack = layerPositionInStack;
 
-            var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
+            var cameraData = m_LayerCamera.extension as HDCameraExtension;
             m_LayerCamera.targetTexture = targetLayer.GetRenderTarget(false);
 
             // Setup the custom clear pass for camera stacking
@@ -629,7 +624,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 if (layerPositionInStack != 0)
                 {
                     // The next layer in the stack should clear with the texture of the previous layer: this will copy the content of the target RT to the RTHandle and preserve post process
-                    cameraData.clearColorMode = HDAdditionalCameraData.ClearColorMode.None;
+                    cameraData.clearColorMode = ClearColorMode.None;
                     var compositorData = m_LayerCamera.GetComponent<AdditionalCompositorData>();
                     if (!compositorData)
                     {

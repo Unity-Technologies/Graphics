@@ -6,8 +6,6 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    using AntialiasingMode = HDAdditionalCameraData.AntialiasingMode;
-
     // Main class for all post-processing related features - only includes camera effects, no
     // lighting/surface effect like SSR/AO
     sealed partial class PostProcessSystem
@@ -114,7 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Physical camera ref
         HDPhysicalCamera m_PhysicalCamera;
-        static readonly HDPhysicalCamera m_DefaultPhysicalCamera = new HDPhysicalCamera();
+        static readonly HDPhysicalCamera m_DefaultPhysicalCamera = HDPhysicalCamera.Create();
 
         // Misc (re-usable)
         RTHandle m_TempTexture1024; // RGHalf
@@ -1613,7 +1611,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float centerWeight = 1;
 
             float totalWeight = centerWeight + (4 * plusWeights);
-            if (camera.TAAQuality == HDAdditionalCameraData.TAAQualityLevel.High)
+            if (camera.TAAQuality == TAAQualityLevel.High)
             {
                 totalWeight += crossWeights * 4;
             }
@@ -1634,7 +1632,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.temporalAAMaterial.EnableKeyword("FORCE_BILINEAR_HISTORY");
             }
 
-            if (camera.taaHistorySharpening != 0 && camera.taaAntiRinging && camera.TAAQuality == HDAdditionalCameraData.TAAQualityLevel.High)
+            if (camera.taaHistorySharpening != 0 && camera.taaAntiRinging && camera.TAAQuality == TAAQualityLevel.High)
             {
                 parameters.temporalAAMaterial.EnableKeyword("ANTI_RINGING");
             }
@@ -1653,13 +1651,13 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 switch (camera.TAAQuality)
                 {
-                    case HDAdditionalCameraData.TAAQualityLevel.Low:
+                    case TAAQualityLevel.Low:
                         parameters.temporalAAMaterial.EnableKeyword("LOW_QUALITY");
                         break;
-                    case HDAdditionalCameraData.TAAQualityLevel.Medium:
+                    case TAAQualityLevel.Medium:
                         parameters.temporalAAMaterial.EnableKeyword("MEDIUM_QUALITY");
                         break;
-                    case HDAdditionalCameraData.TAAQualityLevel.High:
+                    case TAAQualityLevel.High:
                         parameters.temporalAAMaterial.EnableKeyword("HIGH_QUALITY");
                         break;
                     default:
@@ -3723,13 +3721,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             switch (camera.SMAAQuality)
             {
-                case HDAdditionalCameraData.SMAAQualityLevel.Low:
+                case SMAAQualityLevel.Low:
                     parameters.smaaMaterial.EnableKeyword("SMAA_PRESET_LOW");
                     break;
-                case HDAdditionalCameraData.SMAAQualityLevel.Medium:
+                case SMAAQualityLevel.Medium:
                     parameters.smaaMaterial.EnableKeyword("SMAA_PRESET_MEDIUM");
                     break;
-                case HDAdditionalCameraData.SMAAQualityLevel.High:
+                case SMAAQualityLevel.High:
                     parameters.smaaMaterial.EnableKeyword("SMAA_PRESET_HIGH");
                     break;
                 default:
