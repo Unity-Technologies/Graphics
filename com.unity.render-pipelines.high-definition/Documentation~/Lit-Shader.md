@@ -69,6 +69,8 @@ To create a new Lit Material, navigate to your Project's Asset window, right-cli
 
 Unity exposes this section if you select **Transparent** from the **Surface Type** drop-down. For information on the properties in this section, see the [Surface Type documentation](Surface-Type.md#TransparencyInputs).
 
+:warning: When you enabled the **Refraction**, make sure to use the **Blend Mode** **Alpha**, otherwise the effect will not work as expected. A similar warning will be displayed in the material inspector if you enabled refraction with a **Blend Mode** different than **Alpha**.
+
 <a name="EmissionInputs"></a>
 
 ### Emission inputs
