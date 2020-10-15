@@ -58,6 +58,9 @@
 
                     float2 uv = i.scrPos.xy / i.scrPos.w;
                     float depth = SampleSceneDepth(uv);
+#if !defined(UNITY_REVERSED_Z) || !UNITY_REVERSED_Z
+					depth = lerp(UNITY_NEAR_CLIP_VALUE, 1.0, depth);
+#endif
                     float4 raw   = mul(UNITY_MATRIX_I_VP, float4(uv * 2 - 1, depth, 1));
                     float3 wpos  = raw.xyz / raw.w;
                     if (distance(wpos, _WorldSpaceCameraPos) > 8.0) return half4(0,0,1,1);
