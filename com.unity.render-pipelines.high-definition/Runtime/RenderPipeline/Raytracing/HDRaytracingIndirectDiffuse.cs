@@ -487,10 +487,13 @@ namespace UnityEngine.Rendering.HighDefinition
             // First thing to check is: Do we have a valid ray-tracing environment?
             GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
 
-            // Evaluate the signal
-            QualityRTIndirectDiffuseParameters qrtidParameters = PrepareQualityRTIndirectDiffuseParameters(hdCamera, giSettings);
-            QualityRTIndirectDiffuseResources qrtidResources = PrepareQualityRTIndirectDiffuseResources(m_IndirectDiffuseBuffer0);
-            RenderQualityRayTracedIndirectDiffuse(cmd, qrtidParameters, qrtidResources);
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseEvaluation)))
+            {
+                // Evaluate the signal
+                QualityRTIndirectDiffuseParameters qrtidParameters = PrepareQualityRTIndirectDiffuseParameters(hdCamera, giSettings);
+                QualityRTIndirectDiffuseResources qrtidResources = PrepareQualityRTIndirectDiffuseResources(m_IndirectDiffuseBuffer0);
+                RenderQualityRayTracedIndirectDiffuse(cmd, qrtidParameters, qrtidResources);
+            }
            
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingFilterIndirectDiffuse)))
             {
