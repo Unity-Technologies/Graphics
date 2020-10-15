@@ -49,6 +49,8 @@ The version number for this package has increased due to a version update of a r
 - Fix shadows not being rendered to some cascades with directional lights [Case 1229972](https://issuetracker.unity3d.com/issues/output-inconsistencies-with-vfx-shadow-casting-and-shadow-cascades)
 - Fix [Case 1114281](https://fogbugz.unity3d.com/f/cases/1114281/)
 - Fix [Case 1268354](https://fogbugz.unity3d.com/f/cases/1268354/)
+- Fix VFX Graph window invalidating existing Undo.undoRedoPerformed delegates.
+- Fix for VisualEffect prefab override window [Case 1242693](https://issuetracker.unity3d.com/product/unity/issues/guid/1242693/)
 - Fix [Case 1281861](https://issuetracker.unity3d.com/product/unity/issues/guid/1281861/)
 - Unexpected exception while installing samples inside an URP project [Case 1280065](https://issuetracker.unity3d.com/product/unity/issues/guid/1280065/)
 
