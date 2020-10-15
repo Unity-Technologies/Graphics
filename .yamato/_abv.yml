@@ -29,9 +29,9 @@ all_project_ci_nightly_trunk:
          rerun: on-new-revision
       -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_mono_2_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_mono_2_Linear_trunk
+      -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_il2cpp_4_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_mono_2_Linear_trunk
+      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_il2cpp_4_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_mono_2_Linear_trunk
          rerun: on-new-revision
@@ -106,9 +106,9 @@ all_project_ci_nightly_2020.2:
          rerun: on-new-revision
       -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_mono_2_Linear_2020.2
          rerun: on-new-revision
-      -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_mono_2_Linear_2020.2
+      -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_il2cpp_4_Linear_2020.2
          rerun: on-new-revision
-      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_mono_2_Linear_2020.2
+      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_il2cpp_4_Linear_2020.2
          rerun: on-new-revision
       -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_mono_2_Linear_2020.2
          rerun: on-new-revision

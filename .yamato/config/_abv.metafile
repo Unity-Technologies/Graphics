@@ -9,6 +9,9 @@ abv: # specify the editor versions for which to create the expression trigger fo
     - name: mono_2
       scripting_backend: mono
       api_level: NET_2_0
+    - name: il2cpp_4
+      scripting_backend: IL2CPP
+      api_level: NET_4_6
   color_spaces:
     - Linear
 nightly:
@@ -25,14 +28,14 @@ nightly:
     - project: Universal
       platform: Android
       api: OpenGLES3
-      build_config: mono_2
+      build_config: il2cpp_4
       color_space: Linear
       test_platforms:
         - Standalone
     - project: Universal
       platform: Android
       api: Vulkan
-      build_config: mono_2
+      build_config: il2cpp_4
       color_space: Linear
       test_platforms:
         - Standalone
