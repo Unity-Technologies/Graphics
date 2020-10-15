@@ -138,7 +138,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         static Color s_TransparentBlack = new Color(0, 0, 0, 0); 
 
         #region Validation
-        public void ValidateLayerListOrder(int oldIndex, int newIndex)
+        public bool ValidateLayerListOrder(int oldIndex, int newIndex)
         {
             if (m_InputLayers.Count > 1)
             {
@@ -147,8 +147,10 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     var tmp = m_InputLayers[newIndex];
                     m_InputLayers.RemoveAt(newIndex);
                     m_InputLayers.Insert(oldIndex, tmp);
+                    return false;
                 }
             }
+            return true;
         }
 
         public bool RuntimeCheck()

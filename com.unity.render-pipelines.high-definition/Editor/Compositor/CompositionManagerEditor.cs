@@ -218,7 +218,11 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                     m_IsEditorDirty = true;
 
                     m_compositionManager.ReorderChildren(oldIndex, newIndex);
-                    m_compositionManager.ValidateLayerListOrder(oldIndex, newIndex);
+                    if (!m_compositionManager.ValidateLayerListOrder(oldIndex, newIndex))
+                    {
+                        // The new position is invalid, so set the currently selected layer to the old/starting position s
+                        m_layerList.index = oldIndex; 
+                    }
                 };
 
                 m_layerList.elementHeightCallback = (index) =>
@@ -388,7 +392,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                             var filter = m_SerializedLayerProperties[m_layerList.index].filterList[index];
                             return filter.GetHeight();
                         }
-                        return 0;
+                        return CompositorStyle.k_Spacing;
                     };
                 }
 
