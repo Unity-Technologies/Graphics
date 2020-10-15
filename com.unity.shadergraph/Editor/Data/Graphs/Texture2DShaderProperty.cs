@@ -7,6 +7,7 @@ namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
     [FormerName("UnityEditor.ShaderGraph.TextureShaderProperty")]
+    [BlackboardInputInfo(50)]
     public sealed class Texture2DShaderProperty : AbstractShaderProperty<SerializableTexture>
     {
         public enum DefaultType { White, Black, Grey, Bump }
@@ -68,7 +69,8 @@ namespace UnityEditor.ShaderGraph.Internal
             return new PreviewProperty(propertyType)
             {
                 name = referenceName,
-                textureValue = value.texture
+                textureValue = value.texture,
+                texture2DDefaultType = defaultType
             };
         }
 

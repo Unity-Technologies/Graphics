@@ -6,7 +6,7 @@ from ..shared.yml_job import YMLJob
 class Project_TestJob():
     
     def __init__(self, platform, editor):
-        self.job_id = projectcontext_job_id_test(platform["os"],editor["track"])
+        self.job_id = projectcontext_job_id_test(platform["os"],editor["name"])
         self.yml = self.get_job_definition(platform, editor).get_yml()
 
     
@@ -14,8 +14,8 @@ class Project_TestJob():
 
         # define dependencies
         dependencies = [f'{projectcontext_filepath()}#{projectcontext_job_id_pack()}']
-        if str(editor['track']).lower() == 'custom-revision':
-            dependencies.extend([f'{editor_priming_filepath()}#{editor_job_id(editor["track"], platform["os"]) }'])
+        if not editor['editor_pinning']:
+            dependencies.extend([f'{editor_priming_filepath()}#{editor_job_id(editor["name"], platform["os"]) }'])
                 
         # define commands
         commands = [
@@ -27,7 +27,7 @@ class Project_TestJob():
 
         # construct job
         job = YMLJob()
-        job.set_name(f'Test all packages [project context] {platform["name"]} {editor["track"]}')
+        job.set_name(f'Test all packages [project context] {platform["name"]} {editor["name"]}')
         job.set_agent(platform['agent_package'])
         job.add_dependencies(dependencies)
         job.add_commands(commands)

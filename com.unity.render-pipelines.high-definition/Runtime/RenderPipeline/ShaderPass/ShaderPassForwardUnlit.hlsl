@@ -83,7 +83,7 @@ void Frag(PackedVaryingsToPS packedInput,
 #endif
 
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
-    FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
+    FragInputs input = UnpackVaryingsToFragInputs(packedInput);
 
     // input.positionSS is SV_Position
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS);
@@ -101,6 +101,11 @@ void Frag(PackedVaryingsToPS packedInput,
 
     // Not lit here (but emissive is allowed)
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(input.positionSS.xy, surfaceData);
+
+    // If this is a shadow matte, then we want the AO to affect the base color (the AO being correct if the surface is flagged shadow matte).
+#if defined(_ENABLE_SHADOW_MATTE)
+    bsdfData.color *= GetScreenSpaceAmbientOcclusion(input.positionSS.xy);
+#endif
 
     // Note: we must not access bsdfData in shader pass, but for unlit we make an exception and assume it should have a color field
     float4 outResult = ApplyBlendMode(bsdfData.color + builtinData.emissiveColor * GetCurrentExposureMultiplier(), builtinData.opacity);
