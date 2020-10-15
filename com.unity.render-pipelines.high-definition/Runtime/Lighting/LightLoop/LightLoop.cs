@@ -1825,7 +1825,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bound.center   = centerVS;
                 bound.boxAxisX = extents.x * xAxisVS;
                 bound.boxAxisY = extents.y * yAxisVS;
-                bound.boxAxisZ = extents.z * zAxisVS;
+                bound.boxAxisZ = range * zAxisVS;
                 bound.radius   = extents.magnitude;
                 bound.scaleXY  = 1.0f;
 
