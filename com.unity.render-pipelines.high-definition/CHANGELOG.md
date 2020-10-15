@@ -166,6 +166,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed null reference in the Undo callback of the graphics compositor 
 - Fixed cullmode for SceneSelectionPass.
 - Fixed XR shadows culling.
+- Fixed scene picking passes
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.

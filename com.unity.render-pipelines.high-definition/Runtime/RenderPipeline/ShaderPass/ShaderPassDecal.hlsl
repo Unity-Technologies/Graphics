@@ -1,4 +1,4 @@
-#if (SHADERPASS != SHADERPASS_DBUFFER_PROJECTOR) && (SHADERPASS != SHADERPASS_DBUFFER_MESH) && (SHADERPASS != SHADERPASS_FORWARD_EMISSIVE_PROJECTOR) && (SHADERPASS != SHADERPASS_FORWARD_EMISSIVE_MESH) && (SHADERPASS != SHADERPASS_FORWARD_PREVIEW)
+#if (SHADERPASS != SHADERPASS_DEPTH_ONLY) && (SHADERPASS != SHADERPASS_DBUFFER_PROJECTOR) && (SHADERPASS != SHADERPASS_DBUFFER_MESH) && (SHADERPASS != SHADERPASS_FORWARD_EMISSIVE_PROJECTOR) && (SHADERPASS != SHADERPASS_FORWARD_EMISSIVE_MESH) && (SHADERPASS != SHADERPASS_FORWARD_PREVIEW)
 #error SHADERPASS_is_not_correctly_define
 #endif
 
@@ -27,13 +27,16 @@ PackedVaryingsType Vert(AttributesMesh inputMesh)
 void Frag(  PackedVaryingsToPS packedInput,
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)
     OUTPUT_DBUFFER(outDBuffer)
-#elif (SHADERPASS == SHADERPASS_FORWARD_PREVIEW) // Only used for preview in shader graph
+#elif defined(SCENEPICKINGPASS) || (SHADERPASS == SHADERPASS_FORWARD_PREVIEW) // Only used for preview in shader graph and scene picking
     out float4 outColor : SV_Target0
 #else
     out float4 outEmissive : SV_Target0
 #endif
 )
 {
+#ifdef SCENEPICKINGPASS
+    outColor = _SelectionID;
+#else
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     FragInputs input = UnpackVaryingsToFragInputs(packedInput);
     DecalSurfaceData surfaceData;
@@ -146,5 +149,6 @@ void Frag(  PackedVaryingsToPS packedInput,
     // Emissive need to be pre-exposed
     outEmissive.rgb = surfaceData.emissive * GetCurrentExposureMultiplier();
     outEmissive.a = 1.0;
+#endif
 #endif
 }

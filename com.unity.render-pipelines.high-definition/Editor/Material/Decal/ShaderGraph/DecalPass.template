@@ -48,6 +48,11 @@ Pass
 
     $splice(HybridV1InjectedBuiltinProperties)
 
+    // -- Properties used by ScenePickingPass
+    #ifdef SCENEPICKINGPASS
+    float4 _SelectionID;
+    #endif
+
     // Includes
     $splice(PreGraphIncludes)
 

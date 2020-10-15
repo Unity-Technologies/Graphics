@@ -197,11 +197,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 #region SubShaders
         static class SubShaders
         {
+            // Relies on the order shader passes are declared in DecalSystem.cs
             public static SubShaderDescriptor Decal = new SubShaderDescriptor()
             {
                 generatesPreview = true,
                 passes = new PassCollection
                 {
+                    { DecalPasses.ScenePicking, new FieldCondition(DecalDefault, true) },
                     { DecalPasses.DBufferProjector, new FieldCondition(DecalDefault, true) },
                     { DecalPasses.DecalProjectorForwardEmissive, new FieldCondition(AffectsEmission, true) },
                     { DecalPasses.DBufferMesh, new FieldCondition(DecalDefault, true) },
@@ -215,8 +217,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         #region Passes
         public static class DecalPasses
         {
-            // CAUTION: c# code relies on the order in which the passes are declared, any change will need to be reflected in Decalsystem.cs - s_MaterialDecalNames array
-            // and DecalSet.InitializeMaterialValues()
+            // CAUTION: c# code relies on the order in which the passes are declared, any change will need to be reflected in Decalsystem.cs - enum MaterialDecalPass
+
+            public static PassDescriptor ScenePicking = new PassDescriptor()
+            {
+                // Definition
+                displayName = "ScenePickingPass",
+                referenceName = "SHADERPASS_DEPTH_ONLY",
+                lightMode = "Picking",
+                useInPreview = false,
+
+                // Collections
+                renderStates = CoreRenderStates.ScenePicking,
+                pragmas = DecalPragmas.Instanced,
+                defines = CoreDefines.ScenePicking,
+                includes = DecalIncludes.ScenePicking,
+            };
+
             public static PassDescriptor DBufferProjector = new PassDescriptor()
             {
                 // Definition
@@ -531,6 +548,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { kFunctions, IncludeLocation.Pregraph },
                 { CoreIncludes.MinimalCorePregraph },
                 { kDecal, IncludeLocation.Pregraph },
+                { kPassDecal, IncludeLocation.Postgraph },
+            };
+
+            public static IncludeCollection ScenePicking = new IncludeCollection
+            {
+                { kPacking, IncludeLocation.Pregraph },
+                { kColor, IncludeLocation.Pregraph },
+                { kFunctions, IncludeLocation.Pregraph },
+                { CoreIncludes.MinimalCorePregraph },
+                { kDecal, IncludeLocation.Pregraph },
+                { CoreIncludes.kPickingSpaceTransforms, IncludeLocation.Pregraph },
                 { kPassDecal, IncludeLocation.Postgraph },
             };
         }
