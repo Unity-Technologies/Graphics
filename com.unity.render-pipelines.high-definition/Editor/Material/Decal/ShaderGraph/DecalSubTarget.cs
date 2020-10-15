@@ -228,7 +228,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Collections
-                renderStates = CoreRenderStates.ScenePicking,
+                renderStates = DecalRenderStates.ScenePicking,
                 pragmas = DecalPragmas.Instanced,
                 defines = CoreDefines.ScenePicking,
                 includes = DecalIncludes.ScenePicking,
@@ -401,6 +401,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             readonly static string s_DecalColorMask = "ColorMask [_DecalColorMask0]\n\tColorMask [_DecalColorMask1] 1\n\tColorMask [_DecalColorMask2] 2\n\tColorMask [_DecalColorMask3] 3";
             readonly static string s_DecalBlend = "Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha \n\tBlend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha \n\tBlend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha \n\tBlend 3 Zero OneMinusSrcColor";
+
+            public static RenderStateCollection ScenePicking = new RenderStateCollection
+            {
+                { RenderState.Cull(Cull.Back) },
+            };
 
             public static RenderStateCollection DBufferProjector = new RenderStateCollection
             {
