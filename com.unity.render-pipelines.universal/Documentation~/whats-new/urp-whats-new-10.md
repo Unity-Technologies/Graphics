@@ -50,7 +50,7 @@ With Shadow Distance Fade, shadows fade smoothly when they reach the maximum sha
 
 With shadow cascades, you can avoid crude shadows close to the Camera and keep the Shadow Resolution reasonably low. For more information, see the page [Shadow Cascades](https://docs.unity3d.com/Manual/shadow-cascades.html).
 
-URP has three shadow cascades now and supports two working units, percent and meters.
+URP supports 1–4 shadow cascades now, and also supports two working units, percent and meters.
 
 ![Shadow Cascades](../Images/lighting/urp-asset-shadows.png)<br/>*The Shadows section in the Universal Render Pipeline asset.*
 
