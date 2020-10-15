@@ -3,7 +3,7 @@
 
 #ifdef SCENEPICKINGPASS
 
-// The picking pass uses specific matrices defined directly from the c++ (without camera relative rendering)
+// The picking pass uses custom matrices defined directly from the c++
 // So we have to redefine the space transform functions to overwrite the used matrices
 
 #undef SHADEROPTIONS_CAMERA_RELATIVE_RENDERING

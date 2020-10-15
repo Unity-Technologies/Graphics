@@ -373,7 +373,7 @@ Shader "HDRP/Lit"
 
             // We reuse depth prepass for the scene selection, allow to handle alpha correctly as well as tessellation and vertex animation
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
-            #define SCENEPICKINGPASS // This will drive the output of the scene selection shader
+            #define SCENEPICKINGPASS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
@@ -385,6 +385,7 @@ Shader "HDRP/Lit"
             #pragma fragment Frag
 
             #pragma editor_sync_compilation
+
             ENDHLSL
         }
 
