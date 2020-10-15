@@ -205,6 +205,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Move System Generated Values semantics out of VaryingsMesh structure.
 - Other forms of FSAA are silently deactivated, when path tracing is on.
 - Disable field of view UI settings when XR is enabled on the camera.
+- Removed XRSystemTests. The GC verification is now done during playmode tests (case 1285012).
 
 ## [10.0.0] - 2019-06-10
 
