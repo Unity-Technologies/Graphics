@@ -37,35 +37,35 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
-        static void AddFloatProperty(this PropertyCollector collector, string referenceName, float defaultValue)
+        static void AddFloatProperty(this PropertyCollector collector, string referenceName, float defaultValue, PropertyHLSLGenerationType generationType = PropertyHLSLGenerationType.None)
         {
             collector.AddShaderProperty(new Vector1ShaderProperty{
                 floatType = FloatType.Default,
                 hidden = true,
-                m_generationType = PropertyHLSLGenerationType.None,
+                m_generationType = generationType,
                 value = defaultValue,
                 overrideReferenceName = referenceName,
             });
         }
 
-        static void AddFloatProperty(this PropertyCollector collector, string referenceName, string displayName, float defaultValue)
+        static void AddFloatProperty(this PropertyCollector collector, string referenceName, string displayName, float defaultValue, PropertyHLSLGenerationType generationType = PropertyHLSLGenerationType.None)
         {
             collector.AddShaderProperty(new Vector1ShaderProperty{
                 floatType = FloatType.Default,
                 value = defaultValue,
                 overrideReferenceName = referenceName,
                 hidden = true,
-                m_generationType = PropertyHLSLGenerationType.None,
+                m_generationType = generationType,
                 displayName = displayName,
             });
         }
 
-        static void AddToggleProperty(this PropertyCollector collector, string referenceName, bool defaultValue)
+        static void AddToggleProperty(this PropertyCollector collector, string referenceName, bool defaultValue, PropertyHLSLGenerationType generationType = PropertyHLSLGenerationType.None)
         {
             collector.AddShaderProperty(new BooleanShaderProperty{
                 value = defaultValue,
                 hidden = true,
-                m_generationType = PropertyHLSLGenerationType.None,
+                m_generationType = generationType,
                 overrideReferenceName = referenceName,
             });
         }
@@ -86,7 +86,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 collector.AddToggleProperty(kUseSplitLighting, splitLighting);
                 collector.AddToggleProperty(kReceivesSSR, receiveSSROpaque);
                 collector.AddToggleProperty(kReceivesSSRTransparent, receiveSSRTransparent);
-                collector.AddToggleProperty(kEnableBlendModePreserveSpecularLighting, blendPreserveSpecular);
+                collector.AddToggleProperty(kEnableBlendModePreserveSpecularLighting, blendPreserveSpecular, PropertyHLSLGenerationType.UnityPerMaterial);
                 collector.AddToggleProperty(kSupportDecals, receiveDecals);
             }
 
@@ -121,7 +121,7 @@ namespace UnityEditor.Rendering.HighDefinition
             bool backThenFrontRendering, bool fogOnTransparent)
         {
             collector.AddFloatProperty("_SurfaceType", (int)surface);
-            collector.AddFloatProperty("_BlendMode", (int)blend);
+            collector.AddFloatProperty("_BlendMode", (int)blend, PropertyHLSLGenerationType.UnityPerMaterial);
 
             // All these properties values will be patched with the material keyword update
             collector.AddFloatProperty("_SrcBlend", 1.0f);
@@ -174,7 +174,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             collector.AddToggleProperty("_AlphaCutoffEnable", alphaCutoff);
             collector.AddFloatProperty(kTransparentSortPriority, kTransparentSortPriority, 0);
-            collector.AddToggleProperty("_UseShadowThreshold", shadowThreshold);
+            collector.AddToggleProperty("_UseShadowThreshold", shadowThreshold, PropertyHLSLGenerationType.UnityPerMaterial);
         }
 
         public static void AddDoubleSidedProperty(PropertyCollector collector, DoubleSidedMode mode = DoubleSidedMode.Enabled)
@@ -192,14 +192,14 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddShaderProperty(new Vector4ShaderProperty{
                 overrideReferenceName = "_DoubleSidedConstants",
                 hidden = true,
-                m_generationType = PropertyHLSLGenerationType.None,
+                m_generationType = PropertyHLSLGenerationType.UnityPerMaterial,
                 value = new Vector4(1, 1, -1, 0)
             });
         }
 
         public static void AddRayTracingProperty(PropertyCollector collector, bool isRayTracing)
         {
-            collector.AddToggleProperty("_RayTracing", isRayTracing);
+            collector.AddToggleProperty("_RayTracing", isRayTracing, PropertyHLSLGenerationType.UnityPerMaterial);
         }
         
         public static void AddPrePostPassProperties(PropertyCollector collector, bool prepass, bool postpass)

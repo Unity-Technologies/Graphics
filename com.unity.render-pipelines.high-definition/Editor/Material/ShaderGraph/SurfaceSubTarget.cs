@@ -282,7 +282,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 overrideReferenceName = "_EmissionColor",
                 hidden = true,
-                m_generationType = PropertyHLSLGenerationType.None,
+                m_generationType = PropertyHLSLGenerationType.UnityPerMaterial,
                 value = new Color(1.0f, 1.0f, 1.0f, 1.0f)
             });
             // ShaderGraph only property used to send the RenderQueueType to the material
