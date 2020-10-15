@@ -12,7 +12,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static readonly GUIContent transparencySortAxis = EditorGUIUtility.TrTextContent("Transparency Sort Axis", "Axis used for custom axis sorting mode");
             public static readonly GUIContent hdrEmulationScale = EditorGUIUtility.TrTextContent("HDR Emulation Scale", "Describes the scaling used by lighting to remap dynamic range between LDR and HDR");
             public static readonly GUIContent lightRTScale = EditorGUIUtility.TrTextContent("Light RT Scale", "The resolution of intermediate light render textures, in relation to the screen resolution. 1.0 means full-screen size.");
-            public static readonly GUIContent lightRTBudget = EditorGUIUtility.TrTextContent("Light RT Budget", "How many intermediate light render textures can be created concurrently. Higher value usually leads to better performance on mobile hardware at the cost of more memory.");
+            public static readonly GUIContent maxLightRTCount = EditorGUIUtility.TrTextContent("Max Light RT Count", "How many intermediate light render textures can be created and utilized concurrently. Higher value usually leads to better performance on mobile hardware at the cost of more memory.");
             public static readonly GUIContent lightBlendStyles = EditorGUIUtility.TrTextContent("Light Blend Styles", "A Light Blend Style is a collection of properties that describe a particular way of applying lighting.");
             public static readonly GUIContent defaultMaterialType = EditorGUIUtility.TrTextContent("Default Material Type", "Material to use when adding new objects to a scene");
             public static readonly GUIContent defaultCustomMaterial = EditorGUIUtility.TrTextContent("Default Custom Material", "Material to use when adding new objects to a scene");
@@ -46,7 +46,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         SerializedProperty m_PostProcessData;
         SerializedProperty m_DefaultMaterialType;
         SerializedProperty m_DefaultCustomMaterial;
-        SerializedProperty m_LightRenderTextureBudget;
+        SerializedProperty m_MaxLightRenderTextureCount;
 
         Analytics.Renderer2DAnalytics m_Analytics = Analytics.Renderer2DAnalytics.instance;
         Renderer2DData m_Renderer2DData;
@@ -75,7 +75,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_HDREmulationScale = serializedObject.FindProperty("m_HDREmulationScale");
             m_LightRenderTextureScale = serializedObject.FindProperty("m_LightRenderTextureScale");
             m_LightBlendStyles = serializedObject.FindProperty("m_LightBlendStyles");
-            m_LightRenderTextureBudget = serializedObject.FindProperty("m_LightRenderTextureBudget");
+            m_MaxLightRenderTextureCount = serializedObject.FindProperty("m_MaxLightRenderTextureCount");
 
             int numBlendStyles = m_LightBlendStyles.arraySize;
             m_LightBlendStylePropsArray = new LightBlendStyleProps[numBlendStyles];
@@ -124,7 +124,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 m_HDREmulationScale.floatValue = 1.0f;
 
             EditorGUILayout.PropertyField(m_LightRenderTextureScale, Styles.lightRTScale);
-            EditorGUILayout.PropertyField(m_LightRenderTextureBudget, Styles.lightRTBudget);
+            EditorGUILayout.PropertyField(m_MaxLightRenderTextureCount, Styles.maxLightRTCount);
 
             EditorGUILayout.LabelField(Styles.lightBlendStyles);
             EditorGUI.indentLevel++;
