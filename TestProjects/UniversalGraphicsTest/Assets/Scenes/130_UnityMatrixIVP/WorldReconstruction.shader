@@ -58,8 +58,10 @@
 
                     float2 uv = i.scrPos.xy / i.scrPos.w;
                     float depth = SampleSceneDepth(uv);
-#if !defined(UNITY_REVERSED_Z) || !UNITY_REVERSED_Z
-					depth = lerp(UNITY_NEAR_CLIP_VALUE, 1.0, depth);
+#if !UNITY_REVERSED_Z
+                    // On OpenGL, we need to transform depth from the [0, 1] range used in the depth buffer to the
+                    // [-1, 1] range used in clip space
+                    depth = lerp(UNITY_NEAR_CLIP_VALUE, 1.0, depth);
 #endif
                     float4 raw   = mul(UNITY_MATRIX_I_VP, float4(uv * 2 - 1, depth, 1));
                     float3 wpos  = raw.xyz / raw.w;
