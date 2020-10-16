@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed an issue where old ShaderGraphs would import non-deterministically, changing their embedded property names each import [1283800]
+- Fixed an issue where Mesh Deformation nodes did not have a category color. [1227081](https://issuetracker.unity3d.com/issues/shadergraph-color-mode-vertex-skinning-catagory-has-no-color-associated-with-it)
 
 ## [10.1.0] - 2020-10-12
 
@@ -41,7 +42,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where the ProceduralVT node was not updating any connected SampleVT nodes when the number of layers was changed [1274288]
 - Fixed an issue with how unknown nodes were treated during validation
 - Fixed an issue where ShaderGraph shaders did not reimport automatically when some of the included files changed [1269634]
-- Fixed an issue where Mesh Deformation nodes did not have a category color. [1227081](https://issuetracker.unity3d.com/issues/shadergraph-color-mode-vertex-skinning-catagory-has-no-color-associated-with-it)
 - Fixed an issue where building a context menu on a dragging block node would leave it floating and undo/redo would result in a soft-lock
 - Fixed an issue where ShaderGraph was logging error when edited in play mode [1274148].
 - Fixed a bug where properties copied over with their graph inputs would not hook up correctly in a new graph [1274306]

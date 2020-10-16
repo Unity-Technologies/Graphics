@@ -4,6 +4,15 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.2.0]
+
+### Added
+
+### Fixed
+- Fixed an issue where the Exposure Shader Graph node had clipped text. (case 1265057)
+
+### Changed
+
 ## [10.1.0] - 2020-10-12
 
 ### Added
@@ -66,7 +75,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed AOV export of depth buffer which now correctly export linear depth (case 1265001)
 - Fixed issue that caused the decal atlas to not be updated upon changing of the decal textures content.
 - Fixed "Screen position out of view frustum" error when camera is at exactly the planar reflection probe location.
-- Fixed an issue where the Exposure Shader Graph node had clipped text. (case 1265057)
 - Fixed Amplitude -> Min/Max parametrization conversion
 - Fixed issue that allocated a small cookie for normal spot lights.
 - Fixed issue when undoing a change in diffuse profile list after deleting the volume profile.
