@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added parallax mapping node and parallax occlusion mapping node.
 - Added the possibility to have multiple POM node in a single graph.
 - Added better error feedback when SampleVirtualTexture nodes run into issues with the VirtualTexture property inputs
+- Added ability for Shader Graph to change node behavior without impacting existing graphs via the “Allow Deprecated Nodes”
 
 ### Changed
 - Added method chaining support to shadergraph collection API.
@@ -55,6 +56,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with Position Node not automatically upgrading
 - Fixed an issue where failing SubGraphs would block saving graph files using them (recursion check would throw exceptions) [1283425]
 - Fixed an issue where choosing "None" as the default texture for a texture property would not correctly preview the correct default color [1283782]
+- Fixed some bugs with Color Nodes and properties that would cause incorrect collorspace conversions
 
 ## [10.0.0] - 2019-06-10
 ### Added
