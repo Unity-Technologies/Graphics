@@ -22,6 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent thicknessMapText = new GUIContent("Thickness Map", "Specifies the Thickness Map (R) for this Material - This map describes the thickness of the object. When subsurface scattering is enabled, low values allow some light to transmit through the object.");
             public static GUIContent transmittanceColorText = new GUIContent("Transmittance Color", "Specifies the Transmittance Color (RGB) for this Material.");
             public static GUIContent atDistanceText = new GUIContent("Transmittance Absorption Distance", "Sets the absorption distance reference in meters.");
+            public static string refractionBlendModeWarning = "Refraction is only supported with the Blend Mode value Alpha. Please, set the Blend Mode to Alpha in the Surface Options to hide this mesage.";
         }
 
         protected MaterialProperty refractionModel = null;
@@ -124,7 +125,7 @@ namespace UnityEditor.Rendering.HighDefinition
             
                 if (refractionModel.floatValue != 0 && blendMode != null && blendMode.floatValue != (int)BlendMode.Alpha)
                 {
-                    EditorGUILayout.HelpBox("Refraction is only support with the Blend Mode value Alpha. Please set the Blend Mode to Alpha in the Surface Options to remove this mesage.", MessageType.Warning);
+                    EditorGUILayout.HelpBox(Styles.refractionBlendModeWarning, MessageType.Warning);
                 }
             }
         }
