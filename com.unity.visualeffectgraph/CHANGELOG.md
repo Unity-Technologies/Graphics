@@ -88,6 +88,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Compute culling of particle which have their alive attribute set to false in output
 - Mesh and lit mesh outputs can now have up to 4 differents meshes that can be set per Particle (Experimental)
 - Screen space per particle LOD on mesh and lit mesh outputs (Experimental)
+- Compare operator can take int and uint as inputs
+- New operator : Sample Signed distance field
+- New Position on Signed Distance Field block
 - Added command to delete unuser parameters.
 
 ### Fixed
