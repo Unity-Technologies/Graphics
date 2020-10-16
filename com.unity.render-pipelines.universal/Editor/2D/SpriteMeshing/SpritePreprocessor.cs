@@ -70,7 +70,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             Vector3 v3Pivot = new Vector3(pivot.x - multiSpriteOffset.x, pivot.y - multiSpriteOffset.y);
             for (int i = 0; i < vertices.Length; i++)
-                allVertices.Add((vertices[i]  - v3Pivot) / pixelsPerUnit);
+                allVertices.Add((vertices[i]) / pixelsPerUnit - v3Pivot);
         }
 
         void CreateSplitSpriteMesh(Sprite sprite, RectInt rect, Vector2 pivot, Vector2 multiSpriteOffset, Vector2[][] customOutline, float pixelsPerUnit)

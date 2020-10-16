@@ -676,11 +676,6 @@ namespace UnityEngine.Rendering.Universal
             get { return GetMaterial(DefaultMaterialType.Sprite); }
         }
 
-        public override Material default2DDepthMaterial
-        {
-            get { return GetMaterial(DefaultMaterialType.Sprite); }
-        }
-
         public override Shader defaultShader
         {
             get
