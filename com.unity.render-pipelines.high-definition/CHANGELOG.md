@@ -166,6 +166,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed null reference in the Undo callback of the graphics compositor 
 - Fixed cullmode for SceneSelectionPass.
 - Fixed issue that caused non-static object to not render at times in OnEnable reflection probes.
+- Fixed a warning happening when putting the range of lights to 0.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
