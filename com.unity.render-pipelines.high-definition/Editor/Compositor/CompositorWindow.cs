@@ -71,7 +71,6 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
                 }
             }
-                
         }
 
         void OnGUI()
@@ -117,6 +116,8 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
             if (compositor)
             {
+                string message = enableCompositor ? "Enable Compositor" : "Disable Compositor";
+                Undo.RecordObject(compositor, message);
                 compositor.enabled = enableCompositor;
             }
             else
