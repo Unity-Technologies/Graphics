@@ -52,6 +52,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix VFX Graph window invalidating existing Undo.undoRedoPerformed delegates.
 - Fix shadergraph changes not reflected in VisualEffectGraph [Case 1278469](https://fogbugz.unity3d.com/f/cases/resolve/1278469/)
 - Unexpected exception while installing samples inside an URP project [Case 1280065](https://issuetracker.unity3d.com/product/unity/issues/guid/1280065/)
+- Fix edited operator being collapsed [Case 1270517](https://issuetracker.unity3d.com/product/unity/issues/guid/1270517/)
 - Filters out renderer priority on SRP which doesn't support this feature.
 - Fallback to builtIn rendering layer if srpAsset.renderingLayerMaskNames returns null.
 - Fix missing prepass in URP [Case 1169487](https://issuetracker.unity3d.com/product/unity/issues/guid/1169487/)
@@ -92,6 +93,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Compute culling of particle which have their alive attribute set to false in output
 - Mesh and lit mesh outputs can now have up to 4 differents meshes that can be set per Particle (Experimental)
 - Screen space per particle LOD on mesh and lit mesh outputs (Experimental)
+- Compare operator can take int and uint as inputs
+- New operator : Sample Signed distance field
+- New Position on Signed Distance Field block
 - Added command to delete unuser parameters.
 
 ### Fixed
