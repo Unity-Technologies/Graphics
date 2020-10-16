@@ -133,7 +133,7 @@ Universal_Win_Vulkan_Standalone_mono_apiNet2_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
-      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --timeout=1200
+      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --timeout=1200
     artifacts:
         logs:
             paths:
@@ -160,7 +160,7 @@ Build_Universal_Win_Vulkan_Player_mono_apiNet2_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --timeout=2000 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear"
+                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --timeout=2000 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear"
     artifacts:
         logs:
             paths:
@@ -187,7 +187,7 @@ Universal_Win_Vulkan_playmode_mono_apiNet2_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-vulkan"
+                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -211,7 +211,7 @@ Universal_Win_Vulkan_editmode_mono_apiNet2_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-vulkan"
+                  cd TestProjects/UniversalGraphicsTest && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -235,7 +235,7 @@ Universal_Win_Vulkan_playmode_XR_mono_apiNet2_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-xr-tests" --extra-editor-arg="-force-vulkan"
+                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-xr-tests" --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -371,7 +371,7 @@ Universal_Win_Vulkan_Standalone_mono_apiNet2_Linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
-      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --timeout=1200
+      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --timeout=1200
     artifacts:
         logs:
             paths:
@@ -398,7 +398,7 @@ Build_Universal_Win_Vulkan_Player_mono_apiNet2_Linear_2020.2:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --timeout=2000 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear"
+                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --timeout=2000 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear"
     artifacts:
         logs:
             paths:
@@ -425,7 +425,7 @@ Universal_Win_Vulkan_playmode_mono_apiNet2_Linear_2020.2:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-vulkan"
+                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -449,7 +449,7 @@ Universal_Win_Vulkan_editmode_mono_apiNet2_Linear_2020.2:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-vulkan"
+                  cd TestProjects/UniversalGraphicsTest && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -473,7 +473,7 @@ Universal_Win_Vulkan_playmode_XR_mono_apiNet2_Linear_2020.2:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-xr-tests" --extra-editor-arg="-force-vulkan"
+                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-xr-tests" --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -629,7 +629,7 @@ Universal_Win_Vulkan_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
-      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --timeout=1200
+      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --timeout=1200
     artifacts:
         logs:
             paths:
@@ -659,7 +659,7 @@ Build_Universal_Win_Vulkan_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --timeout=2000 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear"
+                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --timeout=2000 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear"
     artifacts:
         logs:
             paths:
@@ -690,7 +690,7 @@ Universal_Win_Vulkan_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-vulkan"
+                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -718,7 +718,7 @@ Universal_Win_Vulkan_editmode_mono_apiNet2_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-vulkan"
+                  cd TestProjects/UniversalGraphicsTest && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -746,7 +746,7 @@ Universal_Win_Vulkan_playmode_XR_mono_apiNet2_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-xr-tests" --extra-editor-arg="-force-vulkan"
+                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-xr-tests" --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:

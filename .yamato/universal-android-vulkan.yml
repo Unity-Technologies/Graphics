@@ -73,7 +73,7 @@ Universal_Android_Vulkan_Standalone_mono_apiNet2_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --architecture=ARM64 --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --architecture=ARM64 --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -102,7 +102,7 @@ Build_Universal_Android_Vulkan_Player_mono_apiNet2_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --timeout=2700
+                  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --timeout=2700
     artifacts:
         logs:
             paths:
@@ -181,7 +181,7 @@ Universal_Android_Vulkan_Standalone_mono_apiNet2_Linear_2020.2:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --architecture=ARM64 --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --architecture=ARM64 --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -210,7 +210,7 @@ Build_Universal_Android_Vulkan_Player_mono_apiNet2_Linear_2020.2:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --timeout=2700
+                  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --timeout=2700
     artifacts:
         logs:
             paths:
@@ -297,7 +297,7 @@ Universal_Android_Vulkan_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --architecture=ARM64 --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --architecture=ARM64 --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -329,7 +329,7 @@ Build_Universal_Android_Vulkan_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --timeout=2700
+                  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --timeout=2700
     artifacts:
         logs:
             paths:

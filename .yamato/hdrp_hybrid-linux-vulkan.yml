@@ -17,7 +17,7 @@ HDRP_Hybrid_Linux_Vulkan_playmode_mono_apiNet2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
       -  chmod +x TestProjects/HDRP_HybridTests/utr
       -  cd TestProjects/HDRP_HybridTests && sudo unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/HDRP_HybridTests && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -34,7 +34,7 @@ HDRP_Hybrid_Linux_Vulkan_Standalone_mono_apiNet2_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
       -  chmod +x TestProjects/HDRP_HybridTests/utr
-      -  cd TestProjects/HDRP_HybridTests && ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --timeout=1200
+      -  cd TestProjects/HDRP_HybridTests && ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --timeout=1200
     artifacts:
         logs:
             paths:
@@ -57,7 +57,7 @@ Build_HDRP_Hybrid_Linux_Vulkan_Player_mono_apiNet2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
       -  chmod +x TestProjects/HDRP_HybridTests/utr
       -  cd TestProjects/HDRP_HybridTests && sudo unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --testproject=. --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/HDRP_HybridTests && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --testproject=. --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
             paths:
@@ -80,7 +80,7 @@ HDRP_Hybrid_Linux_Vulkan_playmode_mono_apiNet2_Linear_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
       -  chmod +x TestProjects/HDRP_HybridTests/utr
       -  cd TestProjects/HDRP_HybridTests && sudo unity-downloader-cli -u 2ea77e477b085e913ac2cdc798fcd655b010f1a2 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/HDRP_HybridTests && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -97,7 +97,7 @@ HDRP_Hybrid_Linux_Vulkan_Standalone_mono_apiNet2_Linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
       -  chmod +x TestProjects/HDRP_HybridTests/utr
-      -  cd TestProjects/HDRP_HybridTests && ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --timeout=1200
+      -  cd TestProjects/HDRP_HybridTests && ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --timeout=1200
     artifacts:
         logs:
             paths:
@@ -120,7 +120,7 @@ Build_HDRP_Hybrid_Linux_Vulkan_Player_mono_apiNet2_Linear_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
       -  chmod +x TestProjects/HDRP_HybridTests/utr
       -  cd TestProjects/HDRP_HybridTests && sudo unity-downloader-cli -u 2ea77e477b085e913ac2cdc798fcd655b010f1a2 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --testproject=. --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/HDRP_HybridTests && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --testproject=. --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
             paths:
@@ -144,7 +144,7 @@ HDRP_Hybrid_Linux_Vulkan_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
       -  chmod +x TestProjects/HDRP_HybridTests/utr
       -  cd TestProjects/HDRP_HybridTests && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/HDRP_HybridTests && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -165,7 +165,7 @@ HDRP_Hybrid_Linux_Vulkan_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
       -  chmod +x TestProjects/HDRP_HybridTests/utr
-      -  cd TestProjects/HDRP_HybridTests && ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --timeout=1200
+      -  cd TestProjects/HDRP_HybridTests && ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --timeout=1200
     artifacts:
         logs:
             paths:
@@ -191,7 +191,7 @@ Build_HDRP_Hybrid_Linux_Vulkan_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
       -  chmod +x TestProjects/HDRP_HybridTests/utr
       -  cd TestProjects/HDRP_HybridTests && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --testproject=. --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/HDRP_HybridTests && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --testproject=. --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
             paths:

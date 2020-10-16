@@ -56,7 +56,7 @@ Universal_iPhone_Metal_Standalone_mono_apiNet2_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2
     artifacts:
         logs:
             paths:
@@ -78,7 +78,7 @@ Build_Universal_iPhone_Metal_Player_mono_apiNet2_Linear_trunk:
       -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --timeout=1800
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --timeout=1800
     artifacts:
         logs:
             paths:
@@ -140,7 +140,7 @@ Universal_iPhone_Metal_Standalone_mono_apiNet2_Linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2
     artifacts:
         logs:
             paths:
@@ -162,7 +162,7 @@ Build_Universal_iPhone_Metal_Player_mono_apiNet2_Linear_2020.2:
       -  unity-downloader-cli -u 2ea77e477b085e913ac2cdc798fcd655b010f1a2 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --timeout=1800
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --timeout=1800
     artifacts:
         logs:
             paths:
@@ -232,7 +232,7 @@ Universal_iPhone_Metal_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --reruncount=2
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2
     artifacts:
         logs:
             paths:
@@ -257,7 +257,7 @@ Build_Universal_iPhone_Metal_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=mono --extra-editor-arg="-colorspace=Linear" --timeout=1800
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --timeout=1800
     artifacts:
         logs:
             paths:
