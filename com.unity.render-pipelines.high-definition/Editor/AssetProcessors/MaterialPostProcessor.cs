@@ -595,7 +595,17 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // Lit SG now have a shader feature for refraction instead of an hardcoded material
             if (id == HDShaderUtils.ShaderID.SG_Lit)
+            {
+                // Sync the default refraction model from the shader graph to the shader
+                // We need to do this because the material may already have a refraction model information (from the Lit)
+                // In order to not break the rendering of the material, we patch the refraction model:
+                if (material.HasProperty(kRefractionModel))
+                {
+                    var refractionModel = material.shader.GetPropertyDefaultFloatValue(material.shader.FindPropertyIndex(kRefractionModel));
+                    material.SetFloat(kRefractionModel, refractionModel);
+                }
                 HDShaderUtils.ResetMaterialKeywords(material);
+            }
         }
 
         #region Serialization_API
