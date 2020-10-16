@@ -60,7 +60,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             var list = new List<DebugUI.Widget>();
             list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at creation", getter = () => clearRenderTargetsAtCreation, setter = value => clearRenderTargetsAtCreation = value });
-            list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at release", getter = () => clearRenderTargetsAtRelease, setter = value => clearRenderTargetsAtRelease = value });
+            // We cannot expose this option as it will change the active render target and the debug menu won't know where to render itself anymore.
+        //    list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at release", getter = () => clearRenderTargetsAtRelease, setter = value => clearRenderTargetsAtRelease = value });
             list.Add(new DebugUI.BoolField { displayName = "Disable Pass Culling", getter = () => disablePassCulling, setter = value => disablePassCulling = value });
             list.Add(new DebugUI.BoolField { displayName = "Immediate Mode", getter = () => immediateMode, setter = value => immediateMode = value });
             list.Add(new DebugUI.Button { displayName = "Log Frame Information",
@@ -221,6 +222,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         DynamicArray<CompiledPassInfo>          m_CompiledPassInfos = new DynamicArray<CompiledPassInfo>();
         Stack<int>                              m_CullingStack = new Stack<int>();
 
+        int                                     m_ExecutionCount;
+
         #region Public Interface
 
         /// <summary>
@@ -313,6 +316,19 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             return m_Resources.CreateTexture(m_Resources.GetTextureResourceDesc(texture.handle));
         }
+
+        /// <summary>
+        /// Create a new Render Graph Texture if the passed handle is invalid and use said handle as output.
+        /// If the passed handle is valid, no texture is created.
+        /// </summary>
+        /// <param name="texture">Texture from which the descriptor should be used.</param>
+        /// <returns>A new TextureHandle.</returns>
+        public void CreateTextureIfInvalid(in TextureDesc desc, ref TextureHandle texture)
+        {
+            if (!texture.IsValid())
+                texture = m_Resources.CreateTexture(desc);
+        }
+
 
         /// <summary>
         /// Gets the descriptor of the specified Texture resource.
@@ -414,9 +430,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <param name="parameters">Parameters necessary for the render graph execution.</param>
         public void Begin(in RenderGraphParameters parameters)
         {
+            m_ExecutionCount++;
+
             m_Logger.Initialize();
 
-            m_Resources.BeginRender(parameters.currentFrameIndex);
+            m_Resources.BeginRender(parameters.currentFrameIndex, m_ExecutionCount);
 
             m_RenderGraphContext.cmd = parameters.commandBuffer;
             m_RenderGraphContext.renderContext = parameters.scriptableRenderContext;

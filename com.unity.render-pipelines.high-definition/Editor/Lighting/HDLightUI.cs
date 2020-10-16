@@ -617,6 +617,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var lightType = serialized.type;
             var lightUnit = serialized.lightUnit.GetEnumValue<LightUnit>();
+            k_LightUnitSliderUIDrawer.SetSerializedObject(serialized.serializedObject);
             k_LightUnitSliderUIDrawer.Draw(lightType, lightUnit, serialized.intensity, lightUnitSliderRect, serialized, owner);
 
             // We use PropertyField to draw the value to keep the handle at left of the field
@@ -1020,6 +1021,15 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new EditorGUI.DisabledScope(!newShadowsEnabled))
             {
                 EditorGUILayout.PropertyField(serialized.shadowUpdateMode, s_Styles.shadowUpdateMode);
+
+                if(serialized.shadowUpdateMode.intValue > 0 && serialized.type != HDLightType.Directional)
+                {
+#if MIXED_CACHED_SHADOW
+                    EditorGUILayout.PropertyField(serialized.shadowAlwaysDrawDynamic, s_Styles.shadowAlwaysDrawDynamic);
+#endif
+                    EditorGUILayout.PropertyField(serialized.shadowUpdateUponTransformChange, s_Styles.shadowUpdateOnLightTransformChange);
+
+                }
 
                 HDLightType lightType = serialized.type;
 

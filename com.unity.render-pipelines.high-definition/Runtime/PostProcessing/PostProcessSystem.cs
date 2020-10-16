@@ -92,6 +92,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ShadowsMidtonesHighlights m_ShadowsMidtonesHighlights;
         ColorCurves m_Curves;
         FilmGrain m_FilmGrain;
+        PathTracing m_PathTracing;
 
         // Prefetched frame settings (updated on every frame)
         bool m_ExposureControlFS;
@@ -367,6 +368,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShadowsMidtonesHighlights = stack.GetComponent<ShadowsMidtonesHighlights>();
             m_Curves                    = stack.GetComponent<ColorCurves>();
             m_FilmGrain                 = stack.GetComponent<FilmGrain>();
+            m_PathTracing               = stack.GetComponent<PathTracing>();
 
             // Prefetch frame settings - these aren't free to pull so we want to do it only once
             // per frame
@@ -385,6 +387,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_FilmGrainFS           = frameSettings.IsEnabled(FrameSettingsField.FilmGrain);
             m_DitheringFS           = frameSettings.IsEnabled(FrameSettingsField.Dithering);
             m_AntialiasingFS        = frameSettings.IsEnabled(FrameSettingsField.Antialiasing);
+
+            // Override full screen anti-aliasing when doing path tracing (which is naturally anti-aliased already)
+            m_AntialiasingFS        &= !m_PathTracing.enable.value;
 
             m_DebugExposureCompensation = m_HDInstance.m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugExposure;
 
@@ -449,27 +454,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        static void ClearWithGuardBands(in ClearWithGuardBandsParameters parameters, CommandBuffer cmd, RTHandle source)
-        {
-            // Guard bands (also known as "horrible hack") to avoid bleeding previous RTHandle
-            // content into smaller viewports with some effects like Bloom that rely on bilinear
-            // filtering and can't use clamp sampler and the likes
-            // Note: some platforms can't clear a partial render target so we directly draw black triangles
-            {
-                int w = parameters.cameraWidth;
-                int h = parameters.cameraHeight;
-                cmd.SetRenderTarget(source, 0, CubemapFace.Unknown, -1);
-
-                if (w < source.rt.width || h < source.rt.height)
-                {
-                    cmd.SetViewport(new Rect(w, 0, k_RTGuardBandSize, h));
-                    cmd.DrawProcedural(Matrix4x4.identity, parameters.clearMaterial, 0, MeshTopology.Triangles, 3, 1);
-                    cmd.SetViewport(new Rect(0, h, w + k_RTGuardBandSize, k_RTGuardBandSize));
-                    cmd.DrawProcedural(Matrix4x4.identity, parameters.clearMaterial, 0, MeshTopology.Triangles, 3, 1);
-                }
-            }
-        }
-
         public void Render(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle colorBuffer, RTHandle afterPostProcessTexture, RenderTargetIdentifier finalRT, RTHandle depthBuffer, RTHandle depthMipChain, RTHandle motionVecTexture, bool flipY)
         {
             var dynResHandler = DynamicResolutionHandler.instance;
@@ -497,8 +481,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (m_PostProcessEnabled)
                 {
-                    ClearWithGuardBands(PrepareClearWithGuardBandsParameters(camera), cmd, source);
-
                     // Optional NaN killer before post-processing kicks in
                     bool stopNaNs = camera.stopNaNs && m_StopNaNFS;
 
@@ -607,7 +589,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // If Path tracing is enabled, then DoF is computed in the path tracer by sampling the lens aperure (when using the physical camera mode)
                     bool isDoFPathTraced = (camera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
-                         camera.volumeStack.GetComponent<PathTracing>().enable.value &&
+                         m_PathTracing.enable.value &&
                          camera.camera.cameraType != CameraType.Preview &&
                          m_DepthOfField.focusMode == DepthOfFieldMode.UsePhysicalCamera);
 
@@ -908,6 +890,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4          bloomBicubicParams;
             public Vector4          bloomDirtTileOffset;
             public Vector4          bloomThreshold;
+
+            public Vector4          alphaScaleBias;
         }
 
         UberPostParameters PrepareUberPostParameters(HDCamera hdCamera, bool isSceneView)
@@ -941,8 +925,21 @@ namespace UnityEngine.Rendering.HighDefinition
             PrepareChromaticAberrationParameters(ref parameters, featureFlags);
             PrepareVignetteParameters(ref parameters, featureFlags);
             PrepareUberBloomParameters(ref parameters, hdCamera);
+            PrepareAlphaScaleParameters(ref parameters, hdCamera);
 
             return parameters;
+        }
+
+        void PrepareAlphaScaleParameters(ref UberPostParameters parameters, HDCamera camera)
+        {
+            if (m_EnableAlpha)
+            {
+                parameters.alphaScaleBias = Compositor.CompositionManager.GetAlphaScaleAndBiasForCamera(camera);
+            }
+            else
+            {
+                parameters.alphaScaleBias = new Vector4(1.0f, 0.0f, 0.0f, 0.0f);
+            }
         }
 
         static void DoUberPostProcess(in UberPostParameters parameters,
@@ -979,6 +976,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeVectorParam(parameters.uberPostCS, HDShaderIDs._BloomDirtScaleOffset, parameters.bloomDirtTileOffset);
             cmd.SetComputeVectorParam(parameters.uberPostCS, HDShaderIDs._BloomThreshold, parameters.bloomThreshold);
 
+            // Alpha scale and bias (only used when alpha is enabled)
+            cmd.SetComputeVectorParam(parameters.uberPostCS, HDShaderIDs._AlphaScaleBias, parameters.alphaScaleBias);
 
             // Dispatch uber post
             cmd.SetComputeVectorParam(parameters.uberPostCS, "_DebugFlags", new Vector4(parameters.outputColorLog ? 1 : 0, 0, 0, 0));
@@ -1389,6 +1388,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     filterMode = FilterMode.Bilinear,
                     wrapMode = TextureWrapMode.Clamp
                 };
+                m_ExposureCurveTexture.hideFlags = HideFlags.HideAndDontSave;
             }
 
             bool minCurveHasPoints = minCurve.length > 0;
@@ -3046,6 +3046,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.bloomPrefilterCS = m_Resources.shaders.bloomPrefilterCS;
             parameters.bloomPrefilterKernel = parameters.bloomPrefilterCS.FindKernel("KMain");
+
+            parameters.bloomPrefilterCS.shaderKeywords = null;
+            if (m_Bloom.highQualityPrefiltering)
+                parameters.bloomPrefilterCS.EnableKeyword("HIGH_QUALITY");
+            else
+                parameters.bloomPrefilterCS.EnableKeyword("LOW_QUALITY");
+            if (m_EnableAlpha)
+                parameters.bloomPrefilterCS.EnableKeyword("ENABLE_ALPHA");
 
             parameters.bloomBlurCS = m_Resources.shaders.bloomBlurCS;
             parameters.bloomBlurKernel = parameters.bloomBlurCS.FindKernel("KMain");

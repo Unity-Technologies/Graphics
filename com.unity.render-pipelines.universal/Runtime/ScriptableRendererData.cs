@@ -127,9 +127,6 @@ namespace UnityEngine.Rendering.Universal
                 debugOutput += m_RendererFeatures[i] != null ? $"-{i}:Linked\n" : $"-{i}:Missing\n";
             }
 
-            if (UniversalRenderPipeline.asset.debugLevel != PipelineDebugLevel.Disabled)
-                Debug.LogWarning(debugOutput);
-
             UpdateMap();
 
             if (!m_RendererFeatures.Contains(null))

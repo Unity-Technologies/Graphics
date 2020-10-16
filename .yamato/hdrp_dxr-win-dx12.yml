@@ -19,6 +19,7 @@ HDRP_DXR_Win_DX12_Standalone_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/hdrp_dxr-win-dx12.yml#Build_HDRP_DXR_Win_DX12_Player_trunk
          rerun: on-new-revision
@@ -35,12 +36,13 @@ Build_HDRP_DXR_Win_DX12_Player_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -56,12 +58,13 @@ HDRP_DXR_Win_DX12_playmode_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
 HDRP_DXR_Win_DX12_playmode_XR_trunk:
     name: HDRP_DXR on Win_DX12_playmode_XR on version trunk
     agent:
@@ -74,12 +77,13 @@ HDRP_DXR_Win_DX12_playmode_XR_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-xr-tests" --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
 HDRP_DXR_Win_DX12_playmode_NonRenderGraph_trunk:
     name: HDRP_DXR on Win_DX12_playmode_NonRenderGraph on version trunk
     agent:
@@ -92,12 +96,13 @@ HDRP_DXR_Win_DX12_playmode_NonRenderGraph_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-non-rendergraph-tests" --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
 HDRP_DXR_Win_DX12_Standalone_2020.2:
     name: HDRP_DXR on Win_DX12_Standalone on version 2020.2
     agent:
@@ -114,6 +119,7 @@ HDRP_DXR_Win_DX12_Standalone_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/hdrp_dxr-win-dx12.yml#Build_HDRP_DXR_Win_DX12_Player_2020.2
          rerun: on-new-revision
@@ -130,12 +136,13 @@ Build_HDRP_DXR_Win_DX12_Player_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u 93d432f0d085a8671a6c8a331ec8bdccb5c076ef -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u 2ea77e477b085e913ac2cdc798fcd655b010f1a2 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -151,12 +158,13 @@ HDRP_DXR_Win_DX12_playmode_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u 93d432f0d085a8671a6c8a331ec8bdccb5c076ef -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u 2ea77e477b085e913ac2cdc798fcd655b010f1a2 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
 HDRP_DXR_Win_DX12_playmode_XR_2020.2:
     name: HDRP_DXR on Win_DX12_playmode_XR on version 2020.2
     agent:
@@ -169,12 +177,13 @@ HDRP_DXR_Win_DX12_playmode_XR_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u 93d432f0d085a8671a6c8a331ec8bdccb5c076ef -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u 2ea77e477b085e913ac2cdc798fcd655b010f1a2 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-xr-tests" --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
 HDRP_DXR_Win_DX12_playmode_NonRenderGraph_2020.2:
     name: HDRP_DXR on Win_DX12_playmode_NonRenderGraph on version 2020.2
     agent:
@@ -187,12 +196,13 @@ HDRP_DXR_Win_DX12_playmode_NonRenderGraph_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u 93d432f0d085a8671a6c8a331ec8bdccb5c076ef -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u 2ea77e477b085e913ac2cdc798fcd655b010f1a2 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-non-rendergraph-tests" --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
 HDRP_DXR_Win_DX12_Standalone_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_Standalone on version CUSTOM-REVISION
     agent:
@@ -210,6 +220,7 @@ HDRP_DXR_Win_DX12_Standalone_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
@@ -235,6 +246,7 @@ Build_HDRP_DXR_Win_DX12_Player_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -260,6 +272,7 @@ HDRP_DXR_Win_DX12_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
@@ -282,6 +295,7 @@ HDRP_DXR_Win_DX12_playmode_XR_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
@@ -304,6 +318,7 @@ HDRP_DXR_Win_DX12_playmode_NonRenderGraph_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always

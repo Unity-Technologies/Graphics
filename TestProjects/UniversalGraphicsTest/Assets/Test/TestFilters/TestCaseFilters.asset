@@ -415,78 +415,6 @@ MonoBehaviour:
     Reason: iOS tracked regression (scene 111 - 1256906)
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: d37e4ef718eada94db246dbd8ef33205, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: iOS regression (temporarily disabled until investigation)
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 507fe0226a0388c4898d134f829a4b28, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: iOS regression (temporarily disabled until investigation)
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: d0fe400c29908d94e9cd70045224370d, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: iOS regression (temporarily disabled until investigation)
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 46788dd77b1c63144b05ad4e2bbe58d5, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: iOS regression (temporarily disabled until investigation)
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: d37e4ef718eada94db246dbd8ef33205, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 4
-    XrSdk: None
-    StereoModes: 0
-    Reason: Android regression (temporarily disabled until investigation)
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 507fe0226a0388c4898d134f829a4b28, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 4
-    XrSdk: None
-    StereoModes: 0
-    Reason: Android regression (temporarily disabled until investigation)
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: d0fe400c29908d94e9cd70045224370d, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 4
-    XrSdk: None
-    StereoModes: 0
-    Reason: Android regression (temporarily disabled until investigation)
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 46788dd77b1c63144b05ad4e2bbe58d5, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 4
-    XrSdk: None
-    StereoModes: 0
-    Reason: Android regression (temporarily disabled until investigation)
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: 5fca56b2f8a46664e858cbb290338fc8, type: 3}
     ColorSpace: -1
     BuildPlatform: 13
@@ -514,24 +442,6 @@ MonoBehaviour:
     Reason: Android Vulkan 143 regressed test scene
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: fe73f67a2bc4933468c714f164c6596d, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 11
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Android GLES3 max additional lights regression. '
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 169aede566e462449812f4bfb3f8d20d, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 11
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Android GLES3 max additional lights regression. '
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
     ColorSpace: -1
     BuildPlatform: 9
@@ -539,3 +449,12 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: 'iOS crashes (scene 035; Bug ID: 1280307)'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: ac4701d765fa26b4f83d2fb9ed6b3c08, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: 'iOS failure on scene 131 (fogbugz: 1283292)'

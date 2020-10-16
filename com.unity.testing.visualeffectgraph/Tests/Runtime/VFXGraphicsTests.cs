@@ -150,7 +150,7 @@ namespace UnityEngine.VFX.Test
                     RenderTexture.active = null;
                     actual.Apply();
 
-                    var imageComparisonSettings = new ImageComparisonSettings() { AverageCorrectnessThreshold = 5e-4f };
+                    var imageComparisonSettings = new ImageComparisonSettings() { AverageCorrectnessThreshold = VFXGraphicsTestSettings.defaultAverageCorrectnessThreshold };
                     if (testSettingsInScene != null)
                     {
                         imageComparisonSettings.AverageCorrectnessThreshold = testSettingsInScene.ImageComparisonSettings.AverageCorrectnessThreshold;

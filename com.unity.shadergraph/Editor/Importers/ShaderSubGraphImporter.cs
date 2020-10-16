@@ -18,7 +18,7 @@ using UnityEditor.ShaderGraph.Serialization;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(15, Extension, -905)]
+    [ScriptedImporter(16, Extension, -905)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -193,6 +193,7 @@ namespace UnityEditor.ShaderGraph
 
             GatherDescendentsFromGraph(new GUID(asset.assetGuid), out var containsCircularDependency, out var descendents);
             asset.descendents.AddRange(descendents.Select(g => g.ToString()));
+            asset.descendents.Sort();   // ensure deterministic order
 
             var childrenSet = new HashSet<string>();
             var anyErrors = false;
@@ -201,16 +202,15 @@ namespace UnityEditor.ShaderGraph
                 if (node is SubGraphNode subGraphNode)
                 {
                     var subGraphGuid = subGraphNode.subGraphGuid;
-                    if (childrenSet.Add(subGraphGuid))
-                    {
-                        asset.children.Add(subGraphGuid);
-                    }
+                    childrenSet.Add(subGraphGuid);
                 }
 
                 if (node.hasError)
                 {
                     anyErrors = true;
                 }
+                asset.children = childrenSet.ToList();
+                asset.children.Sort(); // ensure deterministic order
             }
 
             if (!anyErrors && containsCircularDependency)
@@ -258,7 +258,7 @@ namespace UnityEditor.ShaderGraph
 
                 // Vt Feedback arguments
                 foreach (var output in asset.vtFeedbackVariables)
-                    arguments.Add($"out {ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Float)} {output}_out");
+                    arguments.Add($"out {ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Single)} {output}_out");
 
                 // Create the function prototype from the arguments
                 sb.AppendLine("void {0}({1})"
@@ -339,12 +339,12 @@ namespace UnityEditor.ShaderGraph
                 var assetPath = AssetDatabase.GUIDToAssetPath(rootAssetGUID);
                 if (!string.IsNullOrEmpty(assetPath) && assetPath.EndsWith(Extension, true, null))
                 {
+                    tempAssetCollection.Clear();
                     MinimalGraphData.GatherMinimalDependenciesFromFile(assetPath, tempAssetCollection);
 
                     var subgraphGUIDs = tempAssetCollection.assets.Where(asset => asset.Value.HasFlag(AssetCollection.Flags.IsSubGraph)).Select(asset => asset.Key).ToArray();
                     dependencyMap[rootAssetGUID] = subgraphGUIDs;
 
-                    tempAssetCollection.Clear();
                     foreach (var guid in subgraphGUIDs)
                     {
                         GatherDependencyMap(guid, dependencyMap, tempAssetCollection);

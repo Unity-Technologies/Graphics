@@ -168,6 +168,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1711_DecalMasks_3RT.unity
     guid: edea5f204710d6f428c50856ebb8ff44
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1712_DecalAngleFading.unity
+    guid: 4b93985ba01d5aa49a5f0cdd342faa27
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1800_Classification.unity
     guid: 5043daebf48d1b740bb244b9a55508ef
   - enabled: 1
@@ -279,8 +282,8 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2211_Probes_Specular.unity
     guid: e67192984ee3d6b44a17da02cda1f17a
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2212_ReflectionProbes_Skies.unity
-    guid: c193bc6b9e5a3764a92da565cdf8d74d
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2220_SmoothPlanarReflection.unity
+    guid: d4a7e5df537f6b0468c09ce661d8791d
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2301_Shadow_Mask.unity
     guid: 1029947770f955b4290bbdd8b641f7f1

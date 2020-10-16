@@ -107,14 +107,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
             foreach (var mesh in meshRenderers)
             {
+                Undo.RecordObject(mesh, "MeshRenderer Layer Mask update");
                 mesh.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                EditorUtility.SetDirty(mesh);
             }
 
             var terrains = Resources.FindObjectsOfTypeAll<Terrain>();
 
             foreach (var terrain in terrains)
             {
+                Undo.RecordObject(terrain, "Terrain Layer Mask update");
                 terrain.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                EditorUtility.SetDirty(terrain);
             }
         }
 
@@ -131,13 +135,17 @@ namespace UnityEditor.Rendering.HighDefinition
                     MeshRenderer mesh;
                     if (gameObj.TryGetComponent<MeshRenderer>(out mesh))
                     {
+                        Undo.RecordObject(mesh, "MeshRenderer Layer Mask update");
                         mesh.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                        EditorUtility.SetDirty(mesh);
                     }
 
                     Terrain terrain;
                     if (gameObj.TryGetComponent<Terrain>(out terrain))
                     {
+                        Undo.RecordObject(terrain, "Terrain Layer Mask update");
                         terrain.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                        EditorUtility.SetDirty(terrain);
                     }
                 }
             }

@@ -20,14 +20,6 @@ namespace UnityEditor.VFX.UI
             set { base.controller = value; }
         }
 
-        public override VFXDataAnchor InstantiateDataAnchor(VFXDataAnchorController controller, VFXNodeUI node)
-        {
-            VFXContextDataAnchorController anchorController = controller as VFXContextDataAnchorController;
-
-            VFXEditableDataAnchor anchor = VFXBlockDataAnchor.Create(anchorController, node);
-            return anchor;
-        }
-
         protected override bool HasPosition()
         {
             return false;

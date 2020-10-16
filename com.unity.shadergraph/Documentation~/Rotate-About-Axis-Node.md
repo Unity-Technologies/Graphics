@@ -10,7 +10,7 @@ Rotates the input vector **In** around the axis **Axis** by the value of **Rotat
 |:------------ |:-------------|:-----|:---|:---|
 | In      | Input | Vector 3 | None | Input value |
 | Axis      | Input | Vector 3 | None | Axis to rotate around |
-| Rotation      | Input | Vector 1 | None | Amount of rotation to apply |
+| Rotation      | Input | Float    | None | Amount of rotation to apply |
 | Out | Output      |    Vector 3 | None | Output value |
 
 ## Controls

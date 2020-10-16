@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public ColorGradingLutPass(RenderPassEvent evt, PostProcessData data)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(ColorGradingLutPass));
             renderPassEvent = evt;
             overrideCameraTarget = true;
 
