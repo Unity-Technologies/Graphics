@@ -8,13 +8,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added context options "Move to Top", "Move to Bottom", "Expand All" and "Collapse All" for volume components.
-
-### Added
 - Added the support of input system V2
 
 ### Fixed
 - Fixed the scene view to scale correctly when hardware dynamic resolution is enabled (case 1158661)
 - Fixed game view artifacts on resizing when hardware dynamic resolution was enabled
+
+### Changed
+- LookDev menu item entry is now disabled if the current pipeline does not support it.
 
 ## [10.0.0] - 2019-06-10
 
