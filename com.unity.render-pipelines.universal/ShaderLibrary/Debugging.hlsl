@@ -461,4 +461,13 @@ bool CalculateColorForDebug(InputData inputData, SurfaceData surfaceData, DebugD
 
 #endif
 
+bool IsLightingFeatureEnabled(uint bitMask)
+{
+    #if defined(_DEBUG_SHADER)
+    return (_DebugLightingFeatureMask == 0) || ((_DebugLightingFeatureMask & bitMask) != 0);
+    #else
+    return true;
+    #endif
+}
+
 #endif
