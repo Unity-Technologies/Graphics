@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.Internal
     [BlackboardInputInfo(10)]
     public sealed class ColorShaderProperty : AbstractShaderProperty<Color>
     {
-        internal PropertyHLSLGenerationType m_generationType = PropertyHLSLGenerationType.UnityPerMaterial;
+        internal HLSLDeclaration m_generationType = HLSLDeclaration.UnityPerMaterial;
 
         public override int latestVersion => 1;
 
@@ -42,13 +42,14 @@ namespace UnityEditor.ShaderGraph.Internal
             return $"{concreteShaderValueType.ToShaderString(concretePrecision.ToShaderString())} {referenceName}";
         }
 
-        internal override void AppendPropertyDeclarations(ShaderStringBuilder builder, Func<string, string> nameModifier, PropertyHLSLGenerationType generationTypes)
+        internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
         {
-            if ((generationTypes & m_generationType) != 0)
-            {
-                string name = nameModifier?.Invoke(referenceName) ?? referenceName;
-                builder.AppendLine($"{concreteShaderValueType.ToShaderString(concretePrecision.ToShaderString())} {name};");
-            }
+            HLSLDeclaration decl = gpuInstanced ? HLSLDeclaration.HybridPerInstance :
+                                    (generatePropertyBlock ? HLSLDeclaration.Global : HLSLDeclaration.UnityPerMaterial);
+            if (m_generationType == HLSLDeclaration.None)
+                decl = HLSLDeclaration.None;
+
+            action(new HLSLProperty(HLSLType._float4, referenceName, decl, concretePrecision));
         }
 
         public override string GetDefaultReferenceName()

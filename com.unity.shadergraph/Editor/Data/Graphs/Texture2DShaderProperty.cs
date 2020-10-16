@@ -30,18 +30,14 @@ namespace UnityEditor.ShaderGraph.Internal
             return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2D) = \"{defaultType.ToString().ToLower()}\" {{}}";
         }
 
-        internal override void AppendPropertyDeclarations(ShaderStringBuilder builder, Func<string, string> nameModifier, PropertyHLSLGenerationType generationTypes)
+        internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
         {
-            string name = nameModifier?.Invoke(referenceName) ?? referenceName;
-            if (generationTypes.HasFlag(PropertyHLSLGenerationType.Global))
-            {
-                builder.AppendLine($"TEXTURE2D({name});");
-                builder.AppendLine($"SAMPLER(sampler{name});");
-            }
-            if (generationTypes.HasFlag(PropertyHLSLGenerationType.UnityPerMaterial))       // TODO: if this is a global texture, this should be in Global above... :P
-            {
-                builder.AppendLine($"{concretePrecision.ToShaderString()}4 {name}_TexelSize;");
-            }
+            HLSLDeclaration decl = (generatePropertyBlock ? HLSLDeclaration.Global : HLSLDeclaration.UnityPerMaterial);
+
+            action(new HLSLProperty(HLSLType._TextureCube, referenceName, HLSLDeclaration.Global));
+            action(new HLSLProperty(HLSLType._SamplerState, "sampler" + referenceName, HLSLDeclaration.Global));
+            action(new HLSLProperty(HLSLType._float4, referenceName + "_TexelSize", decl));
+            // action(new HLSLProperty(HLSLType._float4, referenceName + "_ST", decl));
         }
 
         internal override string GetPropertyAsArgumentString()

@@ -26,14 +26,10 @@ namespace UnityEditor.ShaderGraph.Internal
             return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 3D) = \"white\" {{}}";
         }
 
-        internal override void AppendPropertyDeclarations(ShaderStringBuilder builder, Func<string, string> nameModifier, PropertyHLSLGenerationType generationTypes)
+        internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
         {
-            string name = nameModifier?.Invoke(referenceName) ?? referenceName;
-            if (generationTypes.HasFlag(PropertyHLSLGenerationType.Global))
-            {
-                builder.AppendLine($"TEXTURE3D({name});");
-                builder.AppendLine($"SAMPLER(sampler{name});");
-            }
+            action(new HLSLProperty(HLSLType._Texture3D, referenceName, HLSLDeclaration.Global));
+            action(new HLSLProperty(HLSLType._SamplerState, "sampler" + referenceName, HLSLDeclaration.Global));
         }
 
         internal override string GetPropertyAsArgumentString()

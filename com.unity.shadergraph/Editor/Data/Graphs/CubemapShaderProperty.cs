@@ -28,14 +28,10 @@ namespace UnityEditor.ShaderGraph.Internal
             return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", CUBE) = \"\" {{}}";
         }
 
-        internal override void AppendPropertyDeclarations(ShaderStringBuilder builder, Func<string, string> nameModifier, PropertyHLSLGenerationType generationTypes)
+        internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
         {
-            if (generationTypes.HasFlag(PropertyHLSLGenerationType.Global))
-            {
-                string name = nameModifier?.Invoke(referenceName) ?? referenceName;
-                builder.AppendLine($"TEXTURECUBE({name});");
-                builder.AppendLine($"SAMPLER(sampler{name});");
-            }
+            action(new HLSLProperty(HLSLType._TextureCube, referenceName, HLSLDeclaration.Global));
+            action(new HLSLProperty(HLSLType._SamplerState, "sampler" + referenceName, HLSLDeclaration.Global));
         }
 
         internal override string GetPropertyAsArgumentString()

@@ -6,7 +6,7 @@ namespace UnityEditor.ShaderGraph.Internal
     {
         public class LightmapTextureArrayProperty : Texture2DArrayShaderProperty
         {
-            internal override void AppendPropertyDeclarations(ShaderStringBuilder builder, Func<string, string> nameModifier, PropertyHLSLGenerationType generationTypes)
+            internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
             {
                 // no declaration from ShaderGraph side -- declared by SRP internal include files
             }

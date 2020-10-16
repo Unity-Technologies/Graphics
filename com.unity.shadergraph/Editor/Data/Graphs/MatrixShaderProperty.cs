@@ -8,18 +8,15 @@ namespace UnityEditor.ShaderGraph
     abstract class MatrixShaderProperty : AbstractShaderProperty<Matrix4x4>
     {
         // expose to UI for override
-        internal PropertyHLSLGenerationType m_generationType = PropertyHLSLGenerationType.UnityPerMaterial;
+        internal HLSLDeclaration m_generationType = HLSLDeclaration.UnityPerMaterial;
 
         internal override bool isExposable => false;
         internal override bool isRenamable => true;
 
-        internal override void AppendPropertyDeclarations(ShaderStringBuilder builder, Func<string, string> nameModifier, PropertyHLSLGenerationType generationTypes)
+        internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
         {
-            if ((generationTypes & m_generationType) != 0)
-            {
-                string name = nameModifier?.Invoke(referenceName) ?? referenceName;
-                builder.AppendLine($"{concretePrecision.ToShaderString()}4x4 {name};");
-            }
+            // HLSL decl is always 4x4 even if matrix smaller
+            action(new HLSLProperty(HLSLType._matrix4x4, referenceName, m_generationType, concretePrecision));
         }
     }
 }

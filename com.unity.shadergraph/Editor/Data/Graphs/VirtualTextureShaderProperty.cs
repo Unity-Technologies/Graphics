@@ -67,35 +67,36 @@ namespace UnityEditor.ShaderGraph
             throw new NotSupportedException();
         }
 
-        internal override void AppendPropertyDeclarations(ShaderStringBuilder builder, Func<string, string> nameModifier, PropertyHLSLGenerationType generationTypes)
+        internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
         {
-            if (generationTypes.HasFlag(PropertyHLSLGenerationType.UnityPerMaterial))
+            int numLayers = value.layers.Count;
+            if (numLayers > 0)
             {
-                int numLayers = value.layers.Count;
-                if (numLayers > 0)
+                action(new HLSLProperty(HLSLType._CUSTOM, referenceName, HLSLDeclaration.UnityPerMaterial, concretePrecision)
                 {
-                    builder.Append("DECLARE_STACK_CB(");
-                    builder.Append((nameModifier == null) ? referenceName : nameModifier(referenceName));
-                    builder.AppendLine(");");
-                }
-            }
-            if (generationTypes.HasFlag(PropertyHLSLGenerationType.Global))
-            {
-                int numLayers = value.layers.Count;
-                if (numLayers > 0)
-                {
-                    if (!value.procedural)
+                    customDeclaration = (ssb) =>
                     {
-                        // declare regular texture properties (for fallback case)
-                        for (int i = 0; i < value.layers.Count; i++)
-                        {
-                            string layerRefName = value.layers[i].layerRefName;
-                            builder.AppendLine($"TEXTURE2D({layerRefName});");
-                            builder.AppendLine($"SAMPLER(sampler{layerRefName});");
-                            // builder.AppendLine($"{ concretePrecision.ToShaderString()}4 {layerRefName}_TexelSize;");
-                        }
+                        ssb.AppendIndentation();
+                        ssb.Append("DECLARE_STACK_CB(");
+                        ssb.Append(referenceName);
+                        ssb.Append(");");
+                        ssb.AppendNewLine();
                     }
+                });
 
+                if (!value.procedural)
+                {
+                    // declare regular texture properties (for fallback case)
+                    for (int i = 0; i < numLayers; i++)
+                    {
+                        string layerRefName = value.layers[i].layerRefName;
+                        action(new HLSLProperty(HLSLType._Texture2D, layerRefName, HLSLDeclaration.Global));
+                        action(new HLSLProperty(HLSLType._SamplerState, "sampler" + layerRefName, HLSLDeclaration.Global));
+                    }
+                }
+
+                Action<ShaderStringBuilder> customDecl = (builder) =>
+                {
                     // declare texture stack
                     builder.AppendIndentation();
                     builder.Append("DECLARE_STACK");
@@ -126,7 +127,12 @@ namespace UnityEditor.ShaderGraph
                     }
                     builder.Append(")");
                     builder.AppendNewLine();
-                }
+                };
+
+                action(new HLSLProperty(HLSLType._CUSTOM, referenceName, HLSLDeclaration.Global, concretePrecision)
+                {
+                    customDeclaration = customDecl
+                });
             }
         }
 

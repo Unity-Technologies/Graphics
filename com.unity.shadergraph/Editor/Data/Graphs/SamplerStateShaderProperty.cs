@@ -29,13 +29,9 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        internal override void AppendPropertyDeclarations(ShaderStringBuilder builder, Func<string, string> nameModifier, PropertyHLSLGenerationType generationTypes)
+        internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
         {
-            if (generationTypes.HasFlag(PropertyHLSLGenerationType.Global))
-            {
-                string name = nameModifier?.Invoke(referenceName) ?? referenceName;
-                builder.AppendLine($"SAMPLER({name});");
-            }
+            action(new HLSLProperty(HLSLType._SamplerState, referenceName, HLSLDeclaration.Global));
         }
 
         internal override string GetPropertyAsArgumentString()

@@ -24,10 +24,9 @@ namespace UnityEditor.ShaderGraph
         internal override bool isExposable => false;
         internal override bool isRenamable => true;
 
-        internal override void AppendPropertyDeclarations(ShaderStringBuilder builder, Func<string, string> nameModifier, PropertyHLSLGenerationType generationTypes)
+        internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
         {
-            string name = nameModifier?.Invoke(referenceName) ?? referenceName;
-            if (generationTypes.HasFlag(PropertyHLSLGenerationType.Global))
+            Action<ShaderStringBuilder> customDecl = (builder) =>
             {
                 builder.AppendLine("Gradient {0}_Definition()", referenceName);
                 using (builder.BlockScope())
@@ -71,7 +70,13 @@ namespace UnityEditor.ShaderGraph
                 }
                 builder.AppendIndentation();
                 builder.Append("#define {0} {0}_Definition()", referenceName);
-            }
+            };
+
+            action(
+                new HLSLProperty(HLSLType._CUSTOM, referenceName, HLSLDeclaration.Global, concretePrecision)
+                {
+                    customDeclaration = customDecl
+                });
         }
 
         internal override string GetPropertyAsArgumentString()

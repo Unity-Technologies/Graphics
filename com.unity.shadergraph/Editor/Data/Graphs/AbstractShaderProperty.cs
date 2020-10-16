@@ -4,14 +4,106 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Internal
 {
+    // class for extracting deprecated data from older versions of AbstractShaderProperty
+    class LegacyShaderPropertyData
+    {
+        // indicates user wishes to support HYBRID renderer GPU instanced path
+        [SerializeField]
+        public bool m_GPUInstanced = false;
+    }
+
+    public enum HLSLType
+    {
+        // value types
+        _float,
+        _float2,
+        _float3,
+        _float4,
+        _matrix4x4,
+
+        // object types
+        FirstObjectType,
+        _Texture2D = FirstObjectType,
+        _Texture3D,
+        _TextureCube,
+        _Texture2DArray,
+        _SamplerState,
+
+        // custom type
+        _CUSTOM
+    }
+
     // describes the different ways we can generate HLSL declarations
     [Flags]
-    enum PropertyHLSLGenerationType
+    internal enum HLSLDeclaration
     {
-        None = 0,                       // NOT declared in HLSL
-        Global = 1 << 0,                // declared in the global scope, mainly for use with state coming from Shader.SetGlobal*()
-        UnityPerMaterial = 1 << 1,      // declared in the UnityPerMaterial cbuffer, populated by Material or MaterialPropertyBlock
-        HybridRenderer = 1 << 2,        // declared using HybridRenderer path (v1 or v2) to get DOTS GPU instancing
+        None,                       // NOT declared in HLSL
+        Global,                     // declared in the global scope, mainly for use with state coming from Shader.SetGlobal*()
+        UnityPerMaterial,           // declared in the UnityPerMaterial cbuffer, populated by Material or MaterialPropertyBlock
+        HybridPerInstance,          // declared using HybridRenderer path (v1 or v2) to get DOTS GPU instancing
+    }
+
+    internal struct HLSLProperty
+    {
+        public string name;
+        public HLSLType type;
+        public ConcretePrecision precision;
+        public HLSLDeclaration declaration;
+        public Action<ShaderStringBuilder> customDeclaration;
+
+        public HLSLProperty(HLSLType type, string name, HLSLDeclaration declaration, ConcretePrecision precision = ConcretePrecision.Single)
+        {
+            this.type = type;
+            this.name = name;
+            this.declaration = declaration;
+            this.precision = precision;
+            this.customDeclaration = null;
+        }
+
+        static string[,] kValueTypeStrings = new string[(int)HLSLType.FirstObjectType, 2]
+        {
+                {"float", "half"},
+                {"float2", "half2"},
+                {"float3", "half3"},
+                {"float4", "half4"},
+                {"float4x4", "half4x4"}
+        };
+
+        static string[] kObjectTypeStrings = new string[(int) HLSLType._CUSTOM - (int) HLSLType.FirstObjectType]
+        {
+                "TEXTURE2D",
+                "TEXTURE3D",
+                "TEXTURECUBE",
+                "TEXTURE2D_ARRAY",
+                "SAMPLER",
+        };
+
+        public void AppendTo(ShaderStringBuilder ssb, Func<string, string> nameModifier = null)
+        {
+            var mName = nameModifier?.Invoke(name) ?? name;
+
+            if (type < HLSLType.FirstObjectType)
+            {
+                ssb.Append(kValueTypeStrings[(int)type, (int)precision]);
+                ssb.Append(" ");
+                ssb.Append(mName);
+                ssb.Append(";");
+                ssb.AppendNewLine();
+            }
+            else if (type < HLSLType._CUSTOM)
+            {
+                ssb.Append(kObjectTypeStrings[type - HLSLType.FirstObjectType]);
+                ssb.Append("(");
+                ssb.Append(mName);
+                ssb.Append(");");
+                ssb.AppendNewLine();
+            }
+            else
+            {
+                customDeclaration(ssb);
+                ssb.AppendNewLine();
+            }
+        }
     }
 
     [Serializable]
@@ -86,7 +178,7 @@ namespace UnityEditor.ShaderGraph.Internal
         }
 
         // TODO: name modifier callback?
-        internal abstract void AppendPropertyDeclarations(ShaderStringBuilder builder, Func<string, string> nameModifier, PropertyHLSLGenerationType generationTypes);
+        internal abstract void ForeachHLSLProperty(Action<HLSLProperty> action);
 
 
         internal abstract string GetPropertyAsArgumentString();
