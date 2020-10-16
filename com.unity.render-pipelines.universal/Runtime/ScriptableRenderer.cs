@@ -334,7 +334,7 @@ namespace UnityEngine.Rendering.Universal
         bool m_FirstTimeCameraDepthTargetIsBound = true; // flag used to track when m_CameraDepthTarget should be cleared (if necessary), the first time m_CameraDepthTarget is bound as a render target
 
         // The pipeline can only guarantee the camera target texture are valid when the pipeline is executing.
-        // Trying to access the camera target before or after might be that the pipeline texture have already been disposed. 
+        // Trying to access the camera target before or after might be that the pipeline texture have already been disposed.
         bool m_IsPipelineExecuting = false;
         static RenderTargetIdentifier[] m_ActiveColorAttachments = new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0, 0, 0 };
         static RenderTargetIdentifier m_ActiveDepthAttachment;
@@ -478,7 +478,7 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
                 float time = Application.isPlaying ? Time.time : Time.realtimeSinceStartup;
 #else
-            float time = Time.time;
+                float time = Time.time;
 #endif
                 float deltaTime = Time.deltaTime;
                 float smoothDeltaTime = Time.smoothDeltaTime;
@@ -491,44 +491,44 @@ namespace UnityEngine.Rendering.Universal
                 cmd.Clear();
                 using (new ProfilingScope(cmd, Profiling.sortRenderPasses))
                 {
-                // Sort the render pass queue
-                SortStable(m_ActiveRenderPassQueue);
+                    // Sort the render pass queue
+                    SortStable(m_ActiveRenderPassQueue);
                 }
 
                 using var renderBlocks = new RenderBlocks(m_ActiveRenderPassQueue);
 
                 using (new ProfilingScope(cmd, Profiling.setupLights))
                 {
-                SetupLights(context, ref renderingData);
+                    SetupLights(context, ref renderingData);
                 }
 
                 using (new ProfilingScope(cmd, Profiling.RenderBlock.beforeRendering))
                 {
-                // Before Render Block. This render blocks always execute in mono rendering.
-                // Camera is not setup. Lights are not setup.
-                // Used to render input textures like shadowmaps.
+                    // Before Render Block. This render blocks always execute in mono rendering.
+                    // Camera is not setup. Lights are not setup.
+                    // Used to render input textures like shadowmaps.
                     ExecuteBlock(RenderPassBlock.BeforeRendering, in renderBlocks, context, ref renderingData);
                 }
 
                 using (new ProfilingScope(cmd, Profiling.setupCamera))
                 {
-                // This is still required because of the following reasons:
-                // - Camera billboard properties.
-                // - Camera frustum planes: unity_CameraWorldClipPlanes[6]
-                // - _ProjectionParams.x logic is deep inside GfxDevice
-                // NOTE: The only reason we have to call this here and not at the beginning (before shadows)
-                // is because this need to be called for each eye in multi pass VR.
-                // The side effect is that this will override some shader properties we already setup and we will have to
-                // reset them.
-                context.SetupCameraProperties(camera);
-                SetCameraMatrices(cmd, ref cameraData, true);
+                    // This is still required because of the following reasons:
+                    // - Camera billboard properties.
+                    // - Camera frustum planes: unity_CameraWorldClipPlanes[6]
+                    // - _ProjectionParams.x logic is deep inside GfxDevice
+                    // NOTE: The only reason we have to call this here and not at the beginning (before shadows)
+                    // is because this need to be called for each eye in multi pass VR.
+                    // The side effect is that this will override some shader properties we already setup and we will have to
+                    // reset them.
+                    context.SetupCameraProperties(camera);
+                    SetCameraMatrices(cmd, ref cameraData, true);
 
-                // Reset shader time variables as they were overridden in SetupCameraProperties. If we don't do it we might have a mismatch between shadows and main rendering
-                SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
+                    // Reset shader time variables as they were overridden in SetupCameraProperties. If we don't do it we might have a mismatch between shadows and main rendering
+                    SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
 
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
-            //Triggers dispatch per camera, all global parameters should have been setup at this stage.
-            VFX.VFXManager.ProcessCameraCommand(camera, cmd);
+                    //Triggers dispatch per camera, all global parameters should have been setup at this stage.
+                    VFX.VFXManager.ProcessCameraCommand(camera, cmd);
 #endif
                 }
 
@@ -556,7 +556,7 @@ namespace UnityEngine.Rendering.Universal
                 // Draw Gizmos...
                 if(drawGizmos)
                 {
-                DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
+                    DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
                 }
 
                 // In this block after rendering drawing happens, e.g, post processing, video player capture.
@@ -572,7 +572,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if(drawGizmos)
                 {
-                DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
+                    DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
                 }
 
                 InternalFinishRendering(context, cameraData.resolveFinalTarget);
