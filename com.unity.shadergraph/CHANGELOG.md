@@ -54,6 +54,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where ShaderGraph would not prompt the user to save unsaved changes after an assembly reload
 - Fixed an issue with Position Node not automatically upgrading
 - Fixed an issue where failing SubGraphs would block saving graph files using them (recursion check would throw exceptions) [1283425]
+- Fixed an issue where the Main Preview window rendered too large on small monitors during first open. [1254392]
+- Fixed an issue where Block nodes using Color slots would not be automatically removed from the Master Stack. [1259794]
+- Fixed an issue where the Create Node menu would not close when pressing the Escape key. [1263667]
 
 ## [10.0.0] - 2019-06-10
 ### Added
