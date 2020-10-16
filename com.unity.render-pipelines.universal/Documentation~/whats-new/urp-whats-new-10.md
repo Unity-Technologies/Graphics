@@ -2,7 +2,7 @@
 
 This page contains an overview of new features, major improvements, and issues resolved in URP versions 10.0 and 10.1.
 
-For a complete list of changes made in URP 10.1, refer to the [Changelog](../../CHANGELOG.md).
+For a complete list of changes made in URP 10.1, refer to the [Changelog](../../changelog/CHANGELOG.html).
 
 ## Features
 
@@ -95,6 +95,6 @@ GPU instanced mesh particles provide a significant performance improvement compa
 
 ## Issues resolved
 
-For information on issues resolved in URP 10, see the [Changelog](../../CHANGELOG.md).
+For information on issues resolved in URP 10, see the [Changelog](../../changelog/CHANGELOG.html).
 
 For information on the known issues in URP 10, see the section [Known issues](../known-issues.md).
