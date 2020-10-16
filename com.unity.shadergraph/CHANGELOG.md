@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added `Compute Deformation` Node to read deformed vertex data from Dots Deformations.
 - Added new graph nodes that allow sampling Virtual Textures
 - Shader Graph now uses a new file format that is much friendlier towards version control systems and humans. Existing Shader Graphs and will use the new format next time they are saved.
+- Added ability for Shader Graph to change node behavior without impacting existing graphs via the “Allow Deprecated Nodes”
 
 ### Changed
 - Changed the `Branch` node so that it uses a ternary operator (`Out = bool ? a : B`) instead of a linear interpolate function.
@@ -139,6 +140,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where the SampleVirtualTexture node would delete slots when changing its LOD mode [1268483]
 - Fixed an issue where building a context menu on a dragging block node would leave it floating and undo/redo would result in a soft-lock
 - Fixed an issue with the SampleVirtualTexture node in ShaderGraph, where toggling Automatic Streaming would cause the node to incorrectly display four output slots [1271618]
+- Fixed some bugs with Color Nodes and properties that would cause incorrect collorspace conversions
 
 ## [7.1.1] - 2019-09-05
 ### Added
