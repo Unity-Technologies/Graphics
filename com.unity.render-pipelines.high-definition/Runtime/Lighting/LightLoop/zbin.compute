@@ -78,7 +78,8 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 
         // The algorithm is O(n * m) where 'n' is the entity count and 'm' is bin count.
         // Therefore, it will be slow if 'n' is large.
-        // We should consider a sorting-based algorithm, which could be closer to O((n + m) * log(n)).
+        // TODO: we should consider a sorting-based algorithm, which could be closer to O((n + m) * log(n)).
+        // TODO: should Z-binning be two-pass as well (coarse bins, fine bins)? This would improve performance for large entity counts.
         // TODO: unroll.
         for (uint i = 0; i < entityCount; i++)
         {

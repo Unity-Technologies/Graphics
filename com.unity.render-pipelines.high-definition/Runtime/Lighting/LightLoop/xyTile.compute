@@ -94,7 +94,7 @@ void FillCoarseXyTile(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 
         // Define inputs and outputs.
         uint i = 0, j = 0;
-        uint indexPair = 0;
+        uint indexPair = 0; // TODO: store not just the indices themselves, but also their min-max for early out
 
         // The algorithm is O(n * m) where 'n' is the entity count and 'm' is tile count.
         // Therefore, it will be slow if 'n' is large.

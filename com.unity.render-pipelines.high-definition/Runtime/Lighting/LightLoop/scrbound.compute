@@ -653,6 +653,10 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     // Skip Z, we do not need it.
     ndcAaBbMinPt.w = asfloat(gs_NdcAaBbMinPtW[intraGroupEntityIndex]);
     ndcAaBbMaxPt.w = asfloat(gs_NdcAaBbMaxPtW[intraGroupEntityIndex]);
+
+    // TODO: for point and spot lights, compute the intersection of AABBs
+    // of the bounding frustum and the bounding sphere.
+
 #endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
 
     if (!isHelperThread && (t % THREADS_PER_ENTITY == 0)) // Avoid bank conflicts
