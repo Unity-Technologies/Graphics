@@ -204,6 +204,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Move System Generated Values semantics out of VaryingsMesh structure.
 - Other forms of FSAA are silently deactivated, when path tracing is on.
 - Removed XRSystemTests. The GC verification is now done during playmode tests (case 1285012).
+- Volume parameter of type Cubemap can now accept Cubemap render textures and custom render textures.
 
 ## [10.0.0] - 2019-06-10
 
