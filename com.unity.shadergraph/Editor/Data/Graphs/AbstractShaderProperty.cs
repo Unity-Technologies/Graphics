@@ -87,26 +87,22 @@ namespace UnityEditor.ShaderGraph.Internal
                 ssb.Append(kValueTypeStrings[(int)type, (int)precision]);
                 ssb.Append(" ");
                 ssb.Append(mName);
-                ssb.Append("; // ");
-                ssb.Append(declaration.ToString());
-                ssb.AppendNewLine();
+                ssb.Append(";");
             }
             else if (type < HLSLType._CUSTOM)
             {
                 ssb.Append(kObjectTypeStrings[type - HLSLType.FirstObjectType]);
                 ssb.Append("(");
                 ssb.Append(mName);
-                ssb.Append("); // ");
-                ssb.Append(declaration.ToString());
-                ssb.AppendNewLine();
+                ssb.Append(");");
             }
             else
             {
                 customDeclaration(ssb);
-                ssb.Append(" // ");
-                ssb.Append(declaration.ToString());
-                ssb.AppendNewLine();
             }
+            //ssb.Append(" // ");
+            //ssb.Append(declaration.ToString());
+            ssb.AppendNewLine();
         }
     }
 
