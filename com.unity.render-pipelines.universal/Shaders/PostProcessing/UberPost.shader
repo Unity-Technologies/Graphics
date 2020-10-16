@@ -143,10 +143,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             // Gamma space... Just do the rest of Uber in linear and convert back to sRGB at the end
             #if UNITY_COLORSPACE_GAMMA
             {
-                #if _USE_FAST_SRGB_LINEAR_CONVERSION
-                color = FastSRGBToLinear(color);
-                #else
-                color = SRGBToLinear(color);
+                color = GetSRGBToLinear(color);
                 #endif
             }
             #endif
@@ -210,10 +207,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             // Back to sRGB
             #if UNITY_COLORSPACE_GAMMA || _LINEAR_TO_SRGB_CONVERSION
             {
-                #if _USE_FAST_SRGB_LINEAR_CONVERSION
-                color = FastLinearToSRGB(color);
-                #else
-                color = LinearToSRGB(color);
+                color = GetLinearToSRGB(color);
                 #endif
             }
             #endif

@@ -98,21 +98,10 @@ half3 ApplyColorGrading(half3 input, float postExposure, TEXTURE2D_PARAM(lutTex,
         if (userLutContrib > 0.0)
         {
             input = saturate(input);
-            #if _USE_FAST_SRGB_LINEAR_CONVERSION
-            {
-                input.rgb = FastLinearToSRGB(input.rgb); // In LDR do the lookup in sRGB for the user LUT
-                half3 outLut = ApplyLut2D(TEXTURE2D_ARGS(userLutTex, userLutSampler), input, userLutParams);
-                input = lerp(input, outLut, userLutContrib);
-                input.rgb = FastSRGBToLinear(input.rgb);
-            }
-            #else
-            {
-                input.rgb = LinearToSRGB(input.rgb); // In LDR do the lookup in sRGB for the user LUT
-                half3 outLut = ApplyLut2D(TEXTURE2D_ARGS(userLutTex, userLutSampler), input, userLutParams);
-                input = lerp(input, outLut, userLutContrib);
-                input.rgb = SRGBToLinear(input.rgb);
-            }
-            #endif
+            input.rgb = GetLinearToSRGB(input.rgb); // In LDR do the lookup in sRGB for the user LUT
+            half3 outLut = ApplyLut2D(TEXTURE2D_ARGS(userLutTex, userLutSampler), input, userLutParams);
+            input = lerp(input, outLut, userLutContrib);
+            input.rgb = GetSRGBToLinear(input.rgb);
         }
     }
 
@@ -127,21 +116,10 @@ half3 ApplyColorGrading(half3 input, float postExposure, TEXTURE2D_PARAM(lutTex,
         UNITY_BRANCH
         if (userLutContrib > 0.0)
         {
-            #if _USE_FAST_SRGB_LINEAR_CONVERSION
-            {
-                input.rgb = FastLinearToSRGB(input.rgb); // In LDR do the lookup in sRGB for the user LUT
-                half3 outLut = ApplyLut2D(TEXTURE2D_ARGS(userLutTex, userLutSampler), input, userLutParams);
-                input = lerp(input, outLut, userLutContrib);
-                input.rgb = FastSRGBToLinear(input.rgb);
-            }
-            #else
-            {
-                input.rgb = LinearToSRGB(input.rgb); // In LDR do the lookup in sRGB for the user LUT
-                half3 outLut = ApplyLut2D(TEXTURE2D_ARGS(userLutTex, userLutSampler), input, userLutParams);
-                input = lerp(input, outLut, userLutContrib);
-                input.rgb = SRGBToLinear(input.rgb);
-            }
-            #endif
+            input.rgb = GetLinearToSRGB(input.rgb); // In LDR do the lookup in sRGB for the user LUT
+            half3 outLut = ApplyLut2D(TEXTURE2D_ARGS(userLutTex, userLutSampler), input, userLutParams);
+            input = lerp(input, outLut, userLutContrib);
+            input.rgb = GetSRGBToLinear(input.rgb);
         }
 
         input = ApplyLut2D(TEXTURE2D_ARGS(lutTex, lutSampler), input, lutParams);
@@ -175,14 +153,46 @@ half3 ApplyDithering(half3 input, float2 uv, TEXTURE2D_PARAM(BlueNoiseTexture, B
 #if UNITY_COLORSPACE_GAMMA
     input += noise / 255.0;
 #else
-    #if _USE_FAST_SRGB_LINEAR_CONVERSION
-    input = FastSRGBToLinear(FastLinearToSRGB(input) + noise / 255.0);
-    #else
-    input = SRGBToLinear(LinearToSRGB(input) + noise / 255.0);
-    #endif
+    input = GetSRGBToLinear(GetLinearToSRGB(input) + noise / 255.0);
 #endif
 
     return input;
+}
+
+real3 GetSRGBToLinear(real3 c)
+{
+#if _USE_FAST_SRGB_LINEAR_CONVERSION
+    return FastSRGBToLinear(c);
+#else
+    return SRGBToLinear(c);
+#endif
+}
+
+real4 GetSRGBToLinear(real4 c)
+{
+#if _USE_FAST_SRGB_LINEAR_CONVERSION
+    return FastSRGBToLinear(c);
+#else
+    return SRGBToLinear(c);
+#endif
+}
+
+real3 GetLinearToSRGB(real3 c)
+{
+#if _USE_FAST_SRGB_LINEAR_CONVERSION
+    return FastLinearToSRGB(c);
+#else
+    return LinearToSRGB(c);
+#endif
+}
+
+real4 GetLinearToSRGB(real4 c)
+{
+#if _USE_FAST_SRGB_LINEAR_CONVERSION
+    return FastLinearToSRGB(c);
+#else
+    return LinearToSRGB(c);
+#endif
 }
 
 #endif // UNIVERSAL_POSTPROCESSING_COMMON_INCLUDED

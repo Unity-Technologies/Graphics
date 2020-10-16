@@ -86,11 +86,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
         #endif
 
         #if UNITY_COLORSPACE_GAMMA
-            #if _USE_FAST_SRGB_LINEAR_CONVERSION
-            color = FastSRGBToLinear(color);
-            #else
-            color = SRGBToLinear(color);
-            #endif
+            color = GetSRGBToLinear(color);
         #endif
 
             // User controlled clamp to limit crazy high broken spec
