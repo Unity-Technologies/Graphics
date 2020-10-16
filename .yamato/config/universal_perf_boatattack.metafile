@@ -3,45 +3,13 @@ project:
   folder: BoatAttack
 test_platforms:
   - type: Standalone
-<<<<<<< HEAD
-    name: performance_playmode
-=======
     timeout_build:
       Android: 2000
     name: performance_playmode_runtime
->>>>>>> master
     is_performance: True
     extra_utr_flags:
       - --report-performance-data
       - --performance-project-id=BoatAttack
-<<<<<<< HEAD
-      - --performance-project-version=C:\build\output\Unity-Technologies\Graphics
-    extra_utr_flags_build:
-      - --extra-editor-arg="-executemethod Editor.Setup"
-      - --extra-editor-arg="-testCategory URP"
-      - --extra-editor-arg="-playergraphicsapi=Direct3D11" ###############
-      - --extra-editor-arg="-colorspace=Linear" 
-      - --extra-editor-arg="-scriptingbackend=mono" 
-      - --extra-editor-arg="-apicompatibilitylevel=NET_4_6" 
-      - --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
-  - type: editmode
-    name: performance_editmode_build
-    is_performance: True
-    extra_utr_flags:
-      - --report-performance-data
-      - --performance-project-id=URP_Performance
-      - --testfilter=Build
-      - --performance-project-version=C:\build\output\Unity-Technologies\Graphics
-platforms:
-  - name: Win
-    apis:
-      - DX11
-      - Vulkan
-  - name: OSX
-    apis:
-      - Metal
-      - OpenGLCore
-=======
     extra_utr_flags_build:
       - --extra-editor-arg="-executemethod Editor.Setup"
       - --category=URP
@@ -70,16 +38,10 @@ platforms:
 #    apis:
 #      - Metal
 #      - OpenGLCore
->>>>>>> master
   - name: Android
     apis: 
       - Vulkan
       - OpenGLES3
-<<<<<<< HEAD
-  - name: iPhone
-    apis: 
-      - Metal
-=======
 #  - name: iPhone
 #    apis: 
 #      - Metal
@@ -99,31 +61,10 @@ build_configs:
 color_spaces:
   - Linear
 #  - gamma
->>>>>>> master
 all:
   dependencies:
     - platform: Win
       api: DX11
-<<<<<<< HEAD
-      test_platforms:
-        - performance_playmode
-        - performance_editmode_build
-    - platform: OSX
-      api: Metal
-      test_platforms:
-        - performance_playmode
-        - performance_editmode_build
-    - platform: Android
-      api: OpenGLES3
-      test_platforms:
-        - performance_playmode
-        - performance_editmode_build
-    - platform: iPhone
-      api: Metal
-      test_platforms:
-        - performance_playmode
-        - performance_editmode_build
-=======
       build_config: mono_apiNet2
       color_space: Linear
       test_platforms:
@@ -157,4 +98,3 @@ all:
 #      test_platforms:
 #        - performance_playmode_runtime
 #        - performance_editmode_build
->>>>>>> master
