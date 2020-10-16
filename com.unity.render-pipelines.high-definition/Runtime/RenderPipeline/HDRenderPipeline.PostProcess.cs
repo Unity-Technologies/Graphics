@@ -50,6 +50,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+            var motionVectors = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors) ? prepassOutput.resolvedMotionVectorsBuffer : renderGraph.defaultResources.blackTextureXR;
             m_PostProcessSystem.Render(
                 renderGraph,
                 parameters.hdCamera,
@@ -59,7 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 prepassOutput.resolvedDepthBuffer,
                 prepassOutput.depthPyramidTexture,
                 prepassOutput.resolvedNormalBuffer,
-                prepassOutput.resolvedMotionVectorsBuffer,
+                motionVectors,
                 dest,
                 parameters.flipYInPostProcess
             );
