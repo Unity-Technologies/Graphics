@@ -122,6 +122,9 @@ namespace UnityEditor.VFX
         {
             if (always || Tools.current == Tool.Rotate || Tools.current == Tool.Transform || Tools.current == Tool.None)
             {
+                if (Event.current.shift)
+                    return false; //TODO : Fix Free Rotation
+
                 EditorGUI.BeginChangeCheck();
                 var newRotation = Handles.RotationHandle(GetHandleRotation(rotation), position);
 
