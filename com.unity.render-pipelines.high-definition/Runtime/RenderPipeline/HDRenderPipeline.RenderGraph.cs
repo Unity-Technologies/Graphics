@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 var volumetricDensityBuffer = VolumeVoxelizationPass(m_RenderGraph, hdCamera, m_VisibleVolumeBoundsBuffer, m_VisibleVolumeDataBuffer, gpuLightListOutput.bigTileLightList, m_FrameCount);
 
-                shadowResult = RenderShadows(m_RenderGraph, hdCamera, cullingResults);
+                RenderShadows(m_RenderGraph, hdCamera, cullingResults, ref shadowResult);
 
                 StartXRSinglePass(m_RenderGraph, hdCamera);
 

@@ -84,7 +84,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
             CameraSettingsUI.Draw(serialized.cameraSettings, owner, displayedFields.camera);
 
-            PropertyFieldWithoutToggle(ProbeSettingsFields.resolution, serialized.resolution, EditorGUIUtility.TrTextContent("Resolution", "Sets the resolution for the planar probe camera."), displayedFields.probe);
+            // Only display the field if it should
+            if (((int)ProbeSettingsFields.resolution & (int)displayedFields.probe) != 0 )
+            {
+                var scalableSetting = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.planarReflectionResolution;
+                serialized.resolutionScalable.LevelAndEnumGUILayout<PlanarReflectionAtlasResolution>(
+                    EditorGUIUtility.TrTextContent("Resolution", "Sets the resolution for the planar probe camera."), scalableSetting, null
+                );
+            }
+
+            PropertyFieldWithoutToggle(ProbeSettingsFields.roughReflections, serialized.roughReflections, EditorGUIUtility.TrTextContent("Rough Reflections", "When disabled the reflections evaluated using the planar reflection will be perfectly smooth. This save GPU time when the planar reflection is used as a pure mirror."), displayedFields.probe);
+
+            PropertyFieldWithoutToggle(ProbeSettingsFields.roughReflections, serialized.roughReflections, EditorGUIUtility.TrTextContent("Rough Reflections", "When disabled the reflections evaluated using the planar reflection will be perfectly smooth. This save GPU time when the planar reflection is used as a pure mirror."), displayedFields.probe);
 
             if ((displayedFields.probe & proxy) != 0)
             {
