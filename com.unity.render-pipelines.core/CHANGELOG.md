@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added context options "Move to Top", "Move to Bottom", "Expand All" and "Collapse All" for volume components.
+- Added ability for Shader Graph to change node behavior without impacting existing graphs via the “Allow Deprecated Nodes”
 
 ### Added
 - Added the support of input system V2
@@ -61,6 +62,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix artifacts on Adreno 630 GPUs when using ACES Tonemapping
 - Fixed a null ref in the volume component list when there is no volume components in the project.
 - Fixed issue with volume manager trying to access a null volume.
+- Fixed some bugs with Color Nodes and properties that would cause incorrect collorspace conversions
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.
