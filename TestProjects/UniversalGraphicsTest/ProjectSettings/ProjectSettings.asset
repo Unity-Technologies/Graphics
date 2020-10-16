@@ -322,7 +322,7 @@ PlayerSettings:
     m_Enabled: 0
     m_Devices:
     - MockHMD
-  openGLRequireES31: 0
+  openGLRequireES31: 1
   openGLRequireES31AEP: 0
   openGLRequireES32: 0
   m_TemplateCustomTags: {}

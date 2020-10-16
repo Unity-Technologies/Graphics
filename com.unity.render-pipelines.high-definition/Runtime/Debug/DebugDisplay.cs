@@ -297,11 +297,14 @@ namespace UnityEngine.Rendering.HighDefinition
             FillFullScreenDebugEnum(ref s_RenderingFullScreenDebugStrings, ref s_RenderingFullScreenDebugValues, FullScreenDebugMode.MinRenderingFullScreenDebug, FullScreenDebugMode.MaxRenderingFullScreenDebug);
             FillFullScreenDebugEnum(ref s_MaterialFullScreenDebugStrings, ref s_MaterialFullScreenDebugValues, FullScreenDebugMode.MinMaterialFullScreenDebug, FullScreenDebugMode.MaxMaterialFullScreenDebug);
 
-            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+            var device = SystemInfo.graphicsDeviceType;
+            if (device == GraphicsDeviceType.Metal)
             {
-                // Disable QuadOverdraw and VertexDensity on metal as they are not supported
                 s_RenderingFullScreenDebugStrings = s_RenderingFullScreenDebugStrings.Where((val, idx) => (idx + FullScreenDebugMode.MinRenderingFullScreenDebug) != FullScreenDebugMode.VertexDensity).ToArray();
                 s_RenderingFullScreenDebugValues = s_RenderingFullScreenDebugValues.Where((val, idx) => (idx + FullScreenDebugMode.MinRenderingFullScreenDebug) != FullScreenDebugMode.VertexDensity).ToArray();
+            }
+            if (device == GraphicsDeviceType.Metal || device == GraphicsDeviceType.PlayStation4)
+            {
                 s_RenderingFullScreenDebugStrings = s_RenderingFullScreenDebugStrings.Where((val, idx) => (idx + FullScreenDebugMode.MinRenderingFullScreenDebug) != FullScreenDebugMode.QuadOverdraw).ToArray();
                 s_RenderingFullScreenDebugValues = s_RenderingFullScreenDebugValues.Where((val, idx) => (idx + FullScreenDebugMode.MinRenderingFullScreenDebug) != FullScreenDebugMode.QuadOverdraw).ToArray();
             }
@@ -772,6 +775,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.ForwardPreRefraction));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RayTracingRecursiveRendering));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RayTracingPrepass));
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingDeferredLighting));
         }
 
         void DisableProfilingRecordersRT()
@@ -1000,6 +1004,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             UnregisterDebugItems(k_PanelDisplayStats, m_DebugDisplayStatsItems);
             RegisterDisplayStatsDebug();
+
+            if (DebugManager.instance.displayRuntimeUI)
+                DebugManager.instance.ReDrawOnScreenDebug();
         }
 
         // For now we just rebuild the lighting panel if needed, but ultimately it could be done in a better way
@@ -1007,30 +1014,45 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             UnregisterDebugItems(k_PanelLighting, m_DebugLightingItems);
             RegisterLightingDebug();
+
+            if (DebugManager.instance.displayRuntimeUI)
+                DebugManager.instance.ReDrawOnScreenDebug();
         }
 
         void RefreshDecalsDebug<T>(DebugUI.Field<T> field, T value)
         {
             UnregisterDebugItems(k_PanelDecals, m_DebugDecalsAffectingTransparentItems);
             RegisterDecalsDebug();
+
+            if (DebugManager.instance.displayRuntimeUI)
+                DebugManager.instance.ReDrawOnScreenDebug();
         }
 
         void RefreshRenderingDebug<T>(DebugUI.Field<T> field, T value)
         {
             UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);
             RegisterRenderingDebug();
+
+            if (DebugManager.instance.displayRuntimeUI)
+                DebugManager.instance.ReDrawOnScreenDebug();
         }
 
         void RefreshMaterialDebug<T>(DebugUI.Field<T> field, T value)
         {
             UnregisterDebugItems(k_PanelMaterials, m_DebugMaterialItems);
             RegisterMaterialDebug();
+
+            if (DebugManager.instance.displayRuntimeUI)
+                DebugManager.instance.ReDrawOnScreenDebug();
         }
 
         void RefreshVolumeDebug<T>(DebugUI.Field<T> field, T value)
         {
             UnregisterDebugItems(k_PanelVolume, m_DebugVolumeItems);
             RegisterVolumeDebug();
+
+            if (DebugManager.instance.displayRuntimeUI)
+                DebugManager.instance.ReDrawOnScreenDebug();
         }
 
         void RegisterLightingDebug()
@@ -1314,7 +1336,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         children =
                         {
 
-                            new DebugUI.FloatField { displayName = "Debug Mip", getter = () => data.fullscreenDebugMip, setter = value => data.fullscreenDebugMip = value, min = () => 0f, max = () => 1f, incStep = 0.05f },                            
+                            new DebugUI.FloatField { displayName = "Debug Mip", getter = () => data.fullscreenDebugMip, setter = value => data.fullscreenDebugMip = value, min = () => 0f, max = () => 1f, incStep = 0.05f },
                             new DebugUI.BoolField { displayName = "Enable Depth Remap", getter = () => data.enableDebugDepthRemap, setter = value => data.enableDebugDepthRemap = value },
                             new DebugUI.FloatField { displayName = "Depth range min value", getter = () => data.fullScreenDebugDepthRemap.x, setter = value => data.fullScreenDebugDepthRemap.x = value, min = () => 0f, max = () => 1f, incStep = 0.05f },
                             new DebugUI.FloatField { displayName = "Depth range max value", getter = () => data.fullScreenDebugDepthRemap.y, setter = value => data.fullScreenDebugDepthRemap.y = value, min = () => 0f, max = () => 1f, incStep = 0.05f }
@@ -1748,7 +1770,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 widgetList.Add(new DebugUI.BoolField { displayName = "XR single-pass test mode", getter = () => data.xrSinglePassTestMode, setter = value => data.xrSinglePassTestMode = value });
             }
 
-            // widgetList.Add(new DebugUI.BoolField { displayName = "Enable Render Graph", getter = () => HDRenderPipeline.currentPipeline.IsRenderGraphEnabled(), setter = value => HDRenderPipeline.currentPipeline.EnableRenderGraph(value) });
+            widgetList.Add(new DebugUI.BoolField { displayName = "Enable Render Graph", getter = () => HDRenderPipeline.currentPipeline.IsRenderGraphEnabled(), setter = value => HDRenderPipeline.currentPipeline.EnableRenderGraph(value) });
 
             m_DebugRenderingItems = widgetList.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelRendering, true);

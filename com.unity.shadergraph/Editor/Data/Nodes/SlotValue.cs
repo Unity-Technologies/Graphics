@@ -46,8 +46,33 @@ namespace UnityEditor.ShaderGraph
         VirtualTexture
     }
 
+    // This enum must match ConcreteSlotValueType enum and is used to give friendly name in the enum popup used for custom function
+    enum ConcreteSlotValueTypePopupName
+    {
+        SamplerState = ConcreteSlotValueType.SamplerState,
+        Matrix4 = ConcreteSlotValueType.Matrix4,
+        Matrix3 = ConcreteSlotValueType.Matrix3,
+        Matrix2 = ConcreteSlotValueType.Matrix2,
+        Texture2D = ConcreteSlotValueType.Texture2D,
+        Texture2DArray = ConcreteSlotValueType.Texture2DArray,
+        Texture3D = ConcreteSlotValueType.Texture3D,
+        Cubemap = ConcreteSlotValueType.Cubemap,
+        Gradient = ConcreteSlotValueType.Gradient,
+        Vector4 = ConcreteSlotValueType.Vector4,
+        Vector3 = ConcreteSlotValueType.Vector3,
+        Vector2 = ConcreteSlotValueType.Vector2,
+        Float = ConcreteSlotValueType.Vector1, // This is currently the only renaming we need - rename Vector1 to Float
+        Boolean = ConcreteSlotValueType.Boolean,
+        VirtualTexture = ConcreteSlotValueType.VirtualTexture
+    }
+
     static class SlotValueHelper
     {
+        public static bool AllowedAsSubgraphOutput(this ConcreteSlotValueType type)
+        {
+            return type != ConcreteSlotValueType.VirtualTexture;
+        }
+
         public static int GetChannelCount(this ConcreteSlotValueType type)
         {
             switch (type)
