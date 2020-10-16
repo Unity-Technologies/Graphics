@@ -201,6 +201,7 @@ namespace UnityEditor.Rendering.HighDefinition
              MigrateDecalRenderQueue,
              ExposedDecalInputsFromShaderGraph,
              FixIncorrectEmissiveColorSpace,
+             ExposeRefraction,
         };
 
         #region Migrations
@@ -588,6 +589,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Reset the value of kEmissiveColor
                 material.UpdateEmissiveColorFromIntensityAndEmissiveColorLDR();
             }
+        }
+
+        static void ExposeRefraction(Material material, HDShaderUtils.ShaderID id)
+        {
+            // Lit SG now have a shader feature for refraction instead of an hardcoded material
+            if (id == HDShaderUtils.ShaderID.SG_Lit)
+                HDShaderUtils.ResetMaterialKeywords(material);
         }
 
         #region Serialization_API
