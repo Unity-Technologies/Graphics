@@ -16,7 +16,8 @@ namespace UnityEditor.Rendering.HighDefinition
     [BlackboardInputInfo(55)]
     class DiffusionProfileShaderProperty : AbstractShaderProperty<LazyLoadReference<DiffusionProfileSettings>>, IShaderPropertyDrawer
     {
-        internal HLSLDeclaration m_generationType = HLSLDeclaration.UnityPerMaterial;
+        internal bool overrideHLSLDeclaration = false;
+        internal HLSLDeclaration hlslDeclarationOverride;
 
         internal DiffusionProfileShaderProperty()
         {
@@ -60,9 +61,9 @@ $@"[DiffusionProfile]{referenceName}(""{displayName}"", Float) = {f2s(HDShadowUt
         internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
         {
             HLSLDeclaration decl = gpuInstanced ? HLSLDeclaration.HybridPerInstance :
-                        (generatePropertyBlock ? HLSLDeclaration.Global : HLSLDeclaration.UnityPerMaterial);
-            if (m_generationType == HLSLDeclaration.None)
-                decl = HLSLDeclaration.None;
+                                   (generatePropertyBlock ? HLSLDeclaration.UnityPerMaterial : HLSLDeclaration.Global);
+            if (overrideHLSLDeclaration)
+                decl = hlslDeclarationOverride;
 
             action(new HLSLProperty(HLSLType._float, referenceName, decl));
         }

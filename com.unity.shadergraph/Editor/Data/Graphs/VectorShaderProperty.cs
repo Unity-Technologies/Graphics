@@ -8,7 +8,8 @@ namespace UnityEditor.ShaderGraph.Internal
     [Serializable]
     public abstract class VectorShaderProperty : AbstractShaderProperty<Vector4>
     {
-        internal HLSLDeclaration m_generationType = HLSLDeclaration.UnityPerMaterial;
+        internal bool overrideHLSLDeclaration = false;
+        internal HLSLDeclaration hlslDeclarationOverride;
 
         internal override bool isExposable => true;
         internal override bool isRenamable => true;

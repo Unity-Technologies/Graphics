@@ -87,7 +87,8 @@ namespace UnityEditor.ShaderGraph.Internal
                 ssb.Append(kValueTypeStrings[(int)type, (int)precision]);
                 ssb.Append(" ");
                 ssb.Append(mName);
-                ssb.Append(";");
+                ssb.Append("; // ");
+                ssb.Append(declaration.ToString());
                 ssb.AppendNewLine();
             }
             else if (type < HLSLType._CUSTOM)
@@ -95,12 +96,15 @@ namespace UnityEditor.ShaderGraph.Internal
                 ssb.Append(kObjectTypeStrings[type - HLSLType.FirstObjectType]);
                 ssb.Append("(");
                 ssb.Append(mName);
-                ssb.Append(");");
+                ssb.Append("); // ");
+                ssb.Append(declaration.ToString());
                 ssb.AppendNewLine();
             }
             else
             {
                 customDeclaration(ssb);
+                ssb.Append(" // ");
+                ssb.Append(declaration.ToString());
                 ssb.AppendNewLine();
             }
         }

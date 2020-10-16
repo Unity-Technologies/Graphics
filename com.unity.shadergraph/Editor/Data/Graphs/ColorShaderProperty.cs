@@ -10,7 +10,8 @@ namespace UnityEditor.ShaderGraph.Internal
     [BlackboardInputInfo(10)]
     public sealed class ColorShaderProperty : AbstractShaderProperty<Color>
     {
-        internal HLSLDeclaration m_generationType = HLSLDeclaration.UnityPerMaterial;
+        internal bool overrideHLSLDeclaration = false;
+        internal HLSLDeclaration hlslDeclarationOverride;
 
         public override int latestVersion => 1;
 
@@ -45,9 +46,9 @@ namespace UnityEditor.ShaderGraph.Internal
         internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
         {
             HLSLDeclaration decl = gpuInstanced ? HLSLDeclaration.HybridPerInstance :
-                                    (generatePropertyBlock ? HLSLDeclaration.Global : HLSLDeclaration.UnityPerMaterial);
-            if (m_generationType == HLSLDeclaration.None)
-                decl = HLSLDeclaration.None;
+                                   (generatePropertyBlock ? HLSLDeclaration.UnityPerMaterial : HLSLDeclaration.Global);
+            if (overrideHLSLDeclaration)
+                decl = hlslDeclarationOverride;
 
             action(new HLSLProperty(HLSLType._float4, referenceName, decl, concretePrecision));
         }

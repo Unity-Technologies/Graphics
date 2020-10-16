@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
         {
-            HLSLDeclaration decl = (generatePropertyBlock ? HLSLDeclaration.Global : HLSLDeclaration.UnityPerMaterial);
+            HLSLDeclaration decl = (generatePropertyBlock ? HLSLDeclaration.UnityPerMaterial : HLSLDeclaration.Global);
 
             action(new HLSLProperty(HLSLType._TextureCube, referenceName, HLSLDeclaration.Global));
             action(new HLSLProperty(HLSLType._SamplerState, "sampler" + referenceName, HLSLDeclaration.Global));
