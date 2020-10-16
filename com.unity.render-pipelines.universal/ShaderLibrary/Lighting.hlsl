@@ -799,6 +799,123 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
     return vertexLightColor;
 }
 
+struct LightingData
+{
+    half3 giColor;
+    half3 mainLightColor;
+    half3 additionLightsColor;
+    half3 vertexColor;
+    half3 emissionColor;
+};
+
+bool IsLightingFeatureEnabled(uint bitMask)
+{
+    #if defined(_DEBUG_SHADER)
+    return (_DebugLightingFeatureMask == 0) || ((_DebugLightingFeatureMask & bitMask) != 0);
+    #else
+    return true;
+    #endif
+}
+
+half3 CalculateLightingColor(LightingData lightingData)
+{
+    half3 lightingColor = 0;
+
+    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_GI))
+    {
+        lightingColor += lightingData.giColor;
+    }
+
+    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_MAIN_LIGHT))
+    {
+        lightingColor += lightingData.mainLightColor;
+    }
+
+    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_ADDITIONAL_LIGHTS))
+    {
+        lightingColor += lightingData.additionLightsColor;
+    }
+
+    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_EMISSION))
+    {
+        lightingColor += lightingData.emissionColor;
+    }
+
+    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_VERTEX_LIGHTING))
+    {
+        lightingColor += lightingData.vertexColor;
+    }
+
+    return lightingColor;
+}
+
+half4 CalculateFinalColor(LightingData lightingData, half alpha)
+{
+    half3 lightingColor = CalculateLightingColor(lightingData);
+
+    return half4(lightingColor, alpha);
+}
+
+void ApplyScreenSpaceAmbientOcclusion(inout Light light, AmbientOcclusionFactor aoFactor)
+{
+    #if defined(_SCREEN_SPACE_OCCLUSION)
+    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_AO))
+    {
+        light.color *= aoFactor.directAmbientOcclusion;
+    }
+    #endif
+}
+
+void ApplyScreenSpaceAmbientOcclusion(inout SurfaceData surfaceData, AmbientOcclusionFactor aoFactor)
+{
+    #if defined(_SCREEN_SPACE_OCCLUSION)
+    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_AO))
+    {
+        surfaceData.occlusion = min(surfaceData.occlusion, aoFactor.indirectAmbientOcclusion);
+    }
+    #endif
+}
+
+LightingData CreateLightingData(half3 giColor, half3 mainLightColor, half3 additionalLightsColor,
+                                half3 emissionColor, half3 vertexLightColor)
+{
+    LightingData lightingData;
+
+    lightingData.giColor = giColor;
+    lightingData.emissionColor = emissionColor;
+    lightingData.vertexColor = vertexLightColor;
+    lightingData.mainLightColor = mainLightColor;
+    lightingData.additionLightsColor = additionalLightsColor;
+
+    return lightingData;
+}
+
+BRDFData CreateClearCoatBRDFData(SurfaceData surfaceData, inout BRDFData brdfData)
+{
+    BRDFData brdfDataClearCoat = (BRDFData)0;
+
+    #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
+    // base brdfData is modified here, rely on the compiler to eliminate dead computation by InitializeBRDFData()
+    InitializeBRDFDataClearCoat(surfaceData.clearCoatMask, surfaceData.clearCoatSmoothness, brdfData, brdfDataClearCoat);
+    #endif
+
+    return brdfDataClearCoat;
+}
+
+half4 CalculateShadowMask(InputData inputData)
+{
+    // To ensure backward compatibility we have to avoid using shadowMask input, as it is not present in older shaders
+    #if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
+    half4 shadowMask = inputData.shadowMask;
+    #elif !defined (LIGHTMAP_ON)
+    half4 shadowMask = unity_ProbesOcclusion;
+    #else
+    half4 shadowMask = half4(1, 1, 1, 1);
+    #endif
+
+    return shadowMask;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 //                         Debug Functions                                   //
 ///////////////////////////////////////////////////////////////////////////////
@@ -910,15 +1027,6 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
 
 #endif
 
-bool IsLightingFeatureEnabled(uint bitMask)
-{
-    #if defined(_DEBUG_SHADER)
-    return (_DebugLightingFeatureMask == 0) || ((_DebugLightingFeatureMask & bitMask) != 0);
-    #else
-    return true;
-    #endif
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 //                      Fragment Functions                                   //
 //       Used by ShaderGraph and others builtin renderers                    //
@@ -947,78 +1055,49 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     #endif
 
     // Clear-coat calculation...
-    BRDFData brdfDataClearCoat = (BRDFData)0;
-    #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
-    // base brdfData is modified here, rely on the compiler to eliminate dead computation by InitializeBRDFData()
-    InitializeBRDFDataClearCoat(surfaceData.clearCoatMask, surfaceData.clearCoatSmoothness, brdfData, brdfDataClearCoat);
-    #endif
-
-    // To ensure backward compatibility we have to avoid using shadowMask input, as it is not present in older shaders
-    #if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
-    half4 shadowMask = inputData.shadowMask;
-    #elif !defined (LIGHTMAP_ON)
-    half4 shadowMask = unity_ProbesOcclusion;
-    #else
-    half4 shadowMask = half4(1, 1, 1, 1);
-    #endif
-
+    BRDFData brdfDataClearCoat = CreateClearCoatBRDFData(surfaceData, brdfData);
+    half4 shadowMask = CalculateShadowMask(inputData);
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, shadowMask);
+    AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(inputData.normalizedScreenSpaceUV);
 
-    #if defined(_SCREEN_SPACE_OCCLUSION)
-        AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(inputData.normalizedScreenSpaceUV);
-        mainLight.color *= aoFactor.directAmbientOcclusion;
-        surfaceData.occlusion = min(surfaceData.occlusion, aoFactor.indirectAmbientOcclusion);
-    #endif
+    // Calculate the color contributions of all possible types of lighting...
+    ApplyScreenSpaceAmbientOcclusion(mainLight, aoFactor);
+    ApplyScreenSpaceAmbientOcclusion(surfaceData, aoFactor);
 
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI);
 
-    half3 color = half3(0, 0, 0);
-
-    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_GI))
-    {
-        color += GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
-                                     inputData.bakedGI, surfaceData.occlusion,
-                                     inputData.normalWS, inputData.viewDirectionWS);
-    }
-
-    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_MAIN_LIGHT))
-    {
-        color += LightingPhysicallyBased(brdfData, brdfDataClearCoat,
-                                         mainLight,
-                                         inputData.normalWS, inputData.viewDirectionWS,
-                                         surfaceData.clearCoatMask, specularHighlightsOff);
-    }
+    half3 giColor = GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
+                                       inputData.bakedGI, surfaceData.occlusion,
+                                       inputData.normalWS, inputData.viewDirectionWS);
+    half3 mainLightColor = LightingPhysicallyBased(brdfData, brdfDataClearCoat,
+                                                   mainLight,
+                                                   inputData.normalWS, inputData.viewDirectionWS,
+                                                   surfaceData.clearCoatMask, specularHighlightsOff);
+    half3 additionalLightsColor = 0;
+    half3 vertexLightColor = 0;
+    half3 emissionColor = surfaceData.emission;
 
     #if defined(_ADDITIONAL_LIGHTS)
-    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_ADDITIONAL_LIGHTS))
+    uint pixelLightCount = GetAdditionalLightsCount();
+
+    for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
     {
-	    uint pixelLightCount = GetAdditionalLightsCount();
-    	for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
-    	{
-        	Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowMask);
-        	#if defined(_SCREEN_SPACE_OCCLUSION)
-            light.color *= aoFactor.directAmbientOcclusion;
-        	#endif
-            color += LightingPhysicallyBased(brdfData, brdfDataClearCoat, light,
-                                         inputData.normalWS, inputData.viewDirectionWS,
-                                         surfaceData.clearCoatMask, specularHighlightsOff);
-    	}
+        Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowMask);
+
+        ApplyScreenSpaceAmbientOcclusion(light, aoFactor);
+        additionalLightsColor += LightingPhysicallyBased(brdfData, brdfDataClearCoat, light,
+                                                         inputData.normalWS, inputData.viewDirectionWS,
+                                                         surfaceData.clearCoatMask, specularHighlightsOff);
     }
     #endif
 
     #if defined(_ADDITIONAL_LIGHTS_VERTEX)
-    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_VERTEX_LIGHTING))
-    {
-        color += inputData.vertexLighting * brdfData.diffuse;
-    }
+    vertexLightColor += inputData.vertexLighting * brdfData.diffuse;
     #endif
 
-    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_EMISSION))
-    {
-        color += surfaceData.emission;
-    }
+    LightingData lightingData = CreateLightingData(giColor, mainLightColor, additionalLightsColor, emissionColor, vertexLightColor);
 
-    return half4(color, surfaceData.alpha);
+    return CalculateFinalColor(lightingData, surfaceData.alpha);
 }
 
 half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,

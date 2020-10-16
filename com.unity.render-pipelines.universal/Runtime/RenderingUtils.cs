@@ -68,11 +68,12 @@ namespace UnityEngine.Rendering.Universal
     public enum DebugLightingFeature
     {
         None,
-        GI = 0x1,
+        GlobalIllumination = 0x1,
         MainLight = 0x2,
         AdditionalLights = 0x4,
         VertexLighting = 0x8,
         Emission = 0x10,
+        AmbientOcclusion = 0x20,
     }
 
     public enum DebugValidationMode
