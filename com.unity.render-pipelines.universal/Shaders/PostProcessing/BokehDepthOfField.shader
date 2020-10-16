@@ -122,7 +122,6 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
 
         #if defined(UNITY_COLORSPACE_GAMMA)
             avg = GetSRGBToLinear(avg);
-
         #endif
 
             return half4(avg, coc);
