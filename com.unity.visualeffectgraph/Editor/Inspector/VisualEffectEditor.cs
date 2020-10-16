@@ -1180,8 +1180,7 @@ namespace UnityEditor.VFX
                 var type = Type.GetType("UnityEditor.RendererEditorBase, UnityEditor");
                 if (type != null)
                 {
-                    var properties = type.GetProperties(BindingFlags.Static | BindingFlags.GetField | BindingFlags.NonPublic);
-                    var property = properties.FirstOrDefault(o => o.Name == "defaultRenderingLayerNames");
+                    var property = type.GetProperty("defaultRenderingLayerNames", BindingFlags.Static | BindingFlags.GetField | BindingFlags.NonPublic);
                     if (property != null)
                     {
                         var invokeResult = property.GetMethod.Invoke(null, null);
