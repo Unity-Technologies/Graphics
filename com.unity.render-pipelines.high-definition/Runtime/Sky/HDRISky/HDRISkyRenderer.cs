@@ -1,3 +1,7 @@
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     class HDRISkyRenderer : SkyRenderer
@@ -149,8 +153,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_SkyHDRIMaterial.SetVector(HDShaderIDs._FlowmapParam, flowmapParam);
 
-                scrollFactor += hdriSky.scrollSpeed.value * (Time.time - lastTime) * 0.01f;
-                lastTime = Time.time;
+#if UNITY_EDITOR
+                // Time.time is not always updated in editor
+                float time = (float)EditorApplication.timeSinceStartup;
+#else
+                float time = Time.time;
+#endif
+                scrollFactor += hdriSky.scrollSpeed.value * (time - lastTime) * 0.01f;
+                lastTime = time;
             }
             else
                 m_SkyHDRIMaterial.DisableKeyword("SKY_MOTION");
