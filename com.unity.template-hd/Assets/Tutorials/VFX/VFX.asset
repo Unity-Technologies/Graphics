@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f107dc6d4c984c45bdafd3bb15f98f0, type: 3}
   m_Name: VFX
   m_EditorClassIdentifier: 
-  m_TutorialTitle: VFX
+  m_TutorialTitle: Visual Effects
   m_LessonId: 0
   m_Version: 1
   m_Scene: {fileID: 102900000, guid: 3db1837cc97a95e4c98610966fac2b0b, type: 3}
@@ -20,9 +20,9 @@ MonoBehaviour:
     m_CameraMode: 1
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 6.241145
-    m_Pivot: {x: 34.993023, y: 2.5231183, z: -7.693365}
-    m_Rotation: {x: 0.0000530047, y: 0.9809996, z: -0.00030576767, w: 0.1940635}
+    m_Size: 3.8411438
+    m_Pivot: {x: 32.00799, y: 2.7641811, z: -3.1129937}
+    m_Rotation: {x: 0.021681527, y: 0.9644933, z: 0.08382371, w: -0.2495653}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
@@ -45,3 +45,4 @@ MonoBehaviour:
     - {fileID: 11400000, guid: e1706cbd5dfdd9e46b5a9d3a27187e64, type: 2}
     - {fileID: 11400000, guid: 119bf659c59b8aa4c9d1d6b1ba2ecfe2, type: 2}
     - {fileID: 11400000, guid: 8b868169709b60141955c5998252c370, type: 2}
+    - {fileID: 11400000, guid: a9cd24cf354a4014f8bd2ed495e3f172, type: 2}

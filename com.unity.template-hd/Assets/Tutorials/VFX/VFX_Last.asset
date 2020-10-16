@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
-  m_Name: VFX_Leaves
+  m_Name: VFX_Last
   m_EditorClassIdentifier: 
   m_Paragraphs:
     m_Items:
@@ -32,18 +32,16 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Falling Leaves
-      m_Description: '1) In the <i>Hierarchy</i> window expand <b>VFX</b> gameobject
-
-        2)
-        Select <b>FallingLeaves</b> gameobject
-
-        3) Toggle it <b>on</b> and
-        <b>off</b> in the <i>Inspector</i>
+      m_Summary: Congratulations!
+      m_Description: 'You have finished the <b>Visual Effects</b> tutorial. This
+        should be enough to get you up and running, for more details check out <a
+        href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@6.9/manual/index.html">Visual
+        Effect Graph</a> and <a href="https://github.com/Unity-Technologies/VisualEffectGraph-Samples">more
+        samples.</a>
 
 
-        Notice the impact they have
-        on the scene'
+        Note: You do not need to save in order to follow other
+        tutorials.'
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -62,9 +60,9 @@ MonoBehaviour:
     m_CameraMode: 1
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 3.2911441
-    m_Pivot: {x: 31.924221, y: 1.3820112, z: -4.0597553}
-    m_Rotation: {x: -0.0025559654, y: 0.9847511, z: -0.17341192, w: -0.014475032}
+    m_Size: 5.981044
+    m_Pivot: {x: 33.332844, y: 2.4898329, z: -7.8515673}
+    m_Rotation: {x: 0.0013037565, y: 0.9962158, z: -0.015254179, w: 0.08568635}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 

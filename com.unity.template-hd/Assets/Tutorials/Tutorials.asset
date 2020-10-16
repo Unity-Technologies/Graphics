@@ -73,7 +73,7 @@ MonoBehaviour:
     Tutorial: {fileID: 11400000, guid: 57eeee29217d0014889ef2dff656f4bf, type: 2}
   - OrderInView: 10
     Heading:
-      m_Untranslated: VFX
+      m_Untranslated: Visual Effects
     Text:
       m_Untranslated: 
     LinkText: 
