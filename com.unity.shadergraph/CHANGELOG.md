@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed an issue where old ShaderGraphs would import non-deterministically, changing their embedded property names each import [1283800]
+- Fixed SampleTexture2DLOD node to return opaque black on unsupported platforms [1241602]
 
 ## [10.1.0] - 2020-10-12
 
