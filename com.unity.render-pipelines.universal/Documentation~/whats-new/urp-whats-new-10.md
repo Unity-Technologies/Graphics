@@ -30,7 +30,7 @@ For more information on the feature, see section [Surface Inputs](../shader-comp
 
 URP 10.0 implements the `DepthNormals` Pass block that generates the normal texture `_CameraNormalsTexture` for the current frame.
 
-To ensure that the URP Renderer creates the `_CameraNormalsTexture` texture, add a call to the <xref:UnityEngine.Rendering.Universal.ScriptableRenderPass.ConfigureInput*> method in `ScriptableRendererFeature.AddRenderPasses`.
+URP creates a `_CameraNormalsTexture` if at least one render Pass requires it. To ensure that the URP Renderer creates the `_CameraNormalsTexture` texture, add a call to the <xref:UnityEngine.Rendering.Universal.ScriptableRenderPass.ConfigureInput*> method in `ScriptableRendererFeature.AddRenderPasses`.
 
 ### Detail Map, Detail Normal Map
 
@@ -96,3 +96,5 @@ GPU instanced mesh particles provide a significant performance improvement compa
 ## Issues resolved
 
 For information on issues resolved in URP 10, see the [Changelog](../../CHANGELOG.md).
+
+For information on the known issues in URP 10, see the section [Known issues](../known-issues.md).
