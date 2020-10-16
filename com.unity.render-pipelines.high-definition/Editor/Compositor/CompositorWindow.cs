@@ -108,6 +108,11 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 compositor.SetupCompositionMaterial();
                 CompositionUtils.SetDefaultCamera(compositor);
                 CompositionUtils.SetDefaultLayers(compositor);
+
+                Undo.RegisterCreatedObjectUndo(compositor.outputCamera.gameObject, "Create Compositor");
+                var undoID = Undo.GetCurrentGroup();
+                Undo.RegisterCreatedObjectUndo(go, "");
+                Undo.CollapseUndoOperations(undoID);
             }
 
             if (compositor)
