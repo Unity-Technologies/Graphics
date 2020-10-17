@@ -109,7 +109,6 @@ namespace UnityEditor.ShaderGraph.Internal
     [Serializable]
     public abstract class AbstractShaderProperty : ShaderInput
     {
-
         public abstract PropertyType propertyType { get; }
 
         internal override ConcreteSlotValueType concreteShaderValueType => propertyType.ToConcreteShaderValueType();
@@ -126,6 +125,26 @@ namespace UnityEditor.ShaderGraph.Internal
             get { return m_GPUInstanced; }
             set { m_GPUInstanced = value; }
         }
+
+        internal HLSLDeclaration GetDefaultHLSLDeclaration()
+        {
+            if (overrideHLSLDeclaration)
+                return hlslDeclarationOverride;
+            if (gpuInstanced)
+                return HLSLDeclaration.HybridPerInstance;
+            if (generatePropertyBlock)
+                return HLSLDeclaration.UnityPerMaterial;
+            else
+                return HLSLDeclaration.Global;
+        }
+
+        internal virtual bool AllowHLSLDeclaration(HLSLDeclaration decl) => true;
+
+        [SerializeField]
+        internal bool overrideHLSLDeclaration = false;
+
+        [SerializeField]
+        internal HLSLDeclaration hlslDeclarationOverride;
 
         internal Precision precision
         {

@@ -11,9 +11,6 @@ namespace UnityEditor.ShaderGraph.Internal
     [BlackboardInputInfo(20)]
     public sealed class BooleanShaderProperty : AbstractShaderProperty<bool>
     {
-        internal bool overrideHLSLDeclaration = false;
-        internal HLSLDeclaration hlslDeclarationOverride;
-
         internal BooleanShaderProperty()
         {
             displayName = "Boolean";
@@ -31,11 +28,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
         {
-            HLSLDeclaration decl = gpuInstanced ? HLSLDeclaration.HybridPerInstance :
-                                   (generatePropertyBlock ? HLSLDeclaration.UnityPerMaterial : HLSLDeclaration.Global);
-            if (overrideHLSLDeclaration)
-                decl = hlslDeclarationOverride;
-
+            HLSLDeclaration decl = GetDefaultHLSLDeclaration();
             action(new HLSLProperty(HLSLType._float, referenceName, decl, concretePrecision));
         }
 

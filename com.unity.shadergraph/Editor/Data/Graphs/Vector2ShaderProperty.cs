@@ -47,11 +47,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
         {
-            HLSLDeclaration decl = gpuInstanced ? HLSLDeclaration.HybridPerInstance :
-                                   (generatePropertyBlock ? HLSLDeclaration.UnityPerMaterial : HLSLDeclaration.Global);
-            if (overrideHLSLDeclaration)
-                decl = hlslDeclarationOverride;
-
+            HLSLDeclaration decl = GetDefaultHLSLDeclaration();
             action(new HLSLProperty(HLSLType._float2, referenceName, decl, concretePrecision));
         }
     }

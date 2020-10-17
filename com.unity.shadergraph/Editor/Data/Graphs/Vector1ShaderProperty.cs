@@ -13,9 +13,6 @@ namespace UnityEditor.ShaderGraph.Internal
     [BlackboardInputInfo(0, "Float")]
     public sealed class Vector1ShaderProperty : AbstractShaderProperty<float>
     {
-        internal bool overrideHLSLDeclaration = false;
-        internal HLSLDeclaration hlslDeclarationOverride;
-
         internal Vector1ShaderProperty()
         {
             displayName = "Float";
@@ -26,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Internal
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
         internal override bool isGpuInstanceable => true;
-        
+
         string enumTagString
         {
             get
@@ -73,11 +70,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
         {
-            HLSLDeclaration decl = gpuInstanced ? HLSLDeclaration.HybridPerInstance :
-                                   (generatePropertyBlock ? HLSLDeclaration.UnityPerMaterial : HLSLDeclaration.Global);
-            if (overrideHLSLDeclaration)
-                decl = hlslDeclarationOverride;
-
+            HLSLDeclaration decl = GetDefaultHLSLDeclaration();
             action(new HLSLProperty(HLSLType._float, referenceName, decl, concretePrecision));
         }
 
