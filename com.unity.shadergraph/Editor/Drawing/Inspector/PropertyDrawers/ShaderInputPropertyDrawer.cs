@@ -288,62 +288,72 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
 
             var hlslDecls = Enum.GetValues(typeof(HLSLDeclaration));
-            var hlslDeclAllowed = new bool[hlslDecls.Length];
+            var allowedDecls = new List<HLSLDeclaration>();
             var hlslDeclStrings = new List<string>(Enum.GetNames(typeof(HLSLDeclaration)));
             bool anyAllowed = false;
             for (int i = 0; i < hlslDecls.Length; i++)
             {
-                HLSLDeclaration decl = (HLSLDeclaration)hlslDecls.GetValue(i);
+                HLSLDeclaration decl = (HLSLDeclaration) hlslDecls.GetValue(i);
                 var allowed = property.AllowHLSLDeclaration(decl);
                 anyAllowed = anyAllowed || allowed;
-                hlslDeclAllowed[i] = allowed;
+                if (allowed)
+                    allowedDecls.Add(decl);
             }
 
-            var enumPropertyDrawer = new EnumPropertyDrawer();
-            var enumPropertyDrawerRow = enumPropertyDrawer.CreateGUI(
-                newValue =>
-                {
-                    this._preChangeValueCallback("Change Override");
-                    if (property.hlslDeclarationOverride == (HLSLDeclaration)newValue)
-                        return;
-                    property.hlslDeclarationOverride = (HLSLDeclaration)newValue;
-                    this._postChangeValueCallback();
-                },
-                property.hlslDeclarationOverride, "Declaration Type", property.hlslDeclarationOverride, out var enumField, 1);
+            if (anyAllowed)
+            {
+                var propRow = new PropertyRow(PropertyDrawerUtils.CreateLabel("Declaration Type", 1));
+                var popupField = new PopupField<HLSLDeclaration>(
+                    allowedDecls,
+                    property.hlslDeclarationOverride,
+                    (h => Enum.GetName(typeof(HLSLDeclaration), h)),
+                    (h => Enum.GetName(typeof(HLSLDeclaration), h)));
+                popupField.RegisterValueChangedCallback(
+                    evt =>
+                    {
+                        this._preChangeValueCallback("Change Override");
+                        if (property.hlslDeclarationOverride == evt.newValue)
+                            return;
+                        property.hlslDeclarationOverride = evt.newValue;
+                        this._postChangeValueCallback();
+                    });
 
-            var toggleOverride = new ToggleDataPropertyDrawer();
-            propertySheet.Add(toggleOverride.CreateGUI(
-                newValue =>
-                {
-                    if (property.overrideHLSLDeclaration == newValue.isOn)
-                        return;
+                propRow.Add(popupField);
 
-                    this._preChangeValueCallback("Override Property Declaration");
+                var toggleOverride = new ToggleDataPropertyDrawer();
+                propertySheet.Add(toggleOverride.CreateGUI(
+                    newValue =>
+                    {
+                        if (property.overrideHLSLDeclaration == newValue.isOn)
+                            return;
+
+                        this._preChangeValueCallback("Override Property Declaration");
 
                     // add or remove the sub field based on what the toggle is
                     if (newValue.isOn)
-                    {
+                        {
                         // setup initial state based on current state
                         property.hlslDeclarationOverride = property.GetDefaultHLSLDeclaration();
-                        property.overrideHLSLDeclaration = newValue.isOn;
-                        (enumField as EnumField).value = property.hlslDeclarationOverride;
-                        propertySheet.Add(enumPropertyDrawerRow);
-                    }
-                    else
-                    {
-                        property.overrideHLSLDeclaration = newValue.isOn;
-                        enumPropertyDrawerRow.RemoveFromHierarchy();
-                    }
+                            property.overrideHLSLDeclaration = newValue.isOn;
+                            popupField.value = property.hlslDeclarationOverride;
+                            propertySheet.Add(propRow);
+                        }
+                        else
+                        {
+                            property.overrideHLSLDeclaration = newValue.isOn;
+                            propRow.RemoveFromHierarchy();
+                        }
 
-                    this._postChangeValueCallback(false, ModificationScope.Graph);
-                },
-                new ToggleData(property.overrideHLSLDeclaration),
-                "Override Property Declaration", out var overrideToggle));
+                        this._postChangeValueCallback(false, ModificationScope.Graph);
+                    },
+                    new ToggleData(property.overrideHLSLDeclaration),
+                    "Override Property Declaration", out var overrideToggle));
 
-            // set up initial state
-            overrideToggle.SetEnabled(anyAllowed);
-            if (property.overrideHLSLDeclaration)
-                propertySheet.Add(enumPropertyDrawerRow);
+                // set up initial state
+                overrideToggle.SetEnabled(anyAllowed);
+                if (property.overrideHLSLDeclaration)
+                    propertySheet.Add(propRow);
+            }
         }
 
         void BuildPrecisionField(PropertySheet propertySheet, AbstractShaderProperty property)

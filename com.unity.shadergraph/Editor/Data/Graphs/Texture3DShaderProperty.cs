@@ -26,6 +26,8 @@ namespace UnityEditor.ShaderGraph.Internal
             return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 3D) = \"white\" {{}}";
         }
 
+        internal override bool AllowHLSLDeclaration(HLSLDeclaration decl) => false; // disable UI, nothing to choose
+
         internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
         {
             action(new HLSLProperty(HLSLType._Texture3D, referenceName, HLSLDeclaration.Global));

@@ -67,13 +67,14 @@ namespace UnityEditor.ShaderGraph
             throw new NotSupportedException();
         }
 
+        internal override bool AllowHLSLDeclaration(HLSLDeclaration decl) => false; // disable UI, nothing to choose
+
         internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
         {
             int numLayers = value.layers.Count;
             if (numLayers > 0)
             {
-                HLSLDeclaration decl = generatePropertyBlock ? HLSLDeclaration.UnityPerMaterial : HLSLDeclaration.Global;
-                action(new HLSLProperty(HLSLType._CUSTOM, referenceName, decl, concretePrecision)
+                action(new HLSLProperty(HLSLType._CUSTOM, referenceName, HLSLDeclaration.UnityPerMaterial, concretePrecision)
                 {
                     customDeclaration = (ssb) =>
                     {
