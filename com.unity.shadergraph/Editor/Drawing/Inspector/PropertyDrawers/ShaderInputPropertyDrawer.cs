@@ -133,7 +133,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     new ToggleData(shaderInput.generatePropertyBlock),
                     "Exposed",
                     out var propertyToggle));
-                propertyToggle.SetEnabled(shaderInput.isExposable);
+                propertyToggle.SetEnabled(shaderInput.isExposable && !shaderInput.isAlwaysExposed);
             }
         }
 

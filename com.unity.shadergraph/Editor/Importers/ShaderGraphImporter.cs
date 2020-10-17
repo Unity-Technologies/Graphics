@@ -644,7 +644,7 @@ Shader ""Hidden/GraphErrorShader2""
             foreach (var property in graph.properties)
             {
                 if (!property.isExposable || !property.generatePropertyBlock)
-            {
+                {
                     continue;
                 }
 
@@ -663,7 +663,7 @@ Shader ""Hidden/GraphErrorShader2""
 
                 inputProperties.Add(property);
                 codeSnippets.Add($",{nl}{indent}/* Property: {property.displayName} */ {property.GetPropertyAsArgumentString()}");
-                }
+            }
 
             sharedCodeIndices.Add(codeSnippets.Count);
             codeSnippets.Add($"){nl}{{");

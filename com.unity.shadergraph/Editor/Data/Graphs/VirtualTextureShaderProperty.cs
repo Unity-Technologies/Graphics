@@ -195,5 +195,13 @@ namespace UnityEditor.ShaderGraph
                 infos.Add(textureInfo);
             }
         }
+
+        internal override bool isAlwaysExposed => true;
+
+        public override void OnAfterMultiDeserialize(string json)
+        {
+            // VT shader properties must always be exposed
+            generatePropertyBlock = true;
+        }
     }
 }
