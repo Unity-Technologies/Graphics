@@ -596,15 +596,7 @@ namespace UnityEditor.VFX
                     if (owner != null)
                     {
                         int index = owner.GetSlotIndex(this);
-                        try
-                        {
-                            owner.RemoveSlot(this);
-                        }
-                        catch(Exception)
-                        {
-                            //TODOPAUL remove this
-                            /* incorrect data ??*/
-                        }
+                        owner.RemoveSlot(this);
                         owner.AddSlot(newSlot, index);
                     }
                 }

@@ -162,9 +162,8 @@ namespace UnityEditor.VFX
             {
                 var exprIndex = graph.GetFlattenedIndex(expression);
                 if (exprIndex == -1)
-                    return; //TODOPAUL Revert this and restore following line.
-                    //throw new InvalidOperationException("Unable to retrieve value from exposed for " + name);
-
+                    throw new InvalidOperationException("Unable to retrieve value from exposed for " + name);
+				
                 outExposedParameters.Add(new VFXMapping()
                 {
                     name = name,
