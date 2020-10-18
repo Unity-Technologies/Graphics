@@ -74,6 +74,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             
         }
 
+ 
         void CreateSplitSpriteMesh(Sprite sprite, RectInt rect, Vector2 pivot, Vector2[][] customOutline, float pixelsPerUnit)
         {
             ShapeLibrary shapeLibrary = new ShapeLibrary();
@@ -90,10 +91,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             List<ushort> depthTriangles = new List<ushort>();
 
             // Tesselate shapes made with MakeShapes
-            GenerateMeshes.TesselateShapes(shapeLibrary, (vertices, triangles, uvs, isOpaque) => AddGeometry(vertices, triangles, uvs, pivot, pixelsPerUnit, isOpaque, colorTriangles, depthTriangles, allVertices));
+            GenerateMeshes.TesselateShapes(shapeLibrary, (vertices, triangles, uvs, isOpaque) => { AddGeometry(vertices, triangles, uvs, pivot, pixelsPerUnit, isOpaque, colorTriangles, depthTriangles, allVertices); });
 
             if (customOutline != null && customOutline.Length > 0)
-                GenerateMeshes.TesselateShapes(customOutline, rect, (vertices, triangles, uvs, isOpaque) => AddGeometry(vertices, triangles, uvs, pivot, pixelsPerUnit, false, colorTriangles, depthTriangles, allVertices));
+                GenerateMeshes.TesselateShapes(customOutline, rect, (vertices, triangles, uvs, isOpaque) => { AddGeometry(vertices, triangles, uvs, pivot, pixelsPerUnit, false, colorTriangles, depthTriangles, allVertices); } );
 
             NativeArray<Vector3> nativeVertices = ListToNativeArray<Vector3>(allVertices);
             NativeArray<ushort> nativeIndices = ListsToNativeArray<ushort>(colorTriangles, depthTriangles);
@@ -115,45 +116,40 @@ namespace UnityEngine.Experimental.Rendering.Universal
             nativeIndices.Dispose();
         }
 
+        void CreateMeshes(Sprite sprite, Vector2[][] outline, float spritePixelsPerUnit)
+        {
+            float scaleFromOriginalToCurrent = sprite.rect.width / (sprite.bounds.size.x * spritePixelsPerUnit);
+            float scaleFromCurrentToOriginal = (sprite.bounds.size.x * spritePixelsPerUnit) / sprite.rect.width;
+            float correctedPPU = scaleFromCurrentToOriginal / spritePixelsPerUnit;
+
+            Vector2 originalSpriteSize = new Vector2(sprite.bounds.size.x, sprite.bounds.size.y) * spritePixelsPerUnit;
+            Vector2 spriteSize = new Vector2(sprite.rect.width, sprite.rect.height);
+
+            Vector2 spriteCenter = 0.5f * originalSpriteSize;
+            Vector2[][] transformedOutline = TransformOutline(outline, spriteCenter, scaleFromOriginalToCurrent);
+
+            RectInt rect = new RectInt(new Vector2Int((int)sprite.rect.position.x, (int)sprite.rect.position.y), new Vector2Int((int)sprite.rect.size.x, (int)sprite.rect.size.y));
+            CreateSplitSpriteMesh(sprite, rect, sprite.pivot, transformedOutline, correctedPPU);
+        }
+
         void OnPostprocessSprites(Texture2D texture, Sprite[] sprites)
         {
             if (sprites.Length == 0 || !(assetImporter is TextureImporter))
                 return;
 
             TextureImporter textureImporter = (TextureImporter)assetImporter;
-
-            // sprite bounds considers both texture scale and pixels per unit. If we want to get only the texture scaling we need to multiply by spritePixelsPerUnit
-            float scaleFromOriginalToCurrent = sprites[0].rect.width / (sprites[0].bounds.size.x * textureImporter.spritePixelsPerUnit);
-            float scaleFromCurrentToOriginal = (sprites[0].bounds.size.x * textureImporter.spritePixelsPerUnit) / sprites[0].rect.width;
-            float correctedPPU = scaleFromCurrentToOriginal / textureImporter.spritePixelsPerUnit;
+            
 
             if (textureImporter.spriteMeshType == SpriteMeshType.Tight && textureImporter.spriteGenerateDepthMesh)
             {
                 if (textureImporter.spriteImportMode == SpriteImportMode.Single)
                 {
-                    // I'm not sure if all of this is correct for subsets of the original image
-                    Vector2 originalSpriteSize = new Vector2(sprites[0].bounds.size.x, sprites[0].bounds.size.y) * textureImporter.spritePixelsPerUnit;
-                    Vector2 spriteSize = new Vector2(sprites[0].rect.width, sprites[0].rect.height);
-
-                    Vector2 spriteCenter = 0.5f * originalSpriteSize;
-                    Vector2[][] transformedOutline = TransformOutline(textureImporter.spriteOutline, spriteCenter, scaleFromOriginalToCurrent);  // rework spriteCenter
-
-                    RectInt rect = new RectInt(new Vector2Int((int)sprites[0].rect.position.x, (int)sprites[0].rect.position.y), new Vector2Int((int)sprites[0].rect.size.x, (int)sprites[0].rect.size.y));
-                    CreateSplitSpriteMesh(sprites[0], rect, sprites[0].pivot, transformedOutline, correctedPPU);
+                    CreateMeshes(sprites[0], textureImporter.spriteOutline, textureImporter.spritePixelsPerUnit);
                 }
                 else if (textureImporter.spriteImportMode == SpriteImportMode.Multiple)
                 {
                     for (int i = 0; i < textureImporter.spritesheet.Length; i++)
-                    {
-                        Vector2 originalSpriteSize = new Vector2(sprites[i].bounds.size.x, sprites[i].bounds.size.y) * textureImporter.spritePixelsPerUnit;
-                        Vector2 spriteSize = new Vector2(sprites[i].rect.width, sprites[i].rect.height);
-
-                        Vector2 spriteCenter = 0.5f * originalSpriteSize;
-                        Vector2[][] transformedOutline = TransformOutline(textureImporter.spritesheet[i].outline, spriteCenter, scaleFromOriginalToCurrent);
-
-                        RectInt rect = new RectInt(new Vector2Int((int)sprites[i].rect.position.x, (int)sprites[i].rect.position.y), new Vector2Int((int)sprites[i].rect.size.x, (int)sprites[i].rect.size.y));
-                        CreateSplitSpriteMesh(sprites[i], rect, sprites[i].pivot, transformedOutline, correctedPPU);
-                    }
+                        CreateMeshes(sprites[i], textureImporter.spritesheet[i].outline, textureImporter.spritePixelsPerUnit);
                 }
             }
         }
