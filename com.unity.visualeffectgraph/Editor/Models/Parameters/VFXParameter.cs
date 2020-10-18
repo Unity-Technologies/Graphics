@@ -163,18 +163,10 @@ namespace UnityEditor.VFX
                         inputSlots[0].UnlinkAll(true);
                         RemoveSlot(inputSlots[0]);
                         AddSlot(newSlot);
-                        m_ExprSlots = outputSlots[0].GetVFXValueTypeSlots().ToArray();
-                        ResetOutputValueExpression();
+                        UpdateSlotsAndValue();
                     }
                 }
             }
-        }
-
-
-        public void ResetOutputValueExpression()
-        {
-            if (!m_IsOutput)
-                m_ValueExpr = m_ExprSlots.Select(t => t.DefaultExpression(valueMode)).ToArray();
         }
 
         public bool canHaveValueFilter
@@ -283,23 +275,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        private void OnModified(VFXObject obj, bool uiChange)
-        {
-            if (!isOutput && (m_ExprSlots == null || m_ValueExpr == null))
-            {
-                if (outputSlots.Count != 0)
-                {
-                    m_ExprSlots = outputSlots[0].GetVFXValueTypeSlots().ToArray();
-                    m_ValueExpr = m_ExprSlots.Select(t => t.DefaultExpression(valueMode)).ToArray();
-                }
-                else
-                {
-                    m_ExprSlots = new VFXSlot[0];
-                    m_ValueExpr = new VFXValue[0];
-                }
-            }
-        }
-
         public Type type
         {
             get
@@ -354,6 +329,7 @@ namespace UnityEditor.VFX
 
             if (isOutput)
                 return;
+
             if (cause == InvalidationCause.kSettingChanged)
             {
                 var valueExpr = m_ExprSlots.Select(t => t.DefaultExpression(valueMode)).ToArray();
@@ -431,15 +407,11 @@ namespace UnityEditor.VFX
             {
                 throw new InvalidOperationException("Cannot init VFXParameter");
             }
-            m_ExprSlots = outputSlots[0].GetVFXValueTypeSlots().ToArray();
-            m_ValueExpr = m_ExprSlots.Select(t => t.DefaultExpression(valueMode)).ToArray();
+            UpdateSlotsAndValue();
         }
 
-        public override void OnEnable()
+        void UpdateSlotsAndValue()
         {
-            base.OnEnable();
-
-            onModified += OnModified;
             if (!isOutput)
             {
                 if (outputSlots.Count != 0)
@@ -453,6 +425,27 @@ namespace UnityEditor.VFX
                     m_ValueExpr = new VFXValue[0];
                 }
             }
+        }
+
+        public void ForceUpdateCacheAfterAllSanitize()
+        {
+            UpdateSlotsAndValue();
+        }
+
+        private void OnModified(VFXObject obj, bool uiChange)
+        {
+            if (m_ExprSlots == null || m_ValueExpr == null)
+            {
+                UpdateSlotsAndValue();
+            }
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+
+            onModified += OnModified;
+            UpdateSlotsAndValue();
 
             if (m_Nodes != null)
             {

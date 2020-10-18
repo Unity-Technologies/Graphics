@@ -45,29 +45,32 @@ namespace UnityEditor.VFX
 
         public int descendantCount;
 
-
         public static VFXParameterInfo[] BuildParameterInfo(VFXGraph graph)
         {
             var categories = graph.UIInfos.categories;
             if (categories == null)
                 categories = new List<VFXUI.CategoryInfo>();
 
+            var exposedValidParameter = graph.children.OfType<VFXParameter>()
+                .Where(p =>     p.exposed
+                            &&  !p.isOutput
+                            &&  p.outputSlots.Count != 0 /* skip invalid VFXParameter, it could occurs due to sanitize Remove/Add Slot behavior */)
+                .OrderBy(p => p.order);
 
-            var parameters = graph.children.OfType<VFXParameter>().Where(t => t.exposed && (string.IsNullOrEmpty(t.category) || !categories.Any(u => u.name == t.category)) && !t.isOutput).OrderBy(t => t.order).ToArray();
-
+            var parametersWithoutCategory = exposedValidParameter.Where(t => string.IsNullOrEmpty(t.category) || !categories.Any(u => u.name == t.category)).ToArray();
             var infos = new List<VFXParameterInfo>();
-            BuildCategoryParameterInfo(parameters, infos);
+            BuildCategoryParameterInfo(parametersWithoutCategory, infos);
 
             foreach (var cat in categories)
             {
-                parameters = graph.children.OfType<VFXParameter>().Where(t => t.exposed && t.category == cat.name && !t.isOutput).OrderBy(t => t.order).ToArray();
-                if (parameters.Length > 0)
+                var parametersWithCategory = exposedValidParameter.Where(t => t.category == cat.name && !t.isOutput).ToArray();
+                if (parametersWithCategory.Length > 0)
                 {
                     VFXParameterInfo paramInfo = new VFXParameterInfo(cat.name, "");
 
                     paramInfo.descendantCount = 0;
                     infos.Add(paramInfo);
-                    BuildCategoryParameterInfo(parameters, infos);
+                    BuildCategoryParameterInfo(parametersWithCategory, infos);
                 }
             }
 
