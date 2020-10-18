@@ -7,10 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 ### Added
 - New particle strip attribute in Initialize: spawnIndexInStrip
-- New operator for strips that adds Orientation modes
 
 ### Fixed
 - SpawnOverDistance spawner block now behaves correctly
+- Quad strip outputs take into account orientation block
 
 ## [10.1.0] - 2019-08-04
 ### Added
