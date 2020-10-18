@@ -619,7 +619,12 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     roughness = clamp(roughness, MIN_GGX_ROUGHNESS, MAX_GGX_ROUGHNESS);
 
     float2 hitPositionNDC = LOAD_TEXTURE2D_X(_SsrHitPointTexture, positionSS0).xy;
-    float depthOrigin = LoadCameraDepth(positionSS0.xy);
+#ifdef DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
+    float  depthOrigin = LOAD_TEXTURE2D_X(_DepthTexture, positionSS0.xy).r;
+#else
+    float  depthOrigin = LOAD_TEXTURE2D_X(_CameraDepthTexture, positionSS0.xy).r;
+#endif
+
     PositionInputs posInputOrigin = GetPositionInput(positionSS0.xy, _ScreenSize.zw, depthOrigin, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, uint2(8, 8));
     float3 originWS = posInputOrigin.positionWS + _WorldSpaceCameraPos;
 
@@ -674,11 +679,14 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     int samplesCount = 0;
     float4 outputs = 0.0f;
     float wAll = 0.0f;
-    // TODO: check by Unroll, or sample cross only instead of 3x3 block
     for (int y = -BLOCK_SAMPLE_RADIUS; y <= BLOCK_SAMPLE_RADIUS; ++y)
     {
         for (int x = -BLOCK_SAMPLE_RADIUS; x <= BLOCK_SAMPLE_RADIUS; ++x)
         {
+            UNITY_FLATTEN
+            if (abs(x) == abs(y) && abs(x) == 1)
+                continue;
+
             uint2 positionSS = uint2(int2(positionSS0) + int2(x, y));
 
             float3 color;
