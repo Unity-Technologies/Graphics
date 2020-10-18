@@ -66,6 +66,7 @@ namespace UnityEditor.VFX.Block
             {
                 if (hasStrips)
                 {
+                    yield return (int)Mode.FaceCameraPlane;
                     yield return (int)Mode.FixedAxis;
                     yield return (int)Mode.AlongVelocity;
                 }
@@ -165,19 +166,9 @@ namespace UnityEditor.VFX.Block
                 {
                     case Mode.FaceCameraPlane:
                         if (hasStrips)
-                        {
-                            return @"
-axisX = stripTangent;
-axisZ = -GetVFXToViewRotMatrix()[2].xyz;
-#if VFX_LOCAL_SPACE // Need to remove potential scale in local transform
-axisZ = normalize(axisZ);
-#endif
-axisY = normalize(cross(axisZ, axisX));
-axisZ = cross(axisX, axisY);
-";
-                        }
-                        else
-                            return @"
+                            throw new NotImplementedException("This orient mode is only available for strips");
+
+                        return @"
 float3x3 viewRot = GetVFXToViewRotMatrix();
 axisX = viewRot[0].xyz;
 axisY = viewRot[1].xyz;
@@ -195,15 +186,15 @@ axisZ = normalize(axisZ);
                             return @"
 axisX = stripTangent;
 if (unity_OrthoParams.w == 1.0f) // Face plane for ortho
-{
-    axisZ = position - GetViewVFXPosition();
-}
-else
-{
+{  
     axisZ = -GetVFXToViewRotMatrix()[2].xyz;
     #if VFX_LOCAL_SPACE // Need to remove potential scale in local transform
     axisZ = normalize(axisZ);
     #endif
+}
+else
+{
+    axisZ = position - GetViewVFXPosition();
 }
 axisY = normalize(cross(axisZ, axisX));
 axisZ = cross(axisX, axisY);
