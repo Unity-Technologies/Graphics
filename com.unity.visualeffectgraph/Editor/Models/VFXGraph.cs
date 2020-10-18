@@ -230,9 +230,8 @@ namespace UnityEditor.VFX
         // 2: Change some SetAttribute to spaceable slot
         // 3: Remove Masked from blendMode in Outputs and split feature to UseAlphaClipping
         // 4: TransformVector|Position|Direction & DistanceToSphere|Plane|Line have now spaceable outputs
-        public static readonly int CurrentVersion = 4;
-
-
+        // 5: Remove automatic strip orientation from quad strip context
+        public static readonly int CurrentVersion = 5;
 
         public readonly VFXErrorManager errorManager = new VFXErrorManager();
 
