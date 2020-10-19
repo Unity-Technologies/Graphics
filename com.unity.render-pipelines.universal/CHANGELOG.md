@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The maximum number of visible lights when using OpenGL ES 3.x on Android now depends on the minimum OpenGL ES 3.x version as configured in PlayerSettings.
 - The default value of the HDR property of a newly created Universal Render Pipeline Asset, is now set to true.
 - Changed RenderObjectsFeature UI to only expose valid events. Previously, when selecting events before BeforeRenderingPrepasses objects would not be drawn correctly as stereo and camera setup only happens before rendering opaques objects.
+- Changed shader function SafeNormalize argument precision from float3 to real3.
 
 ### Fixed
 - Fixed an issue where the CapturePass would not capture the post processing effects.
@@ -54,6 +55,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Missing camera cannot be removed after scene is saved by removing the Missing camera label. [case 1252255](https://issuetracker.unity3d.com/issues/universal-rp-missing-camera-cannot-be-removed-from-camera-stack-after-scene-is-saved)
 - Fixed MissingReferenceException when removing Missing camera from camera stack by removing Missing camera label. [case 1252263](https://issuetracker.unity3d.com/issues/universal-rp-missingreferenceexception-errors-when-removing-missing-camera-from-stack)
 - Fixed slow down in the editor when editing properties in the UI for renderer features. [case 1279804](https://issuetracker.unity3d.com/issues/a-short-freeze-occurs-in-the-editor-when-expanding-or-collapsing-with-the-arrow-the-renderer-feature-in-the-forward-renderer)
+- Fixed performance regression caused by SafeNormalize precision changes for older mobile devices. [case 1285541]
+- Fixed performance regression caused by alpha calculation changes for older mobile devices. [case 1286077]
 
 ## [10.0.0] - 2020-06-10
 ### Added
