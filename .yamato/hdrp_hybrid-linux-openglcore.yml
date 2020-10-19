@@ -16,12 +16,13 @@ HDRP_Hybrid_Linux_OpenGLCore_playmode_trunk:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
       -  chmod +x TestProjects/HDRP_HybridTests/utr
-      -  cd TestProjects/HDRP_HybridTests && sudo unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_HybridTests && sudo unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_HybridTests && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --compilation-errors-as-warnings --extra-editor-arg="-force-glcore"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
 HDRP_Hybrid_Linux_OpenGLCore_playmode_2020.2:
     name: HDRP_Hybrid on Linux_OpenGLCore_playmode on version 2020.2
     agent:
@@ -35,12 +36,13 @@ HDRP_Hybrid_Linux_OpenGLCore_playmode_2020.2:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
       -  chmod +x TestProjects/HDRP_HybridTests/utr
-      -  cd TestProjects/HDRP_HybridTests && sudo unity-downloader-cli -u e2067236bd5c1b9c43925d2e39e6338adcc40a5a -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_HybridTests && sudo unity-downloader-cli -u 2ea77e477b085e913ac2cdc798fcd655b010f1a2 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_HybridTests && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --compilation-errors-as-warnings --extra-editor-arg="-force-glcore"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
 HDRP_Hybrid_Linux_OpenGLCore_playmode_CUSTOM-REVISION:
     name: HDRP_Hybrid on Linux_OpenGLCore_playmode on version CUSTOM-REVISION
     agent:
@@ -61,6 +63,7 @@ HDRP_Hybrid_Linux_OpenGLCore_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always

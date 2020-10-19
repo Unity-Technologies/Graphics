@@ -18,12 +18,13 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_trunk:
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.shadergraph" /Y
-      -  cd TestProjects/URP-Update-testing/Top-URP-Assets && unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/URP-Update-testing/Top-URP-Assets && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/URP-Update-testing/Top-URP-Assets && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/Top-URP-Assets/Logs/*.log"
 URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_trunk:
     name: URPUpdate_Top_Asset_Store on Win_Vulkan_editmode on version trunk
     agent:
@@ -39,12 +40,13 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_trunk:
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.shadergraph" /Y
-      -  cd TestProjects/URP-Update-testing/Top-URP-Assets && unity-downloader-cli -u dc4a46d1cb369a5194a18beceb09063206b35c43 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/URP-Update-testing/Top-URP-Assets && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/URP-Update-testing/Top-URP-Assets && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/Top-URP-Assets/Logs/*.log"
 URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_2020.2:
     name: URPUpdate_Top_Asset_Store on Win_Vulkan_playmode on version 2020.2
     agent:
@@ -60,12 +62,13 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_2020.2:
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.shadergraph" /Y
-      -  cd TestProjects/URP-Update-testing/Top-URP-Assets && unity-downloader-cli -u 93d432f0d085a8671a6c8a331ec8bdccb5c076ef -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/URP-Update-testing/Top-URP-Assets && unity-downloader-cli -u 2ea77e477b085e913ac2cdc798fcd655b010f1a2 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/URP-Update-testing/Top-URP-Assets && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/Top-URP-Assets/Logs/*.log"
 URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_2020.2:
     name: URPUpdate_Top_Asset_Store on Win_Vulkan_editmode on version 2020.2
     agent:
@@ -81,12 +84,13 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_2020.2:
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.shadergraph" /Y
-      -  cd TestProjects/URP-Update-testing/Top-URP-Assets && unity-downloader-cli -u 93d432f0d085a8671a6c8a331ec8bdccb5c076ef -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/URP-Update-testing/Top-URP-Assets && unity-downloader-cli -u 2ea77e477b085e913ac2cdc798fcd655b010f1a2 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/URP-Update-testing/Top-URP-Assets && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/Top-URP-Assets/Logs/*.log"
 URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_CUSTOM-REVISION:
     name: URPUpdate_Top_Asset_Store on Win_Vulkan_playmode on version CUSTOM-REVISION
     agent:
@@ -109,6 +113,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/Top-URP-Assets/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
@@ -134,6 +139,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/Top-URP-Assets/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
