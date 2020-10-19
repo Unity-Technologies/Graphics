@@ -4964,10 +4964,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Clear the SSR lighting buffer (not sure it is required)
                     CoreUtils.SetRenderTarget(cmd, m_SsrLightingTexture, ClearFlag.Color, Color.clear);
                     CoreUtils.SetRenderTarget(cmd, m_SsrHitPointTexture, ClearFlag.Color, Color.clear);
-                    if (settings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.Approximation)
-                    {
-                        CoreUtils.SetRenderTarget(cmd, ssrAccumulation, ClearFlag.Color, Color.clear);
-                    }
                 }
 
                 // Evaluate the screen space reflection for the transparent pixels

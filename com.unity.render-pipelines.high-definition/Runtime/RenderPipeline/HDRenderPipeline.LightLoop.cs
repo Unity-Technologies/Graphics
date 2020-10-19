@@ -465,22 +465,53 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                         passData.motionVectorsBuffer = builder.ReadTexture(renderGraph.defaultResources.blackTextureXR);
 
+                    passData.hdCamera = hdCamera;
+                    passData.blueNoise = GetBlueNoiseManager();
+
+                    ScreenSpaceReflection ssrVolumeSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
+
                     // In practice, these textures are sparse (mostly black). Therefore, clearing them is fast (due to CMASK),
                     // and much faster than fully overwriting them from within SSR shaders.
                     passData.hitPointsTexture = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                        { colorFormat = GraphicsFormat.R16G16_UNorm, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = transparent ? "SSR_Hit_Point_Texture_Trans" : "SSR_Hit_Point_Texture" });
+                    { colorFormat = GraphicsFormat.R16G16_UNorm, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = transparent ? "SSR_Hit_Point_Texture_Trans" : "SSR_Hit_Point_Texture" });
 
-                    passData.ssrAccum = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
+                    if (ssrVolumeSettings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation)
+                    {
+                        passData.ssrAccum = builder.WriteTexture(ssrAccum);
+                        passData.ssrAccumPrev = builder.WriteTexture(ssrAccumPrev);
+                        passData.lightingTexture = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
                         { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Lighting_Texture" });
-                    passData.lightingTexture = builder.WriteTexture(ssrAccum);
-                    passData.ssrAccumPrev = builder.WriteTexture(ssrAccumPrev);
-
-                    passData.hdCamera = hdCamera;
-                    passData.blueNoise = GetBlueNoiseManager();
+                    }
+                    else
+                    {
+                        passData.lightingTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                            { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Lighting_Texture" }));
+                    }
 
                     builder.SetRenderFunc(
                     (RenderSSRPassData data, RenderGraphContext context) =>
                     {
+                        ScreenSpaceReflection ssrSettings = data.hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
+
+                        if (!data.parameters.transparentSSR)
+                        {
+                            bool ssrNeedReset = false;
+                            if (ssrSettings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation &&
+                                data.hdCamera.currentSSRAlgorithm == ScreenSpaceReflectionAlgorithm.Approximation)
+                                ssrNeedReset = true;
+
+                            data.hdCamera.currentSSRAlgorithm = ssrSettings.usedAlgorithm.value;
+
+                            if (ssrSettings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation)
+                            {
+                                CoreUtils.SetRenderTarget(context.cmd, data.ssrAccum, ClearFlag.Color, Color.clear);
+                                if (ssrNeedReset || data.hdCamera.isFirstFrame)
+                                {
+                                    CoreUtils.SetRenderTarget(context.cmd, data.ssrAccumPrev, ClearFlag.Color, Color.clear);
+                                }
+                            }
+                        }
+
                         RenderSSR(data.parameters,
                                     data.hdCamera,
                                     data.blueNoise,
@@ -499,7 +530,10 @@ namespace UnityEngine.Rendering.HighDefinition
                                     context.cmd, context.renderContext);
                     });
 
-                    result = passData.lightingTexture;
+                    if (ssrVolumeSettings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation)
+                        result = passData.ssrAccum;
+                    else
+                        result = passData.lightingTexture;
 
                     if (!transparent)
                     {
