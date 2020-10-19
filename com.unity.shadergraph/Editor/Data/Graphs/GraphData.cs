@@ -1030,8 +1030,7 @@ namespace UnityEditor.ShaderGraph
         {
             e = m_Edges.FirstOrDefault(x => x.Equals(e));
             if (e == null)
-                return;
-                //throw new ArgumentException("Trying to remove an edge that does not exist.", "e");
+                throw new ArgumentException("Trying to remove an edge that does not exist.", "e");
             m_Edges.Remove(e as Edge);
 
             BlockNode b = null;
