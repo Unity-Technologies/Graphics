@@ -22,7 +22,10 @@ namespace UnityEditor.Rendering
                 if (newTexture.dimension == TextureDimension.Cube)
                     value.objectReferenceValue = newTexture;
                 else
+                {
+                    Debug.LogError($"{newTexture} is not a Cubemap. Only textures of Cubemap dimension can be assigned to this field.");
                     value.objectReferenceValue = null;
+                }
             }
             return true;
         }
@@ -47,7 +50,10 @@ namespace UnityEditor.Rendering
                 if (newTexture.dimension == TextureDimension.Cube)
                     value.objectReferenceValue = newTexture;
                 else
+                {
+                    Debug.LogError($"{newTexture} is not a Cubemap. Only textures of Cubemap dimension can be assigned to this field.");
                     value.objectReferenceValue = null;
+                }
             }
             return true;
         }
