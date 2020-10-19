@@ -1,10 +1,4 @@
-using System.Collections.Generic;
-using System.Linq;
-using Unity.Collections;
-using Unity.Mathematics;
-using UnityEngine.Experimental.Rendering.Universal.LibTessDotNet;
-using UnityEngine.Rendering;
-using UnityEngine.U2D;
+using UnityEngine;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
@@ -37,18 +31,18 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return m_RequiresUpload && HasGeometryData();
         }
 
+#if UNITY_EDITOR        
         // Set Geometry Cache.
         internal void SetGeometryCache(LightUtility.ParametricLightMeshVertex[] vertexArray, ushort[] indexArray)
         {
-#if UNITY_EDITOR
             if (!Application.isPlaying || allowUpdateOnTests)
             {
                 m_IndexArray = indexArray;
                 m_VertexArray = vertexArray;
             }
-#endif
         }
-
+#endif
+        
         internal Bounds Upload(Mesh mesh)
         {
             if (m_RequiresUpload)

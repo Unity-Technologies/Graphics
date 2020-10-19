@@ -73,7 +73,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal Mesh lightMesh => m_Mesh;
 
         /// <summary>
-        /// Get LightCachedMeshData. In Runtime, we only check this OnEnable as the Component cannot be added on Runtime.
+        /// Get LightCachedMeshData. In Runtime, we only check this Awake as the Component cannot be added on Runtime.
         /// </summary>
         internal LightCachedMeshData cachedMeshData
         {
@@ -96,7 +96,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             set
             {
                 if(m_LightType != value)
-                    UpdateMesh(false);
+                    UpdateMesh(true);
 
                 m_LightType = value;
                 Light2DManager.ErrorIfDuplicateGlobalLight(this);
@@ -137,11 +137,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public bool useNormalMap => m_UseNormalMap;
         public bool alphaBlendOnOverlap => m_AlphaBlendOnOverlap;
         public int lightOrder { get => m_LightOrder; set => m_LightOrder = value; }
+        internal bool geometryCached => m_GeometryCached;
 
-        internal bool geometryCached
-        {
-            get { return m_GeometryCached; }
-        }
         internal int GetTopMostLitLayer()
         {
             var largestIndex = -1;

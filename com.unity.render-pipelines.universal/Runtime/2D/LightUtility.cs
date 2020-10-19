@@ -61,13 +61,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public static Bounds GenerateParametricMesh(Mesh mesh, float radius, float falloffDistance, float angle, int sides, LightCachedMeshData cachedMeshData)
         {
-
-            bool staticUpload = Application.isPlaying;
-#if !UNITY_EDITOR
-            staticUpload = true;
-#endif
-            if (staticUpload && cachedMeshData)
-                if (cachedMeshData.RequiresUpload())
+            
+            if (Application.isPlaying && cachedMeshData && cachedMeshData.RequiresUpload())
                     return cachedMeshData.Upload(mesh);
 
             var angleOffset = Mathf.PI / 2.0f + Mathf.Deg2Rad * angle;
@@ -226,12 +221,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public static Bounds GenerateShapeMesh(Mesh mesh, Vector3[] shapePath, float falloffDistance, LightCachedMeshData cachedMeshData)
         {
-            bool staticUpload = Application.isPlaying;
-#if !UNITY_EDITOR
-            staticUpload = true;
-#endif
-            if (staticUpload && cachedMeshData)
-                if (cachedMeshData.RequiresUpload())
+            if (Application.isPlaying && cachedMeshData && cachedMeshData.RequiresUpload())
                     return cachedMeshData.Upload(mesh);
 
             var meshInteriorColor = new Color(0,0,0,1);
