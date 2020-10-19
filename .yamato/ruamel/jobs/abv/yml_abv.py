@@ -16,8 +16,9 @@ def create_abv_ymls(metafile):
             job = ABV_AllProjectCiNightlyJob(editor, metafile["abv"]["projects"], metafile["nightly"], metafile["target_branch"], metafile["abv"]["build_configs"], metafile["abv"]["color_spaces"])
             yml[job.job_id] = job.yml
         
-        job = ABV_AllProjectCiWeeklyJob(editor, metafile["abv"]["projects"], metafile["weekly"], metafile["target_branch"], metafile["abv"]["build_configs"], metafile["abv"]["color_spaces"])
-        yml[job.job_id] = job.yml
+        if editor.get("weekly"):
+            job = ABV_AllProjectCiWeeklyJob(editor, metafile["abv"]["projects"], metafile["weekly"], metafile["target_branch"], metafile["abv"]["build_configs"], metafile["abv"]["color_spaces"])
+            yml[job.job_id] = job.yml
 
         job = ABV_TrunkVerificationJob(editor, metafile["trunk_verification"]["dependencies"])
         yml[job.job_id] = job.yml

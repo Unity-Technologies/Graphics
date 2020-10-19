@@ -7,6 +7,7 @@ editors: # applied for all yml files
     rerun_strategy: on-new-revision
     editor_pinning: True
     nightly: True
+    weekly: True
   - track: 2020.2
     name: 2020.2
     rerun_strategy: on-new-revision
@@ -14,6 +15,7 @@ editors: # applied for all yml files
     # fast: True
     abv_pr: True
     nightly: True
+    weekly: True
   - track: CUSTOM-REVISION
     name: CUSTOM-REVISION
     rerun_strategy: always

@@ -198,19 +198,6 @@ all_project_ci_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
-all_project_ci_weekly_CUSTOM-REVISION:
-    name: _Weekly ABV against CUSTOM-REVISION
-    dependencies:
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_NonRenderGraph_mono_apiNet2_Linear_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_NonRenderGraph_mono_apiNet2_Linear_CUSTOM-REVISION
-         rerun: always
-    variables:
-        CUSTOM_REVISION: custom_revision_not_set
-    triggers:
-        recurring:
-          -  branch: master
-             frequency: weekly
 trunk_verification_CUSTOM-REVISION:
     name: Trunk verification - CUSTOM-REVISION
     dependencies:
