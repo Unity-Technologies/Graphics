@@ -361,7 +361,16 @@ namespace UnityEditor.ShaderGraph.Serialization
             {
                 return new UnknownJsonObject(typeString);
             }
-            return (JsonObject)Activator.CreateInstance(type, true);
+            var output = (JsonObject)Activator.CreateInstance(type, true);
+            //This CreateInstance function is supposed to esentially create a blank copy of whatever class we end up deserializing into.
+            //when we typically create new JsonObjects in all other cases, we want that object to be assumed to be the latest version.
+            //This doesnt work if any json object was serialized before we had the idea of version, as the blank copy would have the
+            //latest version on creation and since the serialized version wouldnt have a version member, it would not get overwritten
+            //and we would automatically upgrade all previously serialized json objects incorrectly and without user action. To avoid this,
+            //we default jsonObject version to 0, and if the serialized value has a different saved version it gets changed and if the serialized
+            //version does not have a different saved value it remains 0 (earliest version)
+            output.ChangeVersion(0);
+            return output;
         }
 
         private static FieldInfo s_ObjectIdField =
@@ -378,6 +387,7 @@ namespace UnityEditor.ShaderGraph.Serialization
             {
                 isDeserializing = true;
                 currentRoot = root;
+                root.ChangeVersion(0); //Same issue as described in CreateInstance
                 for (var index = 0; index < entries.Count; index++)
                 {
                     var entry = entries[index];

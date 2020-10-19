@@ -7,6 +7,7 @@ namespace UnityEditor.ShaderGraph.Internal
     [Serializable]
     public abstract class AbstractShaderProperty : ShaderInput
     {
+
         public abstract PropertyType propertyType { get; }
 
         internal override ConcreteSlotValueType concreteShaderValueType => propertyType.ToConcreteShaderValueType();
@@ -108,6 +109,12 @@ namespace UnityEditor.ShaderGraph.Internal
         internal abstract AbstractMaterialNode ToConcreteNode();
         internal abstract PreviewProperty GetPreviewMaterialProperty();
         internal virtual bool isGpuInstanceable => false;
+
+        public virtual string GetPropertyTypeString()
+        {
+            string depString = $" (Deprecated{(ShaderGraphPreferences.allowDeprecatedBehaviors ? " V" + sgVersion : "" )})" ;
+            return propertyType.ToString() + (sgVersion < latestVersion ? depString : "");
+        }
     }
     
     [Serializable]

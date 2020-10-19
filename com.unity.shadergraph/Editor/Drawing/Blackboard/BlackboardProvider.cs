@@ -207,6 +207,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             gm.AddItem(new GUIContent($"Vector3"), false, () => AddInputRow(new Vector3ShaderProperty(), true));
             gm.AddItem(new GUIContent($"Vector4"), false, () => AddInputRow(new Vector4ShaderProperty(), true));
             gm.AddItem(new GUIContent($"Color"), false, () => AddInputRow(new ColorShaderProperty(), true));
+			if(ShaderGraphPreferences.allowDeprecatedBehaviors)
+        	{
+            	gm.AddItem(new GUIContent($"Color (Deprecated)"), false, () => AddInputRow(new ColorShaderProperty(0), true));
+        	}
             gm.AddItem(new GUIContent($"Texture2D"), false, () => AddInputRow(new Texture2DShaderProperty(), true));
             gm.AddItem(new GUIContent($"Texture2D Array"), false, () => AddInputRow(new Texture2DArrayShaderProperty(), true));
             gm.AddItem(new GUIContent($"Texture3D"), false, () => AddInputRow(new Texture3DShaderProperty(), true));
@@ -278,8 +282,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         public void HandleGraphChanges(bool wasUndoRedoPerformed)
         {
             var selection = new List<ISelectable>();
-            if(blackboard.selection != null)
-                selection.Concat(blackboard.selection);
+            if (blackboard.selection != null)
+            {
+                selection.AddRange(blackboard.selection);
+            }
 
             foreach (var inputGuid in m_Graph.removedInputs)
             {
@@ -347,8 +353,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case AbstractShaderProperty property:
                 {
                     var icon = (m_Graph.isSubGraph || (property.isExposable && property.generatePropertyBlock)) ? exposedIcon : null;
-                    field = new BlackboardFieldView(m_Graph, property, UpdateBlackboardView, icon, property.displayName, property.propertyType.ToString()) { userData = property };
+                    field = new BlackboardFieldView(m_Graph, property, UpdateBlackboardView, icon, property.displayName, property.GetPropertyTypeString()) { userData = property };
                     field.RegisterCallback<AttachToPanelEvent>(UpdateSelectionAfterUndoRedo);
+                    property.onBeforeVersionChange += (_) => m_Graph.owner.RegisterCompleteObjectUndo($"Change {property.displayName} Version");
+                    void UpdateField()
+                    {
+                        field.typeText = property.GetPropertyTypeString();
+                        field.InspectorUpdateTrigger();
+                    }
+                    property.onAfterVersionChange += UpdateField;
                     row = new BlackboardRow(field, null);
 
                     if (index < 0 || index > m_InputRows.Count)
