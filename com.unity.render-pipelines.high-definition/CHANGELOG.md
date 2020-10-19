@@ -48,22 +48,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a new ray tracing only function that samples the specular part of the materials.
 - Adding missing marker for ray tracing profiling (RaytracingDeferredLighting)
 - Added the support of eye shader for ray tracing.
+- Added bounding sphere support to screen-space axis-aligned bounding box generation pass.
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
-- Fixed GPU hang on D3D12 on xbox. 
+- Fixed GPU hang on D3D12 on xbox.
 - Fixed game view artifacts on resizing when hardware dynamic resolution was enabled
 - Fixed black line artifacts occurring when Lanczos upsampling was set for dynamic resolution
 - Fixed Amplitude -> Min/Max parametrization conversion
 - Fixed CoatMask block appearing when creating lit master node (case 1264632)
 - Fixed issue with SceneEV100 debug mode indicator when rescaling the window.
-- Fixed issue with PCSS filter being wrong on first frame. 
+- Fixed issue with PCSS filter being wrong on first frame.
 - Fixed issue with emissive mesh for area light not appearing in playmode if Reload Scene option is disabled in Enter Playmode Settings.
-- Fixed issue when Reflection Probes are set to OnEnable and are never rendered if the probe is enabled when the camera is farther than the probe fade distance. 
-- Fixed issue with sun icon being clipped in the look dev window. 
+- Fixed issue when Reflection Probes are set to OnEnable and are never rendered if the probe is enabled when the camera is farther than the probe fade distance.
+- Fixed issue with sun icon being clipped in the look dev window.
 - Fixed error about layers when disabling emissive mesh for area lights.
 - Fixed issue when the user deletes the composition graph or .asset in runtime (case 1263319)
-- Fixed assertion failure when changing resolution to compositor layers after using AOVs (case 1265023) 
+- Fixed assertion failure when changing resolution to compositor layers after using AOVs (case 1265023)
 - Fixed flickering layers in graphics compositor (case 1264552)
 - Fixed issue causing the editor field not updating the disc area light radius.
 - Fixed issues that lead to cookie atlas to be updated every frame even if cached data was valid.
