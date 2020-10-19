@@ -185,7 +185,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                             GUIStyle warnStyle = new GUIStyle(GUI.skin.label);
                             warnStyle.fontStyle = FontStyle.BoldAndItalic;
                             warnStyle.wordWrap = true;
-                            EditorGUILayout.HelpBox("Soft Particles require depth texture. Please enable \"Depth Texture\" in the Universal Render Pipeline settings.", MessageType.Info);
+                            EditorGUILayout.HelpBox("Soft Particles require depth texture. Please enable \"Depth Texture\" in the Universal Render Pipeline settings.", MessageType.Warning);
                         }
 
                         EditorGUI.indentLevel++;
