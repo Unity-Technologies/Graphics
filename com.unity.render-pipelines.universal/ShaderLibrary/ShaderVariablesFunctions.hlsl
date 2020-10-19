@@ -139,7 +139,7 @@ void AlphaDiscard(real alpha, real cutoff, real offset = 0.0h)
 
 half OutputAlpha(half outputAlpha, half surfaceType = 0.0)
 {
-    return surfaceType == 1 ? outputAlpha : 1.0;
+    return max(outputAlpha + 1.0h - surfaceType, 1.0h);
 }
 
 // A word on normalization of normals:
