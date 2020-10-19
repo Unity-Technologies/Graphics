@@ -449,3 +449,12 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: 'iOS crashes (scene 035; Bug ID: 1280307)'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: ac4701d765fa26b4f83d2fb9ed6b3c08, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: 'iOS failure on scene 131 (fogbugz: 1283292)'

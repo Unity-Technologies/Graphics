@@ -24,10 +24,8 @@ namespace UnityEditor.ShaderGraph
     [FormerName("UnityEditor.ShaderGraph.AbstractMaterialGraph")]
     sealed partial class GraphData : JsonObject
     {
-        const int k_CurrentVersion = 2;
 
-        [SerializeField]
-        int m_Version;
+        public override int latestVersion => 2;
 
         public GraphObject owner { get; set; }
 
@@ -1757,10 +1755,10 @@ namespace UnityEditor.ShaderGraph
         public override void OnBeforeSerialize()
         {
             m_Edges.Sort();
-            m_Version = k_CurrentVersion;
+            ChangeVersion(latestVersion);
         }
 
-        static T DeserializeLegacy<T>(string typeString, string json) where T : JsonObject
+        static T DeserializeLegacy<T>(string typeString, string json, Guid? overrideObjectId = null) where T : JsonObject
         {
             var jsonObj = MultiJsonInternal.CreateInstance(typeString);
             var value = jsonObj as T;
@@ -1769,11 +1767,18 @@ namespace UnityEditor.ShaderGraph
                 Debug.Log($"Cannot create instance for {typeString}");
                 return null;
             }
+
+            // by default, MultiJsonInternal.CreateInstance will create a new objectID randomly..
+            // we need some created objects to have deterministic objectIDs, because they affect the generated shader.
+            // if the generated shader is not deterministic, it can create ripple effects (i.e. causing Materials to be modified randomly as properties are renamed)
+            // so we provide this path to allow the calling code to override the objectID with something deterministic
+            if (overrideObjectId.HasValue)
+                value.OverrideObjectId(overrideObjectId.Value.ToString("N"));
             MultiJsonInternal.Enqueue(value, json);
             return value as T;
         }
 
-        static AbstractMaterialNode DeserializeLegacy(string typeString, string json)
+        static AbstractMaterialNode DeserializeLegacyNode(string typeString, string json, Guid? overrideObjectId = null)
         {
             var jsonObj = MultiJsonInternal.CreateInstance(typeString);
             var value = jsonObj as AbstractMaterialNode;
@@ -1781,11 +1786,15 @@ namespace UnityEditor.ShaderGraph
             {
                 //Special case - want to support nodes of unknwon type for cross pipeline compatability 
                 value = new LegacyUnknownTypeNode(typeString, json);
+                if (overrideObjectId.HasValue)
+                    value.OverrideObjectId(overrideObjectId.Value.ToString("N"));
                 MultiJsonInternal.Enqueue(value, json);
                 return value as AbstractMaterialNode;
             }
             else
             {
+                if (overrideObjectId.HasValue)
+                    value.OverrideObjectId(overrideObjectId.Value.ToString("N"));
                 MultiJsonInternal.Enqueue(value, json);
                 return value as AbstractMaterialNode;
             }
@@ -1794,167 +1803,181 @@ namespace UnityEditor.ShaderGraph
 
         public override void OnAfterDeserialize(string json)
         {
-            if (m_Version == 0)
+
+            if (sgVersion == 0)
             {
                 var graphData0 = JsonUtility.FromJson<GraphData0>(json);
-
-                var nodeGuidMap = new Dictionary<string, AbstractMaterialNode>();
-                var propertyGuidMap = new Dictionary<string, AbstractShaderProperty>();
-                var keywordGuidMap = new Dictionary<string, ShaderKeyword>();
-                var groupGuidMap = new Dictionary<string, GroupData>();
-                var slotsField = typeof(AbstractMaterialNode).GetField("m_Slots", BindingFlags.Instance | BindingFlags.NonPublic);
-                var propertyField = typeof(PropertyNode).GetField("m_Property", BindingFlags.Instance | BindingFlags.NonPublic);
-                var keywordField = typeof(KeywordNode).GetField("m_Keyword", BindingFlags.Instance | BindingFlags.NonPublic);
-                var defaultReferenceNameField = typeof(ShaderInput).GetField("m_DefaultReferenceName", BindingFlags.Instance | BindingFlags.NonPublic);
-
-                m_GroupDatas.Clear();
-                m_StickyNoteDatas.Clear();
-
-                foreach (var group0 in graphData0.m_Groups)
+                //If a graph was previously updated to V2, since we had to rename m_Version to m_SGVersion to avoid collision with an upgrade system from
+                //HDRP, we have to handle the case that our version might not be correct - 
+                if (graphData0.m_Version > 0)
                 {
-                    var group = new GroupData(group0.m_Title, group0.m_Position);
-                    m_GroupDatas.Add(group);
-                    if (!groupGuidMap.ContainsKey(group0.m_GuidSerialized))
-                    {
-                        groupGuidMap.Add(group0.m_GuidSerialized, group);
-                    }
-                    else if (!groupGuidMap[group0.m_GuidSerialized].Equals(group.objectId))
-                    {
-                        Debug.LogError("Group id mismatch");
-                    }
+                    sgVersion = graphData0.m_Version;
                 }
-
-                foreach (var serializedProperty in graphData0.m_SerializedProperties)
+                else
                 {
-                    var property = DeserializeLegacy<AbstractShaderProperty>(serializedProperty.typeInfo.fullName, serializedProperty.JSONnodeData);
-                    if (property == null)
+                    Guid assetGuid;
+                    if (!Guid.TryParse(this.assetGuid, out assetGuid))
+                        assetGuid = JsonObject.GenerateNamespaceUUID(Guid.Empty, json);
+
+                    var nodeGuidMap = new Dictionary<string, AbstractMaterialNode>();
+                    var propertyGuidMap = new Dictionary<string, AbstractShaderProperty>();
+                    var keywordGuidMap = new Dictionary<string, ShaderKeyword>();
+                    var groupGuidMap = new Dictionary<string, GroupData>();
+                    var slotsField = typeof(AbstractMaterialNode).GetField("m_Slots", BindingFlags.Instance | BindingFlags.NonPublic);
+                    var propertyField = typeof(PropertyNode).GetField("m_Property", BindingFlags.Instance | BindingFlags.NonPublic);
+                    var keywordField = typeof(KeywordNode).GetField("m_Keyword", BindingFlags.Instance | BindingFlags.NonPublic);
+                    var defaultReferenceNameField = typeof(ShaderInput).GetField("m_DefaultReferenceName", BindingFlags.Instance | BindingFlags.NonPublic);
+
+                    m_GroupDatas.Clear();
+                    m_StickyNoteDatas.Clear();
+
+                    foreach (var group0 in graphData0.m_Groups)
                     {
-                        continue;
-                    }
-
-                    m_Properties.Add(property);
-
-                    var input0 = JsonUtility.FromJson<ShaderInput0>(serializedProperty.JSONnodeData);
-                    propertyGuidMap[input0.m_Guid.m_GuidSerialized] = property;
-
-                    // Fix up missing reference names
-                    // Properties on Sub Graphs in V0 never have reference names serialized
-                    // To maintain Sub Graph node property mapping we force guid based reference names on upgrade
-                    if (string.IsNullOrEmpty((string)defaultReferenceNameField.GetValue(property)))
-                    {
-                        // ColorShaderProperty is the only Property case where `GetDefaultReferenceName` was overriden
-                        if (MultiJson.ParseType(serializedProperty.typeInfo.fullName) == typeof(ColorShaderProperty))
+                        var group = new GroupData(group0.m_Title, group0.m_Position);
+                        m_GroupDatas.Add(group);
+                        if (!groupGuidMap.ContainsKey(group0.m_GuidSerialized))
                         {
-                            defaultReferenceNameField.SetValue(property, $"Color_{GuidEncoder.Encode(Guid.Parse(input0.m_Guid.m_GuidSerialized))}");
+                            groupGuidMap.Add(group0.m_GuidSerialized, group);
                         }
-                        else
+                        else if (!groupGuidMap[group0.m_GuidSerialized].Equals(group.objectId))
                         {
-                            defaultReferenceNameField.SetValue(property, $"{property.concreteShaderValueType}_{GuidEncoder.Encode(Guid.Parse(input0.m_Guid.m_GuidSerialized))}");
+                            Debug.LogError("Group id mismatch");
                         }
                     }
-                }
 
-                foreach (var serializedKeyword in graphData0.m_SerializedKeywords)
-                {
-                    var keyword = DeserializeLegacy<ShaderKeyword>(serializedKeyword.typeInfo.fullName, serializedKeyword.JSONnodeData);
-                    if (keyword == null)
+                    foreach (var serializedProperty in graphData0.m_SerializedProperties)
                     {
-                        continue;
+                        var propObjectId = JsonObject.GenerateNamespaceUUID(assetGuid, serializedProperty.JSONnodeData);
+                        var property = DeserializeLegacy<AbstractShaderProperty>(serializedProperty.typeInfo.fullName, serializedProperty.JSONnodeData, propObjectId);
+                        if (property == null)
+                            continue;
+
+                        m_Properties.Add(property);
+
+                        var input0 = JsonUtility.FromJson<ShaderInput0>(serializedProperty.JSONnodeData);
+                        propertyGuidMap[input0.m_Guid.m_GuidSerialized] = property;
+
+                        // Fix up missing reference names
+                        // Properties on Sub Graphs in V0 never have reference names serialized
+                        // To maintain Sub Graph node property mapping we force guid based reference names on upgrade
+                        if (string.IsNullOrEmpty((string)defaultReferenceNameField.GetValue(property)))
+                        {
+                            // ColorShaderProperty is the only Property case where `GetDefaultReferenceName` was overriden
+                            if (MultiJson.ParseType(serializedProperty.typeInfo.fullName) == typeof(ColorShaderProperty))
+                            {
+                                defaultReferenceNameField.SetValue(property, $"Color_{GuidEncoder.Encode(Guid.Parse(input0.m_Guid.m_GuidSerialized))}");
+                            }
+                            else
+                            {
+                                defaultReferenceNameField.SetValue(property, $"{property.concreteShaderValueType}_{GuidEncoder.Encode(Guid.Parse(input0.m_Guid.m_GuidSerialized))}");
+                            }
+                        }
                     }
 
-                    m_Keywords.Add(keyword);
-
-                    var input0 = JsonUtility.FromJson<ShaderInput0>(serializedKeyword.JSONnodeData);
-                    keywordGuidMap[input0.m_Guid.m_GuidSerialized] = keyword;
-                }
-
-                foreach (var serializedNode in graphData0.m_SerializableNodes)
-                {
-                    var node0 = JsonUtility.FromJson<AbstractMaterialNode0>(serializedNode.JSONnodeData);
-
-                    var node = DeserializeLegacy(serializedNode.typeInfo.fullName, serializedNode.JSONnodeData);
-                    if (node == null)
+                    foreach (var serializedKeyword in graphData0.m_SerializedKeywords)
                     {
-                        continue;
-                    }
-
-                    nodeGuidMap.Add(node0.m_GuidSerialized, node);
-                    m_Nodes.Add(node);
-
-                    if (!string.IsNullOrEmpty(node0.m_PropertyGuidSerialized) && propertyGuidMap.TryGetValue(node0.m_PropertyGuidSerialized, out var property))
-                    {
-                        propertyField.SetValue(node, (JsonRef<AbstractShaderProperty>)property);
-                    }
-
-                    if (!string.IsNullOrEmpty(node0.m_KeywordGuidSerialized) && keywordGuidMap.TryGetValue(node0.m_KeywordGuidSerialized, out var keyword))
-                    {
-                        keywordField.SetValue(node, (JsonRef<ShaderKeyword>)keyword);
-                    }
-
-                    var slots = (List<JsonData<MaterialSlot>>)slotsField.GetValue(node);
-                    slots.Clear();
-
-                    foreach (var serializedSlot in node0.m_SerializableSlots)
-                    {
-                        var slot = DeserializeLegacy<MaterialSlot>(serializedSlot.typeInfo.fullName, serializedSlot.JSONnodeData);
-                        if (slot == null)
+                        var keyword = DeserializeLegacy<ShaderKeyword>(serializedKeyword.typeInfo.fullName, serializedKeyword.JSONnodeData);
+                        if (keyword == null)
                         {
                             continue;
                         }
 
-                        slots.Add(slot);
+                        m_Keywords.Add(keyword);
+
+                        var input0 = JsonUtility.FromJson<ShaderInput0>(serializedKeyword.JSONnodeData);
+                        keywordGuidMap[input0.m_Guid.m_GuidSerialized] = keyword;
                     }
 
-                    if(!String.IsNullOrEmpty(node0.m_GroupGuidSerialized))
+                    foreach (var serializedNode in graphData0.m_SerializableNodes)
                     {
-                        if(groupGuidMap.TryGetValue(node0.m_GroupGuidSerialized, out GroupData foundGroup))
+                        var node0 = JsonUtility.FromJson<AbstractMaterialNode0>(serializedNode.JSONnodeData);
+
+                        var nodeObjectId = JsonObject.GenerateNamespaceUUID(node0.m_GuidSerialized, "node");
+                        var node = DeserializeLegacyNode(serializedNode.typeInfo.fullName, serializedNode.JSONnodeData, nodeObjectId);
+                        if (node == null)
                         {
-                            node.group = foundGroup;
+                            continue;
+                        }
+
+                        nodeGuidMap.Add(node0.m_GuidSerialized, node);
+                        m_Nodes.Add(node);
+
+                        if (!string.IsNullOrEmpty(node0.m_PropertyGuidSerialized) && propertyGuidMap.TryGetValue(node0.m_PropertyGuidSerialized, out var property))
+                        {
+                            propertyField.SetValue(node, (JsonRef<AbstractShaderProperty>)property);
+                        }
+
+                        if (!string.IsNullOrEmpty(node0.m_KeywordGuidSerialized) && keywordGuidMap.TryGetValue(node0.m_KeywordGuidSerialized, out var keyword))
+                        {
+                            keywordField.SetValue(node, (JsonRef<ShaderKeyword>)keyword);
+                        }
+
+                        var slots = (List<JsonData<MaterialSlot>>)slotsField.GetValue(node);
+                        slots.Clear();
+
+                        foreach (var serializedSlot in node0.m_SerializableSlots)
+                        {
+                            var slotObjectId = JsonObject.GenerateNamespaceUUID(node0.m_GuidSerialized, serializedSlot.JSONnodeData);
+                            var slot = DeserializeLegacy<MaterialSlot>(serializedSlot.typeInfo.fullName, serializedSlot.JSONnodeData, slotObjectId);
+                            if (slot == null)
+                            {
+                                continue;
+                            }
+
+                            slots.Add(slot);
+                        }
+
+                        if (!String.IsNullOrEmpty(node0.m_GroupGuidSerialized))
+                        {
+                            if (groupGuidMap.TryGetValue(node0.m_GroupGuidSerialized, out GroupData foundGroup))
+                            {
+                                node.group = foundGroup;
+                            }
                         }
                     }
-                }
 
-                foreach (var stickyNote0 in graphData0.m_StickyNotes)
-                {
-                    var stickyNote = new StickyNoteData(stickyNote0.m_Title, stickyNote0.m_Content, stickyNote0.m_Position);
-                    if(!String.IsNullOrEmpty(stickyNote0.m_GroupGuidSerialized))
+                    foreach (var stickyNote0 in graphData0.m_StickyNotes)
                     {
-                        if(groupGuidMap.TryGetValue(stickyNote0.m_GroupGuidSerialized, out GroupData foundGroup))
+                        var stickyNote = new StickyNoteData(stickyNote0.m_Title, stickyNote0.m_Content, stickyNote0.m_Position);
+                        if (!String.IsNullOrEmpty(stickyNote0.m_GroupGuidSerialized))
                         {
-                            stickyNote.group = foundGroup;
+                            if (groupGuidMap.TryGetValue(stickyNote0.m_GroupGuidSerialized, out GroupData foundGroup))
+                            {
+                                stickyNote.group = foundGroup;
+                            }
                         }
+                        stickyNote.theme = stickyNote0.m_Theme;
+                        stickyNote.textSize = stickyNote0.m_TextSize;
+                        m_StickyNoteDatas.Add(stickyNote);
                     }
-                    stickyNote.theme = stickyNote0.m_Theme;
-                    stickyNote.textSize = stickyNote0.m_TextSize;
-                    m_StickyNoteDatas.Add(stickyNote);
-                }
 
-                var subgraphOuput = GetNodes<SubGraphOutputNode>();
-                isSubGraph = subgraphOuput.Any();
+                    var subgraphOuput = GetNodes<SubGraphOutputNode>();
+                    isSubGraph = subgraphOuput.Any();
 
-                if (isSubGraph)
-                {
-                    m_OutputNode = subgraphOuput.FirstOrDefault();
-                }
-                else if (!string.IsNullOrEmpty(graphData0.m_ActiveOutputNodeGuidSerialized))
-                {
-                    m_OutputNode = nodeGuidMap[graphData0.m_ActiveOutputNodeGuidSerialized];
-                }
-                else
-                {
-                    m_OutputNode = (AbstractMaterialNode)GetNodes<IMasterNode1>().FirstOrDefault();
-                }
+                    if (isSubGraph)
+                    {
+                        m_OutputNode = subgraphOuput.FirstOrDefault();
+                    }
+                    else if (!string.IsNullOrEmpty(graphData0.m_ActiveOutputNodeGuidSerialized))
+                    {
+                        m_OutputNode = nodeGuidMap[graphData0.m_ActiveOutputNodeGuidSerialized];
+                    }
+                    else
+                    {
+                        m_OutputNode = (AbstractMaterialNode)GetNodes<IMasterNode1>().FirstOrDefault();
+                    }
 
-                foreach (var serializedElement in graphData0.m_SerializableEdges)
-                {
-                    var edge0 = JsonUtility.FromJson<Edge0>(serializedElement.JSONnodeData);
-                    m_Edges.Add(new Edge(
-                        new SlotReference(
-                            nodeGuidMap[edge0.m_OutputSlot.m_NodeGUIDSerialized],
-                            edge0.m_OutputSlot.m_SlotId),
-                        new SlotReference(
-                            nodeGuidMap[edge0.m_InputSlot.m_NodeGUIDSerialized],
-                            edge0.m_InputSlot.m_SlotId)));
+                    foreach (var serializedElement in graphData0.m_SerializableEdges)
+                    {
+                        var edge0 = JsonUtility.FromJson<Edge0>(serializedElement.JSONnodeData);
+                        m_Edges.Add(new Edge(
+                            new SlotReference(
+                                nodeGuidMap[edge0.m_OutputSlot.m_NodeGUIDSerialized],
+                                edge0.m_OutputSlot.m_SlotId),
+                            new SlotReference(
+                                nodeGuidMap[edge0.m_InputSlot.m_NodeGUIDSerialized],
+                                edge0.m_InputSlot.m_SlotId)));
+                    }
                 }
             }
 
@@ -1962,19 +1985,19 @@ namespace UnityEditor.ShaderGraph
             // In V2 we need to defer version set to in OnAfterMultiDeserialize
             // This is because we need access to m_OutputNode to convert it to Targets and Stacks
             // The JsonObject will not be fully deserialized until OnAfterMultiDeserialize
-            bool deferredUpgrades = m_Version < 2;
+            bool deferredUpgrades = sgVersion < 2;
             if(!deferredUpgrades)
             {
-                m_Version = k_CurrentVersion;
+                ChangeVersion(latestVersion);
             }
         }
 
         public override void OnAfterMultiDeserialize(string json)
         {
             // Deferred upgrades
-            if(m_Version != k_CurrentVersion)
+            if(sgVersion != latestVersion)
             {
-                if(m_Version < 2)
+                if(sgVersion < 2)
                 {
                     var addedBlocks = ListPool<BlockFieldDescriptor>.Get();
 
@@ -2096,7 +2119,7 @@ namespace UnityEditor.ShaderGraph
                     m_NodeEdges.Clear();
                 }
 
-                m_Version = k_CurrentVersion;
+                ChangeVersion(latestVersion);
             }
 
             PooledList<(LegacyUnknownTypeNode, AbstractMaterialNode)> updatedNodes = PooledList<(LegacyUnknownTypeNode,AbstractMaterialNode)>.Get();
