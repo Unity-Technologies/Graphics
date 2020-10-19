@@ -54,8 +54,13 @@ namespace UnityEngine.Rendering.Universal
             public static class Pipeline
             {
                 // TODO: Would be better to add Profiling name hooks into RenderPipeline.cs, requires changes outside of Universal.
+#if UNITY_2021_1_OR_NEWER
+                public static readonly ProfilingSampler beginContextRendering  = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(BeginContextRendering)}");
+                public static readonly ProfilingSampler endContextRendering    = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(EndContextRendering)}");
+#else
                 public static readonly ProfilingSampler beginFrameRendering  = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(BeginFrameRendering)}");
                 public static readonly ProfilingSampler endFrameRendering    = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(EndFrameRendering)}");
+#endif
                 public static readonly ProfilingSampler beginCameraRendering = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(BeginCameraRendering)}");
                 public static readonly ProfilingSampler endCameraRendering   = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(EndCameraRendering)}");
 
@@ -181,16 +186,34 @@ namespace UnityEngine.Rendering.Universal
             CameraCaptureBridge.enabled = false;
         }
 
+#if UNITY_2021_1_OR_NEWER
+        protected override void Render(ScriptableRenderContext renderContext,  Camera[] cameras)
+        {
+            Render(renderContext, new List<Camera>(cameras));
+        }
+#endif
+
+#if UNITY_2021_1_OR_NEWER
+        protected override void Render(ScriptableRenderContext renderContext, List<Camera> cameras)
+#else
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
+#endif
         {
             // TODO: Would be better to add Profiling name hooks into RenderPipelineManager.
             // C#8 feature, only in >= 2020.2
             using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.UniversalRenderTotal));
 
+#if UNITY_2021_1_OR_NEWER
+            using (new ProfilingScope(null, Profiling.Pipeline.beginContextRendering))
+            {
+                BeginContextRendering(renderContext, cameras);
+            }
+#else
             using(new ProfilingScope(null, Profiling.Pipeline.beginFrameRendering))
             {
                 BeginFrameRendering(renderContext, cameras);
             }
+#endif
 
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
@@ -199,8 +222,14 @@ namespace UnityEngine.Rendering.Universal
             // Update XR MSAA level per frame.
             XRSystem.UpdateMSAALevel(asset.msaaSampleCount);
 #endif
+
+
             SortCameras(cameras);
+#if UNITY_2021_1_OR_NEWER
+            for (int i = 0; i < cameras.Count; ++i)
+#else
             for (int i = 0; i < cameras.Length; ++i)
+#endif
             {
                 var camera = cameras[i];
                 if (IsGameCamera(camera))
@@ -227,11 +256,17 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
             }
-
-            using (new ProfilingScope(null, Profiling.Pipeline.endFrameRendering))
+#if UNITY_2021_1_OR_NEWER
+            using (new ProfilingScope(null, Profiling.Pipeline.endContextRendering))
+            {
+                EndContextRendering(renderContext, cameras);
+            }
+#else
+            using(new ProfilingScope(null, Profiling.Pipeline.endFrameRendering))
             {
                 EndFrameRendering(renderContext, cameras);
             }
+#endif
         }
 
         /// <summary>

@@ -53,6 +53,18 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor, build_con
     
     return base
 
+    base = _cmd_base(project_folder, platform, utr_args, editor)
+    
+    extra_cmds = extra_perf_cmd(project_folder)
+    unity_config = install_unity_config(project_folder)
+    extra_cmds = extra_cmds + unity_config
+    if project_folder.lower() == "BoatAttack".lower():
+        x=0
+        for y in extra_cmds:
+            base.insert(x, y)
+            x += 1
+    
+    return base
 
 def cmd_standalone(project_folder, platform, api, test_platform, editor, build_config, color_space):
 
@@ -82,7 +94,6 @@ def extra_perf_cmd(project_folder):
 
 def install_unity_config(project_folder):
     cmds = [
-        f'/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"',
         f'brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git',
         f'brew install unity-config',
 
@@ -93,7 +104,8 @@ def install_unity_config(project_folder):
 
 
 		#f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project remove dependency com.unity.render-pipelines.universal',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.addressables@1.16.2-preview.200925 --project-path .',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.addressables@1.14.2 --project-path .',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .',
 		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .',
 		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .',

@@ -10,15 +10,15 @@ platforms:
     apis:
       - name: DX11
     build_configs:
-      - name: mono_2
+      - name: mono_apiNet2
     color_spaces:
-      - linear
+      - Linear
 all:
   dependencies:
     - platform: Win
       api: DX11
-      build_config: mono_2
-      color_space: linear
+      build_config: mono_apiNet2
+      color_space: Linear
       test_platforms:
         - playmode
         - editmode

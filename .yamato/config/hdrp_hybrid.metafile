@@ -27,18 +27,18 @@ platforms:
       - name: DX12
       - name: Vulkan
     build_configs:
-      - name: mono_2
+      - name: mono_apiNet2
     color_spaces:
-      - linear
+      - Linear
   - name: OSX 
     apis:
       - name: Metal
         exclude_test_platforms:
           - name: playmode_XR
     build_configs:
-      - name: mono_2
+      - name: mono_apiNet2
     color_spaces:
-      - linear
+      - Linear
   - name: Linux
     apis: 
       - name: OpenGLCore
@@ -49,15 +49,15 @@ platforms:
         exclude_test_platforms:
           - name: playmode_XR
     build_configs:
-      - name: mono_2
+      - name: mono_apiNet2
     color_spaces:
-      - linear
+      - Linear
 all:
   dependencies:
     - platform: Win
       api: DX11
-      build_config: mono_2
-      color_space: linear
+      build_config: mono_apiNet2
+      color_space: Linear
       test_platforms:
         - playmode
         - playmode_XR

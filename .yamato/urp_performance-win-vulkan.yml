@@ -3,8 +3,8 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-URP_Performance_Win_Vulkan_performance_playmode_il2cpp_2_linear_trunk:
-    name: URP_Performance on Win_Vulkan_performance_playmode_il2cpp_2_linear on version trunk
+URP_Performance_Win_Vulkan_performance_playmode_il2cpp_apiNet2_Linear_trunk:
+    name: URP_Performance on Win_Vulkan_performance_playmode_il2cpp_apiNet2_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -20,10 +20,10 @@ URP_Performance_Win_Vulkan_performance_playmode_il2cpp_2_linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
-      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_il2cpp_2_linear_trunk
+      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_il2cpp_apiNet2_Linear_trunk
          rerun: on-new-revision
-Build_URP_Performance_Win_Vulkan_Player_il2cpp_2_linear_trunk:
-    name: Build URP_Performance on Win_Vulkan_il2cpp_2_linear_Player on version trunk
+Build_URP_Performance_Win_Vulkan_Player_il2cpp_apiNet2_Linear_trunk:
+    name: Build URP_Performance on Win_Vulkan_il2cpp_apiNet2_Linear_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -34,7 +34,13 @@ Build_URP_Performance_Win_Vulkan_Player_il2cpp_2_linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -43,8 +49,8 @@ Build_URP_Performance_Win_Vulkan_Player_il2cpp_2_linear_trunk:
         players:
             paths:
               -  "players/**"
-URP_Performance_Win_Vulkan_performance_playmode_il2cpp_2_gamma_trunk:
-    name: URP_Performance on Win_Vulkan_performance_playmode_il2cpp_2_gamma on version trunk
+URP_Performance_Win_Vulkan_performance_playmode_il2cpp_apiNet2_gamma_trunk:
+    name: URP_Performance on Win_Vulkan_performance_playmode_il2cpp_apiNet2_gamma on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -60,10 +66,10 @@ URP_Performance_Win_Vulkan_performance_playmode_il2cpp_2_gamma_trunk:
               -  "**/test-results/**"
               -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
-      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_il2cpp_2_gamma_trunk
+      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_il2cpp_apiNet2_gamma_trunk
          rerun: on-new-revision
-Build_URP_Performance_Win_Vulkan_Player_il2cpp_2_gamma_trunk:
-    name: Build URP_Performance on Win_Vulkan_il2cpp_2_gamma_Player on version trunk
+Build_URP_Performance_Win_Vulkan_Player_il2cpp_apiNet2_gamma_trunk:
+    name: Build URP_Performance on Win_Vulkan_il2cpp_apiNet2_gamma_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -74,7 +80,13 @@ Build_URP_Performance_Win_Vulkan_Player_il2cpp_2_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -83,8 +95,8 @@ Build_URP_Performance_Win_Vulkan_Player_il2cpp_2_gamma_trunk:
         players:
             paths:
               -  "players/**"
-URP_Performance_Win_Vulkan_performance_playmode_il2cpp_4_linear_trunk:
-    name: URP_Performance on Win_Vulkan_performance_playmode_il2cpp_4_linear on version trunk
+URP_Performance_Win_Vulkan_performance_playmode_il2cpp_apiNet4_Linear_trunk:
+    name: URP_Performance on Win_Vulkan_performance_playmode_il2cpp_apiNet4_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -100,10 +112,10 @@ URP_Performance_Win_Vulkan_performance_playmode_il2cpp_4_linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
-      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_il2cpp_4_linear_trunk
+      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_il2cpp_apiNet4_Linear_trunk
          rerun: on-new-revision
-Build_URP_Performance_Win_Vulkan_Player_il2cpp_4_linear_trunk:
-    name: Build URP_Performance on Win_Vulkan_il2cpp_4_linear_Player on version trunk
+Build_URP_Performance_Win_Vulkan_Player_il2cpp_apiNet4_Linear_trunk:
+    name: Build URP_Performance on Win_Vulkan_il2cpp_apiNet4_Linear_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -114,7 +126,13 @@ Build_URP_Performance_Win_Vulkan_Player_il2cpp_4_linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -123,8 +141,8 @@ Build_URP_Performance_Win_Vulkan_Player_il2cpp_4_linear_trunk:
         players:
             paths:
               -  "players/**"
-URP_Performance_Win_Vulkan_performance_playmode_il2cpp_4_gamma_trunk:
-    name: URP_Performance on Win_Vulkan_performance_playmode_il2cpp_4_gamma on version trunk
+URP_Performance_Win_Vulkan_performance_playmode_il2cpp_apiNet4_gamma_trunk:
+    name: URP_Performance on Win_Vulkan_performance_playmode_il2cpp_apiNet4_gamma on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -140,10 +158,10 @@ URP_Performance_Win_Vulkan_performance_playmode_il2cpp_4_gamma_trunk:
               -  "**/test-results/**"
               -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
-      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_il2cpp_4_gamma_trunk
+      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_il2cpp_apiNet4_gamma_trunk
          rerun: on-new-revision
-Build_URP_Performance_Win_Vulkan_Player_il2cpp_4_gamma_trunk:
-    name: Build URP_Performance on Win_Vulkan_il2cpp_4_gamma_Player on version trunk
+Build_URP_Performance_Win_Vulkan_Player_il2cpp_apiNet4_gamma_trunk:
+    name: Build URP_Performance on Win_Vulkan_il2cpp_apiNet4_gamma_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -154,7 +172,13 @@ Build_URP_Performance_Win_Vulkan_Player_il2cpp_4_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -163,8 +187,8 @@ Build_URP_Performance_Win_Vulkan_Player_il2cpp_4_gamma_trunk:
         players:
             paths:
               -  "players/**"
-URP_Performance_Win_Vulkan_performance_playmode_mono_2_linear_trunk:
-    name: URP_Performance on Win_Vulkan_performance_playmode_mono_2_linear on version trunk
+URP_Performance_Win_Vulkan_performance_playmode_mono_apiNet2_Linear_trunk:
+    name: URP_Performance on Win_Vulkan_performance_playmode_mono_apiNet2_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -180,10 +204,10 @@ URP_Performance_Win_Vulkan_performance_playmode_mono_2_linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
-      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_mono_2_linear_trunk
+      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
-Build_URP_Performance_Win_Vulkan_Player_mono_2_linear_trunk:
-    name: Build URP_Performance on Win_Vulkan_mono_2_linear_Player on version trunk
+Build_URP_Performance_Win_Vulkan_Player_mono_apiNet2_Linear_trunk:
+    name: Build URP_Performance on Win_Vulkan_mono_apiNet2_Linear_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -194,7 +218,13 @@ Build_URP_Performance_Win_Vulkan_Player_mono_2_linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -203,8 +233,8 @@ Build_URP_Performance_Win_Vulkan_Player_mono_2_linear_trunk:
         players:
             paths:
               -  "players/**"
-URP_Performance_Win_Vulkan_performance_playmode_mono_2_gamma_trunk:
-    name: URP_Performance on Win_Vulkan_performance_playmode_mono_2_gamma on version trunk
+URP_Performance_Win_Vulkan_performance_playmode_mono_apiNet2_gamma_trunk:
+    name: URP_Performance on Win_Vulkan_performance_playmode_mono_apiNet2_gamma on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -220,10 +250,10 @@ URP_Performance_Win_Vulkan_performance_playmode_mono_2_gamma_trunk:
               -  "**/test-results/**"
               -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
-      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_mono_2_gamma_trunk
+      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_mono_apiNet2_gamma_trunk
          rerun: on-new-revision
-Build_URP_Performance_Win_Vulkan_Player_mono_2_gamma_trunk:
-    name: Build URP_Performance on Win_Vulkan_mono_2_gamma_Player on version trunk
+Build_URP_Performance_Win_Vulkan_Player_mono_apiNet2_gamma_trunk:
+    name: Build URP_Performance on Win_Vulkan_mono_apiNet2_gamma_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -234,7 +264,13 @@ Build_URP_Performance_Win_Vulkan_Player_mono_2_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -243,8 +279,8 @@ Build_URP_Performance_Win_Vulkan_Player_mono_2_gamma_trunk:
         players:
             paths:
               -  "players/**"
-URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_2_linear_trunk:
-    name: URP_Performance on Win_Vulkan_performance_editmode_build_il2cpp_2_linear on version trunk
+URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_apiNet2_Linear_trunk:
+    name: URP_Performance on Win_Vulkan_performance_editmode_build_il2cpp_apiNet2_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -255,14 +291,20 @@ URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_2_linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/URP_Performance/Logs/*.log"
-URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_2_gamma_trunk:
-    name: URP_Performance on Win_Vulkan_performance_editmode_build_il2cpp_2_gamma on version trunk
+URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_apiNet2_gamma_trunk:
+    name: URP_Performance on Win_Vulkan_performance_editmode_build_il2cpp_apiNet2_gamma on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -273,14 +315,20 @@ URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_2_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/URP_Performance/Logs/*.log"
-URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_4_linear_trunk:
-    name: URP_Performance on Win_Vulkan_performance_editmode_build_il2cpp_4_linear on version trunk
+URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_apiNet4_Linear_trunk:
+    name: URP_Performance on Win_Vulkan_performance_editmode_build_il2cpp_apiNet4_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -291,14 +339,20 @@ URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_4_linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/URP_Performance/Logs/*.log"
-URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_4_gamma_trunk:
-    name: URP_Performance on Win_Vulkan_performance_editmode_build_il2cpp_4_gamma on version trunk
+URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_apiNet4_gamma_trunk:
+    name: URP_Performance on Win_Vulkan_performance_editmode_build_il2cpp_apiNet4_gamma on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -309,14 +363,20 @@ URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_4_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/URP_Performance/Logs/*.log"
-URP_Performance_Win_Vulkan_performance_editmode_build_mono_2_linear_trunk:
-    name: URP_Performance on Win_Vulkan_performance_editmode_build_mono_2_linear on version trunk
+URP_Performance_Win_Vulkan_performance_editmode_build_mono_apiNet2_Linear_trunk:
+    name: URP_Performance on Win_Vulkan_performance_editmode_build_mono_apiNet2_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -327,14 +387,20 @@ URP_Performance_Win_Vulkan_performance_editmode_build_mono_2_linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/URP_Performance/Logs/*.log"
-URP_Performance_Win_Vulkan_performance_editmode_build_mono_2_gamma_trunk:
-    name: URP_Performance on Win_Vulkan_performance_editmode_build_mono_2_gamma on version trunk
+URP_Performance_Win_Vulkan_performance_editmode_build_mono_apiNet2_gamma_trunk:
+    name: URP_Performance on Win_Vulkan_performance_editmode_build_mono_apiNet2_gamma on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -345,14 +411,20 @@ URP_Performance_Win_Vulkan_performance_editmode_build_mono_2_gamma_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/URP_Performance/Logs/*.log"
-URP_Performance_Win_Vulkan_performance_playmode_il2cpp_2_linear_2020.2:
-    name: URP_Performance on Win_Vulkan_performance_playmode_il2cpp_2_linear on version 2020.2
+URP_Performance_Win_Vulkan_performance_playmode_il2cpp_apiNet2_Linear_2020.2:
+    name: URP_Performance on Win_Vulkan_performance_playmode_il2cpp_apiNet2_Linear on version 2020.2
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -368,10 +440,10 @@ URP_Performance_Win_Vulkan_performance_playmode_il2cpp_2_linear_2020.2:
               -  "**/test-results/**"
               -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
-      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_il2cpp_2_linear_2020.2
+      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_il2cpp_apiNet2_Linear_2020.2
          rerun: on-new-revision
-Build_URP_Performance_Win_Vulkan_Player_il2cpp_2_linear_2020.2:
-    name: Build URP_Performance on Win_Vulkan_il2cpp_2_linear_Player on version 2020.2
+Build_URP_Performance_Win_Vulkan_Player_il2cpp_apiNet2_Linear_2020.2:
+    name: Build URP_Performance on Win_Vulkan_il2cpp_apiNet2_Linear_Player on version 2020.2
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -381,8 +453,14 @@ Build_URP_Performance_Win_Vulkan_Player_il2cpp_2_linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  cd TestProjects/URP_Performance && unity-downloader-cli -u dff91d65251a9ab8c12af258ce88fee061d85a7d -c editor -c il2cpp  --wait --published-only
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -391,8 +469,8 @@ Build_URP_Performance_Win_Vulkan_Player_il2cpp_2_linear_2020.2:
         players:
             paths:
               -  "players/**"
-URP_Performance_Win_Vulkan_performance_playmode_il2cpp_2_gamma_2020.2:
-    name: URP_Performance on Win_Vulkan_performance_playmode_il2cpp_2_gamma on version 2020.2
+URP_Performance_Win_Vulkan_performance_playmode_il2cpp_apiNet2_gamma_2020.2:
+    name: URP_Performance on Win_Vulkan_performance_playmode_il2cpp_apiNet2_gamma on version 2020.2
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -408,10 +486,10 @@ URP_Performance_Win_Vulkan_performance_playmode_il2cpp_2_gamma_2020.2:
               -  "**/test-results/**"
               -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
-      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_il2cpp_2_gamma_2020.2
+      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_il2cpp_apiNet2_gamma_2020.2
          rerun: on-new-revision
-Build_URP_Performance_Win_Vulkan_Player_il2cpp_2_gamma_2020.2:
-    name: Build URP_Performance on Win_Vulkan_il2cpp_2_gamma_Player on version 2020.2
+Build_URP_Performance_Win_Vulkan_Player_il2cpp_apiNet2_gamma_2020.2:
+    name: Build URP_Performance on Win_Vulkan_il2cpp_apiNet2_gamma_Player on version 2020.2
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -421,8 +499,14 @@ Build_URP_Performance_Win_Vulkan_Player_il2cpp_2_gamma_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  cd TestProjects/URP_Performance && unity-downloader-cli -u dff91d65251a9ab8c12af258ce88fee061d85a7d -c editor -c il2cpp  --wait --published-only
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -431,8 +515,8 @@ Build_URP_Performance_Win_Vulkan_Player_il2cpp_2_gamma_2020.2:
         players:
             paths:
               -  "players/**"
-URP_Performance_Win_Vulkan_performance_playmode_il2cpp_4_linear_2020.2:
-    name: URP_Performance on Win_Vulkan_performance_playmode_il2cpp_4_linear on version 2020.2
+URP_Performance_Win_Vulkan_performance_playmode_il2cpp_apiNet4_Linear_2020.2:
+    name: URP_Performance on Win_Vulkan_performance_playmode_il2cpp_apiNet4_Linear on version 2020.2
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -448,10 +532,10 @@ URP_Performance_Win_Vulkan_performance_playmode_il2cpp_4_linear_2020.2:
               -  "**/test-results/**"
               -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
-      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_il2cpp_4_linear_2020.2
+      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_il2cpp_apiNet4_Linear_2020.2
          rerun: on-new-revision
-Build_URP_Performance_Win_Vulkan_Player_il2cpp_4_linear_2020.2:
-    name: Build URP_Performance on Win_Vulkan_il2cpp_4_linear_Player on version 2020.2
+Build_URP_Performance_Win_Vulkan_Player_il2cpp_apiNet4_Linear_2020.2:
+    name: Build URP_Performance on Win_Vulkan_il2cpp_apiNet4_Linear_Player on version 2020.2
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -461,8 +545,14 @@ Build_URP_Performance_Win_Vulkan_Player_il2cpp_4_linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  cd TestProjects/URP_Performance && unity-downloader-cli -u dff91d65251a9ab8c12af258ce88fee061d85a7d -c editor -c il2cpp  --wait --published-only
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -471,8 +561,8 @@ Build_URP_Performance_Win_Vulkan_Player_il2cpp_4_linear_2020.2:
         players:
             paths:
               -  "players/**"
-URP_Performance_Win_Vulkan_performance_playmode_il2cpp_4_gamma_2020.2:
-    name: URP_Performance on Win_Vulkan_performance_playmode_il2cpp_4_gamma on version 2020.2
+URP_Performance_Win_Vulkan_performance_playmode_il2cpp_apiNet4_gamma_2020.2:
+    name: URP_Performance on Win_Vulkan_performance_playmode_il2cpp_apiNet4_gamma on version 2020.2
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -488,10 +578,10 @@ URP_Performance_Win_Vulkan_performance_playmode_il2cpp_4_gamma_2020.2:
               -  "**/test-results/**"
               -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
-      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_il2cpp_4_gamma_2020.2
+      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_il2cpp_apiNet4_gamma_2020.2
          rerun: on-new-revision
-Build_URP_Performance_Win_Vulkan_Player_il2cpp_4_gamma_2020.2:
-    name: Build URP_Performance on Win_Vulkan_il2cpp_4_gamma_Player on version 2020.2
+Build_URP_Performance_Win_Vulkan_Player_il2cpp_apiNet4_gamma_2020.2:
+    name: Build URP_Performance on Win_Vulkan_il2cpp_apiNet4_gamma_Player on version 2020.2
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -501,8 +591,14 @@ Build_URP_Performance_Win_Vulkan_Player_il2cpp_4_gamma_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  cd TestProjects/URP_Performance && unity-downloader-cli -u dff91d65251a9ab8c12af258ce88fee061d85a7d -c editor -c il2cpp  --wait --published-only
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -511,8 +607,8 @@ Build_URP_Performance_Win_Vulkan_Player_il2cpp_4_gamma_2020.2:
         players:
             paths:
               -  "players/**"
-URP_Performance_Win_Vulkan_performance_playmode_mono_2_linear_2020.2:
-    name: URP_Performance on Win_Vulkan_performance_playmode_mono_2_linear on version 2020.2
+URP_Performance_Win_Vulkan_performance_playmode_mono_apiNet2_Linear_2020.2:
+    name: URP_Performance on Win_Vulkan_performance_playmode_mono_apiNet2_Linear on version 2020.2
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -528,10 +624,10 @@ URP_Performance_Win_Vulkan_performance_playmode_mono_2_linear_2020.2:
               -  "**/test-results/**"
               -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
-      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_mono_2_linear_2020.2
+      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_mono_apiNet2_Linear_2020.2
          rerun: on-new-revision
-Build_URP_Performance_Win_Vulkan_Player_mono_2_linear_2020.2:
-    name: Build URP_Performance on Win_Vulkan_mono_2_linear_Player on version 2020.2
+Build_URP_Performance_Win_Vulkan_Player_mono_apiNet2_Linear_2020.2:
+    name: Build URP_Performance on Win_Vulkan_mono_apiNet2_Linear_Player on version 2020.2
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -541,8 +637,14 @@ Build_URP_Performance_Win_Vulkan_Player_mono_2_linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  cd TestProjects/URP_Performance && unity-downloader-cli -u dff91d65251a9ab8c12af258ce88fee061d85a7d -c editor -c il2cpp  --wait --published-only
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -551,8 +653,8 @@ Build_URP_Performance_Win_Vulkan_Player_mono_2_linear_2020.2:
         players:
             paths:
               -  "players/**"
-URP_Performance_Win_Vulkan_performance_playmode_mono_2_gamma_2020.2:
-    name: URP_Performance on Win_Vulkan_performance_playmode_mono_2_gamma on version 2020.2
+URP_Performance_Win_Vulkan_performance_playmode_mono_apiNet2_gamma_2020.2:
+    name: URP_Performance on Win_Vulkan_performance_playmode_mono_apiNet2_gamma on version 2020.2
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -568,10 +670,10 @@ URP_Performance_Win_Vulkan_performance_playmode_mono_2_gamma_2020.2:
               -  "**/test-results/**"
               -  "TestProjects/URP_Performance/Logs/*.log"
     dependencies:
-      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_mono_2_gamma_2020.2
+      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_mono_apiNet2_gamma_2020.2
          rerun: on-new-revision
-Build_URP_Performance_Win_Vulkan_Player_mono_2_gamma_2020.2:
-    name: Build URP_Performance on Win_Vulkan_mono_2_gamma_Player on version 2020.2
+Build_URP_Performance_Win_Vulkan_Player_mono_apiNet2_gamma_2020.2:
+    name: Build URP_Performance on Win_Vulkan_mono_apiNet2_gamma_Player on version 2020.2
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -581,8 +683,14 @@ Build_URP_Performance_Win_Vulkan_Player_mono_2_gamma_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  cd TestProjects/URP_Performance && unity-downloader-cli -u dff91d65251a9ab8c12af258ce88fee061d85a7d -c editor -c il2cpp  --wait --published-only
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -591,8 +699,8 @@ Build_URP_Performance_Win_Vulkan_Player_mono_2_gamma_2020.2:
         players:
             paths:
               -  "players/**"
-URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_2_linear_2020.2:
-    name: URP_Performance on Win_Vulkan_performance_editmode_build_il2cpp_2_linear on version 2020.2
+URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_apiNet2_Linear_2020.2:
+    name: URP_Performance on Win_Vulkan_performance_editmode_build_il2cpp_apiNet2_Linear on version 2020.2
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -602,15 +710,21 @@ URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_2_linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  cd TestProjects/URP_Performance && unity-downloader-cli -u dff91d65251a9ab8c12af258ce88fee061d85a7d -c editor -c il2cpp  --wait --published-only
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/URP_Performance/Logs/*.log"
-URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_2_gamma_2020.2:
-    name: URP_Performance on Win_Vulkan_performance_editmode_build_il2cpp_2_gamma on version 2020.2
+URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_apiNet2_gamma_2020.2:
+    name: URP_Performance on Win_Vulkan_performance_editmode_build_il2cpp_apiNet2_gamma on version 2020.2
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -620,15 +734,21 @@ URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_2_gamma_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  cd TestProjects/URP_Performance && unity-downloader-cli -u dff91d65251a9ab8c12af258ce88fee061d85a7d -c editor -c il2cpp  --wait --published-only
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/URP_Performance/Logs/*.log"
-URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_4_linear_2020.2:
-    name: URP_Performance on Win_Vulkan_performance_editmode_build_il2cpp_4_linear on version 2020.2
+URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_apiNet4_Linear_2020.2:
+    name: URP_Performance on Win_Vulkan_performance_editmode_build_il2cpp_apiNet4_Linear on version 2020.2
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -638,15 +758,21 @@ URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_4_linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  cd TestProjects/URP_Performance && unity-downloader-cli -u dff91d65251a9ab8c12af258ce88fee061d85a7d -c editor -c il2cpp  --wait --published-only
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/URP_Performance/Logs/*.log"
-URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_4_gamma_2020.2:
-    name: URP_Performance on Win_Vulkan_performance_editmode_build_il2cpp_4_gamma on version 2020.2
+URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_apiNet4_gamma_2020.2:
+    name: URP_Performance on Win_Vulkan_performance_editmode_build_il2cpp_apiNet4_gamma on version 2020.2
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -656,15 +782,21 @@ URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_4_gamma_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  cd TestProjects/URP_Performance && unity-downloader-cli -u dff91d65251a9ab8c12af258ce88fee061d85a7d -c editor -c il2cpp  --wait --published-only
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/URP_Performance/Logs/*.log"
-URP_Performance_Win_Vulkan_performance_editmode_build_mono_2_linear_2020.2:
-    name: URP_Performance on Win_Vulkan_performance_editmode_build_mono_2_linear on version 2020.2
+URP_Performance_Win_Vulkan_performance_editmode_build_mono_apiNet2_Linear_2020.2:
+    name: URP_Performance on Win_Vulkan_performance_editmode_build_mono_apiNet2_Linear on version 2020.2
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -674,15 +806,21 @@ URP_Performance_Win_Vulkan_performance_editmode_build_mono_2_linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  cd TestProjects/URP_Performance && unity-downloader-cli -u dff91d65251a9ab8c12af258ce88fee061d85a7d -c editor -c il2cpp  --wait --published-only
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/URP_Performance/Logs/*.log"
-URP_Performance_Win_Vulkan_performance_editmode_build_mono_2_gamma_2020.2:
-    name: URP_Performance on Win_Vulkan_performance_editmode_build_mono_2_gamma on version 2020.2
+URP_Performance_Win_Vulkan_performance_editmode_build_mono_apiNet2_gamma_2020.2:
+    name: URP_Performance on Win_Vulkan_performance_editmode_build_mono_apiNet2_gamma on version 2020.2
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -692,15 +830,21 @@ URP_Performance_Win_Vulkan_performance_editmode_build_mono_2_gamma_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/URP_Performance && unity-downloader-cli -u 1b1252580c6429d4be5b5e88fafea90645240c65 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  cd TestProjects/URP_Performance && unity-downloader-cli -u dff91d65251a9ab8c12af258ce88fee061d85a7d -c editor -c il2cpp  --wait --published-only
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/URP_Performance/Logs/*.log"
-URP_Performance_Win_Vulkan_performance_playmode_il2cpp_2_linear_CUSTOM-REVISION:
-    name: URP_Performance on Win_Vulkan_performance_playmode_il2cpp_2_linear on version CUSTOM-REVISION
+URP_Performance_Win_Vulkan_performance_playmode_il2cpp_apiNet2_Linear_CUSTOM-REVISION:
+    name: URP_Performance on Win_Vulkan_performance_playmode_il2cpp_apiNet2_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -719,10 +863,10 @@ URP_Performance_Win_Vulkan_performance_playmode_il2cpp_2_linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_il2cpp_2_linear_CUSTOM-REVISION
+      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_il2cpp_apiNet2_Linear_CUSTOM-REVISION
          rerun: always
-Build_URP_Performance_Win_Vulkan_Player_il2cpp_2_linear_CUSTOM-REVISION:
-    name: Build URP_Performance on Win_Vulkan_il2cpp_2_linear_Player on version CUSTOM-REVISION
+Build_URP_Performance_Win_Vulkan_Player_il2cpp_apiNet2_Linear_CUSTOM-REVISION:
+    name: Build URP_Performance on Win_Vulkan_il2cpp_apiNet2_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -734,7 +878,13 @@ Build_URP_Performance_Win_Vulkan_Player_il2cpp_2_linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -746,8 +896,8 @@ Build_URP_Performance_Win_Vulkan_Player_il2cpp_2_linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URP_Performance_Win_Vulkan_performance_playmode_il2cpp_2_gamma_CUSTOM-REVISION:
-    name: URP_Performance on Win_Vulkan_performance_playmode_il2cpp_2_gamma on version CUSTOM-REVISION
+URP_Performance_Win_Vulkan_performance_playmode_il2cpp_apiNet2_gamma_CUSTOM-REVISION:
+    name: URP_Performance on Win_Vulkan_performance_playmode_il2cpp_apiNet2_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -766,10 +916,10 @@ URP_Performance_Win_Vulkan_performance_playmode_il2cpp_2_gamma_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_il2cpp_2_gamma_CUSTOM-REVISION
+      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_il2cpp_apiNet2_gamma_CUSTOM-REVISION
          rerun: always
-Build_URP_Performance_Win_Vulkan_Player_il2cpp_2_gamma_CUSTOM-REVISION:
-    name: Build URP_Performance on Win_Vulkan_il2cpp_2_gamma_Player on version CUSTOM-REVISION
+Build_URP_Performance_Win_Vulkan_Player_il2cpp_apiNet2_gamma_CUSTOM-REVISION:
+    name: Build URP_Performance on Win_Vulkan_il2cpp_apiNet2_gamma_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -781,7 +931,13 @@ Build_URP_Performance_Win_Vulkan_Player_il2cpp_2_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -793,8 +949,8 @@ Build_URP_Performance_Win_Vulkan_Player_il2cpp_2_gamma_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URP_Performance_Win_Vulkan_performance_playmode_il2cpp_4_linear_CUSTOM-REVISION:
-    name: URP_Performance on Win_Vulkan_performance_playmode_il2cpp_4_linear on version CUSTOM-REVISION
+URP_Performance_Win_Vulkan_performance_playmode_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
+    name: URP_Performance on Win_Vulkan_performance_playmode_il2cpp_apiNet4_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -813,10 +969,10 @@ URP_Performance_Win_Vulkan_performance_playmode_il2cpp_4_linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_il2cpp_4_linear_CUSTOM-REVISION
+      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_il2cpp_apiNet4_Linear_CUSTOM-REVISION
          rerun: always
-Build_URP_Performance_Win_Vulkan_Player_il2cpp_4_linear_CUSTOM-REVISION:
-    name: Build URP_Performance on Win_Vulkan_il2cpp_4_linear_Player on version CUSTOM-REVISION
+Build_URP_Performance_Win_Vulkan_Player_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
+    name: Build URP_Performance on Win_Vulkan_il2cpp_apiNet4_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -828,7 +984,13 @@ Build_URP_Performance_Win_Vulkan_Player_il2cpp_4_linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -840,8 +1002,8 @@ Build_URP_Performance_Win_Vulkan_Player_il2cpp_4_linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URP_Performance_Win_Vulkan_performance_playmode_il2cpp_4_gamma_CUSTOM-REVISION:
-    name: URP_Performance on Win_Vulkan_performance_playmode_il2cpp_4_gamma on version CUSTOM-REVISION
+URP_Performance_Win_Vulkan_performance_playmode_il2cpp_apiNet4_gamma_CUSTOM-REVISION:
+    name: URP_Performance on Win_Vulkan_performance_playmode_il2cpp_apiNet4_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -860,10 +1022,10 @@ URP_Performance_Win_Vulkan_performance_playmode_il2cpp_4_gamma_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_il2cpp_4_gamma_CUSTOM-REVISION
+      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_il2cpp_apiNet4_gamma_CUSTOM-REVISION
          rerun: always
-Build_URP_Performance_Win_Vulkan_Player_il2cpp_4_gamma_CUSTOM-REVISION:
-    name: Build URP_Performance on Win_Vulkan_il2cpp_4_gamma_Player on version CUSTOM-REVISION
+Build_URP_Performance_Win_Vulkan_Player_il2cpp_apiNet4_gamma_CUSTOM-REVISION:
+    name: Build URP_Performance on Win_Vulkan_il2cpp_apiNet4_gamma_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -875,7 +1037,13 @@ Build_URP_Performance_Win_Vulkan_Player_il2cpp_4_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -887,8 +1055,8 @@ Build_URP_Performance_Win_Vulkan_Player_il2cpp_4_gamma_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URP_Performance_Win_Vulkan_performance_playmode_mono_2_linear_CUSTOM-REVISION:
-    name: URP_Performance on Win_Vulkan_performance_playmode_mono_2_linear on version CUSTOM-REVISION
+URP_Performance_Win_Vulkan_performance_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
+    name: URP_Performance on Win_Vulkan_performance_playmode_mono_apiNet2_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -907,10 +1075,10 @@ URP_Performance_Win_Vulkan_performance_playmode_mono_2_linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_mono_2_linear_CUSTOM-REVISION
+      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_mono_apiNet2_Linear_CUSTOM-REVISION
          rerun: always
-Build_URP_Performance_Win_Vulkan_Player_mono_2_linear_CUSTOM-REVISION:
-    name: Build URP_Performance on Win_Vulkan_mono_2_linear_Player on version CUSTOM-REVISION
+Build_URP_Performance_Win_Vulkan_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
+    name: Build URP_Performance on Win_Vulkan_mono_apiNet2_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -922,7 +1090,13 @@ Build_URP_Performance_Win_Vulkan_Player_mono_2_linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -934,8 +1108,8 @@ Build_URP_Performance_Win_Vulkan_Player_mono_2_linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URP_Performance_Win_Vulkan_performance_playmode_mono_2_gamma_CUSTOM-REVISION:
-    name: URP_Performance on Win_Vulkan_performance_playmode_mono_2_gamma on version CUSTOM-REVISION
+URP_Performance_Win_Vulkan_performance_playmode_mono_apiNet2_gamma_CUSTOM-REVISION:
+    name: URP_Performance on Win_Vulkan_performance_playmode_mono_apiNet2_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -954,10 +1128,10 @@ URP_Performance_Win_Vulkan_performance_playmode_mono_2_gamma_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_mono_2_gamma_CUSTOM-REVISION
+      -  path: .yamato/urp_performance-win-vulkan.yml#Build_URP_Performance_Win_Vulkan_Player_mono_apiNet2_gamma_CUSTOM-REVISION
          rerun: always
-Build_URP_Performance_Win_Vulkan_Player_mono_2_gamma_CUSTOM-REVISION:
-    name: Build URP_Performance on Win_Vulkan_mono_2_gamma_Player on version CUSTOM-REVISION
+Build_URP_Performance_Win_Vulkan_Player_mono_apiNet2_gamma_CUSTOM-REVISION:
+    name: Build URP_Performance on Win_Vulkan_mono_apiNet2_gamma_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -969,7 +1143,13 @@ Build_URP_Performance_Win_Vulkan_Player_mono_2_gamma_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-stripenginecode-" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
     artifacts:
         logs:
             paths:
@@ -981,8 +1161,8 @@ Build_URP_Performance_Win_Vulkan_Player_mono_2_gamma_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_2_linear_CUSTOM-REVISION:
-    name: URP_Performance on Win_Vulkan_performance_editmode_build_il2cpp_2_linear on version CUSTOM-REVISION
+URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_apiNet2_Linear_CUSTOM-REVISION:
+    name: URP_Performance on Win_Vulkan_performance_editmode_build_il2cpp_apiNet2_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -994,7 +1174,13 @@ URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_2_linear_CUSTOM-REV
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -1003,8 +1189,8 @@ URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_2_linear_CUSTOM-REV
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_2_gamma_CUSTOM-REVISION:
-    name: URP_Performance on Win_Vulkan_performance_editmode_build_il2cpp_2_gamma on version CUSTOM-REVISION
+URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_apiNet2_gamma_CUSTOM-REVISION:
+    name: URP_Performance on Win_Vulkan_performance_editmode_build_il2cpp_apiNet2_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -1016,7 +1202,13 @@ URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_2_gamma_CUSTOM-REVI
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -1025,8 +1217,8 @@ URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_2_gamma_CUSTOM-REVI
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_4_linear_CUSTOM-REVISION:
-    name: URP_Performance on Win_Vulkan_performance_editmode_build_il2cpp_4_linear on version CUSTOM-REVISION
+URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
+    name: URP_Performance on Win_Vulkan_performance_editmode_build_il2cpp_apiNet4_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -1038,7 +1230,13 @@ URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_4_linear_CUSTOM-REV
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -1047,8 +1245,8 @@ URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_4_linear_CUSTOM-REV
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_4_gamma_CUSTOM-REVISION:
-    name: URP_Performance on Win_Vulkan_performance_editmode_build_il2cpp_4_gamma on version CUSTOM-REVISION
+URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_apiNet4_gamma_CUSTOM-REVISION:
+    name: URP_Performance on Win_Vulkan_performance_editmode_build_il2cpp_apiNet4_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -1060,7 +1258,13 @@ URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_4_gamma_CUSTOM-REVI
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -1069,8 +1273,8 @@ URP_Performance_Win_Vulkan_performance_editmode_build_il2cpp_4_gamma_CUSTOM-REVI
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URP_Performance_Win_Vulkan_performance_editmode_build_mono_2_linear_CUSTOM-REVISION:
-    name: URP_Performance on Win_Vulkan_performance_editmode_build_mono_2_linear on version CUSTOM-REVISION
+URP_Performance_Win_Vulkan_performance_editmode_build_mono_apiNet2_Linear_CUSTOM-REVISION:
+    name: URP_Performance on Win_Vulkan_performance_editmode_build_mono_apiNet2_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -1082,7 +1286,13 @@ URP_Performance_Win_Vulkan_performance_editmode_build_mono_2_linear_CUSTOM-REVIS
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:
@@ -1091,8 +1301,8 @@ URP_Performance_Win_Vulkan_performance_editmode_build_mono_2_linear_CUSTOM-REVIS
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URP_Performance_Win_Vulkan_performance_editmode_build_mono_2_gamma_CUSTOM-REVISION:
-    name: URP_Performance on Win_Vulkan_performance_editmode_build_mono_2_gamma on version CUSTOM-REVISION
+URP_Performance_Win_Vulkan_performance_editmode_build_mono_apiNet2_gamma_CUSTOM-REVISION:
+    name: URP_Performance on Win_Vulkan_performance_editmode_build_mono_apiNet2_gamma on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -1104,7 +1314,13 @@ URP_Performance_Win_Vulkan_performance_editmode_build_mono_2_gamma_CUSTOM-REVISI
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/URP_Performance && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan" --report-performance-data --performance-project-id=URP_Performance --testfilter=Build
     artifacts:
         logs:
             paths:

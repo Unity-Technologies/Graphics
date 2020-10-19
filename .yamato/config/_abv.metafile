@@ -6,18 +6,16 @@ abv: # specify the editor versions for which to create the expression trigger fo
     - name: VFX_HDRP
     - name: VFX_URP
   build_configs:
-    - name: mono_2
-      scripting_backend: mono
-      api_level: NET_2_0
-  color_spaces:
-    - linear
+    - mono_apiNet2
+  color_spaces: 
+    - Linear
 nightly:
   extra_dependencies: # additional project jobs to run nightly (in addition to ABV)
     - project: Smoke_Test
       platform: Win
       api: DX11
-      build_config: mono_2
-      color_space: linear
+      build_config: mono_apiNet2
+      color_space: Linear
       test_platforms:
         - playmode
         - editmode
@@ -25,36 +23,36 @@ nightly:
     - project: Universal
       platform: Android
       api: OpenGLES3
-      build_config: mono_2
-      color_space: linear
+      build_config: mono_apiNet2
+      color_space: Linear
       test_platforms:
         - Standalone
     - project: Universal
       platform: Android
       api: Vulkan
-      build_config: mono_2
-      color_space: linear
+      build_config: mono_apiNet2
+      color_space: Linear
       test_platforms:
         - Standalone
     - project: Universal
       platform: iPhone
       api: Metal
-      build_config: mono_2
-      color_space: linear
+      build_config: mono_apiNet2
+      color_space: Linear
       test_platforms:
         - Standalone
     - project: Universal
       platform: Win
       api: Vulkan
-      build_config: mono_2
-      color_space: linear
+      build_config: mono_apiNet2
+      color_space: Linear
       test_platforms:
         - playmode
     - project: Universal
       platform: Win
       api: DX12
-      build_config: mono_2
-      color_space: linear
+      build_config: mono_apiNet2
+      color_space: Linear
       test_platforms:
         - Standalone
         - editmode
@@ -62,16 +60,16 @@ nightly:
     - project: URPUpdate
       platform: Win
       api: DX11
-      build_config: mono_2
-      color_space: linear
+      build_config: mono_apiNet2
+      color_space: Linear
       test_platforms:
         - editmode
         - playmode
     - project: URPUpdate_Top_Asset_Store
       platform: Win
       api: DX11
-      build_config: mono_2
-      color_space: linear
+      build_config: mono_apiNet2
+      color_space: Linear
       test_platforms:
         - editmode
         - playmode
@@ -82,39 +80,39 @@ trunk_verification: # jobs to include in trunk verification job
     - project: Universal
       platform: Win
       api: DX11
-      build_config: mono_2
-      color_space: linear
+      build_config: mono_apiNet2
+      color_space: Linear
       test_platforms:
         - playmode
         - editmode
     - project: ShaderGraph
       platform: Win
       api: DX11
-      build_config: mono_2
-      color_space: linear
+      build_config: mono_apiNet2
+      color_space: Linear
       test_platforms:
         - playmode
         - editmode
     - project: HDRP
       platform: Win
       api: DX11
-      build_config: mono_2
-      color_space: linear
+      build_config: mono_apiNet2
+      color_space: Linear
       test_platforms:
         - playmode
         - editmode
     - project: VFX_HDRP
       platform: Win
       api: DX11
-      build_config: mono_2
-      color_space: linear
+      build_config: mono_apiNet2
+      color_space: Linear
       test_platforms:
         - playmode
         - editmode
     - project: VFX_URP
       platform: Win
       api: DX11
-      build_config: mono_2
-      color_space: linear
+      build_config: mono_apiNet2
+      color_space: Linear
       test_platforms:
         - playmode

@@ -3,10 +3,7 @@ project:
   folder: BoatAttack
 test_platforms:
   - type: Standalone
-    timeout_build:
-      Android: 2000
     name: performance_playmode_runtime
-    is_performance: True
     utr_flags:
       - [all]: --report-performance-data
       - [all]: --performance-project-id=BoatAttack
@@ -34,9 +31,10 @@ platforms:
       - name: DX11
       - name: Vulkan
     build_configs:
-      - name: il2cpp_4
+      - name: il2cpp_apiNet4
+      - name: mono_apiNet2
     color_spaces:
-      - linear
+      - Linear
   - name: OSX
     apis:
       - name: Metal
@@ -47,60 +45,60 @@ platforms:
           - name: playmode_XR
           - name: Standalone
     build_configs:
-      - name: il2cpp_4
+      - name: il2cpp_apiNet4
     color_spaces:
-      - linear
+      - Linear
   - name: Android
     apis: 
       - name: Vulkan
       - name: OpenGLES3
     build_configs:
-      - name: il2cpp_4
+      - name: il2cpp_apiNet4
     color_spaces:
-      - linear
+      - Linear
   - name: iPhone
     apis: 
       - name: Metal
         exclude_test_platforms:
           - name: playmode_XR
     build_configs:
-      - name: il2cpp_4
+      - name: il2cpp_apiNet4
     color_spaces:
-      - linear
+      - Linear
 all:
   dependencies:
     - platform: Win
       api: DX11
-      build_config: il2cpp_4
-      color_space: linear
+      build_config: mono_apiNet2
+      color_space: Linear
       test_platforms:
         - performance_playmode_runtime
 #        - performance_editmode_build
 #    - platform: OSX
 #      api: Metal
-#      build_config: il2cpp_4
-#      color_space: linear
+#      build_config: il2cpp_apiNet4
+#      color_space: Linear
 #      test_platforms:
 #        #- performance_playmode_runtime
 #        - performance_editmode_build
     - platform: Android
       api: OpenGLES3
-      build_config: il2cpp_4
-      color_space: linear
+      build_config: il2cpp_apiNet4
+      color_space: Linear
       test_platforms:
         - performance_playmode_runtime
 #        - performance_editmode_build
     - platform: Android
       api: Vulkan
-      build_config: il2cpp_4
-      color_space: linear
+      build_config: il2cpp_apiNet4
+      color_space: Linear
       test_platforms:
         - performance_playmode_runtime
 #        - performance_editmode_build
 #    - platform: iPhone
 #      api: Metal
-#      build_config: il2cpp_4
-#      color_space: linear
+#      build_config: il2cpp_apiNet4
+#      color_space: Linear
 #      test_platforms:
 #        - performance_playmode_runtime
 #        - performance_editmode_build

@@ -17,9 +17,9 @@ platforms:
     apis:
       - name: DX12
     build_configs:
-      - name: mono_2
+      - name: mono_apiNet2
     color_spaces:
-      - linear
+      - Linear
     overrides:
       agents_project:
         default:
@@ -31,8 +31,8 @@ all:
   dependencies:
     - platform: Win
       api: DX12
-      build_config: mono_2
-      color_space: linear
+      build_config: mono_apiNet2
+      color_space: Linear
       test_platforms:
         - Standalone
         - playmode
