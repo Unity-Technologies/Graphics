@@ -157,7 +157,7 @@ namespace UnityEditor.ShaderGraph
 
         public override bool hasPreview
         {
-            get { return asset != null; }
+            get { return true; }
         }
 
         public override PreviewMode previewMode
@@ -257,9 +257,15 @@ namespace UnityEditor.ShaderGraph
 
         public bool Reload(HashSet<string> changedFileDependencies)
         {
-            if (asset == null)
+            if (!changedFileDependencies.Contains(subGraphGuid))
             {
                 return false;
+            }
+
+            if (asset == null)
+            {
+                // asset missing or deleted
+                return true;
             }
 
             if (changedFileDependencies.Contains(asset.assetGuid) || asset.descendents.Any(changedFileDependencies.Contains))
