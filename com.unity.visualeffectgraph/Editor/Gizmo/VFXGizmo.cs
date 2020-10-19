@@ -103,6 +103,43 @@ namespace UnityEditor.VFX
             return false;
         }
 
+        static Color ToActiveColorSpace(Color color)
+        {
+            return (QualitySettings.activeColorSpace == ColorSpace.Linear) ? color.linear : color;
+        }
+
+        static readonly Color[] s_AxisColor = new Color[] { Handles.xAxisColor, Handles.yAxisColor, Handles.zAxisColor, Handles.centerColor };
+        static Vector3[] s_AxisVector = { Vector3.right, Vector3.up, Vector3.forward, Vector3.zero };
+        static int[] s_AxisId = { "VFX_RotateAxis_X".GetHashCode(), "VFX_RotateAxis_Y".GetHashCode(), "VFX_RotateAxis_Z".GetHashCode(), "VFX_RotateAxis_Camera".GetHashCode() };
+        static Color s_DisabledHandleColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+        static Quaternion CustomRotationHandle(Quaternion rotation, Vector3 position)
+        {
+            //Equivalent of Rotation Handle but with explicit id & *without* free rotate.
+            var evt = Event.current;
+            var camForward = Handles.inverseMatrix.MultiplyVector(Camera.current != null ? Camera.current.transform.forward : Vector3.forward);
+            var size = HandleUtility.GetHandleSize(position);
+            var isHot = s_AxisId.Any(id => id == GUIUtility.hotControl);
+
+            var previousColor = Handles.color;
+            for (var i = 0; i < 4; ++i)
+            {
+                Handles.color = ToActiveColorSpace(s_AxisColor[i]);
+                var axisDir = i == 3 ? camForward : rotation * s_AxisVector[i];
+                rotation = Handles.Disc(s_AxisId[i], rotation, position, axisDir, size, true, EditorSnapSettings.rotate);
+            }
+
+            if (isHot && evt.type == EventType.Repaint)
+            {
+                Handles.color = ToActiveColorSpace(s_DisabledHandleColor);
+                Handles.DrawWireDisc(position, camForward, size, Handles.lineThickness);
+            }
+
+            Handles.color = previousColor;
+            return rotation;
+        }
+
+        static int s_FreeRotationID = "VFX_FreeRotation_Id".GetHashCode();
+
         public bool RotationGizmo(Vector3 position, ref Vector3 rotation, bool always)
         {
             var quaternion = Quaternion.Euler(rotation);
@@ -122,11 +159,15 @@ namespace UnityEditor.VFX
         {
             if (always || Tools.current == Tool.Rotate || Tools.current == Tool.Transform || Tools.current == Tool.None)
             {
-                if (Event.current.shift)
-                    return false; //TODO : Fix Free Rotation
+                bool displayAndUseFreeRotation = Event.current.shift;
+                var handleRotation = GetHandleRotation(rotation);
 
                 EditorGUI.BeginChangeCheck();
-                var newRotation = Handles.RotationHandle(GetHandleRotation(rotation), position);
+                Quaternion newRotation;
+                if (displayAndUseFreeRotation)
+                    newRotation = Handles.FreeRotateHandle(s_FreeRotationID, rotation, position, HandleUtility.GetHandleSize(position) * 1.1f);
+                else
+                    newRotation = CustomRotationHandle(handleRotation, position);
 
                 if (EditorGUI.EndChangeCheck())
                 {
@@ -137,7 +178,7 @@ namespace UnityEditor.VFX
                         m_HotControlRotation = GUIUtility.hotControl;
                     }
 
-                    if (Tools.pivotRotation == PivotRotation.Global)
+                    if (!displayAndUseFreeRotation /* Free rotation are always in local */ && Tools.pivotRotation == PivotRotation.Global)
                         rotation = newRotation * Handles.matrix.rotation * m_StartRotation;
                     else
                         rotation = newRotation;
@@ -152,6 +193,11 @@ namespace UnityEditor.VFX
                     m_StartRotation = Quaternion.identity;
                     m_IsRotating = false;
                     m_HotControlRotation = -1;
+                }
+
+                if (displayAndUseFreeRotation && Event.current.type == EventType.Repaint)
+                {
+                    CustomRotationHandle(handleRotation, position);
                 }
             }
             return false;
