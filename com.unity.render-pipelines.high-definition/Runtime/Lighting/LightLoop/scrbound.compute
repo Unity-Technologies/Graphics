@@ -384,6 +384,89 @@ void UpdateAaBb(uint srcBegin, uint srcSize, float4 vertRingBuffer[MAX_CLIP_VERT
     }
 }
 
+// Given: 'C' is the center of the sphere in the view space, 'r' is its radius;
+// 'projScale' and 'projOffset' are used to perform projection of the X (or Y) component of a vector.
+float2 ComputeBoundsOfSphereOnProjectivePlane(float3 C, float r, float projScale, float projOffset)
+{
+    float xMin, xMax;
+
+    // See sec. 8.2.1 of https://foundationsofgameenginedev.com/#fged2 for an alternative derivation.
+    // Goal: find the planes that pass through the origin O, bound the sphere, and form
+    // an axis-aligned rectangle at the intersection with the projection plane.
+    // Solution (for the X-coordinate):
+    // The intersection of the bounding planes and the projection plane must be vertical lines,
+    // which means that the bounding planes must be tangent to the Y-axis.
+    // The bounding planes must be also tangent to the sphere.
+    // Call the intersection points of the two vertical bounding planes and the bounding
+    // sphere B and D. Assume that B is on the left of C; D is on the right of C.
+    // Note that C may be behind the origin, so the same generally goes for B and D.
+    // BC is normal w.r.t. the bounding plane, so it is normal w.r.t. the Y-axis; |BC| = r.
+    // As a consequence, it lies in a plane parallel to the the O-X-Z plane.
+    // Consider B'C', which is an orthogonal projection of BC onto the actual O-X-Z plane.
+    // (Imagine sliding the sphere up or down between the bounding planes).
+    // We then consider a triangle OB'C' that lies entirely in the O-X-Z plane.
+    // The coordinates are: OB' = (b.x, 0, b.z), OC' = (c.x, 0, c.z).
+    float3 B, D;
+    // OBC is a right triangle. So is OB'C'.
+    // |BC| = |B'C'| = r.
+    // |OB'|^2 = |OC'|^2 - |B'C'|^2.
+    float lenSqOC = dot(C.xz, C.xz);
+    float lenSqOB = lenSqOC - r * r;
+    // If |OB'| = 0 or |OC'| = 0, the bounding planes tangent to the sphere do not exist.
+    if (min(lenSqOB, lenSqOC) > 0)
+    {
+        float lenOB = sqrt(lenSqOB);
+        // |OB' x OC'| = |OB'| * |OC'| * Sin[a'].
+        //  OB' . OC'  = |OB'| * |OC'| * Cos[a'].
+        // We can determine Sin[a'] = |B'C'| / |OC'| = R / |OC'|.
+        // Cos[a'] = Sqrt[1 - Sin[a']^2].
+        // (OB' x OC') points along Y.
+        // (OB' x OC').y = b.z * c.x - b.x * c.z.
+        // Therefore,  b.z * c.x - b.x * c.z = |OB'| * |OC'| * Sin[a'].
+        // OB' . OC' = b.x * c.x + b.z * c.z = |OB'| * |OC'| * Cos[a'].
+        // Since we don't care about the scale, and |OB'| != 0 and |OC'| != 0,
+        // we can equivalently solve
+        // z * c.x - x * c.z = |OC'|^3 * Sin[a'].
+        // x * c.x + z * c.z = |OC'|^3 * Cos[a'].
+        // With 2 equations and 2 unknowns, we can easily solve this linear system.
+        // The solutions is
+        // x = -c.z * r + c.x * |OB'|.
+        // z =  c.x * r + c.z * |OB'|.
+        B.x = C.x * lenOB - (C.z * r);
+        B.z = C.z * lenOB + (C.x * r);
+        // (OD' x OC') points along Y.
+        // (OD' x OC').y = d.z * c.x - d.x * c.z.
+        // We must solve
+        // z * c.x - x * c.z = -|OC'|^3 * Sin[a'].
+        // x * c.x + z * c.z =  |OC'|^3 * Cos[a'].
+        // The solution is
+        // x =  c.z * r + c.x * |OB'|.
+        // z = -c.x * r + c.z * |OB'|.
+        D.x = C.x * lenOB + (C.z * r);
+        D.z = C.z * lenOB - (C.x * r);
+        // We can transform OB and OD as direction vectors.
+        // For the simplification below, see OptimizeProjectionMatrix.
+        float rapBx = (B.x * rcp(B.z)) * projScale + projOffset;
+        float rapDx = (D.x * rcp(D.z)) * projScale + projOffset;
+        // One problem with the above is that this direction may, for certain spheres,
+        // point behind the origin (B.z <= 0 or D.z <= 0).
+        // At this point we know that the sphere at least *partially* in front of the origin,
+        // and that it is we are not inside the sphere, so there is at least one valid
+        // plane (and one valid direction). We just need the second direction to go "in front"
+        // of the first one to extend the bounding box.
+        xMin = (B.z > 0) ? rapBx : -FLT_INF;
+        xMax = (D.z > 0) ? rapDx :  FLT_INF;
+    }
+    else
+    {
+        // Conservative estimate (we do not cull the bounding sphere using the view frustum).
+        xMin = -1;
+        xMax =  1;
+    }
+
+    return float2(xMin, xMax);
+}
+
 //**********************************************************************************************
 // The goal of this program is to compute the AABB of the light in the NDC space ([0, 1] range).
 // The light is represented by a convex volume (a cuboid) with 6 faces (planar quads) and 8 vertices.
@@ -429,11 +512,14 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     const float4x4 projMat    = g_mProjectionArr[eyeIndex];
     const float4x4 invProjMat = g_mInvProjectionArr[eyeIndex];
 
-    const float  scale = cullData.scaleXY;      // scale.x = scale.y
+    // Bounding frustum.
     const float3 rbpC  = cullData.center.xyz;   // View-space
     const float3 rbpX  = cullData.boxAxisX.xyz; // Pre-scaled
     const float3 rbpY  = cullData.boxAxisY.xyz; // Pre-scaled
     const float3 rbpZ  = cullData.boxAxisZ.xyz; // Pre-scaled
+    const float scale  = cullData.scaleXY;      // scale.x = scale.y
+    // Bounding sphere.
+    const float radius = cullData.radius;
 
 #ifndef PLATFORM_SUPPORTS_WAVE_INTRINSICS
     // (0) Initialize the TGSM.
@@ -721,6 +807,53 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     ndcAaBbMinPt.w = asfloat(gs_NdcAaBbMinPtW[intraGroupLightIndex]);
     ndcAaBbMaxPt.w = asfloat(gs_NdcAaBbMaxPtW[intraGroupLightIndex]);
 #endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
+
+    // (5) Intersect the bounding frustum with the bounding sphere.
+    if (radius > 0)
+    {
+        // Occasionally, a CSG intersection of a bounding sphere and a bounding frustum
+        // results in a tighter AABB when compared to using the frustum alone.
+        // That is the case (mostly) for sphere-capped spot lights with very wide angles.
+        // Note that the algorithm below doesn't clip the bounding sphere against the view frustum
+        // before computing the bounding box, simply because it's too hard/expensive.
+        // I will leave it as a TODO in case someone wants to tackle this problem.
+        if ((rbpC.z + radius) > 0) // Is the sphere at least *partially* in front of the origin?
+        {
+            ndcAaBbMinPt.w = max(ndcAaBbMinPt.w, rbpC.z - radius);
+            ndcAaBbMaxPt.w = min(ndcAaBbMaxPt.w, rbpC.z + radius);
+            // Computing the 'z' component for an arbitrary projection matrix is hard, so we don't do it.
+            // See sec. 8.2.2 of https://foundationsofgameenginedev.com/#fged2 for a solution.
+
+            float2 rectMin, rectMax;
+
+            // For the 'x' and 'y' components, the solution is given below.
+            if (g_isOrthographic)
+            {
+                // Compute the center and the extents (half-diagonal) of the bounding box.
+                float2 center  = mul(projMat, float4(rbpC.xyz,     1)).xy;
+                float2 extents = mul(projMat, float4(radius.xx, 0, 0)).xy;
+
+                rectMin = center - extents;
+                rectMax = center + extents;
+            }
+            else // Perspective
+            {
+                float2 xBounds = ComputeBoundsOfSphereOnProjectivePlane(rbpC.xxz, radius, projMat._m00, projMat._m02); // X-Z plane
+                float2 yBounds = ComputeBoundsOfSphereOnProjectivePlane(rbpC.yyz, radius, projMat._m11, projMat._m12); // Y-Z plane
+
+                rectMin = float2(xBounds.r, yBounds.r);
+                rectMax = float2(xBounds.g, yBounds.g);
+            }
+
+            // Transform to the NDC coordinates.
+            rectMin = rectMin * 0.5 + 0.5;
+            rectMax = rectMax * 0.5 + 0.5;
+
+            // Note: separating the X- and Y-computations across 2 threads is not worth it.
+            ndcAaBbMinPt.xy = max(ndcAaBbMinPt.xy, rectMin);
+            ndcAaBbMaxPt.xy = min(ndcAaBbMaxPt.xy, rectMax);
+        }
+    }
 
     if ((globalLightIndex < (uint)g_iNrVisibLights) && (t % THREADS_PER_LIGHT == 0)) // Avoid bank conflicts
     {
