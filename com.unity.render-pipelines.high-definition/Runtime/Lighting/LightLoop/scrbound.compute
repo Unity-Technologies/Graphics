@@ -809,6 +809,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     ndcAaBbMaxPt.w = asfloat(gs_NdcAaBbMaxPtW[intraGroupLightIndex]);
 #endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
 
+    // (5) Intersect the bounding frustum with the bounding sphere.
     if (radius > 0)
     {
         // Occasionally, a CSG intersection of a bounding sphere and a bounding frustum
@@ -824,7 +825,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
             // Computing the 'z' component for an arbitrary projection matrix is hard, so we don't do it.
             // See sec. 8.2.2 of https://foundationsofgameenginedev.com/#fged2 for a solution.
 
-            float2 rectMin = -1, rectMax = 1; // Conservative answer if no solution
+            float2 rectMin, rectMax;
 
             // For the 'x' and 'y' components, the solution is given below.
             if (g_isOrthographic)
@@ -849,6 +850,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
             rectMin = rectMin * 0.5 + 0.5;
             rectMax = rectMax * 0.5 + 0.5;
 
+            // Note: separating the X- and Y-computations across 2 threads is not worth it.
             ndcAaBbMinPt.xy = max(ndcAaBbMinPt.xy, rectMin);
             ndcAaBbMaxPt.xy = min(ndcAaBbMaxPt.xy, rectMax);
         }
