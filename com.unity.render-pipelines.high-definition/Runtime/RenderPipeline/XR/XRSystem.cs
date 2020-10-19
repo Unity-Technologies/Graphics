@@ -102,8 +102,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return maxViews;
         }
-
+#if UNITY_2021_1_OR_NEWER
+        internal List<(Camera, XRPass)> SetupFrame(List<Camera> cameras, bool singlePassAllowed, bool singlePassTestModeActive)
+#else
         internal List<(Camera, XRPass)> SetupFrame(Camera[] cameras, bool singlePassAllowed, bool singlePassTestModeActive)
+#endif
         {
             bool xrActive = RefreshXrSdk();
 
@@ -113,10 +116,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 ReleaseFrame();
             }
 
-            if ((singlePassTestModeActive || XRGraphicsAutomatedTests.running) && XRGraphicsAutomatedTests.enabled)
-                SetCustomLayout(LayoutSinglePassTestMode);
-            else
-                SetCustomLayout(null);
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            bool singlePassTestMode = (singlePassTestModeActive || XRGraphicsAutomatedTests.running) && XRGraphicsAutomatedTests.enabled;
+#endif
 
             foreach (var camera in cameras)
             {
@@ -126,6 +128,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Enable XR layout only for gameview camera
                 bool xrSupported = camera.cameraType == CameraType.Game && camera.targetTexture == null && HDUtils.TryGetAdditionalCameraDataOrDefault(camera).xrRendering;
 
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                if (singlePassTestMode && LayoutSinglePassTestMode(new XRLayout() { camera = camera, xrSystem = this }))
+                {
+                    // single-pass test layout in used
+                }
+                else
+#endif
                 if (customLayout != null && customLayout(new XRLayout() { camera = camera, xrSystem = this }))
                 {
                     // custom layout in used
@@ -344,6 +353,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
         bool LayoutSinglePassTestMode(XRLayout frameLayout)
         {
             Camera camera = frameLayout.camera;
@@ -394,5 +404,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return false;
         }
+#endif
     }
 }

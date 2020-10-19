@@ -91,15 +91,15 @@ namespace UnityEditor.Rendering.HighDefinition
             if (s_MipMapLow == null)
                 InitIcons();
 
-            int mipmapCount = m_PreviewedTextures.Count > 0 ? m_PreviewedTextures[0].mipmapCount : 1;
-
             GUILayout.Box(s_ExposureLow, s_PreLabel, GUILayout.MaxWidth(20));
             previewExposure = GUILayout.HorizontalSlider(previewExposure, -20f, 20f, GUILayout.MaxWidth(80));
             GUILayout.Space(5);
 
-// For now we don't display the mip level slider because they are black. The convolution of the probe
-// texture is made in the atlas and so is not available in the texture we have here.
+            // For now we don't display the mip level slider because they are black. The convolution of the probe
+            // texture is made in the atlas and so is not available in the texture we have here.
 #if false
+            int mipmapCount = m_PreviewedTextures.Count > 0 ? m_PreviewedTextures[0].mipmapCount : 1;
+
             GUILayout.Box(s_MipMapHigh, s_PreLabel, GUILayout.MaxWidth(20));
             mipLevelPreview = GUILayout.HorizontalSlider(mipLevelPreview, 0, mipmapCount, GUILayout.MaxWidth(80));
             GUILayout.Box(s_MipMapLow, s_PreLabel, GUILayout.MaxWidth(20));
@@ -327,7 +327,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 | ProbeSettingsFields.frustumAutomaticScale
                 | ProbeSettingsFields.frustumViewerScale
                 | ProbeSettingsFields.frustumFixedValue
-                | ProbeSettingsFields.resolution,
+                | ProbeSettingsFields.resolution
+                | ProbeSettingsFields.roughReflections,
             camera = new CameraSettingsOverride
             {
                 camera = (CameraSettingsFields)(-1) & ~(

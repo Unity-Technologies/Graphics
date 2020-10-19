@@ -49,7 +49,7 @@ Alongside the standard properties, Unity makes different properties available de
 | **LayerMask**                  | Defines the layers that HDRP processes this ray-traced effect for. |
 | **Mode**                       | Defines if HDRP should evaluate the effect in **Performance** or **Quality** mode.<br/>This property only appears if you select set **Supported Ray Tracing Mode** in your HDRP Asset to **Both**. |
 | **Quality**                    | Specifies the preset HDRP uses to populate the values of the following nested properties. The options are:<br/>&#8226; **Low**: A preset that emphasizes performance over quality.<br/>&#8226; **Medium**: A preset that balances performance and quality.<br/>&#8226; **High**: A preset that emphasizes quality over performance.<br/>&#8226; **Custom**: Allows you to override each property individually.<br/>This property only appears in [Performance](Ray-Tracing-Getting-Started.md#ray-tracing-mode) mode. |
-| **Ray Length**                 | Set a value to control the length of the rays that HDRP uses for ray tracing. If a ray doesn't find an intersection, then the ray returns the color of the sky. |
+| **Max Ray Length**             | Controls the maximal length of reflection rays. The higher this value is, the more expensive ray traced reflections are. If a ray doesn't find an intersection, then the ray returns the color of the sky if Reflect Sky is enabled, or black if not. |
 | **Clamp Value**                | Set a value to control the threshold that HDRP uses to clamp the pre-exposed value. This reduces the range of values and makes the global illumination more stable to denoise, but reduces quality. |
 | **Denoise**                    | Enable this to enable the spatio-temporal filter that HDRP uses to remove noise from the Ray-Traced Global Illumination. |
 | - **Half Resolution Denoiser** | Enable this feature to evaluate the spatio-temporal filter in half resolution. This decreases the resource intensity of denoising but reduces quality. |
@@ -69,3 +69,7 @@ Alongside the standard properties, Unity makes different properties available de
 | ---------------- | ------------------------------------------------------------ |
 | **Sample Count** | Controls the number of rays per pixel per frame. Increasing this value increases execution time linearly. |
 | **Bounce Count** | Controls the number of bounces that Global Illumination rays can do. Increasing this value increases execution time exponentially. |
+
+## Limitations
+
+Currently, ray tracing in HDRP does not support [decals](decal.md). This means that ray-traced global illumination does not affect decals in your Scene.

@@ -64,11 +64,10 @@ void RayGenIntegration()
     // Convert this to a world space position
     PositionInputs posInput = GetPositionInput(currentCoord, 1.0f/LaunchDim.xy, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
     float distanceToCamera = length(posInput.positionWS);
-
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
-
+    // The position is always in the right space.
+    const float3 positionWS = posInput.positionWS;
     // Compute the incident vector on the surfaces
-    float3 viewWS = normalize(_WorldSpaceCameraPos - positionWS);
+    const float3 viewWS = GetWorldSpaceNormalizeViewDir(positionWS);
 
     // Decode the world space normal
     NormalData normalData;
