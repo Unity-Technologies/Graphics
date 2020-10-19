@@ -1069,7 +1069,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void PreRenderSky(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthStencilBuffer, TextureHandle normalbuffer)
         {
             if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera) ||
-                !m_SkyManager.HasBackplateEnabled(hdCamera))
+                !m_SkyManager.RequiresPreRenderSky(hdCamera))
             {
                 return;
             }

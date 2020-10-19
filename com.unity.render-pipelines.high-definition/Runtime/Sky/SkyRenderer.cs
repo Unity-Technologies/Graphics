@@ -36,11 +36,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public virtual void PreRenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk) { }
 
         /// <summary>
-        /// Whether the sky renderer has sky backplate enabled.
+        /// Whether the PreRenderSky step is required.
         /// </summary>
         /// <param name="builtinParams">Engine parameters that you can use to render the sky.</param>
-        /// <returns>True if backplate is enabled.</returns>
-        public virtual bool HasBackplateEnabled(BuiltinSkyParameters builtinParams) { return false; }
+        /// <returns>True if the PreRenderSky step is required.</returns>
+        public virtual bool RequiresPreRenderSky(BuiltinSkyParameters builtinParams) { return false; }
 
 
         /// <summary>
