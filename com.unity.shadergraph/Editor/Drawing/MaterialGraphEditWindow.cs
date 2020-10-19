@@ -911,7 +911,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 Vector2 avg = Vector2.zero;
                 foreach (var edge in group.edges)
                 {
-                    if (passthroughSlots.Contains(edge))
+                    if (passthroughSlots.Contains(edge) && !passthroughSlotRefLookup.ContainsKey(sr))
                     {
                         passthroughSlotRefLookup.Add(sr, new SlotReference(propNode, PropertyNode.OutputSlotId));
                     }
@@ -1015,7 +1015,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             graphObject.graph.RemoveElements(
-                graphView.selection.OfType<IShaderNodeView>().Select(x => x.node).Where(x => !(x is PropertyNode) && x.allowedInSubGraph).ToArray(),
+                graphView.selection.OfType<IShaderNodeView>().Select(x => x.node).Where(x => !(x is PropertyNode || x is SubGraphOutputNode) && x.allowedInSubGraph).ToArray(),
                 new IEdge[] {},
                 new GroupData[] {},
                 graphView.selection.OfType<StickyNote>().Select(x => x.userData).ToArray());
@@ -1024,7 +1024,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach(var nodeView in graphView.selection.OfType<IShaderNodeView>())
             {
                 var node = nodeView.node;
-                if(graphView.graph.removedNodes.Contains(node))
+                if(graphView.graph.removedNodes.Contains(node) || node is SubGraphOutputNode)
                 {
                     continue;
                 }
