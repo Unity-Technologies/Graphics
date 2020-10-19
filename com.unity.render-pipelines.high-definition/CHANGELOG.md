@@ -10,8 +10,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed an issue where the Exposure Shader Graph node had clipped text. (case 1265057)
+- Fixed upside down XR occlusion mesh.
 
 ### Changed
+- Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
 
 ## [10.1.0] - 2020-10-12
 
@@ -175,7 +177,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed null reference in the Undo callback of the graphics compositor 
 - Fixed cullmode for SceneSelectionPass.
 - Fixed issue that caused non-static object to not render at times in OnEnable reflection probes.
-- Fixed upside down XR occlusion mesh.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
@@ -214,7 +215,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Move System Generated Values semantics out of VaryingsMesh structure.
 - Other forms of FSAA are silently deactivated, when path tracing is on.
 - Removed XRSystemTests. The GC verification is now done during playmode tests (case 1285012).
-- Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
 
 ## [10.0.0] - 2019-06-10
 
