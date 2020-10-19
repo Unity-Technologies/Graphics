@@ -264,7 +264,7 @@ namespace UnityEditor.ShaderGraph.Serialization
 
         internal static readonly List<JsonObject> serializationQueue = new List<JsonObject>();
 
-        internal static readonly HashSet<string> serializedSet = new HashSet<string>();
+        internal static readonly Dictionary<string, JsonObject> serializedSet = new Dictionary<string, JsonObject>();
 
         static JsonObject currentRoot = null;
 
@@ -493,7 +493,7 @@ namespace UnityEditor.ShaderGraph.Serialization
             {
                 isSerializing = true;
 
-                serializedSet.Add(mainObject.objectId);
+                serializedSet.Add(mainObject.objectId, mainObject);
                 serializationQueue.Add(mainObject);
 
                 var idJsonList = new List<(string, string)>();
@@ -552,7 +552,7 @@ namespace UnityEditor.ShaderGraph.Serialization
             {
                 isSerializing = true;
 
-                serializedSet.Add(mainObject.objectId);
+                serializedSet.Add(mainObject.objectId, mainObject);
                 serializationQueue.Add(mainObject);
 
                 // Not a foreach because the queue is populated by `JsonRef<T>`s as we go.
