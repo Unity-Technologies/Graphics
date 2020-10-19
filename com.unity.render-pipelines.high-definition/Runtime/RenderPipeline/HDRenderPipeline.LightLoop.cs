@@ -403,6 +403,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle ssrAccumPrev;
             public TextureHandle clearCoatMask;
             public ComputeBufferHandle coarseStencilBuffer;
+            public BlueNoise blueNoise;
+            public HDCamera hdCamera;
             //public TextureHandle debugTexture;
         }
 
@@ -473,12 +475,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.lightingTexture = builder.WriteTexture(ssrAccum);
                     passData.ssrAccumPrev = builder.WriteTexture(ssrAccumPrev);
 
+                    passData.hdCamera = hdCamera;
+                    passData.blueNoise = GetBlueNoiseManager();
+
                     builder.SetRenderFunc(
                     (RenderSSRPassData data, RenderGraphContext context) =>
                     {
                         RenderSSR(data.parameters,
-                                    hdCamera,
-                                    GetBlueNoiseManager(),
+                                    data.hdCamera,
+                                    data.blueNoise,
                                     data.depthBuffer,
                                     data.depthPyramid,
                                     data.normalBuffer,

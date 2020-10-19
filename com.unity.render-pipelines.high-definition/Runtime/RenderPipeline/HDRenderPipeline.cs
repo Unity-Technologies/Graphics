@@ -4964,7 +4964,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Clear the SSR lighting buffer (not sure it is required)
                     CoreUtils.SetRenderTarget(cmd, m_SsrLightingTexture, ClearFlag.Color, Color.clear);
                     CoreUtils.SetRenderTarget(cmd, m_SsrHitPointTexture, ClearFlag.Color, Color.clear);
-                    if (settings.usedAlgorithm == ScreenSpaceReflectionAlgorithm.Approximation)
+                    if (settings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.Approximation)
                     {
                         CoreUtils.SetRenderTarget(cmd, ssrAccumulation, ClearFlag.Color, Color.clear);
                     }
@@ -5649,7 +5649,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ScreenSpaceReflection ssrSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
 
                         bool ssrNeedReset = false;
-                        if (ssrSettings.usedAlgorithm == ScreenSpaceReflectionAlgorithm.PBRAccumulation &&
+                        if (ssrSettings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation &&
                             hdCamera.currentSSRAlgorithm == ScreenSpaceReflectionAlgorithm.Approximation)
                             ssrNeedReset = true;
 
