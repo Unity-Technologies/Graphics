@@ -10,11 +10,11 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
-    /// Advanced options material UI block. 
+    /// Represents an advanced options material UI block.
     /// </summary>
     public class AdvancedOptionsUIBlock : MaterialUIBlock
     {
-        /// <summary>Advanced options features controls the visibility of fields in the block.</summary>
+        /// <summary>Options that define the visibility of fields in the block.</summary>
         [Flags]
         public enum Features
         {
@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering.HighDefinition
         Features    m_Features;
 
         /// <summary>
-        /// Construct the Advanced options material UI block.
+        /// Constructs the AdvancedOptionsUIBlock based on the parameters.
         /// </summary>
         /// <param name="expandableBit">Bit index used to store the foldout state.</param>
         /// <param name="features">Features of the block.</param>
@@ -68,7 +68,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Use this function to load the material properties you need in your block.
+        /// Loads the material properties for the block.
         /// </summary>
         public override void LoadMaterialProperties()
         {
@@ -89,7 +89,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Renders the properties in your block.
+        /// Renders the properties in the block.
         /// </summary>
         public override void OnGUI()
         {

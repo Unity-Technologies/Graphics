@@ -10,7 +10,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
-    /// Decal Sorting Inputs material UI Block.
+    /// The UI block that represents the sorting inputs for decal materials.
     /// </summary>
     public class DecalSortingInputsUIBlock : MaterialUIBlock
     {
@@ -31,16 +31,16 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kDrawOrder = "_DrawOrder";
 
         /// <summary>
-        /// Construct the Decal Sorting Inputs material UI Block
+        /// Constructs the DecalSortingInputsUIBlock.
         /// </summary>
-        /// <param name="expandableBit">Bit index used to </param>
+        /// <param name="expandableBit">Bit used for the foldout state.</param>
         public DecalSortingInputsUIBlock(ExpandableBit expandableBit)
         {
             m_ExpandableBit = expandableBit;
         }
 
         /// <summary>
-        /// Use this function to load the material properties you need in your block.
+        /// Loads the material properties for the block.
         /// </summary>
         public override void LoadMaterialProperties()
         {
@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Renders the properties in your block.
+        /// Renders the properties in the block.
         /// </summary>
         public override void OnGUI()
         {

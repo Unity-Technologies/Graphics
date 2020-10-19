@@ -9,7 +9,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
-    /// GUI for HDRP Shadergraph Decal materials.
+    /// Represents the GUI for HDRP Shader Graph materials.
     /// </summary>
     public class DecalShaderGraphGUI : HDShaderGUI
     {
@@ -28,11 +28,11 @@ namespace UnityEditor.Rendering.HighDefinition
             new DecalSortingInputsUIBlock((MaterialUIBlock.ExpandableBit)ExpandableBit.Sorting),
         };
 
-        /// <summary>List of UI Blocks used to render the material inspector.</summary>
+        /// <summary>The list of UI Blocks Unity uses to render the material inspector.</summary>
         protected MaterialUIBlockList uiBlocks => m_UIBlocks;
 
         /// <summary>
-        /// Implement your custom GUI in this function. To display a UI similar to HDRP shaders, use a MaterialUIBlockList.
+        /// Override this function to implement your custom GUI. To display a user interface similar to HDRP shaders, use a MaterialUIBlockList.
         /// </summary>
         /// <param name="materialEditor">The current material editor.</param>
         /// <param name="props">The list of properties the material has.</param>
@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// Sets up the keywords and passes for a Decal Shader Graph material.
         /// </summary>
-        /// <param name="material"></param>
+        /// <param name="material">The selected material.</param>
         public static void SetupDecalKeywordsAndPass(Material material) => DecalUI.SetupCommonDecalMaterialKeywordsAndPass(material);
 
         /// <summary>

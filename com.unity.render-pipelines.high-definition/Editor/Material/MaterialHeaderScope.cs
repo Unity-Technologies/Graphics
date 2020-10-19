@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     public struct MaterialHeaderScope : IDisposable
     {
-        /// <summary>True if the header expanded. False otherwise.</summary>
+        /// <summary>Indicates whether the header is expanded or not. Is true if the header is expanded, false otherwise.</summary>
         public readonly bool expanded;
         bool spaceAtEnd;
 #if !UNITY_2020_1_OR_NEWER

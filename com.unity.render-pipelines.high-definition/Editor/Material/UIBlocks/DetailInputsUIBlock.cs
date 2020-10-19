@@ -86,7 +86,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Use this function to load the material properties you need in your block.
+        /// Loads the material properties for the block.
         /// </summary>
         public override void LoadMaterialProperties()
         {
@@ -102,7 +102,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Renders the properties in your block.
+        /// Renders the properties in the block.
         /// </summary>
         public override void OnGUI()
         {
