@@ -59,12 +59,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             };
         }
 
-        public static Bounds GenerateParametricMesh(Mesh mesh, float radius, float falloffDistance, float angle, int sides, LightCachedMeshData cachedMeshData)
+        public static Bounds GenerateParametricMesh(Mesh mesh, float radius, float falloffDistance, float angle, int sides)
         {
-            
-            if (Application.isPlaying && cachedMeshData && cachedMeshData.RequiresUpload())
-                    return cachedMeshData.Upload(mesh);
-
             var angleOffset = Mathf.PI / 2.0f + Mathf.Deg2Rad * angle;
             if (sides < 3)
             {
@@ -136,11 +132,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             mesh.SetVertexBufferParams(vertexCount, ParametricLightMeshVertex.VertexLayout);
             mesh.SetVertexBufferData(vertices, 0, 0, vertexCount);
             mesh.SetIndices(triangles, MeshTopology.Triangles, 0, false);
-
-#if UNITY_EDITOR
-            if (cachedMeshData)
-                cachedMeshData.SetGeometryCache(vertices.ToArray(), triangles.ToArray());
-#endif
 
             return new Bounds
             {
@@ -219,11 +210,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return extrusionDir;
         }
 
-        public static Bounds GenerateShapeMesh(Mesh mesh, Vector3[] shapePath, float falloffDistance, LightCachedMeshData cachedMeshData)
+        public static Bounds GenerateShapeMesh(Mesh mesh, Vector3[] shapePath, float falloffDistance)
         {
-            if (Application.isPlaying && cachedMeshData && cachedMeshData.RequiresUpload())
-                    return cachedMeshData.Upload(mesh);
-
             var meshInteriorColor = new Color(0,0,0,1);
             var min = new float3(float.MaxValue, float.MaxValue, 0);
             var max = new float3(float.MinValue, float.MinValue, 0);
@@ -299,11 +287,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             mesh.SetVertexBufferParams(finalVertices.Length, ParametricLightMeshVertex.VertexLayout);
             mesh.SetVertexBufferData(finalVertices, 0, 0, finalVertices.Length);
             mesh.SetIndices(finalIndices, MeshTopology.Triangles, 0, false);
-
-#if UNITY_EDITOR
-            if (cachedMeshData)
-                cachedMeshData.SetGeometryCache(finalVertices.ToArray(), finalIndices.ToArray());
-#endif
 
             return new Bounds
             {

@@ -56,13 +56,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [Range(0,1)]
         [SerializeField] float m_ShadowVolumeIntensity = 0.0f;
 
-        [HideInInspector]
-        [SerializeField] bool m_GeometryCached = false;
+		[SerializeField]
+		Mesh m_Mesh;
 
         // Transients
-        int m_PreviousLightCookieSprite;
-        Mesh m_Mesh;
-        internal LightCachedMeshData m_CachedMeshData = null;
+        int m_PreviousLightCookieSprite;        
         internal int[] affectedSortingLayers => m_ApplyToSortingLayers;
 
         private int lightCookieSpriteInstanceID => m_LightCookieSprite?.GetInstanceID() ?? 0;
@@ -70,22 +68,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private Bounds m_LocalBounds;
         internal BoundingSphere boundingSphere { get; private set; }
 
-        internal Mesh lightMesh => m_Mesh;
+        internal Mesh lightMesh
+		{
+			get
+			{
+ 				if ( null == m_Mesh )
+					m_Mesh = new Mesh();
+				return m_Mesh;
+			}			
+		}
 
-        /// <summary>
-        /// Get LightCachedMeshData. In Runtime, we only check this Awake as the Component cannot be added on Runtime.
-        /// </summary>
-        internal LightCachedMeshData cachedMeshData
-        {
-            get
-            {
-#if UNITY_EDITOR
-                if (!m_CachedMeshData)
-                    m_CachedMeshData = GetComponent<LightCachedMeshData>();
-#endif
-                return m_CachedMeshData;
-            }
-        }
+        internal bool hasCachedMesh => ( lightMesh.vertices.Length != 0 && lightMesh.triangles.Length != 0 );
 
         /// <summary>
         /// The lights current type
@@ -137,7 +130,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public bool useNormalMap => m_UseNormalMap;
         public bool alphaBlendOnOverlap => m_AlphaBlendOnOverlap;
         public int lightOrder { get => m_LightOrder; set => m_LightOrder = value; }
-        internal bool geometryCached => m_GeometryCached;
 
         internal int GetTopMostLitLayer()
         {
@@ -163,7 +155,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 return -1;
         }
 
-        internal void UpdateMesh(bool forced)
+        internal void UpdateMesh(bool useCachedMesh)
         {
             var shapePathHash = LightUtility.GetShapePathHash(shapePath);
             var fallOffSizeChanged = LightUtility.CheckForChange(m_ShapeLightFalloffSize, ref m_PreviousShapeLightFalloffSize);
@@ -175,21 +167,21 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var updateMesh = fallOffSizeChanged || parametricRadiusChanged || parametricSidesChanged ||
                              parametricAngleOffsetChanged || spriteInstanceChanged || shapePathHashChanged;
             // Mesh Rebuilding
-            if ( updateMesh || forced)
+            if (updateMesh && !useCachedMesh)
             {
                 switch (m_LightType)
                 {
                     case LightType.Freeform:
-                        m_LocalBounds = LightUtility.GenerateShapeMesh(m_Mesh, m_ShapePath, m_ShapeLightFalloffSize, cachedMeshData);
+                        m_LocalBounds = LightUtility.GenerateShapeMesh(lightMesh, m_ShapePath, m_ShapeLightFalloffSize);
                         break;
                     case LightType.Parametric:
-                        m_LocalBounds = LightUtility.GenerateParametricMesh(m_Mesh, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides, cachedMeshData);
+                        m_LocalBounds = LightUtility.GenerateParametricMesh(lightMesh, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
                         break;
                     case LightType.Sprite:
-                        m_LocalBounds = LightUtility.GenerateSpriteMesh(m_Mesh, m_LightCookieSprite);
+                        m_LocalBounds = LightUtility.GenerateSpriteMesh(lightMesh, m_LightCookieSprite);
                         break;
                     case LightType.Point:
-                        m_LocalBounds = LightUtility.GenerateParametricMesh(m_Mesh, 1.412135f, 0, 0, 4, cachedMeshData);
+                        m_LocalBounds = LightUtility.GenerateParametricMesh(lightMesh, 1.412135f, 0, 0, 4);
                         break;
                 }
             }
@@ -218,9 +210,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private void Awake()
         {
-            m_Mesh = new Mesh();
-            m_CachedMeshData = GetComponent<LightCachedMeshData>();
-            UpdateMesh(false);
+            UpdateMesh(hasCachedMesh);
         }
 
         void OnEnable()
