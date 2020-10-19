@@ -4,7 +4,7 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Mesh Deformation", "Compute Deformation")]
+    [Title("Input", "Mesh Deformation", "Compute Deformation")]
     class ComputeDeformNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent, IMayRequireVertexID
     {
         public const int kPositionOutputSlotId = 0;
