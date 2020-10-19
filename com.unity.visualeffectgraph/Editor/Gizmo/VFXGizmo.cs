@@ -102,6 +102,17 @@ namespace UnityEditor.VFX
             }
             return false;
         }
+        public bool RotationGizmo(Vector3 position, ref Vector3 rotation, bool always)
+        {
+            var quaternion = Quaternion.Euler(rotation);
+            bool result = RotationGizmo(position, ref quaternion, always);
+            if (result)
+            {
+                rotation = quaternion.eulerAngles;
+                return true;
+            }
+            return false;
+        }
 
         static Color ToActiveColorSpace(Color color)
         {
@@ -112,16 +123,17 @@ namespace UnityEditor.VFX
         static Vector3[] s_AxisVector = { Vector3.right, Vector3.up, Vector3.forward, Vector3.zero };
         static int[] s_AxisId = { "VFX_RotateAxis_X".GetHashCode(), "VFX_RotateAxis_Y".GetHashCode(), "VFX_RotateAxis_Z".GetHashCode(), "VFX_RotateAxis_Camera".GetHashCode() };
         static Color s_DisabledHandleColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
-        static Quaternion CustomRotationHandle(Quaternion rotation, Vector3 position)
+        static Quaternion CustomRotationHandle(Quaternion rotation, Vector3 position, bool onlyCameraAxis = false)
         {
             //Equivalent of Rotation Handle but with explicit id & *without* free rotate.
             var evt = Event.current;
+            var isRepaint = evt.type == EventType.Repaint;
             var camForward = Handles.inverseMatrix.MultiplyVector(Camera.current != null ? Camera.current.transform.forward : Vector3.forward);
             var size = HandleUtility.GetHandleSize(position);
             var isHot = s_AxisId.Any(id => id == GUIUtility.hotControl);
 
             var previousColor = Handles.color;
-            for (var i = 0; i < 4; ++i)
+            for (var i = onlyCameraAxis ? 3 : 0; i < 4; ++i)
             {
                 Handles.color = ToActiveColorSpace(s_AxisColor[i]);
                 var axisDir = i == 3 ? camForward : rotation * s_AxisVector[i];
@@ -139,35 +151,30 @@ namespace UnityEditor.VFX
         }
 
         static int s_FreeRotationID = "VFX_FreeRotation_Id".GetHashCode();
-
-        public bool RotationGizmo(Vector3 position, ref Vector3 rotation, bool always)
+        static Quaternion CustomFreeRotationHandle(Quaternion rotation, Vector3 position)
         {
-            var quaternion = Quaternion.Euler(rotation);
-            bool result = RotationGizmo(position, ref quaternion, always);
-            if (result)
-            {
-                rotation = quaternion.eulerAngles;
-                return true;
-            }
-            return false;
+            var previousColor = Handles.color;
+            Handles.color = ToActiveColorSpace(s_DisabledHandleColor);
+            var newRotation = Handles.FreeRotateHandle(s_FreeRotationID, rotation, position, HandleUtility.GetHandleSize(position));
+            Handles.color = previousColor;
+            return newRotation;
         }
 
         bool m_IsRotating = false;
         Quaternion m_StartRotation = Quaternion.identity;
         int m_HotControlRotation = -1;
+
         public bool RotationGizmo(Vector3 position, ref Quaternion rotation, bool always)
         {
             if (always || Tools.current == Tool.Rotate || Tools.current == Tool.Transform || Tools.current == Tool.None)
             {
-                bool displayAndUseFreeRotation = Event.current.shift;
+                bool usingFreeRotation = GUIUtility.hotControl == s_FreeRotationID;
                 var handleRotation = GetHandleRotation(rotation);
 
                 EditorGUI.BeginChangeCheck();
-                Quaternion newRotation;
-                if (displayAndUseFreeRotation)
-                    newRotation = Handles.FreeRotateHandle(s_FreeRotationID, rotation, position, HandleUtility.GetHandleSize(position) * 1.1f);
-                else
-                    newRotation = CustomRotationHandle(handleRotation, position);
+                var rotationFromFreeHandle = CustomFreeRotationHandle(rotation, position);
+                var rotationFromAxis = CustomRotationHandle(handleRotation, position);
+                var newRotation = usingFreeRotation ? rotationFromFreeHandle : rotationFromAxis;
 
                 if (EditorGUI.EndChangeCheck())
                 {
@@ -178,7 +185,7 @@ namespace UnityEditor.VFX
                         m_HotControlRotation = GUIUtility.hotControl;
                     }
 
-                    if (!displayAndUseFreeRotation /* Free rotation are always in local */ && Tools.pivotRotation == PivotRotation.Global)
+                    if (!usingFreeRotation /* Free rotation are always in local */ && Tools.pivotRotation == PivotRotation.Global)
                         rotation = newRotation * Handles.matrix.rotation * m_StartRotation;
                     else
                         rotation = newRotation;
@@ -193,11 +200,6 @@ namespace UnityEditor.VFX
                     m_StartRotation = Quaternion.identity;
                     m_IsRotating = false;
                     m_HotControlRotation = -1;
-                }
-
-                if (displayAndUseFreeRotation && Event.current.type == EventType.Repaint)
-                {
-                    CustomRotationHandle(handleRotation, position);
                 }
             }
             return false;
