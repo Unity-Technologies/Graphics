@@ -267,9 +267,8 @@ namespace UnityEditor.Rendering
             var attrs = editor.target.GetType().GetCustomAttributes(false);
             foreach (var attr in attrs)
             {
-                var attrDocumentation = attr as VolumeComponentDocumentation;
-                if (attrDocumentation != null)
-                    return attrDocumentation.documentationURL;
+                if (attr is HelpURLAttribute attrDocumentation)
+                    return attrDocumentation.URL;
             }
 
             // Otherwise, return the one stored in the editor (will be null by default).
