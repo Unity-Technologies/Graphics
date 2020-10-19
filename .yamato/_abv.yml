@@ -59,6 +59,17 @@ all_project_ci_nightly_trunk:
         recurring:
           -  branch: master
              frequency: 0 * * ?
+all_project_ci_weekly_trunk:
+    name: _Weekly ABV against trunk
+    dependencies:
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_NonRenderGraph_mono_apiNet2_Linear_trunk
+         rerun: on-new-revision
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_NonRenderGraph_mono_apiNet2_Linear_trunk
+         rerun: on-new-revision
+    triggers:
+        recurring:
+          -  branch: master
+             frequency: weekly
 trunk_verification_trunk:
     name: Trunk verification - trunk
     dependencies:
@@ -138,6 +149,17 @@ all_project_ci_nightly_2020.2:
         recurring:
           -  branch: master
              frequency: 0 * * ?
+all_project_ci_weekly_2020.2:
+    name: _Weekly ABV against 2020.2
+    dependencies:
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_NonRenderGraph_mono_apiNet2_Linear_2020.2
+         rerun: on-new-revision
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_NonRenderGraph_mono_apiNet2_Linear_2020.2
+         rerun: on-new-revision
+    triggers:
+        recurring:
+          -  branch: master
+             frequency: weekly
 trunk_verification_2020.2:
     name: Trunk verification - 2020.2
     dependencies:
@@ -176,6 +198,19 @@ all_project_ci_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+all_project_ci_weekly_CUSTOM-REVISION:
+    name: _Weekly ABV against CUSTOM-REVISION
+    dependencies:
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_NonRenderGraph_mono_apiNet2_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_NonRenderGraph_mono_apiNet2_Linear_CUSTOM-REVISION
+         rerun: always
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+    triggers:
+        recurring:
+          -  branch: master
+             frequency: weekly
 trunk_verification_CUSTOM-REVISION:
     name: Trunk verification - CUSTOM-REVISION
     dependencies:
