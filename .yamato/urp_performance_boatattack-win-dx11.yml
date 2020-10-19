@@ -20,14 +20,14 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_il2cpp_apiNet4_
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
-      -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_il2cpp_apiNet4_Linear_trunk
+      -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_Player_il2cpp_apiNet4_Linear_trunk
          rerun: on-new-revision
-Build_URP_Performance_BoatAttack_Win_DX11_Player_il2cpp_apiNet4_Linear_trunk:
-    name: Build URP_Performance_BoatAttack on Win_DX11_il2cpp_apiNet4_Linear_Player on version trunk
+Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_Player_il2cpp_apiNet4_Linear_trunk:
+    name: Build URP_Performance_BoatAttack on Win_DX11_il2cpp_apiNet4_Linear_performance_playmode_runtime_build_Player on version trunk
     agent:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
+        flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -89,14 +89,14 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_apiNet2_Li
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
-      -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_apiNet2_Linear_trunk
+      -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_Player_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
-Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_apiNet2_Linear_trunk:
-    name: Build URP_Performance_BoatAttack on Win_DX11_mono_apiNet2_Linear_Player on version trunk
+Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_Player_mono_apiNet2_Linear_trunk:
+    name: Build URP_Performance_BoatAttack on Win_DX11_mono_apiNet2_Linear_performance_playmode_runtime_build_Player on version trunk
     agent:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
+        flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -158,14 +158,14 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_il2cpp_apiNet4_
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
-      -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_il2cpp_apiNet4_Linear_2020.2
+      -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_Player_il2cpp_apiNet4_Linear_2020.2
          rerun: on-new-revision
-Build_URP_Performance_BoatAttack_Win_DX11_Player_il2cpp_apiNet4_Linear_2020.2:
-    name: Build URP_Performance_BoatAttack on Win_DX11_il2cpp_apiNet4_Linear_Player on version 2020.2
+Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_Player_il2cpp_apiNet4_Linear_2020.2:
+    name: Build URP_Performance_BoatAttack on Win_DX11_il2cpp_apiNet4_Linear_performance_playmode_runtime_build_Player on version 2020.2
     agent:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
+        flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -227,14 +227,14 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_apiNet2_Li
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
-      -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_apiNet2_Linear_2020.2
+      -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_Player_mono_apiNet2_Linear_2020.2
          rerun: on-new-revision
-Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_apiNet2_Linear_2020.2:
-    name: Build URP_Performance_BoatAttack on Win_DX11_mono_apiNet2_Linear_Player on version 2020.2
+Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_Player_mono_apiNet2_Linear_2020.2:
+    name: Build URP_Performance_BoatAttack on Win_DX11_mono_apiNet2_Linear_performance_playmode_runtime_build_Player on version 2020.2
     agent:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
+        flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
@@ -299,14 +299,14 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_il2cpp_apiNet4_
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_il2cpp_apiNet4_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_Player_il2cpp_apiNet4_Linear_CUSTOM-REVISION
          rerun: always
-Build_URP_Performance_BoatAttack_Win_DX11_Player_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
-    name: Build URP_Performance_BoatAttack on Win_DX11_il2cpp_apiNet4_Linear_Player on version CUSTOM-REVISION
+Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_Player_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
+    name: Build URP_Performance_BoatAttack on Win_DX11_il2cpp_apiNet4_Linear_performance_playmode_runtime_build_Player on version CUSTOM-REVISION
     agent:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
+        flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -375,14 +375,14 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_apiNet2_Li
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_Player_mono_apiNet2_Linear_CUSTOM-REVISION
          rerun: always
-Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: Build URP_Performance_BoatAttack on Win_DX11_mono_apiNet2_Linear_Player on version CUSTOM-REVISION
+Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
+    name: Build URP_Performance_BoatAttack on Win_DX11_mono_apiNet2_Linear_performance_playmode_runtime_build_Player on version CUSTOM-REVISION
     agent:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
+        flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
