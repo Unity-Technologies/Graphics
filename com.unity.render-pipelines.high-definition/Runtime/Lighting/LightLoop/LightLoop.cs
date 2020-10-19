@@ -1809,7 +1809,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bound.boxAxisX = extents.x * xAxisVS;
                 bound.boxAxisY = extents.y * yAxisVS;
                 bound.boxAxisZ = extents.z * zAxisVS;
-                bound.radius   = extents.magnitude;
+                bound.radius   = range + 0.5f * lightDimensions.x;
                 bound.scaleXY  = 1.0f;
 
                 lightVolumeData.lightPos   = centerVS;
@@ -1829,7 +1829,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bound.boxAxisX = extents.x * xAxisVS;
                 bound.boxAxisY = extents.y * yAxisVS;
                 bound.boxAxisZ = extents.z * zAxisVS;
-                bound.radius   = extents.magnitude;
+                bound.radius   = range + 0.5f * Mathf.Sqrt(lightDimensions.x * lightDimensions.x + lightDimensions.y * lightDimensions.y);
                 bound.scaleXY  = 1.0f;
 
                 lightVolumeData.lightPos   = centerVS;
