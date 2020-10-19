@@ -7,9 +7,31 @@ namespace UnityEditor.ShaderGraph.Internal
     // class for extracting deprecated data from older versions of AbstractShaderProperty
     class LegacyShaderPropertyData
     {
-        // indicates user wishes to support HYBRID renderer GPU instanced path
+        // indicates user wishes to support the HYBRID renderer GPU instanced path
         [SerializeField]
         public bool m_GPUInstanced = false;
+
+        // converts the old m_GPUInstanced data into the new override HLSLDeclaration system
+        public static void UpgradeToHLSLDeclarationOverride(string json, AbstractShaderProperty property)
+        {
+            // this maintains the old behavior for versioned properties:
+            //      old exposed GPUInstanced properties are declared hybrid (becomes override in new system)
+            //      old unexposed GPUInstanced properties are declared global (becomes override in new system)
+            //      old exposed properties are declared UnityPerMaterial (default behavior, no override necessary)
+            //      old unexposed properties are declared Global (default behavior, no override necessary)
+            // moving forward, users can use the overrides directly to control what it does
+
+            var legacyShaderPropertyData = new LegacyShaderPropertyData();
+            JsonUtility.FromJsonOverwrite(json, legacyShaderPropertyData);
+            if (legacyShaderPropertyData.m_GPUInstanced)
+            {
+                property.overrideHLSLDeclaration = true;
+                if (property.generatePropertyBlock)
+                    property.hlslDeclarationOverride = HLSLDeclaration.HybridPerInstance;
+                else
+                    property.hlslDeclarationOverride = HLSLDeclaration.Global;
+            }
+        }
     }
 
     public enum HLSLType
@@ -117,21 +139,17 @@ namespace UnityEditor.ShaderGraph.Internal
         [SerializeField]
         Precision m_Precision = Precision.Inherit;
 
-        // indicates user wishes to support HYBRID renderer GPU instanced path
-        [SerializeField]
-        private bool m_GPUInstanced = false;
+        // indicates user wishes to support the HYBRID renderer GPU instanced path
         public bool gpuInstanced
         {
-            get { return m_GPUInstanced; }
-            set { m_GPUInstanced = value; }
+            get { return overrideHLSLDeclaration && (hlslDeclarationOverride == HLSLDeclaration.HybridPerInstance); }
         }
 
         internal HLSLDeclaration GetDefaultHLSLDeclaration()
         {
             if (overrideHLSLDeclaration)
                 return hlslDeclarationOverride;
-            if (gpuInstanced)
-                return HLSLDeclaration.HybridPerInstance;
+            // default Behavior switches between UnityPerMaterial and Global based on Exposed checkbox
             if (generatePropertyBlock)
                 return HLSLDeclaration.UnityPerMaterial;
             else
@@ -203,7 +221,6 @@ namespace UnityEditor.ShaderGraph.Internal
         internal abstract string GetPropertyAsArgumentString();
         internal abstract AbstractMaterialNode ToConcreteNode();
         internal abstract PreviewProperty GetPreviewMaterialProperty();
-        internal virtual bool isGpuInstanceable => false;
 
         public virtual string GetPropertyTypeString()
         {

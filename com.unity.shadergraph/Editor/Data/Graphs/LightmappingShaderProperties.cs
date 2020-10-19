@@ -21,7 +21,8 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             displayName = "unity_Lightmaps",
             generatePropertyBlock = true,
-            gpuInstanced = false,
+            overrideHLSLDeclaration = false,
+            hlslDeclarationOverride = HLSLDeclaration.None,
             hidden = true,
             modifiable = true,
             overrideReferenceName = "unity_Lightmaps",
@@ -32,7 +33,8 @@ namespace UnityEditor.ShaderGraph.Internal
             {
                 displayName = "unity_LightmapsInd",
                 generatePropertyBlock = true,
-                gpuInstanced = false,
+                overrideHLSLDeclaration = false,
+                hlslDeclarationOverride = HLSLDeclaration.None,
                 hidden = true,
                 modifiable = true,
                 overrideReferenceName = "unity_LightmapsInd",
@@ -43,7 +45,8 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             displayName = "unity_ShadowMasks",
             generatePropertyBlock = true,
-            gpuInstanced = false,
+            overrideHLSLDeclaration = false,
+            hlslDeclarationOverride = HLSLDeclaration.None,
             hidden = true,
             modifiable = true,
             overrideReferenceName = "unity_ShadowMasks",

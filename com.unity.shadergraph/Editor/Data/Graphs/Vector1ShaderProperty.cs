@@ -22,7 +22,6 @@ namespace UnityEditor.ShaderGraph.Internal
         
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
-        internal override bool isGpuInstanceable => true;
 
         string enumTagString
         {
@@ -161,8 +160,19 @@ namespace UnityEditor.ShaderGraph.Internal
                 enumNames = enumNames,
                 enumValues = enumValues,
                 precision = precision,
-                gpuInstanced = gpuInstanced,
+                overrideHLSLDeclaration = overrideHLSLDeclaration,
+                hlslDeclarationOverride = hlslDeclarationOverride
             };
+        }
+
+        public override int latestVersion => 1;
+        public override void OnAfterDeserialize(string json)
+        {
+            if (sgVersion == 0)
+            {
+                LegacyShaderPropertyData.UpgradeToHLSLDeclarationOverride(json, this);
+                ChangeVersion(1);
+            }
         }
     }
 

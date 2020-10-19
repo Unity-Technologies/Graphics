@@ -13,7 +13,6 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             displayName = "Vector4";
         }
-        internal override bool isGpuInstanceable => true;
         
         public override PropertyType propertyType => PropertyType.Vector4;
         
@@ -44,7 +43,8 @@ namespace UnityEditor.ShaderGraph.Internal
                 hidden = hidden,
                 value = value,
                 precision = precision,
-                gpuInstanced = gpuInstanced,
+                overrideHLSLDeclaration = overrideHLSLDeclaration,
+                hlslDeclarationOverride = hlslDeclarationOverride
             };
         }
 
@@ -54,10 +54,14 @@ namespace UnityEditor.ShaderGraph.Internal
             action(new HLSLProperty(HLSLType._float4, referenceName, decl, concretePrecision));
         }
 
-        public override int latestVersion => 0;
+        public override int latestVersion => 1;
         public override void OnAfterDeserialize(string json)
         {
-            ChangeVersion(0);
+            if (sgVersion == 0)
+            {
+                LegacyShaderPropertyData.UpgradeToHLSLDeclarationOverride(json, this);
+                ChangeVersion(1);
+            }
         }
     }
 }

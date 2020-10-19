@@ -23,7 +23,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
-        internal override bool isGpuInstanceable => true;
 
         public override PropertyType propertyType => PropertyType.Float;
 
@@ -85,7 +84,8 @@ $@"[DiffusionProfile]{referenceName}(""{displayName}"", Float) = {f2s(HDShadowUt
                 hidden = hidden,
                 value = value,
                 precision = precision,
-                gpuInstanced = gpuInstanced,
+                overrideHLSLDeclaration = overrideHLSLDeclaration,
+                hlslDeclarationOverride = hlslDeclarationOverride
             };
         }
 
@@ -102,6 +102,16 @@ $@"[DiffusionProfile]{referenceName}(""{displayName}"", Float) = {f2s(HDShadowUt
                 value.asset,
                 "Diffusion Profile",
                 out var _));
+        }
+
+        public override int latestVersion => 1;
+        public override void OnAfterDeserialize(string json)
+        {
+            if (sgVersion == 0)
+            {
+                LegacyShaderPropertyData.UpgradeToHLSLDeclarationOverride(json, this);
+                ChangeVersion(1);
+            }
         }
     }
 }

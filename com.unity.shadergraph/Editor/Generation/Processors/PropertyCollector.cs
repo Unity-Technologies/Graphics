@@ -39,7 +39,6 @@ namespace UnityEditor.ShaderGraph
                 builder.AppendLine("CBUFFER_START(UnityPerMaterial)");
 
                 // all non-gpu instanced properties (even non-batchable ones) - preview is weird (wtf?)
-                //foreach (var prop in properties.Where(p => !p.gpuInstanced))
                 foreach (var h in hlslProps)
                 {
                     if ((h.declaration == HLSLDeclaration.UnityPerMaterial) ||
@@ -50,7 +49,6 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 // gpu-instanced properties
-                //var gpuInstancedProperties = properties.Where(p => p.gpuInstanced);
                 var gpuInstancedProps = hlslProps.Where(h => h.declaration == HLSLDeclaration.HybridPerInstance);
                 if (gpuInstancedProps.Any())
                 {
@@ -153,7 +151,7 @@ namespace UnityEditor.ShaderGraph
         {
             var previewMode = (mode == GenerationMode.Preview);
             // return properties.Where(n => (previewMode || (n.generatePropertyBlock && n.hasBatchableProperties)) && n.gpuInstanced);
-            return properties.Where(n => (previewMode || (n.generatePropertyBlock && n.isGpuInstanceable)) && n.gpuInstanced);      // todo : NOT sure about this line here
+            return properties.Where(n => (previewMode || n.generatePropertyBlock) && n.gpuInstanced);      // todo : NOT sure about this line here
         }
 
         public string GetDotsInstancingPropertiesDeclaration(GenerationMode mode)

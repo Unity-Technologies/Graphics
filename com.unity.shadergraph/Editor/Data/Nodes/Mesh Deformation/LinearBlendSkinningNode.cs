@@ -74,7 +74,8 @@ namespace UnityEditor.ShaderGraph
             {
                 displayName = "Skin Matrix Index Offset",
                 overrideReferenceName = "_SkinMatrixIndex",
-                gpuInstanced = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.HybridPerInstance,
 #if ENABLE_HYBRID_RENDERER_V2
                 hidden = true,
 #endif
@@ -85,7 +86,8 @@ namespace UnityEditor.ShaderGraph
             properties.AddShaderProperty(new Vector1ShaderProperty()
             {
                 overrideReferenceName = "_SkinMatricesOffset",
-                gpuInstanced = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.HybridPerInstance,
 #if ENABLE_HYBRID_RENDERER_V2
                 hidden = true,
 #endif

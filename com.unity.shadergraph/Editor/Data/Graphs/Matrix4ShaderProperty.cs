@@ -14,7 +14,6 @@ namespace UnityEditor.ShaderGraph
             displayName = "Matrix4x4";
             value = Matrix4x4.identity;
         }
-        internal override bool isGpuInstanceable => true;
         
         public override PropertyType propertyType => PropertyType.Matrix4;
 
@@ -51,8 +50,19 @@ namespace UnityEditor.ShaderGraph
                 hidden = hidden,
                 value = value,
                 precision = precision,
-                gpuInstanced = gpuInstanced,
+                overrideHLSLDeclaration = overrideHLSLDeclaration,
+                hlslDeclarationOverride = hlslDeclarationOverride
             };
+        }
+
+        public override int latestVersion => 1;
+        public override void OnAfterDeserialize(string json)
+        {
+            if (sgVersion == 0)
+            {
+                LegacyShaderPropertyData.UpgradeToHLSLDeclarationOverride(json, this);
+                ChangeVersion(1);
+            }
         }
     }
 }

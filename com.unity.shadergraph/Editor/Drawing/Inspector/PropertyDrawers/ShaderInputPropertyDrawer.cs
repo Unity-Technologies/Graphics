@@ -102,7 +102,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             var propertySheet = new PropertySheet();
             shaderInput = actualObject as ShaderInput;
             BuildPropertyNameLabel(propertySheet);
-            BuildExposedField(propertySheet);
             BuildDisplayNameField(propertySheet);
             BuildReferenceNameField(propertySheet);
             BuildPropertyFields(propertySheet);
@@ -278,8 +277,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             }
 
             BuildPrecisionField(propertySheet, property);
-            if(property.isGpuInstanceable)
-                BuildGpuInstancingField(propertySheet, property);
+
+            BuildExposedField(propertySheet);
 
             BuildHLSLDeclarationOverrideFields(propertySheet, property);
         }
@@ -302,7 +301,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             if (anyAllowed)
             {
-                var propRow = new PropertyRow(PropertyDrawerUtils.CreateLabel("Declaration Type", 1));
+                var propRow = new PropertyRow(PropertyDrawerUtils.CreateLabel("Shader Declaration", 1));
                 var popupField = new PopupField<HLSLDeclaration>(
                     allowedDecls,
                     property.hlslDeclarationOverride,
@@ -368,19 +367,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     this._precisionChangedCallback();
                     this._postChangeValueCallback();
                 }, property.precision, "Precision", Precision.Inherit, out var precisionField));
-        }
-
-        void BuildGpuInstancingField(PropertySheet propertySheet, AbstractShaderProperty property)
-        {
-            var toggleDataPropertyDrawer = new ToggleDataPropertyDrawer();
-            propertySheet.Add(toggleDataPropertyDrawer.CreateGUI( newValue =>
-            {
-                this._preChangeValueCallback("Change Hybrid Instanced Toggle");
-                property.gpuInstanced = newValue.isOn;
-                this._postChangeValueCallback(false, ModificationScope.Graph);
-            }, new ToggleData(property.gpuInstanced), "Hybrid Instanced (experimental)", out var gpuInstancedToggle));
-
-            gpuInstancedToggle.SetEnabled(property.isGpuInstanceable);
         }
 
         void HandleVector1ShaderProperty(PropertySheet propertySheet, Vector1ShaderProperty vector1ShaderProperty)

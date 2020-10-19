@@ -42,7 +42,8 @@ namespace UnityEditor.ShaderGraph.Internal
                 hidden = hidden,
                 value = value,
                 precision = precision,
-                gpuInstanced = gpuInstanced,
+                overrideHLSLDeclaration = overrideHLSLDeclaration,
+                hlslDeclarationOverride = hlslDeclarationOverride
             };
         }
 
@@ -50,6 +51,16 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             HLSLDeclaration decl = GetDefaultHLSLDeclaration();
             action(new HLSLProperty(HLSLType._float3, referenceName, decl, concretePrecision));
+        }
+
+        public override int latestVersion => 1;
+        public override void OnAfterDeserialize(string json)
+        {
+            if (sgVersion == 0)
+            {
+                LegacyShaderPropertyData.UpgradeToHLSLDeclarationOverride(json, this);
+                ChangeVersion(1);
+            }
         }
     }
 }

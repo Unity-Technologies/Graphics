@@ -76,7 +76,8 @@ namespace UnityEditor.ShaderGraph
             {
                 displayName = "Compute Mesh Buffer Index Offset",
                 overrideReferenceName = "_ComputeMeshIndex",
-                gpuInstanced = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.HybridPerInstance,
 #if ENABLE_HYBRID_RENDERER_V2
                 hidden = true,
 #endif
