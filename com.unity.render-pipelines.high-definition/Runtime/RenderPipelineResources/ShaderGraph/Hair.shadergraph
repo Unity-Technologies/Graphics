@@ -1464,7 +1464,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "01b78ab2736341c583ed3425bdb77153",
     "m_Id": 0,
-    "m_DisplayName": "Alpha Cutoff Prepass",
+    "m_DisplayName": "Alpha Clip Threshold Depth Prepass",
     "m_SlotType": 1,
     "m_Priority": 2147483647,
     "m_Hidden": false,
@@ -1862,7 +1862,7 @@
     "m_Group": {
         "m_Id": "c339c408103644369562c668bc875139"
     },
-    "m_Name": "Vector 1",
+    "m_Name": "Float",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -3256,7 +3256,7 @@
     "m_Guid": {
         "m_GuidSerialized": "08ee1c25-529f-4fca-8392-271b44871553"
     },
-    "m_Name": "Alpha Cutoff Shadows",
+    "m_Name": "Alpha Clip Threshold Shadows",
     "m_DefaultReferenceName": "Vector1_CAFF147E",
     "m_OverrideReferenceName": "_AlphaThresholdShadow",
     "m_GeneratePropertyBlock": true,
@@ -3808,7 +3808,7 @@
     "m_Group": {
         "m_Id": "c339c408103644369562c668bc875139"
     },
-    "m_Name": "Vector 1",
+    "m_Name": "Float",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -4419,7 +4419,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "65cf5b38976b426b9d3f91bd6812e7de",
     "m_Id": 0,
-    "m_DisplayName": "Alpha Cutoff Postpass",
+    "m_DisplayName": "Alpha Clip Threshold Depth Postpass",
     "m_SlotType": 1,
     "m_Priority": 2147483647,
     "m_Hidden": false,
@@ -5536,7 +5536,7 @@
     "m_Guid": {
         "m_GuidSerialized": "1c11679b-cbb6-4fa9-8f37-996c04d07707"
     },
-    "m_Name": "Alpha Cutoff",
+    "m_Name": "Alpha Clip Threshold",
     "m_DefaultReferenceName": "Vector1_15C6E93B",
     "m_OverrideReferenceName": "_AlphaClipThreshold",
     "m_GeneratePropertyBlock": true,
@@ -5691,7 +5691,7 @@
     "m_Guid": {
         "m_GuidSerialized": "d91fd1a5-e079-4844-b874-c9c0ca592f79"
     },
-    "m_Name": "Alpha Cutoff Prepass",
+    "m_Name": "Alpha Clip Threshold Depth Prepass",
     "m_DefaultReferenceName": "Vector1_AD26FB16",
     "m_OverrideReferenceName": "_AlphaClipThresholdDepthPrepass",
     "m_GeneratePropertyBlock": true,
@@ -8239,7 +8239,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "e80b648a9aa849c6a4663614c1244913",
     "m_Id": 0,
-    "m_DisplayName": "Alpha Cutoff",
+    "m_DisplayName": "Alpha Clip Threshold",
     "m_SlotType": 1,
     "m_Priority": 2147483647,
     "m_Hidden": false,
@@ -8259,7 +8259,7 @@
     "m_Guid": {
         "m_GuidSerialized": "2fbe22fb-2883-4e21-974b-0e58cf6fa5a8"
     },
-    "m_Name": "Alpha Cutoff Postpass",
+    "m_Name": "Alpha Clip Threshold Depth Postpass",
     "m_DefaultReferenceName": "Vector1_4B895F81",
     "m_OverrideReferenceName": "_AlphaClipThresholdDepthPostpass",
     "m_GeneratePropertyBlock": true,
@@ -8353,7 +8353,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "edc0c21694064a12accf5b23505754ce",
     "m_Id": 0,
-    "m_DisplayName": "Alpha Cutoff Shadows",
+    "m_DisplayName": "Alpha Clip Threshold Shadows",
     "m_SlotType": 1,
     "m_Priority": 2147483647,
     "m_Hidden": false,
@@ -8373,7 +8373,7 @@
     "m_Group": {
         "m_Id": "c339c408103644369562c668bc875139"
     },
-    "m_Name": "Vector 1",
+    "m_Name": "Float",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
