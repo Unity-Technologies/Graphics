@@ -35,8 +35,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override bool hasAdvancedMode => (m_RayTracing == null || !(HDRenderPipeline.pipelineSupportsRayTracing && m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue));
 
-        public override string documentationURL => Documentation.GetPageLink("Override-Ambient-Occlusion");
-
         public override void OnEnable()
         {
             base.OnEnable();

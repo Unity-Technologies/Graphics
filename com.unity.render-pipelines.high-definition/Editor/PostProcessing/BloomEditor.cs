@@ -22,8 +22,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override bool hasAdvancedMode => true;
 
-        public override string documentationURL => Documentation.GetPageLink("Post-Processing-Bloom");
-
         public override void OnEnable()
         {
             base.OnEnable();

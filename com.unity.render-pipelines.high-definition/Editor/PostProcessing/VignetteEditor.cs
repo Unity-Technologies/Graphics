@@ -19,8 +19,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_Mask;
         SerializedDataParameter m_Opacity;
 
-        public override string documentationURL => Documentation.GetPageLink("Post-Processing-Vignette");
-
         public override void OnEnable()
         {
             var o = new PropertyFetcher<Vignette>(serializedObject);

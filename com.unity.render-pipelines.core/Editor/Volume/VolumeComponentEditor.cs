@@ -121,11 +121,6 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>
-        /// Override this property to show a link to documentation on the editor toolbar.
-        /// </summary>
-        public virtual string documentationURL => null;
-
-        /// <summary>
         /// A reference to the parent editor in the Inspector.
         /// </summary>
         protected Editor m_Inspector;

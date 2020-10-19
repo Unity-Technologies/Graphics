@@ -263,7 +263,6 @@ namespace UnityEditor.Rendering
 
         string GetDocumentationURL(VolumeComponentEditor editor)
         {
-            // First check to see if there was URL provided in the attribute (useful for components that do not have custom editor).
             var attrs = editor.target.GetType().GetCustomAttributes(false);
             foreach (var attr in attrs)
             {
@@ -271,8 +270,8 @@ namespace UnityEditor.Rendering
                     return attrDocumentation.URL;
             }
 
-            // Otherwise, return the one stored in the editor (will be null by default).
-            return editor.documentationURL;
+            // There is no documentation for this volume component.
+            return null;
         }
 
         void OnContextClick(Vector2 position, VolumeComponent targetComponent, int id)

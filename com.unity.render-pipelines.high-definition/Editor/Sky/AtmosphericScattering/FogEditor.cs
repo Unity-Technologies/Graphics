@@ -40,8 +40,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override bool hasAdvancedMode => true;
 
-        public override string documentationURL => Documentation.GetPageLink("Override-Fog");
-
         public override void OnEnable()
         {
             var o = new PropertyFetcher<Fog>(serializedObject);

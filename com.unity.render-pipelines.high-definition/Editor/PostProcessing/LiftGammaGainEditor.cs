@@ -11,8 +11,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_Gamma;
         SerializedDataParameter m_Gain;
 
-        public override string documentationURL => Documentation.GetPageLink("Post-Processing-Lift-Gamma-Gain");
-
         readonly TrackballUIDrawer m_TrackballUIDrawer = new TrackballUIDrawer();
 
         public override void OnEnable()

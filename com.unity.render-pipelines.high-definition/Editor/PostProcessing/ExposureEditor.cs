@@ -43,8 +43,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override bool hasAdvancedMode => true;
 
-        public override string documentationURL => Documentation.GetPageLink("Override-Exposure");
-
         public override void OnEnable()
         {
             var o = new PropertyFetcher<Exposure>(serializedObject);

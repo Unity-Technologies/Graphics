@@ -19,8 +19,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         readonly TrackballUIDrawer m_TrackballUIDrawer = new TrackballUIDrawer();
 
-        public override string documentationURL => Documentation.GetPageLink("Post-Processing-Shadows-Midtones-Highlights");
-
         // Curve drawing utilities
         Rect m_CurveRect;
         Material m_Material;

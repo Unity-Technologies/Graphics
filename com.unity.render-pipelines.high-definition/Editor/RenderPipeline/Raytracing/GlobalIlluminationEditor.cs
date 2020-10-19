@@ -39,8 +39,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_DenoiserRadius;
         SerializedDataParameter m_SecondDenoiserPass;
 
-        public override string documentationURL => Documentation.GetPageLink("Ray-Traced-Global-Illumination");
-
         public override void OnEnable()
         {
             base.OnEnable();

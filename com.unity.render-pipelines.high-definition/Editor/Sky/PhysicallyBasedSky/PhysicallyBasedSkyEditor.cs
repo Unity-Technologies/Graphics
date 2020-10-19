@@ -48,8 +48,6 @@ namespace UnityEditor.Rendering.HighDefinition
         GUIContent[]    m_ModelTypes = { new GUIContent("Earth (Simple)"), new GUIContent("Earth (Advanced)"), new GUIContent("Custom Planet") };
         int[]           m_ModelTypeValues = { (int)PhysicallyBasedSkyModel.EarthSimple, (int)PhysicallyBasedSkyModel.EarthAdvanced, (int)PhysicallyBasedSkyModel.Custom };
 
-        public override string documentationURL => Documentation.GetPageLink("Override-Physically-Based-Sky");
-
         public override void OnEnable()
         {
             base.OnEnable();

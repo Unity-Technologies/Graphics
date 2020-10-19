@@ -37,8 +37,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_SampleCount;
         SerializedDataParameter m_BounceCount;
 
-        public override string documentationURL => Documentation.GetPageLink("Override-Screen-Space-Reflection");
-
         public override void OnEnable()
         {
             base.OnEnable();

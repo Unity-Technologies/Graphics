@@ -11,8 +11,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_Intensity;
         SerializedDataParameter m_MaxSamples;
 
-        public override string documentationURL => Documentation.GetPageLink("Post-Processing-Chromatic-Aberration");
-
         public override void OnEnable()
         {
             base.OnEnable();

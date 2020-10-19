@@ -19,8 +19,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_LutTexture;
         SerializedDataParameter m_LutContribution;
 
-        public override string documentationURL => Documentation.GetPageLink("Post-Processing-Tonemapping");
-
         // Curve drawing utilities
         readonly HableCurve m_HableCurve = new HableCurve();
         Rect m_CurveRect;

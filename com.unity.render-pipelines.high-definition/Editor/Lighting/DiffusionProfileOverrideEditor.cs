@@ -11,6 +11,7 @@ using Object = UnityEngine.Object;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [VolumeComponentEditor(typeof(DiffusionProfileOverride))]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Diffusion-Profile" + Documentation.endURL)]
     sealed class DiffusionProfileOverrideEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_DiffusionProfiles;
@@ -19,8 +20,6 @@ namespace UnityEditor.Rendering.HighDefinition
         DiffusionProfileSettingsListUI      listUI = new DiffusionProfileSettingsListUI();
 
         static GUIContent m_DiffusionProfileLabel = new GUIContent("Diffusion Profile List", "Diffusion Profile List from current HDRenderPipeline Asset");
-
-        public override string documentationURL => Documentation.GetPageLink("Override-Diffusion-Profile");
 
         public override void OnEnable()
         {
