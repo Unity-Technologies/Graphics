@@ -775,6 +775,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.ForwardPreRefraction));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RayTracingRecursiveRendering));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RayTracingPrepass));
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingDeferredLighting));
         }
 
         void DisableProfilingRecordersRT()
@@ -1003,6 +1004,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             UnregisterDebugItems(k_PanelDisplayStats, m_DebugDisplayStatsItems);
             RegisterDisplayStatsDebug();
+
+            if (DebugManager.instance.displayRuntimeUI)
+                DebugManager.instance.ReDrawOnScreenDebug();
         }
 
         // For now we just rebuild the lighting panel if needed, but ultimately it could be done in a better way
@@ -1010,30 +1014,45 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             UnregisterDebugItems(k_PanelLighting, m_DebugLightingItems);
             RegisterLightingDebug();
+
+            if (DebugManager.instance.displayRuntimeUI)
+                DebugManager.instance.ReDrawOnScreenDebug();
         }
 
         void RefreshDecalsDebug<T>(DebugUI.Field<T> field, T value)
         {
             UnregisterDebugItems(k_PanelDecals, m_DebugDecalsAffectingTransparentItems);
             RegisterDecalsDebug();
+
+            if (DebugManager.instance.displayRuntimeUI)
+                DebugManager.instance.ReDrawOnScreenDebug();
         }
 
         void RefreshRenderingDebug<T>(DebugUI.Field<T> field, T value)
         {
             UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);
             RegisterRenderingDebug();
+
+            if (DebugManager.instance.displayRuntimeUI)
+                DebugManager.instance.ReDrawOnScreenDebug();
         }
 
         void RefreshMaterialDebug<T>(DebugUI.Field<T> field, T value)
         {
             UnregisterDebugItems(k_PanelMaterials, m_DebugMaterialItems);
             RegisterMaterialDebug();
+
+            if (DebugManager.instance.displayRuntimeUI)
+                DebugManager.instance.ReDrawOnScreenDebug();
         }
 
         void RefreshVolumeDebug<T>(DebugUI.Field<T> field, T value)
         {
             UnregisterDebugItems(k_PanelVolume, m_DebugVolumeItems);
             RegisterVolumeDebug();
+
+            if (DebugManager.instance.displayRuntimeUI)
+                DebugManager.instance.ReDrawOnScreenDebug();
         }
 
         void RegisterLightingDebug()

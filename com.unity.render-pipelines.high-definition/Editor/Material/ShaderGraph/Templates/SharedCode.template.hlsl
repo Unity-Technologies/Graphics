@@ -17,10 +17,6 @@ FragInputs BuildFragInputs(VaryingsMeshToPS input)
     $FragInputs.texCoord3:          output.texCoord3 = input.texCoord3;
     $FragInputs.color:              output.color = input.color;
 
-    #if defined(VARYINGS_NEED_CULLFACE) && SHADER_STAGE_FRAGMENT
-    output.isFrontFace = IS_FRONT_VFACE(input.cullFace, true, false);
-    #endif
-
     return output;
 }
 

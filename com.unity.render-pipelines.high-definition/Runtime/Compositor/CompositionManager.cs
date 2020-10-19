@@ -351,25 +351,10 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         public void DeleteLayerRTs()
         {
-            int numRTReferences = 0;
-
             // delete the layer from last to first, in order to release first the camera and then the associated RT
             for (int i = m_InputLayers.Count - 1; i >= 0; --i)
             {
-                // Since some layers are not useing cloned cameras, we have to count the number of references in a RT and only delete if it is zero   
-                if (numRTReferences == 0)
-                {
-                    m_InputLayers[i].DestroyRT();
-                }
-
-                if (m_InputLayers[i].outputTarget == CompositorLayer.OutputTarget.CompositorLayer)
-                {
-                    numRTReferences = 0;
-                }
-                else
-                {
-                    numRTReferences += (m_InputLayers[i].camera != null) ? 1 : 0;
-                }
+                m_InputLayers[i].DestroyRT();
             }
         }
 

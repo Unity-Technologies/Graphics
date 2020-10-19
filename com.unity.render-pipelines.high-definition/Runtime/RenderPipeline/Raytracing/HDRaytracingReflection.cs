@@ -372,7 +372,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Prepare the parameters and the resources
                     HDReflectionDenoiser reflectionDenoiser = GetReflectionDenoiser();
-                    ReflectionDenoiserParameters reflDenoiserParameters = reflectionDenoiser.PrepareReflectionDenoiserParameters(hdCamera, EvaluateHistoryValidity(hdCamera), settings.denoiserRadius);
+                    ReflectionDenoiserParameters reflDenoiserParameters = reflectionDenoiser.PrepareReflectionDenoiserParameters(hdCamera, EvaluateHistoryValidity(hdCamera), settings.denoiserRadius, false);
                     ReflectionDenoiserResources reflectionDenoiserResources = reflectionDenoiser.PrepareReflectionDenoiserResources(hdCamera, outputTexture, reflectionHistory,
                                                     intermediateBuffer0, intermediateBuffer1);
 
@@ -529,13 +529,11 @@ namespace UnityEngine.Rendering.HighDefinition
             var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
             LightCluster lightClusterSettings = hdCamera.volumeStack.GetComponent<LightCluster>();
 
+            // Do the integration
+            RTRQualityRenderingParameters rtrQRenderingParameters = PrepareRTRQualityRenderingParameters(hdCamera, settings, transparent);
+            RTRQualityRenderingResources rtrQRenderingResources = PrepareRTRQualityRenderingResources(hdCamera, outputTexture);
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingReflectionEvaluation)))
             {
-                // Render the signal
-                RTRQualityRenderingParameters rtrQRenderingParameters = PrepareRTRQualityRenderingParameters(hdCamera, settings, transparent);
-                RTRQualityRenderingResources rtrQRenderingResources = PrepareRTRQualityRenderingResources(hdCamera, outputTexture);
-
-                // Bind all the required data for ray tracing
                 RenderQualityRayTracedReflections(cmd, rtrQRenderingParameters, rtrQRenderingResources);
             }
 
@@ -549,7 +547,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Prepare the parameters and the resources
                     HDReflectionDenoiser reflectionDenoiser = GetReflectionDenoiser();
-                    ReflectionDenoiserParameters reflDenoiserParameters = reflectionDenoiser.PrepareReflectionDenoiserParameters(hdCamera, EvaluateHistoryValidity(hdCamera), settings.denoiserRadius);
+                    ReflectionDenoiserParameters reflDenoiserParameters = reflectionDenoiser.PrepareReflectionDenoiserParameters(hdCamera, EvaluateHistoryValidity(hdCamera), settings.denoiserRadius, rtrQRenderingParameters.bounceCount == 1);
                     ReflectionDenoiserResources reflectionDenoiserResources = reflectionDenoiser.PrepareReflectionDenoiserResources(hdCamera, outputTexture, reflectionHistory,
                                                     intermediateBuffer0, intermediateBuffer1);
                     HDReflectionDenoiser.DenoiseBuffer(cmd, reflDenoiserParameters, reflectionDenoiserResources);
