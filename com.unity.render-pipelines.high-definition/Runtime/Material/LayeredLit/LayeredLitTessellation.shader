@@ -24,6 +24,11 @@ Shader "HDRP/LayeredLitTessellation"
         _Metallic2("Metallic2", Range(0.0, 1.0)) = 0
         _Metallic3("Metallic3", Range(0.0, 1.0)) = 0
 
+        _MetallicRemapMin0("MetallicRemapMin0", Range(0.0, 1.0)) = 0.0
+        _MetallicRemapMin1("MetallicRemapMin1", Range(0.0, 1.0)) = 0.0
+        _MetallicRemapMin2("MetallicRemapMin2", Range(0.0, 1.0)) = 0.0
+        _MetallicRemapMin3("MetallicRemapMin3", Range(0.0, 1.0)) = 0.0
+
         _Smoothness0("Smoothness0", Range(0.0, 1.0)) = 0.5
         _Smoothness1("Smoothness1", Range(0.0, 1.0)) = 0.5
         _Smoothness2("Smoothness2", Range(0.0, 1.0)) = 0.5
