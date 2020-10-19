@@ -274,7 +274,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             EditorGUILayout.PropertyField(m_PointLightCookie, Styles.pointLightCookie);
         }
 
-        void OnShapeLight(Light2D.LightType lightType, SerializedObject serializedObject, Light2D light)
+        void OnShapeLight(Light2D.LightType lightType, SerializedObject serializedObject)
         {
             if (lightType == Light2D.LightType.Sprite)
             {
@@ -586,7 +586,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 case (int)Light2D.LightType.Freeform:
                 case (int)Light2D.LightType.Sprite:
                     {
-                        OnShapeLight((Light2D.LightType)m_LightType.intValue, serializedObject, target as Light2D);
+                        OnShapeLight((Light2D.LightType)m_LightType.intValue, serializedObject);
                     }
                     break;
             }

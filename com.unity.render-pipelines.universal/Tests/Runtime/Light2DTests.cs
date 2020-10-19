@@ -51,11 +51,11 @@ namespace UnityEngine.Rendering.Universal.Tests
             light2.transform.position = cameraPos;
             light3.transform.position = cameraPos;
 
-            light1.UpdateMesh(true);
+            light1.UpdateMesh(false);
             light1.UpdateBoundingSphere();
-            light2.UpdateMesh(true);
+            light2.UpdateMesh(false);
             light2.UpdateBoundingSphere();
-            light3.UpdateMesh(true);
+            light3.UpdateMesh(false);
             light3.UpdateBoundingSphere();
 
             var cullResult = new Light2DCullResult();
@@ -74,7 +74,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             var camera = m_TestObject1.AddComponent<Camera>();
             var light = m_TestObject2.AddComponent<Light2D>();
             light.transform.position = camera.transform.position;
-            light.UpdateMesh(true);
+            light.UpdateMesh(false);
             light.UpdateBoundingSphere();
 
             var cullResult = new Light2DCullResult();
@@ -91,7 +91,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             var camera = m_TestObject1.AddComponent<Camera>();
             var light = m_TestObject2.AddComponent<Light2D>();
             light.transform.position = camera.transform.position + new Vector3(9999.0f, 0.0f, 0.0f);
-            light.UpdateMesh(true);
+            light.UpdateMesh(false);
             light.UpdateBoundingSphere();
 
             var cullResult = new Light2DCullResult();
