@@ -4,12 +4,25 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [10.1.0] - 2019-08-04
+## [10.2.0] - 2020-10-19
+
+### Added
+
+### Changed
+
+### Fixed
+- Fixed an issue where old ShaderGraphs would import non-deterministically, changing their embedded property names each import [1283800]
+- Fixed an issue where Mesh Deformation nodes did not have a category color. [1227081](https://issuetracker.unity3d.com/issues/shadergraph-color-mode-vertex-skinning-catagory-has-no-color-associated-with-it)
+- Fixed SampleTexture2DLOD node to return opaque black on unsupported platforms [1241602]
+- ShaderGraph now detects when a SubGraph is deleted while being used by a SubGraph node, and displays appropriate errors [1206438]
+
+## [10.1.0] - 2020-10-12
 
 ### Added
 - Added parallax mapping node and parallax occlusion mapping node.
 - Added the possibility to have multiple POM node in a single graph.
 - Added better error feedback when SampleVirtualTexture nodes run into issues with the VirtualTexture property inputs
+- Added ability for Shader Graph to change node behavior without impacting existing graphs via the “Allow Deprecated Nodes”
 
 ### Changed
 - Added method chaining support to shadergraph collection API.
@@ -29,6 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue in ShaderGraph with integer-mode Vector1 properties throwing errors when the value is changed [1264930]
 - Fixed a bug where ShaderGraph would not load graphs using Procedural VT nodes when the nodes were the project had them disabled [1271598]
 - Fixed an issue where the ProceduralVT node was not updating any connected SampleVT nodes when the number of layers was changed [1274288]
+- Fixed an issue with how unknown nodes were treated during validation
 - Fixed an issue where ShaderGraph shaders did not reimport automatically when some of the included files changed [1269634]
 - Fixed an issue where building a context menu on a dragging block node would leave it floating and undo/redo would result in a soft-lock
 - Fixed an issue where ShaderGraph was logging error when edited in play mode [1274148].
@@ -51,6 +65,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issues with ShaderGraph detection and handling of deleted graph files
 - Fixed an issue where the ShaderGraph was corrupting the translation cache
 - Fixed an issue where ShaderGraph would not prompt the user to save unsaved changes after an assembly reload
+- Fixed an issue with Position Node not automatically upgrading
+- Fixed an issue where failing SubGraphs would block saving graph files using them (recursion check would throw exceptions) [1283425]
+- Fixed an issue where choosing "None" as the default texture for a texture property would not correctly preview the correct default color [1283782]
+- Fixed some bugs with Color Nodes and properties that would cause incorrect collorspace conversions
 
 ## [10.0.0] - 2019-06-10
 ### Added
