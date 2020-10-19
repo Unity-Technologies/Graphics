@@ -163,7 +163,7 @@ Shader "Hidden/HDRP/TemporalAA"
             float2 prevUV = input.texcoord - motionVector;
 
             CTYPE history = GetFilteredHistory(_InputHistoryTexture, prevUV, _HistorySharpening, _TaaHistorySize);
-            bool offScreen = any(abs(prevUV * 2 - 1) >= (1.0f - (2.0 * _TaaHistorySize.zw)));
+            bool offScreen = any(abs(prevUV * 2 - 1) >= (1.0f - (1.0 * _TaaHistorySize.zw)));
             history.xyz *= PerceptualWeight(history);
             // -----------------------------------------------------
 

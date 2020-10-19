@@ -19,6 +19,22 @@ editors: # applied for all yml files
     rerun_strategy: always
     editor_pinning: False
     fast: False
+build_configs:
+  - name: il2cpp_apiNet2
+    scripting_backend: IL2CPP
+    api_level: NET_2_0
+  - name: il2cpp_apiNet4
+    scripting_backend: IL2CPP
+    api_level: NET_4_6
+  - name: mono_apiNet2
+    scripting_backend: Mono2x
+    api_level: NET_2_0
+  - name: mono_apiNet4
+    scripting_backend: Mono2x
+    api_level: NET_4_6
+color_spaces:
+  - Linear
+  - gamma
 platforms:
   Win:
     name: Win
@@ -61,6 +77,7 @@ platforms:
           - editmode
       - name: OpenGLCore
         exclude_test_platforms:
+          - playmode_XR
           - Standalone
           - Standalone_cache
     components:
@@ -121,6 +138,7 @@ platforms:
           - editmode
           - playmode
           - playmode_XR
+      - name: Vulkan
       - name: Vulkan
         exclude_test_platforms:
           - editmode

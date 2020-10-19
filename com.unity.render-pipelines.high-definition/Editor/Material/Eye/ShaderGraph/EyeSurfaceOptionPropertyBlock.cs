@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         class Styles
         {
-            public static GUIContent materialType = new GUIContent("Material Type", "TODO");
+            public static GUIContent materialType = new GUIContent("Material Type", "Allow to select the type of lighting model used with this Eye Material.");
             public static GUIContent irisNormalType = new GUIContent("Iris Normal", "Override the iris normal");
         }
 

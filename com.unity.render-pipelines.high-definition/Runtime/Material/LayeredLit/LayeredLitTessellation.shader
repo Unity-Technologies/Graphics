@@ -546,7 +546,7 @@ Shader "HDRP/LayeredLitTessellation"
             Name "SceneSelectionPass"
             Tags{ "LightMode" = "SceneSelectionPass" }
 
-            Cull[_CullMode]
+            Cull Off
 
             ZWrite On
 
