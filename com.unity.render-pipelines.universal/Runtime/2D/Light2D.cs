@@ -56,8 +56,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [Range(0,1)]
         [SerializeField] float m_ShadowVolumeIntensity = 0.0f;
 
-		[SerializeField]
-		Mesh m_Mesh;
+        [SerializeField]
+        Mesh m_Mesh;
 
         // Transients
         int m_PreviousLightCookieSprite;        
@@ -69,14 +69,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal BoundingSphere boundingSphere { get; private set; }
 
         internal Mesh lightMesh
-		{
-			get
-			{
- 				if ( null == m_Mesh )
-					m_Mesh = new Mesh();
-				return m_Mesh;
-			}			
-		}
+        { 
+            get
+            {
+                if ( null == m_Mesh )
+                    m_Mesh = new Mesh();
+                return m_Mesh;
+            }			
+        }
 
         internal bool hasCachedMesh => ( lightMesh.vertices.Length != 0 && lightMesh.triangles.Length != 0 );
 
