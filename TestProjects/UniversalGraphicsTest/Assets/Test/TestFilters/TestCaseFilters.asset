@@ -449,3 +449,12 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: 'iOS failure on scene 131 (fogbugz: 1283292)'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 381306730e4f1b141bf8e0e1c35f16e9, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: iOS failure on scene
