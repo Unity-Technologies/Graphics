@@ -7,6 +7,9 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
 
+// ------------------------------------------------------------------
+//  PCF Filtering methods
+// ------------------------------------------------------------------
 
 real SampleShadow_Gather_PCF(float4 shadowAtlasSize, float3 coord, Texture2D tex, SamplerComparisonState compSamp, float depthBias)
 {
@@ -20,27 +23,8 @@ real SampleShadow_Gather_PCF(float4 shadowAtlasSize, float3 coord, Texture2D tex
     float4 shadowMapTaps = GATHER_TEXTURE2D(tex, s_point_clamp_sampler, coord.xy);
     float4 shadowResults = (coord.z > shadowMapTaps.x);
 
-    float shadow0 = lerp(shadowResults.w, shadowResults.z, f.x);
-    float shadow1 = lerp(shadowResults.x, shadowResults.y, f.x);
-
-    return lerp(shadow0, shadow1, f.y);
-}
-
-// ------------------------------------------------------------------
-//  PCF Filtering methods
-// ------------------------------------------------------------------
-
-real SampleShadow_PCF_Tent_1x1(float4 shadowAtlasSize, float3 coord, Texture2D tex, SamplerComparisonState compSamp, float depthBias)
-{
-#if SHADOW_USE_DEPTH_BIAS == 1
-    // add the depth bias
-    coord.z += depthBias;
-#endif
-
-
-    float shadow = SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, coord).x;
-
-    return shadow;
+    return lerp(lerp(shadowResults.w, shadowResults.z, f.x),
+                lerp(shadowResults.x, shadowResults.y, f.x), f.y);
 }
 
 real SampleShadow_PCF_Tent_3x3(float4 shadowAtlasSize, float3 coord, Texture2D tex, SamplerComparisonState compSamp, float depthBias)
