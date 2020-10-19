@@ -158,10 +158,10 @@ float2 ComputeBoundsOfSphereOnProjectivePlane(float3 C, float r, float projScale
         // point behind the origin (B.z <= 0 or D.z <= 0).
         // At this point we know that the sphere at least *partially* in front of the origin,
         // and that it is we are not inside the sphere, so there is at least one valid
-        // plane (and one valid direction). We just need the second direction to "follow"
-        // and extend the bounding box.
-        xMin = (B.z > 0) ? rapBx : FastSign(D.x);
-        xMax = (D.z > 0) ? rapDx : FastSign(B.x);
+        // plane (and one valid direction). We just need the second direction to go "in front"
+        // of the first one to extend the bounding box.
+        xMin = (B.z > 0) ? rapBx : -FLT_INF;
+        xMax = (D.z > 0) ? rapDx :  FLT_INF;
     }
     else
     {
