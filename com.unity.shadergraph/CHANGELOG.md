@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where Mesh Deformation nodes did not have a category color. [1227081](https://issuetracker.unity3d.com/issues/shadergraph-color-mode-vertex-skinning-catagory-has-no-color-associated-with-it)
 - Fixed SampleTexture2DLOD node to return opaque black on unsupported platforms [1241602]
 - ShaderGraph now detects when a SubGraph is deleted while being used by a SubGraph node, and displays appropriate errors [1206438]
+- Fixed an issue with Gradient when it is used as expose parameters. Generated code was failing [1285640 ]
 
 ## [10.1.0] - 2020-10-12
 
