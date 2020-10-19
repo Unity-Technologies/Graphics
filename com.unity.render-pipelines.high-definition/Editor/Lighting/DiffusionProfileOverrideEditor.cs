@@ -11,7 +11,6 @@ using Object = UnityEngine.Object;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [VolumeComponentEditor(typeof(DiffusionProfileOverride))]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Diffusion-Profile" + Documentation.endURL)]
     sealed class DiffusionProfileOverrideEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_DiffusionProfiles;
