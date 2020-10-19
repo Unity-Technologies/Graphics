@@ -145,7 +145,6 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
                 o.positionCS = TransformObjectToHClip(attributes.positionOS);
                 o.uv = TRANSFORM_TEX(attributes.uv, _NormalMap);
-                o.uv = attributes.uv;
                 o.color = attributes.color;
                 o.normalWS = TransformObjectToWorldDir(float3(0, 0, -1));
                 o.tangentWS = TransformObjectToWorldDir(attributes.tangent.xyz);
@@ -199,7 +198,6 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
                 o.positionCS = TransformObjectToHClip(attributes.positionOS);
                 o.uv = TRANSFORM_TEX(attributes.uv, _MainTex);
-                o.uv = attributes.uv;
                 o.color = attributes.color;
                 return o;
             }
