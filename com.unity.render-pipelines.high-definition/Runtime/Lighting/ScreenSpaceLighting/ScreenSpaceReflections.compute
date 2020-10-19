@@ -619,6 +619,13 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     roughness = clamp(roughness, MIN_GGX_ROUGHNESS, MAX_GGX_ROUGHNESS);
 
     float2 hitPositionNDC = LOAD_TEXTURE2D_X(_SsrHitPointTexture, positionSS0).xy;
+
+    if (max(hitPositionNDC.x, hitPositionNDC.y) == 0)
+    {
+        // Miss.
+        return;
+    }
+
 #ifdef DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
     float  depthOrigin = LOAD_TEXTURE2D_X(_DepthTexture, positionSS0.xy).r;
 #else
@@ -628,20 +635,11 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     PositionInputs posInputOrigin = GetPositionInput(positionSS0.xy, _ScreenSize.zw, depthOrigin, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, uint2(8, 8));
     float3 originWS = posInputOrigin.positionWS + _WorldSpaceCameraPos;
 
-    if (max(hitPositionNDC.x, hitPositionNDC.y) == 0)
-    {
-        // Miss.
-        return;
-    }
-
     // TODO: this texture is sparse (mostly black). Can we avoid reading every texel? How about using Hi-S?
     float2 motionVectorNDC;
     DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(hitPositionNDC, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVectorNDC);
     float2 prevFrameNDC = hitPositionNDC - motionVectorNDC;
     float2 prevFrameUV = prevFrameNDC * _ColorPyramidUvScaleAndLimitPrevFrame.xy;
-
-    float2 RTSize = 1.0f / _RTHandleScale.xy;
-    float2 uv = float2(positionSS0)* _ColorPyramidUvScaleAndLimitPrevFrame.xy;
 
     // TODO: optimize with max().
     if ((prevFrameUV.x < 0) || (prevFrameUV.x > _ColorPyramidUvScaleAndLimitPrevFrame.z) ||
@@ -652,7 +650,6 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     }
 
 #ifdef SSR_APPROX
-
     // TODO: filtering is quite awful. Needs to be non-Gaussian, bilateral and anisotropic.
     float  mipLevel = lerp(0, _SsrColorPyramidMaxMip, perceptualRoughness);
 
@@ -683,7 +680,6 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     {
         for (int x = -BLOCK_SAMPLE_RADIUS; x <= BLOCK_SAMPLE_RADIUS; ++x)
         {
-            UNITY_FLATTEN
             if (abs(x) == abs(y) && abs(x) == 1)
                 continue;
 
