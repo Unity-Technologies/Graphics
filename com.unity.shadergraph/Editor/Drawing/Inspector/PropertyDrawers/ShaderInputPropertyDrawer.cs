@@ -331,8 +331,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     // add or remove the sub field based on what the toggle is
                     if (newValue.isOn)
                         {
-                        // setup initial state based on current state
-                        property.hlslDeclarationOverride = property.GetDefaultHLSLDeclaration();
+                            // setup initial state based on current state
+                            property.hlslDeclarationOverride = property.GetDefaultHLSLDeclaration();
                             property.overrideHLSLDeclaration = newValue.isOn;
                             popupField.value = property.hlslDeclarationOverride;
                             propertySheet.Add(propRow);

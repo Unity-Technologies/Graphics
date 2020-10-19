@@ -60,7 +60,10 @@ namespace UnityEditor.ShaderGraph
         {
             if (sgVersion == 0)
             {
-                LegacyShaderPropertyData.UpgradeToHLSLDeclarationOverride(json, this);
+                // all old matrices were declared global; yes even if flagged hybrid!
+                // maintain old behavior on versioning, users can always change the override if they wish
+                overrideHLSLDeclaration = true;
+                hlslDeclarationOverride = HLSLDeclaration.Global;
                 ChangeVersion(1);
             }
         }

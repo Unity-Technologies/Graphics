@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Internal
         [SerializeField]
         public bool m_GPUInstanced = false;
 
-        // converts the old m_GPUInstanced data into the new override HLSLDeclaration system
+        // converts the old m_GPUInstanced data into the new override HLSLDeclaration system.
         public static void UpgradeToHLSLDeclarationOverride(string json, AbstractShaderProperty property)
         {
             // this maintains the old behavior for versioned properties:
@@ -145,7 +145,7 @@ namespace UnityEditor.ShaderGraph.Internal
             get { return overrideHLSLDeclaration && (hlslDeclarationOverride == HLSLDeclaration.HybridPerInstance); }
         }
 
-        internal HLSLDeclaration GetDefaultHLSLDeclaration()
+        internal virtual HLSLDeclaration GetDefaultHLSLDeclaration()
         {
             if (overrideHLSLDeclaration)
                 return hlslDeclarationOverride;
