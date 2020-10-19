@@ -46,7 +46,8 @@ namespace UnityEngine.Rendering.HighDefinition
         void RenderSubsurfaceScattering(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer,
             in LightingBuffers lightingBuffers, ref PrepassOutput prepassOutput)
         {
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering) ||
+                !hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
                 return;
 
             BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, resolveOnly: false, ref prepassOutput);

@@ -500,6 +500,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             bool debugDisplay = m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled();
 
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
+                return;
+
             using (var builder = renderGraph.AddRenderPass<ForwardOpaquePassData>(    debugDisplay ? "Forward Opaque Debug" : "Forward Opaque",
                                                                                 out var passData,
                                                                                 debugDisplay ? ProfilingSampler.Get(HDProfileId.ForwardOpaqueDebug) : ProfilingSampler.Get(HDProfileId.ForwardOpaque)))
@@ -561,6 +564,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                         CullingResults              cullResults,
                                         bool                        preRefractionPass)
         {
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects))
+                return;
+
             // If rough refraction are turned off, we render all transparents in the Transparent pass and we skip the PreRefraction one.
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) && preRefractionPass)
                 return;
@@ -645,7 +651,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderTransparentDepthPrepass(RenderGraph renderGraph, HDCamera hdCamera, in PrepassOutput prepassOutput, CullingResults cull)
         {
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentPrepass))
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentPrepass) ||
+                !hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects))
                 return;
 
             using (var builder = renderGraph.AddRenderPass<ForwardPassData>("Transparent Depth Prepass", out var passData, ProfilingSampler.Get(HDProfileId.TransparentDepthPrepass)))
@@ -669,7 +676,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderTransparentDepthPostpass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthStencilBuffer, CullingResults cull)
         {
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentPostpass))
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentPostpass) ||
+                !hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects))
                 return;
 
             using (var builder = renderGraph.AddRenderPass<ForwardPassData>("Transparent Depth Postpass", out var passData, ProfilingSampler.Get(HDProfileId.TransparentDepthPostpass)))
@@ -891,7 +899,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Render All forward error
             RenderForwardError(renderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, cullingResults);
 
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent))
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent) &&
+                hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects))
             {
                 var lowResTransparentBuffer = RenderLowResTransparent(renderGraph, hdCamera, prepassOutput.downsampledDepthBuffer, cullingResults);
                 UpsampleTransparent(renderGraph, hdCamera, colorBuffer, lowResTransparentBuffer, prepassOutput.downsampledDepthBuffer);
@@ -915,6 +924,12 @@ namespace UnityEngine.Rendering.HighDefinition
                                     TextureHandle   depthStencilBuffer,
                                     CullingResults  cullingResults)
         {
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects) &&
+                !hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
+            {
+                return;
+            }
+
             using (var builder = renderGraph.AddRenderPass<RenderForwardEmissivePassData>("ForwardEmissive", out var passData, ProfilingSampler.Get(HDProfileId.ForwardEmissive)))
             {
                 builder.UseColorBuffer(colorBuffer, 0);
@@ -941,6 +956,13 @@ namespace UnityEngine.Rendering.HighDefinition
                                 TextureHandle   depthStencilBuffer,
                                 CullingResults              cullResults)
         {
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects) &&
+                !hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
+            {
+                return;
+            }
+
+
             using (var builder = renderGraph.AddRenderPass<ForwardPassData>("Forward Error", out var passData, ProfilingSampler.Get(HDProfileId.RenderForwardError)))
             {
                 builder.UseColorBuffer(colorBuffer, 0);
@@ -1046,7 +1068,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void PreRenderSky(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthStencilBuffer, TextureHandle normalbuffer)
         {
-            if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
+            if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera) ||
+                !m_SkyManager.HasBackplateEnabled(hdCamera))
             {
                 return;
             }
