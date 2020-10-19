@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added ExposedProperty custom Property Drawer
 - Error display within the graph.
 - Warning using Depth Collision on unsupported scriptable render pipeline.
+- Warning in renderer inspector using Light Probe Proxy Volume when this feature isn't available.
 
 ### Fixed
 - Mesh Sampling incorrect with some GPU (use ByteAddressBuffer instead of Buffer<float>)
@@ -52,6 +53,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix shadergraph changes not reflected in VisualEffectGraph [Case 1278469](https://fogbugz.unity3d.com/f/cases/resolve/1278469/)
 - Unexpected exception while installing samples inside an URP project [Case 1280065](https://issuetracker.unity3d.com/product/unity/issues/guid/1280065/)
 - Fix edited operator being collapsed [Case 1270517](https://issuetracker.unity3d.com/product/unity/issues/guid/1270517/)
+- Filters out renderer priority on SRP which doesn't support this feature.
+- Fallback to builtIn rendering layer if srpAsset.renderingLayerMaskNames returns null.
+- Fix missing prepass in URP [Case 1169487](https://issuetracker.unity3d.com/product/unity/issues/guid/1169487/)
+- Fix SubPixelAA block while rendering directly in backbuffer.
 
 ## [10.0.0] - 2019-06-10
 ### Added
