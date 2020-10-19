@@ -15,7 +15,7 @@ abv: # specify the editor versions for which to create the expression trigger fo
   color_spaces:
     - Linear
 weekly:
-  dependencies: # additional project jobs to run weekly
+  extra_dependencies: # additional project jobs to run weekly
     - project: HDRP
       platform: Win
       api: DX11

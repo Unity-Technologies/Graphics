@@ -6,7 +6,7 @@ class ABV_AllProjectCiWeeklyJob():
     
     def __init__(self, editor, projects, weekly_config, target_branch, build_configs, color_space):
         self.job_id = abv_job_id_all_project_ci_weekly(editor["name"])
-        self.yml = self.get_job_definition(editor, projects, weekly_config.get("dependencies",[]), target_branch, build_configs, color_space).get_yml()
+        self.yml = self.get_job_definition(editor, projects, weekly_config.get("extra_dependencies",[]), target_branch, build_configs, color_space).get_yml()
 
     
     def get_job_definition(self, editor, projects, extra_dependencies, target_branch, build_configs, color_space):
