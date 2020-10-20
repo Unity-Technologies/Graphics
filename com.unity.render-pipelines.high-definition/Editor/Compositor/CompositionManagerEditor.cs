@@ -327,6 +327,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 // Some properties were changed, mark the profile as dirty so it can be saved if the user saves the scene
                 EditorUtility.SetDirty(m_compositionManager);
                 EditorUtility.SetDirty(m_compositionManager.profile);
+                m_compositionManager.DeleteLayerRTs();
                 m_compositionManager.UpdateLayerSetup();
             }
         }
