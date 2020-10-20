@@ -83,6 +83,9 @@ def _unfold_platforms(metafile, shared):
                         if isinstance(agent_name, str):
                             platform_formatted[override_key][agent_key] = shared['non_project_agents'][agent_name]
 
+        platform_formatted["extra_utr_flags"] = [] if not platform_meta.get("extra_utr_flags") else platform_meta.get("extra_utr_flags")
+        platform_formatted["extra_utr_flags_build"] = [] if not platform_meta.get("extra_utr_flags_build") else platform_meta.get("extra_utr_flags_build")
+
         formatted_platforms.append(platform_formatted)
     return formatted_platforms 
 
