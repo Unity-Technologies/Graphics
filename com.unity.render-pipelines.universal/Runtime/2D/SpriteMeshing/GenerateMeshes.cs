@@ -65,6 +65,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     if (!allContourData.ContainsKey(contourId))
                     {
                         ContourData contourData = new ContourData();
+                        contourData.m_ContourId = contourId; 
                         contourData.m_UseReverseWinding = IsReversed(isOutsideContour, isOpaque);
                         allContourData.Add(contourId, contourData); // add a new contourData
 
@@ -148,9 +149,66 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     {
                         Vector2[] contourPath = contour.m_ContourData.m_Vertices.ToArray();
                         AddTesselatorContour(tess, shapeLib.m_Region, contourPath);
+
                     }
 
                     TesselateShape(tess, shape.m_IsOpaque, shapeTesselatedHandler);
+                }
+            }
+        }
+
+
+        static public void RemoveContour(ShapeLibrary shapeLibrary, Shape shape, int shapeContourIndex)
+        {
+            int contourId = shape.m_Contours[shapeContourIndex].m_ContourData.m_ContourId;
+            shape.m_Contours.RemoveAt(shapeContourIndex);
+            shapeLibrary.m_ContourData.Remove(contourId); 
+        }
+
+        static public void ReduceShapesAndContours(ShapeLibrary shapeLibrary, float minimumArea)
+        {
+            for(int shapeIndex= shapeLibrary.m_Shapes.Count-1; shapeIndex >= 0; shapeIndex--)
+            {
+                Shape shape = shapeLibrary.m_Shapes[shapeIndex];
+
+                if (shape.m_IsOpaque)
+                {
+                    // For opaque shapes test the outside contour. If smaller, remove the shape from the contours and delete the shape.
+                    bool deleteAllContours = false;
+                    foreach (Contour contour in shape.m_Contours)
+                    {
+                        if (contour.m_IsOuterEdge)
+                        {
+                            float area = contour.CalculateArea();
+                            if (area < minimumArea)
+                            {
+                                deleteAllContours = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (deleteAllContours)
+                    {
+                        for (int contourIndex = shape.m_Contours.Count - 1; contourIndex >= 0; contourIndex--)
+                        {
+                            Contour contour = shape.m_Contours[contourIndex];
+                            RemoveContour(shapeLibrary, shape, contourIndex);
+                        }
+                    }
+                }
+                else
+                {
+                    for(int contourIndex = shape.m_Contours.Count - 1; contourIndex >= 0; contourIndex--)
+                    {
+                        Contour contour = shape.m_Contours[contourIndex];
+                        if (!contour.m_IsOuterEdge)
+                        {
+                            float area = contour.CalculateArea();
+                            if (area < minimumArea)
+                                RemoveContour(shapeLibrary, shape, contourIndex);
+                        }
+                    }
                 }
             }
         }
@@ -173,6 +231,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     }
                 }
 
+                ReduceShapesAndContours(shapeLibrary, minimumArea);
+
                 // Reduction step
                 List<int> contourDataRemovalList = new List<int>();
                 foreach (KeyValuePair<int, ContourData> dataKV in shapeLibrary.m_ContourData)
@@ -181,39 +241,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     VertexReducer vertexReducer = new VertexReducer();
                     vertexReducer.Initialize(shapeLibrary, dataKV.Value.m_Vertices.ToArray(), dataKV.Value.m_UseReverseWinding, out contourArea);
 
-                    if (contourArea < minimumArea && !dataKV.Value.m_Contours[0].m_IsOuterEdge && !dataKV.Value.m_Contours[0].m_Shape.m_IsOpaque)  // dataKV.Value.m_Contours.Count > 1 used if we want to revert back to opaque cutout option
-                    {
-                        contourDataRemovalList.Add(dataKV.Key);
-                    }
-                    else
-                    {
-                        vertexReducer.SetConcaveReduction();
-                        bool canBeReduced = true;
-                        while (vertexReducer.GetSmallestArea() <= minimumArea && canBeReduced)
-                            canBeReduced = vertexReducer.ReduceShapeStep();
+                    vertexReducer.SetConcaveReduction();
+                    bool canBeReduced = true;
+                    while (vertexReducer.GetSmallestArea() <= minimumArea && canBeReduced)
+                        canBeReduced = vertexReducer.ReduceShapeStep();
 
-                        vertexReducer.SetConvexReduction();
-                        canBeReduced = true;
-                        while (vertexReducer.GetSmallestArea() <= minimumArea && canBeReduced)
-                            canBeReduced = vertexReducer.ReduceShapeStep();
+                    vertexReducer.SetConvexReduction();
+                    canBeReduced = true;
+                    while (vertexReducer.GetSmallestArea() <= minimumArea && canBeReduced)
+                        canBeReduced = vertexReducer.ReduceShapeStep();
 
-                        vertexReducer.GetReducedVertices(out dataKV.Value.m_Vertices);
-                    }
-                }
-
-                while (contourDataRemovalList.Count > 0)
-                {
-                    int dataToRemove = contourDataRemovalList[0];
-                    contourDataRemovalList.RemoveAt(0);
-
-                    ContourData contourData = shapeLibrary.m_ContourData[dataToRemove];
-                    for (int i = 0; i < contourData.m_Contours.Count; i++)
-                    {
-                        Contour contour = contourData.m_Contours[i];
-                        contour.m_Shape.m_Contours.Remove(contour);
-                    }
-
-                    shapeLibrary.m_ContourData.Remove(dataToRemove);
+                    vertexReducer.GetReducedVertices(out dataKV.Value.m_Vertices);
                 }
             }
         }

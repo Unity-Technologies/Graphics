@@ -13,6 +13,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 {
     public class SpritePreprocessor : AssetPostprocessor
     {
+        const float k_ReductionThreshold = 4096;
+
+
         NativeArray<T> ListToNativeArray<T>(List<T> list) where T : struct
         {
             NativeArray<T> nativeArray = new NativeArray<T>(list.Count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
@@ -53,7 +56,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
 
             return null;
-       }
+        }
 
         void AddGeometry(Vector3[] vertices, int[] triangles, Vector2[] uvs, Vector2 pivot, float correctedPPU, bool isOpaque, List<ushort> colorTriangles, List<ushort> depthTriangles, List<Vector3> allVertices)
         {
@@ -71,10 +74,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Vector3 v3Pivot = new Vector3(pivot.x, pivot.y);
             for (int i = 0; i < vertices.Length; i++)
                 allVertices.Add((vertices[i] - v3Pivot) * correctedPPU);
-            
         }
 
- 
         void CreateSplitSpriteMesh(Sprite sprite, RectInt rect, Vector2 pivot, Vector2[][] customOutline, float pixelsPerUnit)
         {
             ShapeLibrary shapeLibrary = new ShapeLibrary();
@@ -82,9 +83,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             shapeLibrary.SetRegion(rect);
 
-            GenerateMeshes.MakeShapes(shapeLibrary, customOutline, texture, 1, 4096); // 2048 will give us a pretty good balance of verts to area. 4096 is the same or better area as previously and less than half the vertices.
+            GenerateMeshes.MakeShapes(shapeLibrary, customOutline, texture, 1, k_ReductionThreshold); // 2048 will give us a pretty good balance of verts to area. 4096 is the same or better area as previously and less than half the vertices.
 
-            Debug.Log("Shapes generated: " + shapeLibrary.m_Shapes.Count);
+            int shapeCount = 0;
+            foreach(Shape shape in shapeLibrary.m_Shapes)
+            {
+                if(shape.m_Contours.Count > 0)
+                    shapeCount++;
+            }
+            Debug.Log("Shapes generated: " + shapeCount);
 
             List<Vector3> allVertices = new List<Vector3>();
             List<ushort> colorTriangles = new List<ushort>();
