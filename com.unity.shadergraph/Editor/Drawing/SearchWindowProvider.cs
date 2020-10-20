@@ -9,6 +9,7 @@ using UnityEditor.UIElements;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
 using UnityEditor.Searcher;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -62,6 +63,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void GenerateNodeEntries()
         {
+            Profiler.BeginSample("SearchWindowProvider.GenerateNodeEntries");
             // First build up temporary data structure containing group & title as an array of strings (the last one is the actual title) and associated node type.
             List<NodeEntry> nodeEntries = new List<NodeEntry>();
             
@@ -97,7 +99,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
             }
             
-            foreach (var type in TypeCache.GetTypesDerivedFrom<AbstractMaterialNode>())
+            foreach (var type in NodeClassCache.knownNodeTypes)
             {
                 if ((!type.IsClass || type.IsAbstract)
                     || type == typeof(PropertyNode)
@@ -105,10 +107,23 @@ namespace UnityEditor.ShaderGraph.Drawing
                     || type == typeof(SubGraphNode))
                     continue;
 
-                if (type.GetCustomAttributes(typeof(TitleAttribute), false) is TitleAttribute[] attrs && attrs.Length > 0)
+                TitleAttribute titleAttribute = NodeClassCache.GetAttributeOnNodeType<TitleAttribute>(type);
+                if (titleAttribute != null)
                 {
                     var node = (AbstractMaterialNode) Activator.CreateInstance(type);
-                    AddEntries(node, attrs[0].title, nodeEntries);
+                    if(ShaderGraphPreferences.allowDeprecatedBehaviors && node.latestVersion > 0)
+                    {
+                        for(int i = 0; i <= node.latestVersion; ++i)
+                        {
+                            var depNode = (AbstractMaterialNode)Activator.CreateInstance(type);
+                            depNode.ChangeVersion(i);
+                            AddEntries(depNode, titleAttribute.title.Append($"V{i}").ToArray(), nodeEntries);
+                        }
+                    }
+                    else
+                    {
+                        AddEntries(node, titleAttribute.title, nodeEntries);
+                    }
                 }
             }
 
@@ -150,6 +165,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             SortEntries(nodeEntries);
             currentNodeEntries = nodeEntries;
+            Profiler.EndSample();
         }
 
         void SortEntries(List<NodeEntry> nodeEntries)
@@ -260,13 +276,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         //if we have slot entries and are at a leaf, add the slot name to the entry title
                         if (nodeEntry.compatibleSlotId != -1 && i == nodeEntry.title.Length - 1)
-                            item = new SearchNodeItem(pathEntry + ": " + nodeEntry.slotName, nodeEntry);
+                            item = new SearchNodeItem(pathEntry + ": " + nodeEntry.slotName, nodeEntry, nodeEntry.node.synonyms);
                         //if we don't have slot entries and are at a leaf, add userdata to the entry
                         else if (nodeEntry.compatibleSlotId == -1 && i == nodeEntry.title.Length - 1)
-                            item = new SearchNodeItem(pathEntry, nodeEntry);
+                            item = new SearchNodeItem(pathEntry, nodeEntry, nodeEntry.node.synonyms);
                         //if we aren't a leaf, don't add user data
                         else
-                            item = new SearchNodeItem(pathEntry, dummyEntry);
+                            item = new SearchNodeItem(pathEntry, dummyEntry, null);
 
                         if (parent != null)
                         {
@@ -294,7 +310,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public bool OnSearcherSelectEntry(SearcherItem entry, Vector2 screenMousePosition)
         {
             if(entry == null || (entry as SearchNodeItem).NodeGUID.node == null)
-                return false;
+                return true;
 
             var nodeEntry = (entry as SearchNodeItem).NodeGUID;
             var node = CopyNodeForGraph(nodeEntry.node);
@@ -308,12 +324,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             if(node is BlockNode blockNode)
             {
                 if(!(target is ContextView contextView))
-                    return false;
+                    return true;
 
                 // Test against all current BlockNodes in the Context
                 // Never allow duplicate BlockNodes
                 if(contextView.contextData.blocks.Where(x => x.value.name == blockNode.name).FirstOrDefault().value != null)
-                    return false;
+                    return true;
                 
                 // Insert block to Data
                 blockNode.owner = m_Graph;
@@ -348,6 +364,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         public AbstractMaterialNode CopyNodeForGraph(AbstractMaterialNode oldNode)
         {
             var newNode = (AbstractMaterialNode)Activator.CreateInstance(oldNode.GetType());
+            if (ShaderGraphPreferences.allowDeprecatedBehaviors && oldNode.sgVersion != newNode.sgVersion)
+            {
+                newNode.ChangeVersion(oldNode.sgVersion);
+            }
             if (newNode is SubGraphNode subgraphNode)
             {
                 subgraphNode.asset = ((SubGraphNode)oldNode).asset;

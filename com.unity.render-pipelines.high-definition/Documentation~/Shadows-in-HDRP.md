@@ -1,6 +1,6 @@
 # Shadows in the High Definition Render Pipeline
 
-The High Definition Render Pipeline’s [Lights](Light-Component.html) can cast shadows from one GameObject onto another. They emphasize the position and scale of GameObjects, which adds a degree of depth and realism to a Scene that could otherwise look flat.
+The High Definition Render Pipeline’s [Lights](Light-Component.md) can cast shadows from one GameObject onto another. They emphasize the position and scale of GameObjects, which adds a degree of depth and realism to a Scene that could otherwise look flat.
 
 ![](Images/HDRPFeatures-Shadows.png)
 
@@ -14,13 +14,16 @@ The number of shadow maps HDRP renders per Light depends on the **Type** of the 
 
 - A Spot Light renders one shadow map.
 - A Point Light renders six shadow maps (the number of faces in a cubemap).
-- A Directional Light renders one shadow map per cascade. Set the cascade count of Directional Lights from the [HD Shadow Settings](Override-Shadows.html) of your Scene’s [Volumes](Volumes.html). The default value is four cascades.
+- A Directional Light renders one shadow map per cascade. Set the cascade count of Directional Lights from the [HD Shadow Settings](Override-Shadows.md) of your Scene’s [Volumes](Volumes.md). The default value is four cascades.
+
+HDRP can perform a dynamic rescale of shadow maps to maximize space usage in shadow atlases, but also to reduce the performance impact of lights that occupy a small portion of the screen. To do this, HDRP scales down a light's shadow map resolution depending on the size of the screen area the light covers. The smaller the area on the screen, the more HDRP scales the resolution down from the value set on the [Light component](Light-Component.md). To enable this feature, go the Shadow section of your Unity Project’s [HDRP Asset](HDRP-Asset.md) and enable the **Dynamic Rescale** property for the shadow atlas you want HDRP to dynamically rescale the shadow maps of.
+Note that HDRP does not support dynamic rescale for cached shadow maps. 
 
 ## Shadow atlases
 
-HDRP renders all real-time shadows for a frame using a shadow map atlas for all [punctual light](Glossary.html#PunctualLight) shadows, and another shadow map atlas for Directional Light shadows.
+HDRP renders all real-time shadows for a frame using a shadow map atlas for all [punctual light](Glossary.md#PunctualLight) shadows, and another shadow map atlas for Directional Light shadows.
 
-Set the size of these atlases in your Unity Project’s [HDRP Asset](HDRP-Asset.html). The atlas size determines the maximum resolution of shadows in your Scene.
+Set the size of these atlases in your Unity Project’s [HDRP Asset](HDRP-Asset.md). The atlas size determines the maximum resolution of shadows in your Scene.
 
 For example, the default size of an atlas is 4096 x 4096, which can fit:
 
@@ -41,7 +44,7 @@ In HDRP, each individual Light component controls its own shadow biasing using t
 - **Slope-Scale Depth Bias**
 - **Normal Bias**
 
-Find these settings under the **Shadows** section. If some of the property fields are missing, click the [more options](More-Options.html) cog to expose them. For details on how each property controls the shadow biasing, see the [Light documentation](Light-Component.html).
+Find these settings under the **Shadows** section. If some of the property fields are missing, click the [more options](More-Options.md) gear to expose them. For details on how each property controls the shadow biasing, see the [Light documentation](Light-Component.md).
 
 ![](Images/Shadows1.png)
 
@@ -53,8 +56,8 @@ Using high shadow bias values may result in light "leaking" through Meshes. This
 
 After HDRP captures a shadow map, it processes filtering on the map in order to decrease the aliasing effect that occurs on low resolution shadow maps. Different filters affect the perceived sharpness of shadows.
 
-To change which shadow filter quality to use, change the **Filtering Quality** property in your Unity Project’s [HDRP Asset](HDRP-Asset.html). Higher quality have impact on GPU performance.
-There are currently three filter quality presets for directional and punctual lights. For information on the available filter qualities, see the [Filtering Qualities table](HDRP-Asset.html#FilteringQualities).
+To change which shadow filter quality to use, change the **Filtering Quality** property in your Unity Project’s [HDRP Asset](HDRP-Asset.md). Higher quality have impact on GPU performance.
+There are currently three filter quality presets for directional and punctual lights. For information on the available filter qualities, see the [Filtering Qualities table](HDRP-Asset.md#FilteringQualities).
 
 ## Shadowmasks
 
@@ -65,7 +68,7 @@ HDRP supports two [Mixed Lighting Modes](https://docs.unity3d.com/Manual/LightMo
 
 ### Enabling shadowmasks
 
-To use shadowmasks in HDRP, you must enable shadowmask support in your Unity Project’s HDRP Asset and then make your Cameras use shadowmasks in their [Frame Settings](Frame-Settings.html) :
+To use shadowmasks in HDRP, you must enable shadowmask support in your Unity Project’s HDRP Asset and then make your Cameras use shadowmasks in their [Frame Settings](Frame-Settings.md) :
 
 1. Under **Render Pipeline Supported Features**, enable the **Shadowmask** checkbox. This enables support for shadowmasks in your Unity Project.
 2. Next, you must make your Cameras use shadowmasks. In your HDRP Asset, navigate to **Default Frame Settings > Lighting** and enable the **Shadowmask** checkbox to make Cameras use shadowmasks by default.
@@ -83,7 +86,7 @@ For flexible lighting setups, HDRP allows you to choose how you want the shadowm
 
 <a name="DirectionalLightEquivalentProperty"></a>
 
-Directional Lights do not use **Fade Distance**. Instead they use the **Max Distance** property located in the [HD Shadow Settings](Override-Shadows.html) of your Scene’s Volumes.
+Directional Lights do not use **Fade Distance**. Instead they use the **Max Distance** property located in the [HD Shadow Settings](Override-Shadows.md) of your Scene’s Volumes.
 
 **Distance Shadowmask** is more GPU intensive, but looks more realistic because real-time lighting that is closer to the Light is more accurate than shadowmask textures with a low resolution chosen to represent areas further away.
 
@@ -93,7 +96,7 @@ Directional Lights do not use **Fade Distance**. Instead they use the **Max Dist
 
 ## Shadow Update Mode
 
-You can use **Update Mode** to specify the calculation method HDRP uses to update a [Light](Light-Component.html)'s shadow maps. The following Update Modes are available:
+You can use **Update Mode** to specify the calculation method HDRP uses to update a [Light](Light-Component.md)'s shadow maps. The following Update Modes are available:
 
 | **Update Mode** | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
@@ -107,6 +110,9 @@ When a Light that caches its shadows renders its shadow map for the first time, 
 
 If the Light's **Update Mode** is set to **OnDemand**, you can manually request HDRP to update the Light's shadow map. To do this, access the Light's **HDAdditionalLightData** component and call the `RequestShadowMapRendering` function. Also, if the Light has multiple shadows (e.g. multiple cascades of a directional light), you can request the update of a specific sub-shadow. To do this, use the `RequestSubShadowMapRendering(shadowIndex)` function.
 For a Light that does cache its shadows, if you disable it or set its **Update Mode** to **Every Frame**, you can tell HDRP to preserve the Light's shadow map's place in the cached shadow atlas. This means that, if you enable the Light again, HDRP does not need to re-render the shadow map or place it into a shadow atlas. For information on how to make a Light preserve its shadow map's place in the cached shadow atlas, see [Preserving shadow atlas placement](#preserving-shadow-atlas-placement).
+
+As a shortcut for a common case, HDRP offers an option to automatically trigger an update when either the position or rotation of a light changes above a certain threshold. To enable this option, select a [Light](https://github.com/Unity-Technologies/Graphics/pull/Light-Component.md) and, in the **Shadow** section of its Inspector, enable **Update on light movement**. 
+You can customize the threshold that HDRP uses to determine how much a light needs to move or rotate to trigger an update. To do this, use the properties: `cachedShadowTranslationUpdateThreshold` and `cachedShadowAngleUpdateThreshold` properties on the Light's **HDAdditionalLightData** component. Note that point lights ignore the angle differences when determining if they need to perform an update in this mode. 
 
 ### Customising shadow caching
 HDRP caches shadow maps for punctual Lights into one atlas, area Lights into another, and directional Lights into the same atlas as non-cached Directional Lights. You can change the resolution of the first two cached shadow atlases independently of one another. To do this: 
@@ -148,8 +154,8 @@ Be aware that anything that is view-dependent is likely to create problems with 
 
 ## Contact Shadows
 
-Contact Shadows are shadows that HDRP [ray marches](Glossary.html#RayMarching) in screen space, inside the depth buffer, at a close range. They provide small, detailed, shadows for details in geometry that shadow maps cannot usually capture.
+Contact Shadows are shadows that HDRP [ray marches](Glossary.md#RayMarching) in screen space, inside the depth buffer, at a close range. They provide small, detailed, shadows for details in geometry that shadow maps cannot usually capture.
 
-For details on how to enable and customize Contact Shadows, see the [Contact Shadows override documentation](Override-Contact-Shadows.html).
+For details on how to enable and customize Contact Shadows, see the [Contact Shadows override documentation](Override-Contact-Shadows.md).
 
 Only one Light can cast Contact Shadows at a time. This means that, if you have more than one Light that casts Contact Shadows visible on the screen, only the dominant Light renders Contact Shadows. HDRP chooses the dominant Light using the screen space size of the Light’s bounding box. A Direction Light that casts Contact Shadows is always the dominant Light.

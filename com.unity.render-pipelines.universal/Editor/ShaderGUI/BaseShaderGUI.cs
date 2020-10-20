@@ -121,6 +121,8 @@ namespace UnityEditor
 
         private string m_HeaderStateKey = null;
 
+        protected string headerStateKey { get { return m_HeaderStateKey; } }
+
         // Header foldout states
 
         SavedBool m_SurfaceOptionsFoldout;
@@ -208,6 +210,8 @@ namespace UnityEditor
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
 
+            DrawAdditionalFoldouts(material);
+
             m_AdvancedFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_AdvancedFoldout.value, Styles.AdvancedLabel);
             if (m_AdvancedFoldout.value)
             {
@@ -215,8 +219,6 @@ namespace UnityEditor
                 EditorGUILayout.Space();
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
-
-            DrawAdditionalFoldouts(material);
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -280,7 +282,11 @@ namespace UnityEditor
         public virtual void DrawAdvancedOptions(Material material)
         {
             materialEditor.EnableInstancingField();
+            DrawQueueOffsetField();
+        }
 
+        protected void DrawQueueOffsetField()
+        {
             if (queueOffsetProp != null)
             {
                 EditorGUI.BeginChangeCheck();
@@ -387,11 +393,14 @@ namespace UnityEditor
         {
             // Clear all keywords for fresh start
             material.shaderKeywords = null;
+
             // Setup blending - consistent across all Universal RP shaders
             SetupMaterialBlendMode(material);
+
             // Receive Shadows
             if(material.HasProperty("_ReceiveShadows"))
                 CoreUtils.SetKeyword(material, "_RECEIVE_SHADOWS_OFF", material.GetFloat("_ReceiveShadows") == 0.0f);
+
             // Emission
             if (material.HasProperty("_EmissionColor"))
                 MaterialEditor.FixupEmissiveFlag(material);
@@ -400,9 +409,11 @@ namespace UnityEditor
             if (material.HasProperty("_EmissionEnabled") && !shouldEmissionBeEnabled)
                 shouldEmissionBeEnabled = material.GetFloat("_EmissionEnabled") >= 0.5f;
             CoreUtils.SetKeyword(material, "_EMISSION", shouldEmissionBeEnabled);
+
             // Normal Map
-            if(material.HasProperty("_BumpMap"))
+            if (material.HasProperty("_BumpMap"))
                 CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture("_BumpMap"));
+
             // Shader specific keyword functions
             shadingModelFunc?.Invoke(material);
             shaderFunc?.Invoke(material);

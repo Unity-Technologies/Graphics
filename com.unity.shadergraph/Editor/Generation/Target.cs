@@ -21,7 +21,11 @@ namespace UnityEditor.ShaderGraph
         public virtual void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode) { }
         public virtual void ProcessPreviewMaterial(Material material) { }
         public virtual object saveContext => null;
-        public virtual bool IsNodeAllowedByTarget(Type nodeType) => NodeTypes.AllBuiltin.Contains(nodeType);
+        public virtual bool IsNodeAllowedByTarget(Type nodeType)
+        {
+            NeverAllowedByTargetAttribute never = NodeClassCache.GetAttributeOnNodeType<NeverAllowedByTargetAttribute>(nodeType);
+            return never == null;
+        }
 
         public abstract bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline);
         

@@ -21,6 +21,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             "RenderType" = "Opaque"
             "DisableBatching" = "LODFading"
             "RenderPipeline" = "UniversalPipeline"
+            "UniversalMaterialType" = "SimpleLit"
         }
         LOD 400
         Cull [_Cull]
@@ -65,8 +66,6 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             Name "SceneSelectionPass"
             Tags{"LightMode" = "SceneSelectionPass"}
 
-            ColorMask 0
-
             HLSLPROGRAM
 
             #pragma vertex SpeedTree7VertDepth
@@ -90,6 +89,8 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
         {
             Name "ShadowCaster"
             Tags{"LightMode" = "ShadowCaster"}
+
+            ColorMask 0
 
             HLSLPROGRAM
 
@@ -117,19 +118,9 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             Name "GBuffer"
             Tags{"LightMode" = "UniversalGBuffer"}
 
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
-            // This is a SimpleLit material.
-            Stencil {
-                Ref 64       // 0b01000000
-                WriteMask 96 // 0b01100000
-                Comp Always
-                Pass Replace
-                Fail Keep
-                ZFail Keep
-            }
-
             HLSLPROGRAM
 
+            #pragma exclude_renderers gles
             #pragma vertex SpeedTree7Vert
             #pragma fragment SpeedTree7Frag
 
@@ -193,7 +184,6 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             Tags{"LightMode" = "DepthNormals"}
 
             HLSLPROGRAM
-
             #pragma vertex SpeedTree7VertDepthNormal
             #pragma fragment SpeedTree7FragDepthNormal
 

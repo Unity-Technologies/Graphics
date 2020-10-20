@@ -20,7 +20,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RayTracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/RayCountManager.cs.hlsl"
@@ -78,11 +78,8 @@ void RayGenIntegration()
     // Convert this to a world space position
     PositionInputs posInput = GetPositionInput(currentCoord, 1.0/LaunchDim.xy, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
     float distanceToCamera = length(posInput.positionWS);
-
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
-
     // Compute the incident vector on the surfaces
-    float3 viewWS = normalize(_WorldSpaceCameraPos - positionWS);
+    const float3 viewWS = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
     // Decode the world space normal
     NormalData normalData;
@@ -102,8 +99,8 @@ void RayGenIntegration()
     // Compute the actual roughness
     float roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
 
-    // Clamp the sample count if the surface is a completely smooth
-    int realSampleCount = normalData.perceptualRoughness < 0.01 ? 1 : _RaytracingNumSamples;
+    // If we only have one bounce, we don't need more than one ray to evaluate the exact signal. However, if we are going for multiple bounces, we may need more, so we cannot clamp the sample count to 1.
+    int realSampleCount = _RaytracingMaxRecursion == 1 ? (normalData.perceptualRoughness < 0.01 ? 1 : _RaytracingNumSamples) : _RaytracingNumSamples;
 
     // Variable that accumulate the radiance
     float3 finalColor = float3(0.0, 0.0, 0.0);
@@ -137,7 +134,7 @@ void RayGenIntegration()
 
         // Create the ray descriptor for this pixel
         RayDesc rayDescriptor;
-        rayDescriptor.Origin = positionWS + normalData.normalWS * _RaytracingRayBias;
+        rayDescriptor.Origin = posInput.positionWS + normalData.normalWS * _RaytracingRayBias;
         rayDescriptor.Direction = sampleDir;
         rayDescriptor.TMin = 0.0;
         rayDescriptor.TMax = _RaytracingRayMaxLength;
@@ -207,10 +204,10 @@ void RayGenIntegrationTransparent()
     PositionInputs posInput = GetPositionInput(currentCoord, 1.0/LaunchDim.xy, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
     float distanceToCamera = length(posInput.positionWS);
 
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
+    float3 positionWS = posInput.positionWS;
 
     // Compute the incident vector on the surfaces
-    float3 viewWS = normalize(_WorldSpaceCameraPos - positionWS);
+    const float3 viewWS = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
     // Decode the world space normal
     NormalData normalData;
@@ -223,7 +220,7 @@ void RayGenIntegrationTransparent()
 
     // Compute the reflected direction
     float3 reflectionDir = reflect(-viewWS, normalData.normalWS);
-       
+
     // Make sure the new ray is taken into account in the ray counters
     if (_RayCountEnabled > 0)
     {

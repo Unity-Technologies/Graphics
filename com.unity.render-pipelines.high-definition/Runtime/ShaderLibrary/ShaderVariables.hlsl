@@ -54,8 +54,6 @@
 #define RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
 #endif
 
-
-
 // ----------------------------------------------------------------------------
 
 CBUFFER_START(UnityPerDraw)
@@ -67,6 +65,7 @@ CBUFFER_START(UnityPerDraw)
     float4 unity_RenderingLayer;
 
     float4 unity_LightmapST;
+    float4 unity_LightmapIndex;
     float4 unity_DynamicLightmapST;
 
     // SH lighting environment
@@ -130,8 +129,12 @@ TEXTURE2D_X(_CustomColorTexture);
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
 SAMPLER(samplerunity_Lightmap);
+TEXTURE2D_ARRAY(unity_Lightmaps);
+SAMPLER(samplerunity_Lightmaps);
+
 // Dual or directional lightmap (always used with unity_Lightmap, so can share sampler)
 TEXTURE2D(unity_LightmapInd);
+TEXTURE2D_ARRAY(unity_LightmapsInd);
 
 // Dynamic GI lightmap
 TEXTURE2D(unity_DynamicLightmap);
@@ -139,9 +142,10 @@ SAMPLER(samplerunity_DynamicLightmap);
 
 TEXTURE2D(unity_DynamicDirectionality);
 
-// We can have shadowMask only if we have lightmap, so no sampler
 TEXTURE2D(unity_ShadowMask);
 SAMPLER(samplerunity_ShadowMask);
+TEXTURE2D_ARRAY(unity_ShadowMasks);
+SAMPLER(samplerunity_ShadowMasks);
 
 // TODO: Change code here so probe volume use only one transform instead of all this parameters!
 TEXTURE3D(unity_ProbeVolumeSH);
@@ -281,21 +285,6 @@ float GetInversePreviousExposureMultiplier()
     return rcp(exposure + (exposure == 0.0)); // zero-div guard
 }
 
-// Helper function for Rendering Layers
-#define DEFAULT_LIGHT_LAYERS (RENDERING_LIGHT_LAYERS_MASK >> RENDERING_LIGHT_LAYERS_MASK_SHIFT)
-#define DEFAULT_DECAL_LAYERS (RENDERING_DECAL_LAYERS_MASK >> RENDERING_DECAL_LAYERS_MASK_SHIFT)
-
-// Note: we need to mask out only 8bits of the layer mask before encoding it as otherwise any value > 255 will map to all layers active if save in a buffer
-uint GetMeshRenderingLightLayer()
-{
-    return _EnableLightLayers ? (asuint(unity_RenderingLayer.x) & RENDERING_LIGHT_LAYERS_MASK) >> RENDERING_LIGHT_LAYERS_MASK_SHIFT : DEFAULT_LIGHT_LAYERS;
-}
-
-uint GetMeshRenderingDecalLayer()
-{
-    return _EnableDecalLayers ? ((asuint(unity_RenderingLayer.x) & RENDERING_DECAL_LAYERS_MASK) >> RENDERING_DECAL_LAYERS_MASK_SHIFT) : DEFAULT_DECAL_LAYERS;
-}
-
 // Helper function for indirect control volume
 float GetIndirectDiffuseMultiplier(uint renderingLayers)
 {
@@ -371,6 +360,7 @@ UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_WorldTransformParams)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_RenderingLayer)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_LightmapST)
+    UNITY_DOTS_INSTANCED_PROP(float4,   unity_LightmapIndex)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_DynamicLightmapST)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHAr)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHAg)
@@ -389,6 +379,7 @@ UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 #define unity_WorldTransformParams  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_WorldTransformParams)
 #define unity_RenderingLayer        UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_RenderingLayer)
 #define unity_LightmapST            UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_LightmapST)
+#define unity_LightmapIndex         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_LightmapIndex)
 #define unity_DynamicLightmapST     UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_DynamicLightmapST)
 #define unity_SHAr                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHAr)
 #define unity_SHAg                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHAg)

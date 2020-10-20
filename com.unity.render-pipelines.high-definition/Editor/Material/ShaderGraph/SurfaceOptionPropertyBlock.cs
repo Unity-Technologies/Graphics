@@ -21,14 +21,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             ShowDoubleSidedNormal   = 1 << 0,
             All                     = ~0,
 
-            Unlit                   = All ^ ShowDoubleSidedNormal, // hide double sided normal for unlit
+            Unlit                   = Lit ^ ShowDoubleSidedNormal, // hide double sided normal for unlit
             Lit                     = All,
         }
 
         class Styles
         {
-            public static GUIContent fragmentNormalSpace = new GUIContent("Fragment Normal Space", "TODO");
-            public static GUIContent doubleSidedModeText = new GUIContent("Double Sided Mode", "TODO");
+            public static GUIContent fragmentNormalSpace = new GUIContent("Fragment Normal Space", "Select the space use for normal map in Fragment shader in this shader graph.");
+            public static GUIContent doubleSidedModeText = new GUIContent("Double Sided Mode", "Select the double sided mode to use with this Material.");
         }
 
         Features enabledFeatures;
@@ -42,13 +42,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             AddProperty(surfaceTypeText, () => systemData.surfaceType, (newValue) => {
                 systemData.surfaceType = newValue;
-                systemData.TryChangeRenderingPass(systemData.renderingPass);
+                systemData.TryChangeRenderingPass(systemData.renderQueueType);
             });
 
             context.globalIndentLevel++;
-            var renderingPassList = HDSubShaderUtilities.GetRenderingPassList(systemData.surfaceType == SurfaceType.Opaque, false);
-            var renderingPassValue = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.GetOpaqueEquivalent(systemData.renderingPass) : HDRenderQueue.GetTransparentEquivalent(systemData.renderingPass);
+            var renderingPassList = HDSubShaderUtilities.GetRenderingPassList(systemData.surfaceType == SurfaceType.Opaque, enabledFeatures == Features.Unlit); // Show after post process for unlit shaders
+            var renderingPassValue = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.GetOpaqueEquivalent(systemData.renderQueueType) : HDRenderQueue.GetTransparentEquivalent(systemData.renderQueueType);
             var renderQueueType = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
+
             context.AddProperty(renderingPassText, new PopupField<HDRenderQueue.RenderQueueType>(renderingPassList, renderQueueType, HDSubShaderUtilities.RenderQueueName, HDSubShaderUtilities.RenderQueueName) { value = renderingPassValue }, (evt) =>
             {
                 registerUndo(renderingPassText);
@@ -81,8 +82,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Alpha Test
             // TODO: AlphaTest is in SystemData but Alpha to Mask is in BuiltinData?
             AddProperty(alphaCutoffEnableText, () => systemData.alphaTest, (newValue) => systemData.alphaTest = newValue);
-            AddProperty(useShadowThresholdText, () => builtinData.alphaTestShadow, (newValue) => builtinData.alphaTestShadow = newValue);
-            AddProperty(alphaToMaskText, () => builtinData.alphaToMask, (newValue) => builtinData.alphaToMask = newValue);
+            if (systemData.alphaTest)
+            {
+                context.globalIndentLevel++;
+                AddProperty(useShadowThresholdText, () => builtinData.alphaTestShadow, (newValue) => builtinData.alphaTestShadow = newValue);
+                AddProperty(alphaToMaskText, () => builtinData.alphaToMask, (newValue) => builtinData.alphaToMask = newValue);
+                context.globalIndentLevel--;
+            }
 
             // Misc
             if ((enabledFeatures & Features.ShowDoubleSidedNormal) != 0)

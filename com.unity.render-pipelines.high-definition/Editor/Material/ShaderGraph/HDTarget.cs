@@ -7,6 +7,7 @@ using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.UIElements;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.UIElements;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEditor.ShaderGraph.Legacy;
@@ -39,7 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     sealed class HDTarget : Target, IHasMetadata, ILegacyTarget
     {
         // Constants
-        const string kAssetGuid = "61d9843d4027e3e4a924953135f76f3c";
+        static readonly GUID kSourceCodeGuid = new GUID("61d9843d4027e3e4a924953135f76f3c"); // HDTarget.cs
 
         // SubTarget
         List<SubTarget> m_SubTargets;
@@ -59,25 +60,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         [SerializeField]
         string m_CustomEditorGUI;
 
-        static NodeTypeCollection s_HDNodeTypes = NodeTypes.AllBuiltin + typeof(HDSceneColorNode)
-                                                                       + typeof(DiffusionProfileNode)
-                                                                       + typeof(ExposureNode)
-                                                                       + typeof(EmissionNode)
-                                                                       + typeof(ParallaxOcclusionMappingNode)
-                                                                       + typeof(CirclePupilAnimation)
-                                                                       + typeof(CorneaRefraction)
-                                                                       + typeof(EyeSurfaceTypeDebug)
-                                                                       + typeof(IrisLimbalRing)
-                                                                       + typeof(IrisOffset)
-                                                                       + typeof(IrisOutOfBoundColorClamp)
-                                                                       + typeof(IrisUVLocation)
-                                                                       + typeof(ScleraIrisBlend)
-                                                                       + typeof(ScleraLimbalRing)
-                                                                       + typeof(ScleraUVLocation);
-
         public override bool IsNodeAllowedByTarget(Type nodeType)
         {
-            return s_HDNodeTypes.Contains(nodeType);
+            SRPFilterAttribute srpFilter = NodeClassCache.GetAttributeOnNodeType<SRPFilterAttribute>(nodeType);
+            bool worksWithThisSrp = srpFilter == null || srpFilter.srpTypes.Contains(typeof(HDRenderPipeline));
+            return worksWithThisSrp && base.IsNodeAllowedByTarget(nodeType);
         }
 
         public HDTarget()
@@ -108,7 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             // Setup the Target
-            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
+            context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
 
             // Process SubTargets
             TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
@@ -194,6 +181,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             // SubTarget
             m_ActiveSubTarget.value.CollectShaderProperties(collector, generationMode);
+
+            collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsArray);
+            collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsIndirectionArray);
+            collector.AddShaderProperty(LightmappingShaderProperties.kShadowMasksArray);
         }
 
         public override void ProcessPreviewMaterial(Material material)
@@ -416,7 +407,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(HDStructFields.FragInputs.texCoord2,                                 HDStructFields.VaryingsMeshToPS.texCoord2),
             new FieldDependency(HDStructFields.FragInputs.texCoord3,                                 HDStructFields.VaryingsMeshToPS.texCoord3),
             new FieldDependency(HDStructFields.FragInputs.color,                                     HDStructFields.VaryingsMeshToPS.color),
-            new FieldDependency(HDStructFields.FragInputs.IsFrontFace,                               HDStructFields.VaryingsMeshToPS.cullFace),
         };
 
         public static DependencyCollection VertexDescription = new DependencyCollection
@@ -606,6 +596,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static RenderStateCollection SceneSelection = new RenderStateCollection
         {
+            { RenderState.Cull(Cull.Off) },
             { RenderState.ColorMask("ColorMask 0") },
         };
 
@@ -695,7 +686,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Pragma.Target(ShaderModel.Target45) },
             { Pragma.Vertex("Vert") },
             { Pragma.Fragment("Frag") },
-            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.Playstation, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch}) },
+            { Pragma.OnlyRenderers(PragmaRenderers.GetHighEndPlatformArray()) },
         };
 
         public static PragmaCollection InstancedRenderingLayer = new PragmaCollection
@@ -811,40 +802,51 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public static DefineCollection SceneSelection = new DefineCollection
         {
+            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
             { CoreKeywordDescriptors.SceneSelectionPass, 1 },
         };
 
         public static DefineCollection DepthForwardOnly = new DefineCollection
         {
-            { RayTracingNode.GetRayTracingKeyword(), 0 },
+            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
             { CoreKeywordDescriptors.WriteNormalBuffer, 1 },
         };
 
-        public static DefineCollection ShaderGraphRaytracingHigh = new DefineCollection
+        public static DefineCollection DepthForwardOnlyUnlit = new DefineCollection
         {
-            { RayTracingNode.GetRayTracingKeyword(), 0 },
+            { CoreKeywordDescriptors.WriteNormalBuffer, 1, new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, true)},
+        };
+
+        public static DefineCollection ShaderGraphRaytracingDefault = new DefineCollection
+        {
+            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
         };
 
         public static DefineCollection TransparentDepthPrepass = new DefineCollection
         {
-            { RayTracingNode.GetRayTracingKeyword(), 0 },
+            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
         };
 
         public static DefineCollection TransparentDepthPostpass = new DefineCollection
         {
-            { RayTracingNode.GetRayTracingKeyword(), 0 },
+            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
         };
 
         public static DefineCollection Forward = new DefineCollection
         {
             { CoreKeywordDescriptors.HasLightloop, 1 },
-            { RayTracingNode.GetRayTracingKeyword(), 0 },
+            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
+        };
+
+        public static DefineCollection ForwardUnlit = new DefineCollection
+        {
+            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
         };
 
         public static DefineCollection BackThenFront = new DefineCollection
         {
             { CoreKeywordDescriptors.HasLightloop, 1 },
-            { RayTracingNode.GetRayTracingKeyword(), 0 },
+            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
             // { CoreKeywordDescriptors.LightList, 1 }, // BackThenFront Transparent use #define USE_CLUSTERED_LIGHTLIST 
         };
     }
@@ -854,7 +856,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     static class CoreIncludes
     {
         // CorePregraph
-        public const string kTextureStack = "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl";
         public const string kShaderVariables = "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl";
         public const string kFragInputs = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl";
         public const string kMaterial = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl";
@@ -874,6 +875,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kLitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl";
         public const string kUnlitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl";
         public const string kFabricRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricRaytracing.hlsl";
+        public const string kEyeRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/EyeRaytracing.hlsl";
         public const string kStackLitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitRaytracing.hlsl";
         public const string kHairRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/HairRaytracing.hlsl";
         public const string kRaytracingLightLoop = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl";
@@ -922,12 +924,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kStandardLit = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StandardLit/StandardLit.hlsl";
         public const string kPassForwardUnlit = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl";
         public const string kPassConstant = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassConstant.hlsl";
+        public const string kPassFullScreenDebug = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassFullScreenDebug.hlsl";
+
+        public static IncludeCollection MinimalCorePregraph = new IncludeCollection
+        {
+            { kShaderVariables, IncludeLocation.Pregraph },
+            { kFragInputs, IncludeLocation.Pregraph },
+        };
 
         public static IncludeCollection CorePregraph = new IncludeCollection
         {
-            { kTextureStack, IncludeLocation.Pregraph },        // TODO: put this on a conditional
-            { kShaderVariables, IncludeLocation.Pregraph },
-            { kFragInputs, IncludeLocation.Pregraph },
             { kDebugDisplay, IncludeLocation.Pregraph },            
             { kMaterial, IncludeLocation.Pregraph },
         };
@@ -935,12 +941,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static IncludeCollection RaytracingCorePregraph = new IncludeCollection
         {
             // Pregraph includes
-            { CoreIncludes.kTextureStack, IncludeLocation.Pregraph },
-            { CoreIncludes.kFragInputs, IncludeLocation.Pregraph },
-
-            // Ray Tracing macros should be included before shader variables to guarantee that the macros are overriden
             { CoreIncludes.kRaytracingMacros, IncludeLocation.Pregraph },
-            { CoreIncludes.kShaderVariables, IncludeLocation.Pregraph },
             { CoreIncludes.kMaterial, IncludeLocation.Pregraph },
             { CoreIncludes.kShaderVariablesRaytracing, IncludeLocation.Pregraph },
             { CoreIncludes.kShaderVariablesRaytracingLightLoop, IncludeLocation.Pregraph },

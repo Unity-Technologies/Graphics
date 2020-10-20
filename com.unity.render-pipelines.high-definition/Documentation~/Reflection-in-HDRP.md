@@ -37,27 +37,27 @@ If screen space reflection has a weight of 1, then HDRP uses that information an
 
 ### Screen space reflection
 
-The first level of the reflection hierarchy is a screen space solution with a high resource intensity that captures everything rendered in the Scene. HDRP uses the [Volume](Volumes.html) framework to handle screen space reflection. The [Screen Space Reflection](Override-Screen-Space-Reflection.html) Volume [override](Volume-Components.html) contains the properties and controls the screen space reflection effect. To calculate screen space reflection, the algorithm traces a ray in screen space until it finds an intersection with the depth buffer. It then looks up the color of the pixel from the previous frame, and uses that to compute the reflected lighting.
+The first level of the reflection hierarchy is a screen space solution with a high resource intensity that captures everything rendered in the Scene. HDRP uses the [Volume](Volumes.md) framework to handle screen space reflection. The [Screen Space Reflection](Override-Screen-Space-Reflection.md) Volume [override](Volume-Components.md) contains the properties and controls the screen space reflection effect. To calculate screen space reflection, the algorithm traces a ray in screen space until it finds an intersection with the depth buffer. It then looks up the color of the pixel from the previous frame, and uses that to compute the reflected lighting.
 
 This screen-space technique limits the reflective effect because it can only reflect GameObjects that actually visible on screen. Also, because this technique only uses a single layer of the depth buffer, tracing rays behind GameObjects is difficult for it to handle. If this technique does not find an intersection, HDRP falls back to the next technique in the [reflection hierarchy](#ReflectionHierarchy).
 
 **Note**: Screen space reflection only works for opaque Materials and, because it is a screen space effect, it only reflects GameObjects that are visible on the screen.
 
-For information on how to use screen space reflection in your Unity Project, see the [Screen Space Reflection](Override-Screen-Space-Reflection.html) documentation.
+For information on how to use screen space reflection in your Unity Project, see the [Screen Space Reflection](Override-Screen-Space-Reflection.md) documentation.
 
 <a name="ReflectionProbes"></a>
 
 ### Reflection Probes
 
-The second level of the reflection hierarchy uses [Reflection Probes](Reflection-Probes-Intro.html). When screen space reflection does not manage to produce useful reflection data for a pixel, possibly because the area it reflects is off screen, HDRP uses Reflection Probes. These Reflection Probes capture the Scene from their point of view and store the result as a Texture. Reflective Materials in range of a Probe can query that Probe’s Texture and then use it to produce accurate reflections. Be aware that metallic Materials that use **baked** Reflection Probes do not show specular lighting. Instead, HDRP uses the ambient color to approximates the specular color.
+The second level of the reflection hierarchy uses [Reflection Probes](Reflection-Probes-Intro.md). When screen space reflection does not manage to produce useful reflection data for a pixel, possibly because the area it reflects is off screen, HDRP uses Reflection Probes. These Reflection Probes capture the Scene from their point of view and store the result as a Texture. Reflective Materials in range of a Probe can query that Probe’s Texture and then use it to produce accurate reflections. Be aware that metallic Materials that use **baked** Reflection Probes do not show specular lighting. Instead, HDRP uses the ambient color to approximates the specular color.
 
 Unlike screen space reflection, you must set up Reflection Probes manually.
 
 For more information on Reflection Probes, see:
 
-- [Reflection Probes introduction](Reflection-Probes-Intro.html)
-- [Reflection Probe component documentation](Reflection-Probe.html)
-- [Planar Reflection Probe component documentation](Planar-Reflection-Probe.html) documentation
+- [Reflection Probes introduction](Reflection-Probes-Intro.md)
+- [Reflection Probe component documentation](Reflection-Probe.md)
+- [Planar Reflection Probe component documentation](Planar-Reflection-Probe.md) documentation
 
 ### Sky reflection
 
@@ -65,7 +65,7 @@ For the final level of the reflection hierarchy, HDRP falls back to sky reflecti
 
 ## Reflection Proxy Volumes and reprojection
 
-Reflection Materials in HDRP use [Reflection Proxy Volumes](Reflection-Proxy-Volume.html) as a reprojection volume to apply a reflection from a [Reflection Probe](Reflection-Probes-Intro.html). HDRP uses reprojection to correct parallax issues that arise due to the capture point not being at the same position as the surface point using the captured information.
+Reflection Materials in HDRP use [Reflection Proxy Volumes](Reflection-Proxy-Volume.md) as a reprojection volume to apply a reflection from a [Reflection Probe](Reflection-Probes-Intro.md). HDRP uses reprojection to correct parallax issues that arise due to the capture point not being at the same position as the surface point using the captured information.
 
 If you do not use a proxy volume, when a reflective Material uses environment information captured by a Reflection Probe, it only provides a perfect reflection for the pixels in the same position as the Reflection Probes capture point. This means that Reflection Probes do not provide a perfect reflection for most of the reflective Materials on the screen and, instead, renders the reflected environment in a slightly different position. If you want an accurate reflection for a pixel that is not in the same position as the Reflection Probe’s capture point, use a proxy volume. HDRP uses reprojection to fix this displacement issue. HDRP projects capture information on to the Reflection Probe’s proxy volume and then reprojects it onto the surface of reflective Materials. This does not give a perfect projection, but it is much closer to the actual reflection than what an infinite projection gives. However, proxy volumes can potentially introduce some artifacts depending on the shape of the volume.
 

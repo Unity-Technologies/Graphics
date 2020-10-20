@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent k_NearFocusEnd = new GUIContent("End", "Sets the distance from the Camera at which the near field does not blur anymore.");
             public static GUIContent k_FarFocusEnd = new GUIContent("End", "Sets the distance from the Camera at which the far field blur reaches its maximum blur radius.");
-            public static GUIContent k_PhysicallyBased = new GUIContent("PhysicallyBased", "Uses a more accurate but slower physically based method to compute DoF.");
+            public static GUIContent k_PhysicallyBased = new GUIContent("Physically Based (Preview)", "Uses a more accurate but slower physically based method to compute DoF.");
 
             public static readonly string InfoBox = "Physically Based DoF currently has a high performance overhead. Enabling TAA is highly recommended when using this option.";
         }
@@ -80,7 +80,7 @@ namespace UnityEditor.Rendering.HighDefinition
             int mode = m_FocusMode.value.intValue;
             if (mode == (int)DepthOfFieldMode.Off)
                 return;
-            
+
             using (new HDEditorUtils.IndentScope())
             {
                 // Draw the focus mode controls
@@ -96,9 +96,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Draw the quality controls
                 GUI.enabled = GUI.enabled && base.overrideState;
                 DrawQualitySettings();
+                GUI.enabled = true;
             }
-
-            GUI.enabled = true;
         }
 
         void DrawFocusSettings(int mode)

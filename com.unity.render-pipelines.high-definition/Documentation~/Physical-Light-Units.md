@@ -1,6 +1,8 @@
-# Physical Light units
+# Physical light units
 
 HDRP uses Physical Light Units (PLU) for its lighting. These units are based on real-life light measurements, like those you see on light bulb packaging or a photographic light meter. Note that for lights to behave properly when using PLU, you need to respect HDRP unit convention (1 Unity unit equals 1 meter).
+
+![](Images/HDRPTemplate-Banner1.png)
 
 ## Units
 
@@ -8,21 +10,21 @@ HDRP uses Physical Light Units (PLU) for its lighting. These units are based on 
 
 #### Candela:
 
-The base unit of [luminous intensity](Glossary.html#LuminousIntensity) in the International System of Units. For reference, a common wax candle emits light with a luminous intensity of roughly 1 candela.
+The base unit of [luminous intensity](Glossary.md#LuminousIntensity) in the International System of Units. For reference, a common wax candle emits light with a luminous intensity of roughly 1 candela.
 
 <a name="Lumen"></a>
 
 #### Lumen:
 
-The unit of [luminous flux](Glossary.html#LuminousFlux). Describes the total amount of visible light that a light source emits in all directions. When you use this unit, the amount of visible light is independent of the source's size meaning the illumination level of a Scene does not change depending on the size of a light source. However, highlights that a light source produces dim as the area of the light source increases. This is because the same power is spread across a larger area.
+The unit of [luminous flux](Glossary.md#LuminousFlux). Describes the total amount of visible light that a light source emits in all directions. When you use this unit, the amount of visible light is independent of the source's size meaning the illumination level of a Scene does not change depending on the size of a light source. However, highlights that a light source produces dim as the area of the light source increases. This is because the same power is spread across a larger area.
 
-A light source that emits 1 [candela](#Candela) of [luminous intensity](Glossary.html#LuminousIntensity) from an area of 1 steradian has a luminous flux of 1 lumen.
+A light source that emits 1 [candela](#Candela) of [luminous intensity](Glossary.md#LuminousIntensity) from an area of 1 steradian has a luminous flux of 1 lumen.
 
 <a name="Lux"></a>
 
 #### Lux (lumen per square meter):
 
-The unit of [illuminance](Glossary.html#Illuminance). A light source that emits 1 lumen of [luminous flux](Glossary.html#LuminousFlux) onto an area of 1 square meter has an illuminance of 1 lux.
+The unit of [illuminance](Glossary.md#Illuminance). A light source that emits 1 lumen of [luminous flux](Glossary.md#LuminousFlux) onto an area of 1 square meter has an illuminance of 1 lux.
 
 <a name="Nits"></a>
 
@@ -30,7 +32,7 @@ The unit of [illuminance](Glossary.html#Illuminance). A light source that emits 
 
 The unit of luminance. Describes the surface power of a visible light source. When you use this unit, the overall power of a light source depends the size of the light source, meaning the the illumination level of a Scene changes depending on the size of the light source.  Highlights that a light source produces conserve their intensity regardless of the size of the surface.
 
-A light source that emits 1 candela of [luminous intensity](Glossary.html#LuminousIntensity) onto an area of 1 square meter has a luminance of 1 candela per square meter.
+A light source that emits 1 candela of [luminous intensity](Glossary.md#LuminousIntensity) onto an area of 1 square meter has a luminance of 1 candela per square meter.
 
 <a name="EV"></a>
 
@@ -81,3 +83,9 @@ Architects use these approximate values as a guide when designing rooms and buil
 | 30                | City street at night.      |
 
 For more examples of indoor light levels see Archtoolbox’s web page on [Recommended Lighting Levels in Buildings](https://www.archtoolbox.com/materials-systems/electrical/recommended-lighting-levels-in-buildings.html).
+
+### Lighting and exposure diagram
+
+The following diagram shows scales of light and exposure values in different units. The icons along each scale represent light sources that match the marked value.
+
+![](Images/LightCheatSheet.png)

@@ -1,8 +1,11 @@
 fileFormatVersion: 2
 guid: 8017e1c6af27e2940b3bb83f6c6ebcc5
 ModelImporter:
-  serializedVersion: 20100
-  internalIDToNameTable: []
+  serializedVersion: 20101
+  internalIDToNameTable:
+  - first:
+      74: 1827226128182048838
+    second: Take 001
   externalObjects:
   - first:
       type: UnityEngine:Material
@@ -62,6 +65,7 @@ ModelImporter:
     importBlendShapes: 1
     importCameras: 1
     importLights: 1
+    fileIdsGeneration: 1
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1

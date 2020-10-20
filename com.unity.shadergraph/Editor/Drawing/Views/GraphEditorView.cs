@@ -208,6 +208,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.AddManipulator(new RectangleSelector());
                 m_GraphView.AddManipulator(new ClickSelector());
                 m_GraphView.RegisterCallback<KeyDownEvent>(OnKeyDown);
+                m_GraphView.RegisterCallback<MouseUpEvent>(evt => { m_GraphView.ResetSelectedBlockNodes(); } );
+
                 RegisterGraphViewCallbacks();
                 content.Add(m_GraphView);
 
@@ -332,12 +334,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void NodeCreationRequest(NodeCreationContext c)
         {
-            m_SearchWindowProvider.connectedPort = null;
-            m_SearchWindowProvider.target = c.target;
-            SearcherWindow.Show(m_EditorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(),
-                item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, c.screenMousePosition - m_EditorWindow.position.position),
-                c.screenMousePosition - m_EditorWindow.position.position, null);
-
+            if (EditorWindow.focusedWindow == m_EditorWindow) //only display the search window when current graph view is focused 
+            {
+                m_SearchWindowProvider.connectedPort = null;
+                m_SearchWindowProvider.target = c.target;
+                SearcherWindow.Show(m_EditorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(),
+                    item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, c.screenMousePosition - m_EditorWindow.position.position),
+                    c.screenMousePosition - m_EditorWindow.position.position, null);
+            }
         }
 
 
@@ -671,7 +675,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if(node is BlockNode blockNode)
                     {
                         var context = m_GraphView.GetContext(blockNode.contextData);
-                        context.RemoveElement(nodeView as Node);
+                        // blocknode may be floating and not actually in the stacknode's visual hierarchy.
+                        if (context.Contains(nodeView as Node))
+                        {
+                            context.RemoveElement(nodeView as Node);
+                        }
+                        else
+                        {
+                            m_GraphView.RemoveElement((Node)nodeView);
+                        }
                     }
                     else
                     {
@@ -845,7 +857,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var node = m_Graph.GetNodeFromId(messageData.Key);
 
-                if (!(m_GraphView.GetNodeByGuid(node.objectId) is IShaderNodeView nodeView))
+                if (node == null || !(m_GraphView.GetNodeByGuid(node.objectId) is IShaderNodeView nodeView))
                     continue;
 
                 if (messageData.Value.Count == 0)
@@ -1320,9 +1332,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_InspectorView.ClampToParentLayout(m_GraphView.layout);
 
-            if (m_MasterPreviewView.expanded)
+            if (m_MasterPreviewView.visible)
             {
-                m_FloatingWindowsLayout.previewLayout.size = m_MasterPreviewView.previewTextureView.layout.size;
+                m_FloatingWindowsLayout.previewLayout.size = m_MasterPreviewView.layout.size;
             }
 
             string serializedWindowLayout = JsonUtility.ToJson(m_FloatingWindowsLayout);

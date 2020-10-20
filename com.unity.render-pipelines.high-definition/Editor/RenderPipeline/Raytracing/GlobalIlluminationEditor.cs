@@ -16,8 +16,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_FullResolutionSS;
         SerializedDataParameter m_DepthBufferThickness;
         SerializedDataParameter m_RaySteps;
-        SerializedDataParameter m_MaximalRadius;
-        SerializedDataParameter m_ClampValueSS;
         SerializedDataParameter m_FilterRadius;
 
         // Ray tracing generic attributes
@@ -40,9 +38,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_HalfResolutionDenoiser;
         SerializedDataParameter m_DenoiserRadius;
         SerializedDataParameter m_SecondDenoiserPass;
-        SerializedDataParameter m_SecondDenoiserRadius;
-
-        public override bool hasAdvancedMode => true;
 
         public override void OnEnable()
         {
@@ -56,8 +51,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_FullResolutionSS = Unpack(o.Find(x => x.fullResolutionSS));
             m_DepthBufferThickness = Unpack(o.Find(x => x.depthBufferThickness));
             m_RaySteps = Unpack(o.Find(x => x.raySteps));
-            m_MaximalRadius = Unpack(o.Find(x => x.maximalRadius));
-            m_ClampValueSS = Unpack(o.Find(x => x.clampValueSS));
             m_FilterRadius = Unpack(o.Find(x => x.filterRadius));
 
             // Ray Tracing shared parameters
@@ -80,8 +73,10 @@ namespace UnityEditor.Rendering.HighDefinition
             m_HalfResolutionDenoiser = Unpack(o.Find(x => x.halfResolutionDenoiser));
             m_DenoiserRadius = Unpack(o.Find(x => x.denoiserRadius));
             m_SecondDenoiserPass = Unpack(o.Find(x => x.secondDenoiserPass));
-            m_SecondDenoiserRadius = Unpack(o.Find(x => x.secondDenoiserRadius));
         }
+
+        static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Max Ray Length", "Controls the maximal length of global illumination rays. The higher this value is, the more expensive ray traced global illumination is.");
+        static public readonly GUIContent k_DepthBufferThicknessText = EditorGUIUtility.TrTextContent("Object Thickness", "Controls the typical thickness of objects the global illumination rays may pass behind.");
 
         public void DenoiserGUI()
         {
@@ -91,7 +86,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_HalfResolutionDenoiser);
                 PropertyField(m_DenoiserRadius);
                 PropertyField(m_SecondDenoiserPass);
-                PropertyField(m_SecondDenoiserRadius);
                 EditorGUI.indentLevel--;
             }
         }
@@ -108,7 +102,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             PropertyField(m_Enable);
-            
+
             // If ray tracing is supported display the content of the volume component
             if (HDRenderPipeline.pipelineSupportsRayTracing)
             {
@@ -137,6 +131,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                 EditorGUI.indentLevel++;
                                 using (new QualityScope(this))
                                 {
+                                    PropertyField(m_RayLength, k_RayLengthText);
                                     PropertyField(m_RayLength);
                                     PropertyField(m_ClampValue);
                                     PropertyField(m_FullResolution);
@@ -149,7 +144,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             break;
                             case RayTracingMode.Quality:
                             {
-                                PropertyField(m_RayLength);
+                                PropertyField(m_RayLength, k_RayLengthText);
                                 PropertyField(m_ClampValue);
                                 PropertyField(m_SampleCount);
                                 PropertyField(m_BounceCount);
@@ -161,7 +156,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                     else if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Quality)
                     {
-                        PropertyField(m_RayLength);
+                        PropertyField(m_RayLength, k_RayLengthText);
                         PropertyField(m_ClampValue);
                         PropertyField(m_SampleCount);
                         PropertyField(m_BounceCount);
@@ -170,10 +165,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     else
                     {
                         base.OnInspectorGUI(); // Quality Setting
-
                         EditorGUI.indentLevel++;
                         using (new QualityScope(this))
                         {
+                            PropertyField(m_RayLength, k_RayLengthText);
                             PropertyField(m_RayLength);
                             PropertyField(m_ClampValue);
                             PropertyField(m_FullResolution);
@@ -195,17 +190,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     PropertyField(m_FullResolutionSS, EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode."));
                     PropertyField(m_RaySteps);
-                    PropertyField(m_MaximalRadius);
-                    PropertyField(m_ClampValueSS, EditorGUIUtility.TrTextContent("Clamp Value", "Clamps the exposed intensity."));
                     PropertyField(m_FilterRadius);
                 }
                 EditorGUI.indentLevel--;
-                PropertyField(m_DepthBufferThickness);
+                PropertyField(m_DepthBufferThickness, k_DepthBufferThicknessText);
             }
 
             EditorGUI.indentLevel--;
         }
-
         public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
         {
             if (settings == null)
@@ -220,13 +212,10 @@ namespace UnityEditor.Rendering.HighDefinition
             settings.Save<bool>(m_HalfResolutionDenoiser);
             settings.Save<float>(m_DenoiserRadius);
             settings.Save<bool>(m_SecondDenoiserPass);
-            settings.Save<float>(m_SecondDenoiserRadius);
 
             // SSGI
             settings.Save<bool>(m_FullResolutionSS);
             settings.Save<int>(m_RaySteps);
-            settings.Save<float>(m_MaximalRadius);
-            settings.Save<float>(m_ClampValueSS);
             settings.Save<int>(m_FilterRadius);
 
             return settings;
@@ -243,13 +232,10 @@ namespace UnityEditor.Rendering.HighDefinition
             settings.TryLoad<bool>(ref m_HalfResolutionDenoiser);
             settings.TryLoad<float>(ref m_DenoiserRadius);
             settings.TryLoad<bool>(ref m_SecondDenoiserPass);
-            settings.TryLoad<float>(ref m_SecondDenoiserRadius);
 
             // SSGI
             settings.TryLoad<bool>(ref m_FullResolutionSS);
             settings.TryLoad<int>(ref m_RaySteps);
-            settings.TryLoad<float>(ref m_MaximalRadius);
-            settings.TryLoad<float>(ref m_ClampValueSS);
             settings.TryLoad<int>(ref m_FilterRadius);
         }
 
@@ -264,13 +250,10 @@ namespace UnityEditor.Rendering.HighDefinition
             CopySetting(ref m_HalfResolutionDenoiser, settings.lightingQualitySettings.RTGIHalfResDenoise[level]);
             CopySetting(ref m_DenoiserRadius, settings.lightingQualitySettings.RTGIDenoiserRadius[level]);
             CopySetting(ref m_SecondDenoiserPass, settings.lightingQualitySettings.RTGISecondDenoise[level]);
-            CopySetting(ref m_SecondDenoiserRadius, settings.lightingQualitySettings.RTGISecondDenoiserRadius[level]);
 
             // SSGI
             CopySetting(ref m_FullResolutionSS, settings.lightingQualitySettings.SSGIFullResolution[level]);
             CopySetting(ref m_RaySteps, settings.lightingQualitySettings.SSGIRaySteps[level]);
-            CopySetting(ref m_MaximalRadius, settings.lightingQualitySettings.SSGIRadius[level]);
-            CopySetting(ref m_ClampValueSS, settings.lightingQualitySettings.SSGIClampValue[level]);
             CopySetting(ref m_FilterRadius, settings.lightingQualitySettings.SSGIFilterRadius[level]);
         }
     }

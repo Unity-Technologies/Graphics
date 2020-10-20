@@ -23,17 +23,16 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            base.OnInspectorGUI();
-
             PropertyField(m_SpectralLUT);
             PropertyField(m_Intensity);
+
+            base.OnInspectorGUI();
 
             using (new QualityScope(this))
             {
                 PropertyField(m_MaxSamples);
             }
         }
-
         public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
         {
             if (settings == null)
