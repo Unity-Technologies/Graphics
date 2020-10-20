@@ -21,12 +21,12 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
             // Sub layer
             static public readonly GUIContent k_NameContent = EditorGUIUtility.TrTextContent("Layer Name", "Specifies the name of this layer.");
-            static public readonly GUIContent k_Camera = EditorGUIUtility.TrTextContent("Source Camera", "Specifies the camera of the scene that will provide the content for this layer.");
-            static public readonly GUIContent k_Image = EditorGUIUtility.TrTextContent("Source Image", "Specifies the image that will provide the content for this layer.");
-            static public readonly GUIContent k_Video = EditorGUIUtility.TrTextContent("Source Video", "Specifies the video that will provide the content for this layer.");
-            static public readonly GUIContent k_ClearDepth = EditorGUIUtility.TrTextContent("Clear Depth", "If enabled, the depth buffer will be cleared before rendering this layer.");
+            static public readonly GUIContent k_Camera = EditorGUIUtility.TrTextContent("Source Camera", "Specifies the camera of the scene that will provide the content for this sublayer.");
+            static public readonly GUIContent k_Image = EditorGUIUtility.TrTextContent("Source Image", "Specifies the image that will provide the content for this sublayer.");
+            static public readonly GUIContent k_Video = EditorGUIUtility.TrTextContent("Source Video", "Specifies the video that will provide the content for this sublayer.");
+            static public readonly GUIContent k_ClearDepth = EditorGUIUtility.TrTextContent("Clear Depth", "If enabled, the depth buffer will be cleared before rendering this layer. Not clearing the depth can be useful when stacking sublayers. The first sublayer of a stack always clears the depth.");
             static public readonly GUIContent k_ClearAlpha = EditorGUIUtility.TrTextContent("Clear Alpha", "If enabled, the alpha channel will be cleared before rendering this layer. If enabled, post processing will affect only the objects of this layer");
-            static public readonly GUIContent k_ClearMode = EditorGUIUtility.TrTextContent("Clear Color", "To override the clear mode of this layer, activate the option by clicking on the check-box and then select the desired value.");
+            static public readonly GUIContent k_ClearMode = EditorGUIUtility.TrTextContent("Clear Color", "To override the clear mode of this layer, activate the option by clicking on the check-box and then select the desired value. This can be changed only on the first sub layer of a stack (stacked sublayers do not clear the color).");
             static public readonly GUIContent k_AAMode = EditorGUIUtility.TrTextContent("Post Anti-aliasing", "To override the postprocess Anti-aliasing mode, activate the option by clicking on the check-box and then select the desired value.");
             static public readonly GUIContent k_CullingMask = EditorGUIUtility.TrTextContent("Culling Mask", "To override the culling mask, activate the option by clicking on the check-box and then select the desired value.");
             static public readonly GUIContent k_VolumeMask = EditorGUIUtility.TrTextContent("Volume Mask", "To override the volume mask, activate the option by clicking on the check-box and then select the desired value.");
@@ -175,8 +175,11 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             }
             rect.y += 1.5f * CompositorStyle.k_Spacing;
 
-            EditorGUI.PropertyField(rect, serializedProperties.clearDepth, Styles.k_ClearDepth);
-            rect.y += CompositorStyle.k_Spacing;
+            using (new EditorGUI.DisabledScope(serializedProperties.positionInStack.intValue == 0))
+            {
+                EditorGUI.PropertyField(rect, serializedProperties.clearDepth, Styles.k_ClearDepth);
+                rect.y += CompositorStyle.k_Spacing;
+            }
 
             EditorGUI.PropertyField(rect, serializedProperties.clearAlpha, Styles.k_ClearAlpha);
             rect.y += 1.0f * CompositorStyle.k_Spacing;
@@ -234,7 +237,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             rect.y += 1.5f * CompositorStyle.k_Spacing;
 
             // The clear mode should be visible / configurable only for the first layer in the stack. For the other layers we set a camera-stacking specific clear-mode .
-            if (serializedProperties.positionInStack.intValue == 0)
+            using (new EditorGUI.DisabledScope(serializedProperties.positionInStack.intValue != 0))
             {
                 DrawPropertyHelper(rect, Styles.k_ClearMode, serializedProperties.overrideClearMode, serializedProperties.clearMode);
                 rect.y += CompositorStyle.k_Spacing;
