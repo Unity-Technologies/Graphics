@@ -4,6 +4,19 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.2.0] - 2020-10-19
+
+### Added
+
+### Fixed
+- Fixed an issue where the Exposure Shader Graph node had clipped text. (case 1265057)
+- Fixed an issue when rendering into texture where alpha would not default to 1.0 when using 11_11_10 color buffer in non-dev builds.
+- Fixed issues with reordering and hiding graphics compositor layers (cases 1283903, 1285282, 1283886).
+- Fixed the possibility to have a shader with a pre-refraction render queue and refraction enabled at the same time.
+- Fixed a migration issue with the rendering queue in ShaderGraph when upgrading to 10.x;
+
+### Changed
+
 ## [10.1.0] - 2020-10-12
 
 ### Added
@@ -166,8 +179,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed null reference in the Undo callback of the graphics compositor 
 - Fixed cullmode for SceneSelectionPass.
 - Fixed issue that caused non-static object to not render at times in OnEnable reflection probes.
-- Fixed the possibility to have a shader with a pre-refraction render queue and refraction enabled at the same time.
-- Fixed a migration issue with the rendering queue in ShaderGraph when upgrading to 10.x;
+- Baked reflection probes now correctly use static sky for ambient lighting.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
