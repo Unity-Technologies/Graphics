@@ -14,16 +14,18 @@ namespace UnityEditor.ShaderGraph
         public const int OutputSlotGId = 6;
         public const int OutputSlotBId = 7;
         public const int OutputSlotAId = 8;
+
         public const int TextureInputId = 1;
-        public const int UVInput = 2;
-        public const int SamplerInput = 3;
-        public const int LODInput = 4;
+        public const int UVInputId = 2;
+        public const int SamplerInputId = 3;
+        public const int LODInputId = 4;
 
         const string kOutputSlotRGBAName = "RGBA";
         const string kOutputSlotRName = "R";
         const string kOutputSlotGName = "G";
         const string kOutputSlotBName = "B";
         const string kOutputSlotAName = "A";
+
         const string kTextureInputName = "Texture";
         const string kUVInputName = "UV";
         const string kSamplerInputName = "Sampler";
@@ -82,10 +84,10 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector1MaterialSlot(OutputSlotBId, kOutputSlotBName, kOutputSlotBName, SlotType.Output, 0, ShaderStageCapability.All));
             AddSlot(new Vector1MaterialSlot(OutputSlotAId, kOutputSlotAName, kOutputSlotAName, SlotType.Output, 0, ShaderStageCapability.All));
             AddSlot(new Texture2DInputMaterialSlot(TextureInputId, kTextureInputName, kTextureInputName));
-            AddSlot(new UVMaterialSlot(UVInput, kUVInputName, kUVInputName, UVChannel.UV0));
-            AddSlot(new SamplerStateMaterialSlot(SamplerInput, kSamplerInputName, kSamplerInputName, SlotType.Input));
-            AddSlot(new Vector1MaterialSlot(LODInput, kLODInputName, kLODInputName, SlotType.Input, 0));
-            RemoveSlotsNameNotMatching(new[] { OutputSlotRGBAId, OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId, TextureInputId, UVInput, SamplerInput, LODInput });
+            AddSlot(new UVMaterialSlot(UVInputId, kUVInputName, kUVInputName, UVChannel.UV0));
+            AddSlot(new SamplerStateMaterialSlot(SamplerInputId, kSamplerInputName, kSamplerInputName, SlotType.Input));
+            AddSlot(new Vector1MaterialSlot(LODInputId, kLODInputName, kLODInputName, SlotType.Input, 0));
+            RemoveSlotsNameNotMatching(new[] { OutputSlotRGBAId, OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId, TextureInputId, UVInputId, SamplerInputId, LODInputId });
         }
 
         public override void Setup()
@@ -93,30 +95,38 @@ namespace UnityEditor.ShaderGraph
             base.Setup();
             var textureSlot = FindInputSlot<Texture2DInputMaterialSlot>(TextureInputId);
             textureSlot.defaultType = (textureType == TextureType.Normal ? Texture2DShaderProperty.DefaultType.Bump : Texture2DShaderProperty.DefaultType.White);
-
-            
         }
 
         // Node generations
         public virtual void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            var uvName = GetSlotValue(UVInput, generationMode);
+            var uvName = GetSlotValue(UVInputId, generationMode);
 
             //Sampler input slot
-            var samplerSlot = FindInputSlot<MaterialSlot>(SamplerInput);
+            var samplerSlot = FindInputSlot<MaterialSlot>(SamplerInputId);
             var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
 
-            var lodSlot = GetSlotValue(LODInput, generationMode);
+            var lodSlot = GetSlotValue(LODInputId, generationMode);
 
             var id = GetSlotValue(TextureInputId, generationMode);
-            var result = string.Format("$precision4 {0} = SAMPLE_TEXTURE2D_LOD({1}, {2}, {3}, {4});"
-                    , GetVariableNameForSlot(OutputSlotRGBAId)
-                    , id
-                    , edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : "sampler" + id
-                    , uvName
-                    , lodSlot);
 
-            sb.AppendLine(result);
+            // GLES2 does not always support LOD sampling
+            sb.AppendLine("#if defined(SHADER_API_GLES) && (SHADER_TARGET < 30)");
+            {
+                sb.AppendLine("  $precision4 {0} = $precision4(0.0f, 0.0f, 0.0f, 1.0f);", GetVariableNameForSlot(OutputSlotRGBAId));
+            }
+            sb.AppendLine("#else");
+            {
+                var result = string.Format("  $precision4 {0} = SAMPLE_TEXTURE2D_LOD({1}, {2}, {3}, {4});"
+                        , GetVariableNameForSlot(OutputSlotRGBAId)
+                        , id
+                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id
+                        , uvName
+                        , lodSlot);
+
+                sb.AppendLine(result);
+            }
+            sb.AppendLine("#endif");
 
             if (textureType == TextureType.Normal)
             {
