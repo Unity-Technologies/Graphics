@@ -7,11 +7,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [10.2.0] - 2020-10-19
 
 ### Added
+- Added a rough distortion frame setting and and info box on distortion materials.
+- Adding support of 4 channel tex coords for ray tracing (case 1265309).
 
 ### Fixed
 - Fixed an issue where the Exposure Shader Graph node had clipped text. (case 1265057)
+- Fixed an issue when rendering into texture where alpha would not default to 1.0 when using 11_11_10 color buffer in non-dev builds.
+- Fixed issues with reordering and hiding graphics compositor layers (cases 1283903, 1285282, 1283886).
+- Fixed the possibility to have a shader with a pre-refraction render queue and refraction enabled at the same time.
+- Fixed a migration issue with the rendering queue in ShaderGraph when upgrading to 10.x;
+- Fixed upside down XR occlusion mesh.
 
 ### Changed
+- Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
 
 ## [10.1.0] - 2020-10-12
 
@@ -48,23 +56,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a new ray tracing only function that samples the specular part of the materials.
 - Adding missing marker for ray tracing profiling (RaytracingDeferredLighting)
 - Added the support of eye shader for ray tracing.
+- Exposed Refraction Model to the material UI when using a Lit ShaderGraph.
 - Added bounding sphere support to screen-space axis-aligned bounding box generation pass.
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
-- Fixed GPU hang on D3D12 on xbox.
+- Fixed GPU hang on D3D12 on xbox. 
 - Fixed game view artifacts on resizing when hardware dynamic resolution was enabled
 - Fixed black line artifacts occurring when Lanczos upsampling was set for dynamic resolution
 - Fixed Amplitude -> Min/Max parametrization conversion
 - Fixed CoatMask block appearing when creating lit master node (case 1264632)
 - Fixed issue with SceneEV100 debug mode indicator when rescaling the window.
-- Fixed issue with PCSS filter being wrong on first frame.
+- Fixed issue with PCSS filter being wrong on first frame. 
 - Fixed issue with emissive mesh for area light not appearing in playmode if Reload Scene option is disabled in Enter Playmode Settings.
-- Fixed issue when Reflection Probes are set to OnEnable and are never rendered if the probe is enabled when the camera is farther than the probe fade distance.
-- Fixed issue with sun icon being clipped in the look dev window.
+- Fixed issue when Reflection Probes are set to OnEnable and are never rendered if the probe is enabled when the camera is farther than the probe fade distance. 
+- Fixed issue with sun icon being clipped in the look dev window. 
 - Fixed error about layers when disabling emissive mesh for area lights.
 - Fixed issue when the user deletes the composition graph or .asset in runtime (case 1263319)
-- Fixed assertion failure when changing resolution to compositor layers after using AOVs (case 1265023)
+- Fixed assertion failure when changing resolution to compositor layers after using AOVs (case 1265023) 
 - Fixed flickering layers in graphics compositor (case 1264552)
 - Fixed issue causing the editor field not updating the disc area light radius.
 - Fixed issues that lead to cookie atlas to be updated every frame even if cached data was valid.
@@ -172,10 +181,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the denoising and multi-sample not being used for smooth multibounce RTReflections.
 - Fixed issue where multiple cameras would cause GC each frame.
 - Fixed after post process rendering pass options not showing for unlit ShaderGraphs.
-- Fixed a migration issue with the rendering queue in ShaderGraph when upgrading to 10.x;
 - Fixed null reference in the Undo callback of the graphics compositor 
 - Fixed cullmode for SceneSelectionPass.
 - Fixed issue that caused non-static object to not render at times in OnEnable reflection probes.
+- Baked reflection probes now correctly use static sky for ambient lighting.
+- Fixed bounding box generation that resulted in incorrect light culling (case 3875925).
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
@@ -214,6 +224,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Move System Generated Values semantics out of VaryingsMesh structure.
 - Other forms of FSAA are silently deactivated, when path tracing is on.
 - Removed XRSystemTests. The GC verification is now done during playmode tests (case 1285012).
+- SSR now uses the pre-refraction color pyramid.
 
 ## [10.0.0] - 2019-06-10
 
