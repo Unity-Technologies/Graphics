@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
     static class HDSubShaderUtilities
     {
         // Utils property to add properties to the collector, all hidden because we use a custom UI to display them
-        static void AddIntProperty(this PropertyCollector collector, string referenceName, int defaultValue, HLSLDeclaration declarationType = HLSLDeclaration.None)
+        static void AddIntProperty(this PropertyCollector collector, string referenceName, int defaultValue, HLSLDeclaration declarationType = HLSLDeclaration.DoNotDeclare)
         {
             collector.AddShaderProperty(new Vector1ShaderProperty{
                 floatType = FloatType.Integer,
@@ -38,7 +38,7 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
-        static void AddFloatProperty(this PropertyCollector collector, string referenceName, float defaultValue, HLSLDeclaration declarationType = HLSLDeclaration.None)
+        static void AddFloatProperty(this PropertyCollector collector, string referenceName, float defaultValue, HLSLDeclaration declarationType = HLSLDeclaration.DoNotDeclare)
         {
             collector.AddShaderProperty(new Vector1ShaderProperty{
                 floatType = FloatType.Default,
@@ -50,7 +50,7 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
-        static void AddFloatProperty(this PropertyCollector collector, string referenceName, string displayName, float defaultValue, HLSLDeclaration declarationType = HLSLDeclaration.None)
+        static void AddFloatProperty(this PropertyCollector collector, string referenceName, string displayName, float defaultValue, HLSLDeclaration declarationType = HLSLDeclaration.DoNotDeclare)
         {
             collector.AddShaderProperty(new Vector1ShaderProperty{
                 floatType = FloatType.Default,
@@ -63,7 +63,7 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
-        static void AddToggleProperty(this PropertyCollector collector, string referenceName, bool defaultValue, HLSLDeclaration declarationType = HLSLDeclaration.None)
+        static void AddToggleProperty(this PropertyCollector collector, string referenceName, bool defaultValue, HLSLDeclaration declarationType = HLSLDeclaration.DoNotDeclare)
         {
             collector.AddShaderProperty(new BooleanShaderProperty{
                 value = defaultValue,
@@ -148,7 +148,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 enumValues = {(int)TransparentCullMode.Front, (int)TransparentCullMode.Back},
                 hidden = true,
                 overrideHLSLDeclaration = true,
-                hlslDeclarationOverride = HLSLDeclaration.None,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
             });
             collector.AddShaderProperty(new Vector1ShaderProperty{
                 overrideReferenceName = kOpaqueCullMode,
@@ -158,7 +158,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 cSharpEnumType = typeof(OpaqueCullMode),
                 hidden = true,
                 overrideHLSLDeclaration = true,
-                hlslDeclarationOverride = HLSLDeclaration.None,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
             });
 
             // Add ZTest properties:
@@ -171,7 +171,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 cSharpEnumType = typeof(CompareFunction),
                 hidden = true,
                 overrideHLSLDeclaration = true,
-                hlslDeclarationOverride = HLSLDeclaration.None,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
             });
 
             collector.AddToggleProperty(kTransparentBackfaceEnable, backThenFrontRendering);
@@ -194,7 +194,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 overrideReferenceName = "_DoubleSidedNormalMode",
                 hidden = true,
                 overrideHLSLDeclaration = true,
-                hlslDeclarationOverride = HLSLDeclaration.None,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                 value = (int)normalMode
             });
             collector.AddShaderProperty(new Vector4ShaderProperty{

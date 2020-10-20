@@ -32,7 +32,9 @@ namespace UnityEditor.ShaderGraph.Internal
                 return HLSLDeclaration.Global;
         }
 
-        internal virtual bool AllowHLSLDeclaration(HLSLDeclaration decl) => true;
+        // by default we disallow UI from choosing "DoNotDeclare"
+        // it needs a bit more UI support to disable property node output slots before we make it public
+        internal virtual bool AllowHLSLDeclaration(HLSLDeclaration decl) => (decl != HLSLDeclaration.DoNotDeclare);
 
         [SerializeField]
         internal bool overrideHLSLDeclaration = false;
@@ -168,7 +170,7 @@ namespace UnityEditor.ShaderGraph.Internal
     [Flags]
     internal enum HLSLDeclaration
     {
-        None,                       // NOT declared in HLSL
+        DoNotDeclare,               // NOT declared in HLSL
         Global,                     // declared in the global scope, mainly for use with state coming from Shader.SetGlobal*()
         UnityPerMaterial,           // declared in the UnityPerMaterial cbuffer, populated by Material or MaterialPropertyBlock
         HybridPerInstance,          // declared using HybridRenderer path (v1 or v2) to get DOTS GPU instancing

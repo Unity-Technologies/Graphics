@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph.Internal
         }
 
         // Texture2D properties cannot be set via Hybrid path at the moment; disallow that choice
-        internal override bool AllowHLSLDeclaration(HLSLDeclaration decl) => (decl != HLSLDeclaration.HybridPerInstance);
+        internal override bool AllowHLSLDeclaration(HLSLDeclaration decl) => (decl != HLSLDeclaration.HybridPerInstance) && (decl != HLSLDeclaration.DoNotDeclare);
 
         internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
         {

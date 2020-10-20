@@ -283,12 +283,19 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             BuildHLSLDeclarationOverrideFields(propertySheet, property);
         }
 
+        static string[] allHLSLDeclarationStrings = new string[]
+        {
+            "Do Not Declare",       // HLSLDeclaration.DoNotDeclare
+            "Global",               // HLSLDeclaration.Global
+            "Per Material",         // HLSLDeclaration.UnityPerMaterial
+            "Hybrid Per Instance",  // HLSLDeclaration.HybridPerInstance
+        };
+
         void BuildHLSLDeclarationOverrideFields(PropertySheet propertySheet, AbstractShaderProperty property)
         {
-
             var hlslDecls = Enum.GetValues(typeof(HLSLDeclaration));
             var allowedDecls = new List<HLSLDeclaration>();
-            var hlslDeclStrings = new List<string>(Enum.GetNames(typeof(HLSLDeclaration)));
+
             bool anyAllowed = false;
             for (int i = 0; i < hlslDecls.Length; i++)
             {
@@ -304,9 +311,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 var propRow = new PropertyRow(PropertyDrawerUtils.CreateLabel("Shader Declaration", 1));
                 var popupField = new PopupField<HLSLDeclaration>(
                     allowedDecls,
-                    property.hlslDeclarationOverride,
-                    (h => Enum.GetName(typeof(HLSLDeclaration), h)),
-                    (h => Enum.GetName(typeof(HLSLDeclaration), h)));
+                    property.GetDefaultHLSLDeclaration(),
+                    (h => allHLSLDeclarationStrings[(int) h]),
+                    (h => allHLSLDeclarationStrings[(int) h]));
+
                 popupField.RegisterValueChangedCallback(
                     evt =>
                     {
@@ -328,8 +336,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
                         this._preChangeValueCallback("Override Property Declaration");
 
-                    // add or remove the sub field based on what the toggle is
-                    if (newValue.isOn)
+                        // add or remove the sub field based on what the toggle is
+                        if (newValue.isOn)
                         {
                             // setup initial state based on current state
                             property.hlslDeclarationOverride = property.GetDefaultHLSLDeclaration();
