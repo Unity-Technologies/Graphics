@@ -361,7 +361,7 @@ namespace UnityEngine.Rendering.Universal
         // directional lights to return 1.0 for both distance and angle attenuation
         static Vector4 k_DefaultLightAttenuation = new Vector4(0.0f, 1.0f, 0.0f, 1.0f);
         static Vector4 k_DefaultLightSpotDirection = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
-        static Vector4 k_DefaultLightsProbeChannel = new Vector4(-1.0f, 1.0f, -1.0f, -1.0f);
+        static Vector4 k_DefaultLightsProbeChannel = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
 
         static List<Vector4> m_ShadowBiasData = new List<Vector4>();
 
@@ -635,16 +635,11 @@ namespace UnityEngine.Rendering.Universal
 
             Light light = lightData.light;
 
-            lightOcclusionProbeChannel = Vector4.zero;
             if (light != null && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed &&
                 0 <= light.bakingOutput.occlusionMaskChannel &&
                 light.bakingOutput.occlusionMaskChannel < 4)
             {
                 lightOcclusionProbeChannel[light.bakingOutput.occlusionMaskChannel] = 1.0f;
-            }
-            else
-            {
-                lightOcclusionProbeChannel.x = -1.0f; // Use -1 to say we have no mask
             }
         }
     }
