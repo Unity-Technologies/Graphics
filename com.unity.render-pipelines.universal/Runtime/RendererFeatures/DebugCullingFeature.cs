@@ -64,28 +64,85 @@ namespace UnityEngine.Rendering.Universal
         public static void DrawFrustum(Matrix4x4 projMatrix) { DrawFrustum(projMatrix, Color.red, Color.magenta, Color.blue); }
         public static void DrawFrustum(Matrix4x4 projMatrix, Color near, Color edge, Color far)
         {
-            Vector4[] v = s_NdcFrustum;
+            Vector4[] v = new Vector4[s_NdcFrustum.Length];
             Matrix4x4 m = projMatrix.inverse;
+
+            for (int i = 0; i < s_NdcFrustum.Length; i++)
+            {
+                var s = m * s_NdcFrustum[i];
+                v[i] = s / s.w;
+            }
+
             // Near
             for (int i = 0; i < 4; i++)
             {
-                var s = m * v[i];
-                var e = m * v[(i + 1) % 4];
-                Debug.DrawLine(s / s.w, e / e.w, near);
+                var s = v[i];
+                var e = v[(i + 1) % 4];
+                Debug.DrawLine(s, e, near);
             }
             // Far
             for (int i = 0; i < 4; i++)
             {
-                var s = m * v[4 + i];
-                var e = m * v[4 + ((i + 1) % 4)];
-                Debug.DrawLine(s / s.w, e / e.w, far);
+                var s = v[4 + i];
+                var e = v[4 + ((i + 1) % 4)];
+                Debug.DrawLine(s, e, far);
             }
             // Middle
             for (int i = 0; i < 4; i++)
             {
+                var s = v[i];
+                var e = v[i + 4];
+                Debug.DrawLine(s, e, edge);
+            }
+        }
+
+        public static void DrawFrustumSplits(Matrix4x4 projMatrix, float splitMaxPct, Vector3 splitPct, int splitStart, int splitCount, Color color)
+        {
+            Vector4[] v = s_NdcFrustum;
+            Matrix4x4 m = projMatrix.inverse;
+
+            // Compute camera frustum
+            Vector4[] f = new Vector4[s_NdcFrustum.Length];
+            for (int i = 0; i < s_NdcFrustum.Length; i++)
+            {
                 var s = m * v[i];
-                var e = m * v[i + 4];
-                Debug.DrawLine(s / s.w, e / e.w, edge);
+                f[i] = s / s.w;
+            }
+
+            // Compute shadow far plane/quad
+            Vector4[] qMax = new Vector4[4];
+            for (int i = 0; i < 4; i++)
+            {
+                qMax[i] = Vector4.Lerp(f[i], f[4+i], splitMaxPct);
+            }
+
+            // Draw Shadow far/max quad
+            for (int i = 0; i < 4; i++)
+            {
+                var s = qMax[i];
+                var e = qMax[(i + 1) % 4];
+                Debug.DrawLine(s, e, Color.black);
+            }
+
+            // Compute split quad (between near/shadow far)
+            Vector4[] q = new Vector4[4];
+            for (int j = splitStart; j < splitCount; j++)
+            {
+
+                float d = splitPct[j];
+                for (int i = 0; i < 4; i++)
+                {
+                    q[i] = Vector4.Lerp(f[i], qMax[i], d);
+
+                }
+
+                // Draw
+                for (int i = 0; i < 4; i++)
+                {
+                    var s = q[i];
+                    var e = q[(i + 1) % 4];
+                    Debug.DrawLine(s, e, color);
+                }
             }
         }
 
@@ -187,6 +244,18 @@ namespace UnityEngine.Rendering.Universal
             Debug.DrawLine( p, z, Color.blue);
         }
 
+        public static void DrawQuad(Matrix4x4 transform, Color color)
+        {
+            Vector4[] v = s_UnitSquare;
+            Matrix4x4 m = transform;
+            for (int i = 0; i < 4; i++)
+            {
+                var s = m * v[i];
+                var e = m * v[(i + 1) % 4];
+                Debug.DrawLine(s , e , color);
+            }
+        }
+
         public static void DrawPlane(Plane plane, float scale, Color edgeColor, float normalScale, Color normalColor)
         {
             // Flip plane distance: Unity Plane distance is from plane to origin
@@ -240,13 +309,14 @@ namespace UnityEngine.Rendering.Universal
         private DebugCullingPass m_Pass;
 
         // Settings
-        public bool drawOrigin             = false;
-        public bool drawCullingFrustum     = true;
-        public bool drawCullingSpheres     = false;
+        public bool drawOrigin               = false;
+        public bool drawCullingFrustum       = true;
+        public bool drawCullingFrustumSplits = true;
+        public bool drawCullingSpheres       = false;
 
-        public bool drawCullingPlanes      = false;
-        public bool drawSingleCullingPlane = false;
-        public int drawSingleCullingPlaneIndex = 0;    // TODO: better interface, a range? a slider?
+        public bool drawCullingPlanes                 = false;
+        public bool drawSingleCullingPlane            = false;
+        public int drawSingleCullingPlaneIndex        = 0;    // TODO: better interface, a range? a slider?
         public int drawSingleCullingPlaneCascadeIndex = 0;
 
         public bool drawVisibleLights      = false;
@@ -259,7 +329,6 @@ namespace UnityEngine.Rendering.Universal
 
         //TODO:
         // - spot light frustum
-        // - cascade split distances in frustum
         // - perhaps add a point param to drawPlane, and use it to align/move the plane gizmo along the plane (i.e the gizmo tracks the point)
         // - better UI and controls
         //
@@ -286,6 +355,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     var camPos = renderingData.cameraData.camera.cameraToWorldMatrix * new Vector4(0,0,0,1);
                     var camFront = renderingData.cameraData.camera.cameraToWorldMatrix.GetColumn(2);
+                    var shadowCascadesCount = renderingData.shadowData.mainLightShadowCascadesCount;
 
                     // Test
                     /*DebugCullingHelpers.DrawPlane(new Vector4(1,0,0,2), 4, Color.red, 10,Color.red );
@@ -314,6 +384,15 @@ namespace UnityEngine.Rendering.Universal
                     {
                         DebugCullingHelpers.DrawFrustum(renderingData.cameraData.camera.cullingMatrix);
                         DebugCullingHelpers.DrawAxes(renderingData.cameraData.camera.cameraToWorldMatrix, 0.25f);
+
+                        if (m_Feature.drawCullingFrustumSplits && shadowCascadesCount > 1)
+                        {
+                            var f = renderingData.cameraData.camera.farClipPlane;
+                            var n = renderingData.cameraData.camera.nearClipPlane;
+                            var s = renderingData.cameraData.maxShadowDistance;
+                            var sMax = (s - n) / f;
+                            DebugCullingHelpers.DrawFrustumSplits(renderingData.cameraData.camera.cullingMatrix, sMax, renderingData.shadowData.mainLightShadowCascadesSplit, 0, shadowCascadesCount - 1, Color.gray );
+                        }
                     }
 
                     int mainLightIndex = renderingData.lightData.mainLightIndex;
@@ -327,7 +406,7 @@ namespace UnityEngine.Rendering.Universal
                         DebugCullingHelpers.DrawBox(bounds.center, bounds.size,  Color.gray );
                     }
 
-                    var shadowCascadesCount = renderingData.shadowData.mainLightShadowCascadesCount;
+
                     Matrix4x4[] view = new Matrix4x4[shadowCascadesCount];
                     Matrix4x4[] proj = new Matrix4x4[shadowCascadesCount];
                     ShadowSplitData[] shadowSplitData = new ShadowSplitData[shadowCascadesCount];
@@ -352,6 +431,29 @@ namespace UnityEngine.Rendering.Universal
                             DebugCullingHelpers.DrawFrustum( shadowTransform, Color.white, Color.yellow, Color.black);
                             DebugCullingHelpers.DrawAxes(shadowTransform.inverse, 0.25f);
                         }
+                    }
+
+                    // Spot light frustum
+
+                    if (m_Feature.drawSpotLightFrustum)
+                    {
+                        var lightCount = renderingData.lightData.visibleLights.Length;
+                        ShadowSplitData[] spotShadowSplitData = new ShadowSplitData[lightCount];
+                        Matrix4x4[] spotView = new Matrix4x4[lightCount];
+                        Matrix4x4[] spotProj = new Matrix4x4[lightCount];
+
+                        for (int li = 0; li < lightCount; li++)
+                        {
+                            VisibleLight l = renderingData.lightData.visibleLights[li];
+                            if (l.lightType == LightType.Spot)
+                            {
+                                renderingData.cullResults.ComputeSpotShadowMatricesAndCullingPrimitives(li, out spotView[li], out spotProj[li], out spotShadowSplitData[li]);
+                                var shadowTransform = spotProj[li] * spotView[li];
+                                DebugCullingHelpers.DrawFrustum( shadowTransform, Color.white, Color.yellow, Color.black);
+                                DebugCullingHelpers.DrawAxes(spotView[li].inverse, 0.5f);
+                            }
+                        }
+
                     }
 
                     // Visible lights

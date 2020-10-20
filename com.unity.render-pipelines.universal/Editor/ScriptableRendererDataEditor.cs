@@ -199,7 +199,7 @@ namespace UnityEditor.Rendering.Universal
             ScriptableObject component = CreateInstance(name);
             if (component == null)
             {
-                Debug.LogWarning($"Couldn't create ScriptableObject for feature '{name}'. Make sure the both, the script and the class, has the same name.");
+                Debug.LogWarning($"Couldn't create ScriptableObject for ScriptableRendererFeature '{name}'. Make sure the both, the script and the class, have the same name.");
                 return;
             }
 
