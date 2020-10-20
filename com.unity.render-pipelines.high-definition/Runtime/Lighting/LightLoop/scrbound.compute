@@ -810,15 +810,16 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 
     bool isCulled = ndcAaBbMinPt.w > ndcAaBbMaxPt.w;
 
-    // (5) Intersect the bounding frustum with the bounding sphere.
+    // (5) Compute the AABB of the bounding sphere.
     if (!isCulled && (radius > 0))
     {
-        // Occasionally, a CSG intersection of a bounding sphere and a bounding frustum
-        // results in a tighter AABB when compared to using the frustum alone.
+        // Occasionally, an intersection of AABBs of a bounding sphere and a bounding frustum
+        // results in a tighter AABB when compared to using the AABB of the frustum alone.
         // That is the case (mostly) for sphere-capped spot lights with very wide angles.
-        // Note that the algorithm below doesn't clip the bounding sphere against the view frustum
-        // before computing the bounding box, simply because it's too hard/expensive.
-        // I will leave it as a TODO in case someone wants to tackle this problem.
+        // Note that, unfortunately, it is not quite as tight as an AABB of a CSG intersection
+        // of a sphere and frustum. Also note that the algorithm below doesn't clip the bounding
+        // sphere against the view frustum before computing the bounding box, simply because it is
+        // too hard/expensive. I will leave it as a TODO in case someone wants to tackle this problem.
         if ((rbpC.z + radius) > 0) // Is the sphere at least *partially* in front of the origin?
         {
             ndcAaBbMinPt.w = max(ndcAaBbMinPt.w, rbpC.z - radius);
