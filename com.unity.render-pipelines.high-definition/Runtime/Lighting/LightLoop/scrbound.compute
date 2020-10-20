@@ -81,16 +81,27 @@ float4x4 Homogenize3x3(float3x3 R)
 
 float4x4 PerspectiveProjection4x4(float a, float g, float n, float f)
 {
-    float b = (f + n) * rcp(f - n);    // Z in [-1, 1]
-    float c = -2 * f * n * rcp(f - n); // No Z-reversal
+    float b = (f + n) * rcp(f - n);
+    float c = -2 * f * n * rcp(f - n);
 
     return float4x4(g/a, 0, 0, 0,
-                      0, g, 0, 0,
-                      0, 0, b, c,
-                      0, 0, 1, 0);
+                      0, g, 0, 0,  // No Y-flip
+                      0, 0, b, c,  // Z in [-1, 1], no Z-reversal
+                      0, 0, 1, 0); // No W-flip
 }
 
 /* ------------------------------ Implementation ---------------------------- */
+
+// !!! IMPORTANT !!!
+// The legacy code from Morten provides us special projection matrices (and their inverses).
+// These matrices are different from the matrices the HDRP uses.
+// There is no reversed-Z buffering (effectively, forced UNITY_REVERSED_Z = 0).
+// Additionally, there is no clip-space flip (effectively, forced UNITY_UV_STARTS_AT_TOP = 0).
+// Therefore, all coordinate systems are left-handed, Y-up, without W-flip.
+// Near and far planes are swapped in the case of Z-reversal, but it does not change the algorithm.
+// y  z
+// | /
+// 0 -- x
 
 // Improve the quality of generated code at the expense of readability.
 // Remove when the shader compiler is clever enough to perform this optimization for us.
@@ -124,37 +135,37 @@ float4x4 PerspectiveProjection4x4(float a, float g, float n, float f)
 
 // All planes and faces are always in the standard order (see below).
 // Near and far planes are swapped in the case of Z-reversal, but it does not change the algorithm.
-#define FACE_LEFT   (1 << 0) // -X     z
-#define FACE_RIGHT  (1 << 1) // +X    /
-#define FACE_TOP    (1 << 2) // -Y   0 -- x
-#define FACE_BOTTOM (1 << 3) // +Y   |
-#define FACE_FRONT  (1 << 4) // -Z   y
+#define FACE_LEFT   (1 << 0) // -X
+#define FACE_RIGHT  (1 << 1) // +X
+#define FACE_BOTTOM (1 << 2) // -Y
+#define FACE_TOP    (1 << 3) // +Y
+#define FACE_FRONT  (1 << 4) // -Z
 #define FACE_BACK   (1 << 5) // +Z
 #define FACE_MASK   ((1 << NUM_FACES) - 1)
 
 // A list of vertices for each face (CCW order w.r.t. its normal, starting from the LSB).
-#define VERT_LIST_LEFT   ((2) << 9 | (6) << 6 | (4) << 3 | (0) << 0)
-#define VERT_LIST_RIGHT  ((5) << 9 | (7) << 6 | (3) << 3 | (1) << 0)
-#define VERT_LIST_TOP    ((1) << 9 | (3) << 6 | (2) << 3 | (0) << 0)
-#define VERT_LIST_BOTTOM ((6) << 9 | (7) << 6 | (5) << 3 | (4) << 0)
-#define VERT_LIST_FRONT  ((4) << 9 | (5) << 6 | (1) << 3 | (0) << 0)
-#define VERT_LIST_BACK   ((3) << 9 | (7) << 6 | (6) << 3 | (2) << 0)
+#define VERT_LIST_LEFT   ((4) << 9 | (6) << 6 | (2) << 3 | (0) << 0)
+#define VERT_LIST_RIGHT  ((3) << 9 | (7) << 6 | (5) << 3 | (1) << 0)
+#define VERT_LIST_BOTTOM ((1) << 9 | (5) << 6 | (4) << 3 | (0) << 0)
+#define VERT_LIST_TOP    ((6) << 9 | (7) << 6 | (3) << 3 | (2) << 0)
+#define VERT_LIST_FRONT  ((2) << 9 | (3) << 6 | (1) << 3 | (0) << 0)
+#define VERT_LIST_BACK   ((5) << 9 | (7) << 6 | (6) << 3 | (4) << 0)
 
 // All vertices are always in the standard order (see below).
 uint GetFaceMaskOfVertex(uint v)
 {
-    // 0: (-1, -1, -1) -> { FACE_LEFT  | FACE_TOP    | FACE_FRONT }
-    // 1: (+1, -1, -1) -> { FACE_RIGHT | FACE_TOP    | FACE_FRONT }
-    // 2: (-1, +1, -1) -> { FACE_LEFT  | FACE_BOTTOM | FACE_FRONT }
-    // 3: (+1, +1, -1) -> { FACE_RIGHT | FACE_BOTTOM | FACE_FRONT }
-    // 4: (-1, -1, +1) -> { FACE_LEFT  | FACE_TOP    | FACE_BACK  }
-    // 5: (+1, -1, +1) -> { FACE_RIGHT | FACE_TOP    | FACE_BACK  }
-    // 6: (-1, +1, +1) -> { FACE_LEFT  | FACE_BOTTOM | FACE_BACK  }
-    // 7: (+1, +1, +1) -> { FACE_RIGHT | FACE_BOTTOM | FACE_BACK  }
+    // 0: (-1, -1, -1) -> { FACE_LEFT  | FACE_BOTTOM | FACE_FRONT }
+    // 1: (+1, -1, -1) -> { FACE_RIGHT | FACE_BOTTOM | FACE_FRONT }
+    // 2: (-1, +1, -1) -> { FACE_LEFT  | FACE_TOP    | FACE_FRONT }
+    // 3: (+1, +1, -1) -> { FACE_RIGHT | FACE_TOP    | FACE_FRONT }
+    // 4: (-1, -1, +1) -> { FACE_LEFT  | FACE_BOTTOM | FACE_BACK  }
+    // 5: (+1, -1, +1) -> { FACE_RIGHT | FACE_BOTTOM | FACE_BACK  }
+    // 6: (-1, +1, +1) -> { FACE_LEFT  | FACE_TOP    | FACE_BACK  }
+    // 7: (+1, +1, +1) -> { FACE_RIGHT | FACE_TOP    | FACE_BACK  }
     // ((v & 1) == 0) ? 1 : 2) | ((v & 2) == 0) ? 4 : 8) | ((v & 4) == 0) ? 16 : 32)
-    uint f = (FACE_LEFT  << BitFieldExtract(v, 0, 1))
-           | (FACE_TOP   << BitFieldExtract(v, 1, 1))
-           | (FACE_FRONT << BitFieldExtract(v, 2, 1));
+    uint f = (FACE_LEFT   << BitFieldExtract(v, 0, 1))
+           | (FACE_BOTTOM << BitFieldExtract(v, 1, 1))
+           | (FACE_FRONT  << BitFieldExtract(v, 2, 1));
 
     return f;
 };
@@ -163,9 +174,9 @@ float3 GenerateVertexOfStandardCube(uint v)
 {
     float3 p;
 
-    p.x = ((v & 1) == 0) ? -1 : 1;
-    p.y = ((v & 2) == 0) ? -1 : 1;
-    p.z = ((v & 4) == 0) ? -1 : 1;
+    p.x = ((v & 1) == 0) ? -1 : 1; // FACE_LEFT   : FACE_RIGHT
+    p.y = ((v & 2) == 0) ? -1 : 1; // FACE_BOTTOM : FACE_TOP
+    p.z = ((v & 4) == 0) ? -1 : 1; // FACE_FRONT  : FACE_BACK
 
     return p;
 }
@@ -173,9 +184,9 @@ float3 GenerateVertexOfStandardCube(uint v)
 uint GetVertexListOfFace(uint f)
 {
     // Warning: don't add 'static' here unless you want really bad code gen.
-    const uint3 allVertLists = uint3((VERT_LIST_RIGHT  << 12) | VERT_LIST_LEFT,
-                                     (VERT_LIST_BOTTOM << 12) | VERT_LIST_TOP,
-                                     (VERT_LIST_BACK   << 12) | VERT_LIST_FRONT);
+    const uint3 allVertLists = uint3((VERT_LIST_RIGHT << 12) | VERT_LIST_LEFT,
+                                     (VERT_LIST_TOP   << 12) | VERT_LIST_BOTTOM,
+                                     (VERT_LIST_BACK  << 12) | VERT_LIST_FRONT);
 
     return BitFieldExtract(allVertLists[f >> 1], 12 * (f & 1), 12);
 }
@@ -609,6 +620,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
         }
         else // Outside
         {
+            // Mark all the faces of the bounding frustum associated with this vertex.
             cullClipFaceMask |= GetFaceMaskOfVertex(v);
         }
 
@@ -644,6 +656,8 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
         // We perform aggressive culling, so we must make sure they are accounted for.
         // The light volume is a special type of cuboid - a right frustum.
         // We can exploit this fact by building a light-space projection matrix.
+        // P_v = T * (R * S) * P_l
+        // P_l = (R * S)^{-1} * T^{-1} * P_v
         float4x4 invTranslateToLightSpace      = Translation4x4(-rbpC);
         float4x4 invRotateAndScaleInLightSpace = Homogenize3x3(Invert3x3(ScaledRotation3x3(rbpX, rbpY, rbpZ)));
         // TODO: avoid full inversion by using unit vectors and passing magnitudes explicitly.
