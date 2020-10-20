@@ -808,10 +808,8 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     ndcAaBbMaxPt.w = asfloat(gs_NdcAaBbMaxPtW[intraGroupLightIndex]);
 #endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
 
-    bool isCulled = ndcAaBbMinPt.w > ndcAaBbMaxPt.w;
-
     // (5) Compute the AABB of the bounding sphere.
-    if (!isCulled && (radius > 0))
+    if (radius > 0)
     {
         // Occasionally, an intersection of AABBs of a bounding sphere and a bounding frustum
         // results in a tighter AABB when compared to using the AABB of the frustum alone.
