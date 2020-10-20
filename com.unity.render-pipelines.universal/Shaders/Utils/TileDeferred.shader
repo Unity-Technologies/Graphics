@@ -192,7 +192,6 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             pl.spotDirection.xyz = asfloat(_PunctualLightBuffer[i + 3].xyz);
             pl.flags = _PunctualLightBuffer[i + 3].w;
             pl.occlusionProbeInfo = asfloat(_PunctualLightBuffer[i + 4].xyzz);
-            pl.shadowLightIndex = -1;
 
             return pl;
         }
@@ -269,7 +268,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 float3 L = light.posWS - posWS.xyz;
                 [branch] if (dot(L, L) < light.radius2)
                 {
-                    Light unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, materialReceiveShadowsOff);
+                    Light unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, 0, materialReceiveShadowsOff);
                     color += LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS, materialSpecularHighlightsOff);
                 }
             }
@@ -291,7 +290,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 float3 L = light.posWS - posWS.xyz;
                 [branch] if (dot(L, L) < light.radius2)
                 {
-                    Light unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, materialReceiveShadowsOff);
+                    Light unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, 0, materialReceiveShadowsOff);
 
                     half3 attenuatedLightColor = unityLight.color * (unityLight.distanceAttenuation * unityLight.shadowAttenuation);
                     half3 diffuseColor = LightingLambert(attenuatedLightColor, unityLight.direction, inputData.normalWS);

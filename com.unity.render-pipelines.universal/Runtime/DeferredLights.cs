@@ -458,7 +458,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_StencilDeferredMaterial.SetInt(ShaderConstants._ClearStencilReadMask, (int)StencilUsage.MaterialMask);
             m_StencilDeferredMaterial.SetInt(ShaderConstants._ClearStencilWriteMask, (int)StencilUsage.MaterialMask);
 
-            // Compute some platform limits.
+            // Compute some platform limits (for deferred tiling).
             m_MaxDepthRangePerBatch = (DeferredConfig.UseCBufferForDepthRange ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / sizeof(uint);
             m_MaxTilesPerBatch = (DeferredConfig.UseCBufferForTileList ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / System.Runtime.InteropServices.Marshal.SizeOf(typeof(TileData));
             m_MaxPunctualLightPerBatch = (DeferredConfig.UseCBufferForLightData ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualLightData));
@@ -1720,12 +1720,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             Vector4 lightPos, lightColor, lightAttenuation, lightSpotDir, lightOcclusionChannel;
             UniversalRenderPipeline.InitializeLightConstants_Common(visibleLights, index, out lightPos, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionChannel);
 
-            punctualLightBuffer[storeIndex * 6 + 0] = new uint4(FloatToUInt(lightPos.x), FloatToUInt(lightPos.y), FloatToUInt(lightPos.z), FloatToUInt(visibleLights[index].range * visibleLights[index].range));
-            punctualLightBuffer[storeIndex * 6 + 1] = new uint4(FloatToUInt(lightColor.x), FloatToUInt(lightColor.y), FloatToUInt(lightColor.z), 0);
-            punctualLightBuffer[storeIndex * 6 + 2] = new uint4(FloatToUInt(lightAttenuation.x), FloatToUInt(lightAttenuation.y), FloatToUInt(lightAttenuation.z), FloatToUInt(lightAttenuation.w));
-            punctualLightBuffer[storeIndex * 6 + 3] = new uint4(FloatToUInt(lightSpotDir.x), FloatToUInt(lightSpotDir.y), FloatToUInt(lightSpotDir.z), (uint)lightFlags);
-            punctualLightBuffer[storeIndex * 6 + 4] = new uint4(FloatToUInt(lightOcclusionChannel.x), FloatToUInt(lightOcclusionChannel.y), FloatToUInt(lightOcclusionChannel.z), FloatToUInt(lightOcclusionChannel.w));
-            punctualLightBuffer[storeIndex * 6 + 5] = new uint4(0, 0, 0, 0);
+            punctualLightBuffer[storeIndex * 5 + 0] = new uint4(FloatToUInt(lightPos.x), FloatToUInt(lightPos.y), FloatToUInt(lightPos.z), FloatToUInt(visibleLights[index].range * visibleLights[index].range));
+            punctualLightBuffer[storeIndex * 5 + 1] = new uint4(FloatToUInt(lightColor.x), FloatToUInt(lightColor.y), FloatToUInt(lightColor.z), 0);
+            punctualLightBuffer[storeIndex * 5 + 2] = new uint4(FloatToUInt(lightAttenuation.x), FloatToUInt(lightAttenuation.y), FloatToUInt(lightAttenuation.z), FloatToUInt(lightAttenuation.w));
+            punctualLightBuffer[storeIndex * 5 + 3] = new uint4(FloatToUInt(lightSpotDir.x), FloatToUInt(lightSpotDir.y), FloatToUInt(lightSpotDir.z), (uint)lightFlags);
+            punctualLightBuffer[storeIndex * 5 + 4] = new uint4(FloatToUInt(lightOcclusionChannel.x), FloatToUInt(lightOcclusionChannel.y), FloatToUInt(lightOcclusionChannel.z), FloatToUInt(lightOcclusionChannel.w));
         }
 
         void StoreTileData(ref NativeArray<uint4> tileList, int storeIndex, uint tileID, uint listBitMask, ushort relLightOffset, ushort lightCount)

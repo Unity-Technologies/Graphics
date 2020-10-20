@@ -34,22 +34,20 @@
 #define USE_CBUFFER_FOR_LIGHTLIST 0
 #endif
 
+// This structure is used in StructuredBuffer.
+// TODO move some of the properties to half storage (color, attenuation, spotDirection, flag to 16bits, occlusionProbeInfo)
 struct PunctualLightData
 {
     float3 posWS;
-    float radius2;           // squared radius
-    half4 color;
-    half4 attenuation;       // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation (for SpotLights)
-    half3 spotDirection;     // spotLights support
-    int flags;               // Light flags (enum kLightFlags and LightFlag in C# code)
-    half4 occlusionProbeInfo;
-    int shadowLightIndex;
-    int spare0;
-    int spare1;
-    int spare2;
+    float radius2;              // squared radius
+    float4 color;
+    float4 attenuation;         // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation (for SpotLights)
+    float3 spotDirection;       // spotLights support
+    int flags;                  // Light flags (enum kLightFlags and LightFlag in C# code)
+    float4 occlusionProbeInfo;
 };
 
-Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData punctualLightData, float3 positionWS, half4 shadowMask, bool materialFlagReceiveShadowsOff)
+Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData punctualLightData, float3 positionWS, half4 shadowMask, int shadowLightIndex, bool materialFlagReceiveShadowsOff)
 {
     // Keep in sync with GetAdditionalPerObjectLight in Lighting.hlsl
 
@@ -73,7 +71,7 @@ Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData pun
         light.shadowAttenuation = 1.0;
     else
     {
-        light.shadowAttenuation = AdditionalLightShadow(punctualLightData.shadowLightIndex, positionWS, shadowMask, punctualLightData.occlusionProbeInfo);
+        light.shadowAttenuation = AdditionalLightShadow(shadowLightIndex, positionWS, shadowMask, punctualLightData.occlusionProbeInfo);
     }
     return light;
 }
