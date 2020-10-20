@@ -144,6 +144,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Deferred Lighting
 
+        RTHandle RequestReflectionHistoryBuffer(CommandBuffer cmd, HDCamera hdCamera)
+        {
+            RTHandle reflectionHistoryBuffer = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection);
+            if (reflectionHistoryBuffer == null)
+                reflectionHistoryBuffer = hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection, ReflectionHistoryBufferAllocatorFunction, 1);
+            return reflectionHistoryBuffer;
+        }
+
         DeferredLightingRTParameters PrepareReflectionDeferredLightingRTParameters(HDCamera hdCamera)
         {
             DeferredLightingRTParameters deferredParameters = new DeferredLightingRTParameters();

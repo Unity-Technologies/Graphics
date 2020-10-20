@@ -1,10 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
+using NUnit;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 using UnityEngine.Events;
@@ -18,6 +20,8 @@ public class HDRP_GraphicTestRunner
     [Timeout(450 * 1000)] // Set timeout to 450 sec. to handle complex scenes with many shaders (previous timeout was 300s)
     public IEnumerator Run(GraphicsTestCase testCase)
     {
+        m_testCase = testCase;
+        // Debug.Log($"Load Scene : {testCase.ScenePath}");
         SceneManager.LoadScene(testCase.ScenePath);
 
         // Arbitrary wait for 5 frames for the scene to load, and other stuff to happen (like Realtime GI to appear ...)
@@ -27,12 +31,36 @@ public class HDRP_GraphicTestRunner
         // Load the test settings
         var settings = GameObject.FindObjectOfType<HDRP_TestSettings>();
 
-        var camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
+        camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
         if (camera == null) camera = GameObject.FindObjectOfType<Camera>();
         if (camera == null)
         {
             Assert.Fail("Missing camera for graphic tests.");
         }
+
+        // Load the test settings
+        var settings = GameObject.FindObjectOfType<HDRP_TestSettings>();
+
+        // Check for the backbuffer toogle and force it to use the HDRP test runner specific one, to avoid issues when capturing the images.
+        // This is a "lazy" fix to avoid rewriting part of the code
+        if (settings.ImageComparisonSettings.UseBackBuffer)
+        {
+            settings.ImageComparisonSettings.UseBackBuffer = false;
+            settings.captureFromBackBuffer = true;
+        }
+
+        // Setup the temporary texture to copy from the backbuffer and compare
+        // Also set the game view render size
+        if (settings.captureFromBackBuffer)
+            SetupBackBufferCapture(settings.ImageComparisonSettings.TargetWidth, settings.ImageComparisonSettings.TargetHeight);
+
+        // Arbitrary wait for 5 frames for the scene to load, and other stuff to happen (like Realtime GI to appear ...)
+        for (int i = 0; i < 5; ++i)
+            yield return null;
+
+        // Grab the HDCamera
+        HDCamera hdCamera = HDCamera.GetOrCreate(camera);
+
 
         Time.captureFramerate = settings.captureFramerate;
 
@@ -67,8 +95,27 @@ public class HDRP_GraphicTestRunner
             yield return new WaitForEndOfFrame();
         }
 
-        // Reset temporal effects on hdCamera
-        HDCamera.GetOrCreate(camera).Reset();
+        if (settings.waitForFrameCountMultiple)
+        {
+            // Get HDRP instance
+            var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+
+            // Standard Test
+            if (settings.captureFromBackBuffer) // Using Backbuffer
+            {
+                // When we capture from the back buffer, there is no requirement of compensation frames
+                while (((hdCamera.cameraFrameCount) % (uint)settings.frameCountMultiple) != 0) yield return null;
+            }
+            else
+            {
+                // Given that we will render two frames, we need to compensate for them in the waiting
+                // After this line, the next frame will be frame 0.
+                while (((hdCamera.cameraFrameCount + 2) % (uint)settings.frameCountMultiple) != 0) yield return null;
+            }
+        }
+
+        // Force clear all the history buffers
+        hdCamera.RequestClearHistoryBuffers();
 
         for (int i=0 ; i<settings.waitFrames ; ++i)
             yield return new WaitForEndOfFrame();
@@ -77,7 +124,21 @@ public class HDRP_GraphicTestRunner
         if (settingsSG == null || !settingsSG.compareSGtoBI)
         {
             // Standard Test
-            ImageAssert.AreEqual(testCase.ReferenceImage, camera, settings?.ImageComparisonSettings);
+            if (settings.captureFromBackBuffer) // Using Backbuffer
+            {
+                doCapture = true;
+
+                while (doCapture) yield return null;
+
+                ImageAssert.AreEqual(m_testCase.ReferenceImage, backBufferCaptureTexture, settings.ImageComparisonSettings);
+
+                // Cleanup the capture data
+                CleanBackBufferCapture();
+            }
+            else // Or rendering to a render texture
+            {
+                ImageAssert.AreEqual(testCase.ReferenceImage, camera, settings?.ImageComparisonSettings);
+            }
 
             // For some reason, tests on mac os have started failing with render graph enabled by default.
             // Some tests have 400+ gcalloc in them. Unfortunately it's not reproductible outside of command line so it's impossible to debug.
@@ -122,7 +183,7 @@ public class HDRP_GraphicTestRunner
             // First test: Shader Graph
             try
             {
-                ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null)?settings.ImageComparisonSettings:null);
+                ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null) ? settings.ImageComparisonSettings : null);
             }
             catch (AssertionException)
             {
@@ -138,7 +199,7 @@ public class HDRP_GraphicTestRunner
             // Second test: HDRP/Lit Materials
             try
             {
-                ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null)?settings.ImageComparisonSettings:null);
+                ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null) ? settings.ImageComparisonSettings : null);
             }
             catch (AssertionException)
             {
@@ -152,7 +213,71 @@ public class HDRP_GraphicTestRunner
         }
     }
 
+    // Register the capture from backbuffer logic in the endCameraRendering hook point.
+    [OneTimeSetUp]
+    public void OneTimeSetUpFunc()
+    {
+        RenderPipelineManager.endCameraRendering += PostRenderCallback;
+    }
+
+    // Remove the hook and delete the texture.
+    [OneTimeTearDown]
+    public void OneTimeTearDownFunc()
+    {
+        if (backBufferCaptureTexture != null) Object.DestroyImmediate(backBufferCaptureTexture);
+        RenderPipelineManager.endCameraRendering -= PostRenderCallback;
+    }
+
+    void PostRenderCallback( ScriptableRenderContext context,  Camera cam )
+    {
+        if ( !doCapture)
+            return;
+
+        if ( camera == null || cam == null || camera != cam) return;
+
+        backBufferCaptureTexture.ReadPixels(
+            new Rect(0, 0, backBufferCaptureTexture.width, backBufferCaptureTexture.height),
+            0, 0,
+            false
+            );
+
+        backBufferCaptureTexture.Apply();
+
+        // Debug.Log($"imageComparisonSettings before ImageAssert: width {imageComparisonSettings.TargetWidth}, height {imageComparisonSettings.TargetHeight}, pixel corr. threshold {imageComparisonSettings.PerPixelCorrectnessThreshold}, avg. corr. threshold {imageComparisonSettings.AverageCorrectnessThreshold}");
+
+        doCapture = false;
+    }
+
+    void SetupBackBufferCapture( int width, int height )
+    {
+        SetViewSize(width, height);
+
+        if (backBufferCaptureTexture != null) Object.DestroyImmediate(backBufferCaptureTexture);
+
+        backBufferCaptureTexture = new Texture2D(
+            width, height,
+            TextureFormat.RGB24,
+            false,
+            true
+            );
+    }
+
+    void CleanBackBufferCapture(  )
+    {
+        camera = null;
+    }
+
+    void SetViewSize( int width, int height)
+    {
 #if UNITY_EDITOR
+        GameViewUtils.SetGameViewSize(width, height);
+#else
+        Screen.SetResolution(width, height, Screen.fullScreenMode);
+#endif
+    }
+
+#if UNITY_EDITOR
+
 
     [TearDown]
     public void DumpImagesInEditor()
