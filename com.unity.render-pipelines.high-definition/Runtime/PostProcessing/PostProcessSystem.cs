@@ -92,6 +92,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ShadowsMidtonesHighlights m_ShadowsMidtonesHighlights;
         ColorCurves m_Curves;
         FilmGrain m_FilmGrain;
+        PathTracing m_PathTracing;
 
         // Prefetched frame settings (updated on every frame)
         bool m_ExposureControlFS;
@@ -367,6 +368,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShadowsMidtonesHighlights = stack.GetComponent<ShadowsMidtonesHighlights>();
             m_Curves                    = stack.GetComponent<ColorCurves>();
             m_FilmGrain                 = stack.GetComponent<FilmGrain>();
+            m_PathTracing               = stack.GetComponent<PathTracing>();
 
             // Prefetch frame settings - these aren't free to pull so we want to do it only once
             // per frame
@@ -385,6 +387,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_FilmGrainFS           = frameSettings.IsEnabled(FrameSettingsField.FilmGrain);
             m_DitheringFS           = frameSettings.IsEnabled(FrameSettingsField.Dithering);
             m_AntialiasingFS        = frameSettings.IsEnabled(FrameSettingsField.Antialiasing);
+
+            // Override full screen anti-aliasing when doing path tracing (which is naturally anti-aliased already)
+            m_AntialiasingFS        &= !m_PathTracing.enable.value;
 
             m_DebugExposureCompensation = m_HDInstance.m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugExposure;
 
@@ -584,7 +589,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // If Path tracing is enabled, then DoF is computed in the path tracer by sampling the lens aperure (when using the physical camera mode)
                     bool isDoFPathTraced = (camera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
-                         camera.volumeStack.GetComponent<PathTracing>().enable.value &&
+                         m_PathTracing.enable.value &&
                          camera.camera.cameraType != CameraType.Preview &&
                          m_DepthOfField.focusMode == DepthOfFieldMode.UsePhysicalCamera);
 
@@ -1383,6 +1388,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     filterMode = FilterMode.Bilinear,
                     wrapMode = TextureWrapMode.Clamp
                 };
+                m_ExposureCurveTexture.hideFlags = HideFlags.HideAndDontSave;
             }
 
             bool minCurveHasPoints = minCurve.length > 0;
@@ -3847,6 +3853,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public System.Random    random;
             public bool             useFXAA;
             public bool             enableAlpha;
+            public bool             keepAlpha;
 
             public bool             filmGrainEnabled;
             public Texture          filmGrainTexture;
@@ -3868,6 +3875,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.flipY = flipY;
             parameters.random = m_Random;
             parameters.enableAlpha = m_EnableAlpha;
+            parameters.keepAlpha = m_KeepAlpha;
 
             var dynResHandler = DynamicResolutionHandler.instance;
             bool dynamicResIsOn = hdCamera.isMainGameView && dynResHandler.DynamicResolutionEnabled();
@@ -3976,7 +3984,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             finalPassMaterial.SetTexture(HDShaderIDs._AlphaTexture, alphaTexture);
-            finalPassMaterial.SetFloat(HDShaderIDs._KeepAlpha, 1.0f);
+            finalPassMaterial.SetFloat(HDShaderIDs._KeepAlpha, parameters.keepAlpha ? 1.0f : 0.0f);
 
             if (parameters.enableAlpha)
                 finalPassMaterial.EnableKeyword("ENABLE_ALPHA");

@@ -206,6 +206,8 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             s_SelectionIndex = m_Editor.selectionIndex;
 
             CompositionManager compositor = CompositionManager.GetInstance();
+            // The compositor might be null even if the CompositionManagerEditor is not (in case the user switches from a scene with a compositor to a scene without one)
+            if (compositor)
             {
                 // Some properties were changed, mark the profile as dirty so it can be saved if the user saves the scene
                 EditorUtility.SetDirty(compositor);

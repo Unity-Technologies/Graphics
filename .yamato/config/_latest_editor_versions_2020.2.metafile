@@ -9,49 +9,49 @@ editor_version_names:
 editor_versions:
   2020.2_latest_internal:
     android:
-      revision: 1b1252580c64
-      version: 2020.2.0b7
+      revision: dff91d65251a
+      version: 2020.2.0b8
     ios:
-      revision: 1b1252580c64
-      version: 2020.2.0b7
+      revision: dff91d65251a
+      version: 2020.2.0b8
     linux:
-      revision: 1b1252580c64
-      version: 2020.2.0b7
+      revision: dff91d65251a
+      version: 2020.2.0b8
     macos:
-      revision: 1b1252580c64
-      version: 2020.2.0b7
+      revision: dff91d65251a
+      version: 2020.2.0b8
     windows:
-      revision: 1b1252580c64
-      version: 2020.2.0b7
+      revision: dff91d65251a
+      version: 2020.2.0b8
   2020.2_latest_public:
     android:
-      revision: 24a0f8b56f72
-      version: 2020.2.0b6
+      revision: 1b1252580c64
+      version: 2020.2.0b7
     ios:
-      revision: 24a0f8b56f72
-      version: 2020.2.0b6
+      revision: 1b1252580c64
+      version: 2020.2.0b7
     linux:
-      revision: 24a0f8b56f72
-      version: 2020.2.0b6
+      revision: 1b1252580c64
+      version: 2020.2.0b7
     macos:
-      revision: 24a0f8b56f72
-      version: 2020.2.0b6
+      revision: 1b1252580c64
+      version: 2020.2.0b7
     windows:
-      revision: 24a0f8b56f72
-      version: 2020.2.0b6
+      revision: 1b1252580c64
+      version: 2020.2.0b7
   2020.2_staging:
     android:
-      revision: 2ea77e477b085e913ac2cdc798fcd655b010f1a2
+      revision: dff91d65251a9ab8c12af258ce88fee061d85a7d
       version: ''
     ios:
-      revision: 2ea77e477b085e913ac2cdc798fcd655b010f1a2
+      revision: dff91d65251a9ab8c12af258ce88fee061d85a7d
       version: ''
     linux:
-      revision: 2ea77e477b085e913ac2cdc798fcd655b010f1a2
+      revision: dff91d65251a9ab8c12af258ce88fee061d85a7d
       version: ''
     macos:
-      revision: 2ea77e477b085e913ac2cdc798fcd655b010f1a2
+      revision: dff91d65251a9ab8c12af258ce88fee061d85a7d
       version: ''
     windows:
-      revision: 2ea77e477b085e913ac2cdc798fcd655b010f1a2
+      revision: dff91d65251a9ab8c12af258ce88fee061d85a7d
       version: ''
