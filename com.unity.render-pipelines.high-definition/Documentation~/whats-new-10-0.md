@@ -1,4 +1,4 @@
-# What's new in version 10.0
+# What's new in version 10
 
 This page contains an overview of new features, improvements, and issues resolved in version 10 of the High Definition Render Pipeline (HDRP).
 
@@ -80,8 +80,10 @@ The Render Pipeline Debug window now has a new Volume panel which you can use to
 #### Quad Overdraw and Vertex Density
 
 ![quad_density](Images/quad_density_example.png)
-Two full screen rendering debugs modes have been added. Quad Overdraw highlights GPU quads running multiple fragment shaders, which is mainly caused by small or thin triangles while Vertex Density displays pixels running multiple vertex shaders.
-This is mainly due to Meshes far away or with too many details so it can help finding GameObjects in you scene that need LODs.  (This modes are currently not supported on Metal)
+To help you finding GameObjects in you scene that need LODs, HDRP includes two new full screen rendering debug modes to spot Meshes far away or with too many details.
+
+- Quad Overdraw: highlights GPU quads running multiple fragment shaders, which is mainly caused by small or thin triangles. (Not supported on Metal and PS4)
+- Vertex Density: displays pixels running multiple vertex shaders. (Not supported on Metal)
 
 ### Alpha to Mask
 
@@ -203,6 +205,14 @@ HDRP, being a high-end modern renderer, contains a lot of compute shader passes.
 
 Planar reflection probe filtering is a process that combines the result of planar reflection and surfaces smoothness. Up until this version, the implementation for planar reflection probe filtering did not always produce results of fantastic quality. This version of HDRP includes a new implementation that is closer to being physically-based and improves on the image quality significantly.
 
+### Screen space reflection
+
+[Screen Space Reflection](Override-Screen-Space-Reflection.md) effect always use the color pyramid generate after the Before Refraction transparent pass. Thus the color buffer only includes transparent GameObjects that use the **BeforeRefraction** [Rendering Pass](Surface-Type.md).
+
+### Distortion
+
+The distortion effect now supports a rough distortion which is disabled by default. Disabling Rough Distortion saves resources as the effect does not generate a color pyramid and instead uses a copy of the screen.
+
 ### Platform stability
 
 In the past, HDRP experienced stability issues for DirectX12, Vulkan, Metal, Linux. This version includes improvements to stability on these platforms.
@@ -280,6 +290,10 @@ HDRP's ray-traced reflection (RTR) solution now support transparent materials. T
 #### Virtual Reality (VR)
 
 Ray tracing now supports VR. However, since ray tracing is resource intensive and VR amplifies this, the performance is very slow.
+
+### Render Graph
+
+HDRP now internally uses a Render Graph system. This has no impact on features available to you and it should improve overall memory usage significantly. In the new HDRP template, GPU memory usage decreased by 25%.
 
 ## Issues resolved
 
