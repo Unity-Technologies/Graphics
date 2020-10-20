@@ -76,6 +76,8 @@ namespace UnityEditor.VFX.Block
                 VFXExpression radius0 = allSlots.First(e => e.name == "ArcCone_radius0").exp;
                 VFXExpression radius1 = allSlots.First(e => e.name == "ArcCone_radius1").exp;
                 VFXExpression height = allSlots.First(e => e.name == "ArcCone_height").exp;
+                VFXExpression center = allSlots.First(e => e.name == "ArcCone_center").exp;
+                VFXExpression eulerAngle = allSlots.First(e => e.name == "ArcCone_angles").exp;
                 VFXExpression tanSlope = (radius1 - radius0) / height;
                 VFXExpression slope = new VFXExpressionATan(tanSlope);
 
@@ -84,9 +86,6 @@ namespace UnityEditor.VFX.Block
 
                 yield return new VFXNamedExpression(new VFXExpressionCombine(new VFXExpression[] { new VFXExpressionSin(slope), new VFXExpressionCos(slope) }), "sincosSlope");
 
-                VFXExpression center = inputSlots[0][0].GetExpression();
-
-                var eulerAngle = inputSlots[0][1].GetExpression();
                 var zeroF3 = VFXOperatorUtility.ZeroExpression[VFXValueType.Float3];
                 var oneF3 = VFXOperatorUtility.OneExpression[VFXValueType.Float3];
 

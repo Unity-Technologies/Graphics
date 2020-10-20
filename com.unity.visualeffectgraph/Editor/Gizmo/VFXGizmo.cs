@@ -104,7 +104,8 @@ namespace UnityEditor.VFX
         }
         public bool RotationGizmo(Vector3 position, ref Vector3 rotation, bool always)
         {
-            var quaternion = Quaternion.Euler(rotation);
+            Quaternion quaternion = Quaternion.Euler(rotation);
+
             bool result = RotationGizmo(position, ref quaternion, always);
             if (result)
             {

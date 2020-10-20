@@ -33,7 +33,6 @@ namespace UnityEditor.VFX
             {
                 using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(sphere.center, Quaternion.Euler(sphere.angles), Vector3.one)))
                 {
-                    //foreach (var dist in s_RadiusDirections)
                     for (int i = 0; i < s_RadiusDirections.Length; ++i)
                     {
                         EditorGUI.BeginChangeCheck();

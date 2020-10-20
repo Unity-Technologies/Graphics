@@ -79,7 +79,9 @@ namespace UnityEditor.VFX
                             {
                                 float newRadius = (result - capCenter).magnitude;
                                 if (float.IsNaN(newRadius))
+                                {
                                     newRadius = 0;
+                                }
                                 thicknessProperty.SetValue(newRadius);
                             }
                         }
@@ -99,7 +101,9 @@ namespace UnityEditor.VFX
                         {
                             float newRadius = (result).magnitude;
                             if (float.IsNaN(newRadius))
+                            {
                                 newRadius = 0;
+                            }
                             radiusProperty.SetValue(newRadius);
                         }
                     }

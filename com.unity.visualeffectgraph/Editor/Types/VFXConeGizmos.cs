@@ -137,7 +137,9 @@ namespace UnityEditor.VFX
                         Vector3 pos = extremities.extremities[i];
                         Vector3 result = Handles.Slider(s_ExtremitiesNames[i], pos, pos - extremities.bottomCap,  handleSize * HandleUtility.GetHandleSize(pos), Handles.CubeHandleCap, 0);
                         if (EditorGUI.EndChangeCheck())
+                        {
                             baseRadiusProperty.SetValue(result.magnitude);
+                        }
                     }
                 }
 

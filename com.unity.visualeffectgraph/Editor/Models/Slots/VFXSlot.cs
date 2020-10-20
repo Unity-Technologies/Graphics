@@ -441,7 +441,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public static void CopyLinks(VFXSlot dst, VFXSlot src, bool notify, bool tryMatchingNameAndType = false)
+        public static void CopyLinks(VFXSlot dst, VFXSlot src, bool notify)
         {
             var links = src.LinkedSlots.ToArray();
             int index = 0;
