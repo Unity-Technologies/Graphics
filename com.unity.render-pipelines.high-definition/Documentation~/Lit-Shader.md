@@ -69,9 +69,9 @@ To create a new Lit Material, navigate to your Project's Asset window, right-cli
 
 Unity exposes this section if you select **Transparent** from the **Surface Type** drop-down. For information on the properties in this section, see the [Surface Type documentation](Surface-Type.md#TransparencyInputs).
 
-:warning: When you enabled the **Refraction**, make sure to use the **Blend Mode** **Alpha**, otherwise the effect will not work as expected. A similar warning will be displayed in the material inspector if you enabled refraction with a **Blend Mode** different than **Alpha**.
+Be aware that when you enable **Refraction**, make sure to set **Blend Mode** to **Alpha**, otherwise the effect does not work as expected. If you enable **Refraction** and use a **Blend Mode** other than **Alpha**, a warning displays in the material Inspector.
 
-You can also note that Refraction is not supported when using the rendering pass **Pre-Refraction**, a warning about it will show up in the material inspector and shader graph inspector in case your setup is incorrect.
+Also, be aware that HDRP does not support **Refraction** in the **Pre-Refraction** render pass. If you enable **Refraction** and use the **Pre-Refraction** render pass, a warning displays in the material and Shader Graph Inspector.
 
 <a name="EmissionInputs"></a>
 
