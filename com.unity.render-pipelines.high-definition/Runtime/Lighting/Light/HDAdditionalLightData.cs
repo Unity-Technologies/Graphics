@@ -304,6 +304,24 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        // Not used for directional lights.
+        [SerializeField]
+        float m_VolumetricFadeDistance = 10000.0f;
+        /// <summary>
+        /// Get/Set the light fade distance for volumetrics.
+        /// </summary>
+        public float volumetricFadeDistance
+        {
+            get => m_VolumetricFadeDistance;
+            set
+            {
+                if (m_VolumetricFadeDistance == value)
+                    return;
+
+                m_VolumetricFadeDistance = Mathf.Clamp(value, 0, float.MaxValue);
+            }
+        }
+
         [SerializeField, FormerlySerializedAs("affectDiffuse")]
         bool m_AffectDiffuse = true;
         /// <summary>

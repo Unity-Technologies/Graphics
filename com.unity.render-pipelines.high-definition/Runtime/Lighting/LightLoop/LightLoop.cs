@@ -259,6 +259,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public LightVolumeType          lightVolumeType;
         public float                    distanceToCamera;
         public float                    lightDistanceFade;
+        public float                    volumetricDistanceFade;
         public bool                     isBakedShadowMask;
     }
 
@@ -1548,7 +1549,7 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.lightDimmer           = processedData.lightDistanceFade * (additionalLightData.lightDimmer);
             lightData.diffuseDimmer         = processedData.lightDistanceFade * (additionalLightData.affectDiffuse  ? additionalLightData.lightDimmer : 0);
             lightData.specularDimmer        = processedData.lightDistanceFade * (additionalLightData.affectSpecular ? additionalLightData.lightDimmer * hdCamera.frameSettings.specularGlobalDimmer : 0);
-            lightData.volumetricLightDimmer = processedData.lightDistanceFade * (additionalLightData.volumetricDimmer);
+            lightData.volumetricLightDimmer = Mathf.Min(processedData.volumetricDistanceFade, processedData.lightDistanceFade) * (additionalLightData.volumetricDimmer);
 
             lightData.cookieMode = CookieMode.None;
             lightData.shadowIndex = -1;
@@ -2278,6 +2279,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                                     ref processedData.lightCategory, ref processedData.gpuLightType, ref processedData.lightVolumeType);
 
             processedData.lightDistanceFade = processedData.gpuLightType == GPULightType.Directional ? 1.0f : HDUtils.ComputeLinearDistanceFade(processedData.distanceToCamera, additionalLightData.fadeDistance);
+            processedData.volumetricDistanceFade = processedData.gpuLightType == GPULightType.Directional ? 1.0f : HDUtils.ComputeLinearDistanceFade(processedData.distanceToCamera, additionalLightData.volumetricFadeDistance);
             processedData.isBakedShadowMask = IsBakedShadowMaskLight(lightComponent);
         }
 
