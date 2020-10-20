@@ -95,8 +95,6 @@ all_project_ci_2020.2:
          rerun: on-new-revision
       -  path: .yamato/all-vfx_urp.yml#All_VFX_URP_2020.2
          rerun: on-new-revision
-    triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*", ".github/**/*", "Tools/**/*"]
 all_project_ci_nightly_2020.2:
     name: _Nightly ABV against 2020.2
     dependencies:
