@@ -33,17 +33,10 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       m_Summary: Butterflies
-      m_Description: '1) In the <i>Hierarchy</i> window expand <b>VFX</b> gameobject
-
-        2)
-        Select <b>ButterFlies</b> gameobject
-
-        3) Toggle it <b>on</b> and
-        <b>off</b> in the <i>Inspector</i>
-
-
-        Notice the impact they have
-        on the scene'
+      m_Description: "1) In the <i>Hierarchy</i> window expand <b>VFX</b> gameobject\n2)
+        Select <b>ButterFlies</b> gameobject\n3) Go to <i>Inspector</i> window ->
+        <i>Properties</i>\n4) Set <b>Wing Animation Speed</b> to 0.1  \n\nNotice
+        how the animation slows down"
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
