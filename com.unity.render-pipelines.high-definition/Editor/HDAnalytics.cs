@@ -1,67 +1,65 @@
-using System;
 using System.Text;
-using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Analytics;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEditor.Build;
+using UnityEditor.Build.Reporting;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class HDAnalytics
+    class HDAnalytics : IPostprocessBuildWithReport
     {
-        const int k_MaxEventsPerHour = 1;
+        const int k_MaxEventsPerHour = 10;
         const int k_MaxNumberOfElements = 1000;
         const string k_VendorKey = "unity.hdrp";
-        const string k_EventName = "HDRPBuildSettings";
+        const string k_EventName = "uHDRPUsage";
+        
+        public int callbackOrder { get; }
 
-        struct AnalyticsData
+        struct EventData
         {
+            // Naming convention for analytics data
             public string[] changed_settings;
 
-            public AnalyticsData(Dictionary<string, string> diff)
+            public EventData(Dictionary<string, string> diff)
             {
                 changed_settings = new string[diff.Count];
 
                 int i = 0;
                 foreach (var d in diff)
-                    changed_settings[i++] = $@"{{""name"":""{d.Key}"",""value"":""{d.Value}""}}";
+                    changed_settings[i++] = $@"{{""{d.Key}"":""{d.Value}""}}";
             }
-            
         }
 
-        [MenuItem("Test/Send")]
+        public void OnPostprocessBuild(BuildReport report)
+        {
+            SendEvent();
+        }
+
         public static void SendEvent()
         {
             if (!EditorAnalytics.enabled)
                 return;
 
-            var hdrpAsset = HDRenderPipeline.defaultAsset;
+            var hdrpAsset = HDRenderPipeline.currentAsset;
             if (hdrpAsset == null)
                 return;
 
             if (EditorAnalytics.RegisterEventWithLimit(k_EventName, k_MaxEventsPerHour, k_MaxNumberOfElements, k_VendorKey) != AnalyticsResult.Ok)
-            {
-                Debug.Log("Event not registered");
                 return;
-            }
 
             RenderPipelineSettings settings = hdrpAsset.currentPlatformRenderPipelineSettings;
             RenderPipelineSettings defaults = RenderPipelineSettings.NewDefault();
 
-            var data = new AnalyticsData(DiffSettings(settings, defaults));
+            var data = new EventData(DiffSettings(settings, defaults));
 
-            Debug.Log(string.Join(",\n", data.changed_settings));
-
-            if (EditorAnalytics.SendEventWithLimit(k_EventName, data) != AnalyticsResult.Ok)
-            {
-                Debug.Log("Event not sent");
-                return;
-            }
+            EditorAnalytics.SendEventWithLimit(k_EventName, data);
         }
 
+
+        // Helpers to get changed settings as JSON
         static Dictionary<string, string> DiffSettings(object a, object b)
         {
             var diff = new Dictionary<string, string>();
