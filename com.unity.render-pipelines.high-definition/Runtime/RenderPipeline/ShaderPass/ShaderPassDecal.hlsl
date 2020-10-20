@@ -7,7 +7,7 @@
 
 void MeshDecalsPositionZBias(inout VaryingsToPS input)
 {
-#if defined(UNITY_REVERSED_Z)
+#if UNITY_REVERSED_Z
 	input.vmesh.positionCS.z -= _DecalMeshDepthBias;
 #else
 	input.vmesh.positionCS.z += _DecalMeshDepthBias;
@@ -35,7 +35,7 @@ void Frag(  PackedVaryingsToPS packedInput,
 )
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
-    FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
+    FragInputs input = UnpackVaryingsToFragInputs(packedInput);
     DecalSurfaceData surfaceData;
     float clipValue = 1.0;
     float angleFadeFactor = 1.0;
