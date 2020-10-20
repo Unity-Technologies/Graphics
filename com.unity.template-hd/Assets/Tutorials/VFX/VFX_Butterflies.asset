@@ -36,7 +36,7 @@ MonoBehaviour:
       m_Description: "1) In the <i>Hierarchy</i> window expand <b>VFX</b> gameobject\n2)
         Select <b>ButterFlies</b> gameobject\n3) Go to <i>Inspector</i> window ->
         <i>Properties</i>\n4) Set <b>Wing Animation Speed</b> to 0.1  \n\nNotice
-        how the animation slows down"
+        how the animation slows down."
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 

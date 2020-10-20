@@ -33,10 +33,12 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       m_Summary: 'Now check the Visual Effect Graph '
-      m_Description: "1) In <i>Project</i> window select <b>Art->Particles</b>t and
-        open <b>ButterFlies.vfx</b>\n2) Find <b>Spawn</b> node, remove connection
+      m_Description: "Let's open the VFX graph to see how the butterflies are generated
+        using VFX nodes.\n\n1) In <i>Project</i> window select <b>Art->Particles</b>t
+        and open <b>ButterFlies.vfx</b>\n2) Find <b>Spawn</b> node, remove connection
         to <b>Count</b> node \n3) Change <b>Count</b> from 10 to 30\n4) Press Compile
-        at the top left of the window\n\nInspect the scene"
+        at the top left of the window\n\nNow you should notice more butterflies flynig
+        around the trees."
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 

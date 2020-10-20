@@ -33,8 +33,17 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       m_Summary: Falling Leaves
-      m_Description: 'Falling leaves has a minor inpact on the scene but it gives
-        that realistic touch in  your set up. '
+      m_Description: '1) In the <i>Hierarchy</i> window expand <b>VFX</b> gameobject
+
+        2)
+        Select <b>FallingLeaves</b> gameobject
+
+        3) Toggle it <b>on</b> and
+        <b>off</b> in the <i>Inspector</i>
+
+
+        Falling leaves has a minor inpact
+        on the scene but it gives that realistic touch in  your set up. '
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
