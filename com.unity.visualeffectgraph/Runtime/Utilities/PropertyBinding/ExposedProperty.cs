@@ -39,7 +39,7 @@ namespace UnityEngine.VFX.Utility
         }
 
         /// <summary>
-        /// Creates automatically an ExposedProperty to an int (based on Shader.PropertyToID())
+        /// Converts automatically an ExposedProperty to an int (based on Shader.PropertyToID())
         /// </summary>
         /// <param name="parameter"></param>
         /// <returns>The Shader.PropertyToID result</returns>
