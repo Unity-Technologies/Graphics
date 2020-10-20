@@ -12,6 +12,7 @@ TEXTURE2D(_InputTexture);
 
 #define PREPASS_TEX_SIZE 1024.0
 #define PREPASS_TEX_HALF_SIZE 512.0
+//#pragma enable_d3d11_debug_symbols
 
 //
 // Fixed exposure
@@ -22,7 +23,7 @@ void KFixedExposure(uint2 dispatchThreadId : SV_DispatchThreadID)
 {
     float ev100 = ParamEV100;
     ev100 -= ParamExposureCompensation;
-    _OutputTexture[dispatchThreadId] = float2(ConvertEV100ToExposure(ev100), ev100);
+    _OutputTexture[dispatchThreadId] = float2(ConvertEV100ToExposure(ev100, LensImperfectionExposureScale), ev100);
 }
 
 //
@@ -34,7 +35,7 @@ void KManualCameraExposure(uint2 dispatchThreadId : SV_DispatchThreadID)
 {
     float ev100 = ComputeEV100(ParamAperture, ParamShutterSpeed, ParamISO);
     ev100 -= ParamExposureCompensation;
-    _OutputTexture[dispatchThreadId] = float2(ConvertEV100ToExposure(ev100), ev100);
+    _OutputTexture[dispatchThreadId] = float2(ConvertEV100ToExposure(ev100, LensImperfectionExposureScale), ev100);
 }
 
 //
@@ -51,9 +52,9 @@ void KPrePass(uint2 dispatchThreadId : SV_DispatchThreadID)
     float2 uv = ClampAndScaleUVForBilinear(posInputs.positionNDC);
     float luma = SampleLuminance(uv);
 
-    float weight = WeightSample(dispatchThreadId, PREPASS_TEX_SIZE.xx);
+    float weight = WeightSample(dispatchThreadId, PREPASS_TEX_SIZE.xx, luma);
 
-    float logLuma = ComputeEV100FromAvgLuminance(max(luma, 1e-4));
+    float logLuma = ComputeEV100FromAvgLuminance(max(luma, 1e-4), MeterCalibrationConstant);
     _OutputTexture[posInputs.positionSS] = float2(logLuma, weight);
 }
 
@@ -120,15 +121,18 @@ void KReduction(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThread
                 // Automatic
                 float exposure = AdaptExposure(avgLuminance - ParamExposureCompensation);
                 exposure = clamp(exposure, ParamExposureLimitMin, ParamExposureLimitMax);
-                _OutputTexture[groupId.xy] = float2(ConvertEV100ToExposure(exposure), exposure);
+                _OutputTexture[groupId.xy] = float2(ConvertEV100ToExposure(exposure, LensImperfectionExposureScale), exposure);
                 break;
             }
             case 2u:
             {
                 // Curve remapping
-                float exposure = CurveRemap(avgLuminance);
+                float minExposure = ParamExposureLimitMin;
+                float maxExposure = ParamExposureLimitMax;
+                float exposure = CurveRemap(avgLuminance, minExposure, maxExposure);
                 exposure = AdaptExposure(exposure - ParamExposureCompensation);
-                _OutputTexture[groupId.xy] = float2(ConvertEV100ToExposure(exposure), exposure);
+                exposure = clamp(exposure, minExposure, maxExposure);
+                _OutputTexture[groupId.xy] = float2(ConvertEV100ToExposure(exposure, LensImperfectionExposureScale), exposure);
                 break;
             }
             default:

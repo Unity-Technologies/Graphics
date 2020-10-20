@@ -52,6 +52,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             m_NodeA = new TestNode();
             m_NodeA.precision = Precision.Half;
             m_Graph.AddNode(m_NodeA);
+            m_NodeA.SetOverrideActiveState(AbstractMaterialNode.ActiveState.ExplicitActive);
         }
 
         [Test]

@@ -1,6 +1,6 @@
 # Ray-traced shadows
 
-Ray-traced shadows are shadows that HDRP generates by tracing rays of light from the following [Light](Light-Component.html) sources:
+Ray-traced shadows are shadows that HDRP generates by tracing rays of light from the following [Light](Light-Component.md) sources:
 
 - [Directional](#DirectionalLight)
 - [Point](#PointLight)
@@ -106,12 +106,13 @@ Ray-traced shadows offer the possibility of semi-transparent shadows for Point L
 | **Radius**            | Sets the radius of the sphere light that HDRP uses to evaluate the shadows. This increases the size of the surface that emits light. |
 | **Denoise**           | Enables the spatio-temporal filter that HDRP uses to remove noise from the ray-traced shadows. |
 | - **Denoiser Radius** | Controls the radius of the spatio-temporal filter.           |
+| - **Distance Based Denoising** | Specifies whether HDRP should take the distance to the occluder into account when it denoises the shadow. This increases the denoiser quality but also its resource intensity. |
 
 <a name="RectangleLight"></a>
 
 ## Rectangle Light
 
-Ray-traced shadows offer an alternative to the [exponential variance shadow map](Glossary.html#ExponentialVarianceShadowMap) that Rectangle Lights use for opaque GameObjects.
+Ray-traced shadows offer an alternative to the [exponential variance shadow map](Glossary.md#ExponentialVarianceShadowMap) that Rectangle Lights use for opaque GameObjects.
 
 ![](Images/RayTracedShadows7.png)
 
@@ -127,3 +128,6 @@ Ray-traced shadows offer an alternative to the [exponential variance shadow map]
 | **Sample Count**      | Controls the number of rays that HDRP uses per pixel, per frame. Increasing this values increases execution time linearly. |
 | **Denoise**           | Enables the spatio-temporal filter that HDRP uses to remove noise from the ray-traced shadows. |
 | - **Denoiser Radius** | Controls the radius of the spatio-temporal filter.           |
+
+### Notes
+Ray-traced shadows do not support the **Two Sided** option for the Mesh Renderer's **Cast Shadows** property. To use double-sided shadows for a mesh, open the Mesh Renderer's Material in the Inspector and, in the **Surface Options** section, enable the **Double-Sided** property.

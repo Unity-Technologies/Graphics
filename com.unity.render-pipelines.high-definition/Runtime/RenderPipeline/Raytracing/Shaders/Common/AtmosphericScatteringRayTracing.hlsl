@@ -8,7 +8,7 @@ void ApplyFogAttenuation(float3 origin, float3 direction, float t, inout float3 
     if (_FogEnabled)
     {
         float dist = min(t, _MaxFogDistance);
-        float absFogBaseHeight = GetAbsolutePositionWS(float3(0.0, _HeightFogBaseHeight, 0.0)).y;
+        float absFogBaseHeight = _HeightFogBaseHeight;
         float fogTransmittance = TransmittanceHeightFog(_HeightFogBaseExtinction, absFogBaseHeight, _HeightFogExponents, direction.y, origin.y, dist);
         float3 fogColor = useFogColor ? GetFogColor(-direction, dist) : 0.0;
         value = lerp(fogColor, value, fogTransmittance);
@@ -20,7 +20,7 @@ void ApplyFogAttenuation(float3 origin, float3 direction, inout float3 value)
     if (_FogEnabled)
     {
         float dist = min(_MipFogFar, _MaxFogDistance);
-        float absFogBaseHeight = GetAbsolutePositionWS(float3(0.0, _HeightFogBaseHeight, 0.0)).y;
+        float absFogBaseHeight = _HeightFogBaseHeight;
         float fogTransmittance = TransmittanceHeightFog(_HeightFogBaseExtinction, absFogBaseHeight, _HeightFogExponents, direction.y, origin.y, dist);
         value = lerp(GetFogColor(-direction, dist), value, fogTransmittance);
     }

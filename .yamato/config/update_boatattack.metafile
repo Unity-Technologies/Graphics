@@ -1,0 +1,40 @@
+project:
+  name: URPUpdate_BoatAttack
+  folder: BoatAttack-19-4
+test_platforms:
+  - type: playmode
+  - type: editmode
+platforms:
+  - name: Win
+    apis:
+      - DX11
+      - Vulkan
+#  - name: OSX
+#    apis:
+#      - OpenGLCore
+#      - Metal
+build_configs:
+#- name: il2cpp_apiNet2
+#  scripting_backend: IL2CPP
+#  api_level: NET_2_0
+#- name: il2cpp_apiNet4
+#  scripting_backend: IL2CPP
+#  api_level: NET_4_6
+- name: mono_apiNet2
+  scripting_backend: Mono2x
+  api_level: NET_2_0
+#- name: mono_apiNet4
+#  scripting_backend: Mono2x
+#  api_level: NET_4_6
+color_spaces:
+  - Linear
+#  - gamma
+all:
+  dependencies:
+    - platform: Win
+      api: DX11
+      build_config: mono_apiNet2
+      color_space: Linear
+      test_platforms:
+        - editmode
+        - playmode

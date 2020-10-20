@@ -206,7 +206,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         float[] weights = null;
-        float ComputeWeight(Volume volume)
+        float ComputeWeight(Volume volume, Vector3 triggerPos)
         {
             var profile = volume.HasInstantiatedProfile() ? volume.profile : volume.sharedProfile;
 
@@ -218,7 +218,6 @@ namespace UnityEngine.Rendering.HighDefinition
             float weight = Mathf.Clamp01(volume.weight);
             if (!volume.isGlobal)
             {
-                var triggerPos = selectedCameraPosition;
                 var colliders = volume.GetComponents<Collider>();
 
                 // Find closest distance to volume, 0 means it's inside it
@@ -313,9 +312,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+            var triggerPos = selectedCameraPosition;
             weights = new float[volumes.Length];
             for (int i = 0; i < volumes.Length; i++)
-                weights[i] = ComputeWeight(volumes[i]);
+                weights[i] = ComputeWeight(volumes[i], triggerPos);
 
             return ret;
         }

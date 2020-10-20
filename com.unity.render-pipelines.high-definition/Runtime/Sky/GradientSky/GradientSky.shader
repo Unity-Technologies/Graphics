@@ -48,8 +48,8 @@ Shader "Hidden/HDRP/Sky/GradientSky"
         float topLerpFactor = saturate(-verticalGradient);
         float bottomLerpFactor = saturate(verticalGradient);
         float3 color = lerp(_GradientMiddle.xyz, _GradientBottom.xyz, bottomLerpFactor);
-        color = lerp(color, _GradientTop.xyz, topLerpFactor) * _SkyIntensity;
-        return float4(color, 1.0);
+        color = lerp(color, _GradientTop.xyz, topLerpFactor);
+        return float4(color * _SkyIntensity, 1.0);
     }
 
     float4 FragBaking(Varyings input) : SV_Target

@@ -69,6 +69,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Subsurface
             public static GUIContent diffusionProfileText = new GUIContent("Diffusion Profile", "Specifies the Diffusion Profie HDRP uses to determine the behavior of the subsurface scattering/transmission effect.");
+            public static GUIContent subsurfaceEnableText = new GUIContent("Subsurface Scattering", "Enables the subsurface scattering on the material.");
             public static GUIContent subsurfaceMaskText = new GUIContent("Subsurface Mask", "Controls the overall strength of the subsurface scattering effect.");
             public static GUIContent subsurfaceMaskMapText = new GUIContent("Subsurface Mask Map", "Specifies the Subsurface mask map (R) for this Material - This map controls the strength of the subsurface scattering effect.");
             public static GUIContent thicknessText = new GUIContent("Thickness", "Controls the strength of the Thickness Map, low values allow some light to transmit through the object.");
@@ -368,12 +369,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             materialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap[m_LayerIndex], baseColor[m_LayerIndex]);
 
-            // TODO: does not work with multi-selection
-            MaterialId materialIdValue = materials[0].GetMaterialId();
-
-            if (materialIdValue == MaterialId.LitStandard ||
-                materialIdValue == MaterialId.LitAniso ||
-                materialIdValue == MaterialId.LitIridescence)
+            if (materials.All(m => m.GetMaterialId() == MaterialId.LitStandard ||
+                m.GetMaterialId() == MaterialId.LitAniso ||
+                m.GetMaterialId() == MaterialId.LitIridescence))
             {
                 materialEditor.ShaderProperty(metallic[m_LayerIndex], Styles.metallicText);
             }
@@ -405,7 +403,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            materialEditor.TexturePropertySingleLine((materialIdValue == MaterialId.LitSpecular) ? Styles.maskMapSpecularText : Styles.maskMapSText, maskMap[m_LayerIndex]);
+            materialEditor.TexturePropertySingleLine((materials.All(m => m.GetMaterialId() == MaterialId.LitSpecular)) ? Styles.maskMapSpecularText : Styles.maskMapSText, maskMap[m_LayerIndex]);
 
             materialEditor.ShaderProperty(normalMapSpace[m_LayerIndex], Styles.normalMapSpaceText);
 
@@ -489,31 +487,35 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            switch (materialIdValue)
+            if (materials.All(m => m.GetMaterialId() == materials[0].GetMaterialId()))
             {
-                case MaterialId.LitSSS:
-                case MaterialId.LitTranslucent:
-                    ShaderSSSAndTransmissionInputGUI();
-                    break;
-                case MaterialId.LitStandard:
-                    // Nothing
-                    break;
+                // We can use materials[0] because all the material IDs have the same value
+                switch (materials[0].GetMaterialId())
+                {
+                    case MaterialId.LitSSS:
+                    case MaterialId.LitTranslucent:
+                        ShaderSSSAndTransmissionInputGUI();
+                        break;
+                    case MaterialId.LitStandard:
+                        // Nothing
+                        break;
 
-                // Following mode are not supported by layered lit and will not be call by it
-                // as the MaterialId enum don't define it
-                case MaterialId.LitAniso:
-                    ShaderAnisoInputGUI();
-                    break;
-                case MaterialId.LitSpecular:
-                    ShaderSpecularColorInputGUI();
-                    break;
-                case MaterialId.LitIridescence:
-                    ShaderIridescenceInputGUI();
-                    break;
+                    // Following mode are not supported by layered lit and will not be call by it
+                    // as the MaterialId enum don't define it
+                    case MaterialId.LitAniso:
+                        ShaderAnisoInputGUI();
+                        break;
+                    case MaterialId.LitSpecular:
+                        ShaderSpecularColorInputGUI();
+                        break;
+                    case MaterialId.LitIridescence:
+                        ShaderIridescenceInputGUI();
+                        break;
 
-                default:
-                    Debug.Assert(false, "Encountered an unsupported MaterialID.");
-                    break;
+                    default:
+                        Debug.Assert(false, "Encountered an unsupported MaterialID.");
+                        break;
+                }
             }
 
             if (!isLayeredLit)
@@ -559,8 +561,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             DiffusionProfileMaterialUI.OnGUI(materialEditor, diffusionProfileAsset[m_LayerIndex], diffusionProfileHash[m_LayerIndex], m_LayerIndex);
 
-            // TODO: does not work with multi-selection
-            if ((int)materialID.floatValue == (int)MaterialId.LitSSS && materials[0].GetSurfaceType() != SurfaceType.Transparent)
+            if ((int)materialID.floatValue == (int)MaterialId.LitSSS && materials.All(m => m.GetSurfaceType() != SurfaceType.Transparent))
             {
                 materialEditor.ShaderProperty(subsurfaceMask[m_LayerIndex], Styles.subsurfaceMaskText);
                 materialEditor.TexturePropertySingleLine(Styles.subsurfaceMaskMapText, subsurfaceMaskMap[m_LayerIndex]);

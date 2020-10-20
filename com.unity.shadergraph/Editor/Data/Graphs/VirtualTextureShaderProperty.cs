@@ -10,6 +10,7 @@ using UnityEditor.ShaderGraph.Internal;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
+    [BlackboardInputInfo(60)]
     class VirtualTextureShaderProperty : AbstractShaderProperty<SerializableVirtualTexture>
     {
         public VirtualTextureShaderProperty()
@@ -19,8 +20,8 @@ namespace UnityEditor.ShaderGraph
 
             // add at least one layer
             value.layers = new List<SerializableVirtualTextureLayer>();
-            value.layers.Add(new SerializableVirtualTextureLayer("Layer0", "Layer0", new SerializableTexture()));
-            value.layers.Add(new SerializableVirtualTextureLayer("Layer1", "Layer1", new SerializableTexture()));
+            value.layers.Add(new SerializableVirtualTextureLayer("Layer0", new SerializableTexture()));
+            value.layers.Add(new SerializableVirtualTextureLayer("Layer1", new SerializableTexture()));
         }
 
         public override PropertyType propertyType => PropertyType.VirtualTexture;
@@ -57,12 +58,15 @@ namespace UnityEditor.ShaderGraph
         // this is used for properties exposed to the Material in the shaderlab Properties{} block
         internal override void AppendPropertyBlockStrings(ShaderStringBuilder builder)
         {
-            // adds properties in this format so: [TextureStack.MyStack(0)] [NoScaleOffset] Layer0("Layer0", 2D) = "white" {}
-            for (int layer = 0; layer < value.layers.Count; layer++)
+            if (!value.procedural)
             {
-                string layerName = value.layers[layer].layerName;
-                string layerRefName = value.layers[layer].layerRefName;
-                builder.AppendLine($"{hideTagString}[TextureStack.{referenceName}({layer})][NoScaleOffset]{layerRefName}(\"{layerName}\", 2D) = \"white\" {{}}");
+                // adds properties in this format so: [TextureStack.MyStack(0)] [NoScaleOffset] Layer0("Layer0", 2D) = "white" {}
+                for (int layer = 0; layer < value.layers.Count; layer++)
+                {
+                    string layerName = value.layers[layer].layerName;
+                    string layerRefName = value.layers[layer].layerRefName;
+                    builder.AppendLine($"{hideTagString}[TextureStack.{referenceName}({layer})][NoScaleOffset]{layerRefName}(\"{layerName}\", 2D) = \"white\" {{}}");
+                }
             }
         }
 
@@ -89,14 +93,19 @@ namespace UnityEditor.ShaderGraph
             int numLayers = value.layers.Count;
             if (numLayers > 0)
             {
-                // declare regular texture properties (for fallback case)
-                for (int i = 0; i < value.layers.Count; i++)
+                if (!value.procedural)
                 {
-                    string layerRefName = value.layers[i].layerRefName;
-                    builder.AppendLine(
-                        $"TEXTURE2D({layerRefName}); SAMPLER(sampler{layerRefName}); {concretePrecision.ToShaderString()}4 {layerRefName}_TexelSize;");
+                    // declare regular texture properties (for fallback case)
+                    for (int i = 0; i < value.layers.Count; i++)
+                    {
+                        string layerRefName = value.layers[i].layerRefName;
+                        builder.AppendLine(
+                            $"TEXTURE2D({layerRefName}); SAMPLER(sampler{layerRefName}); {concretePrecision.ToShaderString()}4 {layerRefName}_TexelSize;");
+                    }
                 }
+
                 // declare texture stack
+                builder.AppendIndentation();
                 builder.Append("DECLARE_STACK");
                 builder.Append((numLayers <= 1) ? "" : numLayers.ToString());
                 builder.Append("(");
@@ -108,10 +117,24 @@ namespace UnityEditor.ShaderGraph
                     builder.Append(value.layers[i].layerRefName);
                 }
                 builder.Append(")");
-                builder.AppendLine(delimiter);      // TODO: don't like delimiter, pretty sure it's not necessary if we invert the defaults on GEtPropertyDeclaration / GetPropertyArgument string
+                builder.Append(delimiter);
+                builder.AppendNewLine();
 
                 // declare the actual virtual texture property "variable" as a macro define to the BuildVTProperties function
-                builder.AppendLine("#define " + referenceName + " BuildVTProperties_" + referenceName + "()");
+                builder.AppendIndentation();
+                builder.Append("#define ");
+                builder.Append(referenceName);
+                builder.Append(" AddTextureType(BuildVTProperties_");
+                builder.Append(referenceName);
+                builder.Append("()");
+                for (int i = 0; i < value.layers.Count; i++)
+                {
+                    builder.Append(",");
+                    builder.Append("TEXTURETYPE_");
+                    builder.Append(value.layers[i].layerTextureType.ToString().ToUpper());
+                }
+                builder.Append(")");
+                builder.AppendNewLine();
             }
         }
 
@@ -124,7 +147,7 @@ namespace UnityEditor.ShaderGraph
         // argument string used to pass this property to a subgraph
         internal override string GetPropertyAsArgumentString()
         {
-            return "VTProperty " + referenceName;
+            return "VTPropertyWithTextureType " + referenceName;
         }
 
         // if a blackboard property is deleted, or copy/pasted, all node instances of it are replaced with this:
@@ -156,11 +179,7 @@ namespace UnityEditor.ShaderGraph
             for (int layer = 0; layer < value.layers.Count; layer++)
             {
                 var guid = Guid.NewGuid();
-                vt.value.layers.Add(
-                    new SerializableVirtualTextureLayer(
-                        value.layers[layer].layerName,
-                        $"Layer_{GuidEncoder.Encode(guid)}",
-                        value.layers[layer].layerTexture));
+                vt.value.layers.Add(new SerializableVirtualTextureLayer(value.layers[layer]));
             }
 
             return vt;

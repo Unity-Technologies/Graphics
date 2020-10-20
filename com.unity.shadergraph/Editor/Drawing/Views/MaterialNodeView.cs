@@ -7,7 +7,6 @@ using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine.Rendering;
-using Data.Interfaces;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
@@ -31,11 +30,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_PreviewFiller;
         VisualElement m_ControlsDivider;
         IEdgeConnectorListener m_ConnectorListener;
-        VisualElement m_SettingsContainer;
-        bool m_ShowSettings = false;
-        VisualElement m_SettingsButton;
-        VisualElement m_Settings;
-        VisualElement m_NodeSettingsView;
 
         MaterialGraphView m_GraphView;
 
@@ -57,6 +51,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             node = inNode;
             viewDataKey = node.objectId;
             UpdateTitle();
+
+            // Add disabled overlay
+            Add(new VisualElement() { name = "disabledOverlay", pickingMode = PickingMode.Ignore });
 
             // Add controls container
             var controlsContainer = new VisualElement { name = "controls" };
@@ -131,8 +128,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             base.expanded = node.drawState.expanded;
             AddSlots(node.GetSlots<MaterialSlot>());
 
-            SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
-
             if (node is SubGraphNode)
             {
                 RegisterCallback<MouseDownEvent>(OnSubGraphDoubleClick);
@@ -140,65 +135,24 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_TitleContainer = this.Q("title");
 
-            if (node is IMasterNode)
+            if(node is BlockNode blockData)
             {
-                AddToClassList("master");
-                bool validTarget = false;
-                foreach(Target activeTarget in node.owner.validTargets)
-                {
-                    //if we have a valid active target implementation and render pipeline, don't display the error
-                    if (activeTarget.IsPipelineCompatible(GraphicsSettings.currentRenderPipeline))
-                    {
-                        validTarget = true;
-                        break;
-                    }
-                }
-
-                //if no active target implementations are valid with the current pipeline, display the error
-                m_GraphView.graph.messageManager?.ClearAllFromProvider(this);
-                if (!validTarget)
-                {
-                    m_GraphView.graph.messageManager?.AddOrAppendError(this, node.objectId,
-                        new ShaderMessage("The active Master Node is not compatible with the current Render Pipeline," +
-                                          " or no Render Pipeline is assigned." +
-                                          " Assign a Render Pipeline in the graphics settings that is compatible with this Master Node.",
-                            ShaderCompilerMessageSeverity.Error));
-                }
+                AddToClassList("blockData");
+                m_TitleContainer.RemoveFromHierarchy();
+            }
+            else
+            {
+                SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
             }
 
-            m_NodeSettingsView = new NodeSettingsView();
-            m_NodeSettingsView.visible = false;
-            Add(m_NodeSettingsView);
-
-            m_SettingsButton = new VisualElement {name = "settings-button"};
-                m_SettingsButton.Add(new VisualElement {name = "icon"});
-
-            m_Settings = new VisualElement();
-            AddDefaultSettings();
-
-            // Add Node type specific settings
-            var nodeTypeSettings = node as IHasSettings;
-            if (nodeTypeSettings != null)
-                m_Settings.Add(nodeTypeSettings.CreateSettingsElement());
-
-            // Add manipulators
-            m_SettingsButton.AddManipulator(new Clickable(() =>
-                {
-                    UpdateSettingsExpandedState();
-                }));
-
-            if(m_Settings.childCount > 0)
-            {
-                    m_ButtonContainer = new VisualElement {name = "button-container"};
-                m_ButtonContainer.style.flexDirection = FlexDirection.Row;
-                m_ButtonContainer.Add(m_SettingsButton);
-                m_ButtonContainer.Add(m_CollapseButton);
-                m_TitleContainer.Add(m_ButtonContainer);
-            }
+            // Update active state
+            SetActive(node.isActive);
 
             // Register OnMouseHover callbacks for node highlighting
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
+
+            ShaderGraphPreferences.onAllowDeprecatedChanged += UpdateTitle;
         }
 
         public bool FindPort(SlotReference slotRef, out ShaderPort port)
@@ -226,6 +180,50 @@ namespace UnityEditor.ShaderGraph.Drawing
             Add(badge);
             badge.AttachTo(m_TitleContainer, SpriteAlignment.RightCenter);
         }
+
+        public void SetActive(bool state)
+        {
+            // Setup
+            var disabledString = "disabled";
+            var portDisabledString = "inactive";
+
+
+            if (!state)
+            {
+                // Add elements to disabled class list
+                AddToClassList(disabledString);
+
+                var inputPorts = inputContainer.Query<ShaderPort>().ToList();
+                foreach (var port in inputPorts)
+                {
+                    port.AddToClassList(portDisabledString);
+                }
+                var outputPorts = outputContainer.Query<ShaderPort>().ToList();
+                foreach (var port in outputPorts)
+                {
+                    port.AddToClassList(portDisabledString);
+                }
+            }
+            else
+            {
+                // Remove elements from disabled class list
+                RemoveFromClassList(disabledString);
+
+                var inputPorts = inputContainer.Query<ShaderPort>().ToList();
+                foreach (var port in inputPorts)
+                {
+                    port.RemoveFromClassList(portDisabledString);
+                }
+                var outputPorts = outputContainer.Query<ShaderPort>().ToList();
+                foreach (var port in outputPorts)
+                {
+                    port.RemoveFromClassList(portDisabledString);
+                }
+
+            }
+        }
+
+
 
         public void ClearMessage()
         {
@@ -256,17 +254,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             return m_TitleContainer.resolvedStyle.borderBottomColor;
         }
 
-        void OnGeometryChanged(GeometryChangedEvent evt)
-        {
-            // style.positionTop and style.positionLeft are in relation to the parent,
-            // so we translate the layout of the settings button to be in the coordinate
-            // space of the settings view's parent.
-
-            var settingsButtonLayout = m_SettingsButton.ChangeCoordinatesTo(m_NodeSettingsView.parent, m_SettingsButton.layout);
-            m_NodeSettingsView.style.top = settingsButtonLayout.yMax - 18f;
-            m_NodeSettingsView.style.left = settingsButtonLayout.xMin - 16f;
-        }
-
         void OnSubGraphDoubleClick(MouseDownEvent evt)
         {
             if (evt.clickCount == 2 && evt.button == 0)
@@ -279,6 +266,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         public Node gvNode => this;
+
+        [Inspectable("Node", null)]
         public AbstractMaterialNode node { get; private set; }
 
         public override bool expanded
@@ -311,15 +300,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (evt.target is Node)
             {
-                var isMaster = node is IMasterNode;
-                var isActive = node == node.owner.outputNode;
-                if (isMaster)
-                {
-                    evt.menu.AppendAction("Set Active", SetMasterAsActive,
-                        _ => isActive ? DropdownMenuAction.Status.Checked : DropdownMenuAction.Status.Normal);
-                }
-
-                var canViewShader = node.hasPreview || node is IMasterNode || node is SubGraphOutputNode;
+                var canViewShader = node.hasPreview || node is SubGraphOutputNode;
                 evt.menu.AppendAction("Copy Shader", CopyToClipboard,
                     _ => canViewShader ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Hidden,
                     GenerationMode.ForReals);
@@ -336,12 +317,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             base.BuildContextualMenu(evt);
-        }
-
-        void SetMasterAsActive(DropdownMenuAction action)
-        {
-            node.owner.owner.RegisterCompleteObjectUndo("Change Active Master");
-            node.owner.outputNode = node;
         }
 
         void CopyToClipboard(DropdownMenuAction action)
@@ -367,97 +342,34 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         string ConvertToShader(GenerationMode mode)
         {
-            var generator = new Generator(node.owner, node, mode, node.name);
+            var generator = new Generator(node.owner, node, mode, node.name, null);
             return generator.generatedShader;
         }
 
-        void AddDefaultSettings()
+        void SetNodesAsDirty()
         {
-            PropertySheet ps = new PropertySheet();
-            bool hasDefaultSettings = false;
-
-            if(node.canSetPrecision)
-            {
-                hasDefaultSettings = true;
-                ps.Add(new PropertyRow(new Label("Precision")), (row) =>
-                {
-                    row.Add(new EnumField(node.precision), (field) =>
-                    {
-                        field.RegisterValueChangedCallback(evt =>
-                        {
-                            if (evt.newValue.Equals(node.precision))
-                                return;
-
-                            var editorView = GetFirstAncestorOfType<GraphEditorView>();
-                            var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
-
-                            editorView.colorManager.SetNodesDirty(nodeList);
-                            node.owner.owner.RegisterCompleteObjectUndo("Change precision");
-                            node.precision = (Precision)evt.newValue;
-                            node.owner.ValidateGraph();
-                            editorView.colorManager.UpdateNodeViews(nodeList);
-                            node.Dirty(ModificationScope.Graph);
-                        });
-                    });
-                });
-            }
-
-            if(hasDefaultSettings)
-                m_Settings.Add(ps);
+            var editorView = GetFirstAncestorOfType<GraphEditorView>();
+            var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
+            editorView.colorManager.SetNodesDirty(nodeList);
         }
 
-        void RecreateSettings()
+        void UpdateNodeViews()
         {
-            m_Settings.RemoveFromHierarchy();
-            m_Settings = new PropertySheet();
-
-            // Add default settings
-            AddDefaultSettings();
-
-            // Add Node type specific settings
-            var nodeTypeSettings = node as IHasSettings;
-            if (nodeTypeSettings != null)
-                m_Settings.Add(nodeTypeSettings.CreateSettingsElement());
-
-            m_NodeSettingsView.Add(m_Settings);
+            var editorView = GetFirstAncestorOfType<GraphEditorView>();
+            var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
+            editorView.colorManager.UpdateNodeViews(nodeList);
         }
-
-        void UpdateSettingsExpandedState()
-        {
-            m_ShowSettings = !m_ShowSettings;
-            if (m_ShowSettings)
-            {
-                m_NodeSettingsView.Add(m_Settings);
-                m_NodeSettingsView.visible = true;
-                m_SettingsButton.AddToClassList("clicked");
-                RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
-                OnGeometryChanged(null);
-            }
-            else
-            {
-                m_Settings.RemoveFromHierarchy();
-                m_NodeSettingsView.visible = false;
-                m_SettingsButton.RemoveFromClassList("clicked");
-                UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
-            }
-        }
-
 
         public object GetObjectToInspect()
         {
-            return this.node;
-        }
-
-        public PropertyInfo[] GetPropertyInfo()
-        {
-            return this.node.GetType().GetProperties();
+            return node;
         }
 
         public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
         {
-            if (propertyDrawer is ShaderGUIOverridePropertyDrawer shaderGuiOverridePropertyDrawer)
+            if (propertyDrawer is AbstractMaterialNodePropertyDrawer nodePropertyDrawer)
             {
-                shaderGuiOverridePropertyDrawer.GetPropertyData(node);
+                nodePropertyDrawer.GetPropertyData(SetNodesAsDirty, UpdateNodeViews);
             }
         }
 
@@ -495,7 +407,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public bool CanToggleNodeExpanded()
         {
-            return m_CollapseButton.enabledInHierarchy;
+            return !(node is BlockNode) && m_CollapseButton.enabledInHierarchy;
         }
 
         void UpdatePreviewExpandedState(bool expanded)
@@ -530,12 +442,60 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (node is SubGraphNode subGraphNode && subGraphNode.asset != null)
                 title = subGraphNode.asset.name;
             else
-                title = node.name;
+            {
+                if (node.sgVersion < node.latestVersion)
+                {
+                    if (ShaderGraphPreferences.allowDeprecatedBehaviors)
+                    {
+                        title = node.name + $" (Deprecated V{node.sgVersion})";
+                    }
+                    else
+                    {
+                        title = node.name + $" (Deprecated)";
+                    }
+                }
+                else
+                {
+                    title = node.name;
+                }
+            }
+        }
+
+        void UpdateShaderPortsForSlots(bool inputSlots, List<MaterialSlot> allSlots, ShaderPort[] slotShaderPorts)
+        {
+            VisualElement portContainer = inputSlots ? inputContainer : outputContainer;
+            var existingPorts = portContainer.Query<ShaderPort>().ToList();
+            foreach (ShaderPort shaderPort in existingPorts)
+            {
+                var currentSlotId = shaderPort.slot.id;
+                int newSlotIndex = allSlots.FindIndex(s => s.id == currentSlotId);
+                if (newSlotIndex < 0)
+                {
+                    // slot doesn't exist anymore, remove it
+                    if (inputSlots)
+                        portContainer.Remove(shaderPort.parent);    // remove parent (includes the InputView)
+                    else
+                        portContainer.Remove(shaderPort);
+                }
+                else
+                {
+                    var newSlot = allSlots[newSlotIndex];
+                    slotShaderPorts[newSlotIndex] = shaderPort;
+
+                    // these should probably be in an UpdateShaderPort(shaderPort, newSlot) function
+                    shaderPort.slot = newSlot;
+                    shaderPort.portName = newSlot.displayName;
+
+                    if (inputSlots) // input slots also have to update the InputView
+                        UpdatePortInputView(shaderPort);
+                }
+            }
         }
 
         public void OnModified(ModificationScope scope)
         {
             UpdateTitle();
+            SetActive(node.isActive);
             if (node.hasPreview)
                 UpdatePreviewExpandedState(node.previewExpanded);
 
@@ -546,57 +506,36 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // Update slots to match node modification
                 case ModificationScope.Topological:
                 {
-                    RecreateSettings();
-
                     var slots = node.GetSlots<MaterialSlot>().ToList();
+                    // going to record the corresponding ShaderPort to each slot, so we can order them later
+                    ShaderPort[] slotShaderPorts = new ShaderPort[slots.Count];
 
-                    var inputPorts = inputContainer.Query<ShaderPort>().ToList();
-                    foreach (var port in inputPorts)
+                    // update existing input and output ports
+                    UpdateShaderPortsForSlots(true, slots, slotShaderPorts);
+                    UpdateShaderPortsForSlots(false, slots, slotShaderPorts);
+
+                    // check if there are any new slots that must create new ports
+                    for (int i = 0; i < slots.Count; i++)
                     {
-                        var currentSlot = port.slot;
-                        var newSlot = slots.FirstOrDefault(s => s.id == currentSlot.id);
-                        if (newSlot == null)
-                        {
-                            // Slot doesn't exist anymore, remove it
-                            inputContainer.Remove(port.parent);
-                        }
-                        else
-                        {
-                            port.slot = newSlot;
-                            UpdatePortInput(port);
-
-                            slots.Remove(newSlot);
-                        }
+                        if (slotShaderPorts[i] == null)
+                            slotShaderPorts[i] = AddShaderPortForSlot(slots[i]);
                     }
 
-                    var outputPorts = outputContainer.Children().OfType<ShaderPort>().ToList();
-                    foreach (var port in outputPorts)
+                    // make sure they are in the right order
+                    // by bringing each port to front in declaration order
+                    // note that this sorts input and output containers at the same time
+                    foreach (var shaderPort in slotShaderPorts)
                     {
-                        var currentSlot = port.slot;
-                        var newSlot = slots.FirstOrDefault(s => s.id == currentSlot.id);
-                        if (newSlot == null)
+                        if (shaderPort != null)
                         {
-                            outputContainer.Remove(port);
-                        }
-                        else
-                        {
-                            port.slot = newSlot;
-                            slots.Remove(newSlot);
+                            if (shaderPort.slot.isInputSlot)
+                                shaderPort.parent.BringToFront();
+                            else
+                                shaderPort.BringToFront();
                         }
                     }
-
-                    AddSlots(slots);
-
-                    slots.Clear();
-                    slots.AddRange(node.GetSlots<MaterialSlot>());
-
-                    if (inputContainer.childCount > 0)
-                        inputContainer.Sort((x, y) => slots.IndexOf(x.Q<ShaderPort>().slot) - slots.IndexOf(y.Q<ShaderPort>().slot));
-                    if (outputContainer.childCount > 0)
-                        outputContainer.Sort((x, y) => slots.IndexOf(((ShaderPort)x).slot) - slots.IndexOf(((ShaderPort)y).slot));
 
                     break;
-
                 }
             }
 
@@ -609,29 +548,44 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void AddSlots(IEnumerable<MaterialSlot> slots)
+        ShaderPort AddShaderPortForSlot(MaterialSlot slot)
         {
-            foreach (var slot in slots)
-            {
-                if (slot.hidden)
-                    continue;
+            if (slot.hidden)
+                return null;
 
-                var port = ShaderPort.Create(slot, m_ConnectorListener);
-                if (slot.isOutputSlot)
+            ShaderPort port = ShaderPort.Create(slot, m_ConnectorListener);
+            if (slot.isOutputSlot)
+            {
+                outputContainer.Add(port);
+            }
+            else
+            {
+                var portContainer = new VisualElement();
+                portContainer.style.flexDirection = FlexDirection.Row;
+                var portInputView = new PortInputView(slot) { style = { position = Position.Absolute } };
+                portContainer.Add(portInputView);
+                portContainer.Add(port);
+                inputContainer.Add(portContainer);
+
+                // Update active state
+                if (node.isActive)
                 {
-                    outputContainer.Add(port);
+                    portInputView.RemoveFromClassList("disabled");
                 }
                 else
                 {
-                    var portContainer = new VisualElement();
-                    portContainer.style.flexDirection = FlexDirection.Row;
-                    var portInputView = new PortInputView(slot) {style = {position = Position.Absolute}};
-                    portContainer.Add(portInputView);
-                    portContainer.Add(port);
-                    inputContainer.Add(portContainer);
+                    portInputView.AddToClassList("disabled");
                 }
-                port.OnDisconnect = OnEdgeDisconnected;
             }
+            port.OnDisconnect = OnEdgeDisconnected;
+
+            return port;
+        }
+
+        void AddSlots(IEnumerable<MaterialSlot> slots)
+        {
+            foreach (var slot in slots)
+                AddShaderPortForSlot(slot);
         }
 
         void OnEdgeDisconnected(Port obj)
@@ -647,11 +601,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void UpdatePortInputTypes()
         {
-            foreach (var anchor in inputContainer.Query<ShaderPort>().ToList())
+            var portList = inputContainer.Query<ShaderPort>().ToList();
+            portList.AddRange(outputContainer.Query<ShaderPort>().ToList());
+            foreach (var anchor in portList)
             {
                 var slot = anchor.slot;
                 anchor.portName = slot.displayName;
                 anchor.visualClass = slot.concreteValueType.ToClassName();
+
                 if (GetPortInputView(anchor, out var portInputView))
                 {
                     portInputView.UpdateSlotType();
@@ -666,7 +623,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void UpdatePortInput(ShaderPort port)
+        void UpdatePortInputView(ShaderPort port)
         {
             if (GetPortInputView(port, out var portInputView))
             {
@@ -765,6 +722,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_PreviewRenderData.onPreviewChanged -= UpdatePreviewTexture;
                 m_PreviewRenderData = null;
             }
+            ShaderGraphPreferences.onAllowDeprecatedChanged -= UpdateTitle;
         }
     }
 }

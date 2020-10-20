@@ -2,6 +2,22 @@
 #define UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+
+// Helper function for Rendering Layers
+#define DEFAULT_LIGHT_LAYERS (RENDERING_LIGHT_LAYERS_MASK >> RENDERING_LIGHT_LAYERS_MASK_SHIFT)
+#define DEFAULT_DECAL_LAYERS (RENDERING_DECAL_LAYERS_MASK >> RENDERING_DECAL_LAYERS_MASK_SHIFT)
+
+// Note: we need to mask out only 8bits of the layer mask before encoding it as otherwise any value > 255 will map to all layers active if save in a buffer
+uint GetMeshRenderingLightLayer()
+{ 
+    return _EnableLightLayers ? (asuint(unity_RenderingLayer.x) & RENDERING_LIGHT_LAYERS_MASK) >> RENDERING_LIGHT_LAYERS_MASK_SHIFT : DEFAULT_LIGHT_LAYERS;
+}
+
+uint GetMeshRenderingDecalLayer()
+{
+    return _EnableDecalLayers ? ((asuint(unity_RenderingLayer.x) & RENDERING_DECAL_LAYERS_MASK) >> RENDERING_DECAL_LAYERS_MASK_SHIFT) : DEFAULT_DECAL_LAYERS;
+}
 
 // Return absolute world position of current object
 float3 GetObjectAbsolutePositionWS()
@@ -98,11 +114,6 @@ float2 GetNormalizedFullScreenTriangleTexCoord(uint vertexID)
     return GetFullScreenTriangleTexCoord(vertexID) * _RTHandleScale.xy;
 }
 
-float4 SampleSkyTexture(float3 texCoord, int sliceIndex)
-{
-    return SAMPLE_TEXTURECUBE_ARRAY(_SkyTexture, s_trilinear_clamp_sampler, texCoord, sliceIndex);
-}
-
 float4 SampleSkyTexture(float3 texCoord, float lod, int sliceIndex)
 {
     return SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, texCoord, sliceIndex, lod);
@@ -146,6 +157,81 @@ float3 TransformPreviousObjectToWorld(float3 positionOS)
 {
     float4x4 previousModelMatrix = ApplyCameraTranslationToMatrix(unity_MatrixPreviousM);
     return mul(previousModelMatrix, float4(positionOS, 1.0)).xyz;
+}
+
+
+// ----------------------------------------------------------------------------
+// Scalarization helper functions.
+// These assume a scalarization of a list of elements as described in https://flashypixels.wordpress.com/2018/11/10/intro-to-gpu-scalarization-part-2-scalarize-all-the-lights/
+
+bool IsFastPath(uint lightStart, out uint lightStartLane0)
+{
+#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+    // Fast path is when we all pixels in a wave are accessing same tile or cluster.
+    lightStartLane0 = WaveReadLaneFirst(lightStart);
+    return WaveActiveAllTrue(lightStart == lightStartLane0);
+#else
+    lightStartLane0 = lightStart;
+    return false;
+#endif
+}
+
+// This function scalarize an index accross all lanes. To be effecient it must be used in the context
+// of the scalarization of a loop. It is to use with IsFastPath so it can optimize the number of
+// element to load, which is optimal when all the lanes are contained into a tile.
+// Please note that if PLATFORM_SUPPORTS_WAVE_INTRINSICS is not defined, this will *not* scalarize the index.
+uint ScalarizeElementIndex(uint v_elementIdx, bool fastPath)
+{
+    uint s_elementIdx = v_elementIdx;
+#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+    if (!fastPath)
+    {
+        // If we are not in fast path, v_elementIdx is not scalar, so we need to query the Min value across the wave.
+        s_elementIdx = WaveActiveMin(v_elementIdx);
+        // If WaveActiveMin returns 0xffffffff it means that all lanes are actually dead, so we can safely ignore the loop and move forward.
+        // This could happen as an helper lane could reach this point, hence having a valid v_elementIdx, but their values will be ignored by the WaveActiveMin
+        if (s_elementIdx == -1)
+        {
+            return -1;
+        }
+    }
+    // Note that the WaveReadLaneFirst should not be needed, but the compiler might insist in putting the result in VGPR.
+    // However, we are certain at this point that the index is scalar.
+    s_elementIdx = WaveReadLaneFirst(s_elementIdx);
+#endif
+    return s_elementIdx;
+}
+
+//-----------------------------------------------------------------------------
+// LoD Fade
+//-----------------------------------------------------------------------------
+
+// Helper for LODDitheringTransition.
+uint2 ComputeFadeMaskSeed(float3 V, uint2 positionSS)
+{
+    uint2 fadeMaskSeed;
+
+    if (IsPerspectiveProjection())
+    {
+        // Start with the world-space direction V. It is independent from the orientation of the camera,
+        // and only depends on the position of the camera and the position of the fragment.
+        // Now, project and transform it into [-1, 1].
+        float2 pv = PackNormalOctQuadEncode(V);
+        // Rescale it to account for the resolution of the screen.
+        pv *= _ScreenSize.xy;
+        // The camera only sees a small portion of the sphere, limited by hFoV and vFoV.
+        // Therefore, we must rescale again (before quantization), roughly, by 1/tan(FoV/2).
+        pv *= UNITY_MATRIX_P._m00_m11;
+        // Truncate and quantize.
+        fadeMaskSeed = asuint((int2)pv);
+    }
+    else
+    {
+        // Can't use the view direction, it is the same across the entire screen.
+        fadeMaskSeed = positionSS;
+    }
+
+    return fadeMaskSeed;
 }
 
 #endif // UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED

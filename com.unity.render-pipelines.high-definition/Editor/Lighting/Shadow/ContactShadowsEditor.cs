@@ -16,6 +16,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_FadeInDistance;
         SerializedDataParameter m_SampleCount;
         SerializedDataParameter m_Opacity;
+        SerializedDataParameter m_Bias;
+        SerializedDataParameter m_Thickness;
 
         public override void OnEnable()
         {
@@ -32,6 +34,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_FadeInDistance = Unpack(o.Find(x => x.fadeInDistance));
             m_SampleCount = Unpack(o.Find(x => x.sampleCount));
             m_Opacity = Unpack(o.Find(x => x.opacity));
+            m_Bias = Unpack(o.Find(x => x.rayBias));
+            m_Thickness = Unpack(o.Find(x => x.thicknessScale));
         }
 
         public override void OnInspectorGUI()
@@ -49,10 +53,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_FadeInDistance, EditorGUIUtility.TrTextContent("Fade In Distance", "Sets the distance over which HDRP fades Contact Shadows in when past the Min Distance. Uses meters."));
                 PropertyField(m_FadeDistance, EditorGUIUtility.TrTextContent("Fade Out Distance", "Sets the distance over which HDRP fades Contact Shadows out when at the Max Distance. Uses meters."));
                 PropertyField(m_Opacity, EditorGUIUtility.TrTextContent("Opacity", "Controls the opacity of the Contact Shadow."));
+                PropertyField(m_Bias, EditorGUIUtility.TrTextContent("Bias", "Controls the bias applied to the screen space ray cast to get contact shadows. Increasing this value can help with self-intersection issues, but can lead to detached contact shadows."));
+                PropertyField(m_Thickness, EditorGUIUtility.TrTextContent("Thickness", "Controls the thickness of the objects found along the ray, essentially thickening the contact shadows."));
+
                 base.OnInspectorGUI();
-                GUI.enabled = useCustomValue;
-                PropertyField(m_SampleCount, EditorGUIUtility.TrTextContent("Sample Count", "Controls the number of samples HDRP uses for ray casting."));
-                GUI.enabled = true;
+                using (new EditorGUI.DisabledScope(!useCustomValue))
+                {
+                    PropertyField(m_SampleCount, EditorGUIUtility.TrTextContent("Sample Count", "Controls the number of samples HDRP uses for ray casting."));
+                }
             }
         }
     }

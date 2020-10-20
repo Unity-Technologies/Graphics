@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
   m_Name: HDRP_Test_Def
   m_EditorClassIdentifier: 
-  m_Version: 15
+  m_Version: 16
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0
@@ -153,12 +153,13 @@ MonoBehaviour:
   m_RenderPipelineRayTracingResources: {fileID: 0}
   m_DefaultVolumeProfile: {fileID: 11400000, guid: aea7ff43876258748be47d8751e0e9d5,
     type: 2}
+  m_LensAttenuation: 0
   m_DefaultLookDevProfile: {fileID: 11400000, guid: 254c4fe87beb7be4fa72e1681edbed02,
     type: 2}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 139549384114013
-      data2: 4539628425463136256
+      data2: 4539628425463136264
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -202,6 +203,7 @@ MonoBehaviour:
     supportSSR: 1
     supportSSRTransparent: 0
     supportSSAO: 1
+    supportSSGI: 0
     supportSubsurfaceScattering: 1
     sssSampleBudget:
       m_Values: 140000002800000050000000
@@ -226,6 +228,15 @@ MonoBehaviour:
     customBufferFormat: 12
     supportedLitShaderMode: 3
     supportDecals: 1
+    supportDecalLayers: 1
+    decalLayerName0: Decal Layer default
+    decalLayerName1: Decal Layer 1
+    decalLayerName2: Decal Layer 2
+    decalLayerName3: Decal Layer 3
+    decalLayerName4: Decal Layer 4
+    decalLayerName5: Decal Layer 5
+    decalLayerName6: Decal Layer 6
+    decalLayerName7: Decal Layer 7
     msaaSampleCount: 1
     supportMotionVectors: 1
     supportRuntimeDebugDisplay: 0
@@ -235,23 +246,18 @@ MonoBehaviour:
     supportRayTracing: 0
     supportedRayTracingMode: 3
     probeVolumeSettings:
-      atlasWidth: 128
-      atlasHeight: 128
-      atlasDepth: 512
-      atlasOctahedralDepthWidth: 2048
-      atlasOctahedralDepthHeight: 2048
+      atlasResolution: 128
+      atlasOctahedralDepthResolution: 2048
     lightLoopSettings:
-      cookieAtlasSize: 4096
+      cookieAtlasSize: 8192
       cookieFormat: 74
-      pointCookieSize: 512
-      cubeCookieTexArraySize: 16
+      pointCookieSize: 256
       cookieAtlasLastValidMip: 0
       cookieTexArraySize: 1
       planarReflectionAtlasSize: 2048
       reflectionProbeCacheSize: 128
       reflectionCubemapSize: 128
       reflectionCacheCompressed: 0
-      planarReflectionCacheCompressed: 0
       skyReflectionSize: 256
       skyLightingOverrideLayerMask:
         serializedVersion: 2
@@ -275,6 +281,8 @@ MonoBehaviour:
         shadowAtlasResolution: 4096
         shadowAtlasDepthBits: 32
         useDynamicViewportRescale: 0
+      cachedPunctualLightShadowAtlas: 2048
+      cachedAreaLightShadowAtlas: 1024
       shadowResolutionDirectional:
         m_Values: 00010000000200000004000000000000
         m_SchemaId:
@@ -359,6 +367,57 @@ MonoBehaviour:
       AODirectionCount: 010000000200000004000000
       ContactShadowSampleCount: 060000000a00000010000000
       SSRMaxRaySteps: 100000002000000040000000
+      RTAORayLength:
+      - 0.5
+      - 3
+      - 20
+      RTAOSampleCount: 010000000200000008000000
+      RTAODenoise: 010101
+      RTAODenoiserRadius:
+      - 0.25
+      - 0.5
+      - 0.65
+      RTGIRayLength:
+      - 50
+      - 50
+      - 50
+      RTGIFullResolution: 000001
+      RTGIClampValue:
+      - 0.5
+      - 0.8
+      - 1.5
+      RTGIUpScaleRadius: 040000000400000004000000
+      RTGIDenoise: 010101
+      RTGIHalfResDenoise: 010000
+      RTGIDenoiserRadius:
+      - 0.66
+      - 0.66
+      - 1
+      RTGISecondDenoise: 010101
+      RTGISecondDenoiserRadius:
+      - 0.33
+      - 0.33
+      - 0.5
+      RTRMinSmoothness:
+      - 0.6
+      - 0.4
+      - 0
+      RTRSmoothnessFadeStart:
+      - 0.7
+      - 0.5
+      - 0
+      RTRRayLength:
+      - 50
+      - 50
+      - 50
+      RTRClampValue:
+      - 0.8
+      - 1
+      - 1.2
+      RTRUpScaleRadius: 040000000400000003000000
+      RTRFullResolution: 000001
+      RTRDenoise: 010101
+      RTRDenoiserRadius: 080000000c00000010000000
   allowShaderVariantStripping: 1
   enableSRPBatcher: 1
   shaderVariantLogLevel: 0
@@ -384,7 +443,14 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 6be2047feaba36945b8fd12f29e3a7b5, type: 2}
   beforeTransparentCustomPostProcesses:
   - GreenPP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  beforeTAACustomPostProcesses:
+  - DepthTAA, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   beforePostProcessCustomPostProcesses:
   - RedPP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   afterPostProcessCustomPostProcesses:
   - BluePP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  virtualTexturingSettings:
+    streamingCpuCacheSizeInMegaBytes: 256
+    streamingGpuCacheSettings:
+    - format: 0
+      sizeInMegaBytes: 128

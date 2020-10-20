@@ -45,7 +45,7 @@ The above list is a guideline for major versions of SRP, but there are often mul
 
 After you decide which version of SRP to use:
 
-1. Go to the [Unity Grpahics repository](https://github.com/Unity-Technologies/Graphics).
+1. Go to the [Unity Graphics repository](https://github.com/Unity-Technologies/Graphics).
 2. Click the **Branch** drop-down then click the **Tags** tab.
 3. Find the tag that corresponds to the version of SRP you want to use. When you clone the repository, you use this tag to check out the correct branch.
 

@@ -4,7 +4,74 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [10.2.0] - 2020-10-19
+
+### Added
+
+### Changed
+
+### Fixed
+- Fixed an issue where old ShaderGraphs would import non-deterministically, changing their embedded property names each import [1283800]
+- Using the TexelSize node on a ShaderGraph texture property is now SRP batchable [1284029]
+- Fixed an issue where Mesh Deformation nodes did not have a category color. [1227081](https://issuetracker.unity3d.com/issues/shadergraph-color-mode-vertex-skinning-catagory-has-no-color-associated-with-it)
+- Fixed SampleTexture2DLOD node to return opaque black on unsupported platforms [1241602]
+- ShaderGraph now detects when a SubGraph is deleted while being used by a SubGraph node, and displays appropriate errors [1206438]
+
+## [10.1.0] - 2020-10-12
+
+### Added
+- Added parallax mapping node and parallax occlusion mapping node.
+- Added the possibility to have multiple POM node in a single graph.
+- Added better error feedback when SampleVirtualTexture nodes run into issues with the VirtualTexture property inputs
+- Added ability for Shader Graph to change node behavior without impacting existing graphs via the “Allow Deprecated Nodes”
+
+### Changed
+- Added method chaining support to shadergraph collection API.
+- Optimized ShaderSubGraph import dependencies to minimize unnecessary reimports when using CustomFunctionNode
+- Changed UI names from `Vector1` to `Float`
+- Renamed `Float` precision to `Single`
+- Cleaned up the UI to add/remove Targets
+- The * in the ShaderGraph title bar now indicates that the graph has been modified when compared to the state it was loaded, instead of compared to what is on disk
+- Cancelling a "Save changes on Close?" will now cancel the Close as well
+- When attempting to Save and encountering a Read Only file or other exception, ShaderGraph will allow the user to retry as many times as they like
+
+### Fixed
+- Fixed a bug where ShaderGraph subgraph nodes would not update their slot names or order
+- Fixed an issue where very old ShaderGraphs would fail to load because of uninitialized data [1269616](https://issuetracker.unity3d.com/issues/shadergraph-matrix-split-and-matrix-combine-shadergraphs-in-shadergraph-automated-tests-dont-open-throw-error)
+- Fixed an issue where ShaderGraph previews didn't display correctly when setting a texture to "None" [1264932]
+- Fixed an issue with the SampleVirtualTexture node in ShaderGraph, where toggling Automatic Streaming would cause the node to incorrectly display four output slots [1271618]
+- Fixed an issue in ShaderGraph with integer-mode Vector1 properties throwing errors when the value is changed [1264930]
+- Fixed a bug where ShaderGraph would not load graphs using Procedural VT nodes when the nodes were the project had them disabled [1271598]
+- Fixed an issue where the ProceduralVT node was not updating any connected SampleVT nodes when the number of layers was changed [1274288]
+- Fixed an issue with how unknown nodes were treated during validation
+- Fixed an issue where ShaderGraph shaders did not reimport automatically when some of the included files changed [1269634]
+- Fixed an issue where building a context menu on a dragging block node would leave it floating and undo/redo would result in a soft-lock
+- Fixed an issue where ShaderGraph was logging error when edited in play mode [1274148].
+- Fixed a bug where properties copied over with their graph inputs would not hook up correctly in a new graph [1274306]
+- Fixed an issue where renaming a property in the blackboard at creation would trigger an error.
+- Fixed an issue where ShaderGraph shaders did not reimport automatically when missing dependencies were reintroduced [1182895]
+- Fixed an issue where ShaderGraph previews would not show error shaders when the active render pipeline is incompatible with the shader [1257015]
+- ShaderGraph DDX, DDY, DDXY, and NormalFromHeight nodes do not allow themselves to be connected to vertex shader, as the derivative instructions can't be used [1209087]
+- When ShaderGraph detects no active SRP, it will still continue to render the master preview, but it will use the error shader [1264642]
+- VirtualTexture is no longer allowed as a SubGraph output (it is not supported by current system) [1254483]
+- ShaderGraph Custom Function Node will now correctly convert function and slot names to valid HLSL identifiers [1258832]
+- Fixed an issue where ShaderGraph Custom Function Node would reorder slots when you modified them [1280106]
+- Fixed Undo handling when adding or removing Targets from a ShaderGraph [1257028]
+- Fixed an issue with detection of circular subgraph dependencies [1269841]
+- Fixed an issue where subgraph nodes were constantly changing their serialized data [1281975]
+- Modifying a subgraph will no longer cause ShaderGraphs that use them to "reload from disk?" [1198885]
+- Fixed issues with ShaderGraph title bar not correctly displaying the modified status * [1282031]
+- Fixed issues where ShaderGraph could discard modified data without user approval when closed [1170503]
+- Fixed an issue where ShaderGraph file dependency gathering would fail to include any files that didn't exist
+- Fixed issues with ShaderGraph detection and handling of deleted graph files
+- Fixed an issue where the ShaderGraph was corrupting the translation cache
+- Fixed an issue where ShaderGraph would not prompt the user to save unsaved changes after an assembly reload
+- Fixed an issue with Position Node not automatically upgrading
+- Fixed an issue where failing SubGraphs would block saving graph files using them (recursion check would throw exceptions) [1283425]
+- Fixed an issue where choosing "None" as the default texture for a texture property would not correctly preview the correct default color [1283782]
+- Fixed some bugs with Color Nodes and properties that would cause incorrect collorspace conversions
+
+## [10.0.0] - 2019-06-10
 ### Added
 - Added the Internal Inspector which allows the user to view data contained in selected nodes and properties in a new floating graph sub-window. Also added support for custom property drawers to let you visualize any data type you like and expose it to the inspector.  
 - Added samples for Procedural Patterns to the package.
@@ -40,6 +107,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the `Reference Suffix` of Keyword Enum entries so that you cannot edit them, which ensures that material keywords compile properly. 
 - Updated the dependent version of `Searcher` to 4.2.0. 
 - Added support for `Linear Blend Skinning` Node to Universal Render Pipeline.
+- Moved all code to be under Unity specific namespaces.
+- Changed ShaderGraphImporter and ShaderSubgraphImporter so that graphs are imported before Models.
+- Remove VFXTarget if VisualEffect Graph package isn't included.
+- VFXTarget doesn't overwrite the shader export anymore, VFXTarget can be active with another target.
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
@@ -122,6 +193,31 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where Redirect Nodes did not work as inputs to Custom Function Nodes. [1235999](https://issuetracker.unity3d.com/product/unity/issues/guid/1235999/)
 - Fixed a bug where changeing the default value on a keyword would reset the node input type to vec4 (https://fogbugz.unity3d.com/f/cases/1216760/)
 - Fixed a soft lock when you open a graph when the blackboard hidden.
+- Fixed an issue where keyboard navigation in the Create Node menu no longer worked. [1253544]
+- Preview correctly shows unassigned VT texture result, no longer ignores null textures
+- Don't allow duplicate VT layer names when renaming layers
+- Moved VT layer TextureType to the VTProperty from the SampleVT node
+- Fixed the squished UI of VT property layers
+- Disallow Save As and Convert to Subgraph that would create recursive dependencies
+- Fixed an issue where the user would not get a save prompt on application close [1262044](https://issuetracker.unity3d.com/product/unity/issues/guid/1262044/)
+- Fixed bug where output port type would not visually update when input type changed (for example from Vec1 to Vec3) [1259501](https://issuetracker.unity3d.com/product/unity/issues/guid/1259501/)
+- Fixed an issue with how we collected/filtered nodes for targets. Applied the work to the SearchWindowProvider as well
+- Fixed a bug where the object selector for Custom Function Nodes did not update correctly. [1176129](https://issuetracker.unity3d.com/product/unity/issues/guid/1176129/)
+- Fixed a bug where whitespaces were allowed in keyword reference names
+- Fixed a bug where the Create Node menu would override the Object Field selection window. [1176125](https://issuetracker.unity3d.com/issues/shader-graph-object-input-field-with-space-bar-shortcut-opens-shader-graph-search-window-and-object-select-window)
+- Fixed a bug where the Main Preview window was no longer a square aspect ratio. [1257053](https://issuetracker.unity3d.com/product/unity/issues/guid/1257053/)
+- Fixed a bug where the size of the Graph Inspector would not save properly. [1257084](https://issuetracker.unity3d.com/product/unity/issues/guid/1257084/)
+- Replace toggle by an enumField for lit/unlit with VFXTarget
+- Alpha Clipping option in Graph inspector now correctly hides and indents dependent options. (https://fogbugz.unity3d.com/f/cases/1257041/)
+- Fixed a bug where changing the name of a property did not update nodes on the graph. [1249164](https://issuetracker.unity3d.com/product/unity/issues/guid/1249164/)
+- Fixed a crash issue when ShaderGraph included in a project along with DOTS assemblies
+- Added missing SampleVirtualTextureNode address mode control in ShaderGraph
+- Fixed a badly named control on SampleVirtualTextureNode in ShaderGraph
+- Fixed an issue where multiple SampleVirtualTextureNodes created functions with names that may collide in ShaderGraph
+- Made sub graph importer deterministic to avoid cascading shader recompiles when no change was present.
+- Adjusted style sheet for Blackboard to prevent ui conflicts.
+- Fixed a bug where the SampleVirtualTexture node would delete slots when changing its LOD mode
+- Use preview of the other target if VFXTarget is active.
 
 ## [7.1.1] - 2019-09-05
 ### Added

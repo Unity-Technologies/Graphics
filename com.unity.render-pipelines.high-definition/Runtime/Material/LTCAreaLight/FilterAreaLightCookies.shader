@@ -10,10 +10,13 @@ Shader "CoreResources/FilterAreaLightCookies"
 
         // SRP includes
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
         // Input Data
         TEXTURE2D( _SourceTexture );
+        TEXTURECUBE( _SourceCubeTexture );
+        SAMPLER( sampler_SourceCubeTexture );
         uniform uint    _SourceMipLevel;
         uniform float4  _SourceSize;
         uniform float4  _UVLimits;
@@ -57,7 +60,7 @@ Shader "CoreResources/FilterAreaLightCookies"
             ZWrite Off ZTest Always Blend Off Cull Off
 
             HLSLPROGRAM
-            float4  frag(Varyings input) : SV_Target
+            float4 frag(Varyings input) : SV_Target
             {
                 float2  UV = input.texcoord;
                 return SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, UV, _SourceMipLevel);
@@ -111,6 +114,21 @@ Shader "CoreResources/FilterAreaLightCookies"
                             sum += KERNEL_WEIGHTS.x * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.y += delta;
                     return sum;
                 }
+            ENDHLSL
+        }
+
+        // 3. Project Cube to Octahedral to mip 0
+        Pass
+        {
+            ZWrite Off ZTest Always Blend Off Cull Off
+
+            HLSLPROGRAM
+            float4 frag(Varyings input) : SV_Target
+            {
+                float2 UV = saturate(input.texcoord);
+                float3 dir = UnpackNormalOctQuadEncode(2.0f*UV - 1.0f);
+                return float4(SAMPLE_TEXTURECUBE_LOD(_SourceCubeTexture, sampler_SourceCubeTexture, dir, 0).rgb, 1);
+            }
             ENDHLSL
         }
     }

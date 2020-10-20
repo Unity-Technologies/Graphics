@@ -17,14 +17,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
-            new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, features: SurfaceOptionUIBlock.Features.Lit ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass),
+            new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, features: SurfaceOptionUIBlock.Features.Lit),
             new TessellationOptionsUIBlock(MaterialUIBlock.Expandable.Tesselation),
             new LitSurfaceInputsUIBlock(MaterialUIBlock.Expandable.Input, features: litSurfaceFeatures),
             new DetailInputsUIBlock(MaterialUIBlock.Expandable.Detail),
             // We don't want distortion in Lit
             new TransparencyUIBlock(MaterialUIBlock.Expandable.Transparency, features: TransparencyUIBlock.Features.All & ~TransparencyUIBlock.Features.Distortion),
             new EmissionUIBlock(MaterialUIBlock.Expandable.Emissive),
-            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance),
+            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.StandardLit),
         };
 
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
@@ -65,30 +65,11 @@ namespace UnityEditor.Rendering.HighDefinition
         protected const string kCoatMask = "_CoatMask";
         protected const string kCoatMaskMap = "_CoatMaskMap";
 
-        protected MaterialProperty emissiveColorMode = null;
-        protected const string kEmissiveColorMode = "_EmissiveColorMode";
-        protected MaterialProperty emissiveColor = null;
-        protected const string kEmissiveColor = "_EmissiveColor";
         protected MaterialProperty emissiveColorMap = null;
         protected const string kEmissiveColorMap = "_EmissiveColorMap";
-        protected MaterialProperty albedoAffectEmissive = null;
-        protected const string kAlbedoAffectEmissive = "_AlbedoAffectEmissive";
+
         protected MaterialProperty UVEmissive = null;
         protected const string kUVEmissive = "_UVEmissive";
-        protected MaterialProperty TexWorldScaleEmissive = null;
-        protected const string kTexWorldScaleEmissive = "_TexWorldScaleEmissive";
-        protected MaterialProperty UVMappingMaskEmissive = null;
-        protected const string kUVMappingMaskEmissive = "_UVMappingMaskEmissive";
-        protected MaterialProperty emissiveIntensity = null;
-        protected const string kEmissiveIntensity = "_EmissiveIntensity";
-        protected MaterialProperty emissiveColorLDR = null;
-        protected const string kEmissiveColorLDR = "_EmissiveColorLDR";
-        protected MaterialProperty emissiveIntensityUnit = null;
-        protected const string kEmissiveIntensityUnit = "_EmissiveIntensityUnit";
-        protected MaterialProperty emissiveExposureWeight = null;
-        protected const string kemissiveExposureWeight = "_EmissiveExposureWeight";
-        protected MaterialProperty useEmissiveIntensity = null;
-        protected const string kUseEmissiveIntensity = "_UseEmissiveIntensity";
 
         protected const string kSpecularOcclusionMode = "_SpecularOcclusionMode";
 

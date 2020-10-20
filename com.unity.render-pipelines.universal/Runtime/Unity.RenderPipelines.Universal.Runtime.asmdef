@@ -1,5 +1,6 @@
 {
     "name": "Unity.RenderPipelines.Universal.Runtime",
+    "rootNamespace": "",
     "references": [
         "GUID:df380645f10b7bc4b97d4f5eb6303d95",
         "GUID:ab67fb10353d84448ac887a7367cbda8",
@@ -26,6 +27,11 @@
             "define": "ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER"
         },
         {
+            "name": "com.unity.adaptiveperformance",
+            "expression": "2.1.0",
+            "define": "ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER"
+        },
+        {
             "name": "com.unity.modules.vr",
             "expression": "1.0.0",
             "define": "ENABLE_VR_MODULE"
@@ -34,6 +40,21 @@
             "name": "com.unity.modules.xr",
             "expression": "1.0.0",
             "define": "ENABLE_XR_MODULE"
+        },
+        {
+            "name": "com.unity.modules.animation",
+            "expression": "1.0.0",
+            "define": "USING_ANIMATION_MODULE"
+        },
+        {
+            "name": "com.unity.modules.physics2d",
+            "expression": "1.0.0",
+            "define": "USING_PHYSICS2D_MODULE"
+        },
+        {
+            "name": "com.unity.inputsystem",
+            "expression": "0.0.0",
+            "define": "ENABLE_INPUT_SYSTEM_PACKAGE"
         }
     ],
     "noEngineReferences": false

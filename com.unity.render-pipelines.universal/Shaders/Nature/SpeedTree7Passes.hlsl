@@ -157,6 +157,8 @@ SpeedTreeVertexOutput SpeedTree7Vert(SpeedTreeVertexInput input)
     output.positionWS = vertexInput.positionWS;
     output.clipPos = vertexInput.positionCS;
 
+    OUTPUT_SH(output.normalWS.xyz, output.vertexSH);
+
     return output;
 }
 
@@ -178,6 +180,44 @@ SpeedTreeVertexDepthOutput SpeedTree7VertDepth(SpeedTreeVertexInput input)
 #else
     output.clipPos = vertexInput.positionCS;
 #endif
+    return output;
+}
+
+SpeedTreeVertexDepthNormalOutput SpeedTree7VertDepthNormal(SpeedTreeVertexInput input)
+{
+    SpeedTreeVertexDepthNormalOutput output = (SpeedTreeVertexDepthNormalOutput)0;
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_TRANSFER_INSTANCE_ID(input, output);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+    // handle speedtree wind and lod
+    InitializeData(input, unity_LODFade.x);
+    output.uvHueVariation.xy = input.texcoord.xy;
+    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
+    half3 normalWS = TransformObjectToWorldNormal(input.normal);
+    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
+
+    #ifdef GEOM_TYPE_BRANCH_DETAIL
+        // The two types are always in different sub-range of the mesh so no interpolation (between detail and blend) problem.
+        output.detail.xy = input.texcoord2.xy;
+        output.detail.z = input.color.a == 0 ? input.texcoord2.z : 2.5; // stay out of Blend's .z range
+    #endif
+
+    #ifdef EFFECT_BUMP
+        real sign = input.tangent.w * GetOddNegativeScale();
+        output.normalWS.xyz = normalWS;
+        output.tangentWS.xyz = TransformObjectToWorldDir(input.tangent.xyz);
+        output.bitangentWS.xyz = cross(output.normalWS.xyz, output.tangentWS.xyz) * sign;
+
+        // View dir packed in w.
+        output.normalWS.w = viewDirWS.x;
+        output.tangentWS.w = viewDirWS.y;
+        output.bitangentWS.w = viewDirWS.z;
+    #else
+        output.normalWS = normalWS;
+    #endif
+
+    output.clipPos = vertexInput.positionCS;
     return output;
 }
 

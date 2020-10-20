@@ -51,7 +51,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
     #pragma multi_compile_instancing
     #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
-	#pragma multi_compile _ _ALPHATEST_ON
+	#pragma multi_compile_local _ _ALPHATEST_ON
 
     #pragma vertex Vert
     #pragma fragment Frag
@@ -167,6 +167,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
             // In deferred, depth only pass don't output anything.
             // In forward it output the normal buffer
             #pragma multi_compile _ WRITE_NORMAL_BUFFER
+            #pragma multi_compile _ WRITE_DECAL_BUFFER
             #pragma multi_compile _ WRITE_MSAA_DEPTH
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
@@ -201,6 +202,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
+            #pragma multi_compile SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
 

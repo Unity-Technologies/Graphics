@@ -12,7 +12,6 @@ using UnityEditorInternal;
 using Debug = UnityEngine.Debug;
 using System.Reflection;
 using System.Runtime.Remoting.Metadata.W3cXsd2001;
-using Data.Util;
 using UnityEditor.ProjectWindowCallback;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
@@ -102,18 +101,26 @@ namespace UnityEditor.ShaderGraph
 
     class NewGraphAction : EndNameEditAction
     {
-        AbstractMaterialNode m_Node;
-        public AbstractMaterialNode node
+        Target[] m_Targets;
+        public Target[] targets
         {
-            get { return m_Node; }
-            set { m_Node = value; }
+            get => m_Targets;
+            set => m_Targets = value;
+        }
+
+        BlockFieldDescriptor[] m_Blocks;
+        public BlockFieldDescriptor[] blocks
+        {
+            get => m_Blocks;
+            set => m_Blocks = value;
         }
 
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
             var graph = new GraphData();
-            graph.AddNode(node);
-            graph.outputNode = node;
+            graph.AddContexts();
+            graph.InitializeOutputs(m_Targets, m_Blocks);
+            
             graph.path = "Shader Graphs";
             FileUtilities.WriteShaderGraphToDisk(pathName, graph);
             AssetDatabase.Refresh();
@@ -125,6 +132,38 @@ namespace UnityEditor.ShaderGraph
 
     static class GraphUtil
     {
+        internal static bool CheckForRecursiveDependencyOnPendingSave(string saveFilePath, IEnumerable<SubGraphNode> subGraphNodes, string context = null)
+        {
+            var overwriteGUID = AssetDatabase.AssetPathToGUID(saveFilePath);
+            if (!string.IsNullOrEmpty(overwriteGUID))
+            {
+                foreach (var sgNode in subGraphNodes)
+                {
+                    var asset = sgNode?.asset;
+                    if (asset == null)
+                    {
+                        // cannot read the asset; might be recursive but we can't tell... should we return "maybe"?
+                        // I think to be minimally intrusive to the user we can assume "No" in this case,
+                        // even though this may miss recursions in extraordinary cases.
+                        // it's more important to allow the user to save their files than to catch 100% of recursions
+                        continue;
+                    }
+                    else if ((asset.assetGuid == overwriteGUID) || asset.descendents.Contains(overwriteGUID))
+                    {
+                        if (context != null)
+                        {
+                            Debug.LogWarning(context + " CANCELLED to avoid a generating a reference loop:  the SubGraph '" + sgNode.asset.name + "' references the target file '" + saveFilePath + "'");
+                            EditorUtility.DisplayDialog(
+                                context + " CANCELLED",
+                                "Saving the file would generate a reference loop, because the SubGraph '" + sgNode.asset.name + "' references the target file '" + saveFilePath + "'", "Cancel");
+                        }
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
         internal static string ConvertCamelCase(string text, bool preserveAcronyms)
         {
             if (string.IsNullOrEmpty(text))
@@ -143,41 +182,40 @@ namespace UnityEditor.ShaderGraph
             return newText.ToString();
         }
 
-        public static void CreateNewGraph(AbstractMaterialNode node)
+        public static void CreateNewGraph()
         {
             var graphItem = ScriptableObject.CreateInstance<NewGraphAction>();
-            graphItem.node = node;
+            graphItem.targets = null;
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, graphItem,
                 string.Format("New Shader Graph.{0}", ShaderGraphImporter.Extension), null, null);
         }
 
-        public static Type GetOutputNodeType(string path)
+        public static void CreateNewGraphWithOutputs(Target[] targets, BlockFieldDescriptor[] blockDescriptors)
         {
-            ShaderGraphMetadata metadata = null;
+            var graphItem = ScriptableObject.CreateInstance<NewGraphAction>();
+            graphItem.targets = targets;
+            graphItem.blocks = blockDescriptors;
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, graphItem,
+                string.Format("New Shader Graph.{0}", ShaderGraphImporter.Extension), null, null);
+        }
+
+        public static bool TryGetMetadataOfType<T>(this Shader shader, out T obj) where T : ScriptableObject
+        {
+            obj = null;
+            if(!shader.IsShaderGraph())
+                return false;
+
+            var path = AssetDatabase.GetAssetPath(shader);
             foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(path))
             {
-                if (asset is ShaderGraphMetadata metadataAsset)
+                if (asset is T metadataAsset)
                 {
-                    metadata = metadataAsset;
-                    break;
+                    obj = metadataAsset;
+                    return true;
                 }
             }
 
-            if (metadata == null)
-            {
-                return null;
-            }
-
-            var outputNodeTypeName = metadata.outputNodeTypeName;
-            foreach (var type in TypeCache.GetTypesDerivedFrom<IMasterNode>())
-            {
-                if (type.FullName == outputNodeTypeName)
-                {
-                    return type;
-                }
-            }
-
-            return null;
+            return false;
         }
 
         public static bool IsShaderGraph(this Shader shader)
@@ -252,12 +290,18 @@ namespace UnityEditor.ShaderGraph
         {
             //.shader files are not cool with " in the middle of a property name (eg.  Vector1_81B203C2("fo"o"o", Float) = 0)
             name = name.Replace("\"", "_");
+
+            return DeduplicateName(existingNames, duplicateFormat, name);
+        }
+
+        internal static string DeduplicateName(IEnumerable<string> existingNames, string duplicateFormat, string name)
+        {
             if (!existingNames.Contains(name))
                 return name;
 
             string escapedDuplicateFormat = Regex.Escape(duplicateFormat);
 
-            // Escaped format will escape string interpolation, so the escape caracters must be removed for these.
+            // Escaped format will escape string interpolation, so the escape characters must be removed for these.
             escapedDuplicateFormat = escapedDuplicateFormat.Replace(@"\{0}", @"{0}");
             escapedDuplicateFormat = escapedDuplicateFormat.Replace(@"\{1}", @"{1}");
 
@@ -351,25 +395,6 @@ namespace UnityEditor.ShaderGraph
                 };
                 p.Start();
             }
-        }
-
-        public static string CurrentPipelinePreferredShaderGUI(IMasterNode masterNode)
-        {
-            foreach (var target in (masterNode as AbstractMaterialNode).owner.validTargets)
-            {
-                if (target.IsPipelineCompatible(GraphicsSettings.currentRenderPipeline))
-                {
-                    var context = new TargetSetupContext();
-                    context.SetMasterNode(masterNode);
-                    target.Setup(ref context);
-
-                    var defaultShaderGUI = context.defaultShaderGUI;
-                    if (!string.IsNullOrEmpty(defaultShaderGUI))
-                        return defaultShaderGUI;
-                }
-            }
-
-            return null;
         }
 
         //

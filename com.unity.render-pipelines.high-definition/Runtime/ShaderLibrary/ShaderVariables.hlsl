@@ -26,13 +26,15 @@
 
 #define UNITY_LIGHTMODEL_AMBIENT (glstate_lightmodel_ambient * 2)
 
-// This only defines the ray tracing macro on the platforms that support ray tracing this should be dx12
-#if (SHADEROPTIONS_RAYTRACING && (defined(SHADER_API_D3D11) || defined(SHADER_API_D3D12)) && !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL))
-#define RAYTRACING_ENABLED (1)
-#define DirectionalShadowType float3
+// Define the type for shadow (either colored shadow or monochrome shadow)
+#if SHADEROPTIONS_COLORED_SHADOW
+#define SHADOW_TYPE real3
+#define SHADOW_TYPE_SWIZZLE xyz
+#define SHADOW_TYPE_REPLICATE xxx
 #else
-#define RAYTRACING_ENABLED (0)
-#define DirectionalShadowType float
+#define SHADOW_TYPE real
+#define SHADOW_TYPE_SWIZZLE x
+#define SHADOW_TYPE_REPLICATE x
 #endif
 
 #if defined(SHADER_STAGE_RAY_TRACING)
@@ -52,8 +54,6 @@
 #define RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
 #endif
 
-
-
 // ----------------------------------------------------------------------------
 
 CBUFFER_START(UnityPerDraw)
@@ -65,6 +65,7 @@ CBUFFER_START(UnityPerDraw)
     float4 unity_RenderingLayer;
 
     float4 unity_LightmapST;
+    float4 unity_LightmapIndex;
     float4 unity_DynamicLightmapST;
 
     // SH lighting environment
@@ -128,8 +129,12 @@ TEXTURE2D_X(_CustomColorTexture);
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
 SAMPLER(samplerunity_Lightmap);
+TEXTURE2D_ARRAY(unity_Lightmaps);
+SAMPLER(samplerunity_Lightmaps);
+
 // Dual or directional lightmap (always used with unity_Lightmap, so can share sampler)
 TEXTURE2D(unity_LightmapInd);
+TEXTURE2D_ARRAY(unity_LightmapsInd);
 
 // Dynamic GI lightmap
 TEXTURE2D(unity_DynamicLightmap);
@@ -137,9 +142,10 @@ SAMPLER(samplerunity_DynamicLightmap);
 
 TEXTURE2D(unity_DynamicDirectionality);
 
-// We can have shadowMask only if we have lightmap, so no sampler
 TEXTURE2D(unity_ShadowMask);
 SAMPLER(samplerunity_ShadowMask);
+TEXTURE2D_ARRAY(unity_ShadowMasks);
+SAMPLER(samplerunity_ShadowMasks);
 
 // TODO: Change code here so probe volume use only one transform instead of all this parameters!
 TEXTURE3D(unity_ProbeVolumeSH);
@@ -279,6 +285,17 @@ float GetInversePreviousExposureMultiplier()
     return rcp(exposure + (exposure == 0.0)); // zero-div guard
 }
 
+// Helper function for indirect control volume
+float GetIndirectDiffuseMultiplier(uint renderingLayers)
+{
+    return (_IndirectDiffuseLightingLayers & renderingLayers) ? _IndirectDiffuseLightingMultiplier : 1.0f;
+}
+
+float GetIndirectSpecularMultiplier(uint renderingLayers)
+{
+    return (_ReflectionLightingLayers & renderingLayers) ? _ReflectionLightingMultiplier : 1.0f;
+}
+
 // Functions to clamp UVs to use when RTHandle system is used.
 
 float2 ClampAndScaleUV(float2 UV, float2 texelSize, float numberOfTexels)
@@ -337,12 +354,13 @@ float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
 #undef unity_ObjectToWorld
 #undef unity_WorldToObject
 UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
-    UNITY_DOTS_INSTANCED_PROP(float4x4, unity_ObjectToWorld)
-    UNITY_DOTS_INSTANCED_PROP(float4x4, unity_WorldToObject)
+    UNITY_DOTS_INSTANCED_PROP(float3x4, unity_ObjectToWorld)
+    UNITY_DOTS_INSTANCED_PROP(float3x4, unity_WorldToObject)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_LODFade)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_WorldTransformParams)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_RenderingLayer)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_LightmapST)
+    UNITY_DOTS_INSTANCED_PROP(float4,   unity_LightmapIndex)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_DynamicLightmapST)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHAr)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHAg)
@@ -352,8 +370,8 @@ UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHBb)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHC)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_ProbesOcclusion)
-    UNITY_DOTS_INSTANCED_PROP(float4x4, unity_MatrixPreviousM)
-    UNITY_DOTS_INSTANCED_PROP(float4x4, unity_MatrixPreviousMI)
+    UNITY_DOTS_INSTANCED_PROP(float3x4, unity_MatrixPreviousM)
+    UNITY_DOTS_INSTANCED_PROP(float3x4, unity_MatrixPreviousMI)
 UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 
 // Note: Macros for unity_ObjectToWorld and unity_WorldToObject are declared elsewhere
@@ -361,6 +379,7 @@ UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 #define unity_WorldTransformParams  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_WorldTransformParams)
 #define unity_RenderingLayer        UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_RenderingLayer)
 #define unity_LightmapST            UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_LightmapST)
+#define unity_LightmapIndex         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_LightmapIndex)
 #define unity_DynamicLightmapST     UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_DynamicLightmapST)
 #define unity_SHAr                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHAr)
 #define unity_SHAg                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHAg)
@@ -370,8 +389,9 @@ UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 #define unity_SHBb                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHBb)
 #define unity_SHC                   UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHC)
 #define unity_ProbesOcclusion       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_ProbesOcclusion)
-#define unity_MatrixPreviousM       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4x4, Metadata_unity_MatrixPreviousM)
-#define unity_MatrixPreviousMI      UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4x4, Metadata_unity_MatrixPreviousMI)
+#define unity_MatrixPreviousM       LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_MatrixPreviousM))
+#define unity_MatrixPreviousMI      LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_MatrixPreviousMI))
+
 #endif
 
 // Define View/Projection matrix macro

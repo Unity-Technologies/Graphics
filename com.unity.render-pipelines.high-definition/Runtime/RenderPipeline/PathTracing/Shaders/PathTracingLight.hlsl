@@ -27,7 +27,7 @@ struct LightList
 
 bool IsRectAreaLightActive(LightData lightData, float3 position, float3 normal)
 {
-    float3 lightVec = position - GetAbsolutePositionWS(lightData.positionRWS);
+    float3 lightVec = position - lightData.positionRWS;
 
 #ifndef USE_LIGHT_CLUSTER
     // Check light range first
@@ -50,7 +50,7 @@ bool IsRectAreaLightActive(LightData lightData, float3 position, float3 normal)
 
 bool IsPointLightActive(LightData lightData, float3 position, float3 normal)
 {
-    float3 lightVec = position - GetAbsolutePositionWS(lightData.positionRWS);
+    float3 lightVec = position - lightData.positionRWS;
 
 #ifndef USE_LIGHT_CLUSTER
     // Check light range first
@@ -63,13 +63,33 @@ bool IsPointLightActive(LightData lightData, float3 position, float3 normal)
     if (lightTangentDist * abs(lightTangentDist) > lightData.size.x)
         return false;
 
-    // Offset the light position towards the back, to account for the radius,
-    // then check whether we are still within the dilated cone angle
-    float sqSinAngle = 1.0 - Sq(lightData.angleOffset / lightData.angleScale);
-    float3 lightOffset = sqrt(lightData.size.x / sqSinAngle) * lightData.forward;
-    float lightCos = dot(normalize(lightVec + lightOffset), lightData.forward);
+    // If this is an omni-directional point light, we're done
+    if (lightData.lightType == GPULIGHTTYPE_POINT)
+        return true;
 
-    return lightCos * lightData.angleScale + lightData.angleOffset > 0.0;
+    // Check that we are on the right side of the light plane
+    float z = dot(lightVec, lightData.forward);
+    if (z < 0.0)
+        return false;
+
+    if (lightData.lightType == GPULIGHTTYPE_SPOT)
+    {
+        // Offset the light position towards the back, to account for the radius,
+        // then check whether we are still within the dilated cone angle
+        float sinTheta2 = 1.0 - Sq(lightData.angleOffset / lightData.angleScale);
+        float3 lightRadiusOffset = sqrt(lightData.size.x / sinTheta2) * lightData.forward;
+        float lightCos = dot(normalize(lightVec + lightRadiusOffset), lightData.forward);
+
+        return lightCos * lightData.angleScale + lightData.angleOffset > 0.0;
+    }
+
+    // Our light type is either BOX or PYRAMID
+    float x = abs(dot(lightVec, lightData.right));
+    float y = abs(dot(lightVec, lightData.up));
+
+    return (lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX) ?
+        x < 1 && y < 1 : // BOX
+        x < z && y < z;  // PYRAMID
 }
 
 bool IsDistantLightActive(DirectionalLightData lightData, float3 normal)
@@ -288,7 +308,7 @@ bool SampleLights(LightList lightList,
             // Generate a point on the surface of the light
             float centerU = inputSample.x - 0.5;
             float centerV = inputSample.y - 0.5;
-            float3 lightCenter = GetAbsolutePositionWS(lightData.positionRWS);
+            float3 lightCenter = lightData.positionRWS;
             float3 samplePos = lightCenter + centerU * lightData.size.x * lightData.right + centerV * lightData.size.y * lightData.up;
 
             // And the corresponding direction
@@ -312,35 +332,30 @@ bool SampleLights(LightList lightList,
         else // Punctual light
         {
             // Direction from shading point to light position
-            outgoingDir = GetAbsolutePositionWS(lightData.positionRWS) - position;
+            outgoingDir = lightData.positionRWS - position;
             float sqDist = Length2(outgoingDir);
+            dist = sqrt(sqDist);
+            outgoingDir /= dist;
 
             if (lightData.size.x > 0.0) // Stores the square radius
             {
-                float3x3 localFrame = GetLocalFrame(normalize(outgoingDir));
-                SampleCone(inputSample.xy, sqrt(saturate(1.0 - lightData.size.x / sqDist)), outgoingDir, pdf); // computes rcpPdf
+                float3x3 localFrame = GetLocalFrame(outgoingDir);
+                SampleCone(inputSample.xy, sqrt(1.0 / (1.0 + lightData.size.x / sqDist)), outgoingDir, pdf); // computes rcpPdf
 
-                outgoingDir = normalize(outgoingDir.x * localFrame[0] + outgoingDir.y * localFrame[1] + outgoingDir.z * localFrame[2]);
-
-                if (dot(normal, outgoingDir) < 0.001)
-                    return false;
-
-                dist = max(sqrt((sqDist - lightData.size.x)), 0.001);
-                value = GetPunctualEmission(lightData, outgoingDir, dist) / pdf;
-                pdf = GetLocalLightWeight(lightList) / pdf;
+                outgoingDir = outgoingDir.x * localFrame[0] + outgoingDir.y * localFrame[1] + outgoingDir.z * localFrame[2];
+                pdf = min(rcp(pdf), DELTA_PDF);
             }
             else
             {
-                dist = sqrt(sqDist);
-                outgoingDir /= dist;
-
-                if (dot(normal, outgoingDir) < 0.001)
-                    return false;
-
-                // DELTA_PDF represents 1 / area, where the area is infinitesimal
-                value = GetPunctualEmission(lightData, outgoingDir, dist) * DELTA_PDF;
-                pdf = GetLocalLightWeight(lightList) * DELTA_PDF;
+                // DELTA_PDF represents 1 / area, where the area is infinitesimal              
+                pdf = DELTA_PDF;
             }
+
+            if (dot(normal, outgoingDir) < 0.001)
+                return false;
+
+            value = GetPunctualEmission(lightData, outgoingDir, dist) * pdf;
+            pdf = GetLocalLightWeight(lightList) * pdf;
         }
 
 #ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
@@ -353,7 +368,7 @@ bool SampleLights(LightList lightList,
         DirectionalLightData lightData = GetDistantLightData(lightList, inputSample.z);
 
         // The position-to-light unnormalized vector is used for cookie evaluation
-        float3 OutgoingVec = GetAbsolutePositionWS(lightData.positionRWS) - position;
+        float3 OutgoingVec = lightData.positionRWS - position;
 
         if (lightData.angularDiameter > 0.0)
         {
@@ -399,7 +414,7 @@ void EvaluateLights(LightList lightList,
 
         float t = rayDescriptor.TMax;
         float cosTheta = -dot(rayDescriptor.Direction, lightData.forward);
-        float3 lightCenter = GetAbsolutePositionWS(lightData.positionRWS);
+        float3 lightCenter = lightData.positionRWS;
 
         // Check if we hit the light plane, at a distance below our tMax (coming from indirect computation)
         if (cosTheta > 0.0 && IntersectPlane(rayDescriptor.Origin, rayDescriptor.Direction, lightCenter, lightData.forward, t))

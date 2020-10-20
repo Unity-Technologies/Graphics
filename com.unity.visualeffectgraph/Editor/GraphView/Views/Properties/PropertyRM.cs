@@ -32,6 +32,10 @@ namespace UnityEditor.VFX.UI
         IEnumerable<int> filteredOutEnumerators { get; }
         void RetractPath();
         void ExpandPath();
+
+
+        void StartLiveModification();
+        void EndLiveModification();
     }
 
 
@@ -70,7 +74,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        IEnumerable<int> IPropertyRMProvider.filteredOutEnumerators { get { return null; } }
+        public virtual IEnumerable<int>  filteredOutEnumerators { get { return null; } }
 
         string IPropertyRMProvider.name
         {
@@ -91,6 +95,10 @@ namespace UnityEditor.VFX.UI
         {}
         void IPropertyRMProvider.ExpandPath()
         {}
+
+
+        void IPropertyRMProvider.StartLiveModification() { }
+        void IPropertyRMProvider.EndLiveModification() { }
     }
 
     abstract class PropertyRM : VisualElement
@@ -104,7 +112,7 @@ namespace UnityEditor.VFX.UI
 
         static Texture2D[] m_IconStates;
 
-        public Label m_Label;
+        protected Label m_Label;
 
 
         public bool m_PropertyEnabled;
@@ -131,7 +139,7 @@ namespace UnityEditor.VFX.UI
                 UpdateIndeterminate();
             }
         }
-        public bool isDelayed { get; set; }
+        public virtual bool isDelayed { get; set; }
 
         protected bool hasChangeDelayed { get; set; }
 
@@ -496,7 +504,6 @@ namespace UnityEditor.VFX.UI
             m_Field.OnValueChanged += OnValueChanged;
             Add(m_Field);
 
-            //m_Field.SetEnabled(enabledSelf);
         }
 
         public void OnValueChanged()

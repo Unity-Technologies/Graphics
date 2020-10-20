@@ -35,13 +35,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    Reset();
+                    ResetSky();
                 }
                 return m_SkySettings;
             }
         }
 
         List<SkySettings> m_VolumeSkyList = new List<SkySettings>();
+
 
         /// <summary>
         /// Volume profile where the sky settings used for static lighting will be fetched.
@@ -100,7 +101,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     foreach (var sky in m_VolumeSkyList)
                     {
-                        if (skyUniqueID == SkySettings.GetUniqueID(sky.GetType()))
+                        if (skyUniqueID == SkySettings.GetUniqueID(sky.GetType()) && sky.active)
                         {
                             skyType = sky.GetType();
                             skySetting = sky;
@@ -201,7 +202,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Profile != null)
                 SkyManager.UnRegisterStaticLightingSky(this);
 
-            Reset();
+            ResetSky();
         }
 
         void Update()
@@ -213,7 +214,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void Reset()
+        void ResetSky()
         {
             CoreUtils.Destroy(m_SkySettings);
             m_SkySettings = null;

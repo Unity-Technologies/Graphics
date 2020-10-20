@@ -43,8 +43,8 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
     unsafe struct ShaderVariablesVolumetric
     {
-        [HLSLArray((int)ShaderOptions.XrMaxViews, typeof(Matrix4x4))]
-        public fixed float _VBufferCoordToViewDirWS[(int)ShaderOptions.XrMaxViews * 16];
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
+        public fixed float _VBufferCoordToViewDirWS[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
 
         public float _VBufferUnitDepthTexelSpacing;
         public uint _NumVisibleDensityVolumes;
@@ -405,6 +405,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Must be called AFTER UpdateVolumetricBufferParams.
+        static readonly string[] volumetricHistoryBufferNames = new string[2]{ "VBufferHistory0", "VBufferHistory1" };
         static internal void ResizeVolumetricHistoryBuffers(HDCamera hdCamera, int frameIndex)
         {
             if (!hdCamera.IsVolumetricReprojectionEnabled())
@@ -428,11 +429,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 CreateVolumetricHistoryBuffers(hdCamera, hdCamera.vBufferParams.Length); // Basically, assume it's 2
             }
 
-            string[] names = new string[2]{ "VBufferHistory0", "VBufferHistory1" };
-
             // We only resize the feedback buffer (#0), not the history buffer (#1).
             // We must NOT resize the buffer from the previous frame (#1), as that would invalidate its contents.
-            ResizeVolumetricBuffer(ref hdCamera.volumetricHistoryBuffers[currIdx], names[currIdx], currentParams.viewportSize.x,
+            ResizeVolumetricBuffer(ref hdCamera.volumetricHistoryBuffers[currIdx], volumetricHistoryBufferNames[currIdx], currentParams.viewportSize.x,
                                                                                                    currentParams.viewportSize.y,
                                                                                                    currentParams.viewportSize.z);
         }
@@ -916,16 +915,18 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         static void VolumetricLightingPass( in VolumetricLightingParameters parameters,
-                                            RTHandle                   densityBuffer,
-                                            RTHandle                   lightingBuffer,
-                                            RTHandle                   historyRT,
-                                            RTHandle                   feedbackRT,
-                                            ComputeBuffer              bigTileLightList,
-                                            CommandBuffer              cmd)
+                                            RTHandle                        depthTexture,
+                                            RTHandle                        densityBuffer,
+                                            RTHandle                        lightingBuffer,
+                                            RTHandle                        historyRT,
+                                            RTHandle                        feedbackRT,
+                                            ComputeBuffer                   bigTileLightList,
+                                            CommandBuffer                   cmd)
         {
             if (parameters.tiledLighting)
                 cmd.SetComputeBufferParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs.g_vBigTileLightList, bigTileLightList);
 
+            cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs._CameraDepthTexture, depthTexture);  // Read
             cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs._VBufferDensity,  densityBuffer);  // Read
             cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs._VBufferLighting, lightingBuffer); // Write
 
@@ -982,7 +983,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     historyRT  = hdCamera.volumetricHistoryBuffers[prevIdx];
                 }
 
-                VolumetricLightingPass(parameters, m_DensityBuffer, m_LightingBuffer, historyRT, feedbackRT, m_TileAndClusterData.bigTileLightList, cmd);
+                VolumetricLightingPass(parameters, m_SharedRTManager.GetDepthTexture(), m_DensityBuffer, m_LightingBuffer, historyRT, feedbackRT, m_TileAndClusterData.bigTileLightList, cmd);
 
                 if (parameters.enableReprojection)
                     hdCamera.volumetricHistoryIsValid = true; // For the next frame...

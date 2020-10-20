@@ -1,0 +1,25 @@
+templates:
+  - name: HDRP Template
+    id: hdrp_template
+    packagename: com.unity.template-hd
+    dependencies:
+      - core
+      - shadergraph
+      - vfx
+      - config
+      - hdrp
+    hascodependencies: 1
+  - name: Universal Template
+    id: universal_template
+    packagename: com.unity.template-universal
+    dependencies:
+      - core
+      - shadergraph
+      - universal
+    hascodependencies: 1
+platforms:
+  - name: Win
+  - name: OSX
+agent_pack: package_ci_win_large
+agent_test:  package_ci_win_large
+agent_all_ci: package_ci_win_large

@@ -1,6 +1,5 @@
 #pragma kernel RaytracingIndirectDiffuseHalfRes
 #pragma kernel RaytracingIndirectDiffuseFullRes
-#pragma kernel IndirectDiffuseAccumulation
 #pragma kernel IndirectDiffuseIntegrationUpscaleHalfRes INDIRECT_DIFFUSE_INTEGRATION_UPSCALE=IndirectDiffuseIntegrationUpscaleHalfRes HALF_RESOLUTION
 #pragma kernel IndirectDiffuseIntegrationUpscaleFullRes INDIRECT_DIFFUSE_INTEGRATION_UPSCALE=IndirectDiffuseIntegrationUpscaleFullRes
 
@@ -58,10 +57,8 @@ void RaytracingIndirectDiffuseHalfRes(uint3 dispatchThreadId : SV_DispatchThread
 
     // Convert this to a world space position 
     PositionInputs posInput = GetPositionInput(sourceCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
-
-    // Compute the incident vector on the surfaces
-    float3 viewWS = normalize(_WorldSpaceCameraPos - positionWS);
+    // Compute the view in world space
+    const float3 viewWS = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
     // Decode the world space normal
     NormalData normalData;
@@ -103,10 +100,8 @@ void RaytracingIndirectDiffuseFullRes(uint3 dispatchThreadId : SV_DispatchThread
 
     // Convert this to a world space position
     PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
-
-    // Compute the incident vector on the surfaces
-    float3 viewWS = normalize(_WorldSpaceCameraPos - positionWS);
+    // Compute the view in world space
+    const float3 viewWS = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
     // Decode the world space normal
     NormalData normalData;
@@ -139,7 +134,6 @@ void INDIRECT_DIFFUSE_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchTh
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-#if RAYTRACING_ENABLED
     #ifdef HALF_RESOLUTION
     // Compute the half res coordinate that we shall be using for our effect
     uint2 targetCoord = dispatchThreadId.xy;
@@ -169,7 +163,7 @@ void INDIRECT_DIFFUSE_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchTh
 
     // Compute the world space position
     PositionInputs posInput = GetPositionInput(targetCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
+    float3 positionWS = posInput.positionWS;
 
     // Initialize the output pixels
     float4 resultSum = float4(0.0 ,0.0, 0.0, 0.0);
@@ -238,23 +232,4 @@ void INDIRECT_DIFFUSE_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchTh
     {
         _UpscaledIndirectDiffuseTextureRW[COORD_TEXTURE2D_X(targetCoord)] = float4(resultSum.xyz / resultSum.w, 1.0);
     }
-#endif
-}
-
-// Gbuffer textures to accumulate the indirect diffuse
-TEXTURE2D_X(_GBufferTexture0);
-RW_TEXTURE2D_X(float4, _GBufferTexture3);
-
-[numthreads(RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE, RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE, 1)]
-void IndirectDiffuseAccumulation(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
-{
-    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
-
-#if RAYTRACING_ENABLED
-    // Fetch the current pixel coordinate
-    uint2 currentPixelCoordinate = groupId * RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE + groupThreadId;
-
-    // Add the indirect diffuse to the buffer (while pre-multiplying by the base color)
-    _GBufferTexture3[COORD_TEXTURE2D_X(currentPixelCoordinate)] += LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, currentPixelCoordinate) * LOAD_TEXTURE2D_X(_GBufferTexture0, currentPixelCoordinate) * _IndirectLightingMultiplier.x;
-#endif
 }

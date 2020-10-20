@@ -33,6 +33,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         }
 
+        internal static int GetScalableSettingLevelParameterValue(int level, bool useOverride)
+        {
+            return useOverride ? LevelCount : (int)level;
+        }
+
         /// <summary>
         /// Level and Override.
         /// </summary>
@@ -42,7 +47,7 @@ namespace UnityEngine.Rendering.HighDefinition
             set
             {
                 var (level, useOverride) = value;
-                this.value = useOverride ? LevelCount : (int)level;
+                this.value = GetScalableSettingLevelParameterValue(level, useOverride);
             }
         }
     }
@@ -96,6 +101,10 @@ namespace UnityEngine.Rendering.HighDefinition
             BloomHighQualityFiltering[(int)ScalableSettingLevelParameter.Level.Medium] = true;
             BloomHighQualityFiltering[(int)ScalableSettingLevelParameter.Level.High] = true;
 
+            BloomHighQualityPrefiltering[(int)ScalableSettingLevelParameter.Level.Low] = false;
+            BloomHighQualityPrefiltering[(int)ScalableSettingLevelParameter.Level.Medium] = false;
+            BloomHighQualityPrefiltering[(int)ScalableSettingLevelParameter.Level.High] = true;
+
             /* Chromatic Aberration */
             ChromaticAberrationMaxSamples[(int)ScalableSettingLevelParameter.Level.Low] = 3;
             ChromaticAberrationMaxSamples[(int)ScalableSettingLevelParameter.Level.Medium] = 6;
@@ -117,6 +126,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public DepthOfFieldResolution[] DoFResolution   = new DepthOfFieldResolution[s_QualitySettingCount];
         /// <summary>Use Depth of field high quality filtering for each quality level.</summary>
         public bool[] DoFHighQualityFiltering           = new bool[s_QualitySettingCount];
+        /// <summary>Use Depth of field high physically based setting for each quality level.</summary>
+        public bool[] DoFPhysicallyBased                = new bool[s_QualitySettingCount];
 
         /* Motion Blur */
         /// <summary>Motion Blur sample count for each quality level.</summary>
@@ -125,8 +136,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /* Bloom */
         /// <summary>Bloom resolution for each quality level.</summary>
         public BloomResolution[] BloomRes               = new BloomResolution[s_QualitySettingCount];
-        /// <summary>Use bloom high quality filtering for each quality level.</summary>
+        /// <summary>Bloom high quality filtering for each quality level.</summary>
         public bool[] BloomHighQualityFiltering         = new bool[s_QualitySettingCount];
+        /// <summary>Bloom high quality prefiltering for each quality level.</summary>
+        public bool[] BloomHighQualityPrefiltering         = new bool[s_QualitySettingCount];
 
         /* Chromatic Aberration */
         /// <summary>Chromatic aberration maximum sample count for each quality level.</summary>

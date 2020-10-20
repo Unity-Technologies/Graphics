@@ -3,6 +3,7 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.hlsl"
 
 struct SpeedTreeVertexInput
 {
@@ -46,6 +47,7 @@ struct SpeedTreeVertexOutput
     #endif
 
     float3 positionWS               : TEXCOORD7;
+    DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 8);
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_VERTEX_OUTPUT_STEREO
@@ -55,6 +57,28 @@ struct SpeedTreeVertexDepthOutput
 {
     half3 uvHueVariation            : TEXCOORD0;
     float4 clipPos                  : SV_POSITION;
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+    UNITY_VERTEX_OUTPUT_STEREO
+};
+
+struct SpeedTreeVertexDepthNormalOutput
+{
+    half3 uvHueVariation            : TEXCOORD0;
+    float4 clipPos                  : SV_POSITION;
+
+    #ifdef GEOM_TYPE_BRANCH_DETAIL
+        half3 detail                : TEXCOORD1;
+    #endif
+
+    #ifdef EFFECT_BUMP
+        half4 normalWS              : TEXCOORD2;    // xyz: normal, w: viewDir.x
+        half4 tangentWS             : TEXCOORD3;    // xyz: tangent, w: viewDir.y
+        half4 bitangentWS           : TEXCOORD4;    // xyz: bitangent, w: viewDir.z
+    #else
+        half3 normalWS              : TEXCOORD2;
+        half3 viewDirWS             : TEXCOORD3;
+    #endif
+
     UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_VERTEX_OUTPUT_STEREO
 };
@@ -86,7 +110,9 @@ void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputD
 
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
-    inputData.bakedGI = half3(0, 0, 0); // No GI currently.
+    inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
+    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
+    inputData.shadowMask = half4(1, 1, 1, 1); // No GI currently.
 }
 
 #ifdef GBUFFER
@@ -148,17 +174,18 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
         diffuseColor.rgb *= _Color.rgb;
     #endif
 
-    half4 color = UniversalFragmentBlinnPhong(inputData, diffuseColor.rgb, half4(0, 0, 0, 0), 0, 0, diffuse.a);
 
     #ifdef GBUFFER
+        half4 color = half4(inputData.bakedGI * diffuseColor.rgb, diffuse.a);
         SurfaceData surfaceData;
         surfaceData.smoothness = 0;
         surfaceData.albedo = diffuseColor.rgb;
         surfaceData.specular = half3(0, 0, 0);
         return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit);
     #else
+        half4 color = UniversalFragmentBlinnPhong(inputData, diffuseColor.rgb, half4(0, 0, 0, 0), 0, 0, diffuse.a);
         color.rgb = MixFog(color.rgb, inputData.fogCoord);
-        color.a = OutputAlpha(color.a);
+        color.a = OutputAlpha(color.a, _Surface);
         return color;
     #endif
 }
@@ -187,6 +214,28 @@ half4 SpeedTree7FragDepth(SpeedTreeVertexDepthOutput input) : SV_Target
     #else
         return half4(0, 0, 0, 0);
     #endif
+}
+
+half4 SpeedTree7FragDepthNormal(SpeedTreeVertexDepthNormalOutput input) : SV_Target
+{
+    UNITY_SETUP_INSTANCE_ID(input);
+
+    #if !defined(SHADER_QUALITY_LOW)
+        #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
+            LODDitheringTransition(input.clipPos.xy, unity_LODFade.x);
+        #endif
+    #endif
+
+    half2 uv = input.uvHueVariation.xy;
+    half4 diffuse = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex));
+    diffuse.a *= _Color.a;
+
+    #ifdef SPEEDTREE_ALPHATEST
+        clip(diffuse.a - _Cutoff);
+    #endif
+
+    float3 normalWS = input.normalWS;
+    return float4(PackNormalOctRectEncode(TransformWorldToViewDir(normalWS, true)), 0.0, 0.0);
 }
 
 #endif

@@ -1,3 +1,21 @@
+float3 SampleSpecularBRDF(BSDFData bsdfData, float2 sample, float3 viewWS)
+{
+    float roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
+    float3x3 localToWorld;
+    if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL))
+    {
+        localToWorld = float3x3(bsdfData.tangentWS, bsdfData.bitangentWS, bsdfData.normalWS);
+    }
+    else
+    {
+        localToWorld = GetLocalFrame(bsdfData.normalWS);
+    }
+    float NdotL, NdotH, VdotH;
+    float3 sampleDir;
+    SampleGGXDir(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
+    return sampleDir;
+}
+
 #ifdef HAS_LIGHTLOOP
 IndirectLighting EvaluateBSDF_RaytracedReflection(LightLoopContext lightLoopContext,
                                                     BSDFData bsdfData,
@@ -39,12 +57,6 @@ void FitToStandardLit( SurfaceData surfaceData
     outStandardlit.fresnel0 = surfaceData.specularColor;
     outStandardlit.coatMask = 0.0;
     outStandardlit.emissiveAndBaked = builtinData.bakeDiffuseLighting * surfaceData.ambientOcclusion + builtinData.emissiveColor;
-#ifdef LIGHT_LAYERS
-    outStandardlit.renderingLayers = builtinData.renderingLayers;
-#endif
-#ifdef SHADOWS_SHADOWMASK
-    outStandardlit.shadowMasks = BUILTIN_DATA_SHADOW_MASK;
-#endif
     outStandardlit.isUnlit = 0;
 }
 #endif

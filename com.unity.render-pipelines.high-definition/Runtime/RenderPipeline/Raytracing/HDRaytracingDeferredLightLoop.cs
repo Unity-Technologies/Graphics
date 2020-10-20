@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader deferredRaytracingCS;
             public ComputeShader rayBinningCS;
 
-            public ShaderVariablesRaytracing globalCB;
+            public ShaderVariablesRaytracing raytracingCB;
         }
 
         struct DeferredLightingRTResources
@@ -80,7 +80,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RayBinSizeResult = new ComputeBuffer(1, sizeof(uint));
 
             m_RaytracingGBufferManager = new GBufferManager(asset, m_DeferredMaterial);
-            m_RaytracingGBufferManager.CreateBuffers();
         }
 
         void ReleaseRayTracingDeferred()
@@ -183,7 +182,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Inject the global parameters
-            ConstantBuffer.PushGlobal(cmd, parameters.globalCB, HDShaderIDs._ShaderVariablesRaytracing);
+            ConstantBuffer.PushGlobal(cmd, parameters.raytracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
             // Define the shader pass to use for the reflection pass
             cmd.SetRayTracingShaderPass(parameters.gBufferRaytracingRT, "GBufferDXR");
@@ -224,25 +223,28 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRayTracingTextureParam(parameters.gBufferRaytracingRT, HDShaderIDs._SkyTexture, buffers.skyTexture);
 
             // Only compute diffuse lighting if required
-            cmd.SetGlobalInt(HDShaderIDs._RayTracingDiffuseLightingOnly, parameters.diffuseLightingOnly ? 1 : 0);
-            CoreUtils.SetKeyword(cmd, "MULTI_BOUNCE_INDIRECT", false);
+            CoreUtils.SetKeyword(cmd, "MINIMAL_GBUFFER", parameters.diffuseLightingOnly);
 
             if (parameters.rayBinning)
             {
                 // Evaluate the dispatch parameters
                 int numTilesRayBinX = (texWidth + (binningTileSize - 1)) / binningTileSize;
                 int numTilesRayBinY = (texHeight + (binningTileSize - 1)) / binningTileSize;
-
                 int bufferSizeX = numTilesRayBinX * binningTileSize;
                 int bufferSizeY = numTilesRayBinY * binningTileSize;
+                cmd.SetRayTracingIntParam(parameters.gBufferRaytracingRT, HDShaderIDs._BufferSizeX, bufferSizeX);
 
-                cmd.DispatchRays(parameters.gBufferRaytracingRT, m_RayGenGBufferBinned, (uint)bufferSizeX, (uint)bufferSizeY, 1);
+                // A really nice tip is to dispatch the rays as a 1D array instead of 2D, the performance difference has been measured.
+                uint dispatchSize = (uint)(bufferSizeX * bufferSizeY);
+                cmd.DispatchRays(parameters.gBufferRaytracingRT, m_RayGenGBufferBinned, dispatchSize, 1, 1);
             }
             else
             {
                 cmd.SetRayTracingIntParams(parameters.gBufferRaytracingRT, "_RaytracingHalfResolution", parameters.halfResolution ? 1 : 0);
                 cmd.DispatchRays(parameters.gBufferRaytracingRT, m_RayGenGBuffer, widthResolution, heightResolution, (uint)parameters.viewCount);
             }
+
+            CoreUtils.SetKeyword(cmd, "MINIMAL_GBUFFER", false);
 
             // Now let's do the deferred shading pass on the samples
             int currentKernel = parameters.deferredRaytracingCS.FindKernel(parameters.halfResolution ? "RaytracingDeferredHalf" : "RaytracingDeferred");

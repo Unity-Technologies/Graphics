@@ -32,12 +32,6 @@ real PerceptualRoughnessToMipmapLevel(real perceptualRoughness)
     return PerceptualRoughnessToMipmapLevel(perceptualRoughness, UNITY_SPECCUBE_LOD_STEPS);
 }
 
-// Mapping for convolved Texture2D, this is an empirical remapping to match GGX version of cubemap convolution
-real PlanarPerceptualRoughnessToMipmapLevel(real perceptualRoughness, uint mipMapcount)
-{
-    return PositivePow(perceptualRoughness, 0.8) * uint(max(mipMapcount - 1, 0));
-}
-
 // The *accurate* version of the non-linear remapping. It works by
 // approximating the cone of the specular lobe, and then computing the MIP map level
 // which (approximately) covers the footprint of the lobe with a single texel.

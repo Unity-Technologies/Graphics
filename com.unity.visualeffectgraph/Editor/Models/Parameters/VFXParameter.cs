@@ -7,6 +7,13 @@ using UnityEngine.Serialization;
 
 namespace UnityEditor.VFX
 {
+    enum VFXValueFilter
+    {
+        Default,
+        Range,
+        Enum
+    }
+
     [ExcludeFromPreset]
     class VFXParameter : VFXSlotContainerModel<VFXModel, VFXModel>
     {
@@ -26,12 +33,90 @@ namespace UnityEditor.VFX
         [SerializeField]
         private string m_Category;
         [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
-        public VFXSerializableObject m_Min;
+        protected VFXSerializableObject m_Min;
         [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
-        public VFXSerializableObject m_Max;
+        protected VFXSerializableObject m_Max;
 
         [SerializeField]
         private bool m_IsOutput;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
+        protected List<string> m_EnumValues;
+
+        public List<string> enumValues
+        {
+            get { return m_EnumValues; }
+            set
+            {
+                m_EnumValues = value;
+                Invalidate(InvalidationCause.kSettingChanged);
+            }
+        }
+
+        public object min
+        {
+            get { if (m_Min != null) return m_Min.Get(); else return null; }
+
+            set
+            {
+                if (m_Min == null || m_Min.type != type)
+                    m_Min = new VFXSerializableObject(type, value);
+                else
+                    m_Min.Set(value);
+
+                Invalidate(InvalidationCause.kSettingChanged);
+            }
+        }
+        public object max
+        {
+            get { if (m_Max != null) return m_Max.Get(); else return null; }
+
+            set
+            {
+                if (m_Max == null || m_Max.type != type)
+                    m_Max = new VFXSerializableObject(type, value);
+                else
+                    m_Max.Set(value);
+                Invalidate(InvalidationCause.kSettingChanged);
+            }
+        }
+
+        [SerializeField]
+        VFXValueFilter m_ValueFilter;
+
+
+        public VFXValueFilter valueFilter
+        {
+            get => m_ValueFilter;
+
+            set
+            {
+                if( value != m_ValueFilter)
+                {
+                    m_ValueFilter = value;
+                    switch(m_ValueFilter)
+                    {
+                        case VFXValueFilter.Default:
+                            m_Max = m_Min = null;
+                            m_EnumValues = null;
+                            break;
+                        case VFXValueFilter.Range:
+                            m_Min = new VFXSerializableObject(type, this.value);
+                            m_Max = new VFXSerializableObject(type, this.value);
+                            m_EnumValues = null;
+                            break;
+                        case VFXValueFilter.Enum:
+                            m_EnumValues = new List<string>();
+                            m_EnumValues.Add("Zero");
+                            m_EnumValues.Add("One");
+                            m_Max = m_Min = null;
+                            break;
+                    }
+
+                    Invalidate(InvalidationCause.kSettingChanged);
+                }
+            }
+        }
 
         protected override IEnumerable<string> filteredOutSettings
         {
@@ -92,34 +177,11 @@ namespace UnityEditor.VFX
                 m_ValueExpr = m_ExprSlots.Select(t => t.DefaultExpression(valueMode)).ToArray();
         }
 
-        public bool canHaveRange
+        public bool canHaveValueFilter
         {
             get
             {
                 return !isOutput && (type == typeof(float) || type == typeof(int) || type == typeof(uint));
-            }
-        }
-
-        public bool hasRange
-        {
-            get { return canHaveRange && m_Min != null && m_Min.type != null && m_Max != null && m_Max.type != null; }
-
-            set
-            {
-                if (value != hasRange)
-                {
-                    if (value)
-                    {
-                        m_Min = new VFXSerializableObject(type);
-                        m_Max = new VFXSerializableObject(type);
-                    }
-                    else
-                    {
-                        m_Min = null;
-                        m_Max = null;
-                    }
-                    Invalidate(InvalidationCause.kUIChanged);
-                }
             }
         }
 
@@ -221,7 +283,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private void OnModified(VFXObject obj)
+        private void OnModified(VFXObject obj, bool uiChange)
         {
             if (!isOutput && (m_ExprSlots == null || m_ValueExpr == null))
             {
@@ -449,6 +511,9 @@ namespace UnityEditor.VFX
             base.Sanitize(version);
 
             HashSet<int> usedIds = new HashSet<int>();
+
+            if (m_Min != null && m_Min.type != null && m_ValueFilter == VFXValueFilter.Default)
+                m_ValueFilter = VFXValueFilter.Range;
 
             if (m_Nodes != null)
             {
