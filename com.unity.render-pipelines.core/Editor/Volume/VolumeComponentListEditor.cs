@@ -149,6 +149,8 @@ namespace UnityEditor.Rendering
             if (forceOpen)
                 editor.baseProperty.isExpanded = true;
 
+            editor.documentationURL = GetDocumentationURL(editor);
+
             if (index < 0)
                 m_Editors.Add(editor);
             else
@@ -232,7 +234,7 @@ namespace UnityEditor.Rendering
                             pos => OnContextClick(pos, editor.target, id),
                             editor.hasAdvancedMode ? () => editor.isInAdvancedMode : (Func<bool>)null,
                             () => editor.isInAdvancedMode ^= true,
-                            GetDocumentationURL(editor)
+                            editor.documentationURL
                             );
 
                     if (displayContent)

@@ -97,6 +97,11 @@ namespace UnityEditor.Rendering
         /// </summary>
         public SerializedProperty activeProperty { get; internal set; }
 
+        /// <summary>
+        /// The URL to the volume component's documentation.
+        /// </summary>
+        internal string documentationURL { get; set; }
+
         SerializedProperty m_AdvancedMode;
 
         /// <summary>
