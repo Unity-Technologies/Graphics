@@ -335,6 +335,26 @@ axisY = cross(axisZ, axisX);
             base.Sanitize(version);
         }
 
+        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            bool hasInvalidMode = false;
+            if (hasStrips)
+                hasInvalidMode =
+                    mode == Mode.FaceCameraPlane ||
+                    mode == Mode.FixedAxis ||
+                    mode == Mode.AlongVelocity;
+            else
+                hasInvalidMode =
+                    mode == Mode.CustomZ ||
+                    mode == Mode.CustomY;
+
+            if (hasInvalidMode)
+            {
+                string outputTypeStr = hasStrips ? "strip" : "non strip";
+                manager.RegisterError("InvalidOrientMode", VFXErrorType.Error, string.Format("Orient mode {0} is invalid with {1} output", mode, outputTypeStr));
+            }
+        }
+
         private void AxesPairToHLSL(AxesPair axes, out string axis1, out string axis2, out string axis3)
         {
             const string X = "axisX";
