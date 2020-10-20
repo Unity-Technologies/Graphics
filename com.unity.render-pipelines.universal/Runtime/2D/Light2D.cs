@@ -60,7 +60,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         Mesh m_Mesh;
 
         // Transients
-        int m_PreviousLightCookieSprite;        
+        int m_PreviousLightCookieSprite;
         internal int[] affectedSortingLayers => m_ApplyToSortingLayers;
 
         private int lightCookieSpriteInstanceID => m_LightCookieSprite?.GetInstanceID() ?? 0;
@@ -69,13 +69,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal BoundingSphere boundingSphere { get; private set; }
 
         internal Mesh lightMesh
-        { 
+        {
             get
             {
                 if ( null == m_Mesh )
                     m_Mesh = new Mesh();
                 return m_Mesh;
-            }			
+            }
         }
 
         internal bool hasCachedMesh => ( lightMesh.vertices.Length != 0 && lightMesh.triangles.Length != 0 );
@@ -155,7 +155,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 return -1;
         }
 
-        internal void UpdateMesh(bool useCachedMesh)
+        internal void UpdateMesh(bool forceUpdate)
         {
             var shapePathHash = LightUtility.GetShapePathHash(shapePath);
             var fallOffSizeChanged = LightUtility.CheckForChange(m_ShapeLightFalloffSize, ref m_PreviousShapeLightFalloffSize);
@@ -164,10 +164,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var parametricAngleOffsetChanged = LightUtility.CheckForChange(m_ShapeLightParametricAngleOffset, ref m_PreviousShapeLightParametricAngleOffset);
             var spriteInstanceChanged = LightUtility.CheckForChange(lightCookieSpriteInstanceID, ref m_PreviousLightCookieSprite);
             var shapePathHashChanged = LightUtility.CheckForChange(shapePathHash, ref m_PreviousShapePathHash);
-            var updateMesh = fallOffSizeChanged || parametricRadiusChanged || parametricSidesChanged ||
+            var hashChanged = fallOffSizeChanged || parametricRadiusChanged || parametricSidesChanged ||
                              parametricAngleOffsetChanged || spriteInstanceChanged || shapePathHashChanged;
             // Mesh Rebuilding
-            if (updateMesh && !useCachedMesh)
+            if (hashChanged && forceUpdate)
             {
                 switch (m_LightType)
                 {
@@ -210,7 +210,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private void Awake()
         {
-            UpdateMesh(hasCachedMesh);
+            UpdateMesh(!hasCachedMesh);
         }
 
         void OnEnable()
@@ -229,7 +229,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (m_LightType == LightType.Global)
                 return;
 
-            UpdateMesh(false);
+            UpdateMesh(true);
             UpdateBoundingSphere();
         }
     }

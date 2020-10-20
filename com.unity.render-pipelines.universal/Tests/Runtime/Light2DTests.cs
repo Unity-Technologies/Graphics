@@ -51,11 +51,11 @@ namespace UnityEngine.Rendering.Universal.Tests
             light2.transform.position = cameraPos;
             light3.transform.position = cameraPos;
 
-            light1.UpdateMesh(false);
+            light1.UpdateMesh(true);
             light1.UpdateBoundingSphere();
-            light2.UpdateMesh(false);
+            light2.UpdateMesh(true);
             light2.UpdateBoundingSphere();
-            light3.UpdateMesh(false);
+            light3.UpdateMesh(true);
             light3.UpdateBoundingSphere();
 
             var cullResult = new Light2DCullResult();
@@ -74,7 +74,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             var camera = m_TestObject1.AddComponent<Camera>();
             var light = m_TestObject2.AddComponent<Light2D>();
             light.transform.position = camera.transform.position;
-            light.UpdateMesh(false);
+            light.UpdateMesh(true);
             light.UpdateBoundingSphere();
 
             var cullResult = new Light2DCullResult();
@@ -91,7 +91,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             var camera = m_TestObject1.AddComponent<Camera>();
             var light = m_TestObject2.AddComponent<Light2D>();
             light.transform.position = camera.transform.position + new Vector3(9999.0f, 0.0f, 0.0f);
-            light.UpdateMesh(false);
+            light.UpdateMesh(true);
             light.UpdateBoundingSphere();
 
             var cullResult = new Light2DCullResult();
@@ -108,9 +108,9 @@ namespace UnityEngine.Rendering.Universal.Tests
             var shapePath = new Vector3[4] { new Vector3( 0, 0, 0), new Vector3(1,0,0), new Vector3(1, 1, 0), new Vector3(0, 1, 0) };
             var light = m_TestObjectCached.AddComponent<Light2D>();
             light.lightType = Light2D.LightType.Freeform;
-            
+
             light.SetShapePath(shapePath);
-            light.UpdateMesh(false);
+            light.UpdateMesh(true);
 
             Assert.AreEqual(true, light.hasCachedMesh);
         }
@@ -122,7 +122,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             var light = m_TestObjectCached.AddComponent<Light2D>();
             light.lightType = Light2D.LightType.Freeform;
             light.SetShapePath(shapePath);
-            light.UpdateMesh(false);
+            light.UpdateMesh(true);
 
             yield return new EnterPlayMode();
 
@@ -139,8 +139,8 @@ namespace UnityEngine.Rendering.Universal.Tests
             var light = m_TestObjectCached.AddComponent<Light2D>();
             light.lightType = Light2D.LightType.Freeform;
             light.SetShapePath(shapePath);
-            light.UpdateMesh(false);
-            
+            light.UpdateMesh(true);
+
             int vertexCount = 0, triangleCount = 0;
 
             yield return new EnterPlayMode();
@@ -156,7 +156,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             // Simulate Runtime Behavior.
             var shapePathChanged = new Vector3[5] { new Vector3( 0, 0, 0), new Vector3(1,0,0), new Vector3(1, 1, 0), new Vector3(0.5f, 1.5f, 0), new Vector3(0, 1, 0) };
             light.SetShapePath(shapePathChanged);
-            light.UpdateMesh(false);
+            light.UpdateMesh(true);
 
             // Check if Cached Data and the actual data are no longer the same. (We don't save cache on Runtime)
             Assert.AreNotEqual(vertexCount, light.lightMesh.triangles.Length);
