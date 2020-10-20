@@ -20,7 +20,14 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public override PropertyType propertyType => PropertyType.Texture2D;
 
-        internal override bool isBatchable => false;
+        internal override bool isBatchable
+        {
+            // isBatchable should never be called, because we override hasBatchable / hasNonBatchableProperties
+            get { throw new NotSupportedException(); }
+        }
+        internal override bool hasBatchableProperties => true;
+        internal override bool hasNonBatchableProperties => true;
+
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
 
@@ -31,9 +38,21 @@ namespace UnityEditor.ShaderGraph.Internal
             return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2D) = \"{defaultType.ToString().ToLower()}\" {{}}";
         }
 
+        internal override void AppendBatchablePropertyDeclarations(ShaderStringBuilder builder, string delimiter = ";")
+        {
+            builder.AppendLine($"{concretePrecision.ToShaderString()}4 {referenceName}_TexelSize{delimiter}");
+        }
+
+        internal override void AppendNonBatchablePropertyDeclarations(ShaderStringBuilder builder, string delimiter = ";")
+        {
+            builder.AppendLine($"TEXTURE2D({referenceName}){delimiter}");
+            builder.AppendLine($"SAMPLER(sampler{referenceName}){delimiter}");
+        }
+
         internal override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            return $"TEXTURE2D({referenceName}){delimiter} SAMPLER(sampler{referenceName}){delimiter} {concretePrecision.ToShaderString()}4 {referenceName}_TexelSize{delimiter}";
+            // this should not be called, as it is replaced by the Append*PropertyDeclarations functions above
+            throw new NotSupportedException();
         }
 
         internal override string GetPropertyAsArgumentString()

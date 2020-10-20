@@ -22,7 +22,8 @@ namespace UnityEngine.Rendering.HighDefinition
             SeparateColorGradingAndTonemappingFrameSettings,
             ReplaceTextureArraysByAtlasForCookieAndPlanar,
             AddedAdaptiveSSS,
-            RemoveCookieCubeAtlasToOctahedral2D
+            RemoveCookieCubeAtlasToOctahedral2D,
+            RoughDistortion
         }
 
         static readonly MigrationDescription<Version, HDRenderPipelineAsset> k_Migration = MigrationDescription.New(
@@ -125,6 +126,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     Debug.LogWarning("HDRP Internally change the storage of Cube Cookie to Octahedral Projection inside the Planar Reflection Atlas. It is recommended that you increase the size of the Planar Projection Atlas if the cookies no longer fit.");
                 }
+            }),
+            MigrationStep.New(Version.RoughDistortion, (HDRenderPipelineAsset data) =>
+            {
+                FrameSettings.MigrateRoughDistortion(ref data.m_RenderingPathDefaultCameraFrameSettings);
+                FrameSettings.MigrateRoughDistortion(ref data.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings);
+                FrameSettings.MigrateRoughDistortion(ref data.m_RenderingPathDefaultRealtimeReflectionFrameSettings);
             })
         );
 
