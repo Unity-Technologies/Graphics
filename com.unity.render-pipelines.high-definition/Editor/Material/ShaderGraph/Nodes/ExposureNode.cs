@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         [SerializeField]
         ExposureType        m_ExposureType;
-        [EnumControl]
+        [EnumControl("Type")]
         public ExposureType exposureType
         {
             get => m_ExposureType;
