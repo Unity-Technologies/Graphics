@@ -23,16 +23,20 @@ This Block is compatible with the following Contexts:
 
 ## Block settings
 
-| **Setting**       | **Type** | **Description**                                              |
-| ----------------- | -------- | ------------------------------------------------------------ |
-| **Position Mode** | Enum     | Specifies how this Block uses the shape to calculate a position. The options are:<br> &#8226; **Surface**: Calculates positions only on the shape’s surface.<br> &#8226; **Volume**: Calculates positions inside the entire shape’s volume.<br> &#8226; **Thickness Absolute**: Calculates positions on a thick surface of given absolute thickness.<br> &#8226; **Thickness Relative** Calculates positions on a thick surface as a given percentage of the largest axis’s size. |
+| **Setting**          | **Type** | **Description**                                              |
+| -------------------- | -------- | ------------------------------------------------------------ |
+| **Position Mode**    | Enum     | Specifies how this Block uses the shape to calculate a position. The options are:<br> &#8226; **Surface**: Calculates positions only on the shape’s surface.<br> &#8226; **Volume**: Calculates positions inside the entire shape’s volume.<br> &#8226; **Thickness Absolute**: Calculates positions on a thick surface of given absolute thickness.<br> &#8226; **Thickness Relative** Calculates positions on a thick surface as a given percentage of the largest axis’s size. |
+| **Spawn Mode**       | Enum     | Specifies how this Block distributes the particles among the shape’s arc.<br/>&#8226; **Random**: Calculates a per-particle random progress (0..1) on the arc.<br/>&#8226; **Custom**: Allows you to specify the progress in the **Arc Sequencer** property port. |
+| **Kill Outliers**    | Bool     | (**Inspector**) Indicates whether to kill particles whose position does not adhere to the surface/volume. |
+| **Projection Steps** | uint     | (**Inspector**) The number of steps this Block uses to project the particle onto the surface of the SDF. This may impact performance, but can yield less outliers. |
 
 ## Block properties
 
-| **Input**     | **Type**               | **Description**                                              |
-| ------------- | ---------------------- | ------------------------------------------------------------ |
-| **Box**       | [AABox](Type-AABox.md) | The Axis-Aligned Box that determines the shape to calculate the position from. |
-| **Thickness** | Float                  | The thickness of the shape’s surface for position calculation.<br/>This property only appears if you set **Position Mode** to **Thickness Relative** or **Thickness Absolute**. |
+| **Input**         | **Type**               | **Description**                                              |
+| ----------------- | ---------------------- | ------------------------------------------------------------ |
+| **Box**           | [AABox](Type-AABox.md) | The Axis-Aligned Box that determines the shape to calculate the position from. |
+| **Thickness**     | float                  | The thickness of the shape’s surface for position calculation.<br/>This property only appears if you set **Position Mode** to **Thickness Relative** or **Thickness Absolute**. |
+| **Arc Sequencer** | float                  | The position in the arc to spawn particles.<br/>This property only appears if you set **Spawn Mode** to **Custom**. |
 
 ## Notes
 
