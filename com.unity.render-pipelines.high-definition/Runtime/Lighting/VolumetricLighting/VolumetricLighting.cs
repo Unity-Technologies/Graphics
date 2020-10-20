@@ -385,33 +385,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                      dimension: TextureDimension.Tex3D, enableRandomWrite: true, name: name);
             }
         }
-
-        static internal Vector2Int GetMaskZDimension(int viewportWidth, int viewportHeight)
-        {
-            return new Vector2Int(viewportWidth & ~7, viewportHeight & ~7);
-        }
-
-        static internal void ResizeMask(ref RTHandle rt, string name, int viewportWidth, int viewportHeight, GraphicsFormat format)
-        {
-            Debug.Assert(rt != null);
-
-            int width = rt.rt.width;
-            int height = rt.rt.height;
-
-            bool realloc = (width < viewportWidth) || (height < viewportHeight);
-
-            if (realloc)
-            {
-                RTHandles.Release(rt);
-
-                width = Math.Max(width, viewportWidth);
-                height = Math.Max(height, viewportHeight);
-
-                rt = RTHandles.Alloc(width, height, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: format, enableRandomWrite: true, name: name);
-            }
-
-        }
-
         struct GenerateMaxZParameters
         {
             public ComputeShader generateMaxZCS;
@@ -610,13 +583,13 @@ namespace UnityEngine.Rendering.HighDefinition
                                                dimension: TextureDimension.Tex3D, enableRandomWrite: true, name: "VBufferLighting");
 
 
-            m_MaxZMask8x = RTHandles.Alloc(minSize, minSize, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat, 
+            m_MaxZMask8x = RTHandles.Alloc(Vector2.one * 0.125f, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat, 
                                     enableRandomWrite: true, name: "MaxZ mask 8x");
 
-            m_MaxZMask = RTHandles.Alloc(minSize, minSize, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat, 
+            m_MaxZMask = RTHandles.Alloc(Vector2.one / 16.0f, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat, 
                                                 enableRandomWrite: true, name: "MaxZ mask");
 
-            m_DilatedMaxZMask = RTHandles.Alloc(minSize, minSize, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat,
+            m_DilatedMaxZMask = RTHandles.Alloc(Vector2.one / 16.0f, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat,
                                     enableRandomWrite: true, name: "Dilated MaxZ mask");
 
         }
@@ -664,13 +637,6 @@ namespace UnityEngine.Rendering.HighDefinition
             ResizeVolumetricBuffer(ref m_LightingBuffer, "VBufferLighting", currentParams.viewportSize.x,
                                                                             currentParams.viewportSize.y,
                                                                             currentParams.viewportSize.z);
-
-            int maskW = HDUtils.DivRoundUp(hdCamera.actualWidth, 16);
-            int maskH = HDUtils.DivRoundUp(hdCamera.actualHeight, 16);
-
-            ResizeMask(ref m_MaxZMask8x, "Max Z Mask 8x", maskW * 2, maskH * 2, GraphicsFormat.R32_SFloat);
-            ResizeMask(ref m_MaxZMask, "Max Z Mask", maskW, maskH, GraphicsFormat.R32_SFloat);
-            ResizeMask(ref m_DilatedMaxZMask, "Dilated Max Z Mask", maskW, maskH, GraphicsFormat.R32_SFloat);
 
             // TODO RENDERGRAPH: For now those texture are not handled by render graph.
             // When they are we won't have the m_DensityBuffer handy for getting the current size in UpdateShaderVariablesGlobalVolumetrics
