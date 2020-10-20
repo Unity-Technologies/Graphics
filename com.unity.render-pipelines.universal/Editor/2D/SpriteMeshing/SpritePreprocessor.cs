@@ -138,9 +138,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 return;
 
             TextureImporter textureImporter = (TextureImporter)assetImporter;
-            
+            var textureSettings = new TextureImporterSettings();
+            textureImporter.ReadTextureSettings(textureSettings);
+            Debug.Log(textureSettings.spriteMeshType);
 
-            if (textureImporter.spriteMeshType == SpriteMeshType.Tight && textureImporter.spriteGenerateDepthMesh)
+            if (textureSettings.spriteMeshType == SpriteMeshType.Tight && textureImporter.spriteGenerateDepthMesh)
             {
                 if (textureImporter.spriteImportMode == SpriteImportMode.Single)
                 {
