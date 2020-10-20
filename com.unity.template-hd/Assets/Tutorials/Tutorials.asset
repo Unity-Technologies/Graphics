@@ -81,3 +81,13 @@ MonoBehaviour:
     AuthorizedUrl: 0
     Image: {fileID: 0}
     Tutorial: {fileID: 11400000, guid: c8a568f8d148fe04a9d6059c3c4af548, type: 2}
+  - OrderInView: 12
+    Heading:
+      m_Untranslated: Exposure
+    Text:
+      m_Untranslated: 
+    LinkText: 
+    Url: 
+    AuthorizedUrl: 0
+    Image: {fileID: 0}
+    Tutorial: {fileID: 11400000, guid: 5a97a8110d08a744da2eb4678c76d1fb, type: 2}
