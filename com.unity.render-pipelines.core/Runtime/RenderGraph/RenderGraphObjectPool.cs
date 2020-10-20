@@ -88,14 +88,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         // Regular pooling API. Only internal use for now
         internal T Get<T>() where T : new()
         {
-            var toto = SharedObjectPool<T>.sharedPool;
-            return toto.Get();
+            var pool = SharedObjectPool<T>.sharedPool;
+            return pool.Get();
         }
 
         internal void Release<T>(T value) where T : new()
         {
-            var toto = SharedObjectPool<T>.sharedPool;
-            toto.Release(value);
+            var pool = SharedObjectPool<T>.sharedPool;
+            pool.Release(value);
         }
     }
 }

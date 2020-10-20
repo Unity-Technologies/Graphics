@@ -25,7 +25,10 @@ Pass
     $splice(GraphKeywords)
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl" // Required to be include before we include properties as it define DECLARE_STACK_CB
 
     // --------------------------------------------------
     // Defines
@@ -108,16 +111,21 @@ Pass
     // Dots Instancing
     $splice(DotsInstancingOptions)
 
+    // Various properties
+
     $splice(HybridV1InjectedBuiltinProperties)
 
-    // Includes
-    $splice(PreGraphIncludes)
+    // -- Graph Properties
+    $splice(GraphProperties)
 
-    // Properties used by SceneSelectionPass
+    // -- Properties used by SceneSelectionPass
     #ifdef SCENESELECTIONPASS
     int _ObjectId;
     int _PassValue;
     #endif
+
+    // Includes
+    $splice(PreGraphIncludes)
 
     // --------------------------------------------------
     // Structs and Packing
@@ -129,8 +137,6 @@ Pass
     // --------------------------------------------------
     // Graph
 
-    // Graph Properties
-    $splice(GraphProperties)
 
     // Graph Functions
     $splice(GraphFunctions)
@@ -189,7 +195,7 @@ Pass
             #elif SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_POSTPASS
             // DepthPostpass always use its own alpha threshold
             alphaCutoff = surfaceDescription.AlphaClipThresholdDepthPostpass;
-            #elif SHADERPASS == SHADERPASS_SHADOWS
+            #elif (SHADERPASS == SHADERPASS_SHADOWS) || (SHADERPASS == SHADERPASS_RAYTRACING_VISIBILITY)
             // If use shadow threshold isn't enable we don't allow any test
             $DoAlphaTestShadow: alphaCutoff = _UseShadowThreshold ? surfaceDescription.AlphaClipThresholdShadow : alphaCutoff;
             #endif

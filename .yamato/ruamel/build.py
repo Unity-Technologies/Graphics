@@ -75,7 +75,11 @@ if __name__== "__main__":
 
     # read shared file
     shared = yml_load(os.path.join(config_dir,'__shared.metafile'))
-    latest_editor_versions = yml_load(os.path.join(config_dir,'_latest_editor_versions.metafile'))
+    editor_tracks = shared['editors']
+    latest_editor_versions = {}
+    for editor in editor_tracks:
+        if editor['editor_pinning']:
+            latest_editor_versions[editor['track']] = yml_load(os.path.join(config_dir,f'_latest_editor_versions_{str(editor["track"])}.metafile'))
 
     # create editor
     print(f'Running: editor')
@@ -89,7 +93,7 @@ if __name__== "__main__":
     yml_dump_files(create_projectcontext_ymls(package_metafile))
 
     # create abv
-    abv_metafile = get_metafile(os.path.join(config_dir,'_abv.metafile'), unfold_agents_root_keys=['smoke_test'], unfold_test_platforms_root_keys=['smoke_test'])
+    abv_metafile = get_metafile(os.path.join(config_dir,'_abv.metafile'))
     yml_dump_files(create_abv_ymls(abv_metafile))
 
     # create preview publish
@@ -103,13 +107,13 @@ if __name__== "__main__":
     yml_dump_files(create_template_ymls(template_metafile))
 
     # create yml jobs for each specified project
-    #for project_metafile in glob.glob(os.path.join(config_dir,'universal.metafile')):
+    #for project_metafile in glob.glob(os.path.join(config_dir,'*universal*.metafile')):
     for project_metafile in glob.glob(os.path.join(config_dir,'[!_]*.metafile')):
         print(f'Running: {project_metafile}')   
         project_metafile = get_metafile(project_metafile)
         yml_dump_files(create_project_ymls(project_metafile))
         
-    # # running assert checks for dependency paths
+    # running assert checks for dependency paths
     print(f'Checking dependency paths')
     assert_dependencies()
 
